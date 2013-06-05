@@ -14,33 +14,15 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.0.7</version>
+            <version>1.0.13</version>
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-project</artifactId>
-            <version>9.0.3.v20130506</version>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0</version>
+            <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-            <version>1.17.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
-            <version>1.17.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>1.17.1</version>
-        </dependency>
-
 
         <dependency>
             <groupId>javax</groupId>
@@ -59,13 +41,6 @@
             <artifactId>javax.json-api</artifactId>
             <version>1.0</version>
         </dependency>
-
-
-        <!--<dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket</artifactId>
-            <version>1.0-b06</version>
-        </dependency>-->
 
     </dependencies>
 </project>
