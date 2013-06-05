@@ -1,5 +1,5 @@
 package com.devicehive.websockets.handlers;
 
 
-public interface HiveMessageHandler {
+public interface HiveMessageHandlers {
 }

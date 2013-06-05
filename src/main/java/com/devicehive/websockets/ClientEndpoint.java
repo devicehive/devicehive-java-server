@@ -1,8 +1,8 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.websockets.handlers.ClientHiveHandler;
-import com.devicehive.websockets.handlers.HiveMessageHandler;
+import com.devicehive.websockets.handlers.ClientMessageHandlers;
+import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +18,6 @@ import java.lang.reflect.InvocationTargetException;
 public class ClientEndpoint extends Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientEndpoint.class);
-
-
 
 
     @OnOpen
@@ -46,7 +44,7 @@ public class ClientEndpoint extends Endpoint {
     }
 
     @Override
-    protected HiveMessageHandler getHiveMessageHandler() {
-        return new ClientHiveHandler();
+    protected HiveMessageHandlers getHiveMessageHandler() {
+        return new ClientMessageHandlers();
     }
 }

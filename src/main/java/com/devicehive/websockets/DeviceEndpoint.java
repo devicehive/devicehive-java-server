@@ -1,8 +1,8 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.websockets.handlers.DeviceHiveHandler;
-import com.devicehive.websockets.handlers.HiveMessageHandler;
+import com.devicehive.websockets.handlers.DeviceMessageHandlers;
+import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +19,6 @@ public class DeviceEndpoint extends Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceEndpoint.class);
 
-    private static final long MAX_MESSAGE_SIZE = 10240;
 
     @OnOpen
     public void onOpen(Session session) {
@@ -43,7 +42,7 @@ public class DeviceEndpoint extends Endpoint {
     }
 
     @Override
-    protected HiveMessageHandler getHiveMessageHandler() {
-        return new DeviceHiveHandler();
+    protected HiveMessageHandlers getHiveMessageHandler() {
+        return new DeviceMessageHandlers();
     }
 }
