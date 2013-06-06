@@ -15,4 +15,6 @@ public @interface Action {
 
 
     public AuthLevel requredLevel() default AuthLevel.NONE;
+
+    public boolean copyRequestId() default false;
 }

@@ -7,7 +7,10 @@ import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
 import javax.websocket.Session;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,7 +43,20 @@ abstract class Endpoint {
                 if (ann.value() != null && ann.value().equals(action)) {
                     try {
                         logger.debug("[processMessage] " + message + " " + action + " " + handler);
-                        return (JsonObject)method.invoke(handler, message, session);
+                        JsonObject jsonObject = (JsonObject)method.invoke(handler, message, session);
+                        if (jsonObject != null) {
+                            JsonObjectBuilder builder = Json.createObjectBuilder()
+                                .add("action", action);
+                            if (ann.copyRequestId()) {
+                                JsonObject reqId = message.getJsonObject("requestId");
+                                builder.add("requestId", reqId);
+                            }
+                            for (String key : jsonObject.keySet()) {
+                                builder.add(key, jsonObject.get(key));
+                            }
+                            return builder.build();
+                        }
+                        return null;
                     } catch (IllegalAccessException e) {
                         logger.error("Error calling method " + handler.getClass().getName() + "." + method.getName(), e);
                     } catch (InvocationTargetException e) {
