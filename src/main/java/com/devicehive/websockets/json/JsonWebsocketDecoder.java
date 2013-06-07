@@ -1,8 +1,11 @@
 package com.devicehive.websockets.json;
 
 
-import javax.json.Json;
-import javax.json.JsonObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EndpointConfig;
@@ -12,8 +15,7 @@ import java.io.Reader;
 public class JsonWebsocketDecoder implements Decoder.TextStream<JsonObject>{
 
     public JsonObject decode(Reader reader) throws DecodeException, IOException {
-
-        return Json.createReader(reader).readObject();
+        return new JsonParser().parse(reader).getAsJsonObject();
     }
 
     public void init(EndpointConfig config) {

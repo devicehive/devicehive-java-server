@@ -4,16 +4,15 @@ package com.devicehive.websockets;
 import com.devicehive.model.AuthLevel;
 import com.devicehive.websockets.handlers.Action;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonString;
 import javax.websocket.Session;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 abstract class Endpoint {
 
@@ -27,9 +26,9 @@ abstract class Endpoint {
 
 
     public JsonObject processMessage(JsonObject message, Session session) {
-        logger.debug("[processMessage] session id " + session.getId());
+        //logger.debug("[processMessage] session id " + session.getId());
         HiveMessageHandlers handler = getHiveMessageHandler();
-        String action = message.getString("action");
+        String action = message.getAsJsonPrimitive("action").getAsString();
         for (final Method method : handler.getClass().getMethods()) {
             if (method.isAnnotationPresent(Action.class)) {
                 Action ann = method.getAnnotation(Action.class);
@@ -45,16 +44,16 @@ abstract class Endpoint {
                         logger.debug("[processMessage] " + message + " " + action + " " + handler);
                         JsonObject jsonObject = (JsonObject)method.invoke(handler, message, session);
                         if (jsonObject != null) {
-                            JsonObjectBuilder builder = Json.createObjectBuilder()
-                                .add("action", action);
+                            JsonObject result = new JsonObject();
+                            result.addProperty("action", action);
                             if (ann.copyRequestId()) {
-                                JsonObject reqId = message.getJsonObject("requestId");
-                                builder.add("requestId", reqId);
+                                JsonElement reqId = message.get("requestId");
+                                result.add("requestId", reqId);
                             }
-                            for (String key : jsonObject.keySet()) {
-                                builder.add(key, jsonObject.get(key));
+                            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                                result.add(entry.getKey(), entry.getValue());
                             }
-                            return builder.build();
+                            return result;
                         }
                         return null;
                     } catch (IllegalAccessException e) {

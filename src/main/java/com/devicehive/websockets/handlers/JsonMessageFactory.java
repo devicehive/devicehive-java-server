@@ -1,20 +1,15 @@
 package com.devicehive.websockets.handlers;
 
 
-import javax.json.Json;
-import javax.json.JsonObjectBuilder;
+import com.google.gson.JsonObject;
 
 public class JsonMessageFactory {
 
-    public static JsonObjectBuilder createResponseBuilder(String requestId, String status) {
-        return Json.createObjectBuilder()
-            .add("requestId", requestId)
-            .add("status", status);
+    public static JsonObject createStatusResponce(String status) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("status", status);
+        return jsonObject;
     }
 
-    public static JsonObjectBuilder createResponseBuilder(String requestId) {
-        return Json.createObjectBuilder()
-            .add("requestId", requestId);
-    }
 
 }

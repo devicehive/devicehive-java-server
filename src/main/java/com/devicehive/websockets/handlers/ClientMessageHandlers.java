@@ -3,13 +3,19 @@ package com.devicehive.websockets.handlers;
 
 
 
+import com.devicehive.model.ApiInfo;
 import com.devicehive.model.AuthLevel;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.Version;
+import com.devicehive.websockets.json.ConvertorFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
+
 import javax.websocket.Session;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
@@ -17,32 +23,37 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         String status = null;
         //TODO
-        return JsonMessageFactory.createResponseBuilder(status).build();
+        return JsonMessageFactory.createStatusResponce(status);
     }
 
 
-    @Action(value = "command/insert", copyRequestId = true)
+    @Action(value = "command/insert", requredLevel = AuthLevel.USER, copyRequestId = true)
     public JsonObject processCommandInsert(JsonObject message, Session session) {
         //TODO
-        JsonObjectBuilder builder = JsonMessageFactory.createResponseBuilder("success");
-        builder.add("command", Json.createObjectBuilder());
-        return  builder.build();
+        String status = null;
+        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        return jsonObject;
     }
 
     @Action(value = "notification/subscribe", requredLevel = AuthLevel.USER, copyRequestId = true)
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         //TODO
+
         String status = null;
-        JsonArray devices = message.getJsonArray("deviceGuids");
-        return JsonMessageFactory.createResponseBuilder(status).build();
+        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        jsonObject.add("deviceGuids", new JsonObject());
+        return jsonObject;
+
     }
 
     @Action(value = "notification/unsubscribe", requredLevel = AuthLevel.USER, copyRequestId = true)
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         //TODO
+
         String status = null;
-        JsonArray devices = message.getJsonArray("deviceGuids");
-        return JsonMessageFactory.createResponseBuilder(status).build();
+        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        jsonObject.add("deviceGuids", new JsonObject());
+        return jsonObject;
     }
 
     /*
@@ -58,9 +69,12 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "server/info", copyRequestId = true)
     public JsonObject processServerInfo(JsonObject message, Session session) {
-        //TODO
-        JsonObjectBuilder builder = JsonMessageFactory.createResponseBuilder("success");
-        builder.add("info", Json.createObjectBuilder());
-        return  builder.build();
+        JsonObject jsonObject = JsonMessageFactory.createStatusResponce("success");
+        ApiInfo apiInfo = new ApiInfo();
+        apiInfo.setApiVersion(Version.VERSION);
+        apiInfo.setServerTimestamp(new Date());
+        apiInfo.setWebSocketServerUrl("fqfw");
+        jsonObject.add("info", ConvertorFactory.createGson().toJsonTree(apiInfo));
+        return jsonObject;
     }
 }

@@ -1,20 +1,48 @@
 package com.devicehive.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
 
 /**
  * TODO JavaDoc
  */
-@XmlRootElement
 public class ApiInfo {
-    public String apiVersion;
-    public Date serverTimestamp;
-    public String webSocketServerUrl;
+
+    @SerializedName("apiVersion")
+    private String apiVersion;
+
+    @SerializedName("serverTimestamp")
+    private Date serverTimestamp;
+
+    @SerializedName("webSocketServerUrl")
+    private String webSocketServerUrl;
 
     public ApiInfo() {
-        apiVersion = Version.VERSION;
-        serverTimestamp = new Date();
-        webSocketServerUrl = "localhost";
+    }
+
+    public String getApiVersion() {
+        return apiVersion;
+    }
+
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+    }
+
+    public Date getServerTimestamp() {
+        return serverTimestamp;
+    }
+
+    public void setServerTimestamp(Date serverTimestamp) {
+        this.serverTimestamp = serverTimestamp;
+    }
+
+    public String getWebSocketServerUrl() {
+        return webSocketServerUrl;
+    }
+
+    public void setWebSocketServerUrl(String webSocketServerUrl) {
+        this.webSocketServerUrl = webSocketServerUrl;
     }
 }
