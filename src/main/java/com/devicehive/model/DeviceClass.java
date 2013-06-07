@@ -2,35 +2,46 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * TODO JavaDoc
  */
+@Entity
 public class DeviceClass {
 
     @SerializedName("id")
+    @Id
+    @GeneratedValue
     private Integer id;
 
     @SerializedName("name")
+    @Column
     private String name;
 
     @SerializedName("version")
+    @Column
     private String version;
 
     @SerializedName("isPermanent")
+    @Column
     private Boolean isPermanent;
 
     @SerializedName("offlineTimeout")
+    @Column
     private Integer offlineTimeout;
 
     @SerializedName("data")
-    private Object data;
+    @Column
+    private String data;
 
     public DeviceClass() {
 
     }
-
 
     public Integer getId() {
         return id;
@@ -72,11 +83,11 @@ public class DeviceClass {
         this.offlineTimeout = offlineTimeout;
     }
 
-    public Object getData() {
+    public String getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(String data) {
         this.data = data;
     }
 }
