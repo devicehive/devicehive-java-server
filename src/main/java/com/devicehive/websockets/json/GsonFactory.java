@@ -5,9 +5,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
-public class ConvertorFactory {
+public class GsonFactory {
 
     public static Gson createGson() {
         GsonBuilder builder = new GsonBuilder();

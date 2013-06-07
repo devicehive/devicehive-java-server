@@ -3,9 +3,9 @@ package com.devicehive.websockets;
 
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
+import com.devicehive.websockets.handlers.annotations.Action;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +14,8 @@ import javax.websocket.server.ServerEndpoint;
 import com.devicehive.websockets.json.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Map;
 
 
 @ServerEndpoint(value = "/client", encoders = {JsonWebsocketEncoder.class}, decoders = {JsonWebsocketDecoder.class})
@@ -48,5 +50,10 @@ public class ClientEndpoint extends Endpoint {
     @Override
     protected HiveMessageHandlers getHiveMessageHandler() {
         return new ClientMessageHandlers();
+    }
+
+    @Override
+    protected boolean checkAuth(JsonObject message, Session session) {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

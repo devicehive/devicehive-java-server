@@ -1,6 +1,4 @@
-package com.devicehive.websockets.handlers;
-
-import com.devicehive.model.AuthLevel;
+package com.devicehive.websockets.handlers.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,8 +11,6 @@ public @interface Action {
 
     public String value();
 
+    public boolean needsAuth() default true;
 
-    public AuthLevel requredLevel() default AuthLevel.NONE;
-
-    public boolean copyRequestId() default false;
 }

@@ -2,8 +2,10 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.model.AuthLevel;
-import com.devicehive.websockets.handlers.Action;
+import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
+import com.devicehive.websockets.json.GsonFactory;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -25,7 +27,7 @@ abstract class Endpoint {
 
 
 
-    public JsonObject processMessage(JsonObject message, Session session) {
+    protected JsonObject processMessage(JsonObject message, Session session) {
         //logger.debug("[processMessage] session id " + session.getId());
         HiveMessageHandlers handler = getHiveMessageHandler();
         String action = message.getAsJsonPrimitive("action").getAsString();
@@ -34,11 +36,11 @@ abstract class Endpoint {
                 Action ann = method.getAnnotation(Action.class);
                 logger.debug("[processMessage] " + ann);
 
-                AuthLevel requiredLevel = ann.requredLevel() != null ? ann.requredLevel() : AuthLevel.NONE;
-                /*
-                 * TODO check actual level
-                 */
+                boolean needsAuth = ann.needsAuth();
 
+                if (needsAuth && checkAuth(message, session)) {
+                    //answer not authorized
+                }
                 if (ann.value() != null && ann.value().equals(action)) {
                     try {
                         logger.debug("[processMessage] " + message + " " + action + " " + handler);
@@ -46,10 +48,7 @@ abstract class Endpoint {
                         if (jsonObject != null) {
                             JsonObject result = new JsonObject();
                             result.addProperty("action", action);
-                            if (ann.copyRequestId()) {
-                                JsonElement reqId = message.get("requestId");
-                                result.add("requestId", reqId);
-                            }
+                            result.add("requestId", message.get("requestId"));
                             for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
                                 result.add(entry.getKey(), entry.getValue());
                             }
@@ -67,6 +66,8 @@ abstract class Endpoint {
         return null;
     }
 
+
+    protected abstract boolean checkAuth(JsonObject message, Session session);
 
 
 }
