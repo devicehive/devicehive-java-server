@@ -1,7 +1,9 @@
 package com.devicehive.model;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -22,13 +24,16 @@ public class Device {
     private String status;
 
     @SerializedName("data")
-    private Object data;
+    private JsonElement data;
 
     @SerializedName("network")
     private Network network;
 
     @SerializedName("deviceClass")
     private DeviceClass deviceClass;
+
+    @SerializedName("equipment")
+    private List<Equipment> equipment;
 
     public Device() {
     }
@@ -65,11 +70,11 @@ public class Device {
         this.status = status;
     }
 
-    public Object getData() {
+    public JsonElement getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(JsonElement data) {
         this.data = data;
     }
 
@@ -87,5 +92,13 @@ public class Device {
 
     public void setDeviceClass(DeviceClass deviceClass) {
         this.deviceClass = deviceClass;
+    }
+
+    public List<Equipment> getEquipment() {
+        return equipment;
+    }
+
+    public void setEquipment(List<Equipment> equipment) {
+        this.equipment = equipment;
     }
 }

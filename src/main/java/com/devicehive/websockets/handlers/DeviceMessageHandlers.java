@@ -2,10 +2,7 @@ package com.devicehive.websockets.handlers;
 
 
 
-import com.devicehive.model.ApiInfo;
-import com.devicehive.model.AuthLevel;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.Version;
+import com.devicehive.model.*;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.google.gson.Gson;
@@ -25,8 +22,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         String deviceKey = message.get("deviceKey").getAsString();
 
         //TODO session auth
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
     }
 
@@ -37,8 +33,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
         //TODO update
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
     }
 
@@ -46,16 +41,14 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
         //TODO subscribe
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
     }
 
     @Action(value = "command/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         //TODO unsubscribe
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
     }
 
@@ -63,14 +56,14 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationInsert(JsonObject message, Session session) {
         //TODO insert
         String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         jsonObject.add("notification", new JsonObject());
         return jsonObject;
     }
 
     @Action(value = "server/info")
     public JsonObject processServerInfo(JsonObject message, Session session) {
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce("success");
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date());
@@ -82,8 +75,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
         //TODO get
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         jsonObject.add("device", new JsonObject());
         return jsonObject;
     }
@@ -93,9 +85,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         UUID deviceId = gson.fromJson(message.get("deviceId"), UUID.class);
         String deviceKey = message.get("deviceKey").getAsString();
 
+         Device device = gson.fromJson(message.get("device"), Device.class);
+
         //TODO
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
     }
 

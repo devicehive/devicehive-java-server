@@ -1,6 +1,7 @@
 package com.devicehive.websockets.json;
 
 
+import com.devicehive.model.DeviceClass;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

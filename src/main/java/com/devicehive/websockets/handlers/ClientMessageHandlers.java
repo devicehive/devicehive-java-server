@@ -30,20 +30,18 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         String login = message.get("login").getAsString();
         String password = message.get("password").getAsString();
 
-        String status = null;//TODO execute auth procedure
-        return JsonMessageFactory.createStatusResponce(status);
+        return JsonMessageFactory.createSuccessResponse();
     }
 
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) {
-        String deviceGuid = message.get("deviceGuid").getAsString();
+        UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
 
 
         DeviceCommand executedCommand = deviceCommand; //TODO execute
-        String status = "success";
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         jsonObject.add("command", GsonFactory.createGson().toJsonTree(executedCommand));
         return jsonObject;
     }
@@ -57,8 +55,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             list.add(gson.fromJson(uuidJson, UUID.class));
         }
         //TODO subscribe
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
 
     }
@@ -71,8 +68,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             list.add(gson.fromJson(uuidJson, UUID.class));
         }
         //TODO unsubscribe
-        String status = null;
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce(status);
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         jsonObject.add("deviceGuids", new JsonObject());
         return jsonObject;
     }
@@ -80,7 +76,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
-        JsonObject jsonObject = JsonMessageFactory.createStatusResponce("success");
+        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date());

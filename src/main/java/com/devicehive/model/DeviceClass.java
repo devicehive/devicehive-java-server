@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -25,7 +26,7 @@ public class DeviceClass {
     private Integer offlineTimeout;
 
     @SerializedName("data")
-    private Object data;
+    private JsonElement data;
 
     public DeviceClass() {
 
@@ -72,11 +73,11 @@ public class DeviceClass {
         this.offlineTimeout = offlineTimeout;
     }
 
-    public Object getData() {
+    public JsonElement getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(JsonElement data) {
         this.data = data;
     }
 }

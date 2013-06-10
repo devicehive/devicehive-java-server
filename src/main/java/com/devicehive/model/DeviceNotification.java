@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
@@ -20,7 +21,7 @@ public class DeviceNotification {
     private String notification;
 
     @SerializedName("parameters")
-    private Object parameters;
+    private JsonElement parameters;
 
     public DeviceNotification() {
     }
@@ -50,11 +51,11 @@ public class DeviceNotification {
         this.notification = notification;
     }
 
-    public Object getParameters() {
+    public JsonElement getParameters() {
         return parameters;
     }
 
-    public void setParameters(Object parameters) {
+    public void setParameters(JsonElement parameters) {
         this.parameters = parameters;
     }
 }
