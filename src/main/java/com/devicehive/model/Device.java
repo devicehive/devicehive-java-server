@@ -3,37 +3,44 @@ package com.devicehive.model;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * TODO JavaDoc
  */
+@Entity
 public class Device {
 
     @SerializedName("id")
+    @Id
+    @GeneratedValue
     private UUID id;
 
     @SerializedName("key")
+    @Column
     private String key;
 
     @SerializedName("name")
+    @Column
     private String name;
 
     @SerializedName("status")
+    @Column
     private String status;
 
     @SerializedName("data")
-    private JsonElement data;
+    private Object data;
 
     @SerializedName("network")
     private Network network;
 
     @SerializedName("deviceClass")
     private DeviceClass deviceClass;
-
-    @SerializedName("equipment")
-    private List<Equipment> equipment;
 
     public Device() {
     }
