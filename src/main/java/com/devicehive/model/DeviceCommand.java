@@ -1,42 +1,60 @@
 package com.devicehive.model;
 
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
+import javax.persistence.*;
 import java.util.Date;
 
 
 /**
  * TODO JavaDoc
  */
+@Entity
 public class DeviceCommand {
 
     @SerializedName("id")
+    @Id
+    @GeneratedValue
     public Integer id;
 
     @SerializedName("timestamp")
+    @Column
     public Date timestamp;
 
-    @SerializedName("userId")
-    public Integer userId;
+    @SerializedName("user")
+    @ManyToOne
+    @JoinColumn
+    public User user;
+
+
+    @SerializedName("device")
+    @ManyToOne
+    @JoinColumn
+    public Device device;
 
     @SerializedName("command")
+    @Column
     public String command;
 
     @SerializedName("parameters")
-    public JsonElement parameters;
+    @Column
+    public String parameters;
 
     @SerializedName("lifetime")
+    @Column
     public Integer lifetime;
 
     @SerializedName("flags")
+    @Column
     public Integer flags;
 
     @SerializedName("status")
+    @Column
     public String status;
 
     @SerializedName("result")
-    public JsonElement result;
+    @Column
+    public String result;
 
     public DeviceCommand() {
     }
@@ -57,12 +75,12 @@ public class DeviceCommand {
         this.timestamp = timestamp;
     }
 
-    public Integer getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getCommand() {
@@ -73,11 +91,11 @@ public class DeviceCommand {
         this.command = command;
     }
 
-    public JsonElement getParameters() {
+    public String getParameters() {
         return parameters;
     }
 
-    public void setParameters(JsonElement parameters) {
+    public void setParameters(String parameters) {
         this.parameters = parameters;
     }
 
@@ -105,11 +123,19 @@ public class DeviceCommand {
         this.status = status;
     }
 
-    public JsonElement getResult() {
+    public String getResult() {
         return result;
     }
 
-    public void setResult(JsonElement result) {
+    public void setResult(String result) {
         this.result = result;
+    }
+
+    public Device getDevice() {
+        return device;
+    }
+
+    public void setDevice(Device device) {
+        this.device = device;
     }
 }

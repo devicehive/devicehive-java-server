@@ -32,15 +32,20 @@ public class Device {
     private String status;
 
     @SerializedName("data")
-    private JsonElement data;
+    private String data;
 
     @SerializedName("network")
+    @ManyToOne
+    @JoinColumn
     private Network network;
 
     @SerializedName("deviceClass")
+    @ManyToOne
+    @JoinColumn
     private DeviceClass deviceClass;
 
     @SerializedName("equipment")
+    @OneToMany
     private List<Equipment> equipment;
 
     public Device() {
@@ -78,11 +83,11 @@ public class Device {
         this.status = status;
     }
 
-    public JsonElement getData() {
+    public String getData() {
         return data;
     }
 
-    public void setData(JsonElement data) {
+    public void setData(String data) {
         this.data = data;
     }
 

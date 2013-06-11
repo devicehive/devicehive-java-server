@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.Column;
@@ -38,7 +37,7 @@ public class DeviceClass {
 
     @SerializedName("data")
     @Column
-    private JsonElement data;
+    private String data;
 
 
     public DeviceClass() {
@@ -85,11 +84,11 @@ public class DeviceClass {
         this.offlineTimeout = offlineTimeout;
     }
 
-    public JsonElement getData() {
+    public String getData() {
         return data;
     }
 
-    public void setData(JsonElement data) {
+    public void setData(String data) {
         this.data = data;
     }
 }

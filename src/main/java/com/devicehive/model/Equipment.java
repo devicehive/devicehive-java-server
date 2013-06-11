@@ -2,24 +2,38 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import javax.persistence.*;
+
 /**
  * TODO JavaDoc
  */
+@Entity
 public class Equipment {
     @SerializedName("id")
+
+    @Id
+    @GeneratedValue
     private Integer id;
 
     @SerializedName("name")
+    @Column
     private String name;
 
     @SerializedName("code")
+    @Column
     private String code;
 
     @SerializedName("type")
+    @Column
     private String type;
 
     @SerializedName("data")
-    private Object data;
+    @Column
+    private String data;
+
+    @ManyToOne
+    @JoinColumn
+    private Device device;
 
     public Equipment() {
     }
@@ -57,11 +71,11 @@ public class Equipment {
         this.type = type;
     }
 
-    public Object getData() {
+    public String getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(String data) {
         this.data = data;
     }
 }

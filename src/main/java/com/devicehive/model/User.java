@@ -3,25 +3,37 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
+@Entity
 public class User {
 
-
+    @Id
+    @GeneratedValue
     @SerializedName("id")
     private Integer id;
 
+    @Column
     @SerializedName("login")
     private String login;
 
+    @Column
     @SerializedName("role")
     private Integer role;
 
+    @Column
     @SerializedName("status")
     private Integer status;
 
+    @Column
     @SerializedName("lastLogin")
     private Date lastLogin;
+
+    @ManyToMany
+    @JoinTable(name = "user_network")
+    private List<Network> networks;
 
 
     public User() {
