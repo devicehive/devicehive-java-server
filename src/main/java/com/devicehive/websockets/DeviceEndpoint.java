@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import com.devicehive.websockets.json.*;
@@ -23,6 +24,9 @@ import java.util.UUID;
 public class DeviceEndpoint extends Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceEndpoint.class);
+
+    @Inject
+    private DeviceMessageHandlers deviceMessageHandlers;
 
 
     @OnOpen
@@ -48,7 +52,7 @@ public class DeviceEndpoint extends Endpoint {
 
     @Override
     protected HiveMessageHandlers getHiveMessageHandler() {
-        return new DeviceMessageHandlers();
+        return deviceMessageHandlers;
     }
 
     @Override

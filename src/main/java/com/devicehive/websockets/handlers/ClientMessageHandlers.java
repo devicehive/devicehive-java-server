@@ -8,21 +8,26 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.subscriptions.NotificationsSubscriptionManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+@Singleton
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
-    private Gson gson = GsonFactory.createGson();
+    @Inject
+    private NotificationsSubscriptionManager notificationsSubscriptionManager;
 
 
     @Action(value = "authenticate", needsAuth = false)
@@ -36,6 +41,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) {
+        Gson gson = GsonFactory.createGson();
         UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
 
@@ -48,6 +54,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/subscribe")
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
+        Gson gson = GsonFactory.createGson();
+
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
         JsonArray  deviceGuidsJson = message.getAsJsonArray("deviceGuids");
         List<UUID> list = new ArrayList();
@@ -62,6 +70,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
+        Gson gson = GsonFactory.createGson();
         JsonArray  deviceGuidsJson = message.getAsJsonArray("deviceGuids");
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
@@ -76,6 +85,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
+        Gson gson = GsonFactory.createGson();
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);

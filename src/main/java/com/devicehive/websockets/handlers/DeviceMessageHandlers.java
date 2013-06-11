@@ -5,20 +5,25 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.model.*;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.subscriptions.NotificationsSubscriptionManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.websocket.Session;
 import java.util.Date;
 import java.util.UUID;
 
+@Singleton
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
-    private Gson gson = GsonFactory.createGson();
+    @Inject
+    private NotificationsSubscriptionManager notificationsSubscriptionManager;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
-        UUID deviceId = gson.fromJson(message.get("deviceId"), UUID.class);
+        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
         String deviceKey = message.get("deviceKey").getAsString();
 
         //TODO session auth
@@ -27,9 +32,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "command/update")
-    public JsonObject processCommandUpdate(UUID deviceId, String deviceKey,JsonObject message, Session session) {
+    public JsonObject processCommandUpdate(JsonObject message, Session session) {
         Integer commandId = message.get("commandId").getAsInt();
-        DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        DeviceCommand deviceCommand = GsonFactory.createGson().fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
 
 
         //TODO update
@@ -39,7 +44,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/subscribe")
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
-        Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
+        Date timestamp = GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
         //TODO subscribe
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
@@ -68,7 +73,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date());
         apiInfo.setWebSocketServerUrl("TODO_URL");
-        jsonObject.add("info", gson.toJsonTree(apiInfo));
+        jsonObject.add("info", GsonFactory.createGson().toJsonTree(apiInfo));
         return jsonObject;
     }
 
@@ -82,10 +87,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "device/save", needsAuth = false)
     public JsonObject processDeviceSave(JsonObject message, Session session) {
-        UUID deviceId = gson.fromJson(message.get("deviceId"), UUID.class);
+        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
         String deviceKey = message.get("deviceKey").getAsString();
 
-         Device device = gson.fromJson(message.get("device"), Device.class);
+         Device device = GsonFactory.createGson().fromJson(message.get("device"), Device.class);
 
         //TODO
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
