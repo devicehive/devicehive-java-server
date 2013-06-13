@@ -20,4 +20,12 @@ public class DeviceClassDAO {
     public List<DeviceClass> getList() {
         return em.createQuery("select dc from DeviceClass dc").getResultList();
     }
+
+    public void addDeviceClass(DeviceClass deviceClass) {
+        em.persist(deviceClass);
+    }
+
+    public void deleteDeviceClass(DeviceClass deviceClass) {
+        em.remove(deviceClass);
+    }
 }

@@ -26,7 +26,6 @@ public class DeviceCommand {
     @JoinColumn
     public User user;
 
-
     @SerializedName("device")
     @ManyToOne
     @JoinColumn

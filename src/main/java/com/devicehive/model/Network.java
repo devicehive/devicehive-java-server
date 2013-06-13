@@ -28,7 +28,6 @@ public class Network {
     @Column
     private String description;
 
-
     @ManyToMany
     @JoinTable(name = "user_network")
     private List<User> users;

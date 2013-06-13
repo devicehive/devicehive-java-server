@@ -18,7 +18,6 @@ public class Device {
     @GeneratedValue
     private UUID id;
 
-
     @SerializedName("key")
     @Column
     private String key;
