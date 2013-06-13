@@ -39,7 +39,6 @@ public class DeviceClass {
     @Column
     private String data;
 
-
     public DeviceClass() {
 
     }
