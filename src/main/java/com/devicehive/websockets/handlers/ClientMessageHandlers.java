@@ -8,7 +8,8 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.subscriptions.NotificationsSubscriptionManager;
+import com.devicehive.websockets.messagebus.MessageBus;
+import com.devicehive.websockets.messagebus.NotificationsSubscriptionManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -27,7 +28,7 @@ import java.util.UUID;
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Inject
-    private NotificationsSubscriptionManager notificationsSubscriptionManager;
+    private MessageBus messageBus;
 
 
     @Action(value = "authenticate", needsAuth = false)
@@ -45,10 +46,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
 
-
-        DeviceCommand executedCommand = deviceCommand; //TODO execute
+        DeviceCommand savedCommand = deviceCommand; //TODO execute
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
-        jsonObject.add("command", GsonFactory.createGson().toJsonTree(executedCommand));
+        //jsonObject.add("command", GsonFactory.createGson().toJsonTree(executedCommand));
         return jsonObject;
     }
 

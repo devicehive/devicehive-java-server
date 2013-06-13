@@ -1,15 +1,16 @@
-package com.devicehive.websockets.subscriptions;
+package com.devicehive.websockets.messagebus;
 
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 
 abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
 
-    private ConcurrentMap<Long, Set<S>> deviceNotificationMap = new ConcurrentHashMap<Long, Set<S>>();
+    private ConcurrentMap<UUID, Set<S>> deviceNotificationMap = new ConcurrentHashMap<UUID, Set<S>>();
 
 
 
@@ -17,9 +18,9 @@ abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
     }
 
 
-    public void subscribe(S clientSession, long... devices) {
+    public void subscribe(S clientSession, UUID... devices) {
         synchronized (clientSession) { //lock clientSession - all devices are to added atomically
-            for (Long dev : devices) {
+            for (UUID dev : devices) {
 
                 boolean added = false;
 
@@ -53,9 +54,9 @@ abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
         }
     }
 
-    public void unsubscribe(S clientSession, long... devices) {
+    public void unsubscribe(S clientSession, UUID... devices) {
         synchronized (clientSession) {
-            for (Long dev : devices) {
+            for (UUID dev : devices) {
                 Set set = deviceNotificationMap.get(dev);
                 if (set != null) {
 
@@ -74,7 +75,7 @@ abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
     }
 
 
-    public Set<S> getSubscriptions(long device) {
+    public Set<S> getSubscriptions(UUID device) {
         return deviceNotificationMap.get(device);
     }
 }

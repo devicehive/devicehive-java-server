@@ -1,6 +1,7 @@
-package com.devicehive.websockets.subscriptions;
+package com.devicehive.websockets.messagebus;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,10 +11,10 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 interface SubscriptionsManager<S> {
-    void subscribe(S clientSession, long... devices);
+    void subscribe(S clientSession, UUID... devices);
 
-    void unsubscribe(S clientSession, long... devices);
+    void unsubscribe(S clientSession, UUID... devices);
 
-    Set<S> getSubscriptions(long device);
+    Set<S> getSubscriptions(UUID device);
 
 }

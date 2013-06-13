@@ -2,6 +2,7 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.model.AuthLevel;
+import com.devicehive.websockets.handlers.JsonMessageFactory;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.json.GsonFactory;
@@ -20,6 +21,9 @@ abstract class Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
 
+    private static final String ACTION = "action";
+    private static final String REQUEST_ID = "requestId";
+
     protected abstract HiveMessageHandlers getHiveMessageHandler();
 
     protected static final long MAX_MESSAGE_SIZE = 10240;
@@ -27,43 +31,51 @@ abstract class Endpoint {
 
 
 
-    protected JsonObject processMessage(JsonObject message, Session session) {
-        //logger.debug("[processMessage] session id " + session.getId());
+    protected JsonObject processMessage(JsonObject request, Session session) {
+        JsonObject response = null;
+        try {
+            String action = request.getAsJsonPrimitive("action").getAsString();
+            logger.debug("[action] Looking for action " + action);
+            tryExecute(action, request, session);
+        } catch (Exception ex) {
+            logger.error("[processMessage] Error processing message " + request, ex);
+            response = JsonMessageFactory.createErrorResponse();
+        }
+        return constructFinalResponse(request, response);
+    }
+
+    private JsonObject tryExecute(String action, JsonObject request, Session session) throws Exception {
         HiveMessageHandlers handler = getHiveMessageHandler();
-        String action = message.getAsJsonPrimitive("action").getAsString();
         for (final Method method : handler.getClass().getMethods()) {
             if (method.isAnnotationPresent(Action.class)) {
                 Action ann = method.getAnnotation(Action.class);
-                logger.debug("[processMessage] " + ann);
-
                 boolean needsAuth = ann.needsAuth();
-
-                if (needsAuth && checkAuth(message, session)) {
+                if (needsAuth && checkAuth(request, session)) {
+                    //TODO
                     //answer not authorized
                 }
                 if (ann.value() != null && ann.value().equals(action)) {
-                    try {
-                        logger.debug("[processMessage] " + message + " " + action + " " + handler);
-                        JsonObject jsonObject = (JsonObject)method.invoke(handler, message, session);
-                        if (jsonObject != null) {
-                            JsonObject result = new JsonObject();
-                            result.addProperty("action", action);
-                            result.add("requestId", message.get("requestId"));
-                            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-                                result.add(entry.getKey(), entry.getValue());
-                            }
-                            return result;
-                        }
-                        return null;
-                    } catch (IllegalAccessException e) {
-                        logger.error("Error calling method " + handler.getClass().getName() + "." + method.getName(), e);
-                    } catch (InvocationTargetException e) {
-                        logger.error("Error calling method " + handler.getClass().getName() + "." + method.getName(), e);
-                    }
+                    logger.trace("[tryExecute] Processing request: " + request);
+                    return (JsonObject)method.invoke(handler, request, session);
                 }
             }
         }
         return null;
+    }
+
+
+    private JsonObject constructFinalResponse(JsonObject request, JsonObject response) {
+        if (response == null) {
+            logger.error("[constructFinalResponse]  response is null ");
+            response = JsonMessageFactory.createErrorResponse();
+        }
+        JsonObject finalResponse = new JsonObject();
+        finalResponse.add(ACTION, request.get(ACTION));
+        finalResponse.add(REQUEST_ID, request.get(REQUEST_ID));
+        for (Map.Entry<String, JsonElement> entry : response.entrySet()) {
+            finalResponse.add(entry.getKey(), entry.getValue());
+        }
+        return finalResponse;
     }
 
 
