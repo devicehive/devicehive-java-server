@@ -5,9 +5,7 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.model.*;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.messagebus.CommandsSubscriptionManager;
-import com.devicehive.websockets.messagebus.MessageBus;
-import com.devicehive.websockets.messagebus.NotificationsSubscriptionManager;
+import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.SessionUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -15,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.websocket.Session;
 import java.util.ArrayList;
@@ -22,13 +21,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Singleton
+@Named
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
 
     @Inject
-    private MessageBus messageBus;
+    private LocalMessageBus localMessageBus;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -65,7 +64,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         UUID deviceId = gson.fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class);
 
         synchronized (session) {
-            messageBus.subscribeToCommands(deviceId, session);
+            localMessageBus.subscribeToCommands(deviceId, session);
             List<DeviceCommand> oldCommands = new ArrayList<DeviceCommand>();//TODO get non-delivered commands from DB
             for (DeviceCommand dc : oldCommands) {
                 SessionUtil.sendCommand(dc, session);
@@ -78,7 +77,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class);
-        messageBus.unsubscribeFromCommands(deviceId, session);
+        localMessageBus.unsubscribeFromCommands(deviceId, session);
         return JsonMessageFactory.createSuccessResponse();
     }
 

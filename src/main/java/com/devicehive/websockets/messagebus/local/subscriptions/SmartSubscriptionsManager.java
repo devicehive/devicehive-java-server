@@ -1,6 +1,7 @@
-package com.devicehive.websockets.messagebus;
+package com.devicehive.websockets.messagebus.local.subscriptions;
 
 
+import javax.websocket.Session;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
@@ -8,9 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 
-abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
+abstract class SmartSubscriptionsManager extends SubscriptionsManager {
 
-    private ConcurrentMap<UUID, Set<S>> deviceNotificationMap = new ConcurrentHashMap<UUID, Set<S>>();
+    private ConcurrentMap<UUID, Set<Session>> deviceNotificationMap = new ConcurrentHashMap<UUID, Set<Session>>();
 
 
 
@@ -18,14 +19,14 @@ abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
     }
 
 
-    public void subscribe(S clientSession, UUID... devices) {
+    public void subscribe(Session clientSession, UUID... devices) {
         synchronized (clientSession) { //lock clientSession - all devices are to added atomically
             for (UUID dev : devices) {
 
                 boolean added = false;
 
                 while (! added) {
-                    Set<S> set = Collections.newSetFromMap(new ConcurrentHashMap<S, Boolean>());
+                    Set<Session> set = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
                     set.add(clientSession);
 
                     // try to add new set with one element
@@ -54,7 +55,7 @@ abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
         }
     }
 
-    public void unsubscribe(S clientSession, UUID... devices) {
+    public void unsubscribe(Session clientSession, UUID... devices) {
         synchronized (clientSession) {
             for (UUID dev : devices) {
                 Set set = deviceNotificationMap.get(dev);
@@ -75,7 +76,7 @@ abstract class SmartSubscriptionsManager<S> implements SubscriptionsManager<S> {
     }
 
 
-    public Set<S> getSubscriptions(UUID device) {
+    public Set<Session> getSubscriptions(UUID device) {
         return deviceNotificationMap.get(device);
     }
 }

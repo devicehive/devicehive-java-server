@@ -8,8 +8,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.messagebus.MessageBus;
-import com.devicehive.websockets.messagebus.NotificationsSubscriptionManager;
+import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -17,6 +16,7 @@ import com.google.gson.JsonObject;
 
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.websocket.Session;
 import java.util.ArrayList;
@@ -24,11 +24,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Singleton
+@Named
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Inject
-    private MessageBus messageBus;
+    private LocalMessageBus localMessageBus;
 
 
     @Action(value = "authenticate", needsAuth = false)

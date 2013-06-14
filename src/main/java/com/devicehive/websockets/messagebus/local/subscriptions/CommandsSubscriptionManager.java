@@ -1,4 +1,4 @@
-package com.devicehive.websockets.messagebus;
+package com.devicehive.websockets.messagebus.local.subscriptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +25,8 @@ public class CommandsSubscriptionManager implements Serializable {
     //This map is used to store device sessions and to identify destinations for commands
     private ConcurrentMap<UUID, Session> deviceSessionMap = new ConcurrentHashMap<UUID, Session>();
 
+    private static final String SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID = "SUBSCRIBED_DEVICE_UUID";
+
 
     private Map<Long, Session> commandToClientSessionMap = new HashMap<Long, Session>();
     private Map<Session, Set<Long>> subscribedCommandsMap = new HashMap<Session, Set<Long>>();
@@ -36,30 +38,27 @@ public class CommandsSubscriptionManager implements Serializable {
     /**
      * Subscribes device websocket session for commands delivery.
      * @param deviceId
-     * @param deviceWebsocketSession
+     * @param session
      */
-    public void subscribeDevice(UUID deviceId, Session deviceWebsocketSession) {
-        Session oldSession = deviceSessionMap.get(deviceId);
-        if (oldSession != null) {
-            if (oldSession.getId().equals(deviceWebsocketSession.getId())) {
-                logger.warn("[subscribe] Device " + deviceId + " is already subscribed to commands in this session");
-            } else {
-                logger.warn("[subscribe] Device " + deviceId + " is already subscribed to commands in another session");
-            }
+    public void subscribeDevice(UUID deviceId, Session session) {
+        synchronized (session) {
+            deviceSessionMap.put(deviceId, session);
+            session.getUserProperties().put(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID, deviceId);
         }
-        deviceSessionMap.put(deviceId, deviceWebsocketSession);
-        logger.debug("Device " + deviceId + " is subscribed to commands, session id:" + deviceWebsocketSession.getId());
+        logger.debug("Device " + deviceId + " is subscribed to commands, session id:" + session.getId());
     }
 
-    /**
-     * Unsubscribes Device's websocket session from commands delivery.
-     * @param deviceId
-     */
-    public void unsubscribeDevice(UUID deviceId) {
-        deviceSessionMap.remove(deviceId);
-        logger.debug("Device " + deviceId + " is unsubscribed from commands");
+
+    public void unsubscribeDevice(UUID deviceId, Session session) {
+        synchronized (session) {
+            deviceSessionMap.remove(deviceId);
+            session.getUserProperties().remove(deviceId);
+        }
     }
 
+    public void unsubscribeDevice(Session session) {
+        unsubscribeDevice((UUID)session.getUserProperties().get(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID), session);
+    }
     /**
      * @param deviceId
      * @return websocket session for given device if it is subscribed for commands
@@ -89,7 +88,7 @@ public class CommandsSubscriptionManager implements Serializable {
      * Unsubscribes client websocket session from command update notifications. It must be called on session close.
      * @param clientWebsocketSession
      */
-    public void unsubscribeClientSession(Session clientWebsocketSession) {
+    public void unsubscribeClient(Session clientWebsocketSession) {
         synchronized (clientWebsocketSession) {
             Set<Long> commands = subscribedCommandsMap.remove(clientWebsocketSession);
             if (commands != null) {
@@ -101,13 +100,9 @@ public class CommandsSubscriptionManager implements Serializable {
     }
 
 
-    /**
-     * Removes
-     */
-    public void cleanup() {
-        //TODO
+    public Session getClientSession(Integer commandId) {
+        return commandToClientSessionMap.get(commandId);
     }
-
 
 
 }
