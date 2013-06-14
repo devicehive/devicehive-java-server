@@ -3,6 +3,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 
@@ -10,7 +11,7 @@ import java.util.Date;
  * TODO JavaDoc
  */
 @Entity
-public class DeviceCommand {
+public class DeviceCommand implements Serializable{
 
     @SerializedName("id")
     @Id

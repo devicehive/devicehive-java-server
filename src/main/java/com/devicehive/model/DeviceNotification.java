@@ -5,13 +5,14 @@ import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import javax.print.attribute.standard.PrinterMoreInfoManufacturer;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * TODO JavaDoc
  */
 @Entity
-public class DeviceNotification {
+public class DeviceNotification implements Serializable {
 
     @SerializedName("id")
     @Id

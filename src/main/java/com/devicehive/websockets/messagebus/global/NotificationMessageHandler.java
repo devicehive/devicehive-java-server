@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
 
 /**
  * Created with IntelliJ IDEA.
@@ -28,9 +29,12 @@ public class NotificationMessageHandler implements MessageListener {
 
     public void onMessage(Message message) {
         try {
-            DeviceNotification notification = (DeviceNotification)message.getObjectProperty("notification");
-            logger.debug("DeviceNotification received: " + notification);
-            localMessageBus.submitNotification(notification);
+            ObjectMessage objectMessage = (ObjectMessage) message;
+            DeviceNotification notification = (DeviceNotification)objectMessage.getObject();
+            if (notification != null) {
+                logger.debug("DeviceNotification received: " + notification);
+                localMessageBus.submitNotification(notification);
+            }
         } catch (JMSException e) {
             logger.error("[onMessage] Error processing notification. ", e);
         }

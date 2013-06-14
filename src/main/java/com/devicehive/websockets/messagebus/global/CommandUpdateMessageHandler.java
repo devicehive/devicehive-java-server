@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,9 +30,12 @@ public class CommandUpdateMessageHandler implements MessageListener {
 
     public void onMessage(Message message) {
         try {
-            DeviceCommand deviceCommand = (DeviceCommand) message.getObjectProperty("command");
-            logger.debug("DeviceCommand update received: " + deviceCommand);
-            //localMessageBus.submitCommandUpdate(deviceCommand);//TODO implement
+            ObjectMessage objectMessage = (ObjectMessage) message;
+            DeviceCommand deviceCommand = (DeviceCommand) objectMessage.getObject();
+            if (deviceCommand != null) {
+                logger.debug("DeviceCommand update received: " + deviceCommand);
+                //localMessageBus.submitCommandUpdate(deviceCommand);//TODO implement
+            }
         } catch (JMSException e) {
             logger.error("[onMessage] Error processing command update. ", e);
         }

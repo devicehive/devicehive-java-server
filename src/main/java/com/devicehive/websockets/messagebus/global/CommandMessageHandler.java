@@ -7,9 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
+import javax.jms.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -28,9 +26,12 @@ public class CommandMessageHandler implements MessageListener {
 
     public void onMessage(Message message) {
         try {
-            DeviceCommand deviceCommand = (DeviceCommand)message.getObjectProperty("command");
-            logger.debug("DeviceCommand received: " + deviceCommand);
-            localMessageBus.submitCommand(deviceCommand);
+            ObjectMessage objectMessage = (ObjectMessage) message;
+            DeviceCommand deviceCommand = (DeviceCommand)objectMessage.getObject();
+            if (deviceCommand != null) {
+                logger.debug("DeviceCommand received: " + deviceCommand);
+                localMessageBus.submitCommand(deviceCommand);
+            }
         } catch (JMSException e) {
             logger.error("[onMessage] Error processing command. ", e);
         }
