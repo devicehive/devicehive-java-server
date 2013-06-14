@@ -1,6 +1,7 @@
 package com.devicehive.websockets.messagebus.local.subscriptions;
 
 import javax.websocket.Session;
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
@@ -12,9 +13,9 @@ import java.util.UUID;
  * To change this template use File | Settings | File Templates.
  */
 abstract class SubscriptionsManager {
-    public abstract void subscribe(Session clientSession, UUID... devices);
+    public abstract void subscribe(Session clientSession, Collection<UUID> devices);
 
-    public abstract void unsubscribe(Session clientSession, UUID... devices);
+    public abstract void unsubscribe(Session clientSession, Collection<UUID> devices);
 
 
     public abstract Set<Session> getSubscriptions(UUID device);
@@ -23,8 +24,8 @@ abstract class SubscriptionsManager {
     public void unsubscribe(Session clientSession) {
         synchronized (clientSession) {
             if (clientSession.getUserProperties().containsKey(SUBSCRIBED_FOR_NOTIFICATIONS_DEVICE_UUIDS)) {
-                Set<Session> set = (Set<Session>) clientSession.getUserProperties().get(SUBSCRIBED_FOR_NOTIFICATIONS_DEVICE_UUIDS);
-                unsubscribe(clientSession, set.toArray(new UUID[0]));
+                Set<UUID> set = (Set<UUID>) clientSession.getUserProperties().get(SUBSCRIBED_FOR_NOTIFICATIONS_DEVICE_UUIDS);
+                unsubscribe(clientSession, set);
             }
         }
     }

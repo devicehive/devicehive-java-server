@@ -8,6 +8,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -18,6 +19,7 @@ import com.google.gson.JsonObject;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +28,9 @@ import java.util.UUID;
 
 @Named
 public class ClientMessageHandlers implements HiveMessageHandlers {
+
+    @Inject
+    private MessagePublisher messagePublisher;
 
     @Inject
     private LocalMessageBus localMessageBus;
@@ -41,14 +46,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
 
     @Action(value = "command/insert")
-    public JsonObject processCommandInsert(JsonObject message, Session session) {
+    public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
         Gson gson = GsonFactory.createGson();
         UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        DeviceCommand savedCommand = deviceCommand; //TODO save to DB
 
-        DeviceCommand savedCommand = deviceCommand; //TODO execute
+        messagePublisher.publishCommand(savedCommand);
+
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
-        //jsonObject.add("command", GsonFactory.createGson().toJsonTree(executedCommand));
+        jsonObject.add("command", GsonFactory.createGson().toJsonTree(savedCommand));
         return jsonObject;
     }
 
@@ -56,13 +63,15 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
 
-        Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
+        Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);//TODO
+
+
         JsonArray  deviceGuidsJson = message.getAsJsonArray("deviceGuids");
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
             list.add(gson.fromJson(uuidJson, UUID.class));
         }
-        //TODO subscribe
+        localMessageBus.subscribeForNotifications(session, list);
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         return jsonObject;
 
@@ -76,7 +85,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         for (JsonElement uuidJson : deviceGuidsJson) {
             list.add(gson.fromJson(uuidJson, UUID.class));
         }
-        //TODO unsubscribe
+        localMessageBus.unsubscribeFromNotifications(session, list);
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         jsonObject.add("deviceGuids", new JsonObject());
         return jsonObject;

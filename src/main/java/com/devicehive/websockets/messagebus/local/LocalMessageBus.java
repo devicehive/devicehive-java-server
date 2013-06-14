@@ -5,6 +5,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.local.subscriptions.CommandsSubscriptionManager;
 import com.devicehive.websockets.messagebus.local.subscriptions.NotificationsSubscriptionManager;
+import com.devicehive.websockets.util.WebsocketUtil;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ public class LocalMessageBus {
         jsonObject.addProperty("action", "command/insert");
         jsonObject.addProperty("deviceGuid", deviceId.toString());
         jsonObject.add("command", deviceCommandJson);
-        return sendMessage(jsonObject, session);
+        return WebsocketUtil.sendMessage(jsonObject, session);//TODO Async?!
     }
 
     /**
@@ -74,7 +75,7 @@ public class LocalMessageBus {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/update");
         jsonObject.add("command", deviceCommandJson);
-        return sendMessage(jsonObject, session);
+        return WebsocketUtil.sendMessage(jsonObject, session); //TODO Async?!
     }
 
     /**
@@ -115,7 +116,7 @@ public class LocalMessageBus {
                 jsonObject.addProperty("action", "command/insert");
                 jsonObject.addProperty("deviceGuid", deviceId.toString());
                 jsonObject.add("notification", deviceNotificationJson);
-                sendMessageAsync(jsonObject, session);
+                WebsocketUtil.sendMessageAsync(jsonObject, session);
             }
         }
 
@@ -126,7 +127,7 @@ public class LocalMessageBus {
      * @param session
      * @param devices
      */
-    public void subscribeForNotifications(Session session, UUID... devices) {
+    public void subscribeForNotifications(Session session, Collection<UUID> devices) {
         notificationsSubscriptionManager.subscribe(session, devices);
     }
 
@@ -135,7 +136,7 @@ public class LocalMessageBus {
      * @param session
      * @param devices
      */
-    public void unsubscribeFromNotifications(Session session, UUID... devices) {
+    public void unsubscribeFromNotifications(Session session, Collection<UUID> devices) {
         notificationsSubscriptionManager.unsubscribe(session, devices);
     }
 
@@ -149,25 +150,4 @@ public class LocalMessageBus {
     }
 
 
-    private boolean sendMessage(JsonObject jsonObject, Session session) {
-        String message = jsonObject.toString();
-        try {
-            session.getBasicRemote().sendText(jsonObject.toString());
-            return true;
-        } catch (IOException ex) {
-            logger.error("Error delivering message " + message, ex);
-            return false;
-        }
-    }
-
-    private void sendMessageAsync(JsonObject jsonObject, Session session) {
-        final String message = jsonObject.toString();
-        session.getAsyncRemote().sendText(message, new SendHandler() {
-            public void onResult(SendResult result) {
-                if (!result.isOK()) {
-                    logger.error("Error delivering message " + message, result.getException());
-                }
-            }
-        });
-    }
 }

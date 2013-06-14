@@ -2,6 +2,7 @@ package com.devicehive.websockets.messagebus.local.subscriptions;
 
 
 import javax.websocket.Session;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +20,7 @@ abstract class SmartSubscriptionsManager extends SubscriptionsManager {
     }
 
 
-    public void subscribe(Session clientSession, UUID... devices) {
+    public void subscribe(Session clientSession, Collection<UUID> devices) {
         synchronized (clientSession) { //lock clientSession - all devices are to added atomically
             for (UUID dev : devices) {
 
@@ -55,7 +56,7 @@ abstract class SmartSubscriptionsManager extends SubscriptionsManager {
         }
     }
 
-    public void unsubscribe(Session clientSession, UUID... devices) {
+    public void unsubscribe(Session clientSession, Collection<UUID> devices) {
         synchronized (clientSession) {
             for (UUID dev : devices) {
                 Set set = deviceNotificationMap.get(dev);

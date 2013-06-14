@@ -5,8 +5,9 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.model.*;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
-import com.devicehive.websockets.util.SessionUtil;
+import com.devicehive.websockets.util.WebsocketUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
+import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,6 +30,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Inject
     private LocalMessageBus localMessageBus;
 
+    @Inject
+    private MessagePublisher messagePublisher;
+
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
@@ -40,7 +44,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "command/update")
-    public JsonObject processCommandUpdate(JsonObject message, Session session) {
+    public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
         Integer commandId = message.get("commandId").getAsInt();
         DeviceCommand oldCommand = null;//TODO get from DB
         DeviceCommand deviceCommand = GsonFactory.createGson().fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
@@ -51,6 +55,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         oldCommand.setStatus(deviceCommand.getStatus());
         oldCommand.setResult(deviceCommand.getResult());
         //TODO save oldCommand to DB
+
+        messagePublisher.publishCommandUpdate(oldCommand);
 
 
         return JsonMessageFactory.createSuccessResponse();
@@ -67,7 +73,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             localMessageBus.subscribeToCommands(deviceId, session);
             List<DeviceCommand> oldCommands = new ArrayList<DeviceCommand>();//TODO get non-delivered commands from DB
             for (DeviceCommand dc : oldCommands) {
-                SessionUtil.sendCommand(dc, session);
+                //TODO create json
+                WebsocketUtil.sendMessage(null, session);
                 //TODO mark dc as delivered
             }
         }
@@ -82,8 +89,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "notification/insert")
-    public JsonObject processNotificationInsert(JsonObject message, Session session) {
-        //TODO insert
+    public JsonObject processNotificationInsert(JsonObject message, Session session) throws JMSException {
+        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
+        DeviceNotification deviceNotification = GsonFactory.createGson().fromJson(message.get("notification"), DeviceNotification.class);
+        //TODO save to DB
+        messagePublisher.publishNotification(deviceNotification);
         String status = null;
         JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         jsonObject.add("notification", new JsonObject());

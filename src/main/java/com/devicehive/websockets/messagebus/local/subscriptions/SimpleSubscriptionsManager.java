@@ -2,10 +2,7 @@ package com.devicehive.websockets.messagebus.local.subscriptions;
 
 
 import javax.websocket.Session;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,7 +18,7 @@ abstract class SimpleSubscriptionsManager extends SubscriptionsManager {
     }
 
 
-    public void subscribe(Session clientSession, UUID... devices) {
+    public void subscribe(Session clientSession, Collection<UUID> devices) {
         synchronized (clientSession) {
             for (UUID dev : devices) {
                 synchronized (deviceNotificationMap) {
@@ -38,11 +35,11 @@ abstract class SimpleSubscriptionsManager extends SubscriptionsManager {
                 clientSession.getUserProperties().put(SUBSCRIBED_FOR_NOTIFICATIONS_DEVICE_UUIDS, Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>()));
             }
             Set<UUID> set = (Set<UUID>) clientSession.getUserProperties().get(SUBSCRIBED_FOR_NOTIFICATIONS_DEVICE_UUIDS);
-            set.addAll(Arrays.asList(devices));
+            set.addAll(devices);
         }
     }
 
-    public void unsubscribe(Session clientSession, UUID... devices) {
+    public void unsubscribe(Session clientSession, Collection<UUID> devices) {
         synchronized (clientSession) {
             for (UUID dev : devices) {
                 synchronized (deviceNotificationMap) {
