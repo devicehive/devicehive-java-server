@@ -3,7 +3,6 @@ package com.devicehive.websockets.messagebus.local.subscriptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Singleton;
 import javax.websocket.Session;
 import java.io.Serializable;
 import java.util.*;
@@ -20,16 +19,16 @@ import java.util.concurrent.ConcurrentMap;
 
 public class CommandsSubscriptionManager implements Serializable {
 
+    private static final String SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID = "SUBSCRIBED_DEVICE_UUID";
+    private static final String COMMANDS_SENT_IN_SESSION = "COMMANDS_SENT_IN_SESSION";
+
     private static final Logger logger = LoggerFactory.getLogger(CommandsSubscriptionManager.class);
 
     //This map is used to store device sessions and to identify destinations for commands
     private ConcurrentMap<UUID, Session> deviceSessionMap = new ConcurrentHashMap<UUID, Session>();
 
-    private static final String SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID = "SUBSCRIBED_DEVICE_UUID";
-
 
     private Map<Long, Session> commandToClientSessionMap = new HashMap<Long, Session>();
-    private Map<Session, Set<Long>> subscribedCommandsMap = new HashMap<Session, Set<Long>>();
 
 
     public CommandsSubscriptionManager() {
@@ -40,7 +39,7 @@ public class CommandsSubscriptionManager implements Serializable {
      * @param deviceId
      * @param session
      */
-    public void subscribeDevice(UUID deviceId, Session session) {
+    public void subscribeDeviceForCommands(UUID deviceId, Session session) {
         synchronized (session) {
             deviceSessionMap.put(deviceId, session);
             session.getUserProperties().put(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID, deviceId);
@@ -49,7 +48,7 @@ public class CommandsSubscriptionManager implements Serializable {
     }
 
 
-    public void unsubscribeDevice(UUID deviceId, Session session) {
+    public void unsubscribeDeviceFromCommands(UUID deviceId, Session session) {
         synchronized (session) {
             deviceSessionMap.remove(deviceId);
             session.getUserProperties().remove(deviceId);
@@ -57,7 +56,11 @@ public class CommandsSubscriptionManager implements Serializable {
     }
 
     public void unsubscribeDevice(Session session) {
-        unsubscribeDevice((UUID)session.getUserProperties().get(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID), session);
+        synchronized (session) {
+            if (session.getUserProperties().containsKey(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID)) {
+                unsubscribeDeviceFromCommands((UUID) session.getUserProperties().get(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID), session);
+            }
+        }
     }
     /**
      * @param deviceId
@@ -73,13 +76,13 @@ public class CommandsSubscriptionManager implements Serializable {
      * @param commandId
      * @param clientWebsocketSession
      */
-    public void subscribeToCommandUpdates(Long commandId, Session clientWebsocketSession) {
+    public void subscribeClientToCommandUpdates(Long commandId, Session clientWebsocketSession) {
         synchronized (clientWebsocketSession) {
             commandToClientSessionMap.put(commandId, clientWebsocketSession);
-            if (!subscribedCommandsMap.containsKey(clientWebsocketSession)) {
-                subscribedCommandsMap.put(clientWebsocketSession, new HashSet<Long>());
+            if (!clientWebsocketSession.getUserProperties().containsKey(COMMANDS_SENT_IN_SESSION)) {
+                clientWebsocketSession.getUserProperties().put(COMMANDS_SENT_IN_SESSION, new HashSet<>());
             }
-            Set<Long> commands = subscribedCommandsMap.get(clientWebsocketSession);
+            Set<Long> commands = (Set<Long>)clientWebsocketSession.getUserProperties().get(COMMANDS_SENT_IN_SESSION);
             commands.add(commandId);
         }
     }
@@ -88,14 +91,15 @@ public class CommandsSubscriptionManager implements Serializable {
      * Unsubscribes client websocket session from command update notifications. It must be called on session close.
      * @param clientWebsocketSession
      */
-    public void unsubscribeClient(Session clientWebsocketSession) {
+    public void unsubscribeClientFromCommandUpdates(Session clientWebsocketSession) {
         synchronized (clientWebsocketSession) {
-            Set<Long> commands = subscribedCommandsMap.remove(clientWebsocketSession);
+            Set<Long> commands = (Set<Long>)clientWebsocketSession.getUserProperties().remove(COMMANDS_SENT_IN_SESSION);
             if (commands != null) {
                 for (Long command : commands) {
                     commandToClientSessionMap.remove(command);
                 }
             }
+
         }
     }
 

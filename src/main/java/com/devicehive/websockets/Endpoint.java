@@ -2,7 +2,7 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.model.AuthLevel;
-import com.devicehive.websockets.handlers.JsonMessageFactory;
+import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.json.GsonFactory;
@@ -39,7 +39,7 @@ abstract class Endpoint {
             tryExecute(action, request, session);
         } catch (Exception ex) {
             logger.error("[processMessage] Error processing message " + request, ex);
-            response = JsonMessageFactory.createErrorResponse();
+            response = JsonMessageBuilder.createErrorResponseBuilder().build();
         }
         return constructFinalResponse(request, response);
     }
@@ -67,14 +67,13 @@ abstract class Endpoint {
     private JsonObject constructFinalResponse(JsonObject request, JsonObject response) {
         if (response == null) {
             logger.error("[constructFinalResponse]  response is null ");
-            response = JsonMessageFactory.createErrorResponse();
+            response = JsonMessageBuilder.createErrorResponseBuilder().build();
         }
-        JsonObject finalResponse = new JsonObject();
-        finalResponse.add(ACTION, request.get(ACTION));
-        finalResponse.add(REQUEST_ID, request.get(REQUEST_ID));
-        for (Map.Entry<String, JsonElement> entry : response.entrySet()) {
-            finalResponse.add(entry.getKey(), entry.getValue());
-        }
+        JsonObject finalResponse = new JsonMessageBuilder()
+            .addAction(request.get(ACTION).getAsString())
+            .addRequestId(request.get(REQUEST_ID).getAsString())
+            .include(response)
+            .build();
         return finalResponse;
     }
 

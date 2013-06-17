@@ -8,14 +8,12 @@ import com.devicehive.websockets.messagebus.local.subscriptions.NotificationsSub
 import com.devicehive.websockets.util.WebsocketUtil;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.hsqldb.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
 import javax.websocket.Session;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -84,7 +82,7 @@ public class LocalMessageBus {
      * @param session
      */
     public void subscribeToCommands(UUID device, Session session) {
-        commandsSubscriptionManager.subscribeDevice(device, session);
+        commandsSubscriptionManager.subscribeDeviceForCommands(device, session);
     }
 
 
@@ -94,7 +92,7 @@ public class LocalMessageBus {
      * @param session
      */
     public void unsubscribeFromCommands(UUID device, Session session) {
-        commandsSubscriptionManager.unsubscribeDevice(device, session);
+        commandsSubscriptionManager.unsubscribeDeviceFromCommands(device, session);
     }
 
     /**

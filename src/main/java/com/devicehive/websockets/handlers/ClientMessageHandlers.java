@@ -41,7 +41,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         String login = message.get("login").getAsString();
         String password = message.get("password").getAsString();
 
-        return JsonMessageFactory.createSuccessResponse();
+        return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
 
@@ -54,8 +54,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         messagePublisher.publishCommand(savedCommand);
 
-        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
-        jsonObject.add("command", GsonFactory.createGson().toJsonTree(savedCommand));
+
+        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
+            .addElement("command", GsonFactory.createGson().toJsonTree(savedCommand))
+            .build();
         return jsonObject;
     }
 
@@ -72,7 +74,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             list.add(gson.fromJson(uuidJson, UUID.class));
         }
         localMessageBus.subscribeForNotifications(session, list);
-        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
+        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
 
     }
@@ -86,8 +88,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             list.add(gson.fromJson(uuidJson, UUID.class));
         }
         localMessageBus.unsubscribeFromNotifications(session, list);
-        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
-        jsonObject.add("deviceGuids", new JsonObject());
+        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
+            .addElement("deviceGuids", new JsonObject())
+            .build();
         return jsonObject;
     }
 
@@ -95,12 +98,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
-        JsonObject jsonObject = JsonMessageFactory.createSuccessResponse();
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date());
         apiInfo.setWebSocketServerUrl("TODO_URL");
-        jsonObject.add("info", gson.toJsonTree(apiInfo));
+        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
+            .addElement("info", gson.toJsonTree(apiInfo))
+            .build();
         return jsonObject;
     }
 }
