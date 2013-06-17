@@ -42,14 +42,23 @@ public class MessagePublisher {
 
 
     @PostConstruct
-    public void postConstruct() throws JMSException {
-        topicConnection = connectionFactory.createTopicConnection();
+    public void postConstruct(){
+        try {
+            topicConnection = connectionFactory.createTopicConnection();
+        } catch (JMSException e) {
+            logger.error("Can not open JMS connection");
+            throw new RuntimeException(e); //TODO
+        }
     }
 
 
     @PreDestroy
-    public void preDestroy() throws JMSException {
-        topicConnection.close();
+    public void preDestroy(){
+        try {
+            topicConnection.close();
+        } catch (JMSException e) {
+            logger.error("Can not close JMS connection");
+        }
     }
 
 
