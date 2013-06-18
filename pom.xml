@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>4.3.0.Beta2</version>
+            <version>4.3.0.Beta3</version>
         </dependency>
 
         <dependency>
@@ -63,11 +63,13 @@
             <version>2.0</version>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>14.0.1</version>
         </dependency>
+        -->
 
     </dependencies>
 
@@ -84,7 +86,7 @@
                     <dependency>
                         <groupId>org.postgresql</groupId>
                         <artifactId>postgresql</artifactId>
-                        <version>9.2-1002-jdbc4</version>
+                        <version>9.2-1003-jdbc4</version>
                     </dependency>
                 </dependencies>
             </plugin>
