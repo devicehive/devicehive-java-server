@@ -8,6 +8,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.json.strategies.CommandInsertRequestExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.google.gson.Gson;
@@ -15,10 +16,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.util.ArrayList;
@@ -47,7 +46,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
-        Gson gson = GsonFactory.createGson();
+//        Gson gson = GsonFactory.createGson();
+        Gson gson = GsonFactory.createGson(new CommandInsertRequestExclusionStrategy());
         UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
         DeviceCommand savedCommand = deviceCommand; //TODO save to DB
