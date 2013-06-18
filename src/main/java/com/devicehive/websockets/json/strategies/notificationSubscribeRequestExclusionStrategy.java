@@ -10,23 +10,17 @@ import java.util.Set;
  * Created with IntelliJ IDEA.
  * User: jkulagina
  * Date: 18.06.13
- * Time: 14:54
+ * Time: 20:37
  */
-public class CommandInsertResponseExclusionStrategy implements ExclusionStrategy {
+public class NotificationSubscribeRequestExclusionStrategy implements ExclusionStrategy {
     private static final Set<String> FIELDS_NAMES_TO_EXCLUDE;
 
     static{
         Set<String> initSet = new HashSet<>();
-        initSet.add("device");
-        initSet.add("command");
-        initSet.add("parameters");
-        initSet.add("lifetime");
-        initSet.add("flags");
         initSet.add("status");
-        initSet.add("result");
-        initSet.add("deviceGuid");
         FIELDS_NAMES_TO_EXCLUDE = initSet;
     }
+
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {

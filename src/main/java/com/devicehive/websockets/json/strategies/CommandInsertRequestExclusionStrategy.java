@@ -1,10 +1,8 @@
 package com.devicehive.websockets.json.strategies;
 
-import com.devicehive.model.DeviceCommand;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,7 +13,7 @@ import java.util.Set;
  * Time: 14:26
  */
 public class CommandInsertRequestExclusionStrategy implements ExclusionStrategy{
-    private static final Set<String> fieldNamesToExclude;
+    private static final Set<String> FIELDS_NAMES_TO_EXCLUDE;
 
     static{
         Set<String> initSet = new HashSet<>();
@@ -23,12 +21,13 @@ public class CommandInsertRequestExclusionStrategy implements ExclusionStrategy{
         initSet.add("timestamp");
         initSet.add("user");
         initSet.add("device");
-        fieldNamesToExclude = initSet;
+        initSet.add("status");
+        FIELDS_NAMES_TO_EXCLUDE = initSet;
     }
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return fieldNamesToExclude.contains(fieldAttributes.getName());
+        return FIELDS_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
     }
 
     @Override
@@ -36,11 +35,11 @@ public class CommandInsertRequestExclusionStrategy implements ExclusionStrategy{
         return false;
     }
 
-    public static void main(String ... args){
-        Field[] fields = DeviceCommand.class.getFields();
-        for(Field field: fields){
-            FieldAttributes attributes = new FieldAttributes(field);
-            System.out.println(attributes.getName() + " ");
-        }
-    }
+//    public static void main(String ... args){
+//        Field[] fields = DeviceCommand.class.getFields();
+//        for(Field field: fields){
+//            FieldAttributes attributes = new FieldAttributes(field);
+//            System.out.println(attributes.getName() + " ");
+//        }
+//    }
 }

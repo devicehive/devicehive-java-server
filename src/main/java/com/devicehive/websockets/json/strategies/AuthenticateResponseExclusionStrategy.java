@@ -10,21 +10,15 @@ import java.util.Set;
  * Created with IntelliJ IDEA.
  * User: jkulagina
  * Date: 18.06.13
- * Time: 14:54
+ * Time: 20:29
  */
-public class CommandInsertResponseExclusionStrategy implements ExclusionStrategy {
+public class AuthenticateResponseExclusionStrategy implements ExclusionStrategy {
     private static final Set<String> FIELDS_NAMES_TO_EXCLUDE;
 
-    static{
+    static {
         Set<String> initSet = new HashSet<>();
-        initSet.add("device");
-        initSet.add("command");
-        initSet.add("parameters");
-        initSet.add("lifetime");
-        initSet.add("flags");
-        initSet.add("status");
-        initSet.add("result");
-        initSet.add("deviceGuid");
+        initSet.add("login");
+        initSet.add("password");
         FIELDS_NAMES_TO_EXCLUDE = initSet;
     }
 
