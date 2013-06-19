@@ -11,6 +11,8 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.ManagedBean;
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.websocket.*;
@@ -20,7 +22,7 @@ import com.devicehive.websockets.json.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
-@Named
+@ManagedBean
 @ServerEndpoint(value = "/device")
 public class DeviceEndpoint extends Endpoint {
 
@@ -60,6 +62,10 @@ public class DeviceEndpoint extends Endpoint {
     }
 
 
+    @PostConstruct
+    public void postConstruct() {
+        super.postConstruct();
+    }
 
 
 }

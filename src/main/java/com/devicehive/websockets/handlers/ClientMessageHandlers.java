@@ -8,6 +8,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
+import com.devicehive.websockets.handlers.annotations.Parameter;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.CommandInsertRequestExclusionStrategy;
 import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
@@ -18,6 +19,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import javax.annotation.ManagedBean;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.jms.JMSException;
@@ -27,7 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Named
+@ManagedBean
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Inject

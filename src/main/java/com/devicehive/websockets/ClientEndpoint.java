@@ -9,6 +9,8 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.ManagedBean;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -20,7 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-@Named
+@ManagedBean
 @ServerEndpoint(value = "/client")
 public class ClientEndpoint extends Endpoint {
 
@@ -56,6 +58,11 @@ public class ClientEndpoint extends Endpoint {
     @Override
     protected HiveMessageHandlers getHiveMessageHandler() {
         return clientMessageHandlers;
+    }
+
+    @PostConstruct
+    public void postConstruct() {
+        super.postConstruct();
     }
 
 }

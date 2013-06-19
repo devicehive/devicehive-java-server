@@ -8,9 +8,9 @@ import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.google.gson.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.websocket.Session;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
 abstract class Endpoint {
@@ -22,6 +22,8 @@ abstract class Endpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 10240;
 
+    private Map<String, Method> methodsCache = new HashMap<>();
+    private Map<String, Boolean> authMap = new HashMap<>();
 
 
 
@@ -52,18 +54,13 @@ abstract class Endpoint {
 
     private JsonObject tryExecute(String action, JsonObject request, Session session) throws Exception {
         HiveMessageHandlers handler = getHiveMessageHandler();
-        for (final Method method : handler.getClass().getMethods()) {
-            if (method.isAnnotationPresent(Action.class)) {
-                Action ann = method.getAnnotation(Action.class);
-                boolean needsAuth = ann.needsAuth();
-                if (needsAuth) {
-                    handler.ensureAuthorised(request, session);
-                }
-                if (ann.value() != null && ann.value().equals(action)) {
-                    logger.trace("[tryExecute] Processing request: " + request);
-                    return (JsonObject)method.invoke(handler, request, session);
-                }
+        if (methodsCache.containsKey(action)) {
+            if (authMap.get(action)) {
+                handler.ensureAuthorised(request, session);
             }
+            logger.trace("[tryExecute] Processing request: " + request);
+            Method method = methodsCache.get(action);
+            return (JsonObject)method.invoke(handler, request, session);
         }
         throw new HiveWebsocketException("Unknown action requested: " + action);
     }
@@ -83,6 +80,16 @@ abstract class Endpoint {
     }
 
 
+    protected void postConstruct() {
+        HiveMessageHandlers handler = getHiveMessageHandler();
+        for (final Method method : handler.getClass().getMethods()) {
+            if (method.isAnnotationPresent(Action.class)) {
+                Action ann = method.getAnnotation(Action.class);
+                methodsCache.put(ann.value(), method);
+                authMap.put(ann.value(), ann.needsAuth());
+            }
+        }
+    }
 
 
 }
