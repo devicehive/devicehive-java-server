@@ -2,8 +2,11 @@ package com.devicehive.model;
 
 
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
@@ -26,13 +29,22 @@ public class User {
 
     @Column
     @SerializedName("login")
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 64)
     private String login;
 
 
     @Column(name = "password_hash")
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 48)
     private String passwordHash;
 
     @Column(name = "password_salt")
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 24)
     private String passwordSalt;
 
     @Column(name = "login_attempts")

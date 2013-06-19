@@ -2,9 +2,11 @@ package com.devicehive.model;
 
 
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
-import javax.print.attribute.standard.PrinterMoreInfoManufacturer;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -26,6 +28,9 @@ public class DeviceNotification implements Serializable {
 
     @SerializedName("notification")
     @Column
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 128)
     private String notification;
 
     @SerializedName("parameters")
@@ -34,6 +39,7 @@ public class DeviceNotification implements Serializable {
 
     @ManyToOne
     @JoinColumn
+    @NotNull
     private Device device;
 
     public DeviceNotification() {
