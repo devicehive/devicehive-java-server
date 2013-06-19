@@ -3,10 +3,14 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -33,13 +37,14 @@ public class DeviceCommand implements Serializable{
     @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id")
-    @NotNull
+    @NotNull(message = "device field cannot be null.")
     public Device device;
 
     @SerializedName("command")
     @Column
-    @NotNull
-    @Size(min = 1, max = 128)
+    @NotNull(message = "command field cannot be null.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 " +
+            "symbols.")
     public String command;
 
     @SerializedName("parameters")
@@ -143,5 +148,26 @@ public class DeviceCommand implements Serializable{
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    /**
+     * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
+     * will be empty if no constraint violations found.
+     * @param deviceCommand
+     * DeviceCommand that should be validated
+     * @param validator
+     * Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(DeviceCommand deviceCommand, Validator validator) {
+        Set<ConstraintViolation<DeviceCommand>> constraintViolations = validator.validate(deviceCommand);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size()>0){
+            for (ConstraintViolation<DeviceCommand> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
     }
 }

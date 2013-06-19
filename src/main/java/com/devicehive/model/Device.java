@@ -3,8 +3,12 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -24,19 +28,19 @@ public class Device {
 
     @SerializedName("key")
     @Column
-    @NotNull
-    @Size(min = 1, max = 64)
+    @NotNull(message = "key field cannot be null.")
+    @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key shouldn't be more than 64 symbols.")
     private String key;
 
     @SerializedName("name")
     @Column
-    @NotNull
-    @Size(min = 1, max = 128)
+    @NotNull(message = "name field cannot be null.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
     private String name;
 
     @SerializedName("status")
     @Column
-    @Size(min = 1, max = 128)
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of status shouldn't be more than 128 symbols.")
     private String status;
 
     @SerializedName("data")
@@ -51,7 +55,7 @@ public class Device {
     @SerializedName("deviceClass")
     @ManyToOne
     @JoinColumn(name = "device_class_id")
-    @NotNull
+    @NotNull(message = "deviceClass field cannot be null.")
     private DeviceClass deviceClass;
 
     /*
@@ -134,4 +138,26 @@ public class Device {
     public void setEquipment(List<Equipment> equipment) {
         this.equipment = equipment;
     }                                            */
+
+    /**
+     * Validates device representation. Returns set of strings which are represent constraint violations. Set will be
+     * empty if no constraint violations found.
+     * @param device
+     * Device that should be validated
+     * @param validator
+     * Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(Device device, Validator validator) {
+        Set<ConstraintViolation<Device>> constraintViolations = validator.validate(device);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size()>0){
+            for (ConstraintViolation<Device> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
+    }
+
 }
