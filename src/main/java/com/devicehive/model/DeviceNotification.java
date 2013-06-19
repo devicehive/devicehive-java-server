@@ -2,7 +2,6 @@ package com.devicehive.model;
 
 
 import com.google.gson.annotations.SerializedName;
-import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -29,7 +28,6 @@ public class DeviceNotification implements Serializable {
     @SerializedName("notification")
     @Column
     @NotNull
-    @NotBlank
     @Size(min = 1, max = 128)
     private String notification;
 

@@ -1,4 +1,4 @@
-package com.devicehive.websockets.json.strategies.device;
+package com.devicehive.websockets.json.strategies;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -10,21 +10,22 @@ import java.util.Set;
  * Created with IntelliJ IDEA.
  * User: jkulagina
  * Date: 19.06.13
- * Time: 12:58
+ * Time: 16:48
  */
-public class AuthenticateResponseExclusionStrategy  implements ExclusionStrategy {
-    private static final Set<String> FIELDS_NAMES_TO_EXCLUDE;
+public class CommandUpdateExclusionStrategy implements ExclusionStrategy {
+    private static final Set<String> FIELD_NAMES_TO_EXCLUDE;
 
-    static {
+    static{
         Set<String> initSet = new HashSet<>();
-        initSet.add("deviceId");
-        initSet.add("deviceKey");
-        FIELDS_NAMES_TO_EXCLUDE = initSet;
+        initSet.add("id");
+        initSet.add("timestamp");
+        initSet.add("userId");
+        FIELD_NAMES_TO_EXCLUDE = initSet;
     }
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return FIELDS_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
+        return FIELD_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
     }
 
     @Override

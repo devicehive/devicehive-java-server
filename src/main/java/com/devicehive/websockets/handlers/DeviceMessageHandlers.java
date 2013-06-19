@@ -7,6 +7,10 @@ import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.json.strategies.CommandUpdateExclusionStrategy;
+import com.devicehive.websockets.json.strategies.DeviceSaveExclusionStrategy;
+import com.devicehive.websockets.json.strategies.NotificationInsertRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.WebsocketUtil;
@@ -78,7 +82,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
         Integer commandId = message.get("commandId").getAsInt();
         DeviceCommand oldCommand = null;//TODO get from DB
-        DeviceCommand deviceCommand = GsonFactory.createGson().fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        DeviceCommand deviceCommand = GsonFactory.createGson(new CommandUpdateExclusionStrategy()).fromJson(message.getAsJsonObject("command"),
+                DeviceCommand.class);
         oldCommand.setCommand(deviceCommand.getCommand());
         oldCommand.setParameters(deviceCommand.getParameters());
         oldCommand.setLifetime(deviceCommand.getLifetime());
@@ -122,7 +127,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "notification/insert")
     public JsonObject processNotificationInsert(JsonObject message, Session session) throws JMSException {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
-        DeviceNotification deviceNotification = GsonFactory.createGson().fromJson(message.get("notification"), DeviceNotification.class);
+        DeviceNotification deviceNotification = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy())
+                .fromJson(message.get("notification"), DeviceNotification.class);
         //TODO save to DB
         messagePublisher.publishNotification(deviceNotification);
         String status = null;
@@ -136,7 +142,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "server/info")
     @Transactional
     public JsonObject processServerInfo(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson();
+        Gson gson = GsonFactory.createGson(new ServerInfoExclusionStrategy());
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date());
@@ -158,7 +164,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "device/save", needsAuth = false)
     public JsonObject processDeviceSave(JsonObject message, Session session) {
-        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
+        UUID deviceId = GsonFactory.createGson(new DeviceSaveExclusionStrategy()).fromJson(message.get("deviceId"), UUID.class);
         String deviceKey = message.get("deviceKey").getAsString();
 
          Device device = GsonFactory.createGson().fromJson(message.get("device"), Device.class);
