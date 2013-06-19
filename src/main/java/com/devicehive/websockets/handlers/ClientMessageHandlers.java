@@ -8,7 +8,6 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.handlers.annotations.Parameter;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.CommandInsertRequestExclusionStrategy;
 import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
@@ -21,7 +20,6 @@ import com.google.gson.JsonObject;
 
 import javax.annotation.ManagedBean;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.util.ArrayList;
@@ -90,7 +88,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);//TODO
 
 
-        JsonArray  deviceGuidsJson = message.getAsJsonArray("deviceGuids");
+        JsonArray deviceGuidsJson = message.getAsJsonArray("deviceGuids");
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
             list.add(gson.fromJson(uuidJson, UUID.class));
@@ -104,7 +102,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "notification/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
-        JsonArray  deviceGuidsJson = message.getAsJsonArray("deviceGuids");
+        JsonArray deviceGuidsJson = message.getAsJsonArray("deviceGuids");
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
             list.add(gson.fromJson(uuidJson, UUID.class));

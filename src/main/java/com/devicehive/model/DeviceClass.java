@@ -1,8 +1,13 @@
 package com.devicehive.model;
 
-import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.io.Serializable;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -11,39 +16,33 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * TODO JavaDoc
+ * Represents a device class which holds meta-information about devices.
  */
 @Entity
 @Table(name = "device_class")
-public class DeviceClass {
+public class DeviceClass implements Serializable {
 
-    @SerializedName("id")
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
     private String name;
 
-    @SerializedName("version")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version shouldn't be more than 32 " +
             "symbols.")
     private String version;
 
-    @SerializedName("isPermanent")
     @Column(name = "is_permanent")
     private Boolean isPermanent;
 
-    @SerializedName("offlineTimeout")
     @Column(name = "offline_timeout")
     private Integer offlineTimeout;
 
-    @SerializedName("data")
     @Column
     private String data;
 

@@ -3,43 +3,57 @@ package com.devicehive.controller;
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.model.DeviceClass;
 
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * TODO JavaDoc
  */
 @Path("/device")
+@Stateless
 public class DeviceClassController {
-    @Inject
+    @EJB
     public DeviceClassDAO deviceClassDAO;
 
     @GET
     @Path("/class")
-    public Response getDeviceList() {
-        deviceClassDAO.getList();
-        return Response.ok().build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<DeviceClass> getDeviceClassList() {
+        return deviceClassDAO.getList();
     }
 
-    public Response getDevice() {
-        return Response.ok().build();
+    @GET
+    @Path("/class/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public DeviceClass getDeviceClass(@PathParam("id") long id) {
+        return deviceClassDAO.getDeviceClass(id);
     }
 
     @POST
     @Path("/class")
-    public Response insertDevice(DeviceClass deviceClass) {
-        deviceClassDAO.addDeviceClass(deviceClass);
+    @Consumes(MediaType.APPLICATION_JSON)
+    public long insertDeviceClass() {
+        DeviceClass deviceClass = new DeviceClass();
+        deviceClass.setName("test");
+        deviceClass.setPermanent(false);
+        deviceClass.setVersion("1.0");
+        return deviceClassDAO.addDeviceClass(deviceClass);
+    }
+
+    @PUT
+    @Path("/class/{id}")
+    public Response updateDeviceClass(@PathParam("id") long id) {
         return Response.ok().build();
     }
 
-    public Response updateDevice() {
-        return Response.ok().build();
-    }
-
-    public Response deleteDevice() {
+    @DELETE
+    @Path("/class/{id}")
+    public Response deleteDeviceClass(@PathParam("id") long id) {
         return Response.ok().build();
     }
 }

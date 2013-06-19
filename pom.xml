@@ -10,6 +10,12 @@
     <name>DeviceHive Java Server</name>
     <packaging>war</packaging>
 
+    <properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -55,12 +61,14 @@
             <groupId>javax.ejb</groupId>
             <artifactId>javax.ejb-api</artifactId>
             <version>3.2-b02</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>javax.jms</groupId>
             <artifactId>javax.jms-api</artifactId>
             <version>2.0</version>
+            <scope>provided</scope>
         </dependency>
 
         <!--

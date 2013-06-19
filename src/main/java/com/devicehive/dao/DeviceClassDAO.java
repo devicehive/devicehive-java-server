@@ -1,7 +1,10 @@
 package com.devicehive.dao;
 
 import com.devicehive.model.DeviceClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.ejb.Stateful;
 import javax.enterprise.inject.Model;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -12,8 +15,10 @@ import java.util.List;
 /**
  * TODO JavaDoc
  */
-@Model
+@Stateful
 public class DeviceClassDAO {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
+
     @PersistenceContext(unitName = "devicehive")
     private EntityManager em;
 
@@ -21,11 +26,19 @@ public class DeviceClassDAO {
         return em.createQuery("select dc from DeviceClass dc").getResultList();
     }
 
-    public void addDeviceClass(DeviceClass deviceClass) {
-        em.persist(deviceClass);
+    public DeviceClass getDeviceClass(long id) {
+        return em.find(DeviceClass.class, id);
     }
 
-    public void deleteDeviceClass(DeviceClass deviceClass) {
+    @Transactional
+    public long addDeviceClass(DeviceClass deviceClass) {
+        em.persist(deviceClass);
+        em.flush();
+        return deviceClass.getId();
+    }
+
+    public void deleteDeviceClass(long id) {
+        DeviceClass deviceClass = getDeviceClass(id);
         em.remove(deviceClass);
     }
 }
