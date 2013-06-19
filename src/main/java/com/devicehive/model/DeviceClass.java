@@ -1,7 +1,6 @@
 package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
-import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -22,14 +21,12 @@ public class DeviceClass {
     @SerializedName("name")
     @Column
     @NotNull
-    @NotBlank
     @Size(min = 1, max = 128)
     private String name;
 
     @SerializedName("version")
     @Column
     @NotNull
-    @NotBlank
     @Size(min = 1, max = 32)
     private String version;
 
