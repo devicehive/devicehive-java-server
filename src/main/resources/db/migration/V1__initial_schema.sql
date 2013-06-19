@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS user_network;
 
 
 CREATE TABLE network (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     name VARCHAR(128) NOT NULL,
     description VARCHAR(128) NULL,
     key VARCHAR(64) NULL
@@ -20,7 +20,7 @@ CREATE TABLE network (
 ALTER TABLE network ADD CONSTRAINT network_pk PRIMARY KEY (id);
 
 CREATE TABLE "user" (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     login VARCHAR(64) NOT NULL,
     password_hash VARCHAR(48) NOT NULL,
     password_salt VARCHAR(24) NOT NULL,
@@ -33,15 +33,15 @@ CREATE TABLE "user" (
 ALTER TABLE "user" ADD CONSTRAINT user_pk PRIMARY KEY (id);
 
 CREATE TABLE user_network (
-    id SERIAL NOT NULL,
-    user_id INT NOT NULL,
-    network_id INT NOT NULL
+    id BIGSERIAL NOT NULL,
+    user_id BIGINT NOT NULL,
+    network_id BIGINT NOT NULL
 );
 
 ALTER TABLE user_network ADD CONSTRAINT user_network_pk PRIMARY KEY (id);
 
 CREATE TABLE device_class (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     name VARCHAR(128) NOT NULL,
     version VARCHAR(32) NOT NULL,
     is_permanent BOOLEAN NOT NULL,
@@ -52,12 +52,12 @@ CREATE TABLE device_class (
 ALTER TABLE device_class ADD CONSTRAINT device_class_pk PRIMARY KEY (id);
 
 CREATE TABLE device (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     guid UUID NOT NULL,
     name VARCHAR(128) NOT NULL,
     status VARCHAR(128) NULL,
-    network_id INT NULL,
-    device_class_id INT NOT NULL,
+    network_id BIGINT NULL,
+    device_class_id BIGINT NOT NULL,
     key VARCHAR(64) NOT NULL,
     data TEXT NULL
 );
@@ -67,7 +67,7 @@ ALTER TABLE device ADD CONSTRAINT device_network_fk FOREIGN KEY (network_id) REF
 ALTER TABLE device ADD CONSTRAINT device_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id);
 
 CREATE TABLE device_command (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     timestamp TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
     command VARCHAR(128) NOT NULL,
     parameters TEXT NULL,
@@ -75,8 +75,8 @@ CREATE TABLE device_command (
     flags INT NULL,
     status VARCHAR(128) NULL,
     result TEXT NULL,
-    device_id INT NOT NULL,
-    user_id INT NULL
+    device_id BIGINT NOT NULL,
+    user_id BIGINT NULL
 );
 
 ALTER TABLE device_command ADD CONSTRAINT device_command_pk PRIMARY KEY (id);
@@ -84,32 +84,32 @@ ALTER TABLE device_command ADD CONSTRAINT device_command_device_fk FOREIGN KEY (
 ALTER TABLE device_command ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id);
 
 CREATE TABLE device_equipment (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     code VARCHAR(128) NOT NULL,
     timestamp TIMESTAMP NOT NULL,
     parameters TEXT NULL,
-    device_id INT NOT NULL
+    device_id BIGINT NOT NULL
 );
 
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_pk PRIMARY KEY (id);
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_fk FOREIGN KEY (device_id) REFERENCES device (id);
 
 CREATE TABLE device_notification (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     timestamp TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
     notification VARCHAR(128) NOT NULL,
     parameters TEXT NULL,
-    device_id INT NOT NULL
+    device_id BIGINT NOT NULL
 );
 
 ALTER TABLE device_notification ADD CONSTRAINT device_notification_pk PRIMARY KEY (id);
 ALTER TABLE device_notification ADD CONSTRAINT device_notification_device_fk FOREIGN KEY (device_id) REFERENCES device (id);
 
 CREATE TABLE equipment (
-    id SERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     name VARCHAR(128) NOT NULL,
     code VARCHAR(128) NOT NULL,
-    device_class_id INT NOT NULL,
+    device_class_id BIGINT NOT NULL,
     type VARCHAR(128) NOT NULL,
     data TEXT NULL
 );
