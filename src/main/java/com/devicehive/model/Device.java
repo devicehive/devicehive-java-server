@@ -19,7 +19,8 @@ public class Device {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @SerializedName("guid")
+    @Column(columnDefinition = "uuid not null") // TODO That's postgres-specific
     private UUID guid;
 
     @SerializedName("key")

@@ -20,8 +20,6 @@ abstract class Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
 
-    private static final String ACTION = "action";
-    private static final String REQUEST_ID = "requestId";
 
     protected abstract HiveMessageHandlers getHiveMessageHandler();
 
@@ -81,8 +79,8 @@ abstract class Endpoint {
             response = JsonMessageBuilder.createErrorResponseBuilder().build();
         }
         JsonObject finalResponse = new JsonMessageBuilder()
-            .addAction(request.get(ACTION).getAsString())
-            .addRequestId(request.get(REQUEST_ID).getAsString())
+            .addAction(request.get(JsonMessageBuilder.ACTION).getAsString())
+            .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
             .include(response)
             .build();
         return finalResponse;
