@@ -18,9 +18,10 @@ public class GsonFactory {
         return  builder.create();
     }
 
-    public static Gson createGson(ExclusionStrategy deserializationExclusionStrategy) {
+    public static Gson createGson(ExclusionStrategy serializationExclusionStrategy) {
         GsonBuilder builder = new GsonBuilder();
-        builder.addDeserializationExclusionStrategy(deserializationExclusionStrategy);
+        builder.addDeserializationExclusionStrategy(serializationExclusionStrategy);
+        builder.addSerializationExclusionStrategy(serializationExclusionStrategy);
         builder.registerTypeAdapter(Date.class, new DateAdapter());
         builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
         builder.setPrettyPrinting();

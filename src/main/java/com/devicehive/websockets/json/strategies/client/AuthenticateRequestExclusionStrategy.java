@@ -1,4 +1,4 @@
-package com.devicehive.websockets.json.strategies;
+package com.devicehive.websockets.json.strategies.client;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;

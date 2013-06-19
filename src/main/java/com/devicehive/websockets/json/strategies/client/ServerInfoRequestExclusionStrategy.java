@@ -1,4 +1,4 @@
-package com.devicehive.websockets.json.strategies;
+package com.devicehive.websockets.json.strategies.client;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -10,18 +10,20 @@ import java.util.Set;
  * Created with IntelliJ IDEA.
  * User: jkulagina
  * Date: 18.06.13
- * Time: 14:26
+ * Time: 20:53
  */
-public class CommandInsertRequestExclusionStrategy implements ExclusionStrategy{
+public class ServerInfoRequestExclusionStrategy implements ExclusionStrategy {
+
     private static final Set<String> FIELDS_NAMES_TO_EXCLUDE;
 
     static{
         Set<String> initSet = new HashSet<>();
         initSet.add("id");
-        initSet.add("timestamp");
-        initSet.add("user");
-        initSet.add("device");
         initSet.add("status");
+        initSet.add("requestId");
+        initSet.add("apiVersion");
+        initSet.add("serverTimestamp");
+        initSet.add("restServerUrl");
         FIELDS_NAMES_TO_EXCLUDE = initSet;
     }
 
@@ -35,11 +37,4 @@ public class CommandInsertRequestExclusionStrategy implements ExclusionStrategy{
         return false;
     }
 
-//    public static void main(String ... args){
-//        Field[] fields = DeviceCommand.class.getFields();
-//        for(Field field: fields){
-//            FieldAttributes attributes = new FieldAttributes(field);
-//            System.out.println(attributes.getName() + " ");
-//        }
-//    }
 }

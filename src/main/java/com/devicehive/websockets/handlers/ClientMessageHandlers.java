@@ -8,7 +8,9 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Version;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.CommandInsertRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.client.CommandInsertRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.client.NotificationSubscribeRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.client.NotificationUnsubscribeRequestExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.google.gson.Gson;
@@ -46,7 +48,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
-//        Gson gson = GsonFactory.createGson();
         Gson gson = GsonFactory.createGson(new CommandInsertRequestExclusionStrategy());
         UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
@@ -63,7 +64,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/subscribe")
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson();
+        Gson gson = GsonFactory.createGson(new NotificationSubscribeRequestExclusionStrategy());
 
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);//TODO
 
@@ -81,7 +82,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson();
+        Gson gson = GsonFactory.createGson(new NotificationUnsubscribeRequestExclusionStrategy());
         JsonArray  deviceGuidsJson = message.getAsJsonArray("deviceGuids");
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
