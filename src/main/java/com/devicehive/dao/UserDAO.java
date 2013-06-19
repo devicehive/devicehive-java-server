@@ -6,6 +6,7 @@ import com.devicehive.service.PasswordService;
 import javax.inject.Inject;
 import javax.persistence.*;
 import javax.transaction.Transactional;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -55,6 +56,22 @@ public class UserDAO {
             return finalizeLogin(user);
         }
     }
+
+    @Transactional
+    public User registerUser(String login, String password) {
+        User user = new User();
+        user.setLogin(login);
+        String salt = passwordService.generateSalt();
+        String hash = passwordService.hashPassword(password, salt);
+        user.setPasswordSalt(salt);
+        user.setPasswordHash(hash);
+        user.setStatus(0);
+        user.setRole(1);
+        user.setLoginAttempts(0);
+        em.persist(user);
+        return user;
+    }
+
 
 
     @Transactional

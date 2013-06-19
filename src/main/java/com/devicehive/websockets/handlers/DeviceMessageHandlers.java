@@ -2,8 +2,9 @@ package com.devicehive.websockets.handlers;
 
 
 
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
-import com.devicehive.service.PasswordService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.CommandUpdateExclusionStrategy;
@@ -41,16 +42,40 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
     @Inject
-    private PasswordService authenticationService;
+    private DeviceDAO deviceDAO;
+
+
+    private static final String AUTHENTICATED_DEVICE_ID = "AUTHENTICATED_DEVICE_ID";
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
         String deviceKey = message.get("deviceKey").getAsString();
 
-        //TODO session auth
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
-        return jsonObject;
+        Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
+
+        if (device != null) {
+            session.getUserProperties().put(AUTHENTICATED_DEVICE_ID, device.getGuid());
+            return JsonMessageBuilder.createSuccessResponseBuilder().build();
+        } else {
+            throw new HiveWebsocketException("Device authentication error: credentials are incorrect");
+        }
+    }
+
+    @Override
+    public void ensureAuthorised(JsonObject request, Session session) {
+        Gson gson = GsonFactory.createGson();
+
+        if (session.getUserProperties().containsKey(AUTHENTICATED_DEVICE_ID)) {
+            return;
+        }
+        UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
+        String deviceKey = request.get("deviceKey").getAsString();
+
+        Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
+        if (device == null) {
+            throw new HiveWebsocketException("Not authorised");
+        }
     }
 
     @Action(value = "command/update")

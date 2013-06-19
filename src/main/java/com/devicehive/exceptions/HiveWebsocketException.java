@@ -7,13 +7,13 @@ package com.devicehive.exceptions;
  * Time: 17:36
  * To change this template use File | Settings | File Templates.
  */
-public class WebsocketException extends RuntimeException {
+public class HiveWebsocketException extends RuntimeException {
 
-    public WebsocketException(String message, Throwable cause) {
+    public HiveWebsocketException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public WebsocketException(String message) {
+    public HiveWebsocketException(String message) {
         super(message);
     }
 }

@@ -1,28 +1,23 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.dao.DeviceClassDAO;
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.exceptions.HiveWebsocketException;
+import com.devicehive.model.Device;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Scope;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import com.devicehive.websockets.json.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.UUID;
 
 @Named
@@ -33,6 +28,9 @@ public class DeviceEndpoint extends Endpoint {
 
     @Inject
     private DeviceMessageHandlers deviceMessageHandlers;
+
+    @Inject
+    private DeviceDAO deviceDAO;
 
 
     @OnOpen
@@ -61,19 +59,7 @@ public class DeviceEndpoint extends Endpoint {
         return deviceMessageHandlers;
     }
 
-    @Override
-    protected boolean checkAuth(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson();
-        /*
-            TODO check session auth
-         */
-        UUID deviceId = gson.fromJson(message.get("deviceId"), UUID.class);
-        //String deviceKey = message.get("deviceKey").getAsString();
-        /*
-            TODO check explicit credentials
-         */
-        return false;
-    }
+
 
 
 }

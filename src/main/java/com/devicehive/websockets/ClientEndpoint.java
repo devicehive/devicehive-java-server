@@ -58,8 +58,4 @@ public class ClientEndpoint extends Endpoint {
         return clientMessageHandlers;
     }
 
-    @Override
-    protected boolean checkAuth(JsonObject message, Session session) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
 }

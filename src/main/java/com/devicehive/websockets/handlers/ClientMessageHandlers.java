@@ -2,6 +2,7 @@ package com.devicehive.websockets.handlers;
 
 
 import com.devicehive.dao.UserDAO;
+import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.ApiInfo;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
@@ -39,6 +40,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private UserDAO userDAO;
 
 
+    private static final String AUTHENTICATED_USER_ID = "AUTHENTICATED_USER_ID";
+
+
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         String login = message.get("login").getAsString();
@@ -47,12 +51,19 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         User user = userDAO.authenticate(login, password);
 
         if (user != null) {
+            session.getUserProperties().put(AUTHENTICATED_USER_ID, user.getId());
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
         } else {
-            return JsonMessageBuilder.createErrorResponseBuilder().build();
+            throw new HiveWebsocketException("Client authentication error: credentials are incorrect");
         }
     }
 
+    @Override
+    public void ensureAuthorised(JsonObject request, Session session) {
+        if (!session.getUserProperties().containsKey(AUTHENTICATED_USER_ID)) {
+            throw new HiveWebsocketException("Not authorised");
+        }
+    }
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
