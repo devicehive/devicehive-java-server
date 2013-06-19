@@ -28,6 +28,8 @@ CREATE TABLE user_network (
 );
 
 ALTER TABLE user_network ADD CONSTRAINT user_network_pk PRIMARY KEY (id);
+ALTER TABLE user_network ADD CONSTRAINT user_network_user_pk FOREIGN KEY (user_id) REFERENCES "user" (id);
+ALTER TABLE user_network ADD CONSTRAINT user_network_network_pk FOREIGN KEY (network_id) REFERENCES network (id);
 
 CREATE TABLE device_class (
     id BIGSERIAL NOT NULL,
