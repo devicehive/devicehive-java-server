@@ -51,7 +51,7 @@ public class User {
     @SerializedName("lastLogin")
     private Date lastLogin;
 
-    @ManyToMany(mappedBy = "users")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     private List<Network> networks;
 
 
