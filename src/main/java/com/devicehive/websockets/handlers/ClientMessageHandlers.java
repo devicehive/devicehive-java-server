@@ -1,19 +1,15 @@
 package com.devicehive.websockets.handlers;
 
 
-
-
 import com.devicehive.dao.UserDAO;
 import com.devicehive.model.ApiInfo;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.Version;
-import com.devicehive.service.PasswordService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.client.CommandInsertRequestExclusionStrategy;
-import com.devicehive.websockets.json.strategies.client.NotificationSubscribeRequestExclusionStrategy;
-import com.devicehive.websockets.json.strategies.client.NotificationUnsubscribeRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.CommandInsertRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.google.gson.Gson;
@@ -76,7 +72,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/subscribe")
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson(new NotificationSubscribeRequestExclusionStrategy());
+        Gson gson = GsonFactory.createGson();
 
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);//TODO
 
@@ -94,7 +90,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson(new NotificationUnsubscribeRequestExclusionStrategy());
+        Gson gson = GsonFactory.createGson();
         JsonArray  deviceGuidsJson = message.getAsJsonArray("deviceGuids");
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
@@ -110,7 +106,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson();
+        Gson gson = GsonFactory.createGson(new ServerInfoExclusionStrategy());
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date());
