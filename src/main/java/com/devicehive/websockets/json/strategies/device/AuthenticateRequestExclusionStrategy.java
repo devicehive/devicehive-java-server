@@ -9,8 +9,8 @@ import java.util.Set;
 /**
  * Created with IntelliJ IDEA.
  * User: jkulagina
- * Date: 18.06.13
- * Time: 20:31
+ * Date: 19.06.13
+ * Time: 12:57
  */
 public class AuthenticateRequestExclusionStrategy implements ExclusionStrategy {
     private static final Set<String> FIELDS_NAMES_TO_EXCLUDE;

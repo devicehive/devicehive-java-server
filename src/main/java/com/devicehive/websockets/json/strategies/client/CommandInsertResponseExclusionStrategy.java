@@ -31,7 +31,7 @@ public class CommandInsertResponseExclusionStrategy implements ExclusionStrategy
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        if (fieldAttributes.getDeclaredClass().equals(DeviceCommand.class.getClass())){
+        if (fieldAttributes.getDeclaredClass().equals(DeviceCommand.class)){
             return false;
         }
         return FIELDS_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());

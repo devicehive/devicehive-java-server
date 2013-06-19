@@ -1,5 +1,6 @@
 package com.devicehive.websockets.json.strategies.device;
 
+import com.devicehive.model.DeviceNotification;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 
@@ -10,20 +11,25 @@ import java.util.Set;
  * Created with IntelliJ IDEA.
  * User: jkulagina
  * Date: 19.06.13
- * Time: 12:58
+ * Time: 13:00
  */
-public class AuthenticateResponseExclusionStrategy  implements ExclusionStrategy {
+public class NotificationInsertResponseExclusionStrategy implements ExclusionStrategy {
     private static final Set<String> FIELDS_NAMES_TO_EXCLUDE;
 
     static {
         Set<String> initSet = new HashSet<>();
         initSet.add("deviceId");
         initSet.add("deviceKey");
+        initSet.add("notification");
+        initSet.add("parameters");
         FIELDS_NAMES_TO_EXCLUDE = initSet;
     }
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
+        if (fieldAttributes.getDeclaredClass().equals(DeviceNotification.class)){
+            return false;
+        }
         return FIELDS_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
     }
 
@@ -32,3 +38,4 @@ public class AuthenticateResponseExclusionStrategy  implements ExclusionStrategy
         return false;
     }
 }
+
