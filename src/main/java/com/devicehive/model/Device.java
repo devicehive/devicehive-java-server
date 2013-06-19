@@ -1,11 +1,11 @@
 package com.devicehive.model;
 
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
-import org.hibernate.annotations.Type;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
-import java.util.List;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.UUID;
 
 /**
@@ -24,17 +24,25 @@ public class Device {
 
     @SerializedName("key")
     @Column
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 64)
     private String key;
 
     @SerializedName("name")
     @Column
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 128)
     private String name;
 
     @SerializedName("status")
     @Column
+    @Size(min = 1, max = 128)
     private String status;
 
     @SerializedName("data")
+    @Column
     private String data;
 
     @SerializedName("network")
@@ -45,6 +53,7 @@ public class Device {
     @SerializedName("deviceClass")
     @ManyToOne
     @JoinColumn(name = "device_class_id")
+    @NotNull
     private DeviceClass deviceClass;
 
     /*

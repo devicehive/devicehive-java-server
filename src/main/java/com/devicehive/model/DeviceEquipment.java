@@ -1,6 +1,10 @@
 package com.devicehive.model;
 
+import org.hibernate.validator.constraints.NotBlank;
+
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Date;
 
 /**
@@ -19,6 +23,9 @@ public class DeviceEquipment {
     private Long id;
 
     @Column
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 128)
     private String code;
 
 
@@ -31,5 +38,6 @@ public class DeviceEquipment {
 
     @ManyToOne
     @JoinColumn(name = "device_id")
+    @NotNull
     private Device device;
 }

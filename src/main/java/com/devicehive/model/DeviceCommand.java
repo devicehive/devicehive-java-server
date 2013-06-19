@@ -1,8 +1,11 @@
 package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -31,10 +34,14 @@ public class DeviceCommand implements Serializable{
     @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id")
+    @NotNull
     public Device device;
 
     @SerializedName("command")
     @Column
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 128)
     public String command;
 
     @SerializedName("parameters")

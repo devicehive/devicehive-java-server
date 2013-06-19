@@ -1,9 +1,11 @@
 package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * TODO JavaDoc
@@ -19,10 +21,16 @@ public class DeviceClass {
 
     @SerializedName("name")
     @Column
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 128)
     private String name;
 
     @SerializedName("version")
     @Column
+    @NotNull
+    @NotBlank
+    @Size(min = 1, max = 32)
     private String version;
 
     @SerializedName("isPermanent")
