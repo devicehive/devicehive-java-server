@@ -2,9 +2,13 @@ package com.devicehive.model;
 
 
 import javax.persistence.*;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,8 +26,8 @@ public class DeviceEquipment {
     private Long id;
 
     @Column
-    @NotNull
-    @Size(min = 1, max = 128)
+    @NotNull(message = "code field cannot be null.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
     private String code;
 
 
@@ -36,7 +40,7 @@ public class DeviceEquipment {
 
     @ManyToOne
     @JoinColumn(name = "device_id")
-    @NotNull
+    @NotNull(message = "device field cannot be null.")
     private Device device;
 
 
@@ -78,5 +82,26 @@ public class DeviceEquipment {
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    /**
+     * Validates deviceEquipment representation. Returns set of strings which are represent constraint violations. Set
+     * will be empty if no constraint violations found.
+     * @param deviceEquipment
+     * DeviceEquipment that should be validated
+     * @param validator
+     * Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(DeviceEquipment deviceEquipment, Validator validator) {
+        Set<ConstraintViolation<DeviceEquipment>> constraintViolations = validator.validate(deviceEquipment);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size()>0){
+            for (ConstraintViolation<DeviceEquipment> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
     }
 }

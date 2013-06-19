@@ -4,10 +4,14 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "\"user\"")
@@ -29,19 +33,20 @@ public class User {
 
     @Column
     @SerializedName("login")
-    @NotNull
-    @Size(min = 1, max = 64)
+    @NotNull(message = "login field cannot be null.")
+    @Size(min = 1, max = 64, message = "Field cannot be empty. The length of login shouldn't be more than 64 symbols.")
     private String login;
 
 
     @Column(name = "password_hash")
-    @NotNull
-    @Size(min = 1, max = 48)
+    @NotNull(message = "passwordHash field cannot be null.")
+    @Size(min = 48, max = 48, message = "Field cannot be empty. The length of passwordHash should be 48 symbols.")
     private String passwordHash;
 
     @Column(name = "password_salt")
-    @NotNull
-    @Size(min = 1, max = 24)
+    @NotNull(message = "passwordSalt field cannot be null.")
+    @Size(min = 1, max = 24, message = "Field cannot be empty. The length of passwordSalt shouldn't be more than " +
+            "24 symbols.")
     private String passwordSalt;
 
     @Column(name = "login_attempts")
@@ -137,5 +142,26 @@ public class User {
 
     public void setLoginAttempts(Integer loginAttempts) {
         this.loginAttempts = loginAttempts;
+    }
+
+    /**
+     * Validates user representation. Returns set of strings which are represent constraint violations. Set will
+     * be empty if no constraint violations found.
+     * @param user
+     * User that should be validated
+     * @param validator
+     * Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(User user, Validator validator) {
+        Set<ConstraintViolation<User>> constraintViolations = validator.validate(user);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size()>0){
+            for (ConstraintViolation<User> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
     }
 }
