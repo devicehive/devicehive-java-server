@@ -3,6 +3,7 @@ package com.devicehive.websockets.handlers;
 
 
 import com.devicehive.model.*;
+import com.devicehive.service.PasswordService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.jms.JMSException;
+import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,6 +34,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Inject
     private MessagePublisher messagePublisher;
+
+
+    @Inject
+    private PasswordService authenticationService;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -103,6 +109,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "server/info")
+    @Transactional
     public JsonObject processServerInfo(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
         ApiInfo apiInfo = new ApiInfo();

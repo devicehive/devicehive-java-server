@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.List;
@@ -10,13 +11,16 @@ import java.util.UUID;
 /**
  * TODO JavaDoc
  */
-@Entity
+@Entity(name = "device")
 public class Device {
 
     @SerializedName("id")
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Long id;
+
+    @Column
+    private UUID guid;
 
     @SerializedName("key")
     @Column
@@ -35,27 +39,37 @@ public class Device {
 
     @SerializedName("network")
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "network_id")
     private Network network;
 
     @SerializedName("deviceClass")
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "device_class_id")
     private DeviceClass deviceClass;
 
+    /*
     @SerializedName("equipment")
     @OneToMany
     private List<Equipment> equipment;
+    */
 
     public Device() {
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public UUID getGuid() {
+        return guid;
+    }
+
+    public void setGuid(UUID guid) {
+        this.guid = guid;
     }
 
     public String getKey() {
@@ -105,12 +119,12 @@ public class Device {
     public void setDeviceClass(DeviceClass deviceClass) {
         this.deviceClass = deviceClass;
     }
-
+                  /*
     public List<Equipment> getEquipment() {
         return equipment;
     }
 
     public void setEquipment(List<Equipment> equipment) {
         this.equipment = equipment;
-    }
+    }                                            */
 }

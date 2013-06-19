@@ -104,7 +104,7 @@ public class CommandsSubscriptionManager implements Serializable {
     }
 
 
-    public Session getClientSession(Integer commandId) {
+    public Session getClientSession(Long commandId) {
         return commandToClientSessionMap.get(commandId);
     }
 

@@ -1,14 +1,13 @@
 package com.devicehive.websockets;
 
 
+import com.devicehive.exceptions.WebsocketException;
 import com.devicehive.model.AuthLevel;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.json.GsonFactory;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +30,27 @@ abstract class Endpoint {
 
 
 
-    protected JsonObject processMessage(JsonObject request, Session session) {
+    protected JsonObject processMessage(String message, Session session) {
         JsonObject response = null;
+
+        JsonObject request = null;
+        try {
+            request = new JsonParser().parse(message).getAsJsonObject();
+        } catch (JsonSyntaxException ex) {
+            // Stop processing this request, response with simple error message (status and error fields)
+            logger.error("[processMessage] Incorrect message syntax ", ex);
+            return JsonMessageBuilder.createErrorResponseBuilder("Incorrect JSON syntax").build();
+        }
+
         try {
             String action = request.getAsJsonPrimitive("action").getAsString();
             logger.debug("[action] Looking for action " + action);
             tryExecute(action, request, session);
+        } catch (WebsocketException ex) {
+            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (Exception ex) {
-            logger.error("[processMessage] Error processing message " + request, ex);
-            response = JsonMessageBuilder.createErrorResponseBuilder().build();
+            logger.error("[processMessage] Error processing message ", ex);
+            response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
         }
         return constructFinalResponse(request, response);
     }
@@ -60,7 +71,7 @@ abstract class Endpoint {
                 }
             }
         }
-        return null;
+        throw new WebsocketException("Unknown action requested: " + action);
     }
 
 

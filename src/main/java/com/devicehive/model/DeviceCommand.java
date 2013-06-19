@@ -11,12 +11,13 @@ import java.util.Date;
  * TODO JavaDoc
  */
 @Entity
+@Table(name = "device_command")
 public class DeviceCommand implements Serializable{
 
     @SerializedName("id")
     @Id
-    @GeneratedValue
-    public Integer id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    public Long id;
 
     @SerializedName("timestamp")
     @Column
@@ -24,12 +25,12 @@ public class DeviceCommand implements Serializable{
 
     @SerializedName("user")
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "user_id")
     public User user;
 
     @SerializedName("device")
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "device_id")
     public Device device;
 
     @SerializedName("command")
@@ -59,11 +60,11 @@ public class DeviceCommand implements Serializable{
     public DeviceCommand() {
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

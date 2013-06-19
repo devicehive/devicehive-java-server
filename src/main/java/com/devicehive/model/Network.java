@@ -13,8 +13,8 @@ public class Network {
 
     @SerializedName("id")
     @Id
-    @GeneratedValue
-    private Integer id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Long id;
 
     @SerializedName("key")
     @Column
@@ -29,18 +29,18 @@ public class Network {
     private String description;
 
     @ManyToMany
-    @JoinTable(name = "user_network")
+    @JoinTable(name = "user_network", joinColumns = {@JoinColumn(name = "user_id")}, inverseJoinColumns = {@JoinColumn(name = "network_id")})
     private List<User> users;
 
     public Network() {
 
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

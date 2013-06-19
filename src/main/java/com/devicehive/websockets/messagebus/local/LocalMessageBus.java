@@ -43,7 +43,7 @@ public class LocalMessageBus {
      * @return true if command was delivered
      */
     public boolean submitCommand(DeviceCommand deviceCommand) {
-        UUID deviceId = deviceCommand.getDevice().getId();
+        UUID deviceId = deviceCommand.getDevice().getGuid();
         Session session = commandsSubscriptionManager.findDeviceSession(deviceId);
         if (session == null || !session.isOpen()) {
             return false;
@@ -99,12 +99,12 @@ public class LocalMessageBus {
      * @param deviceNotification
      */
     public void submitNotification(DeviceNotification deviceNotification) {
-        Collection<Session> sessions = notificationsSubscriptionManager.getSubscriptions(deviceNotification.getDevice().getId());
+        Collection<Session> sessions = notificationsSubscriptionManager.getSubscriptions(deviceNotification.getDevice().getGuid());
         if (sessions == null) {
             return;
         }
 
-        UUID deviceId = deviceNotification.getDevice().getId();
+        UUID deviceId = deviceNotification.getDevice().getGuid();
 
         JsonElement deviceNotificationJson = GsonFactory.createGson().toJsonTree(deviceNotification);  //TODO filter
         for (Session session : sessions) {

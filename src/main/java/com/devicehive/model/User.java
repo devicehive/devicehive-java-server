@@ -8,16 +8,36 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
+@Table(name = "\"user\"")
+@NamedQueries({
+    @NamedQuery(name= "User.findByName", query = "select u from User u where login = :login")
+})
+
 public class User {
 
+    public static enum ROLE {Administrator, Client}
+    public static enum STATUS {Active, LockedOut, Disabled, Deleted}
+
+
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     @SerializedName("id")
-    private Integer id;
+    private Long id;
 
     @Column
     @SerializedName("login")
     private String login;
+
+
+    @Column(name = "password_hash")
+    private String passwordHash;
+
+    @Column(name = "password_salt")
+    private String passwordSalt;
+
+    @Column(name = "login_attempts")
+    private Integer loginAttempts;
+
 
     @Column
     @SerializedName("role")
@@ -27,23 +47,22 @@ public class User {
     @SerializedName("status")
     private Integer status;
 
-    @Column
+    @Column(name = "last_login")
     @SerializedName("lastLogin")
     private Date lastLogin;
 
-    @ManyToMany
-    @JoinTable(name = "user_network")
+    @ManyToMany(mappedBy = "users")
     private List<Network> networks;
 
 
     public User() {
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -77,5 +96,37 @@ public class User {
 
     public void setLastLogin(Date lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public String getPasswordSalt() {
+        return passwordSalt;
+    }
+
+    public void setPasswordSalt(String passwordSalt) {
+        this.passwordSalt = passwordSalt;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public List<Network> getNetworks() {
+        return networks;
+    }
+
+    public void setNetworks(List<Network> networks) {
+        this.networks = networks;
+    }
+
+    public Integer getLoginAttempts() {
+        return loginAttempts;
+    }
+
+    public void setLoginAttempts(Integer loginAttempts) {
+        this.loginAttempts = loginAttempts;
     }
 }

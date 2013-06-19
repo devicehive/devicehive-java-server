@@ -1,6 +1,7 @@
 package com.devicehive.websockets;
 
 
+import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.google.gson.Gson;
@@ -9,7 +10,12 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Scope;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import com.devicehive.websockets.json.*;
@@ -19,8 +25,8 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.UUID;
 
-
-@ServerEndpoint(value = "/device", encoders = {JsonWebsocketEncoder.class}, decoders = {JsonWebsocketDecoder.class})
+@Named
+@ServerEndpoint(value = "/device")
 public class DeviceEndpoint extends Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceEndpoint.class);
@@ -35,7 +41,7 @@ public class DeviceEndpoint extends Endpoint {
     }
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
-    public String onMessage(JsonObject message, Session session) throws InvocationTargetException, IllegalAccessException {
+    public String onMessage(String message, Session session) throws InvocationTargetException, IllegalAccessException {
         logger.debug("[onMessage] session id " + session.getId());
         return processMessage(message, session).toString();
     }
@@ -62,7 +68,7 @@ public class DeviceEndpoint extends Endpoint {
             TODO check session auth
          */
         UUID deviceId = gson.fromJson(message.get("deviceId"), UUID.class);
-        String deviceKey = message.get("deviceKey").getAsString();
+        //String deviceKey = message.get("deviceKey").getAsString();
         /*
             TODO check explicit credentials
          */
