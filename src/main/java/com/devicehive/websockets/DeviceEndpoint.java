@@ -22,7 +22,6 @@ import com.devicehive.websockets.json.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
-@ManagedBean
 @ServerEndpoint(value = "/device")
 public class DeviceEndpoint extends Endpoint {
 

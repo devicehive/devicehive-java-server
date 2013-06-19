@@ -22,7 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-@ManagedBean
 @ServerEndpoint(value = "/client")
 public class ClientEndpoint extends Endpoint {
 
