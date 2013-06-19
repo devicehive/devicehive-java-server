@@ -3,9 +3,12 @@ package com.devicehive.websockets.handlers;
 
 
 
+import com.devicehive.dao.UserDAO;
 import com.devicehive.model.ApiInfo;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.User;
 import com.devicehive.model.Version;
+import com.devicehive.service.PasswordService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.client.CommandInsertRequestExclusionStrategy;
@@ -36,13 +39,22 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Inject
     private LocalMessageBus localMessageBus;
 
+    @Inject
+    private UserDAO userDAO;
+
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         String login = message.get("login").getAsString();
         String password = message.get("password").getAsString();
 
-        return JsonMessageBuilder.createSuccessResponseBuilder().build();
+        User user = userDAO.authenticate(login, password);
+
+        if (user != null) {
+            return JsonMessageBuilder.createSuccessResponseBuilder().build();
+        } else {
+            return JsonMessageBuilder.createErrorResponseBuilder().build();
+        }
     }
 
 

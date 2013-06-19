@@ -10,14 +10,13 @@ import java.util.Date;
  */
 public class ApiInfo {
 
-    @SerializedName("apiVersion")
     private String apiVersion;
 
-    @SerializedName("serverTimestamp")
     private Date serverTimestamp;
 
-    @SerializedName("webSocketServerUrl")
     private String webSocketServerUrl;
+
+    private String restServerUrl;
 
     public ApiInfo() {
     }
@@ -44,5 +43,14 @@ public class ApiInfo {
 
     public void setWebSocketServerUrl(String webSocketServerUrl) {
         this.webSocketServerUrl = webSocketServerUrl;
+    }
+
+
+    public String getRestServerUrl() {
+        return restServerUrl;
+    }
+
+    public void setRestServerUrl(String restServerUrl) {
+        this.restServerUrl = restServerUrl;
     }
 }

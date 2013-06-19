@@ -8,12 +8,13 @@ import javax.persistence.*;
  * TODO JavaDoc
  */
 @Entity
+@Table(name = "equipment")
 public class Equipment {
     @SerializedName("id")
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Long id;
 
     @SerializedName("name")
     @Column
@@ -32,18 +33,18 @@ public class Equipment {
     private String data;
 
     @ManyToOne
-    @JoinColumn
-    private Device device;
+    @JoinColumn(name = "device_class_id")
+    private DeviceClass deviceClass;
 
     public Equipment() {
     }
 
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -77,5 +78,13 @@ public class Equipment {
 
     public void setData(String data) {
         this.data = data;
+    }
+
+    public DeviceClass getDeviceClass() {
+        return deviceClass;
+    }
+
+    public void setDeviceClass(DeviceClass deviceClass) {
+        this.deviceClass = deviceClass;
     }
 }

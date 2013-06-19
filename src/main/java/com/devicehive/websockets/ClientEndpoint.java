@@ -9,7 +9,9 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import com.devicehive.websockets.json.*;
@@ -18,8 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-
-@ServerEndpoint(value = "/client", encoders = {JsonWebsocketEncoder.class}, decoders = {JsonWebsocketDecoder.class})
+@Named
+@ServerEndpoint(value = "/client")
 public class ClientEndpoint extends Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientEndpoint.class);
@@ -35,9 +37,9 @@ public class ClientEndpoint extends Endpoint {
 
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
-    public String onMessage(JsonObject message, Session session) throws InvocationTargetException, IllegalAccessException {
+    public String onMessage(String rawMessage, Session session) throws InvocationTargetException, IllegalAccessException {
         logger.debug("[onMessage] session id " + session.getId());
-        return processMessage(message, session).toString();
+        return processMessage(rawMessage, session).toString();
     }
 
 

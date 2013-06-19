@@ -12,12 +12,13 @@ import java.util.Date;
  * TODO JavaDoc
  */
 @Entity
+@Table(name = "device_notification")
 public class DeviceNotification implements Serializable {
 
     @SerializedName("id")
     @Id
-    @GeneratedValue
-    private Integer id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Long id;
 
     @SerializedName("timestamp")
     @Column
@@ -39,11 +40,11 @@ public class DeviceNotification implements Serializable {
     }
 
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
