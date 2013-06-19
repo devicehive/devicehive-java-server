@@ -1,6 +1,5 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.exceptions.WebsocketException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 

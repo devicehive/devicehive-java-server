@@ -1,18 +1,15 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.exceptions.WebsocketException;
-import com.devicehive.model.AuthLevel;
+import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
-import com.devicehive.websockets.json.GsonFactory;
 import com.google.gson.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -44,7 +41,7 @@ abstract class Endpoint {
             String action = request.getAsJsonPrimitive("action").getAsString();
             logger.debug("[action] Looking for action " + action);
             response = tryExecute(action, request, session);
-        } catch (WebsocketException ex) {
+        } catch (HiveWebsocketException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
@@ -59,9 +56,8 @@ abstract class Endpoint {
             if (method.isAnnotationPresent(Action.class)) {
                 Action ann = method.getAnnotation(Action.class);
                 boolean needsAuth = ann.needsAuth();
-                if (needsAuth && checkAuth(request, session)) {
-                    //TODO
-                    //answer not authorized
+                if (needsAuth) {
+                    handler.ensureAuthorised(request, session);
                 }
                 if (ann.value() != null && ann.value().equals(action)) {
                     logger.trace("[tryExecute] Processing request: " + request);
@@ -69,7 +65,7 @@ abstract class Endpoint {
                 }
             }
         }
-        throw new WebsocketException("Unknown action requested: " + action);
+        throw new HiveWebsocketException("Unknown action requested: " + action);
     }
 
 
@@ -87,7 +83,6 @@ abstract class Endpoint {
     }
 
 
-    protected abstract boolean checkAuth(JsonObject message, Session session);
 
 
 }

@@ -11,7 +11,12 @@ import java.util.UUID;
 /**
  * TODO JavaDoc
  */
-@Entity(name = "device")
+@Entity
+@Table(name = "device")
+@NamedQueries({
+    @NamedQuery(name= "Device.findByUUID", query = "select d from Device d where uuid = :uuid"),
+    @NamedQuery(name= "Device.findByUUIDAndKey", query = "select d from Device d where uuid = :uuid and key = :key")
+})
 public class Device {
 
     @SerializedName("id")
