@@ -43,7 +43,7 @@ abstract class Endpoint {
         try {
             String action = request.getAsJsonPrimitive("action").getAsString();
             logger.debug("[action] Looking for action " + action);
-            tryExecute(action, request, session);
+            response = tryExecute(action, request, session);
         } catch (WebsocketException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (Exception ex) {
