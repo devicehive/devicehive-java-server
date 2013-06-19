@@ -61,8 +61,8 @@ public class JsonMessageBuilder {
         return this;
     }
 
-    public JsonMessageBuilder addRequestId(String requestId) {
-        jsonObject.addProperty(REQUEST_ID, requestId);
+    public JsonMessageBuilder addRequestId(JsonElement requestId) {
+        jsonObject.add(REQUEST_ID, requestId);
         return this;
     }
 
