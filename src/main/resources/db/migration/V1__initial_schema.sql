@@ -1,4 +1,15 @@
-﻿-- PostgreSQL database creation script for DeviceHive
+﻿﻿-- PostgreSQL database creation script for DeviceHive
+DROP TABLE IF EXISTS device_command;
+DROP TABLE IF EXISTS device_equipment;
+DROP TABLE IF EXISTS device_notification;
+DROP TABLE IF EXISTS device;
+DROP TABLE IF EXISTS equipment;
+DROP TABLE IF EXISTS device_class;
+DROP TABLE IF EXISTS network;
+DROP TABLE IF EXISTS "user";
+DROP TABLE IF EXISTS user_network;
+
+
 CREATE TABLE network (
     id BIGSERIAL NOT NULL,
     name VARCHAR(128) NOT NULL,
