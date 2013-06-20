@@ -2,25 +2,13 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
-import com.devicehive.websockets.handlers.HiveMessageHandlers;
-import com.devicehive.websockets.handlers.annotations.Action;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.ManagedBean;
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
-import com.devicehive.websockets.json.*;
-
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Map;
 
 @ServerEndpoint(value = "/client")
 public class ClientEndpoint extends Endpoint {

@@ -18,7 +18,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import javax.annotation.ManagedBean;
 import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.websocket.Session;

@@ -19,9 +19,7 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.ManagedBean;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.jms.JMSException;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
@@ -39,7 +37,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Inject
     private MessagePublisher messagePublisher;
-
 
     @Inject
     private DeviceDAO deviceDAO;

@@ -13,18 +13,16 @@ import java.util.Set;
  * Time: 16:44
  */
 public class NotificationInsertRequestExclusionStrategy implements ExclusionStrategy {
-    private static final Set<String> FIELD_NAMES_TO_EXCLUDE;
-
-    static{
-        Set<String> initSet = new HashSet<>();
-        initSet.add("id");
-        initSet.add("timestamp");
-        FIELD_NAMES_TO_EXCLUDE = initSet;
-    }
+    private static final Set<String> FIELD_NAMES_TO_INCLUDE  = new HashSet<String>(){
+        {
+            add("notification");
+            add("parameters");
+        }
+    };
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return FIELD_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
+        return !FIELD_NAMES_TO_INCLUDE.contains(fieldAttributes.getName());
     }
 
     @Override

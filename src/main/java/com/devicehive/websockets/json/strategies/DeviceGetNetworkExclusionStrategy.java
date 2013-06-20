@@ -9,19 +9,15 @@ import java.util.Set;
 /**
  * Created with IntelliJ IDEA.
  * User: jkulagina
- * Date: 19.06.13
- * Time: 16:51
+ * Date: 20.06.13
+ * Time: 16:00
  */
-public class DeviceGetExclusionStrategy implements ExclusionStrategy {
-
+public class DeviceGetNetworkExclusionStrategy implements ExclusionStrategy {
     private static final Set<String> FIELD_NAMES_TO_INCLUDE = new HashSet<String>(){
         {
             add("id");
             add("name");
-            add("status");
-            add("data");
-            add("network");
-            add("deviceClass");
+            add("description");
         }
     };
 

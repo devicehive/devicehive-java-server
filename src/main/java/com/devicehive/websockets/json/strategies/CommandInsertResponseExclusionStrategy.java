@@ -13,22 +13,17 @@ import java.util.Set;
  * Time: 16:30
  */
 public class CommandInsertResponseExclusionStrategy implements ExclusionStrategy {
-    private static final Set<String> FIELD_NAMES_TO_EXCLUDE;
-
-    static{
-        Set<String> initSet = new HashSet<>();
-        initSet.add("command");
-        initSet.add("parameters");
-        initSet.add("lifetime");
-        initSet.add("flags");
-        initSet.add("status");
-        initSet.add("result");
-        FIELD_NAMES_TO_EXCLUDE = initSet;
-    }
+    private static final Set<String> FIELD_NAMES_TO_INCLUDE = new HashSet<String>(){
+        {
+            add("id");
+            add("timestamp");
+            add("userId");
+        }
+    };
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return FIELD_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
+        return !FIELD_NAMES_TO_INCLUDE.contains(fieldAttributes.getName());
     }
 
     @Override

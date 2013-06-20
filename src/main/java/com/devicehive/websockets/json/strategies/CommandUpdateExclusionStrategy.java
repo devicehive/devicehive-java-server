@@ -13,19 +13,20 @@ import java.util.Set;
  * Time: 16:48
  */
 public class CommandUpdateExclusionStrategy implements ExclusionStrategy {
-    private static final Set<String> FIELD_NAMES_TO_EXCLUDE;
-
-    static{
-        Set<String> initSet = new HashSet<>();
-        initSet.add("id");
-        initSet.add("timestamp");
-        initSet.add("userId");
-        FIELD_NAMES_TO_EXCLUDE = initSet;
-    }
+    private static final Set<String> FIELD_NAMES_TO_INCLUDE = new HashSet<String>(){
+        {
+            add("command");
+            add("parameters");
+            add("lifetime");
+            add("flags");
+            add("status");
+            add("result");
+        }
+    };
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return FIELD_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
+        return !FIELD_NAMES_TO_INCLUDE.contains(fieldAttributes.getName());
     }
 
     @Override
