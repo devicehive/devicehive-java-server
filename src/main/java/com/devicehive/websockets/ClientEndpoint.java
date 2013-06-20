@@ -40,7 +40,7 @@ public class ClientEndpoint extends Endpoint {
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public String onMessage(String rawMessage, Session session) throws InvocationTargetException, IllegalAccessException {
         logger.debug("[onMessage] session id " + session.getId());
-        return processMessage(rawMessage, session).toString();
+        return processMessage(clientMessageHandlers, rawMessage, session).toString();
     }
 
 
@@ -54,14 +54,5 @@ public class ClientEndpoint extends Endpoint {
         logger.debug("[onError] session id " + session.getId(), exception);
     }
 
-    @Override
-    protected HiveMessageHandlers getHiveMessageHandler() {
-        return clientMessageHandlers;
-    }
-
-    @PostConstruct
-    public void postConstruct() {
-        super.postConstruct();
-    }
 
 }

@@ -42,7 +42,7 @@ public class DeviceEndpoint extends Endpoint {
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public String onMessage(String message, Session session) throws InvocationTargetException, IllegalAccessException {
         logger.debug("[onMessage] session id " + session.getId());
-        return processMessage(message, session).toString();
+        return processMessage(deviceMessageHandlers, message, session).toString();
     }
 
     @OnClose
@@ -55,16 +55,7 @@ public class DeviceEndpoint extends Endpoint {
         logger.debug("[onError] session id " + session.getId(), exception);
     }
 
-    @Override
-    protected HiveMessageHandlers getHiveMessageHandler() {
-        return deviceMessageHandlers;
-    }
 
-
-    @PostConstruct
-    public void postConstruct() {
-        super.postConstruct();
-    }
 
 
 }

@@ -18,7 +18,6 @@ abstract class Endpoint {
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
 
 
-    protected abstract HiveMessageHandlers getHiveMessageHandler();
 
     protected static final long MAX_MESSAGE_SIZE = 10240;
 
@@ -27,7 +26,7 @@ abstract class Endpoint {
 
 
 
-    protected JsonObject processMessage(String message, Session session) {
+    protected JsonObject processMessage(HiveMessageHandlers handler, String message, Session session) {
         JsonObject response = null;
 
         JsonObject request = null;
@@ -42,7 +41,7 @@ abstract class Endpoint {
         try {
             String action = request.getAsJsonPrimitive("action").getAsString();
             logger.debug("[action] Looking for action " + action);
-            response = tryExecute(action, request, session);
+            response = tryExecute(handler, action, request, session);
         } catch (HiveWebsocketException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (Exception ex) {
@@ -52,15 +51,18 @@ abstract class Endpoint {
         return constructFinalResponse(request, response);
     }
 
-    private JsonObject tryExecute(String action, JsonObject request, Session session) throws Exception {
-        HiveMessageHandlers handler = getHiveMessageHandler();
-        if (methodsCache.containsKey(action)) {
-            if (authMap.get(action)) {
-                handler.ensureAuthorised(request, session);
+    private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request, Session session) throws Exception {
+        for (final Method method : handler.getClass().getMethods()) {
+            if (method.isAnnotationPresent(Action.class)) {
+
+                Action ann = method.getAnnotation(Action.class);
+                if (ann.value().equals(action)) {
+                    if (ann.needsAuth()) {
+                        handler.ensureAuthorised(request,session);
+                    }
+                    return (JsonObject)method.invoke(handler, request, session);
+                }
             }
-            logger.trace("[tryExecute] Processing request: " + request);
-            Method method = methodsCache.get(action);
-            return (JsonObject)method.invoke(handler, request, session);
         }
         throw new HiveWebsocketException("Unknown action requested: " + action);
     }
@@ -79,17 +81,6 @@ abstract class Endpoint {
         return finalResponse;
     }
 
-
-    protected void postConstruct() {
-        HiveMessageHandlers handler = getHiveMessageHandler();
-        for (final Method method : handler.getClass().getMethods()) {
-            if (method.isAnnotationPresent(Action.class)) {
-                Action ann = method.getAnnotation(Action.class);
-                methodsCache.put(ann.value(), method);
-                authMap.put(ann.value(), ann.needsAuth());
-            }
-        }
-    }
 
 
 }
