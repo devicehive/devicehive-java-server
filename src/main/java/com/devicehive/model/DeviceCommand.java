@@ -1,7 +1,6 @@
 package com.devicehive.model;
 
 import com.devicehive.model.converters.JsonConverter;
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -52,7 +51,7 @@ public class DeviceCommand implements Serializable{
     @SerializedName("parameters")
     @Column
     @Convert(converter = JsonConverter.class)
-    public JsonElement parameters;
+    public JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @Column
@@ -105,11 +104,11 @@ public class DeviceCommand implements Serializable{
         this.command = command;
     }
 
-    public JsonElement getParameters() {
+    public JsonStringWrapper getParameters() {
         return parameters;
     }
 
-    public void setParameters(JsonElement parameters) {
+    public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
 

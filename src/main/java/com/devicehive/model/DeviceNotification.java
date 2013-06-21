@@ -2,7 +2,6 @@ package com.devicehive.model;
 
 
 import com.devicehive.model.converters.JsonConverter;
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -41,7 +40,7 @@ public class DeviceNotification implements Serializable {
     @SerializedName("parameters")
     @Column
     @Convert(converter = JsonConverter.class)
-    public JsonElement parameters;
+    public JsonStringWrapper parameters;
 
     @ManyToOne
     @JoinColumn
@@ -76,11 +75,11 @@ public class DeviceNotification implements Serializable {
         this.notification = notification;
     }
 
-    public JsonElement getParameters() {
+    public JsonStringWrapper getParameters() {
         return parameters;
     }
 
-    public void setParameters(JsonElement parameters) {
+    public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
 

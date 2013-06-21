@@ -2,7 +2,6 @@ package com.devicehive.model;
 
 
 import com.devicehive.model.converters.JsonConverter;
-import com.google.gson.JsonElement;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -43,7 +42,7 @@ public class DeviceClass implements Serializable {
 
     @Column
     @Convert(converter = JsonConverter.class)   //TODO??
-    private JsonElement data;
+    private JsonStringWrapper data;
 
     public DeviceClass() {
 
@@ -89,11 +88,11 @@ public class DeviceClass implements Serializable {
         this.offlineTimeout = offlineTimeout;
     }
 
-    public JsonElement getData() {
+    public JsonStringWrapper getData() {
         return data;
     }
 
-    public void setData(JsonElement data) {
+    public void setData(JsonStringWrapper data) {
         this.data = data;
     }
 

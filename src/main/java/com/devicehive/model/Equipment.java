@@ -1,7 +1,6 @@
 package com.devicehive.model;
 
 import com.devicehive.model.converters.JsonConverter;
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -45,7 +44,7 @@ public class Equipment {
     @SerializedName("data")
     @Column
     @Convert(converter = JsonConverter.class)   //TODO??
-    private JsonElement data;
+    private JsonStringWrapper data;
 
     @ManyToOne
     @JoinColumn(name = "device_class_id")
@@ -88,11 +87,11 @@ public class Equipment {
         this.type = type;
     }
 
-    public JsonElement getData() {
+    public JsonStringWrapper getData() {
         return data;
     }
 
-    public void setData(JsonElement data) {
+    public void setData(JsonStringWrapper data) {
         this.data = data;
     }
 

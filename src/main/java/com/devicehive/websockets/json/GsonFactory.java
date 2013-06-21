@@ -4,6 +4,7 @@ package com.devicehive.websockets.json;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 
 import java.util.Date;
 import java.util.UUID;
@@ -14,6 +15,7 @@ public class GsonFactory {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(Date.class, new DateAdapter());
         builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
+        builder.registerTypeAdapter(JsonElement.class, new JsonDbObjectAdapter());
         builder.setPrettyPrinting();
         return  builder.create();
     }
@@ -24,6 +26,7 @@ public class GsonFactory {
         builder.addSerializationExclusionStrategy(serializationExclusionStrategy);
         builder.registerTypeAdapter(Date.class, new DateAdapter());
         builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
+        builder.registerTypeAdapter(JsonElement.class, new JsonDbObjectAdapter());
         builder.setPrettyPrinting();
         return  builder.create();
     }
@@ -34,6 +37,7 @@ public class GsonFactory {
         builder.addSerializationExclusionStrategy(serializationExclusionStrategy);
         builder.registerTypeAdapter(Date.class, new DateAdapter());
         builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
+        builder.registerTypeAdapter(JsonElement.class, new JsonDbObjectAdapter());
         builder.setPrettyPrinting();
         return  builder.create();
     }

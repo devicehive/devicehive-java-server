@@ -1,8 +1,6 @@
 package com.devicehive.model.converters;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.devicehive.model.JsonStringWrapper;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -14,26 +12,20 @@ import javax.persistence.Converter;
  * Time: 19:21
  */
 @Converter
-public class JsonConverter implements AttributeConverter<JsonElement, String> {
+public class JsonConverter implements AttributeConverter<JsonStringWrapper, String> {
 
     @Override
-    public JsonElement convertToEntityAttribute(String stringRepsentation){
-        if (stringRepsentation != null) {
-            JsonParser parser = new JsonParser();
-            try{
-                return parser.parse(stringRepsentation);
-            }
-            catch (JsonSyntaxException ex){
-               return null;
-            }
+    public JsonStringWrapper convertToEntityAttribute(String stringRepresentation) {
+        if (stringRepresentation != null) {
+            return new JsonStringWrapper(stringRepresentation);
         }
         return null;
     }
 
     @Override
-    public String convertToDatabaseColumn(JsonElement jsonElement) {
-        if (jsonElement != null) {
-            return jsonElement.toString();
+    public String convertToDatabaseColumn(JsonStringWrapper jsonStringWrapper) {
+        if (jsonStringWrapper != null) {
+            return jsonStringWrapper.getStr();
         }
         return null;
     }
