@@ -1,15 +1,9 @@
 package com.devicehive.model;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -56,7 +50,8 @@ public class DeviceCommand implements Serializable{
 
     @SerializedName("parameters")
     @Column
-    public String parameters;
+    @Convert(converter = com.devicehive.model.converters.Converter.class)
+    public JsonElement parameters;
 
     @SerializedName("lifetime")
     @Column
@@ -72,7 +67,7 @@ public class DeviceCommand implements Serializable{
 
     @SerializedName("result")
     @Column
-    public String result;
+    public String result;   //TODO JsonObject?
 
     public DeviceCommand() {
     }
@@ -109,11 +104,11 @@ public class DeviceCommand implements Serializable{
         this.command = command;
     }
 
-    public String getParameters() {
+    public JsonElement getParameters() {
         return parameters;
     }
 
-    public void setParameters(String parameters) {
+    public void setParameters(JsonElement parameters) {
         this.parameters = parameters;
     }
 
