@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-import com.devicehive.model.converters.JsonConverter;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
