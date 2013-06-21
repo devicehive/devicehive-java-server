@@ -22,8 +22,6 @@ public class UserDAO {
     @PersistenceContext(unitName = "devicehive")
     private EntityManager em;
 
-    @Inject
-    private PasswordService passwordService;
 
 
     @Transactional
