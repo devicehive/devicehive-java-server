@@ -2,9 +2,11 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.exceptions.HiveWebsocketException;
+import com.devicehive.model.Device;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
+import com.devicehive.websockets.json.GsonFactory;
 import com.google.gson.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

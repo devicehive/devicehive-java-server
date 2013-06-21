@@ -33,45 +33,6 @@ public class UserDAO {
         return query.getSingleResult();
     }
 
-    /**
-     * Tries to authenticate with given credentials
-     * @param login
-     * @param password
-     * @return User object if authentication is successful or null if not
-     */
-    // TODO move it to some service class
-    @Transactional
-    public User authenticate(String login, String password) {
-        User user = findByLogin(login);
-        if (user == null) {
-            return null;
-        }
-        if (User.STATUS.Active.ordinal() != user.getStatus()) {
-            return null;
-        }
-        if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            incrementLoginAttempts(user);
-            return null;
-        } else {
-            return finalizeLogin(user);
-        }
-    }
-
-    @Transactional
-    public User registerUser(String login, String password) {
-        User user = new User();
-        user.setLogin(login);
-        String salt = passwordService.generateSalt();
-        String hash = passwordService.hashPassword(password, salt);
-        user.setPasswordSalt(salt);
-        user.setPasswordHash(hash);
-        user.setStatus(0);
-        user.setRole(1);
-        user.setLoginAttempts(0);
-        em.persist(user);
-        return user;
-    }
-
 
 
     @Transactional
@@ -81,7 +42,7 @@ public class UserDAO {
 
 
     @Transactional(value = Transactional.TxType.MANDATORY)
-    protected User incrementLoginAttempts(User user) {
+    public User incrementLoginAttempts(User user) {
         em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         user.setLoginAttempts(user.getLoginAttempts() != null ? user.getLoginAttempts() + 1 : 1);
         if (user.getLoginAttempts() >= maxLoginAttempts) {
@@ -93,7 +54,7 @@ public class UserDAO {
 
 
     @Transactional(value = Transactional.TxType.MANDATORY)
-    protected User finalizeLogin(User user) {
+    public User finalizeLogin(User user) {
         em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         if (user.getStatus() != User.STATUS.Active.ordinal()) {
             return null;
