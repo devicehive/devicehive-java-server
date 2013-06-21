@@ -1,7 +1,9 @@
 package com.devicehive.model;
 
+import com.devicehive.model.converters.JsonConverter;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
@@ -18,8 +20,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-    @NamedQuery(name= "Device.findByUUID", query = "select d from Device d where uuid = :uuid"),
-    @NamedQuery(name= "Device.findByUUIDAndKey", query = "select d from Device d where uuid = :uuid and key = :key")
+    @NamedQuery(name= "Device.findByUUID", query = "select d from Device d where guid = :uuid"),
+    @NamedQuery(name= "Device.findByUUIDAndKey", query = "select d from Device d where guid = :uuid and key = :key")
 })
 public class Device {
 
@@ -29,7 +31,8 @@ public class Device {
     private Long id;
 
     @SerializedName("guid")
-    @Column(columnDefinition = "uuid not null") // TODO That's postgres-specific
+    @Column
+    @Type(type="pg-uuid") //That's hibernate-specific and postgres-specific, ugly
     private UUID guid;
 
     @SerializedName("key")
@@ -51,7 +54,7 @@ public class Device {
 
     @SerializedName("data")
     @Column
-    @Convert(converter = com.devicehive.model.converters.Converter.class)   //TODO??
+    @Convert(converter = JsonConverter.class)   //TODO??
     private JsonElement data;
 
     @SerializedName("network")

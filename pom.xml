@@ -57,6 +57,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>4.3.0.Beta2</version>
+        </dependency>
+
+        <dependency>
             <!-- used for mdb only, may be removed later-->
             <groupId>javax.ejb</groupId>
             <artifactId>javax.ejb-api</artifactId>
