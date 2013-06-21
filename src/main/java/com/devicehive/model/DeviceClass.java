@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 
 import com.devicehive.model.converters.JsonConverter;
+import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -40,8 +41,11 @@ public class DeviceClass implements Serializable {
     @Column(name = "offline_timeout")
     private Integer offlineTimeout;
 
-    @Column
-    @Convert(converter = JsonConverter.class)   //TODO??
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name="jsonString", column=@Column(name = "data"))
+    })
     private JsonStringWrapper data;
 
     public DeviceClass() {

@@ -131,10 +131,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
         // TODO do we need the same logic somewhere else?
-        Device device = (Device)session.getUserProperties().get(AUTHENTICATED_DEVICE);
-        if (device == null) {
-            device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class));
-        }
+        Device device = getDevice(session, message);
 
         deviceService.submitDeviceNotification(deviceNotification, device);
 
@@ -186,6 +183,15 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         //TODO
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
+    }
+
+
+    private Device getDevice(Session session, JsonObject request) {
+        Device device = (Device)session.getUserProperties().get(AUTHENTICATED_DEVICE);
+        if (device == null) {
+            device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(request.getAsJsonPrimitive("deviceId"), UUID.class));
+        }
+        return device;
     }
 
 }

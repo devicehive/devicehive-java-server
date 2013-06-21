@@ -8,6 +8,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,7 +17,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "equipment")
-public class Equipment {
+public class Equipment implements Serializable {
     @SerializedName("id")
 
     @Id
@@ -42,8 +43,10 @@ public class Equipment {
     private String type;
 
     @SerializedName("data")
-    @Column
-    @Convert(converter = JsonConverter.class)   //TODO??
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name="jsonString", column=@Column(name = "data"))
+    })
     private JsonStringWrapper data;
 
     @ManyToOne

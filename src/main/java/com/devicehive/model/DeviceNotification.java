@@ -38,8 +38,10 @@ public class DeviceNotification implements Serializable {
     private String notification;
 
     @SerializedName("parameters")
-    @Column
-    @Convert(converter = JsonConverter.class)
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
+    })
     public JsonStringWrapper parameters;
 
     @ManyToOne

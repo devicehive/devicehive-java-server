@@ -8,6 +8,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.Set;
     @NamedQuery(name= "User.findActiveByName", query = "select u from User u where login = :login and status = 0")
 })
 
-public class User {
+public class User  implements Serializable {
 
     public static enum ROLE {Administrator, Client}
     public static enum STATUS {Active, LockedOut, Disabled, Deleted}

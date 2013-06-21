@@ -6,6 +6,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +20,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "device_equipment")
-public class DeviceEquipment {
+public class DeviceEquipment  implements Serializable {
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)

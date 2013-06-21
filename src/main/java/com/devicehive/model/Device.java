@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 import com.devicehive.model.converters.JsonConverter;
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.Type;
 
@@ -9,6 +10,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -16,6 +18,8 @@ import java.util.UUID;
 /**
  * TODO JavaDoc
  */
+
+
 @Entity
 @Table(name = "device")
 @NamedQueries({
@@ -23,7 +27,7 @@ import java.util.UUID;
         @NamedQuery(name = "Device.findByUUIDAndKey",
                 query = "select d from Device d where guid = :uuid and key = :key")
 })
-public class Device {
+public class Device implements Serializable{
 
     @SerializedName("id")
     @Id
@@ -54,8 +58,10 @@ public class Device {
     private String status;
 
     @SerializedName("data")
-    @Column
-    @Convert(converter = JsonConverter.class)   //TODO??
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name="jsonString", column=@Column(name = "data"))
+    })
     private JsonStringWrapper data;
 
     @SerializedName("network")

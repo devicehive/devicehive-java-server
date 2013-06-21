@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import javax.persistence.Embeddable;
 import java.io.Serializable;
 
 /**
@@ -8,14 +9,19 @@ import java.io.Serializable;
  * Date: 21.06.13
  * Time: 16:58
  */
-public class JsonStringWrapper implements Serializable{
-    private String str;
+@Embeddable
+public class JsonStringWrapper implements Serializable {
 
-    public JsonStringWrapper(String str) {
-        this.str = str;
+    private String jsonString;
+
+    protected JsonStringWrapper() {
     }
 
-    public String getStr() {
-        return str;
+    public String getJsonString() {
+        return jsonString;
+    }
+
+    public void setJsonString(String jsonString) {
+        this.jsonString = jsonString;
     }
 }

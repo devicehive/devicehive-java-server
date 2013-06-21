@@ -10,6 +10,7 @@ import com.devicehive.websockets.messagebus.global.MessagePublisher;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
@@ -35,6 +36,7 @@ public class DeviceService {
     public void submitDeviceCommand(DeviceCommand command, Device device, User user) {
         command.setDevice(device);
         command.setUser(user);
+        command.setTimestamp(new Date());
         deviceCommandDAO.saveCommand(command);
         messagePublisher.publishCommand(command);
     }

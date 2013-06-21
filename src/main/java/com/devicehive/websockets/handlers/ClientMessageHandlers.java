@@ -17,9 +17,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.jms.JMSException;
+import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +30,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
+
+    private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
 
     @Inject
     private MessagePublisher messagePublisher;
@@ -48,6 +53,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
 
     @Action(value = "authenticate", needsAuth = false)
+    @Transactional
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         String login = message.get("login").getAsString();
         String password = message.get("password").getAsString();
@@ -86,13 +92,12 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
 
-        User user = (User) session.getUserProperties().get(AUTHENTICATED_USER);
-
-        deviceService.submitDeviceCommand(deviceCommand,device,user);
 
         if (deviceCommand == null && true /*TODO check network*/) {
             throw new HiveWebsocketException("Command is empty");
         }
+
+        User user = getSessionUser(session);
         deviceService.submitDeviceCommand(deviceCommand, device, user); //saves command to DB and sends it in JMS
 
 
@@ -147,5 +152,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             .addElement("info", gson.toJsonTree(apiInfo))
             .build();
         return jsonObject;
+    }
+
+
+    private User getSessionUser(Session session) {
+        return (User)session.getUserProperties().get(AUTHENTICATED_USER);
     }
 }

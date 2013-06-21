@@ -16,14 +16,14 @@ public class JsonDbObjectAdapter implements JsonSerializer<JsonStringWrapper>, J
     public JsonStringWrapper deserialize(JsonElement jsonElement, Type type,
                                           JsonDeserializationContext jsonDeserializationContext)
             throws JsonParseException {
-        return new JsonStringWrapper(jsonElement.toString());
+        return null;
     }
 
     @Override
     public JsonElement serialize(JsonStringWrapper jsonStringWrapper, Type type,
                                  JsonSerializationContext jsonSerializationContext) {
         JsonParser parser = new JsonParser();
-        return parser.parse(jsonStringWrapper.getStr());
+        return null;
 
     }
 }

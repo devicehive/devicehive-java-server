@@ -49,8 +49,10 @@ public class DeviceCommand implements Serializable{
     public String command;
 
     @SerializedName("parameters")
-    @Column
-    @Convert(converter = JsonConverter.class)
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
+    })
     public JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
