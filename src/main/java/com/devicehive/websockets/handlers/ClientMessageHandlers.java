@@ -1,15 +1,16 @@
 package com.devicehive.websockets.handlers;
 
 
+import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveWebsocketException;
-import com.devicehive.model.ApiInfo;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.User;
-import com.devicehive.model.Version;
+import com.devicehive.model.*;
+import com.devicehive.service.DeviceService;
+import com.devicehive.service.UserService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.CommandInsertRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.CommandInsertResponseExclusionStrategy;
 import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
@@ -35,10 +36,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private LocalMessageBus localMessageBus;
 
     @Inject
-    private UserDAO userDAO;
+    private UserService userService;
+
+    @Inject
+    private DeviceService deviceService;
+
+    @Inject
+    private DeviceDAO deviceDAO;
 
 
-    private static final String AUTHENTICATED_USER_ID = "AUTHENTICATED_USER_ID";
+    private static final String AUTHENTICATED_USER = "AUTHENTICATED_USER";
 
 
     @Action(value = "authenticate", needsAuth = false)
@@ -46,10 +53,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         String login = message.get("login").getAsString();
         String password = message.get("password").getAsString();
 
-        User user = userDAO.authenticate(login, password);
+        User user = userService.authenticate(login, password);
 
         if (user != null) {
-            session.getUserProperties().put(AUTHENTICATED_USER_ID, user.getId());
+            session.getUserProperties().put(AUTHENTICATED_USER, user);
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
         } else {
             throw new HiveWebsocketException("Client authentication error: credentials are incorrect");
@@ -58,7 +65,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Override
     public void ensureAuthorised(JsonObject request, Session session) {
-        if (!session.getUserProperties().containsKey(AUTHENTICATED_USER_ID)) {
+        if (!session.getUserProperties().containsKey(AUTHENTICATED_USER)) {
             throw new HiveWebsocketException("Not authorised");
         }
     }
@@ -66,15 +73,32 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
         Gson gson = GsonFactory.createGson(new CommandInsertRequestExclusionStrategy());
-        UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
-        DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
-        DeviceCommand savedCommand = deviceCommand; //TODO save to DB
 
-        messagePublisher.publishCommand(savedCommand);
+        UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
+
+        if (deviceGuid == null) {
+            throw new HiveWebsocketException("Device ID is empty");
+        }
+
+        Device device = deviceDAO.findByUUID(deviceGuid);
+        if (device == null) {
+            throw new HiveWebsocketException("Unknown Device ID");
+        }
+
+        DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+
+        User user = (User) session.getUserProperties().get(AUTHENTICATED_USER);
+
+        deviceService.submitDeviceCommand(deviceCommand,device,user);
+
+        if (deviceCommand == null && true /*TODO check network*/) {
+            throw new HiveWebsocketException("Command is empty");
+        }
+        deviceService.submitDeviceCommand(deviceCommand, device, user); //saves command to DB and sends it in JMS
 
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-            .addElement("command", GsonFactory.createGson().toJsonTree(savedCommand))
+            .addElement("command", GsonFactory.createGson(new CommandInsertResponseExclusionStrategy()).toJsonTree(deviceCommand))
             .build();
         return jsonObject;
     }

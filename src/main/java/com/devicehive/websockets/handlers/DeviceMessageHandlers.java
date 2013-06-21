@@ -2,9 +2,11 @@ package com.devicehive.websockets.handlers;
 
 
 
+import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
+import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.CommandUpdateExclusionStrategy;
@@ -42,7 +44,14 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     private DeviceDAO deviceDAO;
 
 
-    private static final String AUTHENTICATED_DEVICE_ID = "AUTHENTICATED_DEVICE_ID";
+    @Inject
+    private DeviceCommandDAO deviceCommandDAO;
+
+
+    @Inject
+    private DeviceService deviceService;
+
+    private static final String AUTHENTICATED_DEVICE = "AUTHENTICATED_DEVICE";
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -52,7 +61,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
 
         if (device != null) {
-            session.getUserProperties().put(AUTHENTICATED_DEVICE_ID, device.getGuid());
+            session.getUserProperties().put(AUTHENTICATED_DEVICE, device);
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
         } else {
             throw new HiveWebsocketException("Device authentication error: credentials are incorrect");
@@ -63,7 +72,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public void ensureAuthorised(JsonObject request, Session session) {
         Gson gson = GsonFactory.createGson();
 
-        if (session.getUserProperties().containsKey(AUTHENTICATED_DEVICE_ID)) {
+        if (session.getUserProperties().containsKey(AUTHENTICATED_DEVICE)) {
             return;
         }
         UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
@@ -77,20 +86,16 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
-        Integer commandId = message.get("commandId").getAsInt();
-        DeviceCommand oldCommand = null;//TODO get from DB
-        DeviceCommand deviceCommand = GsonFactory.createGson(new CommandUpdateExclusionStrategy()).fromJson(message.getAsJsonObject("command"),
-                DeviceCommand.class);
-        oldCommand.setCommand(deviceCommand.getCommand());
-        oldCommand.setParameters(deviceCommand.getParameters());
-        oldCommand.setLifetime(deviceCommand.getLifetime());
-        oldCommand.setFlags(deviceCommand.getFlags());
-        oldCommand.setStatus(deviceCommand.getStatus());
-        oldCommand.setResult(deviceCommand.getResult());
-        //TODO save oldCommand to DB
+        DeviceCommand command = deviceCommandDAO.findById(message.get("commandId").getAsLong());
+        DeviceCommand update = GsonFactory.createGson(new CommandUpdateExclusionStrategy())
+            .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
 
-        messagePublisher.publishCommandUpdate(oldCommand);
+        Device device = (Device)session.getUserProperties().get(AUTHENTICATED_DEVICE);
+        if (device == null) {
+            device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class));
+        }
 
+        deviceService.submitDeviceCommandUpdate(update, device);
 
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
@@ -123,12 +128,18 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/insert")
     public JsonObject processNotificationInsert(JsonObject message, Session session) throws JMSException {
-        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
+
         DeviceNotification deviceNotification = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy())
                 .fromJson(message.get("notification"), DeviceNotification.class);
-        //TODO save to DB
-        messagePublisher.publishNotification(deviceNotification);
-        String status = null;
+
+
+        // TODO do we need the same logic somewhere else?
+        Device device = (Device)session.getUserProperties().get(AUTHENTICATED_DEVICE);
+        if (device == null) {
+            device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class));
+        }
+
+        deviceService.submitDeviceNotification(deviceNotification, device);
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
             .addElement("notification", new JsonObject())

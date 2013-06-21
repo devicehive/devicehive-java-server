@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.model.User;
 import org.apache.commons.codec.binary.Base64;
 
+import javax.enterprise.inject.Alternative;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.io.UnsupportedEncodingException;
@@ -13,6 +14,8 @@ import java.security.SecureRandom;
 /**
  TODO investigate maybe it makes sense to replace it with some key-stretching scheme (scrypt, PBKDF2 or bcrypt)
  */
+
+@Alternative
 public class DefaultPasswordService implements PasswordService {
 
     private final SecureRandom secureRandom = new SecureRandom();
