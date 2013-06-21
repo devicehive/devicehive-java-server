@@ -9,13 +9,15 @@ import java.util.Set;
 /**
  * Created with IntelliJ IDEA.
  * User: jkulagina
- * Date: 19.06.13
- * Time: 16:23
+ * Date: 21.06.13
+ * Time: 18:04
  */
-public class CommandInsertRequestExclusionStrategy implements ExclusionStrategy{
-
+public class DeviceCommandInsertExclusionStrategy implements ExclusionStrategy {
     private static final Set<String> FIELD_NAMES_TO_INCLUDE = new HashSet<String>(){
         {
+            add("id");
+            add("timestamp");
+            add("userId");
             add("command");
             add("parameters");
             add("lifetime");

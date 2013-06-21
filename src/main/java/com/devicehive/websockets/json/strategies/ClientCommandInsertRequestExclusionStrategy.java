@@ -10,14 +10,18 @@ import java.util.Set;
  * Created with IntelliJ IDEA.
  * User: jkulagina
  * Date: 19.06.13
- * Time: 16:30
+ * Time: 16:23
  */
-public class CommandInsertResponseExclusionStrategy implements ExclusionStrategy {
+public class ClientCommandInsertRequestExclusionStrategy implements ExclusionStrategy{
+
     private static final Set<String> FIELD_NAMES_TO_INCLUDE = new HashSet<String>(){
         {
-            add("id");
-            add("timestamp");
-            add("userId");
+            add("command");
+            add("parameters");
+            add("lifetime");
+            add("flags");
+            add("status");
+            add("result");
         }
     };
 

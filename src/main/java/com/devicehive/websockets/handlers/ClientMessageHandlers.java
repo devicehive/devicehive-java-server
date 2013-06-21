@@ -2,15 +2,14 @@ package com.devicehive.websockets.handlers;
 
 
 import com.devicehive.dao.DeviceDAO;
-import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.CommandInsertRequestExclusionStrategy;
-import com.devicehive.websockets.json.strategies.CommandInsertResponseExclusionStrategy;
+import com.devicehive.websockets.json.strategies.ClientCommandInsertRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.ClientCommandInsertResponseExclusionStrategy;
 import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
@@ -72,7 +71,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
-        Gson gson = GsonFactory.createGson(new CommandInsertRequestExclusionStrategy());
+        Gson gson = GsonFactory.createGson(new ClientCommandInsertRequestExclusionStrategy());
 
         UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
 
@@ -98,7 +97,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-            .addElement("command", GsonFactory.createGson(new CommandInsertResponseExclusionStrategy()).toJsonTree(deviceCommand))
+            .addElement("command", GsonFactory.createGson(new ClientCommandInsertResponseExclusionStrategy()).toJsonTree(deviceCommand))
             .build();
         return jsonObject;
     }
