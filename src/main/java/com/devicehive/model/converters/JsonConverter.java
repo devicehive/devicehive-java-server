@@ -17,14 +17,24 @@ import javax.persistence.Converter;
 public class JsonConverter implements AttributeConverter<JsonElement, String> {
 
     @Override
-    public JsonElement convertToEntityAttribute(String stringRepsentstion) throws JsonSyntaxException {
-        JsonParser parser = new JsonParser();
-        JsonElement elem = parser.parse(stringRepsentstion);
-        return elem;
+    public JsonElement convertToEntityAttribute(String stringRepsentation){
+        if (stringRepsentation != null) {
+            JsonParser parser = new JsonParser();
+            try{
+                return parser.parse(stringRepsentation);
+            }
+            catch (JsonSyntaxException ex){
+               return null;
+            }
+        }
+        return null;
     }
 
     @Override
-    public String convertToDatabaseColumn(JsonElement jsonElement){
-        return jsonElement.toString();
+    public String convertToDatabaseColumn(JsonElement jsonElement) {
+        if (jsonElement != null) {
+            return jsonElement.toString();
+        }
+        return null;
     }
 }
