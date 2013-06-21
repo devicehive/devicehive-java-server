@@ -1,12 +1,10 @@
 package com.devicehive.model;
 
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -44,7 +42,8 @@ public class DeviceClass implements Serializable {
     private Integer offlineTimeout;
 
     @Column
-    private String data;
+    @Convert(converter = com.devicehive.model.converters.Converter.class)   //TODO??
+    private JsonElement data;
 
     public DeviceClass() {
 
@@ -90,11 +89,11 @@ public class DeviceClass implements Serializable {
         this.offlineTimeout = offlineTimeout;
     }
 
-    public String getData() {
+    public JsonElement getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(JsonElement data) {
         this.data = data;
     }
 

@@ -5,12 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateful;
-import javax.enterprise.inject.Model;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
-//import javax.transaction.Transactional;
 import java.util.List;
+
+//import javax.transaction.Transactional;
 
 /**
  * TODO JavaDoc
@@ -41,4 +41,5 @@ public class DeviceClassDAO {
         DeviceClass deviceClass = getDeviceClass(id);
         em.remove(deviceClass);
     }
+
 }
