@@ -40,7 +40,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Inject
     private MessagePublisher messagePublisher;
 
-
     @Inject
     private DeviceDAO deviceDAO;
 

@@ -13,17 +13,17 @@ import java.util.Set;
  * Time: 16:33
  */
 public class ServerInfoExclusionStrategy implements ExclusionStrategy {
-    private static final Set<String> FIELD_NAMES_TO_EXCLUDE;
-
-    static {
-        Set<String> initSet = new HashSet<>();
-        initSet.add("webSocketServerUrl");
-        FIELD_NAMES_TO_EXCLUDE = initSet;
-    }
+    private static final Set<String> FIELD_NAMES_TO_INCLUDE = new HashSet<String>(){
+        {
+            add("apiVersion");
+            add("serverTimestamp");
+            add("webSocketServerUrl");
+        }
+    };
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return FIELD_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
+        return !FIELD_NAMES_TO_INCLUDE.contains(fieldAttributes.getName());
     }
 
     @Override

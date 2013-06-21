@@ -13,18 +13,21 @@ import java.util.Set;
  * Time: 16:56
  */
 public class DeviceSaveExclusionStrategy implements ExclusionStrategy {
-    private static final Set<String> FIELD_NAMES_TO_EXCLUDE;
-    //TODO Equipment
-    static{
-        Set<String> initSet = new HashSet<>();
-        initSet.add("id");
-        FIELD_NAMES_TO_EXCLUDE = initSet;
-    }
-
+    private static final Set<String> FIELD_NAMES_TO_INCLUDE = new HashSet<String>(){
+        {
+            add("key");
+            add("name");
+            add("status");
+            add("data");
+            add("network");
+            add("deviceClass");
+        }
+    };
+    //TODO Equipment?
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
-        return FIELD_NAMES_TO_EXCLUDE.contains(fieldAttributes.getName());
+        return !FIELD_NAMES_TO_INCLUDE.contains(fieldAttributes.getName());
     }
 
     @Override
