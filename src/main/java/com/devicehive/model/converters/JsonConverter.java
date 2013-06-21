@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,7 +13,8 @@ import javax.persistence.AttributeConverter;
  * Date: 20.06.13
  * Time: 19:21
  */
-public class Converter implements AttributeConverter<JsonElement, String> {
+@Converter
+public class JsonConverter implements AttributeConverter<JsonElement, String> {
 
     @Override
     public JsonElement convertToEntityAttribute(String stringRepsentstion) throws JsonSyntaxException {
