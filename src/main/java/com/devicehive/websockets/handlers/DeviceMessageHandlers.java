@@ -1,7 +1,6 @@
 package com.devicehive.websockets.handlers;
 
 
-
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveWebsocketException;
@@ -9,14 +8,12 @@ import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.CommandUpdateExclusionStrategy;
-import com.devicehive.websockets.json.strategies.DeviceSaveExclusionStrategy;
-import com.devicehive.websockets.json.strategies.NotificationInsertRequestExclusionStrategy;
-import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
+import com.devicehive.websockets.json.strategies.*;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.WebsocketUtil;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,11 +160,20 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
-        //TODO get
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-            .addElement("device", new JsonObject())
-            .build();
-        return jsonObject;
+        Gson gson =  GsonFactory.createGson();
+        JsonElement requestId = message.get("requestId");
+        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"),
+                UUID.class);
+        Device device = deviceDAO.findByUUID(deviceId);
+
+        Gson gsonResponse = GsonFactory.createGson(new DeviceGetExclusionStrategy());
+        JsonElement deviceElem = gsonResponse.toJsonTree(device);
+        JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()
+                .addAction("\"device/get\"")
+                .addRequestId(requestId)
+                .addElement("device", deviceElem)
+                .build();
+        return result;
     }
 
     @Action(value = "device/save", needsAuth = false)
@@ -175,7 +181,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         UUID deviceId = GsonFactory.createGson(new DeviceSaveExclusionStrategy()).fromJson(message.get("deviceId"), UUID.class);
         String deviceKey = message.get("deviceKey").getAsString();
 
-         Device device = GsonFactory.createGson().fromJson(message.get("device"), Device.class);
+        Device device = GsonFactory.createGson().fromJson(message.get("device"), Device.class);
 
         //TODO
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();

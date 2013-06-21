@@ -2,14 +2,15 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.exceptions.HiveWebsocketException;
-import com.devicehive.model.Device;
+import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.handlers.HiveMessageHandlers;
-import com.devicehive.websockets.json.GsonFactory;
-import com.google.gson.*;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.websocket.Session;
 import java.lang.reflect.Method;
 import java.util.HashMap;

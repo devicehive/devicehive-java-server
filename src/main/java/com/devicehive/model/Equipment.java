@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.devicehive.model.converters.JsonConverter;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
@@ -43,7 +44,7 @@ public class Equipment {
 
     @SerializedName("data")
     @Column
-    @Convert(converter = com.devicehive.model.converters.Converter.class)   //TODO??
+    @Convert(converter = JsonConverter.class)   //TODO??
     private JsonElement data;
 
     @ManyToOne

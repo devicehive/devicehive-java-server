@@ -20,8 +20,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-    @NamedQuery(name= "Device.findByUUID", query = "select d from Device d where guid = :uuid"),
-    @NamedQuery(name= "Device.findByUUIDAndKey", query = "select d from Device d where guid = :uuid and key = :key")
+        @NamedQuery(name= "Device.findByUUID", query = "select d from Device d where guid = :uuid"),
+        @NamedQuery(name= "Device.findByUUIDAndKey", query = "select d from Device d where guid = :uuid and key = :key")
 })
 public class Device {
 

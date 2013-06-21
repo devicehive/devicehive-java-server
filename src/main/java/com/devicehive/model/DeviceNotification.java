@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.model.converters.JsonConverter;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
@@ -39,7 +40,7 @@ public class DeviceNotification implements Serializable {
 
     @SerializedName("parameters")
     @Column
-    @Convert(converter = com.devicehive.model.converters.Converter.class)
+    @Convert(converter = JsonConverter.class)
     public JsonElement parameters;
 
     @ManyToOne
