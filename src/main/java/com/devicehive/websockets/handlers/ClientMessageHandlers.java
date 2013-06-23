@@ -13,6 +13,7 @@ import com.devicehive.websockets.json.strategies.ClientCommandInsertResponseExcl
 import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
+import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -49,7 +50,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private DeviceDAO deviceDAO;
 
 
-    private static final String AUTHENTICATED_USER = "AUTHENTICATED_USER";
+
 
 
     @Action(value = "authenticate", needsAuth = false)
@@ -61,7 +62,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         User user = userService.authenticate(login, password);
 
         if (user != null) {
-            session.getUserProperties().put(AUTHENTICATED_USER, user);
+            WebsocketSession.setAuthorisedUser(session, user);
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
         } else {
             throw new HiveWebsocketException("Client authentication error: credentials are incorrect");
@@ -70,7 +71,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Override
     public void ensureAuthorised(JsonObject request, Session session) {
-        if (!session.getUserProperties().containsKey(AUTHENTICATED_USER)) {
+        if (WebsocketSession.hasAuthorisedUser(session)) {
             throw new HiveWebsocketException("Not authorised");
         }
     }
@@ -79,7 +80,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
         Gson gson = GsonFactory.createGson(new ClientCommandInsertRequestExclusionStrategy());
 
-        UUID deviceGuid = gson.fromJson(message.get("deviceGuid"), UUID.class);
+        UUID deviceGuid = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUID), UUID.class);
 
         if (deviceGuid == null) {
             throw new HiveWebsocketException("Device ID is empty");
@@ -97,7 +98,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             throw new HiveWebsocketException("Command is empty");
         }
 
-        User user = getSessionUser(session);
+        User user = WebsocketSession.getAuthorisedUser(session);
         deviceService.submitDeviceCommand(deviceCommand, device, user); //saves command to DB and sends it in JMS
 
 
@@ -111,10 +112,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
 
-        Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);//TODO
+        Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);//TODO
 
 
-        JsonArray deviceGuidsJson = message.getAsJsonArray("deviceGuids");
+        JsonArray deviceGuidsJson = message.getAsJsonArray(JsonMessageBuilder.DEVICE_GUIDS);
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
             list.add(gson.fromJson(uuidJson, UUID.class));
@@ -128,7 +129,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "notification/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
-        JsonArray deviceGuidsJson = message.getAsJsonArray("deviceGuids");
+        JsonArray deviceGuidsJson = message.getAsJsonArray(JsonMessageBuilder.DEVICE_GUIDS);
         List<UUID> list = new ArrayList();
         for (JsonElement uuidJson : deviceGuidsJson) {
             list.add(gson.fromJson(uuidJson, UUID.class));
@@ -155,7 +156,4 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     }
 
 
-    private User getSessionUser(Session session) {
-        return (User)session.getUserProperties().get(AUTHENTICATED_USER);
-    }
 }

@@ -11,7 +11,7 @@ import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.*;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
-import com.devicehive.websockets.util.WebsocketUtil;
+import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -48,8 +48,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Inject
     private DeviceService deviceService;
 
-    private static final String AUTHENTICATED_DEVICE = "AUTHENTICATED_DEVICE";
-
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
@@ -58,7 +56,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
 
         if (device != null) {
-            session.getUserProperties().put(AUTHENTICATED_DEVICE, device);
+            WebsocketSession.setAuthorisedDevice(session, device);
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
         } else {
             throw new HiveWebsocketException("Device authentication error: credentials are incorrect");
@@ -69,7 +67,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public void ensureAuthorised(JsonObject request, Session session) {
         Gson gson = GsonFactory.createGson();
 
-        if (session.getUserProperties().containsKey(AUTHENTICATED_DEVICE)) {
+        if (WebsocketSession.hasAuthorisedDevice(session)) {
             return;
         }
         UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
@@ -87,7 +85,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         DeviceCommand update = GsonFactory.createGson(new CommandUpdateExclusionStrategy())
             .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
 
-        Device device = (Device)session.getUserProperties().get(AUTHENTICATED_DEVICE);
+        Device device = WebsocketSession.getAuthorisedDevice(session);
         if (device == null) {
             device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class));
         }
@@ -109,7 +107,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             List<DeviceCommand> oldCommands = new ArrayList<DeviceCommand>();//TODO get non-delivered commands from DB
             for (DeviceCommand dc : oldCommands) {
                 //TODO create json
-                WebsocketUtil.sendMessage(null, session);
+
                 //TODO mark dc as delivered
             }
         }
@@ -187,7 +185,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
     private Device getDevice(Session session, JsonObject request) {
-        Device device = (Device)session.getUserProperties().get(AUTHENTICATED_DEVICE);
+        Device device = WebsocketSession.getAuthorisedDevice(session);
         if (device == null) {
             device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(request.getAsJsonPrimitive("deviceId"), UUID.class));
         }

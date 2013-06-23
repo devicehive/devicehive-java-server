@@ -5,7 +5,6 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.local.subscriptions.CommandsSubscriptionManager;
 import com.devicehive.websockets.messagebus.local.subscriptions.NotificationsSubscriptionManager;
-import com.devicehive.websockets.util.WebsocketUtil;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -42,11 +41,11 @@ public class LocalMessageBus {
       * @param deviceCommand
      * @return true if command was delivered
      */
-    public boolean submitCommand(DeviceCommand deviceCommand) {
+    public void submitCommand(DeviceCommand deviceCommand) {
         UUID deviceId = deviceCommand.getDevice().getGuid();
         Session session = commandsSubscriptionManager.findDeviceSession(deviceId);
         if (session == null || !session.isOpen()) {
-            return false;
+            return;
         }
 
         JsonElement deviceCommandJson = GsonFactory.createGson().toJsonTree(deviceCommand);//TODO filter
@@ -55,7 +54,7 @@ public class LocalMessageBus {
         jsonObject.addProperty("action", "command/insert");
         jsonObject.addProperty("deviceGuid", deviceId.toString());
         jsonObject.add("command", deviceCommandJson);
-        return WebsocketUtil.sendMessage(jsonObject, session);//TODO Async?!
+
     }
 
     /**
@@ -63,16 +62,16 @@ public class LocalMessageBus {
      * @param deviceCommand
      * @return true if update was delivered
      */
-    public boolean updateCommand(DeviceCommand deviceCommand) {
+    public void updateCommand(DeviceCommand deviceCommand) {
         Session session = commandsSubscriptionManager.getClientSession(deviceCommand.getId());
         if (session == null || !session.isOpen()) {
-              return false;
+              return;
         }
         JsonElement deviceCommandJson = GsonFactory.createGson().toJsonTree(deviceCommand);  //TODO filter
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/update");
         jsonObject.add("command", deviceCommandJson);
-        return WebsocketUtil.sendMessage(jsonObject, session); //TODO Async?!
+
     }
 
     /**
@@ -113,7 +112,7 @@ public class LocalMessageBus {
                 jsonObject.addProperty("action", "command/insert");
                 jsonObject.addProperty("deviceGuid", deviceId.toString());
                 jsonObject.add("notification", deviceNotificationJson);
-                WebsocketUtil.sendMessageAsync(jsonObject, session);
+
             }
         }
 

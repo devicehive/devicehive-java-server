@@ -20,6 +20,8 @@ public class JsonMessageBuilder {
     public static final String ACTION = "action";
     public static final String REQUEST_ID = "requestId";
     public static final String DEVICE_GUID = "deviceGuid";
+    public static final String DEVICE_GUIDS = "deviceGuids";
+    public static final String TIMESTAMP = "timestamp";
 
     private JsonObject jsonObject = new JsonObject();
 
