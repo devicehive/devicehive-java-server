@@ -47,7 +47,10 @@ public class CommandsSubscriptionManager implements Serializable {
         Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
         try {
             lock.lock();
-            unsubscribeDevice(session);
+            UUID uuid = deviceSessionReverseMap.remove(session);
+            if (uuid != null) {
+                deviceSessionMap.remove(uuid);
+            }
             deviceSessionMap.put(deviceId, session);
             deviceSessionReverseMap.put(session, deviceId);
         } finally {
@@ -60,10 +63,9 @@ public class CommandsSubscriptionManager implements Serializable {
         Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
         try {
             lock.lock();
-            UUID uuid = deviceSessionReverseMap.get(session);
-            deviceSessionReverseMap.remove(session);
+            UUID uuid = deviceSessionReverseMap.remove(session);
             if (uuid != null) {
-                deviceSessionMap.remove(session);
+                deviceSessionMap.remove(uuid);
             }
         } finally {
             lock.unlock();
