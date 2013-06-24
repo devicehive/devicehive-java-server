@@ -93,15 +93,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
 
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        User user = WebsocketSession.getAuthorisedUser(session);
 
-
-        if (deviceCommand == null && true /*TODO check network*/) {
+        if (deviceCommand == null) {
             throw new HiveWebsocketException("Command is empty");
         }
 
-        User user = WebsocketSession.getAuthorisedUser(session);
-        deviceService.submitDeviceCommand(deviceCommand, device, user); //saves command to DB and sends it in JMS
-        localMessageBus.subscribeForCommandUpdates(deviceCommand.getId(), session);
+        deviceService.submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
 
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()

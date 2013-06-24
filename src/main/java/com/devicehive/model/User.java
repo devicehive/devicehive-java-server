@@ -17,8 +17,9 @@ import java.util.Set;
 @Entity
 @Table(name = "\"user\"")
 @NamedQueries({
-    @NamedQuery(name= "User.findByName", query = "select u from User u where login = :login"),
-    @NamedQuery(name= "User.findActiveByName", query = "select u from User u where login = :login and status = 0")
+    @NamedQuery(name= "User.findByName", query = "select u from User u where u.login = :login"),
+    @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
+    @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u inner join Network n where u = :user and n = :network")
 })
 
 public class User  implements Serializable {
