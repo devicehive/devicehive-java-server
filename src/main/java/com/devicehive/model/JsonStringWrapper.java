@@ -14,7 +14,7 @@ public class JsonStringWrapper implements Serializable {
 
     private String jsonString;
 
-    protected JsonStringWrapper() {
+    public JsonStringWrapper() {
     }
 
     public String getJsonString() {
