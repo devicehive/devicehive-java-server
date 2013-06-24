@@ -4,8 +4,10 @@ import com.devicehive.dao.UserDAO;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.json.strategies.DeviceCommandInsertExclusionStrategy;
 import com.devicehive.websockets.messagebus.local.subscriptions.CommandsSubscriptionManager;
 import com.devicehive.websockets.messagebus.local.subscriptions.NotificationsSubscriptionManager;
+import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -56,13 +58,19 @@ public class LocalMessageBus {
             return;
         }
 
-        JsonElement deviceCommandJson = GsonFactory.createGson().toJsonTree(deviceCommand);//TODO filter
+        JsonElement deviceCommandJson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy()).toJsonTree(deviceCommand, DeviceCommand.class);
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/insert");
         jsonObject.addProperty("deviceGuid", deviceId.toString());
         jsonObject.add("command", deviceCommandJson);
 
+        try {
+            WebsocketSession.getCommandsSubscriptionsLock(session).lock();
+            WebsocketSession.deliverMessages(session, jsonObject);
+        } finally {
+            WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
+        }
     }
 
     /**
@@ -88,7 +96,7 @@ public class LocalMessageBus {
      * @param device
      * @param session
      */
-    public void subscribeToCommands(UUID device, Session session) {
+    public void subscribeForCommands(UUID device, Session session) {
         commandsSubscriptionManager.subscribeDeviceForCommands(device, session);
     }
 
@@ -100,6 +108,11 @@ public class LocalMessageBus {
      */
     public void unsubscribeFromCommands(UUID device, Session session) {
         commandsSubscriptionManager.unsubscribeDevice(session);
+    }
+
+
+    public void subscribeForCommandUpdates(Long commandId, Session session) {
+        commandsSubscriptionManager.subscribeClientToCommandUpdates(commandId, session);
     }
 
     /**
@@ -156,6 +169,7 @@ public class LocalMessageBus {
 
     public void onClientSessionClose(Session session) {
         commandsSubscriptionManager.unsubscribeClientFromCommandUpdates(session);
+        notificationsSubscriptionManager.unsubscribeFromDeviceNotifications(session);
     }
 
 

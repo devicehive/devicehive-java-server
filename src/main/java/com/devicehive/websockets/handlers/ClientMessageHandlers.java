@@ -100,6 +100,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         User user = WebsocketSession.getAuthorisedUser(session);
         deviceService.submitDeviceCommand(deviceCommand, device, user); //saves command to DB and sends it in JMS
+        localMessageBus.subscribeForCommandUpdates(deviceCommand.getId(), session);
 
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()

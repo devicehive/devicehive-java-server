@@ -22,7 +22,6 @@ import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -108,7 +107,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (timestamp != null) {
             try {
                 WebsocketSession.getCommandsSubscriptionsLock(session).lock();
-                localMessageBus.subscribeToCommands(device.getGuid(), session);
+                localMessageBus.subscribeForCommands(device.getGuid(), session);
                 List<DeviceCommand> oldCommands = deviceCommandDAO.getOlderThan(device, timestamp);
                 gson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy());
                 for (DeviceCommand deviceCommand : oldCommands) {
@@ -118,7 +117,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                 WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
             }
         } else {
-            localMessageBus.subscribeToCommands(device.getGuid(), session);
+            localMessageBus.subscribeForCommands(device.getGuid(), session);
         }
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
