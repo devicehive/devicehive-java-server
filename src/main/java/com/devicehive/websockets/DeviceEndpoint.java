@@ -6,6 +6,7 @@ import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.Device;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
+import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ public class DeviceEndpoint extends Endpoint {
     @OnOpen
     public void onOpen(Session session) {
         logger.debug("[onOpen] session id " + session.getId());
+        WebsocketSession.createCommandsSubscriptionsLock(session);
     }
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)

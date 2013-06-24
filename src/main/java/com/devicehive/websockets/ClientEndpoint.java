@@ -2,6 +2,7 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
+import com.devicehive.websockets.util.WebsocketSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ public class ClientEndpoint extends Endpoint {
     @OnOpen
     public void onOpen(Session session) {
         logger.debug("[onOpen] session id " + session.getId());
+        WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
     }
 
 

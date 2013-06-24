@@ -40,7 +40,7 @@ public class Network implements Serializable {
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "user_network", joinColumns = {@JoinColumn(name = "user_id")}, inverseJoinColumns = {@JoinColumn(name = "network_id")})
+    @JoinTable(name = "user_network", joinColumns = {@JoinColumn(name = "network_id")}, inverseJoinColumns = {@JoinColumn(name = "user_id")})
     private List<User> users;
 
     public Network() {

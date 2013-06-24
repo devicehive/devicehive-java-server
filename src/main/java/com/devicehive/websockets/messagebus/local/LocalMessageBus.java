@@ -90,7 +90,7 @@ public class LocalMessageBus {
      * @param session
      */
     public void unsubscribeFromCommands(UUID device, Session session) {
-        commandsSubscriptionManager.unsubscribeDeviceFromCommands(device, session);
+        commandsSubscriptionManager.unsubscribeDevice(session);
     }
 
     /**
@@ -124,7 +124,7 @@ public class LocalMessageBus {
      * @param devices
      */
     public void subscribeForNotifications(Session session, Collection<UUID> devices) {
-        notificationsSubscriptionManager.subscribe(session, devices);
+        notificationsSubscriptionManager.subscribeForDeviceNotifications(session, devices);
     }
 
     /**
@@ -133,7 +133,7 @@ public class LocalMessageBus {
      * @param devices
      */
     public void unsubscribeFromNotifications(Session session, Collection<UUID> devices) {
-        notificationsSubscriptionManager.unsubscribe(session, devices);
+        notificationsSubscriptionManager.unsubscribeFromDeviceNotifications(session, devices);
     }
 
 

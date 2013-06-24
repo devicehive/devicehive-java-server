@@ -54,7 +54,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
 
     @Action(value = "authenticate", needsAuth = false)
-    @Transactional
+    //@Transactional
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         String login = message.get("login").getAsString();
         String password = message.get("password").getAsString();

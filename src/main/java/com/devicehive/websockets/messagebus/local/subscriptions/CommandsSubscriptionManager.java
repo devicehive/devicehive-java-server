@@ -1,5 +1,6 @@
 package com.devicehive.websockets.messagebus.local.subscriptions;
 
+import com.devicehive.websockets.util.WebsocketSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +9,9 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,16 +23,16 @@ import java.util.concurrent.ConcurrentMap;
 
 public class CommandsSubscriptionManager implements Serializable {
 
-    private static final String SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID = "SUBSCRIBED_DEVICE_UUID";
-    private static final String COMMANDS_SENT_IN_SESSION = "COMMANDS_SENT_IN_SESSION";
 
     private static final Logger logger = LoggerFactory.getLogger(CommandsSubscriptionManager.class);
 
     //This map is used to store device sessions and to identify destinations for commands
     private ConcurrentMap<UUID, Session> deviceSessionMap = new ConcurrentHashMap<UUID, Session>();
+    private ConcurrentMap<Session, UUID> deviceSessionReverseMap = new ConcurrentHashMap<Session, UUID>();
 
 
-    private Map<Long, Session> commandToClientSessionMap = new HashMap<Long, Session>();
+    private ConcurrentMap<Long, Session> commandToClientSessionMap = new ConcurrentHashMap<Long, Session>();
+    private ConcurrentMap<Session, Set<Long>> clientSessionCommandsMap = new ConcurrentHashMap<Session, Set<Long>>();
 
 
     public CommandsSubscriptionManager() {
@@ -40,26 +44,29 @@ public class CommandsSubscriptionManager implements Serializable {
      * @param session
      */
     public void subscribeDeviceForCommands(UUID deviceId, Session session) {
-        synchronized (session) {
+        Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
+        try {
+            lock.lock();
+            unsubscribeDevice(session);
             deviceSessionMap.put(deviceId, session);
-            session.getUserProperties().put(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID, deviceId);
+            deviceSessionReverseMap.put(session, deviceId);
+        } finally {
+            lock.unlock();
         }
         logger.debug("Device " + deviceId + " is subscribed to commands, session id:" + session.getId());
     }
 
-
-    public void unsubscribeDeviceFromCommands(UUID deviceId, Session session) {
-        synchronized (session) {
-            deviceSessionMap.remove(deviceId);
-            session.getUserProperties().remove(deviceId);
-        }
-    }
-
     public void unsubscribeDevice(Session session) {
-        synchronized (session) {
-            if (session.getUserProperties().containsKey(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID)) {
-                unsubscribeDeviceFromCommands((UUID) session.getUserProperties().get(SUBSCRIBED_FOR_COMMANDS_DEVICE_UUID), session);
+        Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
+        try {
+            lock.lock();
+            UUID uuid = deviceSessionReverseMap.get(session);
+            deviceSessionReverseMap.remove(session);
+            if (uuid != null) {
+                deviceSessionMap.remove(session);
             }
+        } finally {
+            lock.unlock();
         }
     }
     /**
@@ -77,13 +84,15 @@ public class CommandsSubscriptionManager implements Serializable {
      * @param clientWebsocketSession
      */
     public void subscribeClientToCommandUpdates(Long commandId, Session clientWebsocketSession) {
-        synchronized (clientWebsocketSession) {
+        Lock lock = WebsocketSession.getCommandUpdatesSubscriptionsLock(clientWebsocketSession);
+        try {
+            lock.lock();
             commandToClientSessionMap.put(commandId, clientWebsocketSession);
-            if (!clientWebsocketSession.getUserProperties().containsKey(COMMANDS_SENT_IN_SESSION)) {
-                clientWebsocketSession.getUserProperties().put(COMMANDS_SENT_IN_SESSION, new HashSet<>());
-            }
-            Set<Long> commands = (Set<Long>)clientWebsocketSession.getUserProperties().get(COMMANDS_SENT_IN_SESSION);
+            clientSessionCommandsMap.putIfAbsent(clientWebsocketSession, Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>()));
+            Set<Long> commands = clientSessionCommandsMap.get(clientWebsocketSession);
             commands.add(commandId);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -92,14 +101,17 @@ public class CommandsSubscriptionManager implements Serializable {
      * @param clientWebsocketSession
      */
     public void unsubscribeClientFromCommandUpdates(Session clientWebsocketSession) {
-        synchronized (clientWebsocketSession) {
-            Set<Long> commands = (Set<Long>)clientWebsocketSession.getUserProperties().remove(COMMANDS_SENT_IN_SESSION);
+        Lock lock = WebsocketSession.getCommandUpdatesSubscriptionsLock(clientWebsocketSession);
+        try {
+            lock.lock();
+            Set<Long> commands = clientSessionCommandsMap.remove(clientWebsocketSession);
             if (commands != null) {
                 for (Long command : commands) {
                     commandToClientSessionMap.remove(command);
                 }
             }
-
+        } finally {
+            lock.unlock();
         }
     }
 
