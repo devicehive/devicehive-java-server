@@ -4,6 +4,7 @@ package com.devicehive.websockets.util;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class WebsocketSession {
     private static final String WEAK_AUTHORISED_DEVICE = "WEAK_AUTHORISED_DEVICE";
     private static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     private static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
+    private static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
 
     public static User getAuthorisedUser(Session session) {
         return (User) session.getUserProperties().get(AUTHORISED_USER);
@@ -49,6 +51,15 @@ public class WebsocketSession {
         return getAuthorisedDevice(session) != null;
     }
 
+
+    public static Device getWeakAuthorisedDevice(Session session) {
+        return (Device) session.getUserProperties().get(WEAK_AUTHORISED_DEVICE);
+    }
+
+    public static void setWeakAuthorisedDevice(Session session, Device device) {
+        session.getUserProperties().put(WEAK_AUTHORISED_DEVICE, device);
+    }
+
     public static Lock getCommandsSubscriptionsLock(Session session) {
         return (Lock) session.getUserProperties().get(COMMANDS_SUBSCRIPTION_LOCK);
     }
@@ -72,18 +83,16 @@ public class WebsocketSession {
 
 
 
-    public static void deliverMessages(Session session, JsonObject... jsonObjects) {
-        synchronized (session) {
-            for (final JsonObject jsonObject : jsonObjects) {
-                session.getAsyncRemote().sendText(jsonObject.toString(), new SendHandler() {
+    public static void deliverMessages(Session session, JsonElement... jsons) {
+        for (final JsonElement json : jsons) {
+            session.getAsyncRemote().sendText(json.toString(), new SendHandler() {
                     @Override
                     public void onResult(SendResult result) {
-                        if (!result.isOK()) {
-                            logger.error("Error message delivery", result.getException());
-                        }
+                    if (!result.isOK()) {
+                        logger.error("Error message delivery", result.getException());
                     }
+                }
                 });
-            }
         }
     }
 }

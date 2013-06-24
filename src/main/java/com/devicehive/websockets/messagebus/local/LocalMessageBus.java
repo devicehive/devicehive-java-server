@@ -1,5 +1,6 @@
 package com.devicehive.websockets.messagebus.local;
 
+import com.devicehive.dao.UserDAO;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.json.GsonFactory;
@@ -10,7 +11,9 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.util.Collection;
 import java.util.UUID;
@@ -32,6 +35,10 @@ public class LocalMessageBus {
     private NotificationsSubscriptionManager notificationsSubscriptionManager = new NotificationsSubscriptionManager();
 
 
+    @Inject
+    private UserDAO userDAO;
+
+
     public LocalMessageBus() {
     }
 
@@ -41,6 +48,7 @@ public class LocalMessageBus {
       * @param deviceCommand
      * @return true if command was delivered
      */
+    @Transactional
     public void submitCommand(DeviceCommand deviceCommand) {
         UUID deviceId = deviceCommand.getDevice().getGuid();
         Session session = commandsSubscriptionManager.findDeviceSession(deviceId);
@@ -62,6 +70,7 @@ public class LocalMessageBus {
      * @param deviceCommand
      * @return true if update was delivered
      */
+    @Transactional
     public void updateCommand(DeviceCommand deviceCommand) {
         Session session = commandsSubscriptionManager.getClientSession(deviceCommand.getId());
         if (session == null || !session.isOpen()) {
@@ -97,7 +106,11 @@ public class LocalMessageBus {
      * Sends device notification to clients
      * @param deviceNotification
      */
+    @Transactional
     public void submitNotification(DeviceNotification deviceNotification) {
+
+        // TODO subscribed for all
+
         Collection<Session> sessions = notificationsSubscriptionManager.getSubscriptions(deviceNotification.getDevice().getGuid());
         if (sessions == null) {
             return;

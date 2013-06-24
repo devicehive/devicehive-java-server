@@ -1,11 +1,16 @@
 package com.devicehive.dao;
 
+import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.User;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,5 +47,14 @@ public class DeviceCommandDAO {
     @Transactional
     public DeviceCommand findById(Long id) {
         return em.find(DeviceCommand.class, id);
+    }
+
+
+    @Transactional
+    public List<DeviceCommand> getOlderThan(Device device, Date timestamp) {
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getOlderThan", DeviceCommand.class);
+        query.setParameter("timestamp", timestamp);
+        query.setParameter("device", device);
+        return query.getResultList();
     }
 }

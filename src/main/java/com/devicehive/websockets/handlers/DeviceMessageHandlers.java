@@ -77,6 +77,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (device == null) {
             throw new HiveWebsocketException("Not authorised");
         }
+        WebsocketSession.setWeakAuthorisedDevice(session, device);
     }
 
     @Action(value = "command/update")
@@ -99,17 +100,25 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
-        timestamp = timestamp != null ? timestamp : new Date();
-        UUID deviceId = gson.fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class);
 
-        synchronized (session) {
-            localMessageBus.subscribeToCommands(deviceId, session);
-            List<DeviceCommand> oldCommands = new ArrayList<DeviceCommand>();//TODO get non-delivered commands from DB
-            for (DeviceCommand dc : oldCommands) {
-                //TODO create json
+        Device device = WebsocketSession.hasAuthorisedDevice(session)
+            ? WebsocketSession.getAuthorisedDevice(session)
+            : WebsocketSession.getWeakAuthorisedDevice(session);
 
-                //TODO mark dc as delivered
+        if (timestamp != null) {
+            try {
+                WebsocketSession.getCommandsSubscriptionsLock(session).lock();
+                localMessageBus.subscribeToCommands(device.getGuid(), session);
+                List<DeviceCommand> oldCommands = deviceCommandDAO.getOlderThan(device, timestamp);
+                gson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy());
+                for (DeviceCommand deviceCommand : oldCommands) {
+                    WebsocketSession.deliverMessages(session, gson.toJsonTree(deviceCommand, DeviceCommand.class));
+                }
+            } finally {
+                WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
             }
+        } else {
+            localMessageBus.subscribeToCommands(device.getGuid(), session);
         }
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
