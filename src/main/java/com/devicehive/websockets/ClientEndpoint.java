@@ -3,6 +3,7 @@ package com.devicehive.websockets;
 
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
 import com.devicehive.websockets.util.WebsocketSession;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class ClientEndpoint extends Endpoint {
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public String onMessage(String rawMessage, Session session) throws InvocationTargetException, IllegalAccessException {
         logger.debug("[onMessage] session id " + session.getId());
-        return processMessage(clientMessageHandlers, rawMessage, session).toString();
+        return new GsonBuilder().setPrettyPrinting().create().toJson(processMessage(clientMessageHandlers, rawMessage, session));
     }
 
 

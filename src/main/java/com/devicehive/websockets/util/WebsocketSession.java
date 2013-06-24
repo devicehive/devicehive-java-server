@@ -4,6 +4,7 @@ package com.devicehive.websockets.util;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -85,13 +86,14 @@ public class WebsocketSession {
 
     public static void deliverMessages(Session session, JsonElement... jsons) {
         for (final JsonElement json : jsons) {
-            session.getAsyncRemote().sendText(json.toString(), new SendHandler() {
+            String data = new GsonBuilder().setPrettyPrinting().create().toJson(json);
+                session.getAsyncRemote().sendText(data, new SendHandler() {
                     @Override
                     public void onResult(SendResult result) {
-                    if (!result.isOK()) {
-                        logger.error("Error message delivery", result.getException());
+                        if (!result.isOK()) {
+                            logger.error("Error message delivery", result.getException());
+                        }
                     }
-                }
                 });
         }
     }

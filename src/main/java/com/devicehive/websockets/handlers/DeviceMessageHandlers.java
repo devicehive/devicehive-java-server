@@ -84,13 +84,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         DeviceCommand command = deviceCommandDAO.findById(message.get("commandId").getAsLong());
         DeviceCommand update = GsonFactory.createGson(new CommandUpdateExclusionStrategy())
             .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        Device device = getDevice(session);
 
-        Device device = WebsocketSession.getAuthorisedDevice(session);
-        if (device == null) {
-            device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class));
-        }
-
-        deviceService.submitDeviceCommandUpdate(update, device);
+        //deviceService.submitDeviceCommandUpdate(update, device);
 
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
@@ -137,7 +133,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
         // TODO do we need the same logic somewhere else?
-        Device device = getDevice(session, message);
+        Device device = getDevice(session);
 
         deviceService.submitDeviceNotification(deviceNotification, device);
 
@@ -192,12 +188,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
 
-    private Device getDevice(Session session, JsonObject request) {
-        Device device = WebsocketSession.getAuthorisedDevice(session);
-        if (device == null) {
-            device = deviceDAO.findByUUID(GsonFactory.createGson().fromJson(request.getAsJsonPrimitive("deviceId"), UUID.class));
-        }
-        return device;
+    private Device getDevice(Session session) {
+        return WebsocketSession.hasAuthorisedDevice(session)
+                    ? WebsocketSession.getAuthorisedDevice(session)
+                    : WebsocketSession.getWeakAuthorisedDevice(session);
     }
 
 }

@@ -8,6 +8,7 @@ import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class DeviceEndpoint extends Endpoint {
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public String onMessage(String message, Session session) throws InvocationTargetException, IllegalAccessException {
         logger.debug("[onMessage] session id " + session.getId());
-        return processMessage(deviceMessageHandlers, message, session).toString();
+        return new GsonBuilder().setPrettyPrinting().create().toJson(processMessage(deviceMessageHandlers, message, session));
     }
 
     @OnClose

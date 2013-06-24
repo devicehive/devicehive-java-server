@@ -71,7 +71,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Override
     public void ensureAuthorised(JsonObject request, Session session) {
-        if (WebsocketSession.hasAuthorisedUser(session)) {
+        if (!WebsocketSession.hasAuthorisedUser(session)) {
             throw new HiveWebsocketException("Not authorised");
         }
     }
