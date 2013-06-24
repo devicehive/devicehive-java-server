@@ -131,8 +131,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         DeviceNotification deviceNotification = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy())
                 .fromJson(message.get("notification"), DeviceNotification.class);
 
-
-        // TODO do we need the same logic somewhere else?
         Device device = getDevice(session);
 
         deviceService.submitDeviceNotification(deviceNotification, device);

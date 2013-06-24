@@ -24,6 +24,10 @@ public class NotificationsSubscriptionManager {
     public void subscribeForDeviceNotifications(Session session, Collection<UUID> devices) {
         try {
             lock.lock();
+            if (devices == null) {
+                allNotificationsSet.add(session);
+                return;
+            }
             for (UUID device : devices) {
                 notificationsMap.putIfAbsent(device, Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>()));
                 notificationsMap.get(device).add(session);
@@ -36,19 +40,14 @@ public class NotificationsSubscriptionManager {
     }
 
 
-    public void subscribeForDeviceNotifications(Session session) {
-        try {
-            lock.lock();
-            allNotificationsSet.add(session);
-        } finally {
-            lock.unlock();
-        }
-    }
-
 
     public void unsubscribeFromDeviceNotifications(Session session, Collection<UUID> devices) {
         try {
             lock.lock();
+            if (devices == null) {
+                allNotificationsSet.remove(session);
+                return;
+            }
             for (UUID device : devices) {
                 Set<Session> deviceSessions = notificationsMap.get(device);
                 if (deviceSessions != null) {

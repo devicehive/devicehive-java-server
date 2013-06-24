@@ -18,6 +18,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +78,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "command/insert")
-    public JsonObject processCommandInsert(JsonObject message, Session session) throws JMSException { //TODO?!
+    public JsonObject processCommandInsert(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson(new ClientCommandInsertRequestExclusionStrategy());
 
         UUID deviceGuid = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUID), UUID.class);
@@ -113,14 +114,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
 
-        Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);//TODO
+        Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);//TODO clarify how to use it
 
 
-        JsonArray deviceGuidsJson = message.getAsJsonArray(JsonMessageBuilder.DEVICE_GUIDS);
-        List<UUID> list = new ArrayList();
-        for (JsonElement uuidJson : deviceGuidsJson) {
-            list.add(gson.fromJson(uuidJson, UUID.class));
-        }
+        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>(){}.getType());
         localMessageBus.subscribeForNotifications(session, list);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;

@@ -13,33 +13,24 @@ import java.util.UUID;
 public class GsonFactory {
 
     public static Gson createGson() {
-        GsonBuilder builder = new GsonBuilder();
-        builder.registerTypeAdapter(Date.class, new DateAdapter());
-        builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
-        builder.registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter());
-        builder.setPrettyPrinting();
-        return  builder.create();
+        return createGsonBuilder()
+                .create();
     }
 
     public static Gson createGson(ExclusionStrategy serializationExclusionStrategy) {
-        GsonBuilder builder = new GsonBuilder();
-        builder.addDeserializationExclusionStrategy(serializationExclusionStrategy);
-        builder.addSerializationExclusionStrategy(serializationExclusionStrategy);
-        builder.registerTypeAdapter(Date.class, new DateAdapter());
-        builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
-        builder.registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter());
-        builder.setPrettyPrinting();
-        return  builder.create();
+        return createGsonBuilder()
+                .addDeserializationExclusionStrategy(serializationExclusionStrategy)
+                .addSerializationExclusionStrategy(serializationExclusionStrategy)
+                .create();
     }
 
-    public static Gson createGson(ExclusionStrategy serializationExclusionStrategy, ExclusionStrategy deserializationExclusionStrategy) {
-        GsonBuilder builder = new GsonBuilder();
-        builder.addDeserializationExclusionStrategy(deserializationExclusionStrategy);
-        builder.addSerializationExclusionStrategy(serializationExclusionStrategy);
-        builder.registerTypeAdapter(Date.class, new DateAdapter());
-        builder.registerTypeAdapter(UUID.class, new UUIDAdapter());
-        builder.registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter());
-        builder.setPrettyPrinting();
-        return  builder.create();
+
+    public static GsonBuilder createGsonBuilder() {
+        return new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(Date.class, new DateAdapter())
+                .registerTypeAdapter(UUID.class, new UUIDAdapter())
+                .registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter());
     }
+
 }
