@@ -85,7 +85,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
         Device device = getDevice(session, message);
 
-        //deviceService.submitDeviceCommandUpdate(update, device);
+        deviceService.submitDeviceCommandUpdate(update, command, device);
 
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }

@@ -71,6 +71,7 @@ public class DeviceService {
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
         notification.setDevice(device);
         deviceNotificationDAO.saveNotification(notification);
+        //TODO implement device_equipment notifications
         messagePublisher.publishNotification(notification);
     }
 }
