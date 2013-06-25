@@ -4,8 +4,11 @@ import com.devicehive.dao.UserDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.User;
 import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.websockets.json.strategies.CommandUpdateExclusionStrategy;
 import com.devicehive.websockets.json.strategies.DeviceCommandInsertExclusionStrategy;
+import com.devicehive.websockets.json.strategies.NotificationInsertRequestExclusionStrategy;
 import com.devicehive.websockets.messagebus.local.subscriptions.CommandsSubscriptionManager;
 import com.devicehive.websockets.messagebus.local.subscriptions.NotificationsSubscriptionManager;
 import com.devicehive.websockets.util.WebsocketSession;
@@ -18,10 +21,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Created with IntelliJ IDEA.
@@ -55,8 +56,7 @@ public class LocalMessageBus {
      */
     @Transactional
     public void submitCommand(DeviceCommand deviceCommand) {
-        UUID deviceId = deviceCommand.getDevice().getGuid();
-        Session session = commandsSubscriptionManager.findDeviceSession(deviceId);
+        Session session = commandsSubscriptionManager.findDeviceSession(deviceCommand.getDevice().getId());
         if (session == null || !session.isOpen()) {
             return;
         }
@@ -65,14 +65,15 @@ public class LocalMessageBus {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/insert");
-        jsonObject.addProperty("deviceGuid", deviceId.toString());
+        jsonObject.addProperty("deviceGuid", deviceCommand.getDevice().getGuid().toString());
         jsonObject.add("command", deviceCommandJson);
 
+        Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
         try {
-            WebsocketSession.getCommandsSubscriptionsLock(session).lock();
+            lock.lock();
             WebsocketSession.deliverMessages(session, jsonObject);
         } finally {
-            WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
+            lock.unlock();
         }
     }
 
@@ -82,16 +83,17 @@ public class LocalMessageBus {
      * @return true if update was delivered
      */
     @Transactional
-    public void updateCommand(DeviceCommand deviceCommand) {
+    public void submitCommandUpdate(DeviceCommand deviceCommand) {
         Session session = commandsSubscriptionManager.getClientSession(deviceCommand.getId());
         if (session == null || !session.isOpen()) {
               return;
         }
-        JsonElement deviceCommandJson = GsonFactory.createGson().toJsonTree(deviceCommand);  //TODO filter
+        JsonElement deviceCommandJson = GsonFactory.createGson(new CommandUpdateExclusionStrategy()).toJsonTree(deviceCommand);
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/update");
         jsonObject.add("command", deviceCommandJson);
 
+        WebsocketSession.deliverMessages(session, jsonObject);
     }
 
     /**
@@ -123,28 +125,39 @@ public class LocalMessageBus {
      * @param deviceNotification
      */
     @Transactional
+    //TODO make this multithreaded ?!
     public void submitNotification(DeviceNotification deviceNotification) {
 
-        // TODO subscribed for all
+        JsonElement deviceNotificationJson = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy()).toJsonTree(deviceNotification);
+        JsonObject resultMessage = new JsonObject();
+        resultMessage.addProperty("action", "command/insert");
+        resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
+        resultMessage.add("notification", deviceNotificationJson);
 
-        Collection<Session> sessions = notificationsSubscriptionManager.getSubscriptions(deviceNotification.getDevice().getGuid());
-        if (sessions == null) {
-            return;
-        }
+        Set<Session> delivers = new HashSet();
 
-        UUID deviceId = deviceNotification.getDevice().getGuid();
-
-        JsonElement deviceNotificationJson = GsonFactory.createGson().toJsonTree(deviceNotification);  //TODO filter
-        for (Session session : sessions) {
-            if (session == null || !session.isOpen()) { //TODO client
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("action", "command/insert");
-                jsonObject.addProperty("deviceGuid", deviceId.toString());
-                jsonObject.add("notification", deviceNotificationJson);
-
+        Set<Session> subscribedForAll = notificationsSubscriptionManager.getSubscribedForAll();
+        for (Session session : subscribedForAll) {
+            User user = WebsocketSession.getAuthorisedUser(session);
+            if (userDAO.hasAccessToNetwork(user, deviceNotification.getDevice().getNetwork())) {
+                delivers.add(session);
             }
         }
 
+        Collection<Session> sessions = notificationsSubscriptionManager.getSubscriptions(deviceNotification.getDevice().getGuid());
+        if (sessions != null) {
+            delivers.addAll(sessions);
+        }
+
+        for (Session session : delivers ){
+            Lock lock = WebsocketSession.getNotificationSubscriptionsLock(session);
+            try {
+                lock.lock();
+                WebsocketSession.deliverMessages(session, resultMessage);
+            } finally {
+                lock.unlock();
+            }
+        }
     }
 
     /**

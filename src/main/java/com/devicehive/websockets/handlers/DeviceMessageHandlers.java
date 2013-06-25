@@ -78,12 +78,12 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
-        DeviceCommand command = deviceCommandDAO.findById(message.get("commandId").getAsLong());
         DeviceCommand update = GsonFactory.createGson(new CommandUpdateExclusionStrategy())
             .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        update.setId(GsonFactory.createGson().fromJson(message.get("commandId"), Long.class));
         Device device = getDevice(session, message);
 
-        //deviceService.submitDeviceCommandUpdate(update, device);
+        deviceService.submitDeviceCommandUpdate(update, device);
 
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }

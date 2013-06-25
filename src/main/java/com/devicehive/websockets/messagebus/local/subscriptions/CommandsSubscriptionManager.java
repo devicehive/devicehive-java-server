@@ -91,7 +91,7 @@ public class CommandsSubscriptionManager implements Serializable {
      * @param deviceId
      * @return websocket session for given device if it is subscribed for commands
      */
-    public Session findDeviceSession(UUID deviceId) {
+    public Session findDeviceSession(Long deviceId) {
         return deviceSessionMap.get(deviceId);
     }
 

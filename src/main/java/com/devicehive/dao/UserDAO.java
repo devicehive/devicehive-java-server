@@ -1,5 +1,6 @@
 package com.devicehive.dao;
 
+import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.PasswordService;
 
@@ -60,6 +61,13 @@ public class UserDAO {
         user.setLoginAttempts(0);
         em.persist(user);
         return user;
+    }
+
+
+    @Transactional(value = Transactional.TxType.MANDATORY)
+    public boolean hasAccessToNetwork(User user, Network network) {
+        Long count = em.createNamedQuery("User.hasAccessToNetwork", Long.class).getSingleResult();
+        return count != null && count > 0;
     }
 
 

@@ -64,16 +64,16 @@ public class DeviceService {
     }
 
     @Transactional
-    public void submitDeviceCommandUpdate(DeviceCommand update, DeviceCommand existingCommand, Device device) {
-        update.setDevice(device);
-        deviceCommandDAO.updateCommand(update);
-        messagePublisher.publishCommand(update);
+    public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
+        deviceCommandDAO.updateCommand(update, device);
+        messagePublisher.publishCommandUpdate(update);
     }
 
     @Transactional
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
         notification.setDevice(device);
         deviceNotificationDAO.saveNotification(notification);
+        //TODO implement device_equipment notifications
         messagePublisher.publishNotification(notification);
     }
 

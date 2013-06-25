@@ -25,6 +25,7 @@ public class ClientEndpoint extends Endpoint {
     public void onOpen(Session session) {
         logger.debug("[onOpen] session id " + session.getId());
         WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
+        WebsocketSession.createNotificationSubscriptionsLock(session);
     }
 
 

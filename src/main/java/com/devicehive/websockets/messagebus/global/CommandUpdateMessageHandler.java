@@ -2,7 +2,6 @@ package com.devicehive.websockets.messagebus.global;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
-import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class CommandUpdateMessageHandler implements MessageListener {
             DeviceCommand deviceCommand = (DeviceCommand) objectMessage.getObject();
             if (deviceCommand != null) {
                 logger.debug("DeviceCommand update received: " + deviceCommand);
-                //localMessageBus.submitCommandUpdate(deviceCommand);//TODO implement
+                localMessageBus.submitCommandUpdate(deviceCommand);
             }
         } catch (JMSException e) {
             logger.error("[onMessage] Error processing command update. ", e);

@@ -58,7 +58,7 @@ public class WebsocketSession {
 
     public static void createCommandsSubscriptionsLock(Session session) {
         if (!session.getUserProperties().containsKey(COMMANDS_SUBSCRIPTION_LOCK)) {
-            session.getUserProperties().put(COMMANDS_SUBSCRIPTION_LOCK, new ReentrantLock());
+            session.getUserProperties().put(COMMANDS_SUBSCRIPTION_LOCK, new ReentrantLock(true));
         }
     }
 
@@ -69,10 +69,20 @@ public class WebsocketSession {
 
     public static void createCommandUpdatesSubscriptionsLock(Session session) {
         if (!session.getUserProperties().containsKey(COMMAND_UPDATES_SUBSCRIPTION_LOCK)) {
-            session.getUserProperties().put(COMMAND_UPDATES_SUBSCRIPTION_LOCK, new ReentrantLock());
+            session.getUserProperties().put(COMMAND_UPDATES_SUBSCRIPTION_LOCK, new ReentrantLock(true));
         }
     }
 
+
+    public static Lock getNotificationSubscriptionsLock(Session session) {
+        return (Lock) session.getUserProperties().get(NOTIFICATIONS_LOCK);
+    }
+
+    public static void createNotificationSubscriptionsLock(Session session) {
+        if (!session.getUserProperties().containsKey(NOTIFICATIONS_LOCK)) {
+            session.getUserProperties().put(NOTIFICATIONS_LOCK, new ReentrantLock(true));
+        }
+    }
 
 
     public static void deliverMessages(Session session, JsonElement... jsons) {
