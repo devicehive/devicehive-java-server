@@ -1,6 +1,8 @@
 package com.devicehive.websockets.messagebus.local.subscriptions;
 
 
+import com.devicehive.model.Device;
+
 import javax.websocket.Session;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,24 +17,24 @@ public class NotificationsSubscriptionManager {
 
     private final Lock lock = new ReentrantLock();
 
-    private final ConcurrentMap<UUID, Set<Session>> notificationsMap = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Session, Set<UUID>> notificationsReverseMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, Set<Session>> notificationsMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Session, Set<Long>> notificationsReverseMap = new ConcurrentHashMap<>();
 
 
     private final Set<Session> allNotificationsSet = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
 
-    public void subscribeForDeviceNotifications(Session session, Collection<UUID> devices) {
+    public void subscribeForDeviceNotifications(Session session, Collection<Long> devices) {
         try {
             lock.lock();
             if (devices == null) {
                 allNotificationsSet.add(session);
                 return;
             }
-            for (UUID device : devices) {
+            for (Long device : devices) {
                 notificationsMap.putIfAbsent(device, Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>()));
                 notificationsMap.get(device).add(session);
             }
-            notificationsReverseMap.putIfAbsent(session, Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>()));
+            notificationsReverseMap.putIfAbsent(session, Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>()));
             notificationsReverseMap.get(session).addAll(devices);
         } finally {
             lock.unlock();
@@ -41,14 +43,14 @@ public class NotificationsSubscriptionManager {
 
 
 
-    public void unsubscribeFromDeviceNotifications(Session session, Collection<UUID> devices) {
+    public void unsubscribeFromDeviceNotifications(Session session, Collection<Long> devices) {
         try {
             lock.lock();
             if (devices == null) {
                 allNotificationsSet.remove(session);
                 return;
             }
-            for (UUID device : devices) {
+            for (Long device : devices) {
                 Set<Session> deviceSessions = notificationsMap.get(device);
                 if (deviceSessions != null) {
                     deviceSessions.remove(session);
@@ -57,7 +59,7 @@ public class NotificationsSubscriptionManager {
                     }
                 }
             }
-            Set<UUID> sessionDevices = notificationsReverseMap.get(session);
+            Set<Long> sessionDevices = notificationsReverseMap.get(session);
             if (sessionDevices != null) {
                 sessionDevices.removeAll(devices);
                 if (sessionDevices.isEmpty()) {
@@ -74,9 +76,9 @@ public class NotificationsSubscriptionManager {
         try {
             lock.lock();
             allNotificationsSet.remove(session);
-            Set<UUID> sessionDevices = notificationsReverseMap.remove(session);
+            Set<Long> sessionDevices = notificationsReverseMap.remove(session);
             if (sessionDevices != null) {
-                for (UUID device : sessionDevices) {
+                for (Long device : sessionDevices) {
                     Set<Session> deviceSessions = notificationsMap.get(device);
                     if (deviceSessions != null) {
                         deviceSessions.remove(session);

@@ -116,7 +116,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
 
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>(){}.getType());
-        localMessageBus.subscribeForNotifications(session, list);
+        List<Device> devices = deviceDAO.findByUUIDAndUser(WebsocketSession.getAuthorisedUser(session), list);
+        localMessageBus.subscribeForNotifications(session, devices);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
 
@@ -126,11 +127,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
         JsonArray deviceGuidsJson = message.getAsJsonArray(JsonMessageBuilder.DEVICE_GUIDS);
-        List<UUID> list = new ArrayList();
-        for (JsonElement uuidJson : deviceGuidsJson) {
-            list.add(gson.fromJson(uuidJson, UUID.class));
-        }
-        localMessageBus.unsubscribeFromNotifications(session, list);
+        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>(){}.getType());
+        List<Device> devices = deviceDAO.findByUUIDAndUser(WebsocketSession.getAuthorisedUser(session), list);
+        localMessageBus.unsubscribeFromNotifications(session, devices);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
             .addElement("deviceGuids", new JsonObject())
             .build();

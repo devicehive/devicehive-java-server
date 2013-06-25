@@ -18,6 +18,14 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "device_notification")
+@NamedQueries({
+    @NamedQuery(name= "DeviceNotification.getByDeviceListNewerThan",
+        query = "select dn from DeviceNotification dn where dn.device.id in :deviceIdList and dn.timestamp > :timestamp"),
+    @NamedQuery(name= "DeviceNotification.getByUserNewerThan",
+            query = "select dn from DeviceNotification dn where dn.device.id in (" +
+                " select distinct d.id from Device d join d.network n join n.users u where u = :user" +
+                ") and dn.timestamp > :timestamp")
+})
 public class DeviceNotification implements Serializable {
 
     @SerializedName("id")

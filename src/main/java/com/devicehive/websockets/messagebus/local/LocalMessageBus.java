@@ -1,6 +1,7 @@
 package com.devicehive.websockets.messagebus.local;
 
 import com.devicehive.dao.UserDAO;
+import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.json.GsonFactory;
@@ -17,7 +18,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -149,8 +152,12 @@ public class LocalMessageBus {
      * @param session
      * @param devices
      */
-    public void subscribeForNotifications(Session session, Collection<UUID> devices) {
-        notificationsSubscriptionManager.subscribeForDeviceNotifications(session, devices);
+    public void subscribeForNotifications(Session session, Collection<Device> devices) {
+        List<Long> list = new ArrayList<Long>(devices.size());
+        for (Device device : devices) {
+            list.add(device.getId());
+        }
+        notificationsSubscriptionManager.subscribeForDeviceNotifications(session, list);
     }
 
     /**
@@ -158,8 +165,12 @@ public class LocalMessageBus {
      * @param session
      * @param devices
      */
-    public void unsubscribeFromNotifications(Session session, Collection<UUID> devices) {
-        notificationsSubscriptionManager.unsubscribeFromDeviceNotifications(session, devices);
+    public void unsubscribeFromNotifications(Session session, Collection<Device> devices) {
+        List<Long> list = new ArrayList<Long>(devices.size());
+        for (Device device : devices) {
+            list.add(device.getId());
+        }
+        notificationsSubscriptionManager.unsubscribeFromDeviceNotifications(session, list);
     }
 
 

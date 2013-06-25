@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -42,6 +43,13 @@ public class DeviceDAO {
         return query.getSingleResult();
     }
 
+    @Transactional
+    public List<Device> findByUUIDAndUser(User user, List<UUID> list){
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
+        query.setParameter("user", user);
+        query.setParameter("guidList", list);
+        return query.getResultList();
+    }
 
 
 }
