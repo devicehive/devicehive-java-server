@@ -19,7 +19,7 @@ import java.util.Set;
 @Entity
 @Table(name = "device_command")
 @NamedQueries({
-    @NamedQuery(name= "DeviceCommand.getOlderThan", query = "select dc from DeviceCommand dc where dc.timestamp < :timestamp and dc.device = :device"),
+    @NamedQuery(name= "DeviceCommand.getNewerThan", query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
 })
 public class DeviceCommand implements Serializable{
 

@@ -51,8 +51,8 @@ public class DeviceCommandDAO {
 
 
     @Transactional
-    public List<DeviceCommand> getOlderThan(Device device, Date timestamp) {
-        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getOlderThan", DeviceCommand.class);
+    public List<DeviceCommand> getNewerThan(Device device, Date timestamp) {
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
         query.setParameter("device", device);
         return query.getResultList();

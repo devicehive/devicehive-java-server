@@ -104,7 +104,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             try {
                 WebsocketSession.getCommandsSubscriptionsLock(session).lock();
                 localMessageBus.subscribeForCommands(device.getGuid(), session);
-                List<DeviceCommand> oldCommands = deviceCommandDAO.getOlderThan(device, timestamp);
+                List<DeviceCommand> oldCommands = deviceCommandDAO.getNewerThan(device, timestamp);
                 gson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy());
                 for (DeviceCommand deviceCommand : oldCommands) {
                     WebsocketSession.deliverMessages(session, gson.toJsonTree(deviceCommand, DeviceCommand.class));
