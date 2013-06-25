@@ -76,7 +76,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (device == null) {
             throw new HiveWebsocketException("Not authorised");
         }
-        WebsocketSession.setWeakAuthorisedDevice(session, device);
     }
 
     @Action(value = "command/update")
@@ -84,7 +83,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         DeviceCommand command = deviceCommandDAO.findById(message.get("commandId").getAsLong());
         DeviceCommand update = GsonFactory.createGson(new CommandUpdateExclusionStrategy())
             .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
-        Device device = getDevice(session);
+        Device device = getDevice(session, message);
 
         //deviceService.submitDeviceCommandUpdate(update, device);
 
@@ -96,14 +95,12 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Gson gson = GsonFactory.createGson();
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
 
-        Device device = WebsocketSession.hasAuthorisedDevice(session)
-            ? WebsocketSession.getAuthorisedDevice(session)
-            : WebsocketSession.getWeakAuthorisedDevice(session);
+        Device device = getDevice(session, message);
 
         if (timestamp != null) {
             try {
                 WebsocketSession.getCommandsSubscriptionsLock(session).lock();
-                localMessageBus.subscribeForCommands(device.getGuid(), session);
+                localMessageBus.subscribeForCommands(device, session);
                 List<DeviceCommand> oldCommands = deviceCommandDAO.getNewerThan(device, timestamp);
                 gson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy());
                 for (DeviceCommand deviceCommand : oldCommands) {
@@ -113,15 +110,15 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                 WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
             }
         } else {
-            localMessageBus.subscribeForCommands(device.getGuid(), session);
+            localMessageBus.subscribeForCommands(device, session);
         }
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
     @Action(value = "command/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
-        UUID deviceId = GsonFactory.createGson().fromJson(message.getAsJsonPrimitive("deviceId"), UUID.class);
-        localMessageBus.unsubscribeFromCommands(deviceId, session);
+        Device device = getDevice(session, message);
+        localMessageBus.unsubscribeFromCommands(device, session);
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -131,7 +128,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         DeviceNotification deviceNotification = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy())
                 .fromJson(message.get("notification"), DeviceNotification.class);
 
-        Device device = getDevice(session);
+        Device device = getDevice(session, message);
 
         deviceService.submitDeviceNotification(deviceNotification, device);
 
@@ -186,10 +183,13 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
 
-    private Device getDevice(Session session) {
-        return WebsocketSession.hasAuthorisedDevice(session)
-                    ? WebsocketSession.getAuthorisedDevice(session)
-                    : WebsocketSession.getWeakAuthorisedDevice(session);
+    private Device getDevice(Session session, JsonObject request) {
+        if (WebsocketSession.hasAuthorisedDevice(session)) {
+            return WebsocketSession.getAuthorisedDevice(session);
+        }
+        Gson gson = GsonFactory.createGson();
+        UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
+        return deviceDAO.findByUUID(deviceId);
     }
 
 }

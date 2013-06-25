@@ -27,8 +27,8 @@ public class CommandsSubscriptionManager implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(CommandsSubscriptionManager.class);
 
     //This map is used to store device sessions and to identify destinations for commands
-    private ConcurrentMap<UUID, Session> deviceSessionMap = new ConcurrentHashMap<UUID, Session>();
-    private ConcurrentMap<Session, UUID> deviceSessionReverseMap = new ConcurrentHashMap<Session, UUID>();
+    private ConcurrentMap<Long, Session> deviceSessionMap = new ConcurrentHashMap<Long, Session>();
+    private ConcurrentMap<Session, Set<Long>> deviceSessionReverseMap = new ConcurrentHashMap<Session, Set<Long>>();
 
 
     private ConcurrentMap<Long, Session> commandToClientSessionMap = new ConcurrentHashMap<Long, Session>();
@@ -43,16 +43,13 @@ public class CommandsSubscriptionManager implements Serializable {
      * @param deviceId
      * @param session
      */
-    public void subscribeDeviceForCommands(UUID deviceId, Session session) {
+    public void subscribeDeviceForCommands(Long deviceId, Session session) {
         Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
         try {
             lock.lock();
-            UUID uuid = deviceSessionReverseMap.remove(session);
-            if (uuid != null) {
-                deviceSessionMap.remove(uuid);
-            }
             deviceSessionMap.put(deviceId, session);
-            deviceSessionReverseMap.put(session, deviceId);
+            deviceSessionReverseMap.putIfAbsent(session, Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>()));
+            deviceSessionReverseMap.get(session).add(deviceId);
         } finally {
             lock.unlock();
         }
@@ -63,9 +60,28 @@ public class CommandsSubscriptionManager implements Serializable {
         Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
         try {
             lock.lock();
-            UUID uuid = deviceSessionReverseMap.remove(session);
-            if (uuid != null) {
-                deviceSessionMap.remove(uuid);
+            Set<Long> devices = deviceSessionReverseMap.remove(session);
+            if (devices != null) {
+                for (Long dev : devices) {
+                    deviceSessionMap.remove(dev);
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void unsubscribeDevice(Long deviceId, Session session) {
+        Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
+        try {
+            lock.lock();
+            deviceSessionMap.remove(deviceId);
+            Set<Long> devices = deviceSessionReverseMap.get(session);
+            if (devices != null) {
+                devices.remove(deviceId);
+                if (devices.isEmpty()) {
+                    deviceSessionReverseMap.remove(session);
+                }
             }
         } finally {
             lock.unlock();

@@ -23,7 +23,6 @@ public class WebsocketSession {
 
     private static final String AUTHORISED_USER = "AUTHORISED_USER";
     private static final String AUTHORISED_DEVICE = "AUTHORISED_DEVICE";
-    private static final String WEAK_AUTHORISED_DEVICE = "WEAK_AUTHORISED_DEVICE";
     private static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     private static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
     private static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
@@ -52,14 +51,6 @@ public class WebsocketSession {
         return getAuthorisedDevice(session) != null;
     }
 
-
-    public static Device getWeakAuthorisedDevice(Session session) {
-        return (Device) session.getUserProperties().get(WEAK_AUTHORISED_DEVICE);
-    }
-
-    public static void setWeakAuthorisedDevice(Session session, Device device) {
-        session.getUserProperties().put(WEAK_AUTHORISED_DEVICE, device);
-    }
 
     public static Lock getCommandsSubscriptionsLock(Session session) {
         return (Lock) session.getUserProperties().get(COMMANDS_SUBSCRIPTION_LOCK);
