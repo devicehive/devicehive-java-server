@@ -60,10 +60,9 @@ public class DeviceService {
 
 
     @Transactional
-    public void submitDeviceCommandUpdate(DeviceCommand update, DeviceCommand existingCommand, Device device) {
-        update.setDevice(device);
-        deviceCommandDAO.updateCommand(update);
-        messagePublisher.publishCommand(update);
+    public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
+        deviceCommandDAO.updateCommand(update, device);
+        messagePublisher.publishCommandUpdate(update);
     }
 
 

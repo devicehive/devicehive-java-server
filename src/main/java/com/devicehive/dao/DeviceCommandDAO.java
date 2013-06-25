@@ -1,5 +1,6 @@
 package com.devicehive.dao;
 
+import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
@@ -32,8 +33,11 @@ public class DeviceCommandDAO {
 
 
     @Transactional
-    public DeviceCommand updateCommand(DeviceCommand update) {
+    public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
         DeviceCommand cmd = em.find(DeviceCommand.class, update.getId(), LockModeType.WRITE);
+        if (!cmd.getDevice().getId().equals(expectedDevice.getId())) {
+            throw new HiveWebsocketException("Device tries to update incorrect command");
+        }
         cmd.setCommand(update.getCommand());
         cmd.setParameters(update.getParameters());
         cmd.setLifetime(update.getLifetime());

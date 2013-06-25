@@ -56,8 +56,7 @@ public class LocalMessageBus {
      */
     @Transactional
     public void submitCommand(DeviceCommand deviceCommand) {
-        UUID deviceId = deviceCommand.getDevice().getGuid();
-        Session session = commandsSubscriptionManager.findDeviceSession(deviceId);
+        Session session = commandsSubscriptionManager.findDeviceSession(deviceCommand.getDevice().getId());
         if (session == null || !session.isOpen()) {
             return;
         }
@@ -66,7 +65,7 @@ public class LocalMessageBus {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/insert");
-        jsonObject.addProperty("deviceGuid", deviceId.toString());
+        jsonObject.addProperty("deviceGuid", deviceCommand.getDevice().getGuid().toString());
         jsonObject.add("command", deviceCommandJson);
 
         Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
@@ -84,7 +83,7 @@ public class LocalMessageBus {
      * @return true if update was delivered
      */
     @Transactional
-    public void updateCommand(DeviceCommand deviceCommand) {
+    public void submitCommandUpdate(DeviceCommand deviceCommand) {
         Session session = commandsSubscriptionManager.getClientSession(deviceCommand.getId());
         if (session == null || !session.isOpen()) {
               return;
