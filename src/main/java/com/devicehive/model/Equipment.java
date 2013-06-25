@@ -17,6 +17,11 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "equipment")
+@NamedQueries({
+        @NamedQuery(name = "Equipment.findByCode", query = "select e from Equipment e where e.code = :code"),
+        @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
+                ":deviceClass")
+})
 public class Equipment implements Serializable {
     @SerializedName("id")
 

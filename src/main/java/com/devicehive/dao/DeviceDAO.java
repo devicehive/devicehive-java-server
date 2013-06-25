@@ -23,7 +23,7 @@ public class DeviceDAO {
     private EntityManager em;
 
     @Transactional
-    public Device findById(Long id){
+    public Device findById(Long id) {
         return em.find(Device.class, id);
     }
 
@@ -31,18 +31,32 @@ public class DeviceDAO {
     public Device findByUUID(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
-        return query.getSingleResult();
+        List<Device> res = query.getResultList();
+        return res.isEmpty() ? null : res.get(0);
     }
 
 
     @Transactional
-    public Device findByUUIDAndKey(UUID uuid, String key){
+    public Device findByUUIDAndKey(UUID uuid, String key) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
         query.setParameter("uuid", uuid);
         query.setParameter("key", key);
         return query.getSingleResult();
     }
 
+    @Transactional
+    public void updateDevice(Device device) {
+//        em.refresh(device, LockModeType.PESSIMISTIC_WRITE);
+        em.merge(device);
+        em.flush();
+    }
+
+    @Transactional
+    public void registerDevice(Device device) {
+//        em.refresh(device, LockModeType.PESSIMISTIC_WRITE);
+        em.persist(device);
+        em.flush();
+    }
     @Transactional
     public List<Device> findByUUIDAndUser(User user, List<UUID> list){
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);

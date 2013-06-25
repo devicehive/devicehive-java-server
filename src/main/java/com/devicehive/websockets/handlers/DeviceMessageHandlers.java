@@ -1,8 +1,8 @@
 package com.devicehive.websockets.handlers;
 
 
-import com.devicehive.dao.DeviceCommandDAO;
-import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.*;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
@@ -15,6 +15,7 @@ import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,30 +23,27 @@ import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
-
     @Inject
     private LocalMessageBus localMessageBus;
-
     @Inject
     private MessagePublisher messagePublisher;
-
     @Inject
     private DeviceDAO deviceDAO;
-
-
+    @Inject
+    private DeviceClassDAO deviceClassDAO;
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
-
-
     @Inject
     private DeviceService deviceService;
+    @Inject
+    private NetworkDAO networkDAO;
+    @Inject
+    private EquipmentDAO equipmentDAO;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -171,15 +169,44 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "device/save", needsAuth = false)
+    @Transactional
     public JsonObject processDeviceSave(JsonObject message, Session session) {
-        UUID deviceId = GsonFactory.createGson(new DeviceSaveExclusionStrategy()).fromJson(message.get("deviceId"), UUID.class);
+        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
+        if (deviceId == null) {
+            throw new HiveWebsocketException("Device ID is empty");
+        }
         String deviceKey = message.get("deviceKey").getAsString();
-
-        Device device = GsonFactory.createGson().fromJson(message.get("device"), Device.class);
-
-        //TODO
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
-        return jsonObject;
+        if (deviceKey == null) {
+            throw new HiveWebsocketException("Device key is empty");
+        }
+        Gson mainGson = GsonFactory.createGson(new DeviceSaveExclusionStrategy());
+        Device device = mainGson.fromJson(message.get("device"), Device.class);
+        checkDevice(device);
+        Gson gsonForEquipment = GsonFactory.createGson();
+        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(message.getAsJsonObject("device").get("equipment"),
+                new TypeToken<HashSet<Equipment>>() {
+                }.getType());
+        if (equipmentSet != null) {
+            equipmentSet.remove(null);
+        }
+        Device existingDevice = deviceDAO.findByUUID(deviceId);
+        try {
+            if (existingDevice != null) {
+                device.setId(existingDevice.getId());
+                device.setGuid(deviceId);
+                deviceService.updateDevice(device, equipmentSet);
+            } else {
+                device.setGuid(deviceId);
+                deviceService.registerDevice(device, equipmentSet);
+            }
+        } catch (HiveException e) {
+            throw new HiveWebsocketException(e.getMessage(), e);
+        }
+        JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
+                .addAction("device/save")
+                .addRequestId(message.get("requestId"))
+                .build();
+        return jsonResponseObject;
     }
 
 
@@ -190,6 +217,21 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Gson gson = GsonFactory.createGson();
         UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
         return deviceDAO.findByUUID(deviceId);
+    }
+
+    private void checkDevice(Device device) throws HiveWebsocketException {
+        if (device == null) {
+            throw new HiveWebsocketException("Device is empty");
+        }
+        if (device.getName() == null) {
+            throw new HiveWebsocketException("Device name is empty");
+        }
+        if (device.getKey() == null) {
+            throw new HiveWebsocketException("Device key is empty");
+        }
+        if (device.getDeviceClass() == null) {
+            throw new HiveWebsocketException("Device class is empty");
+        }
     }
 
 }

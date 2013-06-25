@@ -16,6 +16,10 @@ import java.util.Set;
  * TODO JavaDoc
  */
 @Entity
+@Table(name = "network")
+@NamedQueries({
+        @NamedQuery(name = "Network.findByName", query = "select n from Network n where name = :name")
+})
 public class Network implements Serializable {
 
     @SerializedName("id")

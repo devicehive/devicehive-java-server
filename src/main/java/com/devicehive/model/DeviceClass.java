@@ -17,6 +17,10 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "device_class")
+@NamedQueries({
+        @NamedQuery(name = "DeviceClass.findByNameAndVersion",
+                query = "select d from DeviceClass d where name = :name and version = :version")
+})
 public class DeviceClass implements Serializable {
 
     @Id

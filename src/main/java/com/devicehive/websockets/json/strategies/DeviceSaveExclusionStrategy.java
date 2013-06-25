@@ -21,6 +21,11 @@ public class DeviceSaveExclusionStrategy implements ExclusionStrategy {
             add("data");
             add("network");
             add("deviceClass");
+            add("equipment");
+            add("isPermanent");
+            add("version");
+            add("code");
+            add("type");
         }
     };
     //TODO Equipment?
