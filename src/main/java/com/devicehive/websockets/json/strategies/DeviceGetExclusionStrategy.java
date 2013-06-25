@@ -22,6 +22,10 @@ public class DeviceGetExclusionStrategy implements ExclusionStrategy {
             add("data");
             add("network");
             add("deviceClass");
+            add("description");
+            add("isPermanent");
+            add("version");
+            add("offlineTimeout");
         }
     };
 

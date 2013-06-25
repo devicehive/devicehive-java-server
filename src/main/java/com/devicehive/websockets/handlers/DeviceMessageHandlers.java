@@ -161,7 +161,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Gson gsonResponse = GsonFactory.createGson(new DeviceGetExclusionStrategy());
         JsonElement deviceElem = gsonResponse.toJsonTree(device);
         JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addAction("\"device/get\"")
                 .addRequestId(requestId)
                 .addElement("device", deviceElem)
                 .build();
