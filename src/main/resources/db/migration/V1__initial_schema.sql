@@ -119,3 +119,10 @@ CREATE TABLE equipment (
 ALTER TABLE equipment ADD CONSTRAINT equipment_pk PRIMARY KEY (id);
 ALTER TABLE equipment ADD CONSTRAINT equipment_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id);
 ALTER TABLE equipment ADD CONSTRAINT equipment_code_unique UNIQUE (code);
+
+CREATE TABLE configuration (
+  name VARCHAR(32) NOT NULL,
+  value VARCHAR(128) NOT NULL
+);
+
+ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (name);

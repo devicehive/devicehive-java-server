@@ -1,6 +1,7 @@
 package com.devicehive.websockets.handlers;
 
 
+import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
@@ -16,19 +17,19 @@ import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.jms.JMSException;
-import javax.transaction.Transactional;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.websocket.Session;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
@@ -50,9 +51,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Inject
     private DeviceDAO deviceDAO;
 
-
-
-
+    @Inject
+    private ConfigurationDAO configurationDAO;
 
     @Action(value = "authenticate", needsAuth = false)
     //@Transactional
@@ -150,5 +150,34 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         return jsonObject;
     }
 
+    @Action(value = "configuration/set")
+    public JsonObject processConfigurationSet(JsonObject message, Session session){
+        User user = WebsocketSession.getAuthorisedUser(session);
+        if (user.getRole()==null || !user.getRole().equals(User.ROLE.Administrator)){
+            throw new HiveWebsocketException("No permissions");
+        }
+        Gson gson = GsonFactory.createGson();
+        Configuration configuration = new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
+        ValidatorFactory vf = Validation.buildDefaultValidatorFactory();
+        Validator validator = vf.getValidator();
+        Set<String> validationErrorsSet = Configuration.validate(configuration, validator);
+        if (!validationErrorsSet.isEmpty()){
+            String exceptionMessage = "Validation faild: ";
+            for (String violation : validationErrorsSet) {
+                exceptionMessage += violation + "\n";
+            }
+            throw new HiveWebsocketException(exceptionMessage);
+        }
+        if (configurationDAO.getConfiguration(configuration.getName()) == null){
+            configurationDAO.saveConfiguration(configuration);
+        }
+        else{
+            configurationDAO.updateConfiguration(configuration);
+        }
+        JsonObject response = JsonMessageBuilder.createSuccessResponseBuilder()
+                .addElement("requestId", message.get("requestId"))
+                .build();
+        return response;
+    }
 
 }
