@@ -13,12 +13,6 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jkulagina
- * Date: 25.06.13
- * Time: 13:51
- */
 public class EquipmentDAO {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
 

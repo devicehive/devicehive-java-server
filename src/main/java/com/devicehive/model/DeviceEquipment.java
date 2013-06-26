@@ -11,13 +11,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 19.06.13
- * Time: 10:43
- * To change this template use File | Settings | File Templates.
- */
+
 @Entity
 @Table(name = "device_equipment")
 public class DeviceEquipment  implements Serializable {

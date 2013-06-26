@@ -11,13 +11,6 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 19.06.13
- * Time: 16:08
- * To change this template use File | Settings | File Templates.
- */
 public class DeviceDAO {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)

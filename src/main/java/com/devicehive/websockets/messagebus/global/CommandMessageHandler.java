@@ -10,13 +10,7 @@ import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import javax.jms.*;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 14.06.13
- * Time: 10:51
- * To change this template use File | Settings | File Templates.
- */
+
 @MessageDriven(mappedName = Constants.JMS_COMMAND_TOPIC)
 public class CommandMessageHandler implements MessageListener {
 

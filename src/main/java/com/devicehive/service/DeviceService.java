@@ -16,13 +16,7 @@ import javax.websocket.Session;
 import java.util.Date;
 import java.util.Set;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 21.06.13
- * Time: 12:52
- * To change this template use File | Settings | File Templates.
- */
+
 public class DeviceService {
 
     @Inject

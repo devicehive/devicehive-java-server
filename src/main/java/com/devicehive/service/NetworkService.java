@@ -11,13 +11,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.util.Set;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jkulagina
- * Date: 24.06.13
- * Time: 20:23
- * To change this template use File | Settings | File Templates.
- */
+
 public class NetworkService {
 
     @Inject

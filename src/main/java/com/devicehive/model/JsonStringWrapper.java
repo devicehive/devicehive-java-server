@@ -3,12 +3,6 @@ package com.devicehive.model;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jkulagina
- * Date: 21.06.13
- * Time: 16:58
- */
 @Embeddable
 public class JsonStringWrapper implements Serializable {
 

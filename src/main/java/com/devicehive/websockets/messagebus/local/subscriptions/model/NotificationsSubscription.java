@@ -3,13 +3,7 @@ package com.devicehive.websockets.messagebus.local.subscriptions.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-/**
- * Created with IntelliJ IDEA.
- * User: stas
- * Date: 25.06.13
- * Time: 23:56
- * To change this template use File | Settings | File Templates.
- */
+
 
 @Entity
 @Table(indexes = {

@@ -9,13 +9,7 @@ import javax.validation.ValidatorFactory;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jkulagina
- * Date: 25.06.13
- * Time: 15:42
- * To change this template use File | Settings | File Templates.
- */
+
 public class EquipmentService {
 
     public boolean validateEquipments(Set<Equipment> equipmentSet){

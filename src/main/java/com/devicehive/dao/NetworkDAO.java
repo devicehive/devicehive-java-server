@@ -10,12 +10,7 @@ import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jkulagina
- * Date: 24.06.13
- * Time: 17:12
- */
+
 public class NetworkDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;

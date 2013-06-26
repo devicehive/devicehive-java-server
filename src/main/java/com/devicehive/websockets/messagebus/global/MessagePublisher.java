@@ -14,13 +14,7 @@ import javax.jms.*;
 import javax.transaction.Transactional;
 import java.io.Serializable;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 14.06.13
- * Time: 12:14
- * To change this template use File | Settings | File Templates.
- */
+
 @Singleton
 public class MessagePublisher {
 

@@ -13,13 +13,6 @@ import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 20.06.13
- * Time: 15:36
- * To change this template use File | Settings | File Templates.
- */
 public class DeviceCommandDAO {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)

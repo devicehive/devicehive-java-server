@@ -6,13 +6,7 @@ import com.google.gson.JsonObject;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 17.06.13
- * Time: 15:25
- * To change this template use File | Settings | File Templates.
- */
+
 public class JsonMessageBuilder {
 
     public static final String STATUS = "status";

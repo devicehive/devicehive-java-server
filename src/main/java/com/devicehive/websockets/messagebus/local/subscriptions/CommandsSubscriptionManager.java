@@ -13,14 +13,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 13.06.13
- * Time: 14:46
- * To change this template use File | Settings | File Templates.
- */
-
 public class CommandsSubscriptionManager implements Serializable {
 
 

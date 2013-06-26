@@ -5,12 +5,7 @@ import com.google.gson.*;
 
 import java.lang.reflect.Type;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jkulagina
- * Date: 21.06.13
- * Time: 16:44
- */
+
 public class JsonDbObjectAdapter implements JsonSerializer<JsonStringWrapper>, JsonDeserializer<JsonStringWrapper>{
     @Override
     public JsonStringWrapper deserialize(JsonElement jsonElement, Type type,

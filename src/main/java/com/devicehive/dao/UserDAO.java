@@ -7,13 +7,7 @@ import com.devicehive.model.User;
 import javax.persistence.*;
 import javax.transaction.Transactional;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 18.06.13
- * Time: 11:32
- * To change this template use File | Settings | File Templates.
- */
+
 public class UserDAO {
 
     private static final int maxLoginAttempts = 10;

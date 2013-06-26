@@ -24,13 +24,7 @@ import javax.websocket.Session;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ssidorenko
- * Date: 13.06.13
- * Time: 19:51
- * To change this template use File | Settings | File Templates.
- */
+
 @Singleton
 public class LocalMessageBus {
 
