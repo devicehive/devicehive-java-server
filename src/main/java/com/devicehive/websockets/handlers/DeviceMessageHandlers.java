@@ -2,7 +2,6 @@ package com.devicehive.websockets.handlers;
 
 
 import com.devicehive.dao.*;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
@@ -45,6 +44,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Inject
     private EquipmentDAO equipmentDAO;
 
+
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
@@ -79,11 +79,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
         DeviceCommand update = GsonFactory.createGson(new CommandUpdateExclusionStrategy())
-            .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+                .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
         update.setId(GsonFactory.createGson().fromJson(message.get("commandId"), Long.class));
         Device device = getDevice(session, message);
 
-        deviceService.submitDeviceCommandUpdate(update, device);
+        deviceService.submitDeviceCommandUpdate(update, device, session);
 
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
@@ -109,7 +109,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             }
         } else {
             localMessageBus.subscribeForCommands(device, session);
+
         }
+
+
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -131,8 +134,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceNotification(deviceNotification, device);
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-            .addElement("notification", new JsonObject())
-            .build();
+                .addElement("notification", new JsonObject())
+                .build();
         return jsonObject;
     }
 
@@ -145,14 +148,14 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         apiInfo.setServerTimestamp(new Date());
         apiInfo.setWebSocketServerUrl("TODO_URL");
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-            .addElement("info", gson.toJsonTree(apiInfo))
-            .build();
+                .addElement("info", gson.toJsonTree(apiInfo))
+                .build();
         return jsonObject;
     }
 
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
-        Gson gson =  GsonFactory.createGson();
+        Gson gson = GsonFactory.createGson();
         JsonElement requestId = message.get("requestId");
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"),
                 UUID.class);
@@ -189,17 +192,13 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             equipmentSet.remove(null);
         }
         Device existingDevice = deviceDAO.findByUUID(deviceId);
-        try {
-            if (existingDevice != null) {
-                device.setId(existingDevice.getId());
-                device.setGuid(deviceId);
-                deviceService.updateDevice(device, equipmentSet);
-            } else {
-                device.setGuid(deviceId);
-                deviceService.registerDevice(device, equipmentSet);
-            }
-        } catch (HiveException e) {
-            throw new HiveWebsocketException(e.getMessage(), e);
+        if (existingDevice != null) {
+            device.setId(existingDevice.getId());
+            device.setGuid(deviceId);
+            deviceService.updateDevice(device, equipmentSet);
+        } else {
+            device.setGuid(deviceId);
+            deviceService.registerDevice(device, equipmentSet);
         }
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")
@@ -207,7 +206,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                 .build();
         return jsonResponseObject;
     }
-
 
     private Device getDevice(Session session, JsonObject request) {
         if (WebsocketSession.hasAuthorisedDevice(session)) {

@@ -42,7 +42,7 @@ public class User  implements Serializable {
 
     @Column(name = "password_hash")
     @NotNull(message = "passwordHash field cannot be null.")
-    @Size(min = 48, max = 48, message = "Field cannot be empty. The length of passwordHash should be 48 symbols.")
+    @Size(min = 1, max = 48, message = "Field cannot be empty. The length of passwordHash should be 48 symbols.")
     private String passwordHash;
 
     @Column(name = "password_salt")

@@ -11,7 +11,16 @@ import javax.validation.constraints.NotNull;
         @Index(columnList = "sessionId")
 })
 @NamedQueries({
-        @NamedQuery(name = "NotificationsSubscription.deleteBySession", query = "delete from NotificationsSubscription n where n.sessionId = :sessionId ")
+        @NamedQuery(name = "NotificationsSubscription.deleteBySession",
+                query = "delete from NotificationsSubscription n where n.sessionId = :sessionId "),
+        @NamedQuery(name = "NotificationsSubscription.deleteByDeviceAndSession",
+                query = "delete from NotificationsSubscription n where n.deviceId = :deviceId and n.sessionId = " +
+                        ":sessionId"),
+        @NamedQuery(name = "NotificationsSubscription.selectAll", query = "select n from NotificationsSubscription n"),
+        @NamedQuery(name = "NotificationsSubscription.getSubscribedForAll",
+                query = "select n.sessionId from NotificationsSubscription n where n.deviceId is null"),
+        @NamedQuery(name = "NotificationsSubscription.getSubscribedByDevice",
+        query = "select n.sessionId from NotificationsSubscription n where n.deviceId = :deviceId")
 })
 public class NotificationsSubscription {
 
@@ -33,6 +42,10 @@ public class NotificationsSubscription {
     public NotificationsSubscription() {
     }
 
+    public NotificationsSubscription(Long deviceId, String sessionId) {
+        this.deviceId = deviceId;
+        this.sessionId = sessionId;
+    }
 
     public Long getId() {
         return id;

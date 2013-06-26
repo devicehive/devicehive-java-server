@@ -2,10 +2,11 @@ package com.devicehive.service;
 
 import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.exceptions.HiveWebsocketException;
 import com.devicehive.model.*;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
+import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
+import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -39,6 +40,8 @@ public class DeviceService {
     private NetworkService networkService;
     @Inject
     private EquipmentService equipmentService;
+    @Inject
+    private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
 
     @Transactional
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session userWebsocketSession) {
@@ -58,9 +61,10 @@ public class DeviceService {
     }
 
     @Transactional
-    public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
+    public void submitDeviceCommandUpdate(DeviceCommand update, Device device, Session session) {
         deviceCommandDAO.updateCommand(update, device);
         messagePublisher.publishCommandUpdate(update);
+        commandUpdatesSubscriptionDAO.insert(new CommandUpdatesSubscription(device.getId(), session.getId()));
     }
 
     @Transactional
@@ -101,14 +105,11 @@ public class DeviceService {
         for (Equipment equipment : equipmentSet) {
             equipment.setDeviceClass(deviceClass);
         }
-        try {
-            if (equipmentService.validateEquipments(equipmentSet)) {
-                equipmentDAO.removeUnusefulEquipments(deviceClass, equipmentSet);
-                equipmentDAO.saveOrUpdateEquipments(equipmentSet);
-            }
-        } catch (HiveException e) {
-            throw new HiveWebsocketException(e.getMessage(), e);
+        if (equipmentService.validateEquipments(equipmentSet)) {
+            equipmentDAO.removeUnusefulEquipments(deviceClass, equipmentSet);
+            equipmentDAO.saveOrUpdateEquipments(equipmentSet);
         }
+
 
     }
 

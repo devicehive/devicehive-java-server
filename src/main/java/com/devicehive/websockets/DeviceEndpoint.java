@@ -2,27 +2,17 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.dao.DeviceDAO;
-import com.devicehive.exceptions.HiveWebsocketException;
-import com.devicehive.model.Device;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
-import com.devicehive.websockets.handlers.HiveMessageHandlers;
+import com.devicehive.websockets.util.SingletonSessionMap;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.ManagedBean;
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
-import com.devicehive.websockets.json.*;
-
 import java.lang.reflect.InvocationTargetException;
-import java.util.UUID;
 
 @ServerEndpoint(value = "/device")
 public class DeviceEndpoint extends Endpoint {
@@ -35,11 +25,15 @@ public class DeviceEndpoint extends Endpoint {
     @Inject
     private DeviceDAO deviceDAO;
 
+    @Inject
+    private SingletonSessionMap sessionMap;
+
 
     @OnOpen
     public void onOpen(Session session) {
         logger.debug("[onOpen] session id " + session.getId());
         WebsocketSession.createCommandsSubscriptionsLock(session);
+        sessionMap.addSession(session);
     }
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
@@ -51,6 +45,7 @@ public class DeviceEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
+        sessionMap.deleteSession(session.getId());
     }
 
     @OnError

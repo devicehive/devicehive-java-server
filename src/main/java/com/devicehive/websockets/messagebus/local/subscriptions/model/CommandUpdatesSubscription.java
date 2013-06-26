@@ -32,6 +32,10 @@ public class CommandUpdatesSubscription {
     public CommandUpdatesSubscription() {
     }
 
+    public CommandUpdatesSubscription(Long commandId, String sessionId) {
+        this.commandId = commandId;
+        this.sessionId = sessionId;
+    }
 
     public Long getId() {
         return id;

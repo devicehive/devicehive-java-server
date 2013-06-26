@@ -2,6 +2,10 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
+import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandSubscriptionDAO;
+import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
+import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
+import com.devicehive.websockets.util.SingletonSessionMap;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
@@ -20,12 +24,24 @@ public class ClientEndpoint extends Endpoint {
     @Inject
     private ClientMessageHandlers clientMessageHandlers;
 
+    @Inject
+    private SingletonSessionMap sessionMap;
+
+    @Inject
+    private CommandSubscriptionDAO commandSubscriptionDAO;
+
+    @Inject
+    private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
+
+    @Inject
+    private NotificationSubscriptionDAO notificationSubscriptionDAO;
 
     @OnOpen
     public void onOpen(Session session) {
         logger.debug("[onOpen] session id " + session.getId());
         WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
         WebsocketSession.createNotificationSubscriptionsLock(session);
+        sessionMap.addSession(session);
     }
 
 
@@ -39,11 +55,19 @@ public class ClientEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
+        sessionMap.deleteSession(session.getId());
+        deleteFromSubscriptions(session.getId());
     }
 
     @OnError
     public void onError(Throwable exception, Session session) {
         logger.debug("[onError] session id " + session.getId(), exception);
+    }
+
+    private void deleteFromSubscriptions(String sessionId){
+        commandSubscriptionDAO.deleteBySession(sessionId);
+        commandUpdatesSubscriptionDAO.deleteBySession(sessionId);
+        notificationSubscriptionDAO.deleteBySession(sessionId);
     }
 
 

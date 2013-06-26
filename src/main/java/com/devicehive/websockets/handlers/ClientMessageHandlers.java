@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -53,6 +54,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Inject
     private ConfigurationDAO configurationDAO;
+
 
     @Action(value = "authenticate", needsAuth = false)
     //@Transactional
@@ -101,7 +103,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         deviceService.submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
 
-
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
             .addElement("command", GsonFactory.createGson(new ClientCommandInsertResponseExclusionStrategy()).toJsonTree(deviceCommand))
             .build();
@@ -109,30 +110,29 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "notification/subscribe")
+    @Transactional
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
-
         Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);//TODO clarify how to use it
-
 
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>(){}.getType());
         List<Device> devices = deviceDAO.findByUUIDAndUser(WebsocketSession.getAuthorisedUser(session), list);
         localMessageBus.subscribeForNotifications(session, devices);
+
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
 
     }
 
     @Action(value = "notification/unsubscribe")
+    @Transactional
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
         JsonArray deviceGuidsJson = message.getAsJsonArray(JsonMessageBuilder.DEVICE_GUIDS);
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>(){}.getType());
         List<Device> devices = deviceDAO.findByUUIDAndUser(WebsocketSession.getAuthorisedUser(session), list);
         localMessageBus.unsubscribeFromNotifications(session, devices);
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-            .addElement("deviceGuids", new JsonObject())
-            .build();
+        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
     }
 

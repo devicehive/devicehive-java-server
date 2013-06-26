@@ -10,7 +10,10 @@ import javax.validation.constraints.NotNull;
         @Index(columnList = "sessionId")
 })
 @NamedQueries({
-        @NamedQuery(name = "CommandsSubscription.deleteBySession", query = "delete from CommandsSubscription c where c.sessionId = :sessionId ")
+        @NamedQuery(name = "CommandsSubscription.deleteBySession", query = "delete from CommandsSubscription c where " +
+                "c.sessionId = :sessionId "),
+        @NamedQuery(name = "CommandsSubscription.deleteByDeviceAndSession", query = "delete from CommandsSubscription c where " +
+                "c.sessionId = :sessionId and c.deviceId = :deviceId")
 })
 public class CommandsSubscription {
 
@@ -32,6 +35,10 @@ public class CommandsSubscription {
     public CommandsSubscription() {
     }
 
+    public CommandsSubscription(Long deviceId, String sessionId) {
+        this.deviceId = deviceId;
+        this.sessionId = sessionId;
+    }
 
     public Long getId() {
         return id;
