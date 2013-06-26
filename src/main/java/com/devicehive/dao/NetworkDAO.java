@@ -1,5 +1,6 @@
 package com.devicehive.dao;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
 
 import javax.persistence.EntityManager;
@@ -16,7 +17,7 @@ import java.util.List;
  * Time: 17:12
  */
 public class NetworkDAO {
-    @PersistenceContext(unitName = "devicehive")
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
     @Transactional

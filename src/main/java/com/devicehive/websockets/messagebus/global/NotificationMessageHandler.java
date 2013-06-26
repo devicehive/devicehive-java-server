@@ -1,5 +1,6 @@
 package com.devicehive.websockets.messagebus.global;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ import javax.jms.ObjectMessage;
  * Time: 10:51
  * To change this template use File | Settings | File Templates.
  */
-@MessageDriven(mappedName="jms/NotificationTopic")
+@MessageDriven(mappedName= Constants.JMS_NOTIFICATION_TOPIC)
 public class NotificationMessageHandler implements MessageListener {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationMessageHandler.class);

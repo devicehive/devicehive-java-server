@@ -1,6 +1,6 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.DeviceCommand;
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceNotification;
 
 import javax.persistence.EntityManager;
@@ -16,7 +16,7 @@ import javax.transaction.Transactional;
  */
 public class DeviceNotificationDAO {
 
-    @PersistenceContext(unitName = "devicehive")
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
 

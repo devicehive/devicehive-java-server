@@ -1,13 +1,11 @@
 package com.devicehive.dao;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.service.PasswordService;
 
-import javax.inject.Inject;
 import javax.persistence.*;
 import javax.transaction.Transactional;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -20,8 +18,12 @@ public class UserDAO {
 
     private static final int maxLoginAttempts = 10;
 
-    @PersistenceContext(unitName = "devicehive")
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
+
+
+    @PersistenceContext(unitName = Constants.EMBEDDED_PERSISTENCE_UNIT)
+    private EntityManager em2;
 
 
 
@@ -66,7 +68,10 @@ public class UserDAO {
 
     @Transactional(value = Transactional.TxType.MANDATORY)
     public boolean hasAccessToNetwork(User user, Network network) {
-        Long count = em.createNamedQuery("User.hasAccessToNetwork", Long.class).getSingleResult();
+        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToNetwork", Long.class);
+        query.setParameter("user", user);
+        query.setParameter("network", network);
+        Long count = query.getSingleResult();
         return count != null && count > 0;
     }
 

@@ -4,18 +4,43 @@
              version="2.0">
     <persistence-unit name="devicehive" transaction-type="JTA">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-        <jta-data-source>jdbc/DeviceHivePool</jta-data-source>
+        <jta-data-source>jdbc/DeviceHiveDataSource</jta-data-source>
+        <class>com.devicehive.model.User</class>
+        <class>com.devicehive.model.Device</class>
+        <class>com.devicehive.model.DeviceClass</class>
+        <class>com.devicehive.model.DeviceCommand</class>
+        <class>com.devicehive.model.DeviceEquipment</class>
+        <class>com.devicehive.model.DeviceNotification</class>
+        <class>com.devicehive.model.Configuration</class>
+        <class>com.devicehive.model.Equipment</class>
+        <class>com.devicehive.model.Network</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL82Dialect"/>
             <property name="hibernate.hbm2ddl.auto" value="validate"/>
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.transaction.jta.platform" value="org.hibernate.engine.transaction.jta.platform.internal.SunOneJtaPlatform" />
-
-            <!--
-            <property name="hibernate.transaction.factory_class" value="org.hibernate.engine.transaction.internal.jta.JtaTransactionFactory"/>
-            -->
-
         </properties>
     </persistence-unit>
+
+
+    <persistence-unit name="devicehiveEmbedded" transaction-type="JTA">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <jta-data-source>jdbc/DeviceHiveEmbeddedDataSource</jta-data-source>
+
+        <class>com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSubscription</class>
+        <class>com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription</class>
+        <class>com.devicehive.websockets.messagebus.local.subscriptions.model.NotificationsSubscription</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.DerbyTenSevenDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.transaction.jta.platform" value="org.hibernate.engine.transaction.jta.platform.internal.SunOneJtaPlatform" />
+        </properties>
+    </persistence-unit>
+
+
 </persistence>

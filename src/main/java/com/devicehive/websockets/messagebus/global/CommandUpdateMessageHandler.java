@@ -1,5 +1,6 @@
 package com.devicehive.websockets.messagebus.global;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ import javax.jms.ObjectMessage;
  * Time: 10:51
  * To change this template use File | Settings | File Templates.
  */
-@MessageDriven(mappedName="jms/CommandUpdateTopic")
+@MessageDriven(mappedName= Constants.JMS_COMMAND_UPDATE_TOPIC)
 public class CommandUpdateMessageHandler implements MessageListener {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandUpdateMessageHandler.class);

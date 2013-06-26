@@ -1,5 +1,6 @@
 package com.devicehive.dao;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ import java.util.List;
 public class DeviceClassDAO {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
 
-    @PersistenceContext(unitName = "devicehive")
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
     public List<DeviceClass> getList() {

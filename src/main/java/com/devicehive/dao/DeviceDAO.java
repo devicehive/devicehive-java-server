@@ -1,5 +1,6 @@
 package com.devicehive.dao;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 
@@ -19,7 +20,7 @@ import java.util.UUID;
  */
 public class DeviceDAO {
 
-    @PersistenceContext(unitName = "devicehive")
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
     @Transactional
