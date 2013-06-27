@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
@@ -42,14 +43,14 @@ public class DeviceClassDAO {
 
     @Transactional
     public void updateDeviceClass (DeviceClass deviceClass){
-//        em.refresh(deviceClass, LockModeType.PESSIMISTIC_WRITE);
+        em.refresh(deviceClass, LockModeType.PESSIMISTIC_WRITE);
         em.merge(deviceClass);
         em.flush();
+//        em.refresh(deviceClass, LockModeType.NONE);
     }
 
-    @Transactional
+    @Transactional()
     public long addDeviceClass(DeviceClass deviceClass) {
-//        em.refresh(deviceClass, LockModeType.PESSIMISTIC_WRITE);
         em.persist(deviceClass);
         em.flush();
         return deviceClass.getId();

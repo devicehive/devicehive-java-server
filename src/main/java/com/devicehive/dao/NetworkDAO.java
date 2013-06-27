@@ -32,13 +32,13 @@ public class NetworkDAO {
     public void addNetwork(Network network) {
 //        em.refresh(network, LockModeType.PESSIMISTIC_WRITE);
         em.persist(network);
-        em.flush();
+//        em.flush();
     }
 
     @Transactional
     public void updateNetwork(Network network){
         em.refresh(network, LockModeType.PESSIMISTIC_WRITE);
         em.merge(network);
-        em.flush();
+//        em.flush();
     }
 }

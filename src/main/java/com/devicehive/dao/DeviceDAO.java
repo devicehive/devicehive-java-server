@@ -5,6 +5,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.User;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
@@ -40,14 +41,13 @@ public class DeviceDAO {
 
     @Transactional
     public void updateDevice(Device device) {
-//        em.refresh(device, LockModeType.PESSIMISTIC_WRITE);
+        em.refresh(device, LockModeType.PESSIMISTIC_WRITE);
         em.merge(device);
         em.flush();
     }
 
     @Transactional
     public void registerDevice(Device device) {
-//        em.refresh(device, LockModeType.PESSIMISTIC_WRITE);
         em.persist(device);
         em.flush();
     }

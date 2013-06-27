@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
@@ -37,6 +38,7 @@ public class EquipmentDAO {
 
     @Transactional
     public void updateEquipment(Equipment ... equipment){
+        em.refresh(LockModeType.PESSIMISTIC_WRITE);
         for (Equipment e: equipment){
             em.merge(e);
         }
@@ -55,7 +57,7 @@ public class EquipmentDAO {
                 em.merge(equipment);
             }
         }
-        em.flush();
+//        em.flush();
     }
 
 
@@ -75,6 +77,6 @@ public class EquipmentDAO {
                 em.remove(existingEquipment);
             }
         }
-        em.flush();
+//        em.flush();
     }
 }

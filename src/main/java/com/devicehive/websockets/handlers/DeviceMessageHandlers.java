@@ -193,12 +193,15 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
         Device existingDevice = deviceDAO.findByUUID(deviceId);
         if (existingDevice != null) {
-            device.setId(existingDevice.getId());
-            device.setGuid(deviceId);
-            deviceService.updateDevice(device, equipmentSet);
+            existingDevice.setName(device.getName());
+            existingDevice.setGuid(device.getGuid());
+            existingDevice.setData(device.getData());
+            existingDevice.setStatus(device.getStatus());
+            existingDevice.setKey(deviceKey);
+            deviceService.updateDevice(existingDevice, device.getNetwork(), device.getDeviceClass(), equipmentSet);
         } else {
             device.setGuid(deviceId);
-            deviceService.registerDevice(device, equipmentSet);
+            deviceService.registerDevice(device, device.getNetwork(), device.getDeviceClass(), equipmentSet);
         }
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")

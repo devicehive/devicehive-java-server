@@ -19,7 +19,7 @@ import java.util.Set;
 @Table(name = "device_class")
 @NamedQueries({
         @NamedQuery(name = "DeviceClass.findByNameAndVersion",
-                query = "select d from DeviceClass d where name = :name and version = :version")
+                query = "select d from DeviceClass d where d.name = :name and d.version = :version")
 })
 public class DeviceClass implements Serializable {
 

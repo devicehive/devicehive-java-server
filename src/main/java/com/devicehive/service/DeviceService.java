@@ -76,20 +76,21 @@ public class DeviceService {
     }
 
     @Transactional
-    public void updateDevice(Device device, Set<Equipment> equipmentSet) {
-        resolveNetworkAndDeviceClassAndEquipment(device, equipmentSet);
+    public void updateDevice(Device device, Network network, DeviceClass deviceClass, Set<Equipment> equipmentSet) {
+        resolveNetworkAndDeviceClassAndEquipment(device, network, deviceClass, equipmentSet);
         deviceDAO.updateDevice(device);
     }
 
     @Transactional
-    public void registerDevice(Device device, Set<Equipment> equipmentSet) {
-        resolveNetworkAndDeviceClassAndEquipment(device, equipmentSet);
+    public void registerDevice(Device device, Network network, DeviceClass deviceClass, Set<Equipment> equipmentSet) {
+        resolveNetworkAndDeviceClassAndEquipment(device, network, deviceClass, equipmentSet);
         deviceDAO.registerDevice(device);
     }
 
-    private void resolveNetworkAndDeviceClassAndEquipment(Device device, Set<Equipment> equipmentSet) {
-        DeviceClass deviceClass = device.getDeviceClass();
-        Network networkFromMessage = device.getNetwork();
+    private void resolveNetworkAndDeviceClassAndEquipment(Device device, Network networkFromMessage,
+                                                          DeviceClass deviceClass,
+                                                          Set<Equipment> equipmentSet) {
+
         DeviceClass resultDeviceClass = getResultDeviceClass(deviceClass);
         device.setDeviceClass(resultDeviceClass);
         if (networkFromMessage != null) {
