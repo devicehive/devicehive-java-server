@@ -35,8 +35,6 @@ public class DeviceService {
     @Inject
     private DeviceDAO deviceDAO;
     @Inject
-    private EquipmentDAO equipmentDAO;
-    @Inject
     private NetworkService networkService;
     @Inject
     private EquipmentService equipmentService;
@@ -106,10 +104,8 @@ public class DeviceService {
         for (Equipment equipment : equipmentSet) {
             equipment.setDeviceClass(deviceClass);
         }
-        if (equipmentService.validateEquipments(equipmentSet)) {
-            equipmentDAO.removeUnusefulEquipments(deviceClass, equipmentSet);
-            equipmentDAO.saveOrUpdateEquipments(equipmentSet);
-        }
+        equipmentService.removeUnusefulEquipments(deviceClass, equipmentSet);
+        equipmentService.saveOrUpdateEquipments(equipmentSet);
 
 
     }

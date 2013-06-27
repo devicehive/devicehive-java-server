@@ -33,9 +33,9 @@ public class NotificationSubscriptionDAO {
     }
 
     @Transactional
-    public void insertSubscriptions(Collection<Device> devices, Session session){
+    public void insertSubscriptions(Collection<Device> devices, String sessionId){
         for (Device device : devices){
-            em.persist(new NotificationsSubscription(device.getId(), session.getId()));
+            em.persist(new NotificationsSubscription(device.getId(), sessionId));
         }
         em.flush();
 //        logger.debug("In base now: " + getAll());
@@ -49,10 +49,10 @@ public class NotificationSubscriptionDAO {
     }
 
     @Transactional
-    public void deleteByDeviceAndSession(Device device, Session session){
+    public void deleteByDeviceAndSession(Device device, String sessionId){
         Query query = em.createNamedQuery("NotificationsSubscription.deleteByDeviceAndSession");
         query.setParameter("deviceId", device.getId());
-        query.setParameter("sessionId", session.getId());
+        query.setParameter("sessionId", sessionId);
         query.executeUpdate();
     }
 

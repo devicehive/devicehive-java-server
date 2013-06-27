@@ -123,11 +123,11 @@ public class LocalMessageBus {
     /**
      * Subscrbes given device to commands
      * @param device
-     * @param session
+     * @param sessionId
      */
     @Transactional
-    public void unsubscribeFromCommands(Device device, Session session) {
-        commandSubscriptionDAO.deleteByDeviceAndSession(device, session);
+    public void unsubscribeFromCommands(Device device, String sessionId) {
+        commandSubscriptionDAO.deleteByDeviceAndSession(device, sessionId);
     }
 
 
@@ -187,15 +187,15 @@ public class LocalMessageBus {
 
     /**
      * Subscribes client websocket session to device notifications
-     * @param session
+     * @param sessionId
      * @param devices
      */
-    public void subscribeForNotifications(Session session, Collection<Device> devices) {
+    public void subscribeForNotifications(String sessionId, Collection<Device> devices) {
         List<Long> list = new ArrayList<Long>(devices.size());
         for (Device device : devices) {
             list.add(device.getId());
         }
-        notificationSubscriptionDAO.insertSubscriptions(devices, session);
+        notificationSubscriptionDAO.insertSubscriptions(devices, sessionId);
     }
 
     /**
@@ -204,13 +204,13 @@ public class LocalMessageBus {
      * @param devices
      */
     @Transactional
-    public void unsubscribeFromNotifications(Session session, Collection<Device> devices) {
+    public void unsubscribeFromNotifications(String sessionId, Collection<Device> devices) {
         List<Long> list = new ArrayList<Long>(devices.size());
         for (Device device : devices) {
             list.add(device.getId());
         }
         for (Device device: devices){
-            notificationSubscriptionDAO.deleteByDeviceAndSession(device, session);
+            notificationSubscriptionDAO.deleteByDeviceAndSession(device, sessionId);
         }
     }
 

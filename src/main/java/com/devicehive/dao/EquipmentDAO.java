@@ -21,7 +21,7 @@ public class EquipmentDAO {
     private EntityManager em;
 
     @Transactional
-    public Equipment findByCode(String code){
+    public Equipment findByCode(String code) {
         TypedQuery<Equipment> query = em.createNamedQuery("Equipment.findByCode", Equipment.class);
         query.setParameter("code", code);
         List<Equipment> result = query.getResultList();
@@ -29,54 +29,33 @@ public class EquipmentDAO {
     }
 
     @Transactional
-    public void saveEquipment(Equipment ... equipment){
-        for (Equipment e: equipment){
+    public void saveEquipment(Equipment... equipment) {
+        for (Equipment e : equipment) {
             em.persist(e);
         }
-        em.flush();
     }
 
     @Transactional
-    public void updateEquipment(Equipment ... equipment){
-        em.refresh(LockModeType.PESSIMISTIC_WRITE);
-        for (Equipment e: equipment){
+    public void updateEquipment(Equipment... equipment) {
+        for (Equipment e : equipment) {
+            em.refresh(e, LockModeType.PESSIMISTIC_WRITE);
             em.merge(e);
         }
         em.flush();
     }
 
     @Transactional
-    public void saveOrUpdateEquipments(Set<Equipment> equipmentSet){
-        for (Equipment equipment: equipmentSet){
-            Equipment findByCodeEquipment =  findByCode(equipment.getCode());
-            if (findByCodeEquipment == null){
-                em.persist(equipment);
-            }
-            else{
-                equipment.setId(findByCodeEquipment.getId());
-                em.merge(equipment);
-            }
-        }
-//        em.flush();
-    }
-
-
-    @Transactional
-    public void removeUnusefulEquipments(DeviceClass deviceClass, Set<Equipment> equipmentSet){
+    public List<Equipment> getByDeviceClass(DeviceClass deviceClass) {
         TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClass", Equipment.class);
         query.setParameter("deviceClass", deviceClass);
-        List<Equipment> existingEquipments = query.getResultList();
-        for (Equipment existingEquipment: existingEquipments){
-            boolean shouldRemove = true;
-            for (Equipment newEquipment: equipmentSet){
-                if (newEquipment.getCode().equals(existingEquipment.getCode())){
-                    shouldRemove = false;
-                }
-            }
-            if (shouldRemove){
-                em.remove(existingEquipment);
-            }
+        return query.getResultList();
+    }
+
+    @Transactional
+    public void removeEquipment(Equipment... equipments) {
+        for (Equipment equipment : equipments) {
+            em.remove(equipment);
         }
-//        em.flush();
+        em.flush();
     }
 }

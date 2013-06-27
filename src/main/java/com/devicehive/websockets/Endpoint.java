@@ -1,7 +1,7 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.exceptions.HiveWebsocketException;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -45,7 +45,7 @@ abstract class Endpoint {
             String action = request.getAsJsonPrimitive("action").getAsString();
             logger.debug("[action] Looking for action " + action);
             response = tryExecute(handler, action, request, session);
-        } catch (HiveWebsocketException ex) {
+        } catch (HiveException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
@@ -67,7 +67,7 @@ abstract class Endpoint {
                 }
             }
         }
-        throw new HiveWebsocketException("Unknown action requested: " + action);
+        throw new HiveException("Unknown action requested: " + action);
     }
 
 

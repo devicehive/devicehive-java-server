@@ -1,8 +1,9 @@
 package com.devicehive.websockets.handlers;
 
 
-import com.devicehive.dao.*;
-import com.devicehive.exceptions.HiveWebsocketException;
+import com.devicehive.dao.DeviceCommandDAO;
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -34,15 +35,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Inject
     private DeviceDAO deviceDAO;
     @Inject
-    private DeviceClassDAO deviceClassDAO;
-    @Inject
     private DeviceCommandDAO deviceCommandDAO;
     @Inject
     private DeviceService deviceService;
-    @Inject
-    private NetworkDAO networkDAO;
-    @Inject
-    private EquipmentDAO equipmentDAO;
 
 
     @Action(value = "authenticate", needsAuth = false)
@@ -56,7 +51,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.setAuthorisedDevice(session, device);
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
         } else {
-            throw new HiveWebsocketException("Device authentication error: credentials are incorrect");
+            throw new HiveException("Device authentication error: credentials are incorrect");
         }
     }
 
@@ -72,7 +67,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
         Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
         if (device == null) {
-            throw new HiveWebsocketException("Not authorised");
+            throw new HiveException("Not authorised");
         }
     }
 
@@ -119,7 +114,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Device device = getDevice(session, message);
-        localMessageBus.unsubscribeFromCommands(device, session);
+        localMessageBus.unsubscribeFromCommands(device, session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -140,7 +135,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "server/info")
-    @Transactional
     public JsonObject processServerInfo(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson(new ServerInfoExclusionStrategy());
         ApiInfo apiInfo = new ApiInfo();
@@ -175,11 +169,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processDeviceSave(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
         if (deviceId == null) {
-            throw new HiveWebsocketException("Device ID is empty");
+            throw new HiveException("Device ID is empty");
         }
         String deviceKey = message.get("deviceKey").getAsString();
         if (deviceKey == null) {
-            throw new HiveWebsocketException("Device key is empty");
+            throw new HiveException("Device key is empty");
         }
         Gson mainGson = GsonFactory.createGson(new DeviceSaveExclusionStrategy());
         Device device = mainGson.fromJson(message.get("device"), Device.class);
@@ -194,7 +188,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device existingDevice = deviceDAO.findByUUID(deviceId);
         if (existingDevice != null) {
             existingDevice.setName(device.getName());
-            existingDevice.setGuid(device.getGuid());
             existingDevice.setData(device.getData());
             existingDevice.setStatus(device.getStatus());
             existingDevice.setKey(deviceKey);
@@ -219,18 +212,18 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return deviceDAO.findByUUID(deviceId);
     }
 
-    private void checkDevice(Device device) throws HiveWebsocketException {
+    private void checkDevice(Device device) throws HiveException {
         if (device == null) {
-            throw new HiveWebsocketException("Device is empty");
+            throw new HiveException("Device is empty");
         }
         if (device.getName() == null) {
-            throw new HiveWebsocketException("Device name is empty");
+            throw new HiveException("Device name is empty");
         }
         if (device.getKey() == null) {
-            throw new HiveWebsocketException("Device key is empty");
+            throw new HiveException("Device key is empty");
         }
         if (device.getDeviceClass() == null) {
-            throw new HiveWebsocketException("Device class is empty");
+            throw new HiveException("Device class is empty");
         }
     }
 

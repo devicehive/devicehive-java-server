@@ -3,6 +3,8 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -13,6 +15,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class DeviceDAO {
+
+    private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
@@ -43,7 +47,6 @@ public class DeviceDAO {
     public void updateDevice(Device device) {
         em.refresh(device, LockModeType.PESSIMISTIC_WRITE);
         em.merge(device);
-        em.flush();
     }
 
     @Transactional

@@ -12,7 +12,6 @@ import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 
-//import javax.transaction.Transactional;
 
 /**
  * TODO JavaDoc
@@ -45,14 +44,11 @@ public class DeviceClassDAO {
     public void updateDeviceClass (DeviceClass deviceClass){
         em.refresh(deviceClass, LockModeType.PESSIMISTIC_WRITE);
         em.merge(deviceClass);
-        em.flush();
-//        em.refresh(deviceClass, LockModeType.NONE);
     }
 
-    @Transactional()
+    @Transactional
     public long addDeviceClass(DeviceClass deviceClass) {
         em.persist(deviceClass);
-        em.flush();
         return deviceClass.getId();
     }
 

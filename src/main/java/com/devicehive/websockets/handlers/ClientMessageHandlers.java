@@ -3,7 +3,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceDAO;
-import com.devicehive.exceptions.HiveWebsocketException;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
@@ -16,7 +16,6 @@ import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
@@ -68,14 +67,14 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.setAuthorisedUser(session, user);
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
         } else {
-            throw new HiveWebsocketException("Client authentication error: credentials are incorrect");
+            throw new HiveException("Client authentication error: credentials are incorrect");
         }
     }
 
     @Override
     public void ensureAuthorised(JsonObject request, Session session) {
         if (!WebsocketSession.hasAuthorisedUser(session)) {
-            throw new HiveWebsocketException("Not authorised");
+            throw new HiveException("Not authorised");
         }
     }
 
@@ -86,19 +85,19 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         UUID deviceGuid = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUID), UUID.class);
 
         if (deviceGuid == null) {
-            throw new HiveWebsocketException("Device ID is empty");
+            throw new HiveException("Device ID is empty");
         }
 
         Device device = deviceDAO.findByUUID(deviceGuid);
         if (device == null) {
-            throw new HiveWebsocketException("Unknown Device ID");
+            throw new HiveException("Unknown Device ID");
         }
 
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
         User user = WebsocketSession.getAuthorisedUser(session);
 
         if (deviceCommand == null) {
-            throw new HiveWebsocketException("Command is empty");
+            throw new HiveException("Command is empty");
         }
 
         deviceService.submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
@@ -117,7 +116,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>(){}.getType());
         List<Device> devices = deviceDAO.findByUUIDAndUser(WebsocketSession.getAuthorisedUser(session), list);
-        localMessageBus.subscribeForNotifications(session, devices);
+        localMessageBus.subscribeForNotifications(session.getId(), devices);
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
@@ -128,10 +127,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Transactional
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
-        JsonArray deviceGuidsJson = message.getAsJsonArray(JsonMessageBuilder.DEVICE_GUIDS);
+//        JsonArray deviceGuidsJson = message.getAsJsonArray(JsonMessageBuilder.DEVICE_GUIDS);
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>(){}.getType());
         List<Device> devices = deviceDAO.findByUUIDAndUser(WebsocketSession.getAuthorisedUser(session), list);
-        localMessageBus.unsubscribeFromNotifications(session, devices);
+        localMessageBus.unsubscribeFromNotifications(session.getId(), devices);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
     }
@@ -154,7 +153,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processConfigurationSet(JsonObject message, Session session){
         User user = WebsocketSession.getAuthorisedUser(session);
         if (user.getRole()==null || !user.getRole().equals(User.ROLE.Administrator)){
-            throw new HiveWebsocketException("No permissions");
+            throw new HiveException("No permissions");
         }
         Gson gson = GsonFactory.createGson();
         Configuration configuration = new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
@@ -166,7 +165,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             for (String violation : validationErrorsSet) {
                 exceptionMessage += violation + "\n";
             }
-            throw new HiveWebsocketException(exceptionMessage);
+            throw new HiveException(exceptionMessage);
         }
         if (configurationDAO.getConfiguration(configuration.getName()) == null){
             configurationDAO.saveConfiguration(configuration);
