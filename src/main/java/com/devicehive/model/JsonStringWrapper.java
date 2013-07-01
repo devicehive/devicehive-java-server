@@ -11,6 +11,10 @@ public class JsonStringWrapper implements Serializable {
     public JsonStringWrapper() {
     }
 
+    public JsonStringWrapper(String jsonString){
+        this.jsonString = jsonString;
+    }
+
     public String getJsonString() {
         return jsonString;
     }

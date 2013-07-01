@@ -3,6 +3,7 @@
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
     <persistence-unit name="devicehive" transaction-type="JTA">
+
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>jdbc/DeviceHiveDataSource</jta-data-source>
         <class>com.devicehive.model.User</class>
@@ -15,6 +16,7 @@
         <class>com.devicehive.model.Equipment</class>
         <class>com.devicehive.model.Network</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <validation-mode>AUTO</validation-mode>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL82Dialect"/>
             <property name="hibernate.hbm2ddl.auto" value="validate"/>

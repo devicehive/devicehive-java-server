@@ -22,8 +22,12 @@ public class EquipmentService {
                 equipmentDAO.saveEquipment(equipment);
             }
             else{
-                equipment.setId(findByCodeEquipment.getId());
-                equipmentDAO.updateEquipment(equipment);
+                findByCodeEquipment.setDeviceClass(equipment.getDeviceClass());
+                findByCodeEquipment.setData(equipment.getData());
+                findByCodeEquipment.setName(equipment.getName());
+                findByCodeEquipment.setCode(equipment.getCode());
+                findByCodeEquipment.setType(equipment.getType());
+                equipmentDAO.updateEquipment(findByCodeEquipment);
             }
         }
     }
@@ -40,29 +44,11 @@ public class EquipmentService {
                 }
             }
             if (shouldRemove){
-//                em.remove(existingEquipment);
                 equipmentDAO.removeEquipment(existingEquipment);
             }
         }
     }
 
-//    public boolean validateEquipments(Set<Equipment> equipmentSet){
-//        ValidatorFactory vf = Validation.buildDefaultValidatorFactory();
-//        Validator validator = vf.getValidator();
-//        Set<String> validationErrorsSet = new HashSet<>();
-//        for(Equipment equipment:equipmentSet){
-//             validationErrorsSet.addAll(Equipment.validate(equipment, validator));
-//        }
-//        if (!validationErrorsSet.isEmpty()){
-//            String exceptionMessage = "Validation errors in equipment: ";
-//            StringBuilder builder = new StringBuilder();
-//            for (String violation: validationErrorsSet){
-//                builder.append(violation);
-//            }
-//            exceptionMessage += builder.toString();
-//            throw new HiveException(exceptionMessage);
-//        }
-//        return true;
-//    }
+
 
 }

@@ -15,11 +15,6 @@ import java.sql.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * User: jkulagina
- * Date: 25.06.13
- * Time: 20:38
- */
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity

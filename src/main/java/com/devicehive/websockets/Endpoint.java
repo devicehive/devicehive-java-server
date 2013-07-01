@@ -47,7 +47,10 @@ abstract class Endpoint {
             response = tryExecute(handler, action, request, session);
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
-        } catch (Exception ex) {
+        }
+
+        //TODO Constraint violation exception
+        catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
         }

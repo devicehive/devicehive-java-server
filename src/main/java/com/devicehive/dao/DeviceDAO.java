@@ -17,7 +17,6 @@ import java.util.UUID;
 public class DeviceDAO {
 
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -34,7 +33,6 @@ public class DeviceDAO {
         return res.isEmpty() ? null : res.get(0);
     }
 
-
     @Transactional
     public Device findByUUIDAndKey(UUID uuid, String key) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
@@ -45,17 +43,18 @@ public class DeviceDAO {
 
     @Transactional
     public void updateDevice(Device device) {
-        em.refresh(device, LockModeType.PESSIMISTIC_WRITE);
-        em.merge(device);
+            em.lock(device, LockModeType.PESSIMISTIC_WRITE);
+            em.merge(device);
+
     }
 
     @Transactional
     public void registerDevice(Device device) {
         em.persist(device);
-        em.flush();
     }
+
     @Transactional
-    public List<Device> findByUUIDAndUser(User user, List<UUID> list){
+    public List<Device> findByUUIDAndUser(User user, List<UUID> list) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
         query.setParameter("user", user);
         query.setParameter("guidList", list);

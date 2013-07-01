@@ -23,13 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import javax.websocket.Session;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
@@ -156,17 +152,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("No permissions");
         }
         Gson gson = GsonFactory.createGson();
+
         Configuration configuration = new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
-        ValidatorFactory vf = Validation.buildDefaultValidatorFactory();
-        Validator validator = vf.getValidator();
-        Set<String> validationErrorsSet = Configuration.validate(configuration, validator);
-        if (!validationErrorsSet.isEmpty()){
-            String exceptionMessage = "Validation faild: ";
-            for (String violation : validationErrorsSet) {
-                exceptionMessage += violation + "\n";
-            }
-            throw new HiveException(exceptionMessage);
-        }
         if (configurationDAO.getConfiguration(configuration.getName()) == null){
             configurationDAO.saveConfiguration(configuration);
         }

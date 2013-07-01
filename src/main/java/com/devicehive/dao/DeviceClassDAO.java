@@ -42,7 +42,7 @@ public class DeviceClassDAO {
 
     @Transactional
     public void updateDeviceClass (DeviceClass deviceClass){
-        em.refresh(deviceClass, LockModeType.PESSIMISTIC_WRITE);
+        em.lock(deviceClass, LockModeType.PESSIMISTIC_WRITE);
         em.merge(deviceClass);
     }
 

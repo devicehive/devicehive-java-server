@@ -37,11 +37,15 @@ public class EquipmentDAO {
 
     @Transactional
     public void updateEquipment(Equipment... equipment) {
+        try{
         for (Equipment e : equipment) {
-            em.refresh(e, LockModeType.PESSIMISTIC_WRITE);
-            em.merge(e);
+            em.lock(equipment, LockModeType.PESSIMISTIC_WRITE);
+            em.merge(equipment);
         }
-        em.flush();
+        }
+        catch (Exception e){
+            logger.debug(e.getMessage(), e);
+        }
     }
 
     @Transactional
@@ -54,8 +58,8 @@ public class EquipmentDAO {
     @Transactional
     public void removeEquipment(Equipment... equipments) {
         for (Equipment equipment : equipments) {
+            em.lock(equipment, LockModeType.PESSIMISTIC_WRITE);
             em.remove(equipment);
         }
-        em.flush();
     }
 }

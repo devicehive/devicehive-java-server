@@ -1,6 +1,8 @@
 package com.devicehive.model;
 
 
+import com.google.gson.annotations.SerializedName;
+
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -14,6 +16,9 @@ import java.util.Set;
 
 @Entity
 @Table(name = "device_equipment")
+@NamedQueries({
+        @NamedQuery(name = "DeviceEquipment.getByCode", query = "select de from  DeviceEquipment de where de.code = :code")
+})
 public class DeviceEquipment  implements Serializable {
 
     @Id
@@ -27,11 +32,16 @@ public class DeviceEquipment  implements Serializable {
 
 
     @Column
+    @NotNull
     private Date timestamp;
 
 
-    @Column
-    private String parameters;
+    @SerializedName("parameters")
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
+    })
+    private JsonStringWrapper parameters;
 
     @ManyToOne
     @JoinColumn(name = "device_id")
@@ -63,11 +73,11 @@ public class DeviceEquipment  implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public String getParameters() {
+    public JsonStringWrapper getParameters() {
         return parameters;
     }
 
-    public void setParameters(String parameters) {
+    public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
 

@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.jms.JMSException;
-import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.util.*;
 
@@ -38,7 +37,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     private DeviceCommandDAO deviceCommandDAO;
     @Inject
     private DeviceService deviceService;
-
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -87,7 +85,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
         Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
-
+        //TODO timestamp?
         Device device = getDevice(session, message);
 
         if (timestamp != null) {
@@ -129,7 +127,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceNotification(deviceNotification, device);
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("notification", new JsonObject())
+//                .addElement("notification", new JsonObject())
                 .build();
         return jsonObject;
     }
@@ -165,7 +163,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "device/save", needsAuth = false)
-    @Transactional
     public JsonObject processDeviceSave(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
         if (deviceId == null) {
@@ -185,17 +182,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        Device existingDevice = deviceDAO.findByUUID(deviceId);
-        if (existingDevice != null) {
-            existingDevice.setName(device.getName());
-            existingDevice.setData(device.getData());
-            existingDevice.setStatus(device.getStatus());
-            existingDevice.setKey(deviceKey);
-            deviceService.updateDevice(existingDevice, device.getNetwork(), device.getDeviceClass(), equipmentSet);
-        } else {
-            device.setGuid(deviceId);
-            deviceService.registerDevice(device, device.getNetwork(), device.getDeviceClass(), equipmentSet);
-        }
+        deviceService.deviceSave(device, equipmentSet, deviceId);
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")
                 .addRequestId(message.get("requestId"))

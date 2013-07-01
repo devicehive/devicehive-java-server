@@ -1,21 +1,21 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.*;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import javax.websocket.Session;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 
 public class DeviceService {
@@ -39,7 +39,24 @@ public class DeviceService {
     @Inject
     private EquipmentService equipmentService;
     @Inject
+    private DeviceEquipmentService deviceEquipmentService;
+    @Inject
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
+
+    @Transactional
+    public void deviceSave(Device device, Set<Equipment> equipmentSet, UUID deviceId){
+        Device existingDevice = deviceDAO.findByUUID(deviceId);
+        if (existingDevice != null) {
+            existingDevice.setName(device.getName());
+            existingDevice.setData(device.getData());
+            existingDevice.setStatus(device.getStatus());
+            existingDevice.setKey(device.getKey());
+            updateDevice(existingDevice, device.getNetwork(), device.getDeviceClass(), equipmentSet);
+        } else {
+            device.setGuid(deviceId);
+            registerDevice(device, device.getNetwork(), device.getDeviceClass(), equipmentSet);
+        }
+    }
 
     @Transactional
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session userWebsocketSession) {
@@ -69,7 +86,14 @@ public class DeviceService {
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
         notification.setDevice(device);
         deviceNotificationDAO.saveNotification(notification);
-        //TODO implement device_equipment notifications
+        if (notification.getNotification().equals("equipment")){
+            //TODO implement device_equipment notifications
+            String jsonParametersString = notification.getParameters().getJsonString();
+            Gson gson = GsonFactory.createGson();
+            JsonObject jsonEquipmentObject = gson.fromJson(jsonParametersString, JsonObject.class);
+            DeviceEquipment deviceEquipment = constructDeviceEquipmentObject(jsonEquipmentObject, device);
+            deviceEquipmentService.resolveSaveOrUpdateEquipment(deviceEquipment);
+        }
         messagePublisher.publishNotification(notification);
     }
 
@@ -132,58 +156,48 @@ public class DeviceService {
         if (deviceClassFromDatabase.getPermanent()) {
             return deviceClassFromDatabase;
         }
-        ValidatorFactory vf = Validation.buildDefaultValidatorFactory();
-        Validator validator = vf.getValidator();
-        Set<String> validationErrorsSet = DeviceClass.validate(deviceClassFromMessage, validator);
-        if (validationErrorsSet.isEmpty()) {
-            boolean updateClass = false;   //equals + exclusion isPermanent?
-            if (deviceClassFromMessage.getName() != null && !deviceClassFromMessage.getName().equals
-                    (deviceClassFromDatabase.getName())) {
-                deviceClassFromDatabase.setName(deviceClassFromMessage.getName());
-                updateClass = true;
-            }
-            if (deviceClassFromMessage.getVersion() != null && !deviceClassFromMessage.getVersion().equals
-                    (deviceClassFromDatabase.getVersion())) {
-                deviceClassFromDatabase.setVersion(deviceClassFromMessage.getVersion());
-                updateClass = true;
-            }
-            if (deviceClassFromMessage.getOfflineTimeout() != null && !deviceClassFromMessage.getOfflineTimeout()
-                    .equals(deviceClassFromDatabase.getOfflineTimeout())) {
-                deviceClassFromDatabase.setOfflineTimeout(deviceClassFromMessage.getOfflineTimeout());
-                updateClass = true;
-            }
-            if (deviceClassFromMessage.getData() != null && !deviceClassFromMessage.getData().equals
-                    (deviceClassFromDatabase.getData())) {
-                deviceClassFromDatabase.setData(deviceClassFromMessage.getData());
-                updateClass = true;
-            }
-            if (updateClass) {
-                deviceClassDAO.updateDeviceClass(deviceClassFromDatabase);
-            }
-        } else {
-            String exceptionMessage = "Validation faild: ";
-            for (String violation : validationErrorsSet) {
-                exceptionMessage += violation + "\n";
-            }
-            throw new HiveException(exceptionMessage);
+        boolean updateClass = false;   //equals + exclusion isPermanent?
+        if (deviceClassFromMessage.getName() != null && !deviceClassFromMessage.getName().equals
+                (deviceClassFromDatabase.getName())) {
+            deviceClassFromDatabase.setName(deviceClassFromMessage.getName());
+            updateClass = true;
         }
+        if (deviceClassFromMessage.getVersion() != null && !deviceClassFromMessage.getVersion().equals
+                (deviceClassFromDatabase.getVersion())) {
+            deviceClassFromDatabase.setVersion(deviceClassFromMessage.getVersion());
+            updateClass = true;
+        }
+        if (deviceClassFromMessage.getOfflineTimeout() != null && !deviceClassFromMessage.getOfflineTimeout()
+                .equals(deviceClassFromDatabase.getOfflineTimeout())) {
+            deviceClassFromDatabase.setOfflineTimeout(deviceClassFromMessage.getOfflineTimeout());
+            updateClass = true;
+        }
+        if (deviceClassFromMessage.getData() != null && !deviceClassFromMessage.getData().equals
+                (deviceClassFromDatabase.getData())) {
+            deviceClassFromDatabase.setData(deviceClassFromMessage.getData());
+            updateClass = true;
+        }
+        if (updateClass) {
+            deviceClassDAO.updateDeviceClass(deviceClassFromDatabase);
+        }
+
         return deviceClassFromDatabase;
     }
 
     @Transactional
     public void createDeviceClass(DeviceClass deviceClass) {
-        ValidatorFactory vf = Validation.buildDefaultValidatorFactory();
-        Validator validator = vf.getValidator();
-        Set<String> validationErrorsSet = DeviceClass.validate(deviceClass, validator);
-        if (validationErrorsSet.isEmpty()) {
-            deviceClassDAO.addDeviceClass(deviceClass);
-        } else {
-            String exceptionMessage = "Validation faild: ";
-            for (String violation : validationErrorsSet) {
-                exceptionMessage += violation + "\n";
-            }
-            throw new HiveException(exceptionMessage);
-        }
+        deviceClassDAO.addDeviceClass(deviceClass);
+    }
+
+    private DeviceEquipment constructDeviceEquipmentObject (JsonObject jsonEquipmentObject, Device device){
+        DeviceEquipment result = new DeviceEquipment();
+        String deviceEquipmentCode = jsonEquipmentObject.get("equipment").getAsString();
+        result.setCode(deviceEquipmentCode);
+        //TODO getParameters?
+        jsonEquipmentObject.remove("equipment");
+        result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));
+        result.setDevice(device);
+        return result;
     }
 
 

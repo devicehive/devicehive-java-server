@@ -35,7 +35,8 @@ public class NetworkDAO {
 
     @Transactional
     public void updateNetwork(Network network){
-        em.refresh(network, LockModeType.PESSIMISTIC_WRITE);
-
+//        em.refresh(network, LockModeType.PESSIMISTIC_WRITE);
+          em.lock(network, LockModeType.PESSIMISTIC_WRITE);
+          em.merge(network);
     }
 }
