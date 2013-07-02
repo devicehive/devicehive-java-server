@@ -26,7 +26,15 @@ import java.util.UUID;
         @NamedQuery(name = "Device.findByUUIDAndKey",
                 query = "select d from Device d where d.guid = :uuid and d.key = :key"),
         @NamedQuery(name = "Device.findByUUIDAndUser",
-                query = "select d from Device d join d.network n join n.users u where d.guid in :guidList and u = :user")
+                query = "select d from Device d join d.network n join n.users u where d.guid in :guidList and u = " +
+                        ":user"),
+        @NamedQuery(name = "Device.findByUUIDAndUserAndTimestamp", query = "select distinct d from DeviceNotification dn " +
+                "inner join dn.device d " +
+                "inner join d.network.users u " +
+                "where dn.timestamp > :timestamp " +
+                "and d.guid in :guidList " +
+                "and u = :user"),
+        @NamedQuery(name = "Device.findByListUUID", query = "select d from Device d where d.guid in :guidList")
 })
 public class Device implements Serializable{
 

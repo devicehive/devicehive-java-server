@@ -19,7 +19,7 @@ public class DeviceEquipmentService {
         } else {
             existingDeviceEquipment.setParameters(deviceEquipment.getParameters());
             existingDeviceEquipment.setDevice(deviceEquipment.getDevice());
-            deviceEquipmentDAO.updateDeviceEquipment(deviceEquipment);
+            deviceEquipmentDAO.updateDeviceEquipment(existingDeviceEquipment);
         }
     }
 }

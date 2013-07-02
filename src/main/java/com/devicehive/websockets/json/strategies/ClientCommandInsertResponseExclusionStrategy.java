@@ -12,7 +12,7 @@ public class ClientCommandInsertResponseExclusionStrategy implements ExclusionSt
         {
             add("id");
             add("timestamp");
-            add("userId");
+            add("user");
         }
     };
 

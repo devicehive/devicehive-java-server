@@ -18,39 +18,40 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "device_notification")
-@NamedQueries({
-    @NamedQuery(name= "DeviceNotification.getByDeviceListNewerThan",
-        query = "select dn from DeviceNotification dn where dn.device.id in :deviceIdList and dn.timestamp > :timestamp"),
-    @NamedQuery(name= "DeviceNotification.getByUserNewerThan",
-            query = "select dn from DeviceNotification dn where dn.device.id in (" +
-                " select distinct d.id from Device d join d.network n join n.users u where u = :user" +
-                ") and dn.timestamp > :timestamp")
+@NamedQueries(value = {
+        @NamedQuery(name = "DeviceNotification.getByDeviceListNewerThan",
+                query = "select dn from DeviceNotification dn where dn.device.id in :deviceIdList and dn.timestamp > :timestamp"),
+        @NamedQuery(name = "DeviceNotification.getByUserNewerThan",
+                query = "select dn from DeviceNotification dn where dn.device.id in (" +
+                        " select distinct d.id from Device d join d.network n join n.users u where u = :user" +
+                        ") and dn.timestamp > :timestamp"),
+        @NamedQuery(name = "DeviceNotification.getByDeviceNewerThan",
+                query = "select dn from DeviceNotification dn where dn.device in :deviceList and dn.timestamp > " +
+                        ":timestamp order by dn.timestamp"),
+        @NamedQuery(name = "DeviceNotification.getByNewerThan", query = "select dn from DeviceNotification dn " +
+                "where dn.timestamp > :timestamp order by dn.timestamp")
 })
 public class DeviceNotification implements Serializable {
 
+    @SerializedName("parameters")
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
+    })
+    public JsonStringWrapper parameters;
     @SerializedName("id")
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @SerializedName("timestamp")
     @Column
     private Date timestamp;
-
     @SerializedName("notification")
     @Column
     @NotNull(message = "notification field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification shouldn't be more than " +
             "128 symbols.")
     private String notification;
-
-    @SerializedName("parameters")
-    @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
-    })
-    public JsonStringWrapper parameters;
-
     @ManyToOne
     @JoinColumn
     @NotNull(message = "device field cannot be null.")
@@ -59,6 +60,26 @@ public class DeviceNotification implements Serializable {
     public DeviceNotification() {
     }
 
+    /**
+     * Validates deviceNotification representation. Returns set of strings which are represent constraint violations.
+     * Set
+     * will be empty if no constraint violations found.
+     *
+     * @param deviceNotification DeviceCommand that should be validated
+     * @param validator          Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(DeviceNotification deviceNotification, Validator validator) {
+        Set<ConstraintViolation<DeviceNotification>> constraintViolations = validator.validate(deviceNotification);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size() > 0) {
+            for (ConstraintViolation<DeviceNotification> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
+    }
 
     public Long getId() {
         return id;
@@ -98,27 +119,5 @@ public class DeviceNotification implements Serializable {
 
     public void setDevice(Device device) {
         this.device = device;
-    }
-
-    /**
-     * Validates deviceNotification representation. Returns set of strings which are represent constraint violations.
-     * Set
-     * will be empty if no constraint violations found.
-     * @param deviceNotification
-     * DeviceCommand that should be validated
-     * @param validator
-     * Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(DeviceNotification deviceNotification, Validator validator) {
-        Set<ConstraintViolation<DeviceNotification>> constraintViolations = validator.validate(deviceNotification);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size()>0){
-            for (ConstraintViolation<DeviceNotification> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
     }
 }

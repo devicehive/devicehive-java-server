@@ -38,6 +38,7 @@ public class DeviceCommandDAO {
         cmd.setStatus(update.getStatus());
         cmd.setResult(update.getResult());
         return em.merge(cmd);
+
     }
 
 

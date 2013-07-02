@@ -9,4 +9,7 @@
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
+
+    <logger name="org.hibernate.sql" level="TRACE"/>
+    <logger name="org.hibernate.type" level="TRACE"/>
 </configuration>

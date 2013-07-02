@@ -34,23 +34,16 @@ import java.util.concurrent.locks.Lock;
 public class LocalMessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
-
-
     @Inject
     private UserDAO userDAO;
-
     @Inject
     private NotificationSubscriptionDAO notificationSubscriptionDAO;
-
     @Inject
     private CommandSubscriptionDAO commandSubscriptionDAO;
-
     @Inject
     private SingletonSessionMap sessionMap;
-
     @Inject
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
-
     @Inject
     private DeviceDAO deviceDAO;
 
@@ -58,10 +51,10 @@ public class LocalMessageBus {
     public LocalMessageBus() {
     }
 
-
     /**
      * Sends command to device websocket session
-      * @param deviceCommand
+     *
+     * @param deviceCommand
      * @return true if command was delivered
      */
     @Transactional
@@ -72,7 +65,8 @@ public class LocalMessageBus {
             return;
         }
 
-        JsonElement deviceCommandJson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy()).toJsonTree(deviceCommand, DeviceCommand.class);
+        JsonElement deviceCommandJson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy())
+                .toJsonTree(deviceCommand, DeviceCommand.class);
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/insertSubscription");
@@ -90,6 +84,7 @@ public class LocalMessageBus {
 
     /**
      * Sends command update to client websocket session
+     *
      * @param deviceCommand
      * @return true if update was delivered
      */
@@ -99,9 +94,10 @@ public class LocalMessageBus {
                 .getDevice().getId());
         Session session = sessionMap.getSession(commandUpdatesSubscription.getSessionId());
         if (session == null || !session.isOpen()) {
-              return;
+            return;
         }
-        JsonElement deviceCommandJson = GsonFactory.createGson(new CommandUpdateExclusionStrategy()).toJsonTree(deviceCommand);
+        JsonElement deviceCommandJson =
+                GsonFactory.createGson(new CommandUpdateExclusionStrategy()).toJsonTree(deviceCommand);
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", "command/update");
         jsonObject.add("command", deviceCommandJson);
@@ -111,6 +107,7 @@ public class LocalMessageBus {
 
     /**
      * Subscrbes given device to commands
+     *
      * @param device
      * @param session
      */
@@ -119,9 +116,9 @@ public class LocalMessageBus {
         commandSubscriptionDAO.insert(new CommandsSubscription(device.getId(), session.getId()));
     }
 
-
     /**
      * Subscrbes given device to commands
+     *
      * @param device
      * @param sessionId
      */
@@ -130,20 +127,21 @@ public class LocalMessageBus {
         commandSubscriptionDAO.deleteByDeviceAndSession(device, sessionId);
     }
 
-
     public void subscribeForCommandUpdates(Long commandId, Session session) {
-        commandUpdatesSubscriptionDAO.insert(new CommandUpdatesSubscription(commandId,session.getId()));
+        commandUpdatesSubscriptionDAO.insert(new CommandUpdatesSubscription(commandId, session.getId()));
     }
 
     /**
      * Sends device notification to clients
+     *
      * @param deviceNotification
      */
     @Transactional
     //TODO make this multithreaded ?!
     public void submitNotification(DeviceNotification deviceNotification) {
 
-        JsonElement deviceNotificationJson = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy()).toJsonTree(deviceNotification);
+        JsonElement deviceNotificationJson =
+                GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy()).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "command/insertSubscription");
         resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
@@ -153,7 +151,7 @@ public class LocalMessageBus {
 
         List<String> sessionIdsSubscribedForAll = notificationSubscriptionDAO.getSessionIdSubscribedForAll();
         Set<Session> subscribedForAll = new HashSet<>();
-        for (String sessionId : sessionIdsSubscribedForAll){
+        for (String sessionId : sessionIdsSubscribedForAll) {
             subscribedForAll.add(sessionMap.getSession(sessionId));
         }
         for (Session session : subscribedForAll) {
@@ -166,7 +164,7 @@ public class LocalMessageBus {
         Long deviceId = deviceDAO.findByUUID(deviceNotification.getDevice().getGuid()).getId();
         Collection<String> sessionIds = notificationSubscriptionDAO.getSessionIdSubscribedByDevice(deviceId);
         Set<Session> sessions = new HashSet<>();
-        for (String sesionId : sessionIds){
+        for (String sesionId : sessionIds) {
             sessions.add(sessionMap.getSession(sesionId));
 
         }
@@ -174,7 +172,7 @@ public class LocalMessageBus {
             delivers.addAll(sessions);
         }
 
-        for (Session session : delivers ){
+        for (Session session : delivers) {
             Lock lock = WebsocketSession.getNotificationSubscriptionsLock(session);
             try {
                 lock.lock();
@@ -187,33 +185,42 @@ public class LocalMessageBus {
 
     /**
      * Subscribes client websocket session to device notifications
+     *
      * @param sessionId
      * @param devices
      */
-    public void subscribeForNotifications(String sessionId, Collection<Device> devices) {
-        List<Long> list = new ArrayList<Long>(devices.size());
-        for (Device device : devices) {
-            list.add(device.getId());
+    public void subscribeForNotifications(String sessionId, Collection<Device> devices, Date timestamp) {
+        if (devices == null || devices.isEmpty()) {
+            notificationSubscriptionDAO.insertSubscriptions(sessionId);
+        } else {
+            List<Long> list = new ArrayList<Long>(devices.size());
+            for (Device device : devices) {
+                list.add(device.getId());
+            }
+            notificationSubscriptionDAO.insertSubscriptions(devices, sessionId);
         }
-        notificationSubscriptionDAO.insertSubscriptions(devices, sessionId);
     }
 
     /**
      * Unsubscribes client websocket session from device notifications
-     * @param session
+     *
+     * @param sessionId
      * @param devices
      */
     @Transactional
     public void unsubscribeFromNotifications(String sessionId, Collection<Device> devices) {
-        List<Long> list = new ArrayList<Long>(devices.size());
-        for (Device device : devices) {
-            list.add(device.getId());
-        }
-        for (Device device: devices){
-            notificationSubscriptionDAO.deleteByDeviceAndSession(device, sessionId);
+        if (devices == null || devices.isEmpty()) {
+           notificationSubscriptionDAO.deleteBySession(sessionId);
+        } else {
+            List<Long> list = new ArrayList<Long>(devices.size());
+            for (Device device : devices) {
+                list.add(device.getId());
+            }
+            for (Device device : devices) {
+                notificationSubscriptionDAO.deleteByDeviceAndSession(device, sessionId);
+            }
         }
     }
-
 
     public void onDeviceSessionClose(Session session) {
         commandSubscriptionDAO.deleteBySession(session.getId());

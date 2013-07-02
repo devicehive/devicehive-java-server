@@ -9,18 +9,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
-/**
- * User: jkulagina
- * Date: 25.06.13
- * Time: 20:44
- */
 public class ConfigurationDAO {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public Configuration getConfiguration(String name) {
+    public Configuration findByName(String name) {
         return em.find(Configuration.class, name);
     }
 

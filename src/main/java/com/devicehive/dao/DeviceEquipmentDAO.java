@@ -8,7 +8,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 public class DeviceEquipmentDAO {
@@ -17,12 +17,8 @@ public class DeviceEquipmentDAO {
 
     @Transactional
     public void saveDeviceEquipment(DeviceEquipment deviceEquipment) {
-        try {
-            deviceEquipment.setTimestamp(new Date(System.currentTimeMillis()));
-            em.persist(deviceEquipment);
-        } catch (Exception e) {
-            e.getMessage();
-        }
+        deviceEquipment.setTimestamp(new Date(System.currentTimeMillis()));
+        em.persist(deviceEquipment);
     }
 
     @Transactional

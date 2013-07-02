@@ -6,7 +6,6 @@ import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
-import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -79,7 +78,6 @@ public class DeviceService {
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device, Session session) {
         deviceCommandDAO.updateCommand(update, device);
         messagePublisher.publishCommandUpdate(update);
-        commandUpdatesSubscriptionDAO.insert(new CommandUpdatesSubscription(device.getId(), session.getId()));
     }
 
     @Transactional
@@ -87,7 +85,6 @@ public class DeviceService {
         notification.setDevice(device);
         deviceNotificationDAO.saveNotification(notification);
         if (notification.getNotification().equals("equipment")){
-            //TODO implement device_equipment notifications
             String jsonParametersString = notification.getParameters().getJsonString();
             Gson gson = GsonFactory.createGson();
             JsonObject jsonEquipmentObject = gson.fromJson(jsonParametersString, JsonObject.class);
@@ -193,7 +190,6 @@ public class DeviceService {
         DeviceEquipment result = new DeviceEquipment();
         String deviceEquipmentCode = jsonEquipmentObject.get("equipment").getAsString();
         result.setCode(deviceEquipmentCode);
-        //TODO getParameters?
         jsonEquipmentObject.remove("equipment");
         result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));
         result.setDevice(device);

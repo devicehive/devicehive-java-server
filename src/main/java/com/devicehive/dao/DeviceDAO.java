@@ -11,6 +11,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,6 +60,28 @@ public class DeviceDAO {
         query.setParameter("user", user);
         query.setParameter("guidList", list);
         return query.getResultList();
+    }
+
+    @Transactional
+    public List<Device> findByUUID(List<UUID> list) {
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
+        query.setParameter("guidList", list);
+        return query.getResultList();
+    }
+
+    @Transactional
+    public List<Device> findByUUIDAndUserAndTimestamp(User user, List<UUID> list, Date timestamp) {
+        try{
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUserAndTimestamp", Device.class);
+        query.setParameter("user", user);
+        query.setParameter("guidList", list);
+        query.setParameter("timestamp", timestamp);
+        return query.getResultList();
+        }
+        catch (Exception e){
+            e.getMessage();
+            return null;
+        }
     }
 
 

@@ -70,8 +70,11 @@ public class DeviceCommand implements Serializable{
     public String status;
 
     @SerializedName("result")
-    @Column
-    public String result;   //TODO JsonObject?
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name="jsonString", column=@Column(name = "result"))
+    })
+    public JsonStringWrapper result;
 
     public DeviceCommand() {
     }
@@ -140,11 +143,11 @@ public class DeviceCommand implements Serializable{
         this.status = status;
     }
 
-    public String getResult() {
+    public JsonStringWrapper getResult() {
         return result;
     }
 
-    public void setResult(String result) {
+    public void setResult(JsonStringWrapper result) {
         this.result = result;
     }
 

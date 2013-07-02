@@ -23,7 +23,6 @@ public class DeviceSaveExclusionStrategy implements ExclusionStrategy {
             add("type");
         }
     };
-    //TODO Equipment?
 
     @Override
     public boolean shouldSkipField(FieldAttributes fieldAttributes) {
