@@ -43,7 +43,7 @@ public class UserDAO {
         if (user.getLoginAttempts() >= maxLoginAttempts) {
             user.setStatus(User.STATUS.LockedOut.ordinal());
         }
-        em.persist(user);
+        em.merge(user);
         return user;
     }
 
@@ -55,7 +55,7 @@ public class UserDAO {
             return null;
         }
         user.setLoginAttempts(0);
-        em.persist(user);
+        em.merge(user);
         return user;
     }
 
