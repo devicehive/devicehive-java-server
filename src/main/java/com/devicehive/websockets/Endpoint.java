@@ -11,28 +11,25 @@ import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.PersistenceException;
+import javax.transaction.RollbackException;
+import javax.transaction.TransactionalException;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
 abstract class Endpoint {
 
+    protected static final long MAX_MESSAGE_SIZE = 10240;
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
 
-
-
-    protected static final long MAX_MESSAGE_SIZE = 10240;
-
-    private Map<String, Method> methodsCache = new HashMap<>();
-    private Map<String, Boolean> authMap = new HashMap<>();
-
-
-
     protected JsonObject processMessage(HiveMessageHandlers handler, String message, Session session) {
-        JsonObject response = null;
+        JsonObject response;
 
-        JsonObject request = null;
+        JsonObject request;
         try {
             request = new JsonParser().parse(message).getAsJsonObject();
         } catch (JsonSyntaxException ex) {
@@ -47,32 +44,63 @@ abstract class Endpoint {
             response = tryExecute(handler, action, request, session);
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
-        }
-
-        //TODO Constraint violation exception
-        catch (Exception ex) {
+        } catch (ConstraintViolationException ex) {
+            Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
+            StringBuilder builderForResponse = new StringBuilder("Validation failed: \n");
+            for (ConstraintViolation<?> constraintViolation : constraintViolations) {
+                builderForResponse.append(constraintViolation.getMessage());
+                builderForResponse.append("\n");
+            }
+            response = JsonMessageBuilder.createErrorResponseBuilder(builderForResponse.toString()).build();
+        } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
         }
         return constructFinalResponse(request, response);
     }
 
-    private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request, Session session) throws Exception {
+    private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request, Session session)
+            throws IllegalAccessException, InvocationTargetException {
         for (final Method method : handler.getClass().getMethods()) {
             if (method.isAnnotationPresent(Action.class)) {
 
                 Action ann = method.getAnnotation(Action.class);
                 if (ann.value().equals(action)) {
                     if (ann.needsAuth()) {
-                        handler.ensureAuthorised(request,session);
+                        handler.ensureAuthorised(request, session);
                     }
-                    return (JsonObject)method.invoke(handler, request, session);
+                    try {
+                        return (JsonObject) method.invoke(handler, request, session);
+                    } catch (InvocationTargetException e) {
+                        if (e.getTargetException() instanceof HiveException) {
+                            throw new HiveException(e.getTargetException().getMessage(), e);
+                        }
+                        if (e.getTargetException() instanceof TransactionalException) {
+                            TransactionalException target = (TransactionalException) e.getTargetException();
+                            target.getCause();
+                            if (target.getCause() instanceof RollbackException) {
+                                RollbackException rollbackException = (RollbackException) target.getCause();
+                                if (rollbackException.getCause() instanceof PersistenceException) {
+                                    PersistenceException persistenceException = (PersistenceException)
+                                            rollbackException.getCause();
+                                    if (persistenceException.getCause() instanceof ConstraintViolationException) {
+                                        ConstraintViolationException constraintViolationException =
+                                                (ConstraintViolationException) persistenceException.getCause();
+                                        throw new ConstraintViolationException(constraintViolationException
+                                                .getMessage(), constraintViolationException.getConstraintViolations());
+                                    }
+                                }
+                            }
+                        }
+                        throw e;
+                    } catch (IllegalAccessException e) {
+                        throw e;
+                    }
                 }
             }
         }
         throw new HiveException("Unknown action requested: " + action);
     }
-
 
     private JsonObject constructFinalResponse(JsonObject request, JsonObject response) {
         if (response == null) {
@@ -80,13 +108,12 @@ abstract class Endpoint {
             response = JsonMessageBuilder.createErrorResponseBuilder().build();
         }
         JsonObject finalResponse = new JsonMessageBuilder()
-            .addAction(request.get(JsonMessageBuilder.ACTION).getAsString())
-            .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
-            .include(response)
-            .build();
+                .addAction(request.get(JsonMessageBuilder.ACTION).getAsString())
+                .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
+                .include(response)
+                .build();
         return finalResponse;
     }
-
 
 
 }

@@ -22,12 +22,10 @@ public class ConfigurationDAO {
     @Transactional
     public void saveConfiguration(Configuration configuration){
         em.persist(configuration);
-        em.flush();
     }
 
     @Transactional
     public void updateConfiguration(Configuration configuration){
         em.merge(configuration);
-        em.flush();
     }
 }

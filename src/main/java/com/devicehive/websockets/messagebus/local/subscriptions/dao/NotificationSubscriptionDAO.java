@@ -28,7 +28,6 @@ public class NotificationSubscriptionDAO {
     @Transactional
     public void insertSubscription(NotificationSubscriptionDAO subscription) {
         em.persist(subscription);
-        em.flush();
     }
 
     @Transactional
@@ -36,7 +35,6 @@ public class NotificationSubscriptionDAO {
         for (Device device : devices) {
             em.persist(new NotificationsSubscription(device.getId(), sessionId));
         }
-        em.flush();
     }
 
     @Transactional

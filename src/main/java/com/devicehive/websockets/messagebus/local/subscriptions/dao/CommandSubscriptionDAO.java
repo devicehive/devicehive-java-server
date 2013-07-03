@@ -26,7 +26,6 @@ public class CommandSubscriptionDAO {
     @Transactional
     public void insert(CommandsSubscription subscription){
         em.persist(subscription);
-        em.flush();
     }
 
     @Transactional

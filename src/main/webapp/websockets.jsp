@@ -18,6 +18,7 @@
 
         client.onmessage = function(event) {
             document.getElementById("response").value = event.data;
+            alert(event.data);
         }
 
         function send() {
