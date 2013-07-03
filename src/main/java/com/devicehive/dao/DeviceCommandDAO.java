@@ -9,25 +9,26 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class DeviceCommandDAO {
 
+    private static final Integer DEFAULT_TAKE = Integer.valueOf(1000);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
-
 
     @Transactional
     public void saveCommand(DeviceCommand deviceCommand) {
         em.persist(deviceCommand);
     }
 
-
     @Transactional
     public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
-        DeviceCommand cmd = em.find(DeviceCommand.class, update.getId(), LockModeType.WRITE);
+        DeviceCommand cmd = em.find(DeviceCommand.class, update.getId(), LockModeType.PESSIMISTIC_WRITE);
         if (!cmd.getDevice().getId().equals(expectedDevice.getId())) {
             throw new HiveException("Device tries to update incorrect command");
         }
@@ -41,12 +42,10 @@ public class DeviceCommandDAO {
 
     }
 
-
     @Transactional
     public DeviceCommand findById(Long id) {
         return em.find(DeviceCommand.class, id);
     }
-
 
     @Transactional
     public List<DeviceCommand> getNewerThan(Device device, Date timestamp) {
@@ -54,5 +53,48 @@ public class DeviceCommandDAO {
         query.setParameter("timestamp", timestamp);
         query.setParameter("device", device);
         return query.getResultList();
+    }
+
+    @Transactional
+    public List<DeviceCommand> queryDeviceCommand(Device device, Date start, Date end, String command,
+                                                  String status, String sortField, Boolean sortOrderAsc,
+                                                  Integer take, Integer skip) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
+        Root from = criteria.from(DeviceCommand.class);
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (start != null) {
+            predicates.add(criteriaBuilder.greaterThan(from.get("timestamp"), start));
+        }
+        if (end != null) {
+            predicates.add(criteriaBuilder.lessThan(from.get("timestamp"), end));
+        }
+        if (command != null) {
+            predicates.add(criteriaBuilder.equal(from.get("command"), command));
+        }
+        if (status != null) {
+            predicates.add(criteriaBuilder.equal(from.get("status"), status));
+        }
+
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+        if (sortField != null) {
+            if (sortOrderAsc == null || sortOrderAsc == true) {
+                criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
+            } else {
+                criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));
+            }
+        }
+
+        TypedQuery<DeviceCommand> resultQuery = em.createQuery(criteria);
+        if (skip != null) {
+            resultQuery.setFirstResult(skip);
+        }
+        if (take == null) {
+            take = DEFAULT_TAKE;
+            resultQuery.setMaxResults(take);
+        }
+        return resultQuery.getResultList();
+
     }
 }

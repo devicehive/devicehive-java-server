@@ -1,17 +1,5 @@
 <configuration>
 
-    <!--<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">-->
-        <!--<encoder>-->
-            <!--<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
-        <!--</encoder>-->
-    <!--</appender>-->
-
-    <!--<root level="debug">-->
-        <!--<appender-ref ref="STDOUT" />-->
-    <!--</root>-->
-
-    <!--<logger name="org.hibernate.sql" level="TRACE"/>-->
-    <!--<logger name="org.hibernate.type" level="TRACE"/>-->
     <property name="LOG_DIR" value="D:/devicehivelog/" />
     <property name="APP_NAME" value="devicehive-java" />
 
