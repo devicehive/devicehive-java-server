@@ -15,10 +15,10 @@ import java.util.List;
  * TODO JavaDoc
  */
 @Path("/device")
-@Stateless
 public class DeviceClassController {
-    @EJB
-    public DeviceClassDAO deviceClassDAO;
+
+    @Inject
+    private DeviceClassDAO deviceClassDAO;
 
     @GET
     @Path("/class")

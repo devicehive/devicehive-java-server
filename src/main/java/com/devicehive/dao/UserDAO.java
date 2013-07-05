@@ -16,11 +16,6 @@ public class UserDAO {
     private EntityManager em;
 
 
-    @PersistenceContext(unitName = Constants.EMBEDDED_PERSISTENCE_UNIT)
-    private EntityManager em2;
-
-
-
     @Transactional
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
