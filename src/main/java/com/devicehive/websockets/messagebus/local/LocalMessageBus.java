@@ -17,6 +17,7 @@ import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpd
 import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSubscription;
 import com.devicehive.websockets.util.SingletonSessionMap;
 import com.devicehive.websockets.util.WebsocketSession;
+import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -46,6 +47,8 @@ public class LocalMessageBus {
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
     @Inject
     private DeviceDAO deviceDAO;
+    @Inject
+    private WebsocketThreadPoolSingleton threadPoolSingleton;
 
 
     public LocalMessageBus() {
@@ -69,16 +72,17 @@ public class LocalMessageBus {
                 .toJsonTree(deviceCommand, DeviceCommand.class);
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("action", "command/insertSubscription");
+        jsonObject.addProperty("action", "command/insert");
         jsonObject.addProperty("deviceGuid", deviceCommand.getDevice().getGuid().toString());
         jsonObject.add("command", deviceCommandJson);
 
         Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
         try {
             lock.lock();
-            WebsocketSession.deliverMessages(session, jsonObject);
+            WebsocketSession.addMessagesToQueue(session,jsonObject);
         } finally {
             lock.unlock();
+            threadPoolSingleton.deliverMessagesAndNotify(session);
         }
     }
 
@@ -90,9 +94,13 @@ public class LocalMessageBus {
      */
     @Transactional
     public void submitCommandUpdate(DeviceCommand deviceCommand) {
-        CommandUpdatesSubscription commandUpdatesSubscription = commandUpdatesSubscriptionDAO.getById(deviceCommand
-                .getDevice().getId());
+        CommandUpdatesSubscription commandUpdatesSubscription = commandUpdatesSubscriptionDAO.getById(deviceCommand.getId());
+        if (commandUpdatesSubscription == null){
+            logger.warn("No updates for command with id = " + deviceCommand.getId() + " found");
+            return;
+        }
         Session session = sessionMap.getSession(commandUpdatesSubscription.getSessionId());
+
         if (session == null || !session.isOpen()) {
             return;
         }
@@ -102,7 +110,13 @@ public class LocalMessageBus {
         jsonObject.addProperty("action", "command/update");
         jsonObject.add("command", deviceCommandJson);
 
-        WebsocketSession.deliverMessages(session, jsonObject);
+        try {
+            WebsocketSession.getCommandsSubscriptionsLock(session).lock();
+            WebsocketSession.addMessagesToQueue(session,jsonObject);
+        } finally {
+            WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
+            threadPoolSingleton.deliverMessagesAndNotify(session);
+        }
     }
 
     /**
@@ -143,7 +157,7 @@ public class LocalMessageBus {
         JsonElement deviceNotificationJson =
                 GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy()).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
-        resultMessage.addProperty("action", "command/insertSubscription");
+        resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
         resultMessage.add("notification", deviceNotificationJson);
 
@@ -176,9 +190,10 @@ public class LocalMessageBus {
             Lock lock = WebsocketSession.getNotificationSubscriptionsLock(session);
             try {
                 lock.lock();
-                WebsocketSession.deliverMessages(session, resultMessage);
+                WebsocketSession.addMessagesToQueue(session, resultMessage);
             } finally {
                 lock.unlock();
+                threadPoolSingleton.deliverMessagesAndNotify(session);
             }
         }
     }
@@ -189,14 +204,10 @@ public class LocalMessageBus {
      * @param sessionId
      * @param devices
      */
-    public void subscribeForNotifications(String sessionId, Collection<Device> devices, Date timestamp) {
-        if (devices == null || devices.isEmpty()) {
+    public void subscribeForNotifications(String sessionId, Collection<Device> devices) {
+        if (devices == null) {
             notificationSubscriptionDAO.insertSubscriptions(sessionId);
         } else {
-            List<Long> list = new ArrayList<Long>(devices.size());
-            for (Device device : devices) {
-                list.add(device.getId());
-            }
             notificationSubscriptionDAO.insertSubscriptions(devices, sessionId);
         }
     }
@@ -210,7 +221,7 @@ public class LocalMessageBus {
     @Transactional
     public void unsubscribeFromNotifications(String sessionId, Collection<Device> devices) {
         if (devices == null || devices.isEmpty()) {
-           notificationSubscriptionDAO.deleteBySession(sessionId);
+            notificationSubscriptionDAO.deleteBySession(sessionId);
         } else {
             List<Long> list = new ArrayList<Long>(devices.size());
             for (Device device : devices) {

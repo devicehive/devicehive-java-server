@@ -5,12 +5,6 @@ import javax.websocket.Session;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/**
- * Created with IntelliJ IDEA.
- * User: jkulagina
- * Date: 26.06.13
- * Time: 14:32
- */
 @Singleton
 public class SingletonSessionMap {
 

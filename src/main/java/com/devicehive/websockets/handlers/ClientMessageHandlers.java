@@ -17,6 +17,7 @@ import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.WebsocketSession;
+import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -26,10 +27,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
@@ -48,6 +46,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private ConfigurationDAO configurationDAO;
     @Inject
     private DeviceNotificationService deviceNotificationService;
+    @Inject
+    private WebsocketThreadPoolSingleton threadPoolSingleton;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -81,19 +81,20 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("Device ID is empty");
         }
 
-        Device device = deviceDAO.findByUUID(deviceGuid);
+        User user = WebsocketSession.getAuthorisedUser(session);
+        Device device = deviceDAO.findByUUIDAndUser(user, deviceGuid);
         if (device == null) {
             throw new HiveException("Unknown Device ID");
         }
 
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
-        User user = WebsocketSession.getAuthorisedUser(session);
 
         if (deviceCommand == null) {
             throw new HiveException("Command is empty");
         }
 
-        deviceService.submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
+        deviceService
+                .submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
         deviceCommand.setUser(user);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("command", GsonFactory.createGson(new ClientCommandInsertResponseExclusionStrategy())
@@ -103,7 +104,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "notification/subscribe")
-    @Transactional
+//    @Transactional
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
         Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
@@ -113,26 +114,79 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         //TODO set notification's limit (do not try to get notifications for last year :))
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
         }.getType());
-        List<Device> devices = new LinkedList<>();
-        if (list != null && !list.isEmpty()) {
-            devices = deviceDAO.findByUUIDAndUser(WebsocketSession.getAuthorisedUser(session), list);
+        if (list == null || list.isEmpty()) {
+           processNotificationSubscribeNullCase(session, timestamp, gson);
         }
-        try {
-            WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-            localMessageBus.subscribeForNotifications(session.getId(), devices, timestamp);
-            List<DeviceNotification> deviceNotificationList = deviceNotificationService.getDeviceNotificationList
-                    (devices, timestamp);
-            if (deviceNotificationList != null && !deviceNotificationList.isEmpty()) {
-                for (DeviceNotification deviceNotification : deviceNotificationList) {
-                    messagePublisher.publishNotification(deviceNotification);
-                }
-            }
-        }finally {
-            WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
+        else{
+           processNotificationSubscribeNotNullCase(list, session, timestamp, gson);
         }
+
+
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         return jsonObject;
 
+    }
+
+    private void processNotificationSubscribeNullCase(Session session,Date timestamp,Gson gson) {
+        User authorizedUser = WebsocketSession.getAuthorisedUser(session);
+        List<DeviceNotification> deviceNotifications;
+        if (authorizedUser.getRole() == User.ROLE.Administrator.ordinal()) {
+            deviceNotifications =
+                    deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, true);
+        } else {
+            deviceNotifications =
+                    deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, false);
+        }
+        try {
+            Set<Long> deviceIds = new HashSet<>();
+            for (DeviceNotification notification : deviceNotifications){
+                deviceIds.add(notification.getDevice().getId());
+            }
+            WebsocketSession.getNotificationSubscriptionsLock(session).lock();
+            localMessageBus.subscribeForNotifications(session.getId(), null);
+            if (deviceNotifications != null && !deviceNotifications.isEmpty()) {
+                for (DeviceNotification deviceNotification : deviceNotifications) {
+                    WebsocketSession.addMessagesToQueue(session, gson.toJsonTree(deviceNotification,
+                            DeviceNotification.class));
+                }
+            }
+        } finally {
+            WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
+            threadPoolSingleton.deliverMessagesAndNotify(session);
+        }
+
+    }
+
+    private void processNotificationSubscribeNotNullCase(List<UUID> guids, Session session,
+                                                                             Date timestamp, Gson gson) {
+        User authorizedUser = WebsocketSession.getAuthorisedUser(session);
+        List<Device> devices;
+        if (authorizedUser.getRole() == User.ROLE.Administrator.ordinal()){
+            devices = deviceDAO.findByUUID(guids);
+        }
+        else{
+            devices = deviceDAO.findByUUIDListAndUser(authorizedUser, guids);
+        }
+        List<DeviceNotification> deviceNotifications = deviceNotificationService.getDeviceNotificationList(devices,
+                authorizedUser,
+                timestamp, null);
+        try {
+            Set<Long> deviceIds = new HashSet<>();
+            for (DeviceNotification notification : deviceNotifications){
+                deviceIds.add(notification.getDevice().getId());
+            }
+            WebsocketSession.getNotificationSubscriptionsLock(session).lock();
+            localMessageBus.subscribeForNotifications(session.getId(), devices);
+            if (deviceNotifications != null && !deviceNotifications.isEmpty()) {
+                for (DeviceNotification deviceNotification : deviceNotifications) {
+                    WebsocketSession.addMessagesToQueue(session, gson.toJsonTree(deviceNotification,
+                            DeviceNotification.class));
+                }
+            }
+        } finally {
+            WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
+            threadPoolSingleton.deliverMessagesAndNotify(session);
+        }
     }
 
     @Action(value = "notification/unsubscribe")

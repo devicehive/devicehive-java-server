@@ -17,7 +17,7 @@ import java.util.List;
 
 public class DeviceCommandDAO {
 
-    private static final Integer DEFAULT_TAKE = Integer.valueOf(1000);
+    private static final Integer DEFAULT_TAKE = Integer.valueOf(1000); //TODO set parameter
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 

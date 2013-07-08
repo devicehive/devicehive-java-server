@@ -1,6 +1,5 @@
 <configuration>
 
-    <property name="LOG_DIR" value="D:/devicehivelog/" />
     <property name="APP_NAME" value="devicehive-java" />
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -11,13 +10,13 @@
 
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/${APP_NAME}.log</file>
+        <file>${APP_NAME}.log</file>
         <append>true</append>
         <prudent>false</prudent>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rotate log file every day-->
-            <fileNamePattern>${LOG_DIR}/${APP_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${APP_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxHistory>60</maxHistory>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>

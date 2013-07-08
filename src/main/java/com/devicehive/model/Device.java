@@ -25,9 +25,11 @@ import java.util.UUID;
         @NamedQuery(name = "Device.findByUUID", query = "select d from Device d where d.guid = :uuid"),
         @NamedQuery(name = "Device.findByUUIDAndKey",
                 query = "select d from Device d where d.guid = :uuid and d.key = :key"),
-        @NamedQuery(name = "Device.findByUUIDAndUser",
+        @NamedQuery(name = "Device.findByUUIDListAndUser",
                 query = "select d from Device d join d.network n join n.users u where d.guid in :guidList and u = " +
                         ":user"),
+        @NamedQuery(name = "Device.findByUUIDAndUser",
+                query = "select d from Device d join d.network n join n.users u where d.guid = :guid and u = :user"),
         @NamedQuery(name = "Device.findByUUIDAndUserAndTimestamp", query = "select distinct d from DeviceNotification dn " +
                 "inner join dn.device d " +
                 "inner join d.network.users u " +

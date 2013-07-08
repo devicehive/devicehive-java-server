@@ -3,10 +3,10 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.User;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -19,18 +19,14 @@ import java.util.List;
 
 public class DeviceNotificationDAO {
     private static final Integer DEFAULT_TAKE = Integer.valueOf(1000);
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
     @Transactional
     public void saveNotification(DeviceNotification deviceNotification) {
-        try {
-            deviceNotification.setTimestamp(new Date(System.currentTimeMillis()));
-            em.persist(deviceNotification);
-        } catch (Exception e) {
-            e.getMessage();
-        }
+        deviceNotification.setTimestamp(new Date(System.currentTimeMillis()));
+        em.persist(deviceNotification);
+
     }
 
     @Transactional
@@ -39,7 +35,7 @@ public class DeviceNotificationDAO {
     }
 
     @Transactional
-    public List<DeviceNotification> findByDevicesNewerThan(List<Device> deviceList, Date timestamp){
+    public List<DeviceNotification> findByDevicesNewerThan(List<Device> deviceList, Date timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceNewerThan",
                 DeviceNotification.class);
         query.setParameter("deviceList", deviceList);
@@ -48,7 +44,7 @@ public class DeviceNotificationDAO {
     }
 
     @Transactional
-    public List<DeviceNotification> findNewerThan(Date timestamp){
+    public List<DeviceNotification> findNewerThan(Date timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByNewerThan",
                 DeviceNotification.class);
         query.setParameter("timestamp", timestamp);
@@ -56,9 +52,18 @@ public class DeviceNotificationDAO {
     }
 
     @Transactional
-    public List<DeviceNotification> queryDeviceCommand(Device device, Date start, Date end, String notification,
-                                                       String sortField, Boolean sortOrderAsc, Integer take,
-                                                       Integer skip) {
+    public List<DeviceNotification> getByUserNewerThan(User user, Date timestamp){
+        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserNewerThan",
+                DeviceNotification.class);
+        query.setParameter("user", user);
+        query.setParameter("timestamp", timestamp);
+        return query.getResultList();
+    }
+
+    @Transactional
+    public List<DeviceNotification> queryDeviceNotification(Device device, Date start, Date end, String notification,
+                                                            String sortField, Boolean sortOrderAsc, Integer take,
+                                                            Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root from = criteria.from(DeviceNotification.class);

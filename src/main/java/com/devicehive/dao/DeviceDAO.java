@@ -55,12 +55,21 @@ public class DeviceDAO {
     }
 
     @Transactional
-    public List<Device> findByUUIDAndUser(User user, List<UUID> list) {
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
+    public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDListAndUser", Device.class);
         query.setParameter("user", user);
         query.setParameter("guidList", list);
         return query.getResultList();
     }
+
+    @Transactional
+    public Device findByUUIDAndUser(User user,UUID guid) {
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
+        query.setParameter("user", user);
+        query.setParameter("guid", guid);
+        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
+    }
+
 
     @Transactional
     public List<Device> findByUUID(List<UUID> list) {

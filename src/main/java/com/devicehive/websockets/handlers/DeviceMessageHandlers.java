@@ -14,6 +14,7 @@ import com.devicehive.websockets.json.strategies.*;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.WebsocketSession;
+import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -41,6 +42,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     private DeviceService deviceService;
     @Inject
     private ConfigurationDAO configurationDAO;
+    @Inject
+    private WebsocketThreadPoolSingleton threadPoolSingleton;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -85,12 +88,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
         update.setId(GsonFactory.createGson().fromJson(message.get("commandId"), Long.class));
         Device device = getDevice(session, message);
-        try {
-            //TODO org.hibernate.AssertionFailure: cannot force version increment on non-versioned entity
-            deviceService.submitDeviceCommandUpdate(update, device, session);
-        } catch (Exception e) {
-            e.getMessage();
-        }
+
+        deviceService.submitDeviceCommandUpdate(update, device, session);
+
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -108,11 +108,12 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             List<DeviceCommand> oldCommands = deviceCommandDAO.getNewerThan(device, timestamp);
             gson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy());
             for (DeviceCommand deviceCommand : oldCommands) {
-                WebsocketSession.deliverMessages(session, gson.toJsonTree(deviceCommand, DeviceCommand.class));
+                WebsocketSession.addMessagesToQueue(session, gson.toJsonTree(deviceCommand, DeviceCommand.class));
             }
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
         }
+        threadPoolSingleton.deliverMessagesAndNotify(session);
 
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
@@ -190,6 +191,29 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             equipmentSet.remove(null);
         }
         deviceService.deviceSave(device, equipmentSet, deviceId);
+        JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
+                .addAction("device/save")
+                .addRequestId(message.get("requestId"))
+                .build();
+        return jsonResponseObject;
+    }
+
+    @Action(value = "device/test", needsAuth = false) //TODO delete method
+    public JsonObject testFunc(JsonObject message, Session session) {
+        Gson gson = GsonFactory.createGson();
+        UUID guid = gson.fromJson(message.get("guid"), UUID.class);
+        Date startDate = gson.fromJson(message.get("start"), Date.class);
+        Date endDate = gson.fromJson(message.get("end"), Date.class);
+        String command = message.get("command").getAsString();
+        String sortField = message.get("sortField").getAsString();
+        Device device = deviceDAO.findByUUID(guid);
+        List<DeviceCommand> resultList;
+        try {
+            resultList = deviceCommandDAO.queryDeviceCommand(device, startDate, endDate, command, "status",
+                    sortField, null, null, null);
+        } catch (Exception e) {
+            e.getMessage();
+        }
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")
                 .addRequestId(message.get("requestId"))
