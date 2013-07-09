@@ -23,12 +23,6 @@
             <version>1.0.13</version>
         </dependency>
 
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <version>2.0</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>javax</groupId>
@@ -37,12 +31,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -56,13 +44,6 @@
             <version>4.3.0.Beta3</version>
         </dependency>
 
-        <dependency>
-            <!-- used for mdb only, may be removed later-->
-            <groupId>javax.ejb</groupId>
-            <artifactId>javax.ejb-api</artifactId>
-            <version>3.2-b02</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>javax.jms</groupId>
@@ -107,6 +88,13 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <warName>DeviceHiveJava</warName>
                 </configuration>
             </plugin>
             <plugin>

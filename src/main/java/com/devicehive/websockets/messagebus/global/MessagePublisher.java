@@ -22,11 +22,11 @@ public class MessagePublisher {
     @Inject
     @JMSConnectionFactory(Constants.JMS_TOPIC_FACTORY)
     private JMSContext context;
-    @Resource(mappedName = Constants.JMS_COMMAND_TOPIC)
+    @Resource(lookup = Constants.JMS_COMMAND_TOPIC)
     private Topic commandTopic;
-    @Resource(mappedName = Constants.JMS_COMMAND_UPDATE_TOPIC)
+    @Resource(lookup = Constants.JMS_COMMAND_UPDATE_TOPIC)
     private Topic commandUpdateTopic;
-    @Resource(mappedName = Constants.JMS_NOTIFICATION_TOPIC)
+    @Resource(lookup = Constants.JMS_NOTIFICATION_TOPIC)
     private Topic notificationTopic;
 
     @Transactional(Transactional.TxType.MANDATORY)

@@ -104,7 +104,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "notification/subscribe")
-//    @Transactional
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         Gson gson = GsonFactory.createGson();
         Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);

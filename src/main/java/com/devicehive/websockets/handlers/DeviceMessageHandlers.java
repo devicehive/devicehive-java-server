@@ -198,29 +198,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return jsonResponseObject;
     }
 
-    @Action(value = "device/test", needsAuth = false) //TODO delete method
-    public JsonObject testFunc(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson();
-        UUID guid = gson.fromJson(message.get("guid"), UUID.class);
-        Date startDate = gson.fromJson(message.get("start"), Date.class);
-        Date endDate = gson.fromJson(message.get("end"), Date.class);
-        String command = message.get("command").getAsString();
-        String sortField = message.get("sortField").getAsString();
-        Device device = deviceDAO.findByUUID(guid);
-        List<DeviceCommand> resultList;
-        try {
-            resultList = deviceCommandDAO.queryDeviceCommand(device, startDate, endDate, command, "status",
-                    sortField, null, null, null);
-        } catch (Exception e) {
-            e.getMessage();
-        }
-        JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addAction("device/save")
-                .addRequestId(message.get("requestId"))
-                .build();
-        return jsonResponseObject;
-    }
-
     private Device getDevice(Session session, JsonObject request) {
         if (WebsocketSession.hasAuthorisedDevice(session)) {
             return WebsocketSession.getAuthorisedDevice(session);

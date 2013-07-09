@@ -29,7 +29,7 @@
 
     <persistence-unit name="devicehiveEmbedded" transaction-type="JTA">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-        <jta-data-source>jdbc/DeviceHiveEmbeddedDataSource</jta-data-source>
+        <jta-data-source>java:global/jdbc/DeviceHiveEmbeddedDataSource</jta-data-source>
 
         <class>com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSubscription</class>
         <class>com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription</class>
