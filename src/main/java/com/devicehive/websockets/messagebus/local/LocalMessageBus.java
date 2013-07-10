@@ -104,7 +104,7 @@ public class LocalMessageBus {
     public void submitCommandUpdate(DeviceCommand deviceCommand) {
         logger.debug("Submitting command update for command " + deviceCommand.getId());
         CommandUpdatesSubscription commandUpdatesSubscription =
-                commandUpdatesSubscriptionDAO.getById(deviceCommand.getId());
+                commandUpdatesSubscriptionDAO.getByCommandId(deviceCommand.getId());
         if (commandUpdatesSubscription == null) {
             logger.warn("No updates for command with id = " + deviceCommand.getId() + " found");
             return;
@@ -140,6 +140,7 @@ public class LocalMessageBus {
     @Transactional
     public void subscribeForCommands(Device device, Session session) {
         logger.debug("Subscribing for commands for device : " + device.getId() + " and session : " + session.getId());
+        commandSubscriptionDAO.deleteByDeviceAndSession(device.getId(), session.getId());
         commandSubscriptionDAO.insert(new CommandsSubscription(device.getId(), session.getId()));
     }
 
@@ -152,12 +153,13 @@ public class LocalMessageBus {
     @Transactional
     public void unsubscribeFromCommands(Device device, String sessionId) {
         logger.debug("Unsubscribing from commands for device : " + device.getId() + " and session : " + sessionId);
-        commandSubscriptionDAO.deleteByDeviceAndSession(device, sessionId);
+        commandSubscriptionDAO.deleteByDeviceAndSession(device.getId(), sessionId);
     }
 
     public void subscribeForCommandUpdates(Long commandId, Session session) {
         logger.debug("Subscribing for commands update for command : " + commandId + " and session : " +
                 session.getId());
+        commandUpdatesSubscriptionDAO.deleteByCommandId(commandId);
         commandUpdatesSubscriptionDAO.insert(new CommandUpdatesSubscription(commandId, session.getId()));
     }
 

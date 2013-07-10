@@ -33,6 +33,7 @@ public class DeviceEndpoint extends Endpoint {
     public void onOpen(Session session) {
         logger.debug("[onOpen] session id " + session.getId());
         WebsocketSession.createCommandsSubscriptionsLock(session);
+        WebsocketSession.createQueueLock(session);
         sessionMap.addSession(session);
     }
 

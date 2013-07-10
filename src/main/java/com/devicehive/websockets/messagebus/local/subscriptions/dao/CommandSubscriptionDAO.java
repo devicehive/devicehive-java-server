@@ -44,10 +44,10 @@ public class CommandSubscriptionDAO {
     }
 
     @Transactional
-    public void deleteByDeviceAndSession(Device device, String sessionId){
+    public void deleteByDeviceAndSession(Long deviceId, String sessionId){
         Query query = em.createNamedQuery("CommandsSubscription.deleteByDeviceAndSession");
         query.setParameter("sessionId", sessionId);
-        query.setParameter("deviceId", device.getId());
+        query.setParameter("deviceId", deviceId);
         query.executeUpdate();
     }
 }

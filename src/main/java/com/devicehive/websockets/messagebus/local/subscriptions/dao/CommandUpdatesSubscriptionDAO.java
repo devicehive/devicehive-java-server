@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 
 
@@ -21,6 +22,13 @@ public class CommandUpdatesSubscriptionDAO {
         return em.find(CommandUpdatesSubscription.class, id);
     }
 
+    public CommandUpdatesSubscription getByCommandId(Long id){
+        TypedQuery<CommandUpdatesSubscription> query = em.createNamedQuery("CommandUpdateSubscription" +
+                ".getByCommandId", CommandUpdatesSubscription.class);
+        query.setParameter("commandId", id);
+        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
+    }
+
     @Transactional
     public void insert(CommandUpdatesSubscription subscription){
         em.persist(subscription);
@@ -30,6 +38,13 @@ public class CommandUpdatesSubscriptionDAO {
     public void deleteBySession(String sessionId){
         Query query = em.createNamedQuery("CommandUpdatesSubscription.deleteBySession");
         query.setParameter("sessionId", sessionId);
+        query.executeUpdate();
+    }
+
+    @Transactional
+    public void deleteByCommandId(Long commandId){
+        Query query = em.createNamedQuery("CommandUpdatesSubscription.deleteByCommandId");
+        query.setParameter("commandId", commandId);
         query.executeUpdate();
     }
 

@@ -94,12 +94,23 @@ public class WebsocketSession {
     }
 
 
-    public static void deliverMessages(Session session) throws IOException {
+    public static void deliverMessages(Session session) throws IOException{
         ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(QUEUE);
         while (!queue.isEmpty()) {
-            JsonElement jsonElement = queue.poll();
-            String data = new GsonBuilder().setPrettyPrinting().create().toJson(jsonElement);
-            session.getBasicRemote().sendText(data);
+            JsonElement jsonElement = queue.peek();
+            if (session.isOpen()) {
+                try {
+                    String data = new GsonBuilder().setPrettyPrinting().create().toJson(jsonElement);
+                    session.getBasicRemote().sendText(data);
+                    queue.poll();
+                } catch (IOException ex) {
+                    logger.warn("Unable to deliver message. Will try again");
+                    throw ex;
+                }
+            } else {
+                logger.error("Session is closed. Unable to deliver message");
+                queue.clear();
+            }
             logger.debug("Session " + session.getId() + ": " + queue.size() + " messages left");
         }
     }
