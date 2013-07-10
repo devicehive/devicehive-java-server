@@ -16,9 +16,17 @@ public class WebsocketThreadPoolSingleton {
         pool.submit(new Callable() {
             @Override
             public Void call() throws Exception {
-                if (WebsocketSession.getCommandQueueLock(session).tryLock()) {
-                    WebsocketSession.deliverMessages(session);
-                    WebsocketSession.getCommandQueueLock(session).unlock();
+                boolean acquired = false;
+                try {
+                    acquired = WebsocketSession.getCommandQueueLock(session).tryLock();
+                    if (acquired) {
+                        WebsocketSession.deliverMessages(session);
+
+                    }
+                } finally {
+                    if (acquired) {
+                        WebsocketSession.getCommandQueueLock(session).unlock();
+                    }
                 }
                 return null;
             }

@@ -53,6 +53,7 @@ abstract class Endpoint {
             }
             response = JsonMessageBuilder.createErrorResponseBuilder(builderForResponse.toString()).build();
         } catch (Exception ex) {
+
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
         }
@@ -72,6 +73,7 @@ abstract class Endpoint {
                     try {
                         return (JsonObject) method.invoke(handler, request, session);
                     } catch (InvocationTargetException e) {
+                        //TODO Hive Exception.
                         if (e.getTargetException() instanceof HiveException) {
                             throw new HiveException(e.getTargetException().getMessage(), e);
                         }
@@ -92,8 +94,6 @@ abstract class Endpoint {
                                 }
                             }
                         }
-                        throw e;
-                    } catch (IllegalAccessException e) {
                         throw e;
                     }
                 }

@@ -6,14 +6,15 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(indexes = {
-        @Index(columnList = "deviceId"),
+        @Index(columnList = "deviceId", unique = true),
         @Index(columnList = "sessionId")
 })
 @NamedQueries({
         @NamedQuery(name = "CommandsSubscription.deleteBySession", query = "delete from CommandsSubscription c where " +
                 "c.sessionId = :sessionId "),
         @NamedQuery(name = "CommandsSubscription.deleteByDeviceAndSession", query = "delete from CommandsSubscription c where " +
-                "c.sessionId = :sessionId and c.deviceId = :deviceId")
+                "c.sessionId = :sessionId and c.deviceId = :deviceId"),
+        @NamedQuery(name = "CommandsSubscription.getByDeviceId", query = "select c from CommandsSubscription c where c.deviceId = :deviceId")
 })
 public class CommandsSubscription {
 

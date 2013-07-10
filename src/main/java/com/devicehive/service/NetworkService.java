@@ -22,8 +22,9 @@ public class NetworkService {
             network = networkDAO.findByName(networkFromMessage.getName());
         }
         if (network == null) {
-            networkDAO.addNetwork(network);
+            networkDAO.addNetwork(networkFromMessage);
             network = networkFromMessage;
+
         } else {
             network = updateNetworkIfRequired(network, networkFromMessage);
         }

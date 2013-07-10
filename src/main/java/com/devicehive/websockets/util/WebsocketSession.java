@@ -100,6 +100,7 @@ public class WebsocketSession {
             JsonElement jsonElement = queue.poll();
             String data = new GsonBuilder().setPrettyPrinting().create().toJson(jsonElement);
             session.getBasicRemote().sendText(data);
+            logger.debug("Session " + session.getId() + ": " + queue.size() + " messages left");
         }
     }
 

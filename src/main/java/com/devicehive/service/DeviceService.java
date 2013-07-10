@@ -1,13 +1,17 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.*;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -18,7 +22,7 @@ import java.util.UUID;
 
 
 public class DeviceService {
-
+    private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
     @Inject
@@ -46,12 +50,14 @@ public class DeviceService {
     public void deviceSave(Device device, Set<Equipment> equipmentSet, UUID deviceId){
         Device existingDevice = deviceDAO.findByUUID(deviceId);
         if (existingDevice != null) {
+            logger.debug("device with uuid = " + device.getGuid() + "exists. Device will be updated");
             existingDevice.setName(device.getName());
             existingDevice.setData(device.getData());
             existingDevice.setStatus(device.getStatus());
             existingDevice.setKey(device.getKey());
             updateDevice(existingDevice, device.getNetwork(), device.getDeviceClass(), equipmentSet);
         } else {
+            logger.debug("device with uuid = " + deviceId + "doesn't exists. Device will be saved");
             device.setGuid(deviceId);
             registerDevice(device, device.getNetwork(), device.getDeviceClass(), equipmentSet);
         }
@@ -87,7 +93,14 @@ public class DeviceService {
         if (notification.getNotification().equals("equipment")){
             String jsonParametersString = notification.getParameters().getJsonString();
             Gson gson = GsonFactory.createGson();
-            JsonObject jsonEquipmentObject = gson.fromJson(jsonParametersString, JsonObject.class);
+            JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
+            JsonObject jsonEquipmentObject;
+            if (parametersJsonElement instanceof JsonObject){
+               jsonEquipmentObject = (JsonObject) parametersJsonElement;
+            }
+            else{
+                throw new HiveException("\"parameters\" must be JSON Object!");
+            }
             DeviceEquipment deviceEquipment = constructDeviceEquipmentObject(jsonEquipmentObject, device);
             deviceEquipmentService.resolveSaveOrUpdateEquipment(deviceEquipment);
         }
@@ -109,7 +122,6 @@ public class DeviceService {
     private void resolveNetworkAndDeviceClassAndEquipment(Device device, Network networkFromMessage,
                                                           DeviceClass deviceClass,
                                                           Set<Equipment> equipmentSet) {
-
         DeviceClass resultDeviceClass = getResultDeviceClass(deviceClass);
         device.setDeviceClass(resultDeviceClass);
         if (networkFromMessage != null) {

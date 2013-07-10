@@ -65,6 +65,7 @@ public class NotificationSubscriptionDAO {
     public List<String> getSessionIdSubscribedByDevice(Long deviceId) {
         TypedQuery<String> query = em.createNamedQuery("NotificationsSubscription.getSubscribedByDevice",
                 String.class);
+        query.setParameter("deviceId", deviceId);
         return query.getResultList();
     }
 

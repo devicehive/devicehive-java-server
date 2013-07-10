@@ -10,7 +10,7 @@
 
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${APP_NAME}.log</file>
+        <file>${com.sun.aas.instanceRoot}/logs/${APP_NAME}.log</file>
         <append>true</append>
         <prudent>false</prudent>
 
