@@ -4,9 +4,6 @@ package com.devicehive.websockets.json;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
 
 public class UUIDAdapter implements JsonSerializer<UUID>, JsonDeserializer<UUID> {
@@ -16,6 +13,10 @@ public class UUIDAdapter implements JsonSerializer<UUID>, JsonDeserializer<UUID>
     }
 
     public UUID deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        return UUID.fromString(jsonElement.getAsString());
+        try {
+            return UUID.fromString(jsonElement.getAsString());
+        } catch (IllegalArgumentException ex) {
+            throw new JsonParseException("Error parsing UUID.",ex);
+        }
     }
 }

@@ -6,6 +6,7 @@ import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
@@ -45,10 +46,10 @@ abstract class Endpoint {
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (JsonSyntaxException ex) {
-            // Stop processing this request, response with simple error message (status and error fields)
-            logger.error("[processMessage] Incorrect message syntax ", ex);
             return JsonMessageBuilder.createErrorResponseBuilder("Incorrect JSON syntax: " + ex.getCause().getLocalizedMessage()).build();
-        } catch (ConstraintViolationException ex) {
+        } catch(JsonParseException ex){
+           return JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
+        }catch (ConstraintViolationException ex) {
             Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
             StringBuilder builderForResponse = new StringBuilder("[processMessage] Validation failed: \n");
             for (ConstraintViolation<?> constraintViolation : constraintViolations) {
@@ -77,31 +78,7 @@ abstract class Endpoint {
                     try {
                         return (JsonObject) method.invoke(handler, request, session);
                     } catch (InvocationTargetException e) {
-                        //TODO Hive Exception.
-                        if (e.getTargetException() instanceof HiveException) {
-                            throw new HiveException(e.getTargetException().getMessage(), e);
-                        }
-                        if (e.getTargetException() instanceof JsonSyntaxException) {
-                            throw (JsonSyntaxException) e.getTargetException();
-                        }
-                        if (e.getTargetException() instanceof TransactionalException) {
-                            TransactionalException target = (TransactionalException) e.getTargetException();
-                            target.getCause();
-                            if (target.getCause() instanceof RollbackException) {
-                                RollbackException rollbackException = (RollbackException) target.getCause();
-                                if (rollbackException.getCause() instanceof PersistenceException) {
-                                    PersistenceException persistenceException = (PersistenceException)
-                                            rollbackException.getCause();
-                                    if (persistenceException.getCause() instanceof ConstraintViolationException) {
-                                        ConstraintViolationException constraintViolationException =
-                                                (ConstraintViolationException) persistenceException.getCause();
-                                        throw new ConstraintViolationException(constraintViolationException
-                                                .getMessage(), constraintViolationException.getConstraintViolations());
-                                    }
-                                }
-                            }
-                        }
-                        throw e;
+                       invocationTargetExceptionResolve(e);
                     }
                 }
             }
@@ -109,6 +86,36 @@ abstract class Endpoint {
         throw new HiveException("Unknown action requested: " + action);
     }
 
+
+    private void invocationTargetExceptionResolve(InvocationTargetException e) throws InvocationTargetException {
+        if (e.getTargetException() instanceof HiveException) {
+            throw new HiveException(e.getTargetException().getMessage(), e);
+        }
+        if (e.getTargetException() instanceof JsonSyntaxException) {
+            throw (JsonSyntaxException) e.getTargetException();
+        }
+        if (e.getTargetException() instanceof JsonParseException){
+            throw (JsonParseException) e.getTargetException();
+        }
+        if (e.getTargetException() instanceof TransactionalException) {
+            TransactionalException target = (TransactionalException) e.getTargetException();
+            target.getCause();
+            if (target.getCause() instanceof RollbackException) {
+                RollbackException rollbackException = (RollbackException) target.getCause();
+                if (rollbackException.getCause() instanceof PersistenceException) {
+                    PersistenceException persistenceException = (PersistenceException)
+                            rollbackException.getCause();
+                    if (persistenceException.getCause() instanceof ConstraintViolationException) {
+                        ConstraintViolationException constraintViolationException =
+                                (ConstraintViolationException) persistenceException.getCause();
+                        throw new ConstraintViolationException(constraintViolationException
+                                .getMessage(), constraintViolationException.getConstraintViolations());
+                    }
+                }
+            }
+        }
+        throw e;
+    }
     private JsonObject constructFinalResponse(JsonObject request, JsonObject response) {
         if (response == null) {
             logger.error("[constructFinalResponse]  response is null ");

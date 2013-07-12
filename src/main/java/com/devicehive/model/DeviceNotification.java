@@ -52,7 +52,7 @@ public class DeviceNotification implements Serializable {
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification shouldn't be more than " +
             "128 symbols.")
     private String notification;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;

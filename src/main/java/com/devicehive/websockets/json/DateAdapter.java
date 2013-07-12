@@ -25,7 +25,7 @@ public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
         try {
             return dateFormat.parse(jsonElement.getAsString());
         } catch (ParseException e) {
-            throw new JsonParseException(e);
+            throw new JsonParseException("Error parsing date. Date must be in format yyyy-MM-dd HH:mm:ss.SSS", e);
         }
     }
 }

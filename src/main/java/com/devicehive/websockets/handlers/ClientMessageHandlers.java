@@ -21,13 +21,11 @@ import com.devicehive.websockets.util.WebsocketSession;
 import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.util.Date;
 import java.util.List;
@@ -124,20 +122,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
         logger.debug("notification/subscribe action" + ". Session " + session.getId());
         Gson gson = GsonFactory.createGson();
-        Date timestamp;
-        try {
-            timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
-        } catch (JsonParseException e) {
-            throw new HiveException(e.getCause().getMessage() + " Date must be in format \"yyyy-MM-dd HH:mm:ss" +
-                    ".SSS\"", e);
-        }
-        if (timestamp == null){
+        Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
+        if (timestamp == null) {
             timestamp = new Date();
         }
         //TODO set notification's limit (do not try to get notifications for last year :))
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
-        }.getType());
-
+            }.getType());
         if (list == null || list.isEmpty()) {
             processNotificationSubscribeNullCase(session, timestamp);
         } else {
@@ -149,8 +140,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     }
 
-    @Transactional
-    public void processNotificationSubscribeNullCase(Session session, Date timestamp) {
+
+    private void processNotificationSubscribeNullCase(Session session, Date timestamp) {
         logger.debug("notification/subscribe action - null guid case." + ". Session " + session.getId());
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
         List<DeviceNotification> deviceNotifications;
@@ -189,8 +180,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     }
 
-    @Transactional
-    public void processNotificationSubscribeNotNullCase(List<UUID> guids, Session session, Date timestamp) {
+
+    private void processNotificationSubscribeNotNullCase(List<UUID> guids, Session session, Date timestamp) {
         logger.debug("notification/subscribe action - null guid case." + ". Session " + session.getId());
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
         List<Device> devices;
