@@ -11,6 +11,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.*;
+import com.devicehive.websockets.messagebus.ServerResponsesFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.WebsocketSession;
@@ -18,6 +19,7 @@ import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,13 +100,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "command/subscribe")
-    public JsonObject processNotificationSubscribe(JsonObject message, Session session) {
+    public JsonObject processCommandSubscribe(JsonObject message, Session session) {
         logger.debug("command subscribe action started for session : " + session.getId());
         Gson gson = GsonFactory.createGson();
-        Date timestamp = gson.fromJson(message.getAsJsonPrimitive("timestamp"), Date.class);
         Device device = getDevice(session, message);
-        if (timestamp == null) {
-            timestamp = new Date(System.currentTimeMillis());
+        Date timestamp;
+        try {
+            timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
+        } catch (JsonParseException e) {
+            throw new HiveException(e.getCause().getMessage() + " Date must be in format \"yyyy-MM-dd HH:mm:ss" +
+                    ".SSS\"", e);
+        }
+        if (timestamp == null){
+            timestamp = new Date();
         }
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
@@ -112,10 +120,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             localMessageBus.subscribeForCommands(device, session);
             logger.debug("will get commands newer than : " + timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
-            gson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy());
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
                 logger.debug("will add command to queue : " + deviceCommand.getId());
-                WebsocketSession.addMessagesToQueue(session, gson.toJsonTree(deviceCommand, DeviceCommand.class));
+                WebsocketSession.addMessagesToQueue(session, ServerResponsesFactory.createCommandInsertMessage(deviceCommand));
             }
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();

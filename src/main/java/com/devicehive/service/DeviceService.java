@@ -47,7 +47,7 @@ public class DeviceService {
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
 
     @Transactional
-    public void deviceSave(Device device, Set<Equipment> equipmentSet, UUID deviceId){
+    public void deviceSave(Device device, Set<Equipment> equipmentSet, UUID deviceId) {
         Device existingDevice = deviceDAO.findByUUID(deviceId);
         if (existingDevice != null) {
             logger.debug("device with uuid = " + device.getGuid() + "exists. Device will be updated");
@@ -86,25 +86,38 @@ public class DeviceService {
         messagePublisher.publishCommandUpdate(update);
     }
 
-    @Transactional
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
-        notification.setDevice(device);
-        deviceNotificationDAO.saveNotification(notification);
-        if (notification.getNotification().equals("equipment")){
-            String jsonParametersString = notification.getParameters().getJsonString();
-            Gson gson = GsonFactory.createGson();
-            JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
-            JsonObject jsonEquipmentObject;
-            if (parametersJsonElement instanceof JsonObject){
-               jsonEquipmentObject = (JsonObject) parametersJsonElement;
-            }
-            else{
-                throw new HiveException("\"parameters\" must be JSON Object!");
-            }
-            DeviceEquipment deviceEquipment = constructDeviceEquipmentObject(jsonEquipmentObject, device);
+        DeviceEquipment deviceEquipment = null;
+        if (notification.getNotification().equals("equipment")) {
+            deviceEquipment = parseNotification(notification, device);
+        }
+        submitDeviceNotificationTransactionProcess(notification, device, deviceEquipment);
+
+    }
+
+    private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {
+        String jsonParametersString = notification.getParameters().getJsonString();
+        Gson gson = GsonFactory.createGson();
+        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
+        JsonObject jsonEquipmentObject;
+        if (parametersJsonElement instanceof JsonObject) {
+            jsonEquipmentObject = (JsonObject) parametersJsonElement;
+        } else {
+            throw new HiveException("\"parameters\" must be JSON Object!");
+        }
+        return constructDeviceEquipmentObject(jsonEquipmentObject, device);
+    }
+
+    @Transactional
+    public void submitDeviceNotificationTransactionProcess(DeviceNotification notification, Device device,
+                                                           DeviceEquipment deviceEquipment) {
+        if (deviceEquipment != null) {
             deviceEquipmentService.resolveSaveOrUpdateEquipment(deviceEquipment);
         }
+        notification.setDevice(device);
+        deviceNotificationDAO.saveNotification(notification);
         messagePublisher.publishNotification(notification);
+
     }
 
     @Transactional
@@ -125,7 +138,7 @@ public class DeviceService {
         DeviceClass resultDeviceClass = getResultDeviceClass(deviceClass);
         device.setDeviceClass(resultDeviceClass);
         if (networkFromMessage != null) {
-            device.setNetwork(networkService.getNetwork(networkFromMessage));
+            device.setNetwork(networkService.createOrUpdateNetworkAndGetIt(networkFromMessage));
         }
         if (!resultDeviceClass.getPermanent() && equipmentSet != null && !equipmentSet.isEmpty()) {
             resolveEquipment(resultDeviceClass, equipmentSet);
@@ -198,7 +211,7 @@ public class DeviceService {
         deviceClassDAO.addDeviceClass(deviceClass);
     }
 
-    private DeviceEquipment constructDeviceEquipmentObject (JsonObject jsonEquipmentObject, Device device){
+    private DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
         DeviceEquipment result = new DeviceEquipment();
         String deviceEquipmentCode = jsonEquipmentObject.get("equipment").getAsString();
         result.setCode(deviceEquipmentCode);

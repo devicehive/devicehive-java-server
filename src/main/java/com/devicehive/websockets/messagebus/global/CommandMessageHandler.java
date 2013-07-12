@@ -8,11 +8,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.ObjectMessage;
+import javax.jms.*;
 
+@JMSDestinationDefinition(
+        name= Constants.JMS_COMMAND_TOPIC,
+        interfaceName = "javax.jms.Topic",
+        destinationName = Constants.COMMAND_TOPIC_DESTINATION_NAME          //???
+)
 @MessageDriven(mappedName = Constants.JMS_COMMAND_TOPIC)
 public class CommandMessageHandler implements MessageListener {
 

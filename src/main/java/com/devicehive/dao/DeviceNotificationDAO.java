@@ -24,7 +24,7 @@ public class DeviceNotificationDAO {
 
     @Transactional
     public void saveNotification(DeviceNotification deviceNotification) {
-        deviceNotification.setTimestamp(new Date(System.currentTimeMillis()));
+        deviceNotification.setTimestamp(new Date());
         em.persist(deviceNotification);
 
     }
@@ -81,7 +81,7 @@ public class DeviceNotificationDAO {
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         if (sortField != null) {
-            if (sortOrderAsc == null || sortOrderAsc == true) {
+            if (sortOrderAsc == null || sortOrderAsc) {
                 criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
             } else {
                 criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));

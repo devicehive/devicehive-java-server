@@ -6,10 +6,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
-import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.CommandUpdateExclusionStrategy;
-import com.devicehive.websockets.json.strategies.DeviceCommandInsertExclusionStrategy;
-import com.devicehive.websockets.json.strategies.NotificationInsertRequestExclusionStrategy;
+import com.devicehive.websockets.messagebus.ServerResponsesFactory;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
@@ -18,7 +15,6 @@ import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSu
 import com.devicehive.websockets.util.SingletonSessionMap;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,14 +69,7 @@ public class LocalMessageBus {
         if (session == null || !session.isOpen()) {
             return;
         }
-
-        JsonElement deviceCommandJson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy())
-                .toJsonTree(deviceCommand, DeviceCommand.class);
-
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("action", "command/insert");
-        jsonObject.addProperty("deviceGuid", deviceCommand.getDevice().getGuid().toString());
-        jsonObject.add("command", deviceCommandJson);
+        JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
 
         Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
         try {
@@ -114,12 +103,7 @@ public class LocalMessageBus {
         if (session == null || !session.isOpen()) {
             return;
         }
-        JsonElement deviceCommandJson =
-                GsonFactory.createGson(new CommandUpdateExclusionStrategy()).toJsonTree(deviceCommand);
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("action", "command/update");
-        jsonObject.add("command", deviceCommandJson);
-
+        JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("Add messages to queue process for session " + session.getId());
@@ -172,12 +156,7 @@ public class LocalMessageBus {
     //TODO make this multithreaded ?!
     public void submitNotification(DeviceNotification deviceNotification) {
         logger.debug("Submit notification action for deviceNotification :" + deviceNotification.getId());
-        JsonElement deviceNotificationJson =
-                GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy()).toJsonTree(deviceNotification);
-        JsonObject resultMessage = new JsonObject();
-        resultMessage.addProperty("action", "notification/insert");
-        resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
-        resultMessage.add("notification", deviceNotificationJson);
+        JsonObject resultMessage = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
 
         Set<Session> delivers = new HashSet();
 
@@ -216,12 +195,8 @@ public class LocalMessageBus {
             } finally {
                 lock.unlock();
                 logger.debug("deliver messages for session : " + session.getId());
-                try{
                 threadPoolSingleton.deliverMessagesAndNotify(session);
-                }
-                catch (Exception e){
-                    e.getCause();
-                }
+
             }
         }
     }

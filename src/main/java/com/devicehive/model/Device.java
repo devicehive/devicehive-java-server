@@ -77,12 +77,12 @@ public class Device implements Serializable{
 
     @SerializedName("network")
     @ManyToOne
-    @JoinColumn(name = "network_id")
+    @JoinColumn(name = "network_id", updatable = false)
     private Network network;
 
     @SerializedName("deviceClass")
     @ManyToOne
-    @JoinColumn(name = "device_class_id")
+    @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "deviceClass field cannot be null.")
     private DeviceClass deviceClass;
 

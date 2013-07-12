@@ -79,7 +79,7 @@ public class DeviceCommandDAO {
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         if (sortField != null) {
-            if (sortOrderAsc == null || sortOrderAsc == true) {
+            if (sortOrderAsc == null || sortOrderAsc) {
                 criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
             } else {
                 criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));

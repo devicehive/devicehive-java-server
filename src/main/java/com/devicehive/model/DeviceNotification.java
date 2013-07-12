@@ -53,7 +53,7 @@ public class DeviceNotification implements Serializable {
             "128 symbols.")
     private String notification;
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
 

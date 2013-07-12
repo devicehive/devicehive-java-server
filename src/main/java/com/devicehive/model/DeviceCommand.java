@@ -34,12 +34,12 @@ public class DeviceCommand implements Serializable{
 
     @SerializedName("user")
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", updatable = false)
     public User user;
 
     @SerializedName("device")
     @ManyToOne
-    @JoinColumn(name = "device_id")
+    @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     public Device device;
 

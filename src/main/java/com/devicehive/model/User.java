@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
@@ -19,7 +20,8 @@ import java.util.Set;
 @NamedQueries({
     @NamedQuery(name= "User.findByName", query = "select u from User u where u.login = :login"),
     @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
-    @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n where u = :user and n = :network")
+    @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
+            "where u = :user and n = :network")
 })
 
 public class User  implements Serializable {

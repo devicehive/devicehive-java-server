@@ -13,8 +13,7 @@ public class NetworkService {
     @Inject
     private NetworkDAO networkDAO;
 
-    @Transactional
-    public Network getNetwork(Network networkFromMessage) {
+    public Network createOrUpdateNetworkAndGetIt(Network networkFromMessage) {
         Network network;
         if (networkFromMessage.getId() != null) {
             network = networkDAO.findById(networkFromMessage.getId());
@@ -24,19 +23,21 @@ public class NetworkService {
         if (network == null) {
             networkDAO.addNetwork(networkFromMessage);
             network = networkFromMessage;
-
         } else {
+            if (network.getKey() != null) {
+                if (!network.getKey().equals(networkFromMessage.getKey())) {
+                    throw new HiveException("Wrong network key!");
+                }
+            }
             network = updateNetworkIfRequired(network, networkFromMessage);
         }
         return network;
     }
 
+    @Transactional
     private Network updateNetworkIfRequired(Network networkfromDB, Network networkFromMessage) {
-        if (networkfromDB.getKey() != null) {
-            if (!networkfromDB.getKey().equals(networkFromMessage.getKey())) {
-                throw new HiveException("Wrong network key!");
-            }
-        }
+        networkfromDB = networkDAO.findByName(networkfromDB.getName()); //???
+
 
         boolean updateNetwork = false;
         if (networkFromMessage.getName() != null && !networkFromMessage.getName().equals

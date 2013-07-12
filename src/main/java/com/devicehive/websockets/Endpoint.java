@@ -44,9 +44,13 @@ abstract class Endpoint {
             response = tryExecute(handler, action, request, session);
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
+        } catch (JsonSyntaxException ex) {
+            // Stop processing this request, response with simple error message (status and error fields)
+            logger.error("[processMessage] Incorrect message syntax ", ex);
+            return JsonMessageBuilder.createErrorResponseBuilder("Incorrect JSON syntax: " + ex.getCause().getLocalizedMessage()).build();
         } catch (ConstraintViolationException ex) {
             Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
-            StringBuilder builderForResponse = new StringBuilder("Validation failed: \n");
+            StringBuilder builderForResponse = new StringBuilder("[processMessage] Validation failed: \n");
             for (ConstraintViolation<?> constraintViolation : constraintViolations) {
                 builderForResponse.append(constraintViolation.getMessage());
                 builderForResponse.append("\n");
@@ -76,6 +80,9 @@ abstract class Endpoint {
                         //TODO Hive Exception.
                         if (e.getTargetException() instanceof HiveException) {
                             throw new HiveException(e.getTargetException().getMessage(), e);
+                        }
+                        if (e.getTargetException() instanceof JsonSyntaxException) {
+                            throw (JsonSyntaxException) e.getTargetException();
                         }
                         if (e.getTargetException() instanceof TransactionalException) {
                             TransactionalException target = (TransactionalException) e.getTargetException();

@@ -85,7 +85,7 @@ public class WebsocketSession {
     }
 
     public static void createQueueLock(Session session) {
-        if  (!session.getUserProperties().containsKey(QUEUE)) {
+        if (!session.getUserProperties().containsKey(QUEUE)) {
             session.getUserProperties().put(QUEUE, new ConcurrentLinkedQueue<JsonElement>());
         }
         if (!session.getUserProperties().containsKey(QUEUE_LOCK)) {
@@ -93,8 +93,7 @@ public class WebsocketSession {
         }
     }
 
-
-    public static void deliverMessages(Session session) throws IOException{
+    public static void deliverMessages(Session session) throws IOException {
         ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(QUEUE);
         while (!queue.isEmpty()) {
             JsonElement jsonElement = queue.peek();
@@ -121,5 +120,6 @@ public class WebsocketSession {
             queue.add(json);
         }
     }
-
 }
+
+

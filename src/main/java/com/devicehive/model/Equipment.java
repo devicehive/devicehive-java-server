@@ -55,7 +55,7 @@ public class Equipment implements Serializable {
     private JsonStringWrapper data;
 
     @ManyToOne
-    @JoinColumn(name = "device_class_id")
+    @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "device class field cannot be null")
     private DeviceClass deviceClass;
 
