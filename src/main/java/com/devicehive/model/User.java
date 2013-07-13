@@ -15,10 +15,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Entity
+@Entity(name = "User")
 @Table(name = "\"user\"")
 @NamedQueries({
-    @NamedQuery(name= "User.findByName", query = "select u from User u where u.login = :login"),
+    @NamedQuery(name= "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
+    @NamedQuery(name= "User.delete", query = "update User u set u.status = 3 where u.id = :id"),
     @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
     @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
             "where u = :user and n = :network")
@@ -69,8 +70,8 @@ public class User  implements Serializable {
     @SerializedName("lastLogin")
     private Date lastLogin;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
-    private List<Network> networks;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users", cascade = CascadeType.ALL)
+    private Set<Network> networks;
 
 
     public User() {
@@ -132,11 +133,11 @@ public class User  implements Serializable {
         this.passwordHash = passwordHash;
     }
 
-    public List<Network> getNetworks() {
+    public Set<Network> getNetworks() {
         return networks;
     }
 
-    public void setNetworks(List<Network> networks) {
+    public void setNetworks(Set<Network> networks) {
         this.networks = networks;
     }
 

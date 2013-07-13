@@ -47,7 +47,7 @@ public class Network implements Serializable {
     @JoinTable(name = "user_network", joinColumns = {@JoinColumn(name = "network_id", nullable = false,
             updatable = false)},
             inverseJoinColumns = {@JoinColumn(name = "user_id",nullable = false, updatable = false)})
-    private List<User> users;
+    private Set<User> users;
 
     public Network() {
 
@@ -84,6 +84,16 @@ public class Network implements Serializable {
     public void setDescription(String description) {
         this.description = description;
     }
+
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
 
     /**
      * Validates network representation. Returns set of strings which are represent constraint violations. Set will

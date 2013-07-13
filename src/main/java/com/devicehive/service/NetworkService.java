@@ -1,59 +1,49 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.NetworkDAO;
+import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 
-import javax.inject.Inject;
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import java.util.List;
 
-
+@Stateless
 public class NetworkService {
 
-    @Inject
-    private NetworkDAO networkDAO;
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
+    private EntityManager em;
 
-    public Network createOrUpdateNetworkAndGetIt(Network networkFromMessage) {
-        Network network;
-        if (networkFromMessage.getId() != null) {
-            network = networkDAO.findById(networkFromMessage.getId());
-        } else {
-            network = networkDAO.findByName(networkFromMessage.getName());
-        }
-        if (network == null) {
-            networkDAO.addNetwork(networkFromMessage);
-            network = networkFromMessage;
-        } else {
-            if (network.getKey() != null) {
-                if (!network.getKey().equals(networkFromMessage.getKey())) {
-                    throw new HiveException("Wrong network key!");
-                }
-            }
-            network = updateNetworkIfRequired(network, networkFromMessage);
-        }
+    public Network createNetwork(Network network) {
+        em.persist(network);
         return network;
     }
 
-    @Transactional
-    private Network updateNetworkIfRequired(Network networkfromDB, Network networkFromMessage) {
-        networkfromDB = networkDAO.findByName(networkfromDB.getName()); //???
 
-
-        boolean updateNetwork = false;
-        if (networkFromMessage.getName() != null && !networkFromMessage.getName().equals
-                (networkfromDB.getName())) {
-            networkfromDB.setName(networkFromMessage.getName());
-            updateNetwork = true;
+    public Network createOrVeriryNetwork(Network network) {
+        Network stored = null;
+        if (network.getId() != null) {
+            stored = em.find(Network.class, network.getId());
+        } else {
+            TypedQuery<Network> query = em.createNamedQuery("Network.findByName", Network.class);
+            query.setParameter("name", network.getName());
+            List<Network> result = query.getResultList();
+            stored = result.isEmpty() ? null : result.get(0);
         }
-        if (networkFromMessage.getDescription() != null && !networkFromMessage.getDescription().equals
-                (networkfromDB.getDescription())) {
-            networkfromDB.setDescription(networkFromMessage.getDescription());
-            updateNetwork = true;
+        if (stored != null) {
+            if (stored.getKey() != null) {
+                if (stored.getKey().equals(network.getKey())) {
+                    throw new HiveException("Wrong network key!");
+                }
+            }
+        } else {
+            stored = createNetwork(network);
         }
-        if (updateNetwork) {
-            networkDAO.updateNetwork(networkfromDB);
-        }
-        return networkfromDB;
+        assert (stored != null);
+        return stored;
     }
 
 }

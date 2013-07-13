@@ -17,7 +17,7 @@
         var client = new WebSocket("<%=wsUrl%>");
 
         client.onmessage = function(event) {
-            document.getElementById("response").value = event.data;
+            document.getElementById("response").value +='\n'+ event.data;
         }
 
         function send() {

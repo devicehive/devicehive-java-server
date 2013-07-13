@@ -1,16 +1,29 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.UserDAO;
+import com.devicehive.configuration.Constants;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 
+import javax.ejb.*;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
+import javax.interceptor.Interceptors;
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaUpdate;
+import javax.persistence.criteria.Root;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
+@Singleton
+@Interceptors(ValidationInterceptor.class)
 public class UserService {
 
+    private static final int maxLoginAttempts = 10;
 
-    @Inject
-    private UserDAO userDAO;
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
+    private EntityManager em;
 
     @Inject
     private PasswordService passwordService;
@@ -21,21 +34,83 @@ public class UserService {
      * @param password
      * @return User object if authentication is successful or null if not
      */
-    @Transactional
+
     public User authenticate(String login, String password) {
-        User user = userDAO.findByLogin(login);
-        if (user == null) {
+        TypedQuery<User> query = em.createNamedQuery("User.findActiveByName", User.class);
+        query.setParameter("login", login);
+        query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+        List<User> list = query.getResultList();
+
+        if (list.isEmpty()) {
             return null;
         }
-        if (User.STATUS.Active.ordinal() != user.getStatus()) {
-            return null;
-        }
+        User user = list.get(0);
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            userDAO.incrementLoginAttempts(user);
+            user.setLoginAttempts(user.getLoginAttempts() + 1);
+            if (user.getLoginAttempts() >= maxLoginAttempts) {
+                user.setStatus(User.STATUS.LockedOut.ordinal());
+            }
             return null;
         } else {
-            return userDAO.finalizeLogin(user);
+            user.setLoginAttempts(0);
+            return user;
         }
     }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public boolean hasAccessToNetwork(User user, Network network) {
+        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToNetwork", Long.class);
+        query.setParameter("user", user);
+        query.setParameter("network", network);
+        Long count = query.getSingleResult();
+        return count != null && count > 0;
+    }
+
+    @Lock
+    public User createUser(@NotNull String login, @NotNull User.ROLE role, @NotNull User.STATUS status, @NotNull String password) {
+        TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
+        query.setParameter("login", login);
+        List<User> list = query.getResultList();
+        if (!list.isEmpty()) {
+            throw new HiveException("User " + login + " exists");
+        }
+        User user = new User();
+        user.setLogin(login);
+        user.setRole(role.ordinal());
+        user.setStatus(status.ordinal());
+        user.setPasswordSalt(passwordService.generateSalt());
+        user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
+        user.setLoginAttempts(0);
+        return em.merge(user);
+    }
+
+    public boolean updateUser(@NotNull Long id, String login, User.ROLE role, User.STATUS status, String password) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaUpdate<User> criteria = criteriaBuilder.createCriteriaUpdate(User.class);
+        Root from = criteria.from(User.class);
+        if (login != null) {
+            criteria.set("login", login);
+        }
+        if (role != null) {
+            criteria.set("role", role.ordinal());
+        }
+        if (status != null) {
+            criteria.set("status", status.ordinal());
+        }
+        if (password != null) {
+            String salt = passwordService.generateSalt();
+            String hash = passwordService.hashPassword(password, salt);
+            criteria.set("passwordHash", hash);
+            criteria.set("passwordSalt", salt);
+        }
+        criteria.where(criteriaBuilder.equal(from.get("id"), id));
+        return em.createQuery(criteria).executeUpdate() > 0;
+    }
+
+    public boolean deleteUser(@NotNull Long id) {
+        Query q = em.createNamedQuery("User.delete");
+        return q.executeUpdate() > 0;
+    }
+
 
 }

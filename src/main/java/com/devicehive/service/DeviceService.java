@@ -34,8 +34,6 @@ public class DeviceService {
     @Inject
     private DeviceClassDAO deviceClassDAO;
     @Inject
-    private UserDAO userDAO;
-    @Inject
     private DeviceDAO deviceDAO;
     @Inject
     private NetworkService networkService;
@@ -138,7 +136,7 @@ public class DeviceService {
         DeviceClass resultDeviceClass = getResultDeviceClass(deviceClass);
         device.setDeviceClass(resultDeviceClass);
         if (networkFromMessage != null) {
-            device.setNetwork(networkService.createOrUpdateNetworkAndGetIt(networkFromMessage));
+            device.setNetwork(networkService.createOrVeriryNetwork(networkFromMessage));
         }
         if (!resultDeviceClass.getPermanent() && equipmentSet != null && !equipmentSet.isEmpty()) {
             resolveEquipment(resultDeviceClass, equipmentSet);
