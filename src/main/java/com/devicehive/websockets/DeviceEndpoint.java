@@ -1,14 +1,14 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.dao.DeviceDAO;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
-import com.devicehive.websockets.util.SingletonSessionMap;
+import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -22,11 +22,9 @@ public class DeviceEndpoint extends Endpoint {
     @Inject
     private DeviceMessageHandlers deviceMessageHandlers;
 
-    @Inject
-    private DeviceDAO deviceDAO;
 
-    @Inject
-    private SingletonSessionMap sessionMap;
+    @EJB
+    private SessionMonitor sessionMonitor;
 
 
     @OnOpen
@@ -34,7 +32,7 @@ public class DeviceEndpoint extends Endpoint {
         logger.debug("[onOpen] session id " + session.getId());
         WebsocketSession.createCommandsSubscriptionsLock(session);
         WebsocketSession.createQueueLock(session);
-        sessionMap.addSession(session);
+        sessionMonitor.registerSession(session);
     }
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
@@ -46,7 +44,6 @@ public class DeviceEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
-        sessionMap.deleteSession(session.getId());
     }
 
     @OnError

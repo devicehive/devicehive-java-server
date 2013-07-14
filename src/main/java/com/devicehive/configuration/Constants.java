@@ -29,10 +29,6 @@ public class Constants {
 
     public static final String DATA_SOURCE_NAME = "java:global/jdbc/DeviceHiveEmbeddedDataSource";
 
-    public static final int PORT_NUMBER = 1527;
-
-    public static final String SERVER_NAME = "localhost";
-
     public static final String WEBSOCKET_SERVER_URL = "WebSocketServerUrl";
 
     public static final String REST_SERVER_URL = "RestServerUrl";

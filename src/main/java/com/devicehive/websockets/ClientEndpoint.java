@@ -5,16 +5,18 @@ import com.devicehive.websockets.handlers.ClientMessageHandlers;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
-import com.devicehive.websockets.util.SingletonSessionMap;
+import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
 
 @ServerEndpoint(value = "/client")
 public class ClientEndpoint extends Endpoint {
@@ -24,8 +26,8 @@ public class ClientEndpoint extends Endpoint {
     @Inject
     private ClientMessageHandlers clientMessageHandlers;
 
-    @Inject
-    private SingletonSessionMap sessionMap;
+    @EJB
+    private SessionMonitor sessionMonitor;
 
     @Inject
     private CommandSubscriptionDAO commandSubscriptionDAO;
@@ -42,7 +44,7 @@ public class ClientEndpoint extends Endpoint {
         WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
         WebsocketSession.createNotificationSubscriptionsLock(session);
         WebsocketSession.createQueueLock(session);
-        sessionMap.addSession(session);
+        sessionMonitor.registerSession(session);
     }
 
 
@@ -56,7 +58,6 @@ public class ClientEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
-        sessionMap.deleteSession(session.getId());
         deleteFromSubscriptions(session.getId());
     }
 

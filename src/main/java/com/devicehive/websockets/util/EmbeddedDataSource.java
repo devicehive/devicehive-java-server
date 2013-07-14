@@ -5,15 +5,18 @@ import com.devicehive.configuration.Constants;
 
 import javax.annotation.sql.DataSourceDefinition;
 import javax.ejb.Singleton;
+import java.sql.Connection;
 
 @DataSourceDefinition(
         className = Constants.DATA_SOURCE_CLASS_NAME,
         name = Constants.DATA_SOURCE_NAME,
-        portNumber = Constants.PORT_NUMBER,
-        serverName = Constants.SERVER_NAME,
-        user = "APP",
-        password = "APP",
-        databaseName = "memory:devicehive;create=true"
+        databaseName = "memory:devicehive;create=true",
+        transactional = true,
+        isolationLevel = Connection.TRANSACTION_SERIALIZABLE,
+        initialPoolSize = 2,
+        minPoolSize = 2,
+        maxPoolSize = 100
+
 )
 @Singleton
 public class EmbeddedDataSource {

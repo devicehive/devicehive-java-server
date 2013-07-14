@@ -12,7 +12,7 @@ import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdat
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSubscription;
-import com.devicehive.websockets.util.SingletonSessionMap;
+import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.JsonObject;
@@ -38,7 +38,7 @@ public class LocalMessageBus {
     @Inject
     private CommandSubscriptionDAO commandSubscriptionDAO;
     @Inject
-    private SingletonSessionMap sessionMap;
+    private SessionMonitor sessionMonitor;
     @Inject
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
     @Inject
@@ -65,7 +65,7 @@ public class LocalMessageBus {
             return;
         }
         logger.debug("Subscription for command " + deviceCommand.getId() + ": " + commandsSubscription);
-        Session session = sessionMap.getSession(commandsSubscription.getSessionId());
+        Session session = sessionMonitor.getSession(commandsSubscription.getSessionId());
         if (session == null || !session.isOpen()) {
             return;
         }
@@ -98,7 +98,7 @@ public class LocalMessageBus {
             logger.warn("No updates for command with id = " + deviceCommand.getId() + " found");
             return;
         }
-        Session session = sessionMap.getSession(commandUpdatesSubscription.getSessionId());
+        Session session = sessionMonitor.getSession(commandUpdatesSubscription.getSessionId());
 
         if (session == null || !session.isOpen()) {
             return;
@@ -165,7 +165,7 @@ public class LocalMessageBus {
         logger.debug("Getting sessions subscribed for all");
         Set<Session> subscribedForAll = new HashSet<>();
         for (String sessionId : sessionIdsSubscribedForAll) {
-            subscribedForAll.add(sessionMap.getSession(sessionId));
+            subscribedForAll.add(sessionMonitor.getSession(sessionId));
         }
         for (Session session : subscribedForAll) {
             User user = WebsocketSession.getAuthorisedUser(session);
@@ -179,7 +179,7 @@ public class LocalMessageBus {
 
         Set<Session> sessions = new HashSet<>();
         for (String sesionId : sessionIds) {
-            sessions.add(sessionMap.getSession(sesionId));
+            sessions.add(sessionMonitor.getSession(sesionId));
 
         }
         if (sessions != null) {
