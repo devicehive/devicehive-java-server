@@ -3,14 +3,17 @@ package com.devicehive.service;
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
 
+@Interceptors(ValidationInterceptor.class)
 @Stateless
 public class NetworkService {
 
@@ -22,9 +25,8 @@ public class NetworkService {
         return network;
     }
 
-
     public Network createOrVeriryNetwork(Network network) {
-        Network stored = null;
+        Network stored;
         if (network.getId() != null) {
             stored = em.find(Network.class, network.getId());
         } else {
@@ -35,7 +37,7 @@ public class NetworkService {
         }
         if (stored != null) {
             if (stored.getKey() != null) {
-                if (stored.getKey().equals(network.getKey())) {
+                if (!stored.getKey().equals(network.getKey())) {
                     throw new HiveException("Wrong network key!");
                 }
             }

@@ -3,9 +3,12 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.Stateless;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
@@ -16,7 +19,6 @@ import java.util.Set;
 
 public class EquipmentDAO {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -29,6 +31,11 @@ public class EquipmentDAO {
     }
 
     @Transactional
+    public Equipment findByIdForWrite(Long id) {
+       return em.find(Equipment.class, id, LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    @Transactional
     public void saveEquipment(Equipment... equipment) {
         for (Equipment e : equipment) {
             em.persist(e);
@@ -37,14 +44,8 @@ public class EquipmentDAO {
 
     @Transactional
     public void updateEquipment(Equipment... equipment) {
-        try{
         for (Equipment e : equipment) {
-            em.lock(equipment, LockModeType.PESSIMISTIC_WRITE);
             em.merge(equipment);
-        }
-        }
-        catch (Exception e){
-            logger.debug(e.getMessage(), e);
         }
     }
 
@@ -58,7 +59,6 @@ public class EquipmentDAO {
     @Transactional
     public void removeEquipment(Equipment... equipments) {
         for (Equipment equipment : equipments) {
-            em.lock(equipment, LockModeType.PESSIMISTIC_WRITE);
             em.remove(equipment);
         }
     }

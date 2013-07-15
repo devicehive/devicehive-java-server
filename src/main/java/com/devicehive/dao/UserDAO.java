@@ -4,7 +4,10 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 
+import javax.ejb.Stateless;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;

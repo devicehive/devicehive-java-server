@@ -2,7 +2,10 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceEquipment;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 
+import javax.ejb.Stateless;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;

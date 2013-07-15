@@ -12,9 +12,9 @@ import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJBException;
 import javax.persistence.PersistenceException;
 import javax.transaction.RollbackException;
-import javax.transaction.TransactionalException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
@@ -46,19 +46,12 @@ abstract class Endpoint {
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (JsonSyntaxException ex) {
-            return JsonMessageBuilder.createErrorResponseBuilder("Incorrect JSON syntax: " + ex.getCause().getLocalizedMessage()).build();
-        } catch(JsonParseException ex){
-           return JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
-        }catch (ConstraintViolationException ex) {
-            Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
-            StringBuilder builderForResponse = new StringBuilder("[processMessage] Validation failed: \n");
-            for (ConstraintViolation<?> constraintViolation : constraintViolations) {
-                builderForResponse.append(constraintViolation.getMessage());
-                builderForResponse.append("\n");
-            }
-            response = JsonMessageBuilder.createErrorResponseBuilder(builderForResponse.toString()).build();
+            return JsonMessageBuilder
+                    .createErrorResponseBuilder("Incorrect JSON syntax: " + ex.getCause().getLocalizedMessage())
+                    .build();
+        } catch (JsonParseException ex) {
+            return JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
         } catch (Exception ex) {
-
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
         }
@@ -78,7 +71,9 @@ abstract class Endpoint {
                     try {
                         return (JsonObject) method.invoke(handler, request, session);
                     } catch (InvocationTargetException e) {
-                       invocationTargetExceptionResolve(e);
+                        invocationTargetExceptionResolve(e);
+                    } catch (HiveException e) {
+                        e.getMessage();
                     }
                 }
             }
@@ -86,20 +81,12 @@ abstract class Endpoint {
         throw new HiveException("Unknown action requested: " + action);
     }
 
-
     private void invocationTargetExceptionResolve(InvocationTargetException e) throws InvocationTargetException {
         if (e.getTargetException() instanceof HiveException) {
             throw new HiveException(e.getTargetException().getMessage(), e);
         }
-        if (e.getTargetException() instanceof JsonSyntaxException) {
-            throw (JsonSyntaxException) e.getTargetException();
-        }
-        if (e.getTargetException() instanceof JsonParseException){
-            throw (JsonParseException) e.getTargetException();
-        }
-        if (e.getTargetException() instanceof TransactionalException) {
-            TransactionalException target = (TransactionalException) e.getTargetException();
-            target.getCause();
+        if (e.getTargetException() instanceof EJBException) {
+            EJBException target = (EJBException) e.getTargetException();
             if (target.getCause() instanceof RollbackException) {
                 RollbackException rollbackException = (RollbackException) target.getCause();
                 if (rollbackException.getCause() instanceof PersistenceException) {
@@ -108,14 +95,27 @@ abstract class Endpoint {
                     if (persistenceException.getCause() instanceof ConstraintViolationException) {
                         ConstraintViolationException constraintViolationException =
                                 (ConstraintViolationException) persistenceException.getCause();
-                        throw new ConstraintViolationException(constraintViolationException
-                                .getMessage(), constraintViolationException.getConstraintViolations());
+                        Set<ConstraintViolation<?>> constraintViolations =
+                                constraintViolationException.getConstraintViolations();
+                        StringBuilder builderForResponse = new StringBuilder("[processMessage] Validation failed: \n");
+                        for (ConstraintViolation<?> constraintViolation : constraintViolations) {
+                            builderForResponse.append(constraintViolation.getMessage());
+                            builderForResponse.append("\n");
+                        }
+                        throw new HiveException(builderForResponse.toString()); //TODO create message
                     }
                 }
             }
         }
+        if (e.getTargetException() instanceof JsonSyntaxException) {
+            throw (JsonSyntaxException) e.getTargetException();
+        }
+        if (e.getTargetException() instanceof JsonParseException) {
+            throw (JsonParseException) e.getTargetException();
+        }
         throw e;
     }
+
     private JsonObject constructFinalResponse(JsonObject request, JsonObject response) {
         if (response == null) {
             logger.error("[constructFinalResponse]  response is null ");

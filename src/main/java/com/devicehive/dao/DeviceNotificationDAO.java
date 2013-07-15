@@ -4,7 +4,10 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 
+import javax.ejb.Stateless;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -16,6 +19,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 
 public class DeviceNotificationDAO {
     private static final Integer DEFAULT_TAKE = Integer.valueOf(1000);

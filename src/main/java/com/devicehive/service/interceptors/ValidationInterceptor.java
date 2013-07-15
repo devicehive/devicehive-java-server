@@ -7,21 +7,27 @@ import org.slf4j.LoggerFactory;
 
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.InvocationContext;
-import javax.persistence.RollbackException;
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import javax.validation.ValidationException;
+import java.util.Set;
 
 public class ValidationInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(ValidationInterceptor.class);
 
     @AroundInvoke
-    public Object intercept(InvocationContext ctx) throws Exception{
+    public Object intercept(InvocationContext ctx) throws Exception {
         try {
-            return  ctx.proceed();
+            return ctx.proceed();
         } catch (ConstraintViolationException ex) {
             logger.debug("Validation error, incorrect input");
-            throw new HiveException(ex.getMessage()); //TODO create message
+            Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
+            StringBuilder builderForResponse = new StringBuilder("[processMessage] Validation failed: \n");
+            for (ConstraintViolation<?> constraintViolation : constraintViolations) {
+                builderForResponse.append(constraintViolation.getMessage());
+                builderForResponse.append("\n");
+            }
+            throw new HiveException(builderForResponse.toString());
         }
     }
 

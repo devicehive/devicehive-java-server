@@ -1,8 +1,10 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
@@ -13,16 +15,24 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.interceptor.Interceptors;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-
+@Interceptors(ValidationInterceptor.class)
+@Stateless
 public class DeviceService {
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
+    private EntityManager em;
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
     @Inject
@@ -36,6 +46,8 @@ public class DeviceService {
     @Inject
     private DeviceDAO deviceDAO;
     @Inject
+    private EquipmentDAO equipmentDAO;
+    @Inject
     private NetworkService networkService;
     @Inject
     private EquipmentService equipmentService;
@@ -45,20 +57,10 @@ public class DeviceService {
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
 
     @Transactional
-    public void deviceSave(Device device, Set<Equipment> equipmentSet, UUID deviceId) {
-        Device existingDevice = deviceDAO.findByUUID(deviceId);
-        if (existingDevice != null) {
-            logger.debug("device with uuid = " + device.getGuid() + "exists. Device will be updated");
-            existingDevice.setName(device.getName());
-            existingDevice.setData(device.getData());
-            existingDevice.setStatus(device.getStatus());
-            existingDevice.setKey(device.getKey());
-            updateDevice(existingDevice, device.getNetwork(), device.getDeviceClass(), equipmentSet);
-        } else {
-            logger.debug("device with uuid = " + deviceId + "doesn't exists. Device will be saved");
-            device.setGuid(deviceId);
-            registerDevice(device, device.getNetwork(), device.getDeviceClass(), equipmentSet);
-        }
+    public void deviceSave(Device device, Set<Equipment> equipmentSet) {
+        device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
+        device.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet));
+        createOrUpdateDevice(device);
     }
 
     @Transactional
@@ -73,10 +75,7 @@ public class DeviceService {
         messagePublisher.publishCommand(command);
     }
 
-    @Transactional
-    public void submitDeviceCommand(DeviceCommand command, Device device, User user) {
-        submitDeviceCommand(command, device, user, null);
-    }
+
 
     @Transactional
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device, Session session) {
@@ -118,97 +117,6 @@ public class DeviceService {
 
     }
 
-    @Transactional
-    public void updateDevice(Device device, Network network, DeviceClass deviceClass, Set<Equipment> equipmentSet) {
-        resolveNetworkAndDeviceClassAndEquipment(device, network, deviceClass, equipmentSet);
-        deviceDAO.updateDevice(device);
-    }
-
-    @Transactional
-    public void registerDevice(Device device, Network network, DeviceClass deviceClass, Set<Equipment> equipmentSet) {
-        resolveNetworkAndDeviceClassAndEquipment(device, network, deviceClass, equipmentSet);
-        deviceDAO.registerDevice(device);
-    }
-
-    private void resolveNetworkAndDeviceClassAndEquipment(Device device, Network networkFromMessage,
-                                                          DeviceClass deviceClass,
-                                                          Set<Equipment> equipmentSet) {
-        DeviceClass resultDeviceClass = getResultDeviceClass(deviceClass);
-        device.setDeviceClass(resultDeviceClass);
-        if (networkFromMessage != null) {
-            device.setNetwork(networkService.createOrVeriryNetwork(networkFromMessage));
-        }
-        if (!resultDeviceClass.getPermanent() && equipmentSet != null && !equipmentSet.isEmpty()) {
-            resolveEquipment(resultDeviceClass, equipmentSet);
-        }
-    }
-
-    private void resolveEquipment(DeviceClass deviceClass, Set<Equipment> equipmentSet) {
-
-        for (Equipment equipment : equipmentSet) {
-            equipment.setDeviceClass(deviceClass);
-        }
-        equipmentService.removeUnusefulEquipments(deviceClass, equipmentSet);
-        equipmentService.saveOrUpdateEquipments(equipmentSet);
-
-
-    }
-
-    private DeviceClass getResultDeviceClass(DeviceClass deviceClassFromMessage) {
-        DeviceClass deviceClass;
-        if (deviceClassFromMessage.getId() != null) {
-            deviceClass = deviceClassDAO.getDeviceClass(deviceClassFromMessage.getId());
-        } else {
-            deviceClass = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClassFromMessage
-                    .getName(), deviceClassFromMessage.getVersion());
-        }
-        if (deviceClass == null) {
-            createDeviceClass(deviceClassFromMessage);
-            deviceClass = deviceClassFromMessage;
-        } else {
-            deviceClass = updateDeviceClassIfRequired(deviceClass, deviceClassFromMessage);
-        }
-        return deviceClass;
-    }
-
-    private DeviceClass updateDeviceClassIfRequired(DeviceClass deviceClassFromDatabase,
-                                                    DeviceClass deviceClassFromMessage) {
-        if (deviceClassFromDatabase.getPermanent()) {
-            return deviceClassFromDatabase;
-        }
-        boolean updateClass = false;   //equals + exclusion isPermanent?
-        if (deviceClassFromMessage.getName() != null && !deviceClassFromMessage.getName().equals
-                (deviceClassFromDatabase.getName())) {
-            deviceClassFromDatabase.setName(deviceClassFromMessage.getName());
-            updateClass = true;
-        }
-        if (deviceClassFromMessage.getVersion() != null && !deviceClassFromMessage.getVersion().equals
-                (deviceClassFromDatabase.getVersion())) {
-            deviceClassFromDatabase.setVersion(deviceClassFromMessage.getVersion());
-            updateClass = true;
-        }
-        if (deviceClassFromMessage.getOfflineTimeout() != null && !deviceClassFromMessage.getOfflineTimeout()
-                .equals(deviceClassFromDatabase.getOfflineTimeout())) {
-            deviceClassFromDatabase.setOfflineTimeout(deviceClassFromMessage.getOfflineTimeout());
-            updateClass = true;
-        }
-        if (deviceClassFromMessage.getData() != null && !deviceClassFromMessage.getData().equals
-                (deviceClassFromDatabase.getData())) {
-            deviceClassFromDatabase.setData(deviceClassFromMessage.getData());
-            updateClass = true;
-        }
-        if (updateClass) {
-            deviceClassDAO.updateDeviceClass(deviceClassFromDatabase);
-        }
-
-        return deviceClassFromDatabase;
-    }
-
-    @Transactional
-    public void createDeviceClass(DeviceClass deviceClass) {
-        deviceClassDAO.addDeviceClass(deviceClass);
-    }
-
     private DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
         DeviceEquipment result = new DeviceEquipment();
         String deviceEquipmentCode = jsonEquipmentObject.get("equipment").getAsString();
@@ -219,5 +127,55 @@ public class DeviceService {
         return result;
     }
 
+    public DeviceClass createOrUpdateDeviceClass(DeviceClass deviceClass, Set<Equipment> newEquipmentSet) {
+        DeviceClass stored;
+        if (deviceClass.getId() != null) {
+            stored = em.find(DeviceClass.class, deviceClass.getId(), LockModeType.PESSIMISTIC_WRITE);
+        } else {
+            stored = deviceClassDAO.getDeviceClassByNameAndVersionForWrite(deviceClass.getName(), deviceClass.getVersion());
+        }
+        if (stored != null) {
+            //update
+            if (!stored.getPermanent()) {
+                stored.setData(deviceClass.getData());
+                stored.setOfflineTimeout(deviceClass.getOfflineTimeout());
+                stored.setPermanent(deviceClass.getPermanent());
+                em.merge(stored);
+                createOrRecreateEquipment(newEquipmentSet, stored);
+            }
+            return stored;
+        } else {
+            //create
+            em.persist(deviceClass);
+            createOrRecreateEquipment(newEquipmentSet, deviceClass);
+            return deviceClass;
+        }
 
+    }
+
+    public void createOrRecreateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
+        List<Equipment> existingEquipments = equipmentDAO.getByDeviceClass(deviceClass);
+        if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
+            for (Equipment equipment : existingEquipments) {
+                em.remove(equipment);
+            }
+        }
+        for (Equipment equipment : newEquipmentSet) {
+            equipment.setDeviceClass(deviceClass);
+            em.persist(equipment);
+        }
+    }
+
+    public void createOrUpdateDevice(Device device) {
+        Device existingDevice = deviceDAO.findByUUIDForWrite(device.getGuid());
+        if (existingDevice == null) {
+            em.persist(device);
+        } else {
+            existingDevice.setDeviceClass(device.getDeviceClass());
+            existingDevice.setStatus(device.getStatus());
+            existingDevice.setData(device.getData());
+            existingDevice.setNetwork(device.getNetwork());
+            em.merge(existingDevice);
+        }
+    }
 }

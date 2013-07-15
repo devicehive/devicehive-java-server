@@ -128,7 +128,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         //TODO set notification's limit (do not try to get notifications for last year :))
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
-            }.getType());
+        }.getType());
         if (list == null || list.isEmpty()) {
             processNotificationSubscribeNullCase(session, timestamp);
         } else {

@@ -3,9 +3,12 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.Stateless;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
@@ -27,9 +30,23 @@ public class DeviceDAO {
     }
 
     @Transactional
+    public Device findByIdForWrite(Long id) {
+        return em.find(Device.class, id, LockModeType.PESSIMISTIC_WRITE);
+    }
+
+    @Transactional
     public Device findByUUID(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
+        List<Device> res = query.getResultList();
+        return res.isEmpty() ? null : res.get(0);
+    }
+
+    @Transactional
+    public Device findByUUIDForWrite(UUID uuid) {
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
+        query.setParameter("uuid", uuid);
+        query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);
     }

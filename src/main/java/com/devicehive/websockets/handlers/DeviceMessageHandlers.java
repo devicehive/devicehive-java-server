@@ -50,6 +50,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
+        if (deviceId == null || message.get("deviceKey") == null) {
+            throw new HiveException("Device authentication error: credentials are incorrect");
+        }
         String deviceKey = message.get("deviceKey").getAsString();
         logger.debug("authenticate action for " + deviceId);
         Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
@@ -111,7 +114,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             throw new HiveException(e.getCause().getMessage() + " Date must be in format \"yyyy-MM-dd HH:mm:ss" +
                     ".SSS\"", e);
         }
-        if (timestamp == null){
+        if (timestamp == null) {
             timestamp = new Date();
         }
         try {
@@ -122,7 +125,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
                 logger.debug("will add command to queue : " + deviceCommand.getId());
-                WebsocketSession.addMessagesToQueue(session, ServerResponsesFactory.createCommandInsertMessage(deviceCommand));
+                WebsocketSession
+                        .addMessagesToQueue(session, ServerResponsesFactory.createCommandInsertMessage(deviceCommand));
             }
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
@@ -146,7 +150,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("notification/insert started for session " + session.getId());
         DeviceNotification deviceNotification = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy())
                 .fromJson(message.get("notification"), DeviceNotification.class);
-
+        if (deviceNotification == null || deviceNotification.getNotification() == null){
+            throw new HiveException("Notification is empty!");
+        }
         Device device = getDevice(session, message);
         logger.debug("process submit device notification started for deviceNotification : " + deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
@@ -165,7 +171,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date(System.currentTimeMillis()));
         Configuration webSocketServerUrl = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
-        if (webSocketServerUrl == null){
+        if (webSocketServerUrl == null) {
             logger.error("Websocket server url isn't set!");
             throw new HiveException("Websocket server url isn't set!");
         }
@@ -194,20 +200,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return result;
     }
 
-    @Action(value = "device/save", needsAuth = false)
+    @Action(value = "device/save", needsAuth = false)  //TODO org.hibernate.exception.ConstraintViolationException
     public JsonObject processDeviceSave(JsonObject message, Session session) {
         logger.debug("device/save process started for session" + session.getId());
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
         if (deviceId == null) {
-            throw new HiveException("Device ID is empty");
+            throw new HiveException("Device ID is undefined!");
         }
-        String deviceKey = message.get("deviceKey").getAsString();
-        if (deviceKey == null) {
-            throw new HiveException("Device key is empty");
+        if (message.get("deviceKey") == null) {
+            throw new HiveException("Device key is undefined!");
         }
         Gson mainGson = GsonFactory.createGson(new DeviceSaveExclusionStrategy());
         Device device = mainGson.fromJson(message.get("device"), Device.class);
-        logger.debug("check requered fields in device " );
+        logger.debug("check requered fields in device ");
         checkDevice(device);
         Gson gsonForEquipment = GsonFactory.createGson();
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(message.getAsJsonObject("device").get("equipment"),
@@ -216,8 +221,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        logger.debug("device/save started" );
-        deviceService.deviceSave(device, equipmentSet, deviceId);
+        logger.debug("device/save started");
+        device.setGuid(deviceId);
+        deviceService.deviceSave(device, equipmentSet);
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")
                 .addRequestId(message.get("requestId"))
