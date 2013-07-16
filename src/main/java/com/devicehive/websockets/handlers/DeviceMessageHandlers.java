@@ -103,7 +103,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = getDevice(session, message);
 
         logger.debug("submit device command update for device : " + device.getId());
-        deviceService.submitDeviceCommandUpdate(update, device, session);
+        deviceService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();

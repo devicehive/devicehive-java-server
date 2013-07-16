@@ -12,7 +12,7 @@ import java.util.TimeZone;
 
 public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
 
-    private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     {
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     }

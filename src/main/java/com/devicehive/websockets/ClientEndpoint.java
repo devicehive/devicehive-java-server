@@ -3,9 +3,6 @@ package com.devicehive.websockets;
 
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
-import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandSubscriptionDAO;
-import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
-import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.GsonBuilder;
@@ -25,19 +22,8 @@ public class ClientEndpoint extends Endpoint {
 
     @Inject
     private ClientMessageHandlers clientMessageHandlers;
-
     @EJB
     private SessionMonitor sessionMonitor;
-
-    @Inject
-    private CommandSubscriptionDAO commandSubscriptionDAO;
-
-    @Inject
-    private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
-
-    @Inject
-    private NotificationSubscriptionDAO notificationSubscriptionDAO;
-
     @Inject
     private LocalMessageBus localMessageBus;
 

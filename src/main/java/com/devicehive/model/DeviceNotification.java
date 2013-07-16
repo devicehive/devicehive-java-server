@@ -38,7 +38,7 @@ public class DeviceNotification implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
-    public JsonStringWrapper parameters;
+    private JsonStringWrapper parameters;
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

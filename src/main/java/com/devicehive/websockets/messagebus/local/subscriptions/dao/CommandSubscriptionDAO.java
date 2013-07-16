@@ -20,10 +20,6 @@ public class CommandSubscriptionDAO {
     @PersistenceContext(unitName = Constants.EMBEDDED_PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public CommandsSubscription getById(Long id){
-        return em.find(CommandsSubscription.class, id);
-    }
-
     public CommandsSubscription getByDeviceId(Long id){
         TypedQuery<CommandsSubscription> query = em.createNamedQuery("CommandsSubscription.getByDeviceId",
                 CommandsSubscription.class);

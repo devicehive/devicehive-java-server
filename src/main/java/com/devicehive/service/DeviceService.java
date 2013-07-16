@@ -8,7 +8,6 @@ import com.devicehive.service.interceptors.ValidationInterceptor;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
-import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -50,8 +49,6 @@ public class DeviceService {
     private NetworkService networkService;
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
-    @Inject
-    private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
 
     public void deviceSave(Device device, Set<Equipment> equipmentSet) {
         device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
@@ -70,7 +67,7 @@ public class DeviceService {
         messagePublisher.publishCommand(command);
     }
 
-    public void submitDeviceCommandUpdate(DeviceCommand update, Device device, Session session) {
+    public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
         deviceCommandDAO.updateCommand(update, device);
         messagePublisher.publishCommandUpdate(update);
     }

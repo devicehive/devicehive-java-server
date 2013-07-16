@@ -28,10 +28,7 @@ public class JsonStringWrapper implements Serializable {
         if (!(obj instanceof JsonStringWrapper)){
             return false;
         }
-        if (obj != null && jsonString.equals(((JsonStringWrapper) obj).getJsonString())){
-            return true;
-        }
-        return false;
+        return obj != null && jsonString.equals(((JsonStringWrapper) obj).getJsonString());
     }
 
     @Override

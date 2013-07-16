@@ -26,55 +26,55 @@ public class DeviceCommand implements Serializable{
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
     @SerializedName("timestamp")
     @Column
-    public Date timestamp;
+    private Date timestamp;
 
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
-    public User user;
+    private User user;
 
     @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
-    public Device device;
+    private Device device;
 
     @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 " +
             "symbols.")
-    public String command;
+    private String command;
 
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
     })
-    public JsonStringWrapper parameters;
+    private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @Column
-    public Integer lifetime;
+    private Integer lifetime;
 
     @SerializedName("flags")
     @Column
-    public Integer flags;
+    private Integer flags;
 
     @SerializedName("status")
     @Column
-    public String status;
+    private String status;
 
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name="jsonString", column=@Column(name = "result"))
     })
-    public JsonStringWrapper result;
+    private JsonStringWrapper result;
 
     public DeviceCommand() {
     }
