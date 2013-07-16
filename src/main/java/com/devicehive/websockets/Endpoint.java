@@ -6,7 +6,6 @@ import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
@@ -45,12 +44,6 @@ abstract class Endpoint {
             response = tryExecute(handler, action, request, session);
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
-        } catch (JsonSyntaxException ex) {
-            return JsonMessageBuilder
-                    .createErrorResponseBuilder("Incorrect JSON syntax: " + ex.getCause().getLocalizedMessage())
-                    .build();
-        } catch (JsonParseException ex) {
-            return JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
         } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
@@ -106,12 +99,6 @@ abstract class Endpoint {
                     }
                 }
             }
-        }
-        if (e.getTargetException() instanceof JsonSyntaxException) {
-            throw (JsonSyntaxException) e.getTargetException();
-        }
-        if (e.getTargetException() instanceof JsonParseException) {
-            throw (JsonParseException) e.getTargetException();
         }
         throw e;
     }

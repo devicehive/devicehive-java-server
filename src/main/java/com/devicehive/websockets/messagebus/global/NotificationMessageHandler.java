@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import javax.jms.*;
+import java.io.IOException;
 
 @JMSDestinationDefinition(
         name= Constants.JMS_NOTIFICATION_TOPIC,
@@ -32,6 +33,8 @@ public class NotificationMessageHandler implements MessageListener {
                 localMessageBus.submitNotification(notification);
             }
         } catch (JMSException e) {
+            logger.error("[onMessage] Error processing notification. ", e);
+        } catch (IOException e) {
             logger.error("[onMessage] Error processing notification. ", e);
         }
     }

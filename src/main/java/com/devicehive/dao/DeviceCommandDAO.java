@@ -18,18 +18,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Stateless
+@Interceptors(ValidationInterceptor.class)
 public class DeviceCommandDAO {
 
     private static final Integer DEFAULT_TAKE = Integer.valueOf(1000); //TODO set parameter
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional
     public void saveCommand(DeviceCommand deviceCommand) {
         em.persist(deviceCommand);
     }
 
-    @Transactional
     public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
         DeviceCommand cmd = em.find(DeviceCommand.class, update.getId(), LockModeType.PESSIMISTIC_WRITE);
         if (!cmd.getDevice().getId().equals(expectedDevice.getId())) {
@@ -45,12 +45,11 @@ public class DeviceCommandDAO {
 
     }
 
-    @Transactional
     public DeviceCommand findById(Long id) {
         return em.find(DeviceCommand.class, id);
     }
 
-    @Transactional
+
     public List<DeviceCommand> getNewerThan(Device device, Date timestamp) {
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
@@ -58,7 +57,6 @@ public class DeviceCommandDAO {
         return query.getResultList();
     }
 
-    @Transactional
     public List<DeviceCommand> queryDeviceCommand(Device device, Date start, Date end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip) {

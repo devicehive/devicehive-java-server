@@ -21,7 +21,8 @@ import java.util.Set;
 @NamedQueries({
         @NamedQuery(name = "Equipment.findByCode", query = "select e from Equipment e where e.code = :code"),
         @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
-                ":deviceClass")
+                ":deviceClass"),
+        @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList")
 })
 public class Equipment implements Serializable {
     @SerializedName("id")

@@ -20,25 +20,25 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-
+@Stateless
+@Interceptors(ValidationInterceptor.class)
 public class DeviceNotificationDAO {
     private static final Integer DEFAULT_TAKE = Integer.valueOf(1000);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional
     public void saveNotification(DeviceNotification deviceNotification) {
         deviceNotification.setTimestamp(new Date());
         em.persist(deviceNotification);
 
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public DeviceNotification findById(Long id) {
         return em.find(DeviceNotification.class, id);
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<DeviceNotification> findByDevicesNewerThan(List<Device> deviceList, Date timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceNewerThan",
                 DeviceNotification.class);
@@ -47,7 +47,7 @@ public class DeviceNotificationDAO {
         return query.getResultList();
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<DeviceNotification> findNewerThan(Date timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByNewerThan",
                 DeviceNotification.class);
@@ -55,7 +55,7 @@ public class DeviceNotificationDAO {
         return query.getResultList();
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<DeviceNotification> getByUserNewerThan(User user, Date timestamp){
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserNewerThan",
                 DeviceNotification.class);
@@ -64,7 +64,7 @@ public class DeviceNotificationDAO {
         return query.getResultList();
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<DeviceNotification> queryDeviceNotification(Device device, Date start, Date end, String notification,
                                                             String sortField, Boolean sortOrderAsc, Integer take,
                                                             Integer skip) {

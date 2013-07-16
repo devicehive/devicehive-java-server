@@ -1,5 +1,6 @@
 package com.devicehive.websockets.messagebus.local;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.model.Device;
@@ -12,21 +13,33 @@ import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdat
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSubscription;
+import com.devicehive.websockets.util.AsyncMessageDeliverer;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.sql.DataSourceDefinition;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.transaction.Transactional;
 import javax.websocket.Session;
+import java.io.IOException;
+import java.sql.Connection;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
-
+@DataSourceDefinition(
+        className = Constants.DATA_SOURCE_CLASS_NAME,
+        name = Constants.DATA_SOURCE_NAME,
+        databaseName = "memory:devicehive;create=true",
+        transactional = true,
+        isolationLevel = Connection.TRANSACTION_SERIALIZABLE,
+        initialPoolSize = 2,
+        minPoolSize = 2,
+        maxPoolSize = 100
+)
 @Singleton
 public class LocalMessageBus {
 
@@ -44,7 +57,7 @@ public class LocalMessageBus {
     @Inject
     private DeviceDAO deviceDAO;
     @Inject
-    private WebsocketThreadPoolSingleton threadPoolSingleton;
+    private AsyncMessageDeliverer asyncMessageDeliverer;
 
 
     public LocalMessageBus() {
@@ -57,7 +70,7 @@ public class LocalMessageBus {
      * @return true if command was delivered
      */
     @Transactional
-    public void submitCommand(DeviceCommand deviceCommand) {
+    public void submitCommand(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Getting subscription for command " + deviceCommand.getId());
         CommandsSubscription commandsSubscription = commandSubscriptionDAO.getByDeviceId(deviceCommand.getDevice()
                 .getId());
@@ -79,7 +92,7 @@ public class LocalMessageBus {
         } finally {
             lock.unlock();
             logger.debug("Deliver messages process for session " + session.getId());
-            threadPoolSingleton.deliverMessagesAndNotify(session);
+            asyncMessageDeliverer.deliverMessages(session);
         }
     }
 
@@ -90,7 +103,7 @@ public class LocalMessageBus {
      * @return true if update was delivered
      */
     @Transactional
-    public void submitCommandUpdate(DeviceCommand deviceCommand) {
+    public void submitCommandUpdate(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Submitting command update for command " + deviceCommand.getId());
         CommandUpdatesSubscription commandUpdatesSubscription =
                 commandUpdatesSubscriptionDAO.getByCommandId(deviceCommand.getId());
@@ -111,7 +124,7 @@ public class LocalMessageBus {
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
             logger.debug("Deliver messages process for session " + session.getId());
-            threadPoolSingleton.deliverMessagesAndNotify(session);
+            asyncMessageDeliverer.deliverMessages(session);
         }
     }
 
@@ -154,7 +167,7 @@ public class LocalMessageBus {
      */
     @Transactional
     //TODO make this multithreaded ?!
-    public void submitNotification(DeviceNotification deviceNotification) {
+    public void submitNotification(DeviceNotification deviceNotification) throws IOException {
         logger.debug("Submit notification action for deviceNotification :" + deviceNotification.getId());
         JsonObject resultMessage = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
 
@@ -195,7 +208,7 @@ public class LocalMessageBus {
             } finally {
                 lock.unlock();
                 logger.debug("deliver messages for session : " + session.getId());
-                threadPoolSingleton.deliverMessagesAndNotify(session);
+                asyncMessageDeliverer.deliverMessages(session);
 
             }
         }

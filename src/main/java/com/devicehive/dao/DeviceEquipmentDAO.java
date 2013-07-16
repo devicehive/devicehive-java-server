@@ -7,29 +7,31 @@ import com.devicehive.service.interceptors.ValidationInterceptor;
 import javax.ejb.Stateless;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 
+@Stateless
+@Interceptors(ValidationInterceptor.class)
 public class DeviceEquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional
+
     public void saveDeviceEquipment(DeviceEquipment deviceEquipment) {
-        deviceEquipment.setTimestamp(new Date(System.currentTimeMillis()));
+        deviceEquipment.setTimestamp(new Date());
         em.persist(deviceEquipment);
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public DeviceEquipment findById(Long id) {
         return em.find(DeviceEquipment.class, id);
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public DeviceEquipment findByCode(String code) {
         TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByCode", DeviceEquipment.class);
         query.setParameter("code", code);
@@ -37,10 +39,13 @@ public class DeviceEquipmentDAO {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
-    @Transactional
-    public void updateDeviceEquipment(DeviceEquipment deviceEquipment) {
-        deviceEquipment.setTimestamp(new Date(System.currentTimeMillis()));
-        em.lock(deviceEquipment, LockModeType.PESSIMISTIC_WRITE);
-        em.merge(deviceEquipment);
+    public int update(DeviceEquipment deviceEquipment){
+        Query query = em.createNamedQuery("DeviceEquipment.updateByCodeAndDevice");
+        query.setParameter("timestamp", new Date());
+        query.setParameter("parameters", deviceEquipment.getParameters());
+        query.setParameter("device", deviceEquipment.getDevice());
+        query.setParameter("code", deviceEquipment.getCode());
+        return query.executeUpdate();
     }
+
 }

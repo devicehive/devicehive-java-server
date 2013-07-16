@@ -21,7 +21,6 @@ import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.util.Date;
 import java.util.List;
@@ -50,20 +49,16 @@ public class DeviceService {
     @Inject
     private NetworkService networkService;
     @Inject
-    private EquipmentService equipmentService;
-    @Inject
-    private DeviceEquipmentService deviceEquipmentService;
+    private DeviceEquipmentDAO deviceEquipmentDAO;
     @Inject
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
 
-    @Transactional
     public void deviceSave(Device device, Set<Equipment> equipmentSet) {
         device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
         device.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet));
         createOrUpdateDevice(device);
     }
 
-    @Transactional
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session userWebsocketSession) {
         command.setDevice(device);
         command.setUser(user);
@@ -75,9 +70,6 @@ public class DeviceService {
         messagePublisher.publishCommand(command);
     }
 
-
-
-    @Transactional
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device, Session session) {
         deviceCommandDAO.updateCommand(update, device);
         messagePublisher.publishCommandUpdate(update);
@@ -105,11 +97,12 @@ public class DeviceService {
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
     }
 
-    @Transactional
     public void submitDeviceNotificationTransactionProcess(DeviceNotification notification, Device device,
                                                            DeviceEquipment deviceEquipment) {
         if (deviceEquipment != null) {
-            deviceEquipmentService.resolveSaveOrUpdateEquipment(deviceEquipment);
+           if (deviceEquipmentDAO.update(deviceEquipment) == 0){
+             logger.warn("No equipments to update found");
+           }
         }
         notification.setDevice(device);
         deviceNotificationDAO.saveNotification(notification);
@@ -132,7 +125,8 @@ public class DeviceService {
         if (deviceClass.getId() != null) {
             stored = em.find(DeviceClass.class, deviceClass.getId(), LockModeType.PESSIMISTIC_WRITE);
         } else {
-            stored = deviceClassDAO.getDeviceClassByNameAndVersionForWrite(deviceClass.getName(), deviceClass.getVersion());
+            stored = deviceClassDAO.getDeviceClassByNameAndVersionForWrite(deviceClass.getName(),
+                    deviceClass.getVersion());
         }
         if (stored != null) {
             //update
@@ -140,24 +134,30 @@ public class DeviceService {
                 stored.setData(deviceClass.getData());
                 stored.setOfflineTimeout(deviceClass.getOfflineTimeout());
                 stored.setPermanent(deviceClass.getPermanent());
-                em.merge(stored);
-                createOrRecreateEquipment(newEquipmentSet, stored);
+                updateEquipment(newEquipmentSet, stored);
             }
             return stored;
         } else {
             //create
             em.persist(deviceClass);
-            createOrRecreateEquipment(newEquipmentSet, deviceClass);
+            updateEquipment(newEquipmentSet, deviceClass);
             return deviceClass;
         }
 
     }
 
-    public void createOrRecreateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
+    public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
         List<Equipment> existingEquipments = equipmentDAO.getByDeviceClass(deviceClass);
-        if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
-            for (Equipment equipment : existingEquipments) {
-                em.remove(equipment);
+        if (!newEquipmentSet.isEmpty()) {
+            if (!existingEquipments.isEmpty()) {
+                equipmentDAO.removeEquipment(existingEquipments);
+            } else {
+                for (Equipment equipment : newEquipmentSet) {
+                    DeviceEquipment deviceEquipment = new DeviceEquipment();
+                    deviceEquipment.setTimestamp(new Date(0));
+                    deviceEquipment.setCode(equipment.getCode());
+                    em.persist(deviceEquipment);
+                }
             }
         }
         for (Equipment equipment : newEquipmentSet) {
@@ -175,7 +175,6 @@ public class DeviceService {
             existingDevice.setStatus(device.getStatus());
             existingDevice.setData(device.getData());
             existingDevice.setNetwork(device.getNetwork());
-            em.merge(existingDevice);
         }
     }
 }

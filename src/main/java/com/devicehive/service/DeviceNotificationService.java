@@ -13,13 +13,12 @@ public class DeviceNotificationService {
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
 
-    public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList,User user, Date timestamp,
+    public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList, User user, Date timestamp,
                                                               Boolean isAdmin) {
         if (deviceList == null) {
             if (isAdmin) {
                 return deviceNotificationDAO.findNewerThan(timestamp);
-            }
-            else{
+            } else {
                 return deviceNotificationDAO.getByUserNewerThan(user, timestamp);
             }
         }

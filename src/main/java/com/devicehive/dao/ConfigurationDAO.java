@@ -6,14 +6,14 @@ import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Singleton;
+import javax.ejb.Stateless;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 
-@Singleton
+@Stateless
 @Interceptors(ValidationInterceptor.class)
 public class ConfigurationDAO {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
@@ -21,16 +21,15 @@ public class ConfigurationDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Configuration findByName(String name) {
         return em.find(Configuration.class, name);
     }
 
-    @Transactional
     public void saveConfiguration(Configuration configuration){
         em.persist(configuration);
     }
 
-    @Transactional
     public void updateConfiguration(Configuration configuration){
         em.merge(configuration);
     }

@@ -18,23 +18,24 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+@Stateless
+@Interceptors(ValidationInterceptor.class)
 public class DeviceDAO {
 
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Device findById(Long id) {
         return em.find(Device.class, id);
     }
 
-    @Transactional
     public Device findByIdForWrite(Long id) {
         return em.find(Device.class, id, LockModeType.PESSIMISTIC_WRITE);
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Device findByUUID(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
@@ -42,7 +43,6 @@ public class DeviceDAO {
         return res.isEmpty() ? null : res.get(0);
     }
 
-    @Transactional
     public Device findByUUIDForWrite(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
@@ -51,7 +51,7 @@ public class DeviceDAO {
         return res.isEmpty() ? null : res.get(0);
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Device findByUUIDAndKey(UUID uuid, String key) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
         query.setParameter("uuid", uuid);
@@ -59,19 +59,7 @@ public class DeviceDAO {
         return query.getSingleResult();
     }
 
-    @Transactional
-    public void updateDevice(Device device) {
-            em.lock(device, LockModeType.PESSIMISTIC_WRITE);
-            em.merge(device);
-
-    }
-
-    @Transactional
-    public void registerDevice(Device device) {
-        em.persist(device);
-    }
-
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDListAndUser", Device.class);
         query.setParameter("user", user);
@@ -79,7 +67,7 @@ public class DeviceDAO {
         return query.getResultList();
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Device findByUUIDAndUser(User user,UUID guid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
         query.setParameter("user", user);
@@ -88,26 +76,11 @@ public class DeviceDAO {
     }
 
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<Device> findByUUID(List<UUID> list) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);
         return query.getResultList();
-    }
-
-    @Transactional
-    public List<Device> findByUUIDAndUserAndTimestamp(User user, List<UUID> list, Date timestamp) {
-        try{
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUserAndTimestamp", Device.class);
-        query.setParameter("user", user);
-        query.setParameter("guidList", list);
-        query.setParameter("timestamp", timestamp);
-        return query.getResultList();
-        }
-        catch (Exception e){
-            e.getMessage();
-            return null;
-        }
     }
 
 

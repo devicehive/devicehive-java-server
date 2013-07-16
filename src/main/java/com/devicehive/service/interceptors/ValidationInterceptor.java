@@ -20,9 +20,9 @@ public class ValidationInterceptor {
         try {
             return ctx.proceed();
         } catch (ConstraintViolationException ex) {
-            logger.debug("Validation error, incorrect input");
+            logger.debug("[processMessage] Validation error, incorrect input");
             Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
-            StringBuilder builderForResponse = new StringBuilder("[processMessage] Validation failed: \n");
+            StringBuilder builderForResponse = new StringBuilder("Validation failed: \n");
             for (ConstraintViolation<?> constraintViolation : constraintViolations) {
                 builderForResponse.append(constraintViolation.getMessage());
                 builderForResponse.append("\n");

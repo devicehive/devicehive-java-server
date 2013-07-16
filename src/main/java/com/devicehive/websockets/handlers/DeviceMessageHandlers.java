@@ -8,14 +8,15 @@ import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.interceptors.JsonInterceptor;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.*;
 import com.devicehive.websockets.messagebus.ServerResponsesFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
+import com.devicehive.websockets.util.AsyncMessageDeliverer;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.devicehive.websockets.util.WebsocketThreadPoolSingleton;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,10 +26,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.interceptor.Interceptors;
 import javax.jms.JMSException;
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.*;
 
+@Interceptors(JsonInterceptor.class)
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
@@ -45,7 +49,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Inject
     private ConfigurationDAO configurationDAO;
     @Inject
-    private WebsocketThreadPoolSingleton threadPoolSingleton;
+    private AsyncMessageDeliverer asyncMessageDeliverer;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -73,6 +77,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             return;
         }
         UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
+        if (request.get("deviceKey") == null){
+            throw new HiveException("device key cannot be empty");
+        }
         String deviceKey = request.get("deviceKey").getAsString();
 
         Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
@@ -103,7 +110,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     }
 
     @Action(value = "command/subscribe")
-    public JsonObject processCommandSubscribe(JsonObject message, Session session) {
+    public JsonObject processCommandSubscribe(JsonObject message, Session session) throws IOException {
         logger.debug("command subscribe action started for session : " + session.getId());
         Gson gson = GsonFactory.createGson();
         Device device = getDevice(session, message);
@@ -132,7 +139,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
         }
         logger.debug("deliver messages for session " + session.getId());
-        threadPoolSingleton.deliverMessagesAndNotify(session);
+        asyncMessageDeliverer.deliverMessages(session);
         logger.debug("command subscribe ended for session : " + session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
@@ -190,7 +197,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"),
                 UUID.class);
         Device device = deviceDAO.findByUUID(deviceId);
-
         Gson gsonResponse = GsonFactory.createGson(new DeviceGetExclusionStrategy());
         JsonElement deviceElem = gsonResponse.toJsonTree(device);
         JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()

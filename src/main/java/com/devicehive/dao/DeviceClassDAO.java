@@ -30,12 +30,11 @@ public class DeviceClassDAO {
         return em.createQuery("select dc from DeviceClass dc").getResultList();
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public DeviceClass getDeviceClass(long id) {
         return em.find(DeviceClass.class, id);
     }
 
-    @Transactional
     public DeviceClass getDeviceClassByNameAndVersionForWrite(String name, String version) {
         TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.findByNameAndVersion", DeviceClass.class);
         query.setParameter("version", version);
@@ -45,7 +44,6 @@ public class DeviceClassDAO {
         return  result.isEmpty() ? null : result.get(0);
     }
 
-    @Transactional
     public long addDeviceClass(DeviceClass deviceClass) {
         em.persist(deviceClass);
         return deviceClass.getId();

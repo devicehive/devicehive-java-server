@@ -10,19 +10,20 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
-import java.util.Set;
 
+@Stateless
+@Interceptors(ValidationInterceptor.class)
 public class EquipmentDAO {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Equipment findByCode(String code) {
         TypedQuery<Equipment> query = em.createNamedQuery("Equipment.findByCode", Equipment.class);
         query.setParameter("code", code);
@@ -30,36 +31,16 @@ public class EquipmentDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
-    @Transactional
-    public Equipment findByIdForWrite(Long id) {
-       return em.find(Equipment.class, id, LockModeType.PESSIMISTIC_WRITE);
-    }
-
-    @Transactional
-    public void saveEquipment(Equipment... equipment) {
-        for (Equipment e : equipment) {
-            em.persist(e);
-        }
-    }
-
-    @Transactional
-    public void updateEquipment(Equipment... equipment) {
-        for (Equipment e : equipment) {
-            em.merge(equipment);
-        }
-    }
-
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<Equipment> getByDeviceClass(DeviceClass deviceClass) {
         TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClass", Equipment.class);
         query.setParameter("deviceClass", deviceClass);
         return query.getResultList();
     }
 
-    @Transactional
-    public void removeEquipment(Equipment... equipments) {
-        for (Equipment equipment : equipments) {
-            em.remove(equipment);
-        }
+    public void removeEquipment(List<Equipment> equipments) {
+        Query query = em.createNamedQuery("Equipment.deleteByEquipmentList");
+        query.setParameter("equipmentList", equipments);
+        query.executeUpdate();
     }
 }

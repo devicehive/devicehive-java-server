@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+@Stateless
+@Interceptors(ValidationInterceptor.class)
 public class UserDAO {
 
     private static final int maxLoginAttempts = 10;
@@ -35,7 +37,7 @@ public class UserDAO {
         return query.getSingleResult();
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
@@ -76,7 +78,7 @@ public class UserDAO {
         return resultQuery.getResultList();
     }
 
-    @Transactional
+    @Transactional(Transactional.TxType.SUPPORTS)
     public User findById(Long id) {
         return em.find(User.class, id);
     }

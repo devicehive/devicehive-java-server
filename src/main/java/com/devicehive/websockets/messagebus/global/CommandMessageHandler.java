@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.MessageDriven;
 import javax.inject.Inject;
 import javax.jms.*;
+import java.io.IOException;
 
 @JMSDestinationDefinition(
         name= Constants.JMS_COMMAND_TOPIC,
@@ -33,6 +34,9 @@ public class CommandMessageHandler implements MessageListener {
             }
         } catch (JMSException e) {
             logger.error("[onMessage] Error processing command. ", e);
+        } catch (IOException e) {
+            logger.error("[onMessage] Error processing command. ", e);
         }
+
     }
 }
