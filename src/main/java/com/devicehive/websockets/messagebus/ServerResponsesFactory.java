@@ -9,11 +9,8 @@ import com.devicehive.websockets.json.strategies.NotificationInsertRequestExclus
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import javax.transaction.Transactional;
-
 public class ServerResponsesFactory {
 
-    @Transactional
     public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification) {
         JsonElement deviceNotificationJson =
                 GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy()).toJsonTree(deviceNotification);
@@ -24,7 +21,6 @@ public class ServerResponsesFactory {
         return resultMessage;
     }
 
-    @Transactional
     public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand) {
         JsonElement deviceCommandJson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy())
                 .toJsonTree(deviceCommand, DeviceCommand.class);
@@ -36,7 +32,6 @@ public class ServerResponsesFactory {
         return resultJsonObject;
     }
 
-    @Transactional
     public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
         JsonElement deviceCommandJson =
                 GsonFactory.createGson(new CommandUpdateExclusionStrategy()).toJsonTree(deviceCommand);

@@ -65,8 +65,6 @@ abstract class Endpoint {
                         return (JsonObject) method.invoke(handler, request, session);
                     } catch (InvocationTargetException e) {
                         invocationTargetExceptionResolve(e);
-                    } catch (HiveException e) {
-                        e.getMessage();
                     }
                 }
             }
@@ -100,6 +98,7 @@ abstract class Endpoint {
                 }
             }
         }
+
         throw e;
     }
 

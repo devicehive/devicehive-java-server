@@ -7,6 +7,8 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -49,7 +51,7 @@ public class DeviceCommandDAO {
         return em.find(DeviceCommand.class, id);
     }
 
-
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> getNewerThan(Device device, Date timestamp) {
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);

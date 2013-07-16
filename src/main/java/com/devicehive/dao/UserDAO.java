@@ -7,6 +7,8 @@ import com.devicehive.model.User;
 import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -30,14 +32,13 @@ public class UserDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
         query.setParameter("login", login);
         return query.getSingleResult();
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
@@ -78,12 +79,12 @@ public class UserDAO {
         return resultQuery.getResultList();
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User findById(Long id) {
         return em.find(User.class, id);
     }
 
-    @Transactional(value = Transactional.TxType.MANDATORY)
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User incrementLoginAttempts(User user) {
         em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         user.setLoginAttempts(user.getLoginAttempts() != null ? user.getLoginAttempts() + 1 : 1);
@@ -94,7 +95,7 @@ public class UserDAO {
         return user;
     }
 
-    @Transactional(value = Transactional.TxType.MANDATORY)
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User finalizeLogin(User user) {
         em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         if (user.getStatus() != User.STATUS.Active.ordinal()) {
@@ -105,7 +106,7 @@ public class UserDAO {
         return user;
     }
 
-    @Transactional(value = Transactional.TxType.MANDATORY)
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public boolean hasAccessToNetwork(User user, Network network) {
         TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToNetwork", Long.class);
         query.setParameter("user", user);

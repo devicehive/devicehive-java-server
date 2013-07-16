@@ -127,7 +127,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("will subscribe device for commands : " + device.getGuid());
-            localMessageBus.subscribeForCommands(device, session);
+            localMessageBus.subscribeForCommands(device, session.getId());
             logger.debug("will get commands newer than : " + timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {

@@ -21,9 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.sql.DataSourceDefinition;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Connection;
@@ -40,7 +41,7 @@ import java.util.concurrent.locks.Lock;
         minPoolSize = 2,
         maxPoolSize = 100
 )
-@Singleton
+@Stateless
 public class LocalMessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
@@ -69,7 +70,8 @@ public class LocalMessageBus {
      * @param deviceCommand
      * @return true if command was delivered
      */
-    @Transactional
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public void submitCommand(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Getting subscription for command " + deviceCommand.getId());
         CommandsSubscription commandsSubscription = commandSubscriptionDAO.getByDeviceId(deviceCommand.getDevice()
@@ -102,7 +104,8 @@ public class LocalMessageBus {
      * @param deviceCommand
      * @return true if update was delivered
      */
-    @Transactional
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public void submitCommandUpdate(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Submitting command update for command " + deviceCommand.getId());
         CommandUpdatesSubscription commandUpdatesSubscription =
@@ -132,13 +135,12 @@ public class LocalMessageBus {
      * Subscrbes given device to commands
      *
      * @param device
-     * @param session
+     * @param sessionId
      */
-    @Transactional
-    public void subscribeForCommands(Device device, Session session) {
-        logger.debug("Subscribing for commands for device : " + device.getId() + " and session : " + session.getId());
-        commandSubscriptionDAO.deleteByDeviceAndSession(device.getId(), session.getId());
-        commandSubscriptionDAO.insert(new CommandsSubscription(device.getId(), session.getId()));
+    public void subscribeForCommands(Device device, String sessionId) {
+        logger.debug("Subscribing for commands for device : " + device.getId() + " and session : " + sessionId);
+        commandSubscriptionDAO.deleteByDeviceAndSession(device.getId(), sessionId);
+        commandSubscriptionDAO.insert(new CommandsSubscription(device.getId(), sessionId));
     }
 
     /**
@@ -147,7 +149,6 @@ public class LocalMessageBus {
      * @param device
      * @param sessionId
      */
-    @Transactional
     public void unsubscribeFromCommands(Device device, String sessionId) {
         logger.debug("Unsubscribing from commands for device : " + device.getId() + " and session : " + sessionId);
         commandSubscriptionDAO.deleteByDeviceAndSession(device.getId(), sessionId);
@@ -165,8 +166,8 @@ public class LocalMessageBus {
      *
      * @param deviceNotification
      */
-    @Transactional
     //TODO make this multithreaded ?!
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public void submitNotification(DeviceNotification deviceNotification) throws IOException {
         logger.debug("Submit notification action for deviceNotification :" + deviceNotification.getId());
         JsonObject resultMessage = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
@@ -234,7 +235,6 @@ public class LocalMessageBus {
      * @param sessionId
      * @param devices
      */
-    @Transactional
     public void unsubscribeFromNotifications(String sessionId, Collection<Device> devices) {
         if (devices == null) {
             notificationSubscriptionDAO.deleteBySession(sessionId);
@@ -252,13 +252,13 @@ public class LocalMessageBus {
         }
     }
 
-    public void onDeviceSessionClose(Session session) {
-        commandSubscriptionDAO.deleteBySession(session.getId());
+    public void onDeviceSessionClose(String sessionId) {
+        commandSubscriptionDAO.deleteBySession(sessionId);
     }
 
-    public void onClientSessionClose(Session session) {
-        commandSubscriptionDAO.deleteBySession(session.getId());
-        notificationSubscriptionDAO.deleteBySession(session.getId());
+    public void onClientSessionClose(String sessionId) {
+        commandUpdatesSubscriptionDAO.deleteBySession(sessionId);
+        notificationSubscriptionDAO.deleteBySession(sessionId);
     }
 
 

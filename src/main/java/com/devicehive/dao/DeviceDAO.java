@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -26,7 +28,7 @@ public class DeviceDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findById(Long id) {
         return em.find(Device.class, id);
     }
@@ -35,7 +37,7 @@ public class DeviceDAO {
         return em.find(Device.class, id, LockModeType.PESSIMISTIC_WRITE);
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUID(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
@@ -51,15 +53,15 @@ public class DeviceDAO {
         return res.isEmpty() ? null : res.get(0);
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDAndKey(UUID uuid, String key) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
         query.setParameter("uuid", uuid);
         query.setParameter("key", key);
-        return query.getSingleResult();
+        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDListAndUser", Device.class);
         query.setParameter("user", user);
@@ -67,16 +69,15 @@ public class DeviceDAO {
         return query.getResultList();
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
-    public Device findByUUIDAndUser(User user,UUID guid) {
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Device findByUUIDAndUser(User user, UUID guid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
         query.setParameter("user", user);
         query.setParameter("guid", guid);
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
 
-
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> findByUUID(List<UUID> list) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);

@@ -2,6 +2,7 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
+import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
@@ -16,7 +17,6 @@ import javax.inject.Inject;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.ByteBuffer;
 
 @ServerEndpoint(value = "/client")
 public class ClientEndpoint extends Endpoint {
@@ -38,6 +38,9 @@ public class ClientEndpoint extends Endpoint {
     @Inject
     private NotificationSubscriptionDAO notificationSubscriptionDAO;
 
+    @Inject
+    private LocalMessageBus localMessageBus;
+
     @OnOpen
     public void onOpen(Session session) {
         logger.debug("[onOpen] session id " + session.getId());
@@ -58,7 +61,7 @@ public class ClientEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
-        deleteFromSubscriptions(session.getId());
+        localMessageBus.onClientSessionClose(session.getId());
     }
 
     @OnError
@@ -66,11 +69,6 @@ public class ClientEndpoint extends Endpoint {
         logger.debug("[onError] session id " + session.getId(), exception);
     }
 
-    private void deleteFromSubscriptions(String sessionId){
-        commandSubscriptionDAO.deleteBySession(sessionId);
-        commandUpdatesSubscriptionDAO.deleteBySession(sessionId);
-        notificationSubscriptionDAO.deleteBySession(sessionId);
-    }
 
 
 }

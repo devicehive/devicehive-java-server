@@ -5,6 +5,8 @@ import com.devicehive.model.DeviceEquipment;
 import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -26,12 +28,12 @@ public class DeviceEquipmentDAO {
         em.persist(deviceEquipment);
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceEquipment findById(Long id) {
         return em.find(DeviceEquipment.class, id);
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceEquipment findByCode(String code) {
         TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByCode", DeviceEquipment.class);
         query.setParameter("code", code);

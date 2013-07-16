@@ -7,6 +7,8 @@ import com.devicehive.model.User;
 import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -33,12 +35,12 @@ public class DeviceNotificationDAO {
 
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceNotification findById(Long id) {
         return em.find(DeviceNotification.class, id);
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> findByDevicesNewerThan(List<Device> deviceList, Date timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceNewerThan",
                 DeviceNotification.class);
@@ -47,7 +49,7 @@ public class DeviceNotificationDAO {
         return query.getResultList();
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> findNewerThan(Date timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByNewerThan",
                 DeviceNotification.class);
@@ -55,7 +57,7 @@ public class DeviceNotificationDAO {
         return query.getResultList();
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> getByUserNewerThan(User user, Date timestamp){
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserNewerThan",
                 DeviceNotification.class);
@@ -64,7 +66,7 @@ public class DeviceNotificationDAO {
         return query.getResultList();
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> queryDeviceNotification(Device device, Date start, Date end, String notification,
                                                             String sortField, Boolean sortOrderAsc, Integer take,
                                                             Integer skip) {

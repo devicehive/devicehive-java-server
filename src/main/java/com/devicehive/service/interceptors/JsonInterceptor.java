@@ -12,15 +12,15 @@ import javax.interceptor.InvocationContext;
 
 public class JsonInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(JsonInterceptor.class);
+
     @AroundInvoke
     public Object intercept(InvocationContext ctx) throws Exception {
         try {
             return ctx.proceed();
-        } catch (JsonSyntaxException e){
+        } catch (JsonSyntaxException e) {
             throw new HiveException("Incorrect JSON syntax: " + e.getCause().getLocalizedMessage(), e);
-        }
-        catch (JsonParseException e){
-            throw new HiveException(e.getLocalizedMessage(), e);
+        } catch (JsonParseException e) {
+            throw new HiveException("Error occurred on parsing JSON object: " + e.getLocalizedMessage(), e);
         }
     }
 

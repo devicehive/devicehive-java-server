@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -30,7 +32,7 @@ public class DeviceClassDAO {
         return em.createQuery("select dc from DeviceClass dc").getResultList();
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getDeviceClass(long id) {
         return em.find(DeviceClass.class, id);
     }

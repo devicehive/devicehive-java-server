@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -23,7 +25,7 @@ public class EquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment findByCode(String code) {
         TypedQuery<Equipment> query = em.createNamedQuery("Equipment.findByCode", Equipment.class);
         query.setParameter("code", code);
@@ -31,7 +33,7 @@ public class EquipmentDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Equipment> getByDeviceClass(DeviceClass deviceClass) {
         TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClass", Equipment.class);
         query.setParameter("deviceClass", deviceClass);

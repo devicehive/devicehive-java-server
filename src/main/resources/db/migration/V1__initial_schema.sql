@@ -115,3 +115,8 @@ CREATE TABLE configuration (
 );
 
 ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (name);
+
+ALTER TABLE "user" ADD CONSTRAINT user_login_unique UNIQUE (login);
+ALTER TABLE device_class ADD CONSTRAINT device_class_name_version_unique UNIQUE (name, version);
+ALTER TABLE device ADD CONSTRAINT device_guid_unique UNIQUE (guid);
+ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_id_code_unique UNIQUE (device_id, code);

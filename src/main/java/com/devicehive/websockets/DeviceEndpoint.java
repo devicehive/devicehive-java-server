@@ -2,6 +2,7 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
+import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.GsonBuilder;
@@ -21,6 +22,9 @@ public class DeviceEndpoint extends Endpoint {
 
     @Inject
     private DeviceMessageHandlers deviceMessageHandlers;
+
+    @Inject
+    private LocalMessageBus localMessageBus;
 
 
     @EJB
@@ -44,6 +48,7 @@ public class DeviceEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
+        localMessageBus.onDeviceSessionClose(session.getId());
     }
 
     @OnError
