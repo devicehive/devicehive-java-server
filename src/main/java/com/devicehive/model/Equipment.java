@@ -4,6 +4,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -30,31 +31,40 @@ public class Equipment implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
     private String name;
+
     @SerializedName("code")
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
     private String code;
+
     @SerializedName("type")
     @Column
     @NotNull(message = "type field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type shouldn't be more than 128 symbols.")
     private String type;
+
     @SerializedName("data")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
     private JsonStringWrapper data;
+
     @ManyToOne
     @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "device class field cannot be null")
     private DeviceClass deviceClass;
+
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
 
     public Equipment() {
     }
@@ -85,6 +95,14 @@ public class Equipment implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     public String getName() {

@@ -4,6 +4,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.Digits;
@@ -72,6 +73,10 @@ public class User  implements Serializable {
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users", cascade = CascadeType.ALL)
     private Set<Network> networks;
+
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
 
 
     public User() {
@@ -147,6 +152,14 @@ public class User  implements Serializable {
 
     public void setLoginAttempts(Integer loginAttempts) {
         this.loginAttempts = loginAttempts;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     /**

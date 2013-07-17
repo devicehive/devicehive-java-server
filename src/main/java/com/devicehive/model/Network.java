@@ -3,6 +3,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -49,6 +50,10 @@ public class Network implements Serializable {
             inverseJoinColumns = {@JoinColumn(name = "user_id",nullable = false, updatable = false)})
     private Set<User> users;
 
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
+
     public Network() {
 
     }
@@ -92,6 +97,14 @@ public class Network implements Serializable {
 
     public void setUsers(Set<User> users) {
         this.users = users;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
 

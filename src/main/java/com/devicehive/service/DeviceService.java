@@ -18,7 +18,6 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.websocket.Session;
 import java.util.Date;
@@ -51,9 +50,9 @@ public class DeviceService {
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
     public void deviceSave(Device device, Set<Equipment> equipmentSet) {
-        device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
-        device.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet));
-        createOrUpdateDevice(device);
+            device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
+            device.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet));
+            createOrUpdateDevice(device);
     }
 
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session userWebsocketSession) {
@@ -97,9 +96,9 @@ public class DeviceService {
     public void submitDeviceNotificationTransactionProcess(DeviceNotification notification, Device device,
                                                            DeviceEquipment deviceEquipment) {
         if (deviceEquipment != null) {
-           if (deviceEquipmentDAO.update(deviceEquipment) == 0){
-             logger.warn("No equipments to update found");
-           }
+            if (deviceEquipmentDAO.update(deviceEquipment) == 0) {
+                logger.warn("No equipments to update found");
+            }
         }
         notification.setDevice(device);
         deviceNotificationDAO.saveNotification(notification);
@@ -120,9 +119,9 @@ public class DeviceService {
     public DeviceClass createOrUpdateDeviceClass(DeviceClass deviceClass, Set<Equipment> newEquipmentSet) {
         DeviceClass stored;
         if (deviceClass.getId() != null) {
-            stored = em.find(DeviceClass.class, deviceClass.getId(), LockModeType.PESSIMISTIC_WRITE);
+            stored = em.find(DeviceClass.class, deviceClass.getId());
         } else {
-            stored = deviceClassDAO.getDeviceClassByNameAndVersionForWrite(deviceClass.getName(),
+            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(),
                     deviceClass.getVersion());
         }
         if (stored != null) {
@@ -173,5 +172,6 @@ public class DeviceService {
             existingDevice.setData(device.getData());
             existingDevice.setNetwork(device.getNetwork());
         }
+
     }
 }

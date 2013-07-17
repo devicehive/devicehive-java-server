@@ -33,10 +33,6 @@ public class DeviceDAO {
         return em.find(Device.class, id);
     }
 
-    public Device findByIdForWrite(Long id) {
-        return em.find(Device.class, id, LockModeType.PESSIMISTIC_WRITE);
-    }
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUID(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
@@ -48,7 +44,6 @@ public class DeviceDAO {
     public Device findByUUIDForWrite(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
-        query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);
     }

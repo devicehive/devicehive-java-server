@@ -3,7 +3,8 @@ CREATE TABLE network (
     id BIGSERIAL NOT NULL,
     name VARCHAR(128) NOT NULL,
     description VARCHAR(128) NULL,
-    key VARCHAR(64) NULL
+    key VARCHAR(64) NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE network ADD CONSTRAINT network_pk PRIMARY KEY (id);
@@ -16,7 +17,8 @@ CREATE TABLE "user" (
     role INT NOT NULL,
     status INT NOT NULL,
     login_attempts INT NOT NULL,
-    last_login TIMESTAMP NULL
+    last_login TIMESTAMP NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE "user" ADD CONSTRAINT user_pk PRIMARY KEY (id);
@@ -24,7 +26,8 @@ ALTER TABLE "user" ADD CONSTRAINT user_pk PRIMARY KEY (id);
 CREATE TABLE user_network (
     id BIGSERIAL NOT NULL,
     user_id BIGINT NOT NULL,
-    network_id BIGINT NOT NULL
+    network_id BIGINT NOT NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE user_network ADD CONSTRAINT user_network_pk PRIMARY KEY (id);
@@ -37,7 +40,8 @@ CREATE TABLE device_class (
     version VARCHAR(32) NOT NULL,
     is_permanent BOOLEAN NOT NULL,
     offline_timeout INT NULL,
-    data TEXT NULL
+    data TEXT NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE device_class ADD CONSTRAINT device_class_pk PRIMARY KEY (id);
@@ -50,7 +54,8 @@ CREATE TABLE device (
     network_id BIGINT NULL,
     device_class_id BIGINT NOT NULL,
     key VARCHAR(64) NOT NULL,
-    data TEXT NULL
+    data TEXT NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE device ADD CONSTRAINT device_pk PRIMARY KEY (id);
@@ -67,7 +72,8 @@ CREATE TABLE device_command (
     status VARCHAR(128) NULL,
     result TEXT NULL,
     device_id BIGINT NOT NULL,
-    user_id BIGINT NULL
+    user_id BIGINT NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE device_command ADD CONSTRAINT device_command_pk PRIMARY KEY (id);
@@ -79,7 +85,8 @@ CREATE TABLE device_equipment (
     code VARCHAR(128) NOT NULL,
     timestamp TIMESTAMP NOT NULL,
     parameters TEXT NULL,
-    device_id BIGINT NOT NULL
+    device_id BIGINT NOT NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_pk PRIMARY KEY (id);
@@ -90,7 +97,8 @@ CREATE TABLE device_notification (
     timestamp TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
     notification VARCHAR(128) NOT NULL,
     parameters TEXT NULL,
-    device_id BIGINT NOT NULL
+    device_id BIGINT NOT NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE device_notification ADD CONSTRAINT device_notification_pk PRIMARY KEY (id);
@@ -102,16 +110,18 @@ CREATE TABLE equipment (
     code VARCHAR(128) NOT NULL,
     device_class_id BIGINT NOT NULL,
     type VARCHAR(128) NOT NULL,
-    data TEXT NULL
+    data TEXT NULL,
+    entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE equipment ADD CONSTRAINT equipment_pk PRIMARY KEY (id);
 ALTER TABLE equipment ADD CONSTRAINT equipment_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id);
-ALTER TABLE equipment ADD CONSTRAINT equipment_code_unique UNIQUE (code);
+ALTER TABLE equipment ADD CONSTRAINT equipment_code_device_class_id_unique UNIQUE (code, device_class_id);
 
 CREATE TABLE configuration (
   name VARCHAR(32) NOT NULL,
-  value VARCHAR(128) NOT NULL
+  value VARCHAR(128) NOT NULL,
+  entity_version BIGINT DEFAULT 1
 );
 
 ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (name);

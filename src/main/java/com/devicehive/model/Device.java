@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -30,15 +31,16 @@ import java.util.UUID;
                         ":user"),
         @NamedQuery(name = "Device.findByUUIDAndUser",
                 query = "select d from Device d join d.network n join n.users u where d.guid = :guid and u = :user"),
-        @NamedQuery(name = "Device.findByUUIDAndUserAndTimestamp", query = "select distinct d from DeviceNotification dn " +
-                "inner join dn.device d " +
-                "inner join d.network.users u " +
-                "where dn.timestamp > :timestamp " +
-                "and d.guid in :guidList " +
-                "and u = :user"),
+        @NamedQuery(name = "Device.findByUUIDAndUserAndTimestamp",
+                query = "select distinct d from DeviceNotification dn " +
+                        "inner join dn.device d " +
+                        "inner join d.network.users u " +
+                        "where dn.timestamp > :timestamp " +
+                        "and d.guid in :guidList " +
+                        "and u = :user"),
         @NamedQuery(name = "Device.findByListUUID", query = "select d from Device d where d.guid in :guidList")
 })
-public class Device implements Serializable{
+public class Device implements Serializable {
 
     @SerializedName("id")
     @Id
@@ -71,7 +73,7 @@ public class Device implements Serializable{
     @SerializedName("data")
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name="jsonString", column=@Column(name = "data"))
+            @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
     private JsonStringWrapper data;
 
@@ -85,6 +87,10 @@ public class Device implements Serializable{
     @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "deviceClass field cannot be null.")
     private DeviceClass deviceClass;
+
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
 
     public Device() {
     }
@@ -107,6 +113,14 @@ public class Device implements Serializable{
         }
         return result;
 
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     /*

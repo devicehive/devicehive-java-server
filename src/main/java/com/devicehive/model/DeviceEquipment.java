@@ -4,6 +4,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -28,23 +29,31 @@ public class DeviceEquipment implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
     private String code;
+
     @Column
     @NotNull
     private Date timestamp;
+
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
     private JsonStringWrapper parameters;
+
     @ManyToOne
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
+
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
 
     /**
      * Validates deviceEquipment representation. Returns set of strings which are represent constraint violations. Set
@@ -64,6 +73,14 @@ public class DeviceEquipment implements Serializable {
         }
         return result;
 
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     public Long getId() {

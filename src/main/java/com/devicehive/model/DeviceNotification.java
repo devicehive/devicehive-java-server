@@ -4,6 +4,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -39,23 +40,31 @@ public class DeviceNotification implements Serializable {
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
     private JsonStringWrapper parameters;
+
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @SerializedName("timestamp")
     @Column
     private Date timestamp;
+
     @SerializedName("notification")
     @Column
     @NotNull(message = "notification field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification shouldn't be more than " +
             "128 symbols.")
     private String notification;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
+
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
 
     public DeviceNotification() {
     }
@@ -87,6 +96,14 @@ public class DeviceNotification implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     public Date getTimestamp() {

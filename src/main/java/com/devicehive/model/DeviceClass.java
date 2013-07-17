@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -44,15 +45,46 @@ public class DeviceClass implements Serializable {
     @Column(name = "offline_timeout")
     private Integer offlineTimeout;
 
-
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name="jsonString", column=@Column(name = "data"))
+            @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
     private JsonStringWrapper data;
 
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
+
     public DeviceClass() {
 
+    }
+
+    /**
+     * Validates deviceClass representation. Returns set of strings which are represent constraint violations. Set will
+     * be empty if no constraint violations found.
+     *
+     * @param deviceClass DeviceClass that should be validated
+     * @param validator   Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(DeviceClass deviceClass, Validator validator) {
+        Set<ConstraintViolation<DeviceClass>> constraintViolations = validator.validate(deviceClass);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size() > 0) {
+            for (ConstraintViolation<DeviceClass> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     public Long getId() {
@@ -101,26 +133,5 @@ public class DeviceClass implements Serializable {
 
     public void setData(JsonStringWrapper data) {
         this.data = data;
-    }
-
-    /**
-     * Validates deviceClass representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
-     * @param deviceClass
-     * DeviceClass that should be validated
-     * @param validator
-     * Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(DeviceClass deviceClass, Validator validator) {
-        Set<ConstraintViolation<DeviceClass>> constraintViolations = validator.validate(deviceClass);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size()>0){
-            for (ConstraintViolation<DeviceClass> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
     }
 }

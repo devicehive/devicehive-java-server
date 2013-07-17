@@ -33,7 +33,7 @@ public class DeviceCommandDAO {
     }
 
     public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
-        DeviceCommand cmd = em.find(DeviceCommand.class, update.getId(), LockModeType.PESSIMISTIC_WRITE);
+        DeviceCommand cmd = em.find(DeviceCommand.class, update.getId());
         if (!cmd.getDevice().getId().equals(expectedDevice.getId())) {
             throw new HiveException("Device tries to update incorrect command");
         }

@@ -2,14 +2,12 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.persistence.Version;
 import java.io.Serializable;
 import java.sql.Date;
 import java.util.HashSet;
@@ -33,6 +31,10 @@ public class Configuration implements Serializable {
             "128 symbols.")
     private String value;
 
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
+
     public Configuration() {
     }
 
@@ -41,10 +43,41 @@ public class Configuration implements Serializable {
         this.value = value;
     }
 
+    /**
+     * Validates equipment representation. Returns set of strings which are represent constraint violations. Set will
+     * be empty if no constraint violations found.
+     *
+     * @param configuration Equipment that should be validated
+     * @param validator     Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(Configuration configuration, Validator validator) {
+        Set<ConstraintViolation<Configuration>> constraintViolations = validator.validate(configuration);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size() > 0) {
+            for (ConstraintViolation<Configuration> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
+    }
 
     public String getValue() {
 
         return value;
+    }
+
+    public void setValue(Date value) {
+        this.value = value.toString();
     }
 
     public void setValue(String value) {
@@ -59,56 +92,31 @@ public class Configuration implements Serializable {
         this.name = name;
     }
 
-    public int getValueAsInt(){
+    public int getValueAsInt() {
         return Integer.parseInt(value);
     }
 
-    public long getValueAsLong(){
+    public long getValueAsLong() {
         return Long.parseLong(value);
     }
 
-    public boolean getValueAsBoolean(){
+    public boolean getValueAsBoolean() {
         return Boolean.parseBoolean(value);
     }
 
-    public Date getValueAsDate(){
+    public Date getValueAsDate() {
         return Date.valueOf(value);
     }
 
-    public void setValue(int value){
+    public void setValue(int value) {
         this.value = Integer.toString(value);
     }
 
-    public void setValue(long value){
+    public void setValue(long value) {
         this.value = Long.toString(value);
     }
 
-    public void setValue(boolean value){
+    public void setValue(boolean value) {
         this.value = Boolean.toString(value);
-    }
-
-    public void setValue(Date value){
-        this.value = value.toString();
-    }
-
-    /**
-     * Validates equipment representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
-     * @param configuration
-     * Equipment that should be validated
-     * @param validator
-     * Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(Configuration configuration, Validator validator) {
-        Set<ConstraintViolation<Configuration>> constraintViolations = validator.validate(configuration);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size()>0){
-            for (ConstraintViolation<Configuration> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
     }
 }

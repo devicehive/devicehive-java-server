@@ -37,11 +37,10 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
-    public DeviceClass getDeviceClassByNameAndVersionForWrite(String name, String version) {
+    public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {
         TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.findByNameAndVersion", DeviceClass.class);
         query.setParameter("version", version);
         query.setParameter("name", name);
-        query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
         List<DeviceClass> result = query.getResultList();
         return  result.isEmpty() ? null : result.get(0);
     }

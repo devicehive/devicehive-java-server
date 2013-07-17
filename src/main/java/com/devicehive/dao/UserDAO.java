@@ -86,24 +86,22 @@ public class UserDAO {
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User incrementLoginAttempts(User user) {
-        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+        em.refresh(user);
         user.setLoginAttempts(user.getLoginAttempts() != null ? user.getLoginAttempts() + 1 : 1);
         if (user.getLoginAttempts() >= maxLoginAttempts) {
             user.setStatus(User.STATUS.LockedOut.ordinal());
         }
-        em.merge(user);
-        return user;
+        return em.merge(user);
     }
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User finalizeLogin(User user) {
-        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+        em.refresh(user);
         if (user.getStatus() != User.STATUS.Active.ordinal()) {
             return null;
         }
         user.setLoginAttempts(0);
-        em.merge(user);
-        return user;
+        return em.merge(user);
     }
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)

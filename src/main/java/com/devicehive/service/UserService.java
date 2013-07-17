@@ -38,7 +38,6 @@ public class UserService {
     public User authenticate(String login, String password) {
         TypedQuery<User> query = em.createNamedQuery("User.findActiveByName", User.class);
         query.setParameter("login", login);
-        query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
         List<User> list = query.getResultList();
 
         if (list.isEmpty()) {
