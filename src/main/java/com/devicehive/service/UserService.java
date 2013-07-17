@@ -121,20 +121,16 @@ public class UserService {
     }
 
     public void assignNetwork(@NotNull Long userId,@NotNull Long networkId) {
-        User u = userDAO.findUserWithNetworks(userId);
+        User u = userDAO.findById(userId);
         Network n = networkDAO.getByIdWithUsers(networkId);
-        u.getNetworks().add(n);
         n.getUsers().add(u);
-        em.persist(u);
         em.persist(n);
     }
 
     public void unassignNetwork(@NotNull Long userId,@NotNull Long networkId) {
-        User u = userDAO.findUserWithNetworks(userId);
+        User u = userDAO.findById(userId);
         Network n = networkDAO.getByIdWithUsers(networkId);
         n.getUsers().remove(u);
-        u.getNetworks().remove(n);
-        em.merge(u);
         em.merge(n);
     }
 
