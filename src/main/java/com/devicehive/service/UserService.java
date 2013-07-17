@@ -1,6 +1,8 @@
 package com.devicehive.service;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.dao.NetworkDAO;
+import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
@@ -27,6 +29,12 @@ public class UserService {
 
     @Inject
     private PasswordService passwordService;
+
+    @Inject
+    private UserDAO userDAO;
+
+    @Inject
+    private NetworkDAO networkDAO;
 
     /**
      * Tries to authenticate with given credentials
@@ -108,8 +116,30 @@ public class UserService {
 
     public boolean deleteUser(@NotNull Long id) {
         Query q = em.createNamedQuery("User.delete");
+        q.setParameter("id",id);
         return q.executeUpdate() > 0;
     }
+
+    public void assignNetwork(@NotNull Long userId,@NotNull Long networkId) {
+        User u = userDAO.findUserWithNetworks(userId);
+        Network n = networkDAO.getByIdWithUsers(networkId);
+        u.getNetworks().add(n);
+        n.getUsers().add(u);
+        em.persist(u);
+        em.persist(n);
+    }
+
+    public void unassignNetwork(@NotNull Long userId,@NotNull Long networkId) {
+        User u = userDAO.findUserWithNetworks(userId);
+        Network n = networkDAO.getByIdWithUsers(networkId);
+        n.getUsers().remove(u);
+        u.getNetworks().remove(n);
+        em.merge(u);
+        em.merge(n);
+    }
+
+
+
 
 
 }

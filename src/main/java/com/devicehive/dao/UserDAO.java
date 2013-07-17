@@ -5,6 +5,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.interceptors.ValidationInterceptor;
+import org.hibernate.Hibernate;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -21,6 +22,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 @Stateless
@@ -32,11 +34,19 @@ public class UserDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
+
+    /**
+     * Search user by login
+     * @param login user's login
+     * @return User or null, if there is no such user
+     */
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
         query.setParameter("login", login);
-        return query.getSingleResult();
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
     }
+
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
@@ -79,9 +89,16 @@ public class UserDAO {
         return resultQuery.getResultList();
     }
 
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User findById(Long id) {
-        return em.find(User.class, id);
+        User u = em.find(User.class, id);
+        Hibernate.initialize(u.getNetworks());
+        return u;
+    }
+
+    public User findUserWithNetworks(Long id) {
+        User u = em.find(User.class, id);
+        Hibernate.initialize(u.getNetworks());
+        return u;
     }
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)

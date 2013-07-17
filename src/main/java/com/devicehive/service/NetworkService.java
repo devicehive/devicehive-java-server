@@ -1,11 +1,13 @@
 package com.devicehive.service;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;

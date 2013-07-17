@@ -126,6 +126,13 @@ public class Network implements Serializable {
                         cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
         }
         return result;
+    }
 
+    @Override
+    public boolean equals(Object o){
+        if(!(o instanceof Network)){
+            return false;
+        }
+        return this.id==((Network) o).getId();
     }
 }

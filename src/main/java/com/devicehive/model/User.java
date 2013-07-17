@@ -43,7 +43,6 @@ public class User  implements Serializable {
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of login shouldn't be more than 64 symbols.")
     private String login;
 
-
     @Column(name = "password_hash")
     @NotNull(message = "passwordHash field cannot be null.")
     @Size(min = 1, max = 48, message = "Field cannot be empty. The length of passwordHash should be 48 symbols.")
@@ -181,5 +180,13 @@ public class User  implements Serializable {
         }
         return result;
 
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof User){
+            return ((User)o).getId()==getId();
+        }
+        return false;
     }
 }
