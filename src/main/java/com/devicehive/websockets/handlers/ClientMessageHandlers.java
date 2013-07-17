@@ -157,12 +157,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             deviceNotifications =
                     deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, false);
         }
-
-        if (deviceNotifications == null) {
-            logger.debug("notification/subscribe action - null guid case." + "no device notifications found " +
-                    "Session " + session.getId());
-            return;
-        }
         logger.debug("notification/subscribe action - null guid case." + "get device notification. found " +
                 deviceNotifications.size() + " notifications. " + "Session " + session.getId());
         notificationSubscribeAction(deviceNotifications, session, null);
@@ -178,19 +172,18 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         } else {
             devices = deviceDAO.findByUUIDListAndUser(authorizedUser, guids);
         }
-        if (devices == null) {
+        if (devices.isEmpty()) {
             logger.debug("No devices found. Return " + ". Session " + session.getId());
-            return;
+            throw new HiveException("No available devices found.");
         }
+
         logger.debug("Found " + devices.size() + " devices" + ". Session " + session.getId());
         List<DeviceNotification> deviceNotifications = deviceNotificationService.getDeviceNotificationList(devices,
                 authorizedUser, timestamp, null);
-        if (deviceNotifications == null) {
-            logger.debug("notification/subscribe action - not null guid case." + "no device notifications found " +
-                    "Session " + session.getId());
-            return;
-        }
+
         notificationSubscribeAction(deviceNotifications, session, devices);
+
+        checkDevicesAndGuidsList(devices, guids, true);
     }
 
     private void notificationSubscribeAction(List<DeviceNotification> deviceNotifications, Session session,
@@ -229,15 +222,44 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 devices = deviceDAO.findByUUID(list);
                 logger.debug("notification/unsubscribe. found " + devices.size() +
                         " devices. " + "Session " + session.getId());
+                if (devices.isEmpty()) {
+                    throw new HiveException("No available devices found");
+                }
             }
             logger.debug("notification/unsubscribe. performing unsubscribing action");
             localMessageBus.unsubscribeFromNotifications(session.getId(), devices);
+            checkDevicesAndGuidsList(devices, list, false);
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
         }
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         logger.debug("notification/unsubscribe completed for session " + session.getId());
         return jsonObject;
+    }
+
+    private void checkDevicesAndGuidsList(List<Device> devices, List<UUID> guids, boolean isSubscribe) {
+        if (devices.size() != guids.size()) {
+            StringBuilder responseBuilder;
+            if (isSubscribe) {
+                responseBuilder = new StringBuilder("Unable to subscribe for devices with guids: ");
+            } else {
+                responseBuilder = new StringBuilder("Unable to unsubscribe from devices with guids: ");
+            }
+            for (UUID guid : guids) {
+                boolean contains = false;
+                for (Device device : devices) {
+                    if (device.getGuid().equals(guid)) {
+                        contains = true;
+                    }
+                }
+                if (!contains) {
+                    responseBuilder.append(guid + " ");
+                }
+            }
+            responseBuilder.append(". Device(s) with such guids doesn't exist(s) or you haven't permissions to get " +
+                    "notifications from this device.");
+            throw new HiveException(responseBuilder.toString());
+        }
     }
 
     @Action(value = "server/info", needsAuth = false)

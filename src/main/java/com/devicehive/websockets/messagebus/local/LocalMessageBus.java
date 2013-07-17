@@ -36,7 +36,7 @@ import java.util.concurrent.locks.Lock;
         name = Constants.DATA_SOURCE_NAME,
         databaseName = "memory:devicehive;create=true",
         transactional = true,
-        isolationLevel = Connection.TRANSACTION_SERIALIZABLE,
+        isolationLevel = Connection.TRANSACTION_READ_COMMITTED,
         initialPoolSize = 2,
         minPoolSize = 2,
         maxPoolSize = 100

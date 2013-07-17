@@ -4,12 +4,11 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 
-
 @Entity
 @Table(indexes = {
         @Index(columnList = "deviceId"),
-        @Index(columnList = "sessionId")
-})
+        @Index(columnList = "sessionId")},
+        uniqueConstraints = @UniqueConstraint(columnNames = {"deviceId", "sessionId"}))
 @NamedQueries({
         @NamedQuery(name = "NotificationsSubscription.deleteBySession",
                 query = "delete from NotificationsSubscription n where n.sessionId = :sessionId "),
@@ -20,20 +19,16 @@ import javax.validation.constraints.NotNull;
         @NamedQuery(name = "NotificationsSubscription.getSubscribedForAll",
                 query = "select n.sessionId from NotificationsSubscription n where n.deviceId is null"),
         @NamedQuery(name = "NotificationsSubscription.getSubscribedByDevice",
-        query = "select n.sessionId from NotificationsSubscription n where n.deviceId = :deviceId")
+                query = "select n.sessionId from NotificationsSubscription n where n.deviceId = :deviceId")
 })
 public class NotificationsSubscription {
 
     @Id
     @GeneratedValue
     private Long id;
-
-
     @Column
     //may be null
     private Long deviceId;
-
-
     @Column
     @NotNull
     private String sessionId;
