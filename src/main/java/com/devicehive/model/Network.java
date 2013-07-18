@@ -133,6 +133,6 @@ public class Network implements Serializable {
         if(!(o instanceof Network)){
             return false;
         }
-        return this.id==((Network) o).getId();
+        return this.id ==((Network) o).getId();
     }
 }

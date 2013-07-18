@@ -12,6 +12,8 @@
         .append(request.getContextPath())
         .append("/")
         .append(request.getParameter("path"));
+
+    String currentPath = request.getParameter("path");
 %>
     <script type="text/javascript">
         var client = new WebSocket("<%=wsUrl%>");
@@ -25,8 +27,13 @@
             client.send(document.getElementById("request").value);
         }
     </script>
+
 </head>
 <body>
+<script>
+    document.write("<p><h2><%=currentPath%></h2></p>");
+</script>
+
  <table style="width: 100%">
      <tr>
          <td>

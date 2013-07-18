@@ -295,13 +295,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         Configuration configuration =
                 new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
-        if (configurationDAO.findByName(configuration.getName()) == null) {
-            logger.debug("save configuration. Session " + session.getId());
-            configurationDAO.saveConfiguration(configuration);
-        } else {
-            logger.debug("merge configuration. Session " + session.getId());
-            configurationDAO.updateConfiguration(configuration);
-        }
+        configurationDAO.mergeConfiguration(configuration);
         JsonObject response = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("requestId", message.get("requestId"))
                 .build();

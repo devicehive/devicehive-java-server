@@ -20,7 +20,6 @@ import java.util.Set;
 @Table(name = "equipment",
         uniqueConstraints = @UniqueConstraint(columnNames = "code"))
 @NamedQueries({
-        @NamedQuery(name = "Equipment.findByCode", query = "select e from Equipment e where e.code = :code"),
         @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
                 ":deviceClass"),
         @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList")

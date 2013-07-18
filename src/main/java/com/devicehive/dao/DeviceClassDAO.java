@@ -37,6 +37,10 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
+    public void saveDeviceClass(DeviceClass deviceClass){
+        em.persist(deviceClass);
+    }
+
     public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {
         TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.findByNameAndVersion", DeviceClass.class);
         query.setParameter("version", version);

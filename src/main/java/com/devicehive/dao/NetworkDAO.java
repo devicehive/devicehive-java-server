@@ -8,15 +8,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.interceptor.Interceptors;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import java.util.List;
+
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 
-/**
- * @author Nikolay Loboda <madlooser@gmail.com>
- * @since 7/18/13 2:27 AM
- */
 @Stateless
 @Interceptors(ValidationInterceptor.class)
 public class NetworkDAO {
@@ -24,11 +28,24 @@ public class NetworkDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    private static final Logger logger = LoggerFactory.getLogger(NetworkDAO.class);
-
-    public Network getById(@NotNull long id) {
-        return em.find(Network.class,id);
+    public Network createNetwork(Network network) {
+        em.persist(network);
+        return network;
     }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Network getById(@NotNull long id) {
+        return em.find(Network.class, id);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Network findByName(@NotNull String name) {
+        TypedQuery<Network> query = em.createNamedQuery("Network.findByName", Network.class);
+        query.setParameter("name", name);
+        List<Network> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    }
+    private static final Logger logger = LoggerFactory.getLogger(NetworkDAO.class);
 
     public Network getByIdWithUsers(@NotNull long id) {
         Network result = em.find(Network.class,id);

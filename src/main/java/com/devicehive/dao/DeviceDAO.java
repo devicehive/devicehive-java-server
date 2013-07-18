@@ -41,12 +41,6 @@ public class DeviceDAO {
         return res.isEmpty() ? null : res.get(0);
     }
 
-    public Device findByUUIDForWrite(UUID uuid) {
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
-        query.setParameter("uuid", uuid);
-        List<Device> res = query.getResultList();
-        return res.isEmpty() ? null : res.get(0);
-    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDAndKey(UUID uuid, String key) {
@@ -77,6 +71,10 @@ public class DeviceDAO {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);
         return query.getResultList();
+    }
+
+    public void saveDevice(Device device){
+        em.persist(device);
     }
 
 

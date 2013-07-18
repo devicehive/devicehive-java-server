@@ -27,11 +27,7 @@ public class ConfigurationDAO {
         return em.find(Configuration.class, name);
     }
 
-    public void saveConfiguration(Configuration configuration){
-        em.persist(configuration);
-    }
-
-    public void updateConfiguration(Configuration configuration){
+    public void mergeConfiguration(Configuration configuration){
         em.merge(configuration);
     }
 }

@@ -11,15 +11,10 @@ import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJBException;
-import javax.persistence.PersistenceException;
-import javax.transaction.RollbackException;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import javax.persistence.OptimisticLockException;
 import javax.websocket.Session;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Set;
 
 abstract class Endpoint {
 
@@ -43,6 +38,8 @@ abstract class Endpoint {
             logger.debug("[action] Looking for action " + action);
             response = tryExecute(handler, action, request, session);
         } catch (HiveException ex) {
+            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
+        } catch (OptimisticLockException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
@@ -74,31 +71,11 @@ abstract class Endpoint {
 
     private void invocationTargetExceptionResolve(InvocationTargetException e) throws InvocationTargetException {
         if (e.getTargetException() instanceof HiveException) {
-            throw new HiveException(e.getTargetException().getMessage(), e);
+            throw (HiveException) e.getTargetException();
         }
-        if (e.getTargetException() instanceof EJBException) {
-            EJBException target = (EJBException) e.getTargetException();
-            if (target.getCause() instanceof RollbackException) {
-                RollbackException rollbackException = (RollbackException) target.getCause();
-                if (rollbackException.getCause() instanceof PersistenceException) {
-                    PersistenceException persistenceException = (PersistenceException)
-                            rollbackException.getCause();
-                    if (persistenceException.getCause() instanceof ConstraintViolationException) {
-                        ConstraintViolationException constraintViolationException =
-                                (ConstraintViolationException) persistenceException.getCause();
-                        Set<ConstraintViolation<?>> constraintViolations =
-                                constraintViolationException.getConstraintViolations();
-                        StringBuilder builderForResponse = new StringBuilder("[processMessage] Validation failed: \n");
-                        for (ConstraintViolation<?> constraintViolation : constraintViolations) {
-                            builderForResponse.append(constraintViolation.getMessage());
-                            builderForResponse.append("\n");
-                        }
-                        throw new HiveException(builderForResponse.toString()); //TODO create message
-                    }
-                }
-            }
+        if (e.getTargetException() instanceof OptimisticLockException) {
+            throw (OptimisticLockException) e.getTargetException();
         }
-
         throw e;
     }
 

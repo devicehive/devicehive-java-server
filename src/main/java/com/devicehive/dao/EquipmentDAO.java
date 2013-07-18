@@ -25,12 +25,8 @@ public class EquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Equipment findByCode(String code) {
-        TypedQuery<Equipment> query = em.createNamedQuery("Equipment.findByCode", Equipment.class);
-        query.setParameter("code", code);
-        List<Equipment> result = query.getResultList();
-        return result.isEmpty() ? null : result.get(0);
+    public void saveEquipment(Equipment equipment){
+        em.persist(equipment);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

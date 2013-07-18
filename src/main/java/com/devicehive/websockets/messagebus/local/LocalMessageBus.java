@@ -121,11 +121,11 @@ public class LocalMessageBus {
         }
         JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
         try {
-            WebsocketSession.getCommandsSubscriptionsLock(session).lock();
+            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).lock();
             logger.debug("Add messages to queue process for session " + session.getId());
             WebsocketSession.addMessagesToQueue(session, jsonObject);
         } finally {
-            WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
+            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).unlock();
             logger.debug("Deliver messages process for session " + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }

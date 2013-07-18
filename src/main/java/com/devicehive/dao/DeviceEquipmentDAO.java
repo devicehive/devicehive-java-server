@@ -24,21 +24,12 @@ public class DeviceEquipmentDAO {
 
 
     public void saveDeviceEquipment(DeviceEquipment deviceEquipment) {
-        deviceEquipment.setTimestamp(new Date());
         em.persist(deviceEquipment);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceEquipment findById(Long id) {
         return em.find(DeviceEquipment.class, id);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceEquipment findByCode(String code) {
-        TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByCode", DeviceEquipment.class);
-        query.setParameter("code", code);
-        List<DeviceEquipment> resultList = query.getResultList();
-        return resultList.isEmpty() ? null : resultList.get(0);
     }
 
     public int update(DeviceEquipment deviceEquipment){
