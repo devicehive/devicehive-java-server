@@ -24,7 +24,7 @@ import java.util.List;
 @Interceptors(ValidationInterceptor.class)
 public class DeviceCommandDAO {
 
-    private static final Integer DEFAULT_TAKE = Integer.valueOf(1000); //TODO set parameter
+    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 

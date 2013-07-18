@@ -19,7 +19,8 @@ import java.util.Set;
 @Entity
 @Table(name = "network")
 @NamedQueries({
-        @NamedQuery(name = "Network.findByName", query = "select n from Network n where name = :name")
+        @NamedQuery(name = "Network.findByName", query = "select n from Network n where name = :name"),
+        @NamedQuery(name = "Network.findWithUsers", query = "select n from Network n join fetch n.users where id = :id")
 })
 public class Network implements Serializable {
 

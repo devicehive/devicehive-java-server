@@ -3,15 +3,12 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
 import com.devicehive.service.interceptors.ValidationInterceptor;
-import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.interceptor.Interceptors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -36,16 +33,16 @@ public class NetworkDAO {
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
 
     public Network getById(@NotNull long id) {
-        return em.find(Network.class,id);
+        return em.find(Network.class, id);
     }
 
     public void delete(@NotNull long id) {
-        Network n = em.find(Network.class,id);
+        Network n = em.find(Network.class, id);
         em.remove(n);
     }
 
     public Network insert(Network n) {
-        return  em.merge(n);
+        return em.merge(n);
     }
 
 
@@ -88,9 +85,10 @@ public class NetworkDAO {
     }
 
     public Network getByIdWithUsers(@NotNull long id) {
-        Network result = em.find(Network.class,id);
-        Hibernate.initialize(result.getUsers());
-        return result;
+        TypedQuery<Network> query = em.createNamedQuery("Network.findWithUsers", Network.class);
+        query.setParameter("id", id);
+        List<Network> networks = query.getResultList();
+        return networks.isEmpty() ? null : networks.get(0);
     }
 
 }

@@ -4,15 +4,12 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.interceptors.ValidationInterceptor;
-import org.hibernate.Hibernate;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -30,7 +27,6 @@ public class UserDAO {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
-
 
     /**
      * Search user by login
@@ -89,14 +85,15 @@ public class UserDAO {
 
     public User findById(Long id) {
         User u = em.find(User.class, id);
-        Hibernate.initialize(u.getNetworks());
         return u;
     }
 
     public User findUserWithNetworks(Long id) {
-        User u = em.find(User.class, id);
-        Hibernate.initialize(u.getNetworks());
-        return u;
+        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworks", User.class);
+        query.setParameter("id", id);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+
     }
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)

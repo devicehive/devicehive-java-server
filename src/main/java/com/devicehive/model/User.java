@@ -23,7 +23,8 @@ import java.util.Set;
     @NamedQuery(name= "User.delete", query = "update User u set u.status = 3 where u.id = :id"),
     @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
     @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
-            "where u = :user and n = :network")
+            "where u = :user and n = :network"),
+    @NamedQuery(name= "User.getWithNetworks", query = "select u from User u join fetch u.networks where u.id = :id")
 })
 
 public class User  implements Serializable {
