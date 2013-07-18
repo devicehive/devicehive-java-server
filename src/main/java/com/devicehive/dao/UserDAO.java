@@ -1,7 +1,6 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.interceptors.ValidationInterceptor;
@@ -12,17 +11,14 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
 @Stateless
@@ -30,13 +26,15 @@ import java.util.Set;
 public class UserDAO {
 
     private static final int maxLoginAttempts = 10;
-    private static final Integer DEFAULT_TAKE = Integer.valueOf(1000); //TODO set parameter
+    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
 
     /**
      * Search user by login
+     *
      * @param login user's login
      * @return User or null, if there is no such user
      */

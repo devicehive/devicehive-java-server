@@ -7,6 +7,7 @@ import com.devicehive.model.User;
 import com.devicehive.model.request.UserInsert;
 import com.devicehive.model.response.DetailedUserResponse;
 import com.devicehive.model.response.SimpleNetworkResponse;
+import com.devicehive.model.response.SimpleUserResponse;
 import com.devicehive.service.UserService;
 
 import javax.inject.Inject;
@@ -22,9 +23,6 @@ import java.util.Set;
  */
 @Path("/user")
 public class UserController {
-
-    @Inject
-    private UserDAO userDAO;
 
     @Inject
     private UserService userService;
@@ -50,7 +48,7 @@ public class UserController {
             throw new HiveException("The sort field cannot be equal " + sortField);//maybe better to do sort field null
         }
         //TODO validation for role and status
-        return userDAO.getList(login, loginPattern, role, status, sortField, sortOrderASC, take, skip);
+        return userService.getList(login, loginPattern, role, status, sortField, sortOrderASC, take, skip);
 
     }
 
@@ -60,7 +58,7 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     public DetailedUserResponse getUser(@PathParam("id") long id) {
         try {
-            User u = userDAO.findById(id);
+            User u = userService.findById(id);
             DetailedUserResponse userResponse = new DetailedUserResponse();
             userResponse.setId(u.getId());
             userResponse.setLogin(u.getLogin());
@@ -70,7 +68,7 @@ public class UserController {
 
             Set<SimpleNetworkResponse> networks = new HashSet<>();
 
-            for(Network n:u.getNetworks()) {
+            for (Network n : u.getNetworks()) {
                 SimpleNetworkResponse snr = new SimpleNetworkResponse();
                 snr.setId(n.getId());
                 snr.setDescription(n.getDescription());
@@ -89,13 +87,21 @@ public class UserController {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertUser(UserInsert user) {
-        User u = userDAO.findByLogin(user.getLogin());
+    @Produces(MediaType.APPLICATION_JSON)
+    public SimpleUserResponse insertUser(UserInsert user) {
+        User u = userService.findByLogin(user.getLogin());
+
         if (u != null) {
             throw new ForbiddenException("User with such login already exists");
         }
-        userService.createUser(user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
-        return Response.ok().build();
+
+        u = userService.createUser(user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
+        SimpleUserResponse response = new SimpleUserResponse();
+        response.setId(u.getId());
+        response.setLogin(u.getLogin());
+        response.setRole(u.getRole());
+        response.setStatus(u.getStatus());
+        return response;
     }
 
 
@@ -103,7 +109,7 @@ public class UserController {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserInsert user, @PathParam("id") long userId) {
-        User u = userDAO.findByLogin(user.getLogin());
+        User u = userService.findByLogin(user.getLogin());
 
         if (u != null) {
             throw new ForbiddenException("User with such login already exists");
@@ -121,12 +127,12 @@ public class UserController {
     }
 
 
-     @GET
-     @Path("/{id}/network/{networkId}")
-     @Produces(MediaType.APPLICATION_JSON)
-     public SimpleNetworkResponse getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+    @GET
+    @Path("/{id}/network/{networkId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SimpleNetworkResponse getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
-            User u = userDAO.findUserWithNetworks(id);
+            User u = userService.findUserWithNetworks(id);
             for (Network n : u.getNetworks()) {
                 if (n.getId() == networkId) {
                     SimpleNetworkResponse response = new SimpleNetworkResponse();
@@ -149,7 +155,7 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
-            userService.assignNetwork(id,networkId);
+            userService.assignNetwork(id, networkId);
         } catch (Exception e) {
             throw new NotFoundException();
         }
@@ -161,14 +167,12 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
-            userService.unassignNetwork(id,networkId);
+            userService.unassignNetwork(id, networkId);
         } catch (Exception e) {
             throw new NotFoundException();
         }
         return Response.ok().build();
     }
-
-
 
 
     public Response getDeviceList() {

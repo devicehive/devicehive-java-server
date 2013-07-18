@@ -128,6 +128,24 @@ public class UserService {
         em.merge(n);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
+                              Boolean sortOrderAsc, Integer take, Integer skip) {
+        return userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
+    }
+
+    public User findByLogin(String login) {
+        return userDAO.findByLogin(login);
+    }
+
+    public User findById(@NotNull Long id) {
+        return userDAO.findById(id);
+    }
+
+    public User findUserWithNetworks(@NotNull Long id) {
+        return userDAO.findUserWithNetworks(id);
+    }
+
 
 
 
