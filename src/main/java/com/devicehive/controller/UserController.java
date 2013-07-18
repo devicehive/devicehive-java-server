@@ -1,6 +1,5 @@
 package com.devicehive.controller;
 
-import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
@@ -51,7 +50,6 @@ public class UserController {
         return userService.getList(login, loginPattern, role, status, sortField, sortOrderASC, take, skip);
 
     }
-
 
     @GET
     @Path("/{id}")

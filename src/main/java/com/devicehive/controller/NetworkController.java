@@ -26,6 +26,33 @@ public class NetworkController {
     @Inject
     private NetworkService networkService;
 
+
+    /**
+     * Produces following output:
+     * <pre>
+     * [
+     *  {
+     *    "description":"Network Description",
+     *    "id":1,
+     *    "key":"Network Key",
+     *    "name":"Network Name"
+     *   },
+     *   {
+     *    "description":"Network Description",
+     *    "id":2,
+     *    "key":"Network Key",
+     *    "name":"Network Name"
+     *   }
+     * ]
+     * </pre>
+     *
+     * @param name exact network's name, ignored, when  namePattern is not null
+     * @param namePattern
+     * @param sortField Sort Field, can be either "id", "key", "name" or "description"
+     * @param sortOrder ASC - ascending, otherwise descending
+     * @param take limit, default 1000
+     * @param skip offset, default 0
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<SimpleNetworkResponse> getNetworkList(@QueryParam("name") String name, @QueryParam("namePattern") String namePattern,
@@ -47,6 +74,18 @@ public class NetworkController {
         return response;
     }
 
+    /**
+     * Generates  JSON similar to this:
+     * <pre>
+     *     {
+     *      "description":"Network Description",
+     *      "id":1,
+     *      "key":"Network Key",
+     *      "name":"Network Name"
+     *     }
+     * </pre>
+     * @param id network id, can't be null
+     */
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -60,6 +99,34 @@ public class NetworkController {
         return rn;
     }
 
+
+    /**
+     * Inserts new Network into database. Consumes next input:
+     * <pre>
+     *     {
+     *       "key":"Network Key",
+     *       "name":"Network Name",
+     *       "description":"Network Description"
+     *     }
+     * </pre>
+     * Where
+     * "key" is not required
+     * "description" is not required
+     * "name" is required
+     *
+     * In case of success will produce following output:
+     * <pre>
+     *     {
+     *      "description":"Network Description",
+     *      "id":1,
+     *      "key":"Network Key",
+     *      "name":"Network Name"
+     *     }
+     * </pre>
+     * Where "description" and "key" will be provided, if they are specified in request.
+     * Fields "id" and "name" will be provided anyway.
+     *
+     */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -80,6 +147,30 @@ public class NetworkController {
     }
 
 
+    /**
+     * This method updates network with given Id. Consumes following input:
+     * <pre>
+     *     {
+     *       "key":"Network Key",
+     *       "name":"Network Name",
+     *       "description":"Network Description"
+     *     }
+     * </pre>
+     * Where
+     * "key" is not required
+     * "description" is not required
+     * "name" is not required
+     * Fields, that are not specified will stay unchanged
+     * Method will produce following output:
+     * <pre>
+     *     {
+     *      "description":"Network Description",
+     *      "id":1,
+     *      "key":"Network Key",
+     *      "name":"Network Name"
+     *     }
+     * </pre>
+     */
     @PUT
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -105,6 +196,11 @@ public class NetworkController {
         return r;
     }
 
+    /**
+     * Deletes network by specified id.
+     * If success, outputs empty response
+     * @param id network's id
+     */
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
