@@ -103,7 +103,6 @@ public class UserController {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserInsert user, @PathParam("id") long userId) {
-        //TODO: fix hql
         User u = userDAO.findByLogin(user.getLogin());
 
         if (u != null) {

@@ -12,9 +12,6 @@ import javax.ejb.*;
 import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -91,27 +88,24 @@ public class UserService {
         return em.merge(user);
     }
 
-    public boolean updateUser(@NotNull Long id, String login, User.ROLE role, User.STATUS status, String password) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaUpdate<User> criteria = criteriaBuilder.createCriteriaUpdate(User.class);
-        Root from = criteria.from(User.class);
+    public void updateUser(@NotNull Long id, String login, User.ROLE role, User.STATUS status, String password) {
+        User u = em.find(User.class,id);
         if (login != null) {
-            criteria.set("login", login);
+            u.setLogin(login);
         }
         if (role != null) {
-            criteria.set("role", role.ordinal());
+            u.setRole(role.ordinal());
         }
         if (status != null) {
-            criteria.set("status", status.ordinal());
+            u.setStatus(status.ordinal());
         }
         if (password != null) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
-            criteria.set("passwordHash", hash);
-            criteria.set("passwordSalt", salt);
+            u.setPasswordHash(hash);
+            u.setPasswordSalt(salt);
         }
-        criteria.where(criteriaBuilder.equal(from.get("id"), id));
-        return em.createQuery(criteria).executeUpdate() > 0;
+        em.merge(u);
     }
 
     public boolean deleteUser(@NotNull Long id) {
