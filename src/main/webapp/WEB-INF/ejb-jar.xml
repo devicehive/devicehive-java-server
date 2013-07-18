@@ -8,5 +8,11 @@
         <application-exception>
             <exception-class>javax.persistence.OptimisticLockException</exception-class>
         </application-exception>
+        <application-exception>
+            <exception-class>com.google.gson.JsonParseException</exception-class>
+        </application-exception>
+        <application-exception>
+            <exception-class>com.google.gson.JsonSyntaxException</exception-class>
+        </application-exception>
     </assembly-descriptor>
 </ejb-jar>

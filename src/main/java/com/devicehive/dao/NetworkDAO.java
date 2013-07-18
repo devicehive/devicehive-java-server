@@ -2,7 +2,6 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,6 @@ import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class NetworkDAO {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)

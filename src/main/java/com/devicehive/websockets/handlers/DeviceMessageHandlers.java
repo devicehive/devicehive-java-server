@@ -8,7 +8,6 @@ import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.interceptors.JsonInterceptor;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.*;
@@ -26,13 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.*;
 
-@Interceptors(JsonInterceptor.class)
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);

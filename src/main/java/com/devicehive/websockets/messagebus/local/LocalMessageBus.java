@@ -166,7 +166,6 @@ public class LocalMessageBus {
      *
      * @param deviceNotification
      */
-    //TODO make this multithreaded ?!
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public void submitNotification(DeviceNotification deviceNotification) throws IOException {
         logger.debug("Submit notification action for deviceNotification :" + deviceNotification.getId());

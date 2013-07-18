@@ -3,7 +3,6 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +18,6 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class EquipmentDAO {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)

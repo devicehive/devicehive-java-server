@@ -2,7 +2,6 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceEquipment;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -17,7 +16,6 @@ import java.util.Date;
 import java.util.List;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class DeviceEquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;

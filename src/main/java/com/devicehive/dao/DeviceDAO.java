@@ -3,7 +3,6 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class DeviceDAO {
 
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);

@@ -3,7 +3,6 @@ package com.devicehive.service;
 import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
@@ -15,13 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.websocket.Session;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-@Interceptors(ValidationInterceptor.class)
 @Stateless
 public class DeviceService {
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
@@ -92,6 +89,7 @@ public class DeviceService {
                                                            DeviceEquipment deviceEquipment) {
         if (deviceEquipment != null) {
             if (deviceEquipmentDAO.update(deviceEquipment) == 0) {
+                deviceEquipment.setTimestamp(new Date());
                 deviceEquipmentDAO.saveDeviceEquipment(deviceEquipment);
             }
         }

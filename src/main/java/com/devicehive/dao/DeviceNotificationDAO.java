@@ -4,7 +4,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -23,7 +22,6 @@ import java.util.Date;
 import java.util.List;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class DeviceNotificationDAO {
     private static final Integer DEFAULT_TAKE = Integer.valueOf(1000);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)

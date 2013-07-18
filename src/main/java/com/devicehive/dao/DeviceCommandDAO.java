@@ -4,7 +4,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -21,7 +20,6 @@ import java.util.Date;
 import java.util.List;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class DeviceCommandDAO {
 
     private static final Integer DEFAULT_TAKE = Integer.valueOf(1000); //TODO set parameter

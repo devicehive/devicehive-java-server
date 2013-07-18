@@ -12,7 +12,6 @@ import java.io.IOException;
 public class AsyncMessageDeliverer {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageDeliverer.class);
-    private final int POOL_SIZE = 10; //TODO as parameter
 
     @Asynchronous
     public void deliverMessages(final Session session) throws IOException {

@@ -4,7 +4,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.hibernate.Hibernate;
 
 import javax.ejb.Stateless;
@@ -26,7 +25,6 @@ import java.util.Set;
 
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class UserDAO {
 
     private static final int maxLoginAttempts = 10;

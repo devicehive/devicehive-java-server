@@ -9,7 +9,6 @@ import com.devicehive.model.*;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
-import com.devicehive.service.interceptors.JsonInterceptor;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.json.GsonFactory;
 import com.devicehive.websockets.json.strategies.ClientCommandInsertRequestExclusionStrategy;
@@ -27,14 +26,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Interceptors(JsonInterceptor.class)
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);

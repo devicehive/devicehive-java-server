@@ -6,15 +6,19 @@ import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.OptimisticLockException;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Set;
 
 abstract class Endpoint {
 
@@ -75,6 +79,25 @@ abstract class Endpoint {
         }
         if (e.getTargetException() instanceof OptimisticLockException) {
             throw (OptimisticLockException) e.getTargetException();
+        }
+        if (e.getTargetException() instanceof ConstraintViolationException){
+            ConstraintViolationException ex = (ConstraintViolationException) e.getTargetException();
+            logger.debug("[processMessage] Validation error, incorrect input");
+            Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
+            StringBuilder builderForResponse = new StringBuilder("Validation failed: \n");
+            for (ConstraintViolation<?> constraintViolation : constraintViolations) {
+                builderForResponse.append(constraintViolation.getMessage());
+                builderForResponse.append("\n");
+            }
+            throw new HiveException(builderForResponse.toString());
+        }
+        if (e.getTargetException() instanceof JsonSyntaxException){
+            JsonSyntaxException ex = (JsonSyntaxException) e.getTargetException();
+            throw new HiveException("Incorrect JSON syntax: " + ex.getCause().getMessage(), ex);
+        }
+        if (e.getTargetException() instanceof JsonParseException){
+            JsonParseException ex = (JsonParseException) e.getTargetException();
+            throw new HiveException("Error occurred on parsing JSON object: " + ex.getMessage(), ex);
         }
         throw e;
     }

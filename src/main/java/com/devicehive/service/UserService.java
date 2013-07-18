@@ -6,8 +6,6 @@ import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.service.interceptors.ValidationInterceptor;
-
 import javax.ejb.*;
 import javax.inject.Inject;
 import javax.interceptor.Interceptors;
@@ -19,7 +17,6 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Singleton
-@Interceptors(ValidationInterceptor.class)
 public class UserService {
 
     private static final int maxLoginAttempts = 10;
