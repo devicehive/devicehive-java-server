@@ -27,6 +27,7 @@ public class NotificationSubscriptionDAO {
 
     public void insertSubscriptions(Collection<Device> devices, String sessionId) {
         for (Device device : devices) {
+            deleteByDeviceAndSession(device, sessionId);
             em.persist(new NotificationsSubscription(device.getId(), sessionId));
         }
     }
