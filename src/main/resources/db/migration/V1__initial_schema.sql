@@ -8,6 +8,7 @@ CREATE TABLE network (
 );
 
 ALTER TABLE network ADD CONSTRAINT network_pk PRIMARY KEY (id);
+ALTER TABLE network ADD CONSTRAINT network_name_unique UNIQUE (name);
 
 CREATE TABLE "user" (
     id BIGSERIAL NOT NULL,
@@ -22,6 +23,7 @@ CREATE TABLE "user" (
 );
 
 ALTER TABLE "user" ADD CONSTRAINT user_pk PRIMARY KEY (id);
+ALTER TABLE "user" ADD CONSTRAINT user_login_unique UNIQUE (login);
 
 CREATE TABLE user_network (
     id BIGSERIAL NOT NULL,
@@ -45,6 +47,7 @@ CREATE TABLE device_class (
 );
 
 ALTER TABLE device_class ADD CONSTRAINT device_class_pk PRIMARY KEY (id);
+ALTER TABLE device_class ADD CONSTRAINT device_class_name_version_unique UNIQUE (name, version);
 
 CREATE TABLE device (
     id BIGSERIAL NOT NULL,
@@ -61,6 +64,7 @@ CREATE TABLE device (
 ALTER TABLE device ADD CONSTRAINT device_pk PRIMARY KEY (id);
 ALTER TABLE device ADD CONSTRAINT device_network_fk FOREIGN KEY (network_id) REFERENCES network (id);
 ALTER TABLE device ADD CONSTRAINT device_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id);
+ALTER TABLE device ADD CONSTRAINT device_guid_unique UNIQUE (guid);
 
 CREATE TABLE device_command (
     id BIGSERIAL NOT NULL,
@@ -91,6 +95,7 @@ CREATE TABLE device_equipment (
 
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_pk PRIMARY KEY (id);
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_fk FOREIGN KEY (device_id) REFERENCES device (id);
+ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_id_code_unique UNIQUE (device_id, code);
 
 CREATE TABLE device_notification (
     id BIGSERIAL NOT NULL,
@@ -125,9 +130,3 @@ CREATE TABLE configuration (
 );
 
 ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (name);
-
-ALTER TABLE "user" ADD CONSTRAINT user_login_unique UNIQUE (login);
-ALTER TABLE device_class ADD CONSTRAINT device_class_name_version_unique UNIQUE (name, version);
-ALTER TABLE device ADD CONSTRAINT device_guid_unique UNIQUE (guid);
-ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_id_code_unique UNIQUE (device_id, code);
-ALTER TABLE network ADD CONSTRAINT network_name_unique UNIQUE (name);
