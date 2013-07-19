@@ -21,6 +21,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "\"user\"")
 @NamedQueries({
     @NamedQuery(name= "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
+    @NamedQuery(name= "User.findByIdWithNetworks", query = "select u from User u left join fetch u.networks where u.id = :id"),
     @NamedQuery(name= "User.delete", query = "update User u set u.status = 3 where u.id = :id"),
     @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
     @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
@@ -76,7 +77,7 @@ public class User  implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED})
     private Date lastLogin;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users", cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})
     private Set<Network> networks;
 

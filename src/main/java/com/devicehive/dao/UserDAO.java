@@ -88,15 +88,13 @@ public class UserDAO {
     }
 
     public User findById(Long id) {
-        User u = em.find(User.class, id);
-        Hibernate.initialize(u.getNetworks());
-        return u;
+        return em.find(User.class, id);
     }
 
     public User findUserWithNetworks(Long id) {
-        User u = em.find(User.class, id);
-        Hibernate.initialize(u.getNetworks());
-        return u;
+        TypedQuery<User> query = em.createNamedQuery("User.findByIdWithNetworks", User.class);
+        query.setParameter("id", id);
+        return query.getSingleResult();
     }
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)

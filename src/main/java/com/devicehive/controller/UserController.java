@@ -63,7 +63,7 @@ public class UserController {
     @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public User getUser(@PathParam("id") long id) {
         try {
-            User u = userDAO.findById(id);
+            User u = userDAO.findUserWithNetworks(id);
             return u;
         } catch (Error e) {
             throw new NotFoundException();
