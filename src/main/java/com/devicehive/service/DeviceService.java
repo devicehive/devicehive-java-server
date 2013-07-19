@@ -42,9 +42,11 @@ public class DeviceService {
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
     public void deviceSave(Device device, Set<Equipment> equipmentSet) {
+        if (device.getNetwork() != null) {
             device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
-            device.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet));
-            createOrUpdateDevice(device);
+        }
+        device.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet));
+        createOrUpdateDevice(device);
     }
 
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session userWebsocketSession) {
@@ -138,7 +140,7 @@ public class DeviceService {
     public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
         List<Equipment> existingEquipments = equipmentDAO.getByDeviceClass(deviceClass);
         if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
-                equipmentDAO.removeEquipment(existingEquipments);
+            equipmentDAO.removeEquipment(existingEquipments);
         }
         for (Equipment equipment : newEquipmentSet) {
             equipment.setDeviceClass(deviceClass);
