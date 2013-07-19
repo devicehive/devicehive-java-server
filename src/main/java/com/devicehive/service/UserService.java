@@ -6,9 +6,10 @@ import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.service.helpers.PasswordProcessor;
+
 import javax.ejb.*;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaUpdate;
@@ -25,7 +26,7 @@ public class UserService {
     private EntityManager em;
 
     @Inject
-    private PasswordService passwordService;
+    private PasswordProcessor passwordService;
 
     @Inject
     private UserDAO userDAO;
