@@ -1,9 +1,9 @@
 package com.devicehive.model;
 
+import com.devicehive.websockets.json.strategies.HiveAnnotations;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
-import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -13,6 +13,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandFromClient;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToClient;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToDevice;
+
 
 /**
  * TODO JavaDoc
@@ -20,23 +24,27 @@ import java.util.Set;
 @Entity
 @Table(name = "device_command")
 @NamedQueries({
-        @NamedQuery(name = "DeviceCommand.getNewerThan",
-                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
+    @NamedQuery(name= "DeviceCommand.getNewerThan", query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
 })
-public class DeviceCommand implements Serializable {
+public class DeviceCommand implements Serializable{
 
     @SerializedName("id")
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @CommandToClient
     private Long id;
 
     @SerializedName("timestamp")
     @Column
+    @CommandToClient
+    @CommandToDevice
     private Date timestamp;
 
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
+    @CommandToClient
+    @CommandToDevice
     private User user;
 
     @SerializedName("device")
@@ -50,67 +58,47 @@ public class DeviceCommand implements Serializable {
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 " +
             "symbols.")
+    @CommandFromClient
+    @CommandToDevice
     private String command;
 
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
+        @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
     })
+    @CommandFromClient
+    @CommandToDevice
     private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @Column
+    @CommandFromClient
+    @CommandToDevice
     private Integer lifetime;
 
     @SerializedName("flags")
     @Column
+    @CommandFromClient
+    @CommandToDevice
     private Integer flags;
 
     @SerializedName("status")
     @Column
+    @CommandFromClient
+    @CommandToDevice
     private String status;
 
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
+            @AttributeOverride(name="jsonString", column=@Column(name = "result"))
     })
+    @CommandFromClient
+    @CommandToDevice
     private JsonStringWrapper result;
 
-    @Version
-    @Column(name = "entity_version")
-    private long entityVersion;
-
     public DeviceCommand() {
-    }
-
-    /**
-     * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
-     * will be empty if no constraint violations found.
-     *
-     * @param deviceCommand DeviceCommand that should be validated
-     * @param validator     Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(DeviceCommand deviceCommand, Validator validator) {
-        Set<ConstraintViolation<DeviceCommand>> constraintViolations = validator.validate(deviceCommand);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<DeviceCommand> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
-    }
-
-    public long getEntityVersion() {
-        return entityVersion;
-    }
-
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
     }
 
     public Long getId() {
@@ -191,5 +179,26 @@ public class DeviceCommand implements Serializable {
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    /**
+     * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
+     * will be empty if no constraint violations found.
+     * @param deviceCommand
+     * DeviceCommand that should be validated
+     * @param validator
+     * Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(DeviceCommand deviceCommand, Validator validator) {
+        Set<ConstraintViolation<DeviceCommand>> constraintViolations = validator.validate(deviceCommand);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size()>0){
+            for (ConstraintViolation<DeviceCommand> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
     }
 }

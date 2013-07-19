@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.websockets.json.strategies.HiveAnnotations;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -15,6 +16,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToClient;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToDevice;
 
 @Entity(name = "User")
 @Table(name = "\"user\"")
@@ -35,6 +39,8 @@ public class User  implements Serializable {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @SerializedName("id")
+    @CommandToClient
+    @CommandToDevice
     private Long id;
 
     @Column

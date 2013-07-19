@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.websockets.json.strategies.HiveAnnotations;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -13,6 +14,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.Submitted;
 
 
 @Entity
@@ -33,10 +36,12 @@ public class DeviceEquipment implements Serializable {
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
+    @Submitted
     private String code;
 
     @Column
     @NotNull
+    @Submitted
     private Date timestamp;
 
     @SerializedName("parameters")
@@ -44,6 +49,7 @@ public class DeviceEquipment implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
+    @Submitted
     private JsonStringWrapper parameters;
 
     @ManyToOne

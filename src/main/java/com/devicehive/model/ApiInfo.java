@@ -1,19 +1,23 @@
 package com.devicehive.model;
 
-import com.google.gson.annotations.SerializedName;
+import com.devicehive.websockets.json.strategies.HiveAnnotations;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Date;
+
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.WebsocketField;
 
 /**
  * TODO JavaDoc
  */
 public class ApiInfo {
 
+    @WebsocketField
     private String apiVersion;
 
+    @WebsocketField
     private Date serverTimestamp;
 
+    @WebsocketField
     private String webSocketServerUrl;
 
     private String restServerUrl;

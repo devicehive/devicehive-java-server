@@ -88,7 +88,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
         logger.debug("command update action started for session : " + session.getId());
-        DeviceCommand update = GsonFactory.createGson(new CommandUpdateExclusionStrategy())
+        DeviceCommand update = GsonFactory.createGson(HiveAnnotations.CommandUpdateFromDevice.class)
                 .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
         if (message.get("commandId") == null) {
             throw new HiveException("Device command identifier cannot be null");
@@ -152,7 +152,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "notification/insert")
     public JsonObject processNotificationInsert(JsonObject message, Session session) throws JMSException {
         logger.debug("notification/insert started for session " + session.getId());
-        DeviceNotification deviceNotification = GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy())
+        DeviceNotification deviceNotification = GsonFactory.createGson(HiveAnnotations.NotificationFromDevice.class)
                 .fromJson(message.get("notification"), DeviceNotification.class);
         if (deviceNotification == null || deviceNotification.getNotification() == null){
             throw new HiveException("Notification is empty!");
@@ -163,6 +163,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceNotification(deviceNotification, device);
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
+        jsonObject.add("notification", GsonFactory.createGson(HiveAnnotations.NotificationToDevice.class).toJsonTree(deviceNotification));
         logger.debug("notification/insert ended for session " + session.getId());
         return jsonObject;
     }
@@ -170,7 +171,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "server/info")
     public JsonObject processServerInfo(JsonObject message, Session session) {
         logger.debug("server/info action started. Session " + session.getId());
-        Gson gson = GsonFactory.createGson(new ServerInfoExclusionStrategy());
+        Gson gson = GsonFactory.createGson(HiveAnnotations.WebsocketField.class);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date(System.currentTimeMillis()));
@@ -194,7 +195,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"),
                 UUID.class);
         Device device = deviceDAO.findByUUID(deviceId);
-        Gson gsonResponse = GsonFactory.createGson(new DeviceGetExclusionStrategy());
+        Gson gsonResponse = GsonFactory.createGson(HiveAnnotations.DevicePublished.class);
         JsonElement deviceElem = gsonResponse.toJsonTree(device);
         JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addRequestId(requestId)
@@ -213,7 +214,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (message.get("deviceKey") == null) {
             throw new HiveException("Device key is undefined!");
         }
-        Gson mainGson = GsonFactory.createGson(new DeviceSaveExclusionStrategy());
+        Gson mainGson = GsonFactory.createGson(HiveAnnotations.DeviceSubmitted.class);
         Device device = mainGson.fromJson(message.get("device"), Device.class);
         logger.debug("check requered fields in device ");
         checkDevice(device);

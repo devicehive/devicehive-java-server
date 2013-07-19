@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.Type;
 
@@ -14,6 +13,9 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.DevicePublished;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.DeviceSubmitted;
 
 /**
  * TODO JavaDoc
@@ -45,29 +47,36 @@ public class Device implements Serializable {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @DevicePublished
     private Long id;
 
     @SerializedName("guid")
     @Column
     @Type(type = "pg-uuid") //That's hibernate-specific and postgres-specific, ugly
+    @DevicePublished
     private UUID guid;
 
     @SerializedName("key")
     @Column
     @NotNull(message = "key field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key shouldn't be more than 64 symbols.")
+    @DeviceSubmitted
     private String key;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @DevicePublished
+    @DeviceSubmitted
     private String name;
 
     @SerializedName("status")
     @Column
     @Size(min = 1, max = 128,
             message = "Field cannot be empty. The length of status shouldn't be more than 128 symbols.")
+    @DevicePublished
+    @DeviceSubmitted
     private String status;
 
     @SerializedName("data")
@@ -75,17 +84,23 @@ public class Device implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
+    @DevicePublished
+    @DeviceSubmitted
     private JsonStringWrapper data;
 
     @SerializedName("network")
     @ManyToOne
     @JoinColumn(name = "network_id", updatable = false)
+    @DevicePublished
+    @DeviceSubmitted
     private Network network;
 
     @SerializedName("deviceClass")
     @ManyToOne
     @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "deviceClass field cannot be null.")
+    @DevicePublished
+    @DeviceSubmitted
     private DeviceClass deviceClass;
 
     @Version

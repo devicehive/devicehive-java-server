@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.websockets.json.strategies.HiveAnnotations;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -13,6 +14,10 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.NotificationFromDevice;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.NotificationToDevice;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.NotificationToUser;
 
 /**
  * TODO JavaDoc
@@ -39,15 +44,21 @@ public class DeviceNotification implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
+    @NotificationToUser
+    @NotificationFromDevice
     private JsonStringWrapper parameters;
 
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @NotificationToUser
+    @NotificationToDevice
     private Long id;
 
     @SerializedName("timestamp")
     @Column
+    @NotificationToUser
+    @NotificationToDevice
     private Date timestamp;
 
     @SerializedName("notification")
@@ -55,6 +66,8 @@ public class DeviceNotification implements Serializable {
     @NotNull(message = "notification field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification shouldn't be more than " +
             "128 symbols.")
+    @NotificationToUser
+    @NotificationFromDevice
     private String notification;
 
     @ManyToOne(fetch = FetchType.EAGER)

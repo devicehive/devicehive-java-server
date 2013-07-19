@@ -10,8 +10,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.DevicePublished;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.DeviceSubmitted;
 
 /**
  * TODO JavaDoc
@@ -26,22 +28,28 @@ public class Network implements Serializable {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @DevicePublished
     private Long id;
 
     @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key shouldn't be more than 64 symbols.")
+    @DeviceSubmitted
     private String key;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @DevicePublished
+    @DeviceSubmitted
     private String name;
 
     @SerializedName("description")
     @Column
     @Size(max = 128, message = "The length of description shouldn't be more than 128 symbols.")
+    @DevicePublished
+    @DeviceSubmitted
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)

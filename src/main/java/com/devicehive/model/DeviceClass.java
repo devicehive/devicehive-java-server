@@ -1,8 +1,6 @@
 package com.devicehive.model;
 
 
-import com.google.gson.annotations.SerializedName;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import javax.persistence.Version;
@@ -12,6 +10,9 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.DevicePublished;
+import static com.devicehive.websockets.json.strategies.HiveAnnotations.DeviceSubmitted;
 
 /**
  * Represents a device class which holds meta-information about devices.
@@ -26,29 +27,40 @@ public class DeviceClass implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @DevicePublished
     private Long id;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @DevicePublished
+    @DeviceSubmitted
     private String name;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version shouldn't be more than 32 " +
             "symbols.")
+    @DevicePublished
+    @DeviceSubmitted
     private String version;
 
     @Column(name = "is_permanent")
+    @DevicePublished
+    @DeviceSubmitted
     private Boolean isPermanent;
 
     @Column(name = "offline_timeout")
+    @DevicePublished
+    @DeviceSubmitted
     private Integer offlineTimeout;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
+    @DevicePublished
+    @DeviceSubmitted
     private JsonStringWrapper data;
 
     @Version

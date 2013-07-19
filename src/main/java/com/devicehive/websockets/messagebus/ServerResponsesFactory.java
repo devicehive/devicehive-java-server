@@ -3,9 +3,7 @@ package com.devicehive.websockets.messagebus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.CommandUpdateExclusionStrategy;
-import com.devicehive.websockets.json.strategies.DeviceCommandInsertExclusionStrategy;
-import com.devicehive.websockets.json.strategies.NotificationInsertRequestExclusionStrategy;
+import com.devicehive.websockets.json.strategies.HiveAnnotations;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -13,7 +11,7 @@ public class ServerResponsesFactory {
 
     public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification) {
         JsonElement deviceNotificationJson =
-                GsonFactory.createGson(new NotificationInsertRequestExclusionStrategy()).toJsonTree(deviceNotification);
+                GsonFactory.createGson(HiveAnnotations.NotificationToUser.class).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
@@ -22,7 +20,7 @@ public class ServerResponsesFactory {
     }
 
     public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand) {
-        JsonElement deviceCommandJson = GsonFactory.createGson(new DeviceCommandInsertExclusionStrategy())
+        JsonElement deviceCommandJson = GsonFactory.createGson(HiveAnnotations.CommandToDevice.class)
                 .toJsonTree(deviceCommand, DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
@@ -34,7 +32,7 @@ public class ServerResponsesFactory {
 
     public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
         JsonElement deviceCommandJson =
-                GsonFactory.createGson(new CommandUpdateExclusionStrategy()).toJsonTree(deviceCommand);
+                GsonFactory.createGson(HiveAnnotations.CommandUpdateToClient.class).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/update");
         resultJsonObject.add("command", deviceCommandJson);
