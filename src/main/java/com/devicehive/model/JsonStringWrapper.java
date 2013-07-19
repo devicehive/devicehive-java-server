@@ -25,10 +25,12 @@ public class JsonStringWrapper implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof JsonStringWrapper)){
+
+        if (obj == null || !(obj instanceof JsonStringWrapper)) {
             return false;
         }
-        return obj != null && jsonString.equals(((JsonStringWrapper) obj).getJsonString());
+
+        return jsonString.equals(((JsonStringWrapper) obj).getJsonString());
     }
 
     @Override

@@ -21,13 +21,12 @@ import java.util.Set;
         uniqueConstraints = @UniqueConstraint(columnNames = "code"))
 @NamedQueries({
         @NamedQuery(name = "Equipment.findByCode", query = "select e from Equipment e where e.code = :code"),
-        @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
-                ":deviceClass"),
+        @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = :deviceClass"),
         @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList")
 })
 public class Equipment implements Serializable {
-    @SerializedName("id")
 
+    @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -65,9 +64,6 @@ public class Equipment implements Serializable {
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
-
-    public Equipment() {
-    }
 
     /**
      * Validates equipment representation. Returns set of strings which are represent constraint violations. Set will
