@@ -1,6 +1,6 @@
 package com.devicehive.model;
 
-import com.devicehive.websockets.json.strategies.HiveAnnotations;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -8,14 +8,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandFromClient;
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToClient;
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToDevice;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+
 
 
 /**
@@ -26,25 +24,23 @@ import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandT
 @NamedQueries({
     @NamedQuery(name= "DeviceCommand.getNewerThan", query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
 })
-public class DeviceCommand implements Serializable{
+public class DeviceCommand implements HiveEntity {
 
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    @CommandToClient
+    @JsonPolicyDef({COMMAND_TO_CLIENT})
     private Long id;
 
     @SerializedName("timestamp")
     @Column
-    @CommandToClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE})
     private Date timestamp;
 
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
-    @CommandToClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE})
     private User user;
 
     @SerializedName("device")
@@ -58,8 +54,7 @@ public class DeviceCommand implements Serializable{
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 " +
             "symbols.")
-    @CommandFromClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private String command;
 
     @SerializedName("parameters")
@@ -67,26 +62,22 @@ public class DeviceCommand implements Serializable{
     @AttributeOverrides({
         @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
     })
-    @CommandFromClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @Column
-    @CommandFromClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private Integer lifetime;
 
     @SerializedName("flags")
     @Column
-    @CommandFromClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private Integer flags;
 
     @SerializedName("status")
     @Column
-    @CommandFromClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private String status;
 
     @SerializedName("result")
@@ -94,8 +85,7 @@ public class DeviceCommand implements Serializable{
     @AttributeOverrides({
             @AttributeOverride(name="jsonString", column=@Column(name = "result"))
     })
-    @CommandFromClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private JsonStringWrapper result;
 
     public DeviceCommand() {

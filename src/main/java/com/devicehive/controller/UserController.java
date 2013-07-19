@@ -2,6 +2,8 @@ package com.devicehive.controller;
 
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserInsert;
@@ -58,30 +60,11 @@ public class UserController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public DetailedUserResponse getUser(@PathParam("id") long id) {
+    @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
+    public User getUser(@PathParam("id") long id) {
         try {
             User u = userDAO.findById(id);
-            DetailedUserResponse userResponse = new DetailedUserResponse();
-            userResponse.setId(u.getId());
-            userResponse.setLogin(u.getLogin());
-            userResponse.setRole(u.getRole());
-            userResponse.setStatus(u.getStatus());
-            userResponse.setLastLogin(u.getLastLogin());
-
-            Set<SimpleNetworkResponse> networks = new HashSet<>();
-
-            for(Network n:u.getNetworks()) {
-                SimpleNetworkResponse snr = new SimpleNetworkResponse();
-                snr.setId(n.getId());
-                snr.setDescription(n.getDescription());
-                snr.setKey(n.getKey());
-                snr.setName(n.getName());
-                networks.add(snr);
-            }
-
-            userResponse.setNetworks(networks);
-
-            return userResponse;
+            return u;
         } catch (Error e) {
             throw new NotFoundException();
         }

@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -9,11 +10,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.Submitted;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -26,7 +26,7 @@ import static com.devicehive.websockets.json.strategies.HiveAnnotations.Submitte
                 ":deviceClass"),
         @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList")
 })
-public class Equipment implements Serializable {
+public class Equipment implements HiveEntity {
     @SerializedName("id")
 
     @Id
@@ -37,21 +37,21 @@ public class Equipment implements Serializable {
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @Submitted
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private String name;
 
     @SerializedName("code")
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
-    @Submitted
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private String code;
 
     @SerializedName("type")
     @Column
     @NotNull(message = "type field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type shouldn't be more than 128 symbols.")
-    @Submitted
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private String type;
 
     @SerializedName("data")
@@ -59,7 +59,7 @@ public class Equipment implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @Submitted
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private JsonStringWrapper data;
 
     @ManyToOne

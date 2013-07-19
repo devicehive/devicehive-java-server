@@ -7,7 +7,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
-import com.devicehive.websockets.messagebus.ServerResponsesFactory;
+import com.devicehive.websockets.handlers.ServerResponsesFactory;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;

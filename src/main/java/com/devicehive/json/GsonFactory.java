@@ -1,17 +1,19 @@
-package com.devicehive.websockets.json;
+package com.devicehive.json;
 
 
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.websockets.json.strategies.AnnotatedStrategy;
-import com.google.gson.ExclusionStrategy;
+import com.devicehive.json.adapters.DateAdapter;
+import com.devicehive.json.adapters.JsonDbObjectAdapter;
+import com.devicehive.json.adapters.UUIDAdapter;
+import com.devicehive.json.strategies.AnnotatedStrategy;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 
-import java.lang.annotation.Annotation;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy;
 public class GsonFactory {
 
     public static Gson createGson() {
@@ -19,10 +21,10 @@ public class GsonFactory {
                 .create();
     }
 
-    public static Gson createGson(Class<? extends Annotation> annotationClass) {
+    public static Gson createGson(Policy policy) {
         return createGsonBuilder()
-                .addDeserializationExclusionStrategy(new AnnotatedStrategy(annotationClass))
-                .addSerializationExclusionStrategy(new AnnotatedStrategy(annotationClass))
+                .addDeserializationExclusionStrategy(new AnnotatedStrategy(policy))
+                .addSerializationExclusionStrategy(new AnnotatedStrategy(policy))
                 .create();
     }
 

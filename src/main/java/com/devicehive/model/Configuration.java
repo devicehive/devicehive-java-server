@@ -17,7 +17,7 @@ import java.util.Set;
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "configuration")
-public class Configuration implements Serializable {
+public class Configuration implements HiveEntity {
 
     @Id
     @SerializedName("name")

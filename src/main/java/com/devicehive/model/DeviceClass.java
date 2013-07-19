@@ -1,8 +1,9 @@
 package com.devicehive.model;
 
 
+import com.devicehive.json.strategies.JsonPolicyDef;
+
 import javax.persistence.*;
-import java.io.Serializable;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -11,8 +12,8 @@ import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.DevicePublished;
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.DeviceSubmitted;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+
 
 /**
  * Represents a device class which holds meta-information about devices.
@@ -23,44 +24,39 @@ import static com.devicehive.websockets.json.strategies.HiveAnnotations.DeviceSu
         @NamedQuery(name = "DeviceClass.findByNameAndVersion",
                 query = "select d from DeviceClass d where d.name = :name and d.version = :version")
 })
-public class DeviceClass implements Serializable {
+public class DeviceClass implements HiveEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @DevicePublished
+    @JsonPolicyDef({DEVICE_PUBLISHED})
     private Long id;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @DevicePublished
-    @DeviceSubmitted
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private String name;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version shouldn't be more than 32 " +
             "symbols.")
-    @DevicePublished
-    @DeviceSubmitted
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private String version;
 
     @Column(name = "is_permanent")
-    @DevicePublished
-    @DeviceSubmitted
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Boolean isPermanent;
 
     @Column(name = "offline_timeout")
-    @DevicePublished
-    @DeviceSubmitted
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Integer offlineTimeout;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @DevicePublished
-    @DeviceSubmitted
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private JsonStringWrapper data;
 
     @Version

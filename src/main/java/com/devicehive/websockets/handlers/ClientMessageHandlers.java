@@ -10,9 +10,7 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.HiveAnnotations;
-import com.devicehive.websockets.messagebus.ServerResponsesFactory;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
@@ -29,6 +27,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
@@ -77,7 +76,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson(HiveAnnotations.CommandFromClient.class);
+        Gson gson = GsonFactory.createGson(COMMAND_FROM_CLIENT);
 
         UUID deviceGuid = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUID), UUID.class);
         logger.debug("command/insert action for " + deviceGuid + ". Session " + session.getId());
@@ -112,7 +111,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 .submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
         deviceCommand.setUser(user);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("command", GsonFactory.createGson(HiveAnnotations.CommandToDevice.class)
+                .addElement("command", GsonFactory.createGson(COMMAND_TO_DEVICE)
                         .toJsonTree(deviceCommand))
                 .build();
         logger.debug("submit device command ended" + ". Session " + session.getId());
@@ -260,7 +259,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
         logger.debug("server/info action started. Session " + session.getId());
-        Gson gson = GsonFactory.createGson(HiveAnnotations.WebsocketField.class);
+        Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Date(System.currentTimeMillis()));

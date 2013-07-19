@@ -1,23 +1,23 @@
 package com.devicehive.model;
 
-import com.devicehive.websockets.json.strategies.HiveAnnotations;
+import com.devicehive.json.strategies.JsonPolicyDef;
 
 import java.util.Date;
 
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.WebsocketField;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 
 /**
  * TODO JavaDoc
  */
-public class ApiInfo {
+public class ApiInfo implements HiveEntity {
 
-    @WebsocketField
+    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String apiVersion;
 
-    @WebsocketField
+    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private Date serverTimestamp;
 
-    @WebsocketField
+    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String webSocketServerUrl;
 
     private String restServerUrl;

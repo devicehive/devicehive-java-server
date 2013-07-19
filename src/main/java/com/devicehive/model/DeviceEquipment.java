@@ -1,7 +1,7 @@
 package com.devicehive.model;
 
 
-import com.devicehive.websockets.json.strategies.HiveAnnotations;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -10,12 +10,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.Submitted;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+
 
 
 @Entity
@@ -27,7 +27,7 @@ import static com.devicehive.websockets.json.strategies.HiveAnnotations.Submitte
                 query = "update DeviceEquipment de set de.timestamp = :timestamp, de.parameters = :parameters " +
                         "where de.device = :device and de.code = :code")
 })
-public class DeviceEquipment implements Serializable {
+public class DeviceEquipment implements HiveEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,12 +36,12 @@ public class DeviceEquipment implements Serializable {
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
-    @Submitted
+    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
     private String code;
 
     @Column
     @NotNull
-    @Submitted
+    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
     private Date timestamp;
 
     @SerializedName("parameters")
@@ -49,7 +49,7 @@ public class DeviceEquipment implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
-    @Submitted
+    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
     private JsonStringWrapper parameters;
 
     @ManyToOne

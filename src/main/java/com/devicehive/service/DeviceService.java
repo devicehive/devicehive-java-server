@@ -3,7 +3,7 @@ package com.devicehive.service;
 import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
-import com.devicehive.websockets.json.GsonFactory;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.google.gson.Gson;

@@ -1,17 +1,18 @@
-package com.devicehive.websockets.messagebus;
+package com.devicehive.websockets.handlers;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.HiveAnnotations;
+import com.devicehive.json.GsonFactory;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ServerResponsesFactory {
 
     public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification) {
         JsonElement deviceNotificationJson =
-                GsonFactory.createGson(HiveAnnotations.NotificationToUser.class).toJsonTree(deviceNotification);
+                GsonFactory.createGson(NOTIFICATION_TO_CLEINT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
@@ -20,7 +21,7 @@ public class ServerResponsesFactory {
     }
 
     public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand) {
-        JsonElement deviceCommandJson = GsonFactory.createGson(HiveAnnotations.CommandToDevice.class)
+        JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE)
                 .toJsonTree(deviceCommand, DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
@@ -32,7 +33,7 @@ public class ServerResponsesFactory {
 
     public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
         JsonElement deviceCommandJson =
-                GsonFactory.createGson(HiveAnnotations.CommandUpdateToClient.class).toJsonTree(deviceCommand);
+                GsonFactory.createGson(COMMAND_UPDATE_TO_CLEINT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/update");
         resultJsonObject.add("command", deviceCommandJson);

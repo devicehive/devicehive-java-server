@@ -1,24 +1,21 @@
 package com.devicehive.model;
 
 
-import com.devicehive.websockets.json.strategies.HiveAnnotations;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToClient;
-import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandToDevice;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 @Entity(name = "User")
 @Table(name = "\"user\"")
@@ -30,7 +27,7 @@ import static com.devicehive.websockets.json.strategies.HiveAnnotations.CommandT
             "where u = :user and n = :network")
 })
 
-public class User  implements Serializable {
+public class User  implements HiveEntity {
 
     public static enum ROLE {Administrator, Client}
     public static enum STATUS {Active, LockedOut, Disabled, Deleted}
@@ -39,14 +36,14 @@ public class User  implements Serializable {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @SerializedName("id")
-    @CommandToClient
-    @CommandToDevice
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED})
     private Long id;
 
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of login shouldn't be more than 64 symbols.")
+    @JsonPolicyDef({USER_PUBLISHED})
     private String login;
 
     @Column(name = "password_hash")
@@ -66,17 +63,21 @@ public class User  implements Serializable {
 
     @Column
     @SerializedName("role")
+    @JsonPolicyDef({USER_PUBLISHED})
     private Integer role;
 
     @Column
     @SerializedName("status")
+    @JsonPolicyDef({USER_PUBLISHED})
     private Integer status;
 
     @Column(name = "last_login")
     @SerializedName("lastLogin")
+    @JsonPolicyDef({USER_PUBLISHED})
     private Date lastLogin;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users", cascade = CascadeType.ALL)
+    @JsonPolicyDef({USER_PUBLISHED})
     private Set<Network> networks;
 
     @Version
