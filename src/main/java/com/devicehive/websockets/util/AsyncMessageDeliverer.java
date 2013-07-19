@@ -18,13 +18,13 @@ public class AsyncMessageDeliverer {
 
         boolean acquired = false;
         try {
-            acquired = WebsocketSession.getCommandQueueLock(session).tryLock();
+            acquired = WebsocketSession.getQueueLock(session).tryLock();
             if (acquired) {
                 WebsocketSession.deliverMessages(session);
             }
         } finally {
             if (acquired) {
-                WebsocketSession.getCommandQueueLock(session).unlock();
+                WebsocketSession.getQueueLock(session).unlock();
             }
         }
 

@@ -25,7 +25,7 @@ public class WebsocketSession {
     private static final String QUEUE_LOCK = "QUEUE_LOCK";
     private static final String QUEUE = "QUEUE";
 
-    public static Lock getCommandQueueLock(Session session) {
+    public static Lock getQueueLock(Session session) {
         return (Lock) session.getUserProperties().get(QUEUE_LOCK);
     }
 

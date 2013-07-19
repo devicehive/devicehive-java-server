@@ -203,7 +203,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return result;
     }
 
-    @Action(value = "device/save", needsAuth = false)  //TODO org.hibernate.exception.ConstraintViolationException
+    @Action(value = "device/save", needsAuth = false)
     public JsonObject processDeviceSave(JsonObject message, Session session) {
         logger.debug("device/save process started for session" + session.getId());
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
