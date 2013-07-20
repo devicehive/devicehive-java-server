@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -173,7 +174,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
-        apiInfo.setServerTimestamp(new Date(System.currentTimeMillis()));
+        apiInfo.setServerTimestamp(new Timestamp(System.currentTimeMillis()));
         Configuration webSocketServerUrl = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
         if (webSocketServerUrl == null) {
             logger.error("Websocket server url isn't set!");

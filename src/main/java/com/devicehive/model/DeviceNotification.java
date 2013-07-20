@@ -10,6 +10,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class DeviceNotification implements HiveEntity {
     @SerializedName("timestamp")
     @Column
     @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_TO_DEVICE})
-    private Date timestamp;
+    private Timestamp timestamp;
 
     @SerializedName("notification")
     @Column
@@ -112,11 +113,11 @@ public class DeviceNotification implements HiveEntity {
         this.entityVersion = entityVersion;
     }
 
-    public Date getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 

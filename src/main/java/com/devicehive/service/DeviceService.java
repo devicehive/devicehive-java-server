@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +53,7 @@ public class DeviceService {
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session userWebsocketSession) {
         command.setDevice(device);
         command.setUser(user);
-        command.setTimestamp(new Date());
+        command.setTimestamp(new Timestamp(System.currentTimeMillis()));
         deviceCommandDAO.saveCommand(command);
         if (userWebsocketSession != null) {
             localMessageBus.subscribeForCommandUpdates(command.getId(), userWebsocketSession);
@@ -91,7 +92,7 @@ public class DeviceService {
                                                            DeviceEquipment deviceEquipment) {
         if (deviceEquipment != null) {
             if (deviceEquipmentDAO.update(deviceEquipment) == 0) {
-                deviceEquipment.setTimestamp(new Date());
+                deviceEquipment.setTimestamp(new Timestamp(System.currentTimeMillis()));
                 deviceEquipmentDAO.saveDeviceEquipment(deviceEquipment);
             }
         }

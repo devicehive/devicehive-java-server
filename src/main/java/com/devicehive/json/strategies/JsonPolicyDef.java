@@ -11,6 +11,7 @@ public @interface JsonPolicyDef {
 
     public static enum Policy {
         WEBSOCKET_SERVER_INFO,
+        REST_SERVER_INFO,
         DEVICE_PUBLISHED,
         DEVICE_SUBMITTED,
         COMMAND_TO_CLIENT,

@@ -8,6 +8,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +36,7 @@ public class DeviceCommand implements HiveEntity {
     @SerializedName("timestamp")
     @Column
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE})
-    private Date timestamp;
+    private Timestamp timestamp;
 
     @SerializedName("user")
     @ManyToOne
@@ -99,11 +100,11 @@ public class DeviceCommand implements HiveEntity {
         this.id = id;
     }
 
-    public Date getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 

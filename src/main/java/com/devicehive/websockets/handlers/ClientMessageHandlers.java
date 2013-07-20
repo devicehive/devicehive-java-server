@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -262,7 +263,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
-        apiInfo.setServerTimestamp(new Date(System.currentTimeMillis()));
+        apiInfo.setServerTimestamp(new Timestamp(System.currentTimeMillis()));
         Configuration webSocketServerUrl = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
         if (webSocketServerUrl == null) {
             logger.error("Websocket server url isn't set!");

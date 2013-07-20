@@ -10,6 +10,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class DeviceEquipment implements HiveEntity {
     @Column
     @NotNull
     @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
-    private Date timestamp;
+    private Timestamp timestamp;
 
     @SerializedName("parameters")
     @Embedded
@@ -105,11 +106,11 @@ public class DeviceEquipment implements HiveEntity {
         this.code = code;
     }
 
-    public Date getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 

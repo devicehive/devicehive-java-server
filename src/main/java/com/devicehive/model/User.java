@@ -10,6 +10,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -87,7 +88,7 @@ public class User  implements HiveEntity {
     @Column(name = "last_login")
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED})
-    private Date lastLogin;
+    private Timestamp lastLogin;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})
@@ -133,11 +134,11 @@ public class User  implements HiveEntity {
         this.status = status;
     }
 
-    public Date getLastLogin() {
+    public Timestamp getLastLogin() {
         return lastLogin;
     }
 
-    public void setLastLogin(Date lastLogin) {
+    public void setLastLogin(Timestamp lastLogin) {
         this.lastLogin = lastLogin;
     }
 
