@@ -46,7 +46,7 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
 
     @Override
     public long getSize(JsonObject jsonObject, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        return 0;
     }
 
     @Override
