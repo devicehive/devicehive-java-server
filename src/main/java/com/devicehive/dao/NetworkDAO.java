@@ -7,34 +7,52 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.interceptor.Interceptors;
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import java.util.List;
+
+import javax.interceptor.Interceptors;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Nikolay Loboda <madlooser@gmail.com>
- * @since 7/18/13 2:27 AM
- */
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class NetworkDAO {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    private static final Logger logger = LoggerFactory.getLogger(NetworkDAO.class);
+    public Network createNetwork(Network network) {
+        em.persist(network);
+        return network;
+    }
 
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getById(@NotNull long id) {
         return em.find(Network.class, id);
     }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Network findByName(@NotNull String name) {
+        TypedQuery<Network> query = em.createNamedQuery("Network.findByName", Network.class);
+        query.setParameter("name", name);
+        List<Network> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    }
+    private static final Logger logger = LoggerFactory.getLogger(NetworkDAO.class);
 
     public void delete(@NotNull long id) {
         Network n = em.find(Network.class, id);

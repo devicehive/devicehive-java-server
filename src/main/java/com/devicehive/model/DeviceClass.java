@@ -1,10 +1,9 @@
 package com.devicehive.model;
 
 
-import com.google.gson.annotations.SerializedName;
+import com.devicehive.json.strategies.JsonPolicyDef;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -12,6 +11,9 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+
 
 /**
  * Represents a device class which holds meta-information about devices.
@@ -22,33 +24,39 @@ import java.util.Set;
         @NamedQuery(name = "DeviceClass.findByNameAndVersion",
                 query = "select d from DeviceClass d where d.name = :name and d.version = :version")
 })
-public class DeviceClass implements Serializable {
+public class DeviceClass implements HiveEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef({DEVICE_PUBLISHED})
     private Long id;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private String name;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version shouldn't be more than 32 " +
             "symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private String version;
 
     @Column(name = "is_permanent")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Boolean isPermanent;
 
     @Column(name = "offline_timeout")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Integer offlineTimeout;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private JsonStringWrapper data;
 
     @Version

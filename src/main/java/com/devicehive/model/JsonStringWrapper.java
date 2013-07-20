@@ -4,7 +4,7 @@ import javax.persistence.Embeddable;
 import java.io.Serializable;
 
 @Embeddable
-public class JsonStringWrapper implements Serializable {
+public class JsonStringWrapper implements HiveEntity {
 
     private String jsonString;
 

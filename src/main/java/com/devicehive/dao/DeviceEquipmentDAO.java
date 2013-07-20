@@ -2,7 +2,6 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceEquipment;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -17,28 +16,18 @@ import java.util.Date;
 import java.util.List;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class DeviceEquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
 
     public void saveDeviceEquipment(DeviceEquipment deviceEquipment) {
-        deviceEquipment.setTimestamp(new Date());
         em.persist(deviceEquipment);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceEquipment findById(Long id) {
         return em.find(DeviceEquipment.class, id);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceEquipment findByCode(String code) {
-        TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByCode", DeviceEquipment.class);
-        query.setParameter("code", code);
-        List<DeviceEquipment> resultList = query.getResultList();
-        return resultList.isEmpty() ? null : resultList.get(0);
     }
 
     public int update(DeviceEquipment deviceEquipment){

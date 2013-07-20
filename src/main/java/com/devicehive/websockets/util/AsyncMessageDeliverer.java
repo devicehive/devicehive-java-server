@@ -12,20 +12,19 @@ import java.io.IOException;
 public class AsyncMessageDeliverer {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageDeliverer.class);
-    private final int POOL_SIZE = 10; //TODO as parameter
 
     @Asynchronous
     public void deliverMessages(final Session session) throws IOException {
 
         boolean acquired = false;
         try {
-            acquired = WebsocketSession.getCommandQueueLock(session).tryLock();
+            acquired = WebsocketSession.getQueueLock(session).tryLock();
             if (acquired) {
                 WebsocketSession.deliverMessages(session);
             }
         } finally {
             if (acquired) {
-                WebsocketSession.getCommandQueueLock(session).unlock();
+                WebsocketSession.getQueueLock(session).unlock();
             }
         }
 

@@ -3,7 +3,6 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
 public class EquipmentDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
@@ -28,12 +26,8 @@ public class EquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Equipment findByCode(String code) {
-        TypedQuery<Equipment> query = em.createNamedQuery("Equipment.findByCode", Equipment.class);
-        query.setParameter("code", code);
-        List<Equipment> result = query.getResultList();
-        return result.isEmpty() ? null : result.get(0);
+    public void saveEquipment(Equipment equipment){
+        em.persist(equipment);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

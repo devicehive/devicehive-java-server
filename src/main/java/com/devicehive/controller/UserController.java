@@ -1,6 +1,8 @@
 package com.devicehive.controller;
 
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserInsert;
@@ -9,6 +11,7 @@ import com.devicehive.model.response.SimpleNetworkResponse;
 import com.devicehive.model.response.SimpleUserResponse;
 import com.devicehive.service.UserService;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -54,6 +57,8 @@ public class UserController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("Client")
+    @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public DetailedUserResponse getUser(@PathParam("id") long id) {
         try {
             User u = userService.findById(id);
@@ -78,6 +83,8 @@ public class UserController {
             userResponse.setNetworks(networks);
 
             return userResponse;
+            User u = userDAO.findUserWithNetworks(id);
+            return u;
         } catch (Error e) {
             throw new NotFoundException();
         }

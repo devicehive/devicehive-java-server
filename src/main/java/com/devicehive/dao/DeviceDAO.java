@@ -3,10 +3,10 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
-import com.devicehive.service.interceptors.ValidationInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Stateless
-@Interceptors(ValidationInterceptor.class)
+@EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
 public class DeviceDAO {
 
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
@@ -41,12 +41,6 @@ public class DeviceDAO {
         return res.isEmpty() ? null : res.get(0);
     }
 
-    public Device findByUUIDForWrite(UUID uuid) {
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
-        query.setParameter("uuid", uuid);
-        List<Device> res = query.getResultList();
-        return res.isEmpty() ? null : res.get(0);
-    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDAndKey(UUID uuid, String key) {
@@ -77,6 +71,10 @@ public class DeviceDAO {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);
         return query.getResultList();
+    }
+
+    public void saveDevice(Device device){
+        em.persist(device);
     }
 
 

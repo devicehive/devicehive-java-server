@@ -14,12 +14,11 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
-@Interceptors(ValidationInterceptor.class)
 @Stateless
 public class NetworkService {
 
-    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
-    private EntityManager em;
+    @Inject
+    private NetworkDAO networkDAO;
 
     @Inject
     private NetworkDAO networkDAO;
@@ -47,15 +46,13 @@ public class NetworkService {
 
     }
 
+
     public Network createOrVeriryNetwork(Network network) {
         Network stored;
         if (network.getId() != null) {
-            stored = em.find(Network.class, network.getId());
+            stored = networkDAO.getById(network.getId());
         } else {
-            TypedQuery<Network> query = em.createNamedQuery("Network.findByName", Network.class);
-            query.setParameter("name", network.getName());
-            List<Network> result = query.getResultList();
-            stored = result.isEmpty() ? null : result.get(0);
+            stored = networkDAO.findByName(network.getName());
         }
         if (stored != null) {
             if (stored.getKey() != null) {
@@ -64,10 +61,9 @@ public class NetworkService {
                 }
             }
         } else {
-            stored = networkDAO.insert(network);
+            stored = networkDAO.createNetwork(network);
         }
         assert (stored != null);
         return stored;
     }
-
 }

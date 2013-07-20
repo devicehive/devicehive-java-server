@@ -9,13 +9,8 @@ import com.devicehive.model.*;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
-import com.devicehive.service.interceptors.JsonInterceptor;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.json.GsonFactory;
-import com.devicehive.websockets.json.strategies.ClientCommandInsertRequestExclusionStrategy;
-import com.devicehive.websockets.json.strategies.ClientCommandInsertResponseExclusionStrategy;
-import com.devicehive.websockets.json.strategies.ServerInfoExclusionStrategy;
-import com.devicehive.websockets.messagebus.ServerResponsesFactory;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.messagebus.global.MessagePublisher;
 import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
@@ -27,14 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-@Interceptors(JsonInterceptor.class)
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
@@ -82,7 +77,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson(new ClientCommandInsertRequestExclusionStrategy());
+        Gson gson = GsonFactory.createGson(COMMAND_FROM_CLIENT);
 
         UUID deviceGuid = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUID), UUID.class);
         logger.debug("command/insert action for " + deviceGuid + ". Session " + session.getId());
@@ -117,7 +112,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 .submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
         deviceCommand.setUser(user);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("command", GsonFactory.createGson(new ClientCommandInsertResponseExclusionStrategy())
+                .addElement("command", GsonFactory.createGson(COMMAND_TO_DEVICE)
                         .toJsonTree(deviceCommand))
                 .build();
         logger.debug("submit device command ended" + ". Session " + session.getId());
@@ -265,10 +260,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
         logger.debug("server/info action started. Session " + session.getId());
-        Gson gson = GsonFactory.createGson(new ServerInfoExclusionStrategy());
+        Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
-        apiInfo.setServerTimestamp(new Date(System.currentTimeMillis()));
+        apiInfo.setServerTimestamp(new Timestamp(System.currentTimeMillis()));
         Configuration webSocketServerUrl = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
         if (webSocketServerUrl == null) {
             logger.error("Websocket server url isn't set!");
@@ -295,13 +290,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         Configuration configuration =
                 new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
-        if (configurationDAO.findByName(configuration.getName()) == null) {
-            logger.debug("save configuration. Session " + session.getId());
-            configurationDAO.saveConfiguration(configuration);
-        } else {
-            logger.debug("merge configuration. Session " + session.getId());
-            configurationDAO.updateConfiguration(configuration);
-        }
+        configurationDAO.mergeConfiguration(configuration);
         JsonObject response = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("requestId", message.get("requestId"))
                 .build();

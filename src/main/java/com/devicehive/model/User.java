@@ -1,25 +1,28 @@
 package com.devicehive.model;
 
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 @Entity(name = "User")
 @Table(name = "\"user\"")
 @NamedQueries({
     @NamedQuery(name= "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
+    @NamedQuery(name= "User.findByIdWithNetworks", query = "select u from User u left join fetch u.networks where u.id = :id"),
     @NamedQuery(name= "User.delete", query = "update User u set u.status = 3 where u.id = :id"),
     @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
     @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
@@ -27,21 +30,35 @@ import java.util.Set;
     @NamedQuery(name= "User.getWithNetworks", query = "select u from User u join fetch u.networks where u.id = :id")
 })
 
-public class User  implements Serializable {
+public class User  implements HiveEntity {
 
-    public static enum ROLE {Administrator, Client}
+    public static enum ROLE {
+        Administrator("Admin"), Client("Client");
+
+        private String hiveRole;
+
+        private ROLE(String hiveRole) {
+            this.hiveRole = hiveRole;
+        }
+
+        public String getHiveRole() {
+            return hiveRole;
+        }
+    }
     public static enum STATUS {Active, LockedOut, Disabled, Deleted}
 
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @SerializedName("id")
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED})
     private Long id;
 
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of login shouldn't be more than 64 symbols.")
+    @JsonPolicyDef({USER_PUBLISHED})
     private String login;
 
     @Column(name = "password_hash")
@@ -61,17 +78,21 @@ public class User  implements Serializable {
 
     @Column
     @SerializedName("role")
+    @JsonPolicyDef({USER_PUBLISHED})
     private Integer role;
 
     @Column
     @SerializedName("status")
+    @JsonPolicyDef({USER_PUBLISHED})
     private Integer status;
 
     @Column(name = "last_login")
     @SerializedName("lastLogin")
-    private Date lastLogin;
+    @JsonPolicyDef({USER_PUBLISHED})
+    private Timestamp lastLogin;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users", cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
+    @JsonPolicyDef({USER_PUBLISHED})
     private Set<Network> networks;
 
     @Version
@@ -114,11 +135,11 @@ public class User  implements Serializable {
         this.status = status;
     }
 
-    public Date getLastLogin() {
+    public Timestamp getLastLogin() {
         return lastLogin;
     }
 
-    public void setLastLogin(Date lastLogin) {
+    public void setLastLogin(Timestamp lastLogin) {
         this.lastLogin = lastLogin;
     }
 

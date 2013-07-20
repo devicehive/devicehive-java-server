@@ -1,21 +1,18 @@
-package com.devicehive.service;
+package com.devicehive.service.helpers;
 
-import com.devicehive.model.User;
 import org.apache.commons.codec.binary.Base64;
 
-import javax.enterprise.inject.Alternative;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 /**
+ this one uses the same scheme as .net server
  TODO investigate maybe it makes sense to replace it with some key-stretching scheme (scrypt, PBKDF2 or bcrypt)
  */
 
-public class DefaultPasswordService implements PasswordService {
+public class DefaultPasswordProcessor implements PasswordProcessor {
 
     private final SecureRandom secureRandom = new SecureRandom();
 

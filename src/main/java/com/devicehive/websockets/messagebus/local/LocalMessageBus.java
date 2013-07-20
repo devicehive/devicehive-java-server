@@ -7,7 +7,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
-import com.devicehive.websockets.messagebus.ServerResponsesFactory;
+import com.devicehive.websockets.handlers.ServerResponsesFactory;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.websockets.messagebus.local.subscriptions.dao.NotificationSubscriptionDAO;
@@ -121,11 +121,11 @@ public class LocalMessageBus {
         }
         JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
         try {
-            WebsocketSession.getCommandsSubscriptionsLock(session).lock();
+            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).lock();
             logger.debug("Add messages to queue process for session " + session.getId());
             WebsocketSession.addMessagesToQueue(session, jsonObject);
         } finally {
-            WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
+            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).unlock();
             logger.debug("Deliver messages process for session " + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }
@@ -166,7 +166,6 @@ public class LocalMessageBus {
      *
      * @param deviceNotification
      */
-    //TODO make this multithreaded ?!
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public void submitNotification(DeviceNotification deviceNotification) throws IOException {
         logger.debug("Submit notification action for deviceNotification :" + deviceNotification.getId());

@@ -1,21 +1,28 @@
 package com.devicehive.model;
 
-import com.google.gson.annotations.SerializedName;
+import com.devicehive.json.strategies.JsonPolicyDef;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import java.sql.Timestamp;
 import java.util.Date;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_INFO;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 
 /**
  * TODO JavaDoc
  */
-public class ApiInfo {
+public class ApiInfo implements HiveEntity {
 
+    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
     private String apiVersion;
 
-    private Date serverTimestamp;
+    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
+    private Timestamp serverTimestamp;
 
+    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String webSocketServerUrl;
 
+    @JsonPolicyDef(REST_SERVER_INFO)
     private String restServerUrl;
 
     public ApiInfo() {
@@ -29,11 +36,11 @@ public class ApiInfo {
         this.apiVersion = apiVersion;
     }
 
-    public Date getServerTimestamp() {
+    public Timestamp getServerTimestamp() {
         return serverTimestamp;
     }
 
-    public void setServerTimestamp(Date serverTimestamp) {
+    public void setServerTimestamp(Timestamp serverTimestamp) {
         this.serverTimestamp = serverTimestamp;
     }
 

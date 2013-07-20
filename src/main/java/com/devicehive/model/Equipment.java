@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -9,9 +10,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -20,11 +22,11 @@ import java.util.Set;
 @Table(name = "equipment",
         uniqueConstraints = @UniqueConstraint(columnNames = "code"))
 @NamedQueries({
-        @NamedQuery(name = "Equipment.findByCode", query = "select e from Equipment e where e.code = :code"),
-        @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = :deviceClass"),
+        @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
+                ":deviceClass"),
         @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList")
 })
-public class Equipment implements Serializable {
+public class Equipment implements HiveEntity {
 
     @SerializedName("id")
     @Id
@@ -35,18 +37,21 @@ public class Equipment implements Serializable {
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private String name;
 
     @SerializedName("code")
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private String code;
 
     @SerializedName("type")
     @Column
     @NotNull(message = "type field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type shouldn't be more than 128 symbols.")
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private String type;
 
     @SerializedName("data")
@@ -54,6 +59,7 @@ public class Equipment implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
+    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
     private JsonStringWrapper data;
 
     @ManyToOne

@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -8,10 +9,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -22,27 +23,31 @@ import java.util.Set;
         @NamedQuery(name = "Network.findByName", query = "select n from Network n where name = :name"),
         @NamedQuery(name = "Network.findWithUsers", query = "select n from Network n join fetch n.users where id = :id")
 })
-public class Network implements Serializable {
+public class Network implements HiveEntity {
 
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @JsonPolicyDef({DEVICE_PUBLISHED,USER_PUBLISHED})
     private Long id;
 
     @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key shouldn't be more than 64 symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED,USER_PUBLISHED})
     private String key;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED,USER_PUBLISHED})
     private String name;
 
     @SerializedName("description")
     @Column
     @Size(max = 128, message = "The length of description shouldn't be more than 128 symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED,USER_PUBLISHED})
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -134,6 +139,6 @@ public class Network implements Serializable {
         if(!(o instanceof Network)){
             return false;
         }
-        return this.id==((Network) o).getId();
+        return this.id ==((Network) o).getId();
     }
 }

@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -9,10 +10,13 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+
 
 
 @Entity
@@ -24,7 +28,7 @@ import java.util.Set;
                 query = "update DeviceEquipment de set de.timestamp = :timestamp, de.parameters = :parameters " +
                         "where de.device = :device and de.code = :code")
 })
-public class DeviceEquipment implements Serializable {
+public class DeviceEquipment implements HiveEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,17 +37,20 @@ public class DeviceEquipment implements Serializable {
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
+    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
     private String code;
 
     @Column
     @NotNull
-    private Date timestamp;
+    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
+    private Timestamp timestamp;
 
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
+    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
     private JsonStringWrapper parameters;
 
     @ManyToOne
@@ -99,11 +106,11 @@ public class DeviceEquipment implements Serializable {
         this.code = code;
     }
 
-    public Date getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 

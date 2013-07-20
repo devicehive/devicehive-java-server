@@ -6,17 +6,17 @@ import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.service.interceptors.ValidationInterceptor;
+import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.*;
 import javax.inject.Inject;
-import javax.interceptor.Interceptors;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.util.List;
 
-@Singleton
-@Interceptors(ValidationInterceptor.class)
+@Stateless
+@EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
 
     private static final int maxLoginAttempts = 10;
@@ -25,7 +25,7 @@ public class UserService {
     private EntityManager em;
 
     @Inject
-    private PasswordService passwordService;
+    private PasswordProcessor passwordService;
 
     @Inject
     private UserDAO userDAO;

@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -9,10 +10,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -32,29 +35,33 @@ import java.util.Set;
         @NamedQuery(name = "DeviceNotification.getByNewerThan", query = "select dn from DeviceNotification dn " +
                 "where dn.timestamp > :timestamp order by dn.timestamp")
 })
-public class DeviceNotification implements Serializable {
+public class DeviceNotification implements HiveEntity {
 
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
+    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_FROM_DEVICE})
     private JsonStringWrapper parameters;
 
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_TO_DEVICE})
     private Long id;
 
     @SerializedName("timestamp")
     @Column
-    private Date timestamp;
+    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_TO_DEVICE})
+    private Timestamp timestamp;
 
     @SerializedName("notification")
     @Column
     @NotNull(message = "notification field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification shouldn't be more than " +
             "128 symbols.")
+    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_FROM_DEVICE})
     private String notification;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -106,11 +113,11 @@ public class DeviceNotification implements Serializable {
         this.entityVersion = entityVersion;
     }
 
-    public Date getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 
