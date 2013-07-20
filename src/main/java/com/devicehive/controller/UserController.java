@@ -11,6 +11,7 @@ import com.devicehive.model.response.DetailedUserResponse;
 import com.devicehive.model.response.SimpleNetworkResponse;
 import com.devicehive.service.UserService;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -60,6 +61,7 @@ public class UserController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("Client")
     @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public User getUser(@PathParam("id") long id) {
         try {

@@ -17,7 +17,8 @@ import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Singleton
+@Stateless
+@EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
 
     private static final int maxLoginAttempts = 10;

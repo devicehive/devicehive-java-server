@@ -6,6 +6,7 @@ import com.devicehive.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Stateless
+@EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
 public class DeviceDAO {
 
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);

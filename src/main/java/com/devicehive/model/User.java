@@ -30,7 +30,19 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class User  implements HiveEntity {
 
-    public static enum ROLE {Administrator, Client}
+    public static enum ROLE {
+        Administrator("Admin"), Client("Client");
+
+        private String hiveRole;
+
+        private ROLE(String hiveRole) {
+            this.hiveRole = hiveRole;
+        }
+
+        public String getHiveRole() {
+            return hiveRole;
+        }
+    }
     public static enum STATUS {Active, LockedOut, Disabled, Deleted}
 
 
