@@ -83,8 +83,6 @@ public class UserController {
             userResponse.setNetworks(networks);
 
             return userResponse;
-            User u = userDAO.findUserWithNetworks(id);
-            return u;
         } catch (Error e) {
             throw new NotFoundException();
         }

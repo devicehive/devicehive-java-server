@@ -32,6 +32,7 @@ public class EquipmentController {
         response.setCode(e.getCode());
         response.setData(e.getData());
         response.setType(e.getType());
+
         return response;
     }
 
