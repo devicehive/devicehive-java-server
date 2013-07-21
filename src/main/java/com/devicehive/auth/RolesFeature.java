@@ -1,4 +1,4 @@
-package com.devicehive.controller.auth;
+package com.devicehive.auth;
 
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;

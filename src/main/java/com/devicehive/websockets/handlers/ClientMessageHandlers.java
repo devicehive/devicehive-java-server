@@ -87,7 +87,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         User user = WebsocketSession.getAuthorisedUser(session);
         Device device;
-        if (user.getRole() == User.ROLE.Administrator.ordinal()) {
+        if (user.getRole() == UserRole.ADMIN) {
             device = deviceDAO.findByUUID(deviceGuid);
         } else {
             device = deviceDAO.findByUUIDAndUser(user, deviceGuid);
@@ -145,7 +145,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug("notification/subscribe action - null guid case." + ". Session " + session.getId());
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
         List<DeviceNotification> deviceNotifications;
-        if (authorizedUser.getRole() == User.ROLE.Administrator.ordinal()) {
+        if (authorizedUser.getRole() == UserRole.ADMIN) {
             deviceNotifications =
                     deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, true);
         } else {
@@ -162,7 +162,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug("notification/subscribe action - null guid case." + ". Session " + session.getId());
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
         List<Device> devices;
-        if (authorizedUser.getRole() == User.ROLE.Administrator.ordinal()) {
+        if (authorizedUser.getRole() == UserRole.ADMIN) {
             devices = deviceDAO.findByUUID(guids);
         } else {
             devices = deviceDAO.findByUUIDListAndUser(authorizedUser, guids);
@@ -281,8 +281,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processConfigurationSet(JsonObject message, Session session) {
         logger.debug("configuration/set action started. Session " + session.getId());
         User user = WebsocketSession.getAuthorisedUser(session);
-        Integer roleAdmin = User.ROLE.Administrator.ordinal();
-        if (user.getRole() == null || !user.getRole().equals(roleAdmin)) {
+
+        if (user.getRole() == null || !user.getRole().equals(UserRole.ADMIN)) {
             throw new HiveException("No permissions");
         }
         if (message.get("name") == null || message.get("value") == null) {

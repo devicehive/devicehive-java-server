@@ -1,4 +1,4 @@
-package com.devicehive.controller.providers;
+package com.devicehive.providers;
 
 
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -65,6 +65,7 @@ public class HiveEntityProvider implements MessageBodyWriter<HiveEntity>, Messag
             if (annotation.annotationType().equals(JsonPolicyApply.class)) {
                 JsonPolicyApply jsonPolicyApply = (JsonPolicyApply) annotation;
                 policy = jsonPolicyApply.value();
+                // TODO: why is it here?
                 if (count > 0) {
                     throw new IllegalArgumentException("Two or more active JSON policies");
                 }

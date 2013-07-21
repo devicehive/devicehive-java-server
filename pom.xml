@@ -93,6 +93,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>2.3</version>
                 <configuration>
                     <warName>DeviceHiveJava</warName>
                 </configuration>
@@ -100,7 +101,7 @@
             <plugin>
                 <groupId>com.googlecode.flyway</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>2.1.1</version>
+                <version>2.2</version>
                 <configuration>
                     <url>jdbc:postgresql://localhost/devicehive</url>
                 </configuration>

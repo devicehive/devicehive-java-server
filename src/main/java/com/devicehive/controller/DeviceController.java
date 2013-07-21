@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 /**
  * TODO JavaDoc
  */
+@Path("/")
 public class DeviceController {
 
     @GET

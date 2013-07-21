@@ -5,6 +5,7 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
 import com.devicehive.model.request.UserInsert;
 import com.devicehive.model.response.DetailedUserResponse;
 import com.devicehive.model.response.SimpleNetworkResponse;
@@ -28,7 +29,6 @@ public class UserController {
 
     @Inject
     private UserService userService;
-
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -65,8 +65,8 @@ public class UserController {
             DetailedUserResponse userResponse = new DetailedUserResponse();
             userResponse.setId(u.getId());
             userResponse.setLogin(u.getLogin());
-            userResponse.setRole(u.getRole());
-            userResponse.setStatus(u.getStatus());
+            userResponse.setRole(u.getRole().getValue());
+            userResponse.setStatus(u.getStatus().getValue());
             userResponse.setLastLogin(u.getLastLogin());
 
             Set<SimpleNetworkResponse> networks = new HashSet<>();
@@ -98,12 +98,12 @@ public class UserController {
             throw new ForbiddenException("User with such login already exists");
         }
 
-        u = userService.createUser(user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
+        u = userService.createUser(user.getLogin(), user.getRole(), user.getStatus(), user.getPassword());
         SimpleUserResponse response = new SimpleUserResponse();
         response.setId(u.getId());
         response.setLogin(u.getLogin());
-        response.setRole(u.getRole());
-        response.setStatus(u.getStatus());
+        response.setRole(u.getRole().getValue());
+        response.setStatus(u.getStatus().getValue());
         return response;
     }
 
@@ -118,7 +118,7 @@ public class UserController {
             throw new ForbiddenException("User with such login already exists");
         }
 
-        userService.updateUser(userId, user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
+        userService.updateUser(userId, user.getLogin(), user.getRole(), user.getStatus(), user.getPassword());
         return Response.ok().build();
     }
 

@@ -2,9 +2,12 @@ package com.devicehive.controller;
 
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.model.DeviceClass;
+import com.devicehive.model.UserRole;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -14,29 +17,35 @@ import java.util.List;
 /**
  * TODO JavaDoc
  */
-@Path("/device")
+@Path("/")
 public class DeviceClassController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
 
     @Inject
     private DeviceClassDAO deviceClassDAO;
 
     @GET
-    @Path("/class")
+    @Path("/device/class")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("ADMIN")
     public List<DeviceClass> getDeviceClassList() {
+        logger.debug("DeviceClassList requested");
         return deviceClassDAO.getList();
     }
 
     @GET
-    @Path("/class/{id}")
+    @Path("/device/class/{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN", "CLIENT"})
     public DeviceClass getDeviceClass(@PathParam("id") long id) {
         return deviceClassDAO.getDeviceClass(id);
     }
 
     @POST
-    @Path("/class")
+    @Path("/device/class")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("ADMIN")
     public long insertDeviceClass() {
         DeviceClass deviceClass = new DeviceClass();
         deviceClass.setName("test");
@@ -46,13 +55,15 @@ public class DeviceClassController {
     }
 
     @PUT
-    @Path("/class/{id}")
+    @Path("/device/class/{id}")
+    @RolesAllowed("ADMIN")
     public Response updateDeviceClass(@PathParam("id") long id) {
         return Response.ok().build();
     }
 
     @DELETE
-    @Path("/class/{id}")
+    @Path("/device/class/{id}")
+    @RolesAllowed("ADMIN")
     public Response deleteDeviceClass(@PathParam("id") long id) {
         return Response.ok().build();
     }

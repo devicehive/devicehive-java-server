@@ -1,4 +1,4 @@
-package com.devicehive.controller.auth;
+package com.devicehive.auth;
 
 
 import com.devicehive.model.User;

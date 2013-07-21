@@ -14,14 +14,13 @@ import javax.ws.rs.core.Response;
 /**
  * TODO JavaDoc
  */
-@Path("/device/class")
 public class EquipmentController {
 
     @Inject
     private EquipmentService equipmentService;
 
     @GET
-    @Path("/{deviceClassId}/equipment/{id}")
+    @Path("/device/class/{deviceClassId}/equipment/{id}")
     public SimpleEquipmentResponse getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
 
         SimpleEquipmentResponse response = new SimpleEquipmentResponse();
@@ -38,7 +37,7 @@ public class EquipmentController {
 
 
     @POST
-    @Path("/{deviceClassId}/equipment")
+    @Path("/device/class/{deviceClassId}/equipment")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleEquipmentResponse insertEquipment(@PathParam("deviceClassId") long classId, EquipmentInsert eq) {
@@ -57,7 +56,7 @@ public class EquipmentController {
     }
 
     @PUT
-    @Path("/{deviceClassId}/equipment/{id}")
+    @Path("/device/class/{deviceClassId}/equipment/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleEquipmentResponse updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId, EquipmentInsert eq) {
@@ -77,7 +76,7 @@ public class EquipmentController {
     }
 
     @DELETE
-    @Path("/{deviceClassId}/equipment/{id}")
+    @Path("/device/class/{deviceClassId}/equipment/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
         Equipment e = equipmentService.getEquipmentForDevice(classId, eqId);
@@ -87,6 +86,4 @@ public class EquipmentController {
         equipmentService.deleteEquipment(e);
         return Response.ok().build();
     }
-
-
 }

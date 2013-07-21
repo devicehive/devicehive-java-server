@@ -30,23 +30,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
     @NamedQuery(name= "User.getWithNetworks", query = "select u from User u join fetch u.networks where u.id = :id")
 })
 
-public class User  implements HiveEntity {
-
-    public static enum ROLE {
-        Administrator("Admin"), Client("Client");
-
-        private String hiveRole;
-
-        private ROLE(String hiveRole) {
-            this.hiveRole = hiveRole;
-        }
-
-        public String getHiveRole() {
-            return hiveRole;
-        }
-    }
-    public static enum STATUS {Active, LockedOut, Disabled, Deleted}
-
+public class User implements HiveEntity {
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -75,16 +59,15 @@ public class User  implements HiveEntity {
     @Column(name = "login_attempts")
     private Integer loginAttempts;
 
-
     @Column
     @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED})
-    private Integer role;
+    private UserRole role;
 
     @Column
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED})
-    private Integer status;
+    private UserStatus status;
 
     @Column(name = "last_login")
     @SerializedName("lastLogin")
@@ -119,19 +102,19 @@ public class User  implements HiveEntity {
         this.login = login;
     }
 
-    public Integer getRole() {
+    public UserRole getRole() {
         return role;
     }
 
-    public void setRole(Integer role) {
+    public void setRole(UserRole role) {
         this.role = role;
     }
 
-    public Integer getStatus() {
+    public UserStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(UserStatus status) {
         this.status = status;
     }
 
@@ -205,10 +188,17 @@ public class User  implements HiveEntity {
     }
 
     @Override
-    public boolean equals(Object o){
-        if(o instanceof User){
-            return ((User)o).getId()==getId();
-        }
-        return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        return id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

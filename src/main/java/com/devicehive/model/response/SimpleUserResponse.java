@@ -23,25 +23,6 @@ public class SimpleUserResponse implements Serializable {
     @SerializedName("status")
     private Integer status;
 
-    public User.ROLE getRoleEnum() {
-        return role == 0 ? User.ROLE.Administrator : User.ROLE.Client;
-    }
-
-    public User.STATUS getStatusEnum() {
-        switch (status) {
-            case 0:
-                return User.STATUS.Active;
-            case 1:
-                return User.STATUS.LockedOut;
-            case 2:
-                return User.STATUS.Disabled;
-            case 3:
-                return User.STATUS.Deleted;
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
     public String getLogin() {
         return login;
     }
