@@ -16,40 +16,46 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 
-
 /**
  * TODO JavaDoc
  */
 @Entity
 @Table(name = "device_command")
 @NamedQueries({
-    @NamedQuery(name= "DeviceCommand.getNewerThan", query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
+        @NamedQuery(name = "DeviceCommand.getNewerThan",
+                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
+        @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
+        @NamedQuery(name = "DeviceCommand.updateById",
+                query = "update DeviceCommand dc set dc.timestamp = :timestamp, " +
+                        "dc.parameters = :parameters, " +
+                        "dc.lifetime = :lifetime, " +
+                        "dc.flags = :flags, " +
+                        "dc.status = :status, " +
+                        "dc.result = :result " +
+                        "where dc.id = :id"),
+        @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user = :user and dc.device = :device")
 })
 public class DeviceCommand implements HiveEntity {
 
     @SerializedName("id")
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({COMMAND_TO_CLIENT})
     private Long id;
-
     @SerializedName("timestamp")
     @Column
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE})
     private Timestamp timestamp;
-
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE})
     private User user;
-
     @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
-
     @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
@@ -57,39 +63,54 @@ public class DeviceCommand implements HiveEntity {
             "symbols.")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private String command;
-
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name="jsonString", column=@Column(name = "parameters"))
+            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private JsonStringWrapper parameters;
-
     @SerializedName("lifetime")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private Integer lifetime;
-
     @SerializedName("flags")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private Integer flags;
-
     @SerializedName("status")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private String status;
-
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name="jsonString", column=@Column(name = "result"))
+            @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
     })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
     private JsonStringWrapper result;
 
     public DeviceCommand() {
+    }
+
+    /**
+     * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
+     * will be empty if no constraint violations found.
+     *
+     * @param deviceCommand DeviceCommand that should be validated
+     * @param validator     Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(DeviceCommand deviceCommand, Validator validator) {
+        Set<ConstraintViolation<DeviceCommand>> constraintViolations = validator.validate(deviceCommand);
+        Set<String> result = new HashSet<>();
+        if (constraintViolations.size() > 0) {
+            for (ConstraintViolation<DeviceCommand> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+
     }
 
     public Long getId() {
@@ -170,26 +191,5 @@ public class DeviceCommand implements HiveEntity {
 
     public void setDevice(Device device) {
         this.device = device;
-    }
-
-    /**
-     * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
-     * will be empty if no constraint violations found.
-     * @param deviceCommand
-     * DeviceCommand that should be validated
-     * @param validator
-     * Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(DeviceCommand deviceCommand, Validator validator) {
-        Set<ConstraintViolation<DeviceCommand>> constraintViolations = validator.validate(deviceCommand);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size()>0){
-            for (ConstraintViolation<DeviceCommand> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
     }
 }

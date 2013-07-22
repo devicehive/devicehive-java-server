@@ -14,7 +14,7 @@ import java.io.IOException;
 @JMSDestinationDefinition(
         name= Constants.JMS_COMMAND_TOPIC,
         interfaceName = "javax.jms.Topic",
-        destinationName = Constants.COMMAND_TOPIC_DESTINATION_NAME          //???
+        destinationName = Constants.COMMAND_TOPIC_DESTINATION_NAME
 )
 @MessageDriven(mappedName = Constants.JMS_COMMAND_TOPIC)
 public class CommandMessageHandler implements MessageListener {
