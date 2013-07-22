@@ -16,7 +16,6 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -67,7 +66,7 @@ public class DeviceService {
         command.setDevice(device);
         command.setUser(user);
         command.setTimestamp(new Timestamp(System.currentTimeMillis()));
-        deviceCommandDAO.saveCommand(command);
+        deviceCommandDAO.createCommand(command);
         if (userWebsocketSession != null) {
             localMessageBus.subscribeForCommandUpdates(command.getId(), userWebsocketSession);
         }
@@ -104,13 +103,13 @@ public class DeviceService {
     public void submitDeviceNotificationTransactionProcess(DeviceNotification notification, Device device,
                                                            DeviceEquipment deviceEquipment) {
         if (deviceEquipment != null) {
-            if (deviceEquipmentDAO.update(deviceEquipment) == 0) {
+            if (!deviceEquipmentDAO.update(deviceEquipment)) {
                 deviceEquipment.setTimestamp(new Timestamp(System.currentTimeMillis()));
-                deviceEquipmentDAO.saveDeviceEquipment(deviceEquipment);
+                deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
             }
         }
         notification.setDevice(device);
-        deviceNotificationDAO.saveNotification(notification);
+        deviceNotificationDAO.createNotification(notification);
         messagePublisher.publishNotification(notification);
 
     }
@@ -158,7 +157,7 @@ public class DeviceService {
         }
         for (Equipment equipment : newEquipmentSet) {
             equipment.setDeviceClass(deviceClass);
-            equipmentDAO.saveEquipment(equipment);
+            equipmentDAO.createEquipment(equipment);
         }
     }
 

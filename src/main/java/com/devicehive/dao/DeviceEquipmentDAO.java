@@ -1,19 +1,17 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.List;
 
 @Stateless
 public class DeviceEquipmentDAO {
@@ -21,7 +19,7 @@ public class DeviceEquipmentDAO {
     private EntityManager em;
 
 
-    public void saveDeviceEquipment(DeviceEquipment deviceEquipment) {
+    public void createDeviceEquipment(DeviceEquipment deviceEquipment) {
         em.persist(deviceEquipment);
     }
 
@@ -30,13 +28,27 @@ public class DeviceEquipmentDAO {
         return em.find(DeviceEquipment.class, id);
     }
 
-    public int update(DeviceEquipment deviceEquipment){
+    public boolean update(DeviceEquipment deviceEquipment){
         Query query = em.createNamedQuery("DeviceEquipment.updateByCodeAndDevice");
         query.setParameter("timestamp", new Date());
         query.setParameter("parameters", deviceEquipment.getParameters());
         query.setParameter("device", deviceEquipment.getDevice());
         query.setParameter("code", deviceEquipment.getCode());
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean deleteDeviceEquipment(@NotNull Long id){
+        Query query = em.createNamedQuery("DeviceEquipment.deleteById");
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public int deleteByFK(@NotNull Device device){
+        Query query = em.createNamedQuery("DeviceEquipment.deleteByFK");
+        query.setParameter("device", device);
         return query.executeUpdate();
     }
+
+
 
 }

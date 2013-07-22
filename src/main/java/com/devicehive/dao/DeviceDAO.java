@@ -2,6 +2,7 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
+import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,13 +11,11 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
-import java.util.Date;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
@@ -75,6 +74,29 @@ public class DeviceDAO {
 
     public void saveDevice(Device device){
         em.persist(device);
+    }
+
+    public boolean updateDevice(@NotNull Long id, Device device){
+        Query query = em.createNamedQuery("Device.updateById");
+        query.setParameter("name", device.getName());
+        query.setParameter("status", device.getStatus());
+        query.setParameter("network", device.getNetwork());
+        query.setParameter("deviceClass", device.getClass());
+        query.setParameter("data", device.getData());
+        query.setParameter("id", device.getId());
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean deleteDevice(@NotNull Long id){
+        Query query = em.createNamedQuery("Device.deleteById");
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public int deleteDeviceByFK (@NotNull Network network){
+        Query query = em.createNamedQuery("Device.deleteByNetwork");
+        query.setParameter("network", network);
+        return query.executeUpdate();
     }
 
 

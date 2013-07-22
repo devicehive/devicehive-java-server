@@ -1,6 +1,5 @@
 package com.devicehive.websockets.handlers;
 
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceCommandDAO;

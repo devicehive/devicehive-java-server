@@ -18,11 +18,10 @@ import java.util.List;
 public class EquipmentDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public void saveEquipment(Equipment equipment){
+    public void createEquipment(Equipment equipment) {
         em.persist(equipment);
     }
 
@@ -37,14 +36,13 @@ public class EquipmentDAO {
 
         Equipment e = em.find(Equipment.class, equipmentId);
 
-        if (e == null||e.getDeviceClass().getId() != deviceClassId) {
+        if (e == null || e.getDeviceClass().getId() != deviceClassId) {
             return null;
         }
 
         return e;
 
     }
-
 
     /**
      * Inserts new record
@@ -53,34 +51,33 @@ public class EquipmentDAO {
      * @Return managed instance of Equipment
      */
     public Equipment insert(Equipment e) throws PersistenceException {
-        try{
+        try {
             return em.merge(e);
-        }catch (Exception ex) {
-            throw new HivePersistingException("Unable to persist entity",ex);
+        } catch (Exception ex) {
+            throw new HivePersistingException("Unable to persist entity", ex);
         }
     }
 
     public Equipment update(Equipment e) throws PersistenceException {
-        try{
+        try {
             return em.merge(e);
-        }catch (Exception ex) {
-            throw new HivePersistingException("Unable to persist entity",ex);
+        } catch (Exception ex) {
+            throw new HivePersistingException("Unable to persist entity", ex);
         }
     }
 
-    public void delete(Equipment e){
+    public void delete(Equipment e) {
         em.remove(e);
     }
 
     /**
      * returns Equipment by id
      */
-    public Equipment get(long id){
-        return em.find(Equipment.class,id);
+    public Equipment get(long id) {
+        return em.find(Equipment.class, id);
     }
 
     /**
-     *
      * @param equipments equipments to remove
      * @return
      */
