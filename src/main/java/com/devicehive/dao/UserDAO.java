@@ -3,6 +3,7 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.UserStatus;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -99,7 +100,7 @@ public class UserDAO {
         em.refresh(user);
         user.setLoginAttempts(user.getLoginAttempts() != null ? user.getLoginAttempts() + 1 : 1);
         if (user.getLoginAttempts() >= maxLoginAttempts) {
-            user.setStatus(User.STATUS.LockedOut.ordinal());
+            user.setStatus(UserStatus.LOCKED_OUT);
         }
         return em.merge(user);
     }
@@ -107,7 +108,7 @@ public class UserDAO {
     @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User finalizeLogin(User user) {
         em.refresh(user);
-        if (user.getStatus() != User.STATUS.Active.ordinal()) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
             return null;
         }
         user.setLoginAttempts(0);

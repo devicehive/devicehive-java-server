@@ -3,16 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.exceptions.dao.NoSuchRecordException;
 import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.request.DeviceClassInsert;
-import com.devicehive.model.request.EquipmentInsert;
-import com.devicehive.model.response.DetailedDeviceClassResponse;
-import com.devicehive.model.response.DeviceClassSimpleResponse;
-import com.devicehive.model.response.SimpleEquipmentResponse;
-import com.devicehive.service.DeviceClassService;
-import com.devicehive.service.EquipmentService;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -30,6 +21,8 @@ import java.util.Set;
 @Path("/device")
 public class DeviceClassController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
+
     @Inject
     private DeviceClassDAO deviceClassDAO;
 
@@ -41,66 +34,22 @@ public class DeviceClassController {
 
     @GET
     @Path("/class")
-    @RolesAllowed("Administrator")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<DeviceClassSimpleResponse> getDeviceClassList(@QueryParam("name") String name,
-                                                @QueryParam("namePattern") String namePattern,
-                                                @QueryParam("version") String version,
-                                                @QueryParam("sortField") String sortField,
-                                                @QueryParam("sortOrder") String sortOrder,
-                                                @QueryParam("take") Integer take,
-                                                @QueryParam("skip") Integer skip
-                                                ) {
-        List<DeviceClass> deviceClassList = deviceClassService.getDeviceClassList(name, namePattern, version, sortField, sortOrder, take, skip);
-
-        List<DeviceClassSimpleResponse> result = new ArrayList<>();
-
-        for(DeviceClass record:deviceClassList) {
-            result.add(DeviceClassSimpleResponse.fromDeviceClass(record));
-        }
-
-        return result;
+    public List<DeviceClass> getDeviceClassList() {
+        return deviceClassDAO.getList();
     }
 
     @GET
     @Path("/class/{id}")
-    @RolesAllowed({"Administrator","Client"})
     @Produces(MediaType.APPLICATION_JSON)
-    public DetailedDeviceClassResponse getDeviceClass(@PathParam("id") long id) {
-
-        DeviceClass deviceClass = deviceClassService.getWithEquipment(id);
-
-        DetailedDeviceClassResponse result = new DetailedDeviceClassResponse();
-        result.setId(deviceClass.getId());
-        result.setVersion(deviceClass.getVersion());
-        result.setData(deviceClass.getData());
-        result.setPermanent(deviceClass.getPermanent());
-        result.setOfflineTimeout(deviceClass.getOfflineTimeout());
-        result.setName(deviceClass.getName());
-        Set<SimpleEquipmentResponse> equipmentResponseSet = new HashSet<>();
-
-        for(Equipment e:deviceClass.getEquipment()){
-            SimpleEquipmentResponse r = new SimpleEquipmentResponse();
-            r.setId(e.getId());
-            r.setName(e.getName());
-            r.setCode(e.getCode());
-            r.setType(e.getType());
-            r.setData(e.getData());
-            equipmentResponseSet.add(r);
-        }
-
-        result.setEquipment(equipmentResponseSet);
-
-        return result;
+    public DeviceClass getDeviceClass(@PathParam("id") long id) {
+        return deviceClassDAO.getDeviceClass(id);
     }
 
     @POST
     @Path("/class")
-    @RolesAllowed("Administrator")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public DeviceClassSimpleResponse insertDeviceClass(DeviceClassInsert insert) {
-
+    public long insertDeviceClass() {
         DeviceClass deviceClass = new DeviceClass();
 
         deviceClass.copyFieldsFrom(insert);
@@ -110,19 +59,12 @@ public class DeviceClassController {
 
     @PUT
     @Path("/class/{id}")
-    @RolesAllowed("Administrator")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public DeviceClassSimpleResponse updateDeviceClass(@PathParam("id") long id,DeviceClassInsert insert) {
-        DeviceClass deviceClass = deviceClassService.getWithEquipment(id);
-        deviceClass.copyFieldsFromOmmitingNulls(insert);
-        deviceClassService.update(deviceClass);
-        return DeviceClassSimpleResponse.fromDeviceClass(deviceClass);
+    public Response updateDeviceClass(@PathParam("id") long id) {
+        return Response.ok().build();
     }
 
     @DELETE
     @Path("/class/{id}")
-    @RolesAllowed("Administrator")
     public Response deleteDeviceClass(@PathParam("id") long id) {
         //TODO: implement case with existing equipment
         try{

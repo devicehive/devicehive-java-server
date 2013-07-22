@@ -1,6 +1,8 @@
 package com.devicehive.model.request;
 
 import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -15,32 +17,13 @@ public class UserInsert implements Serializable {
     private String login;
 
     @SerializedName("role")
-    private Integer role;
+    private UserRole role;
 
     @SerializedName("status")
-    private Integer status;
+    private UserStatus status;
 
     @SerializedName("password")
     private String password;
-
-    public User.ROLE getRoleEnum() {
-        return role == 0 ? User.ROLE.Administrator : User.ROLE.Client;
-    }
-
-    public User.STATUS getStatusEnum() {
-        switch (status) {
-            case 0:
-                return User.STATUS.Active;
-            case 1:
-                return User.STATUS.LockedOut;
-            case 2:
-                return User.STATUS.Disabled;
-            case 3:
-                return User.STATUS.Deleted;
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
 
     public String getLogin() {
         return login;
@@ -50,19 +33,19 @@ public class UserInsert implements Serializable {
         this.login = login;
     }
 
-    public Integer getRole() {
+    public UserRole getRole() {
         return role;
     }
 
-    public void setRole(Integer role) {
+    public void setRole(UserRole role) {
         this.role = role;
     }
 
-    public Integer getStatus() {
+    public UserStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(UserStatus status) {
         this.status = status;
     }
 

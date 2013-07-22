@@ -1,10 +1,7 @@
-package com.devicehive.controller.providers;
+package com.devicehive.providers;
 
 
 import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.HiveEntity;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

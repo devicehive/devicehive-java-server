@@ -1,10 +1,10 @@
-package com.devicehive.controller.auth;
-
+package com.devicehive.auth;
 
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.service.UserService;
+import org.apache.commons.codec.binary.Base64;
 
 import javax.annotation.Priority;
 import javax.naming.InitialContext;
@@ -20,15 +20,12 @@ import java.util.UUID;
 @Priority(Priorities.AUTHENTICATION)
 public class AuthenticationFilter implements ContainerRequestFilter {
 
-
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         boolean secure = requestContext.getSecurityContext().isSecure();
 
-        requestContext.setSecurityContext(new HiveSecurityContext(new UserPrincipal(authUser(requestContext)), new DevicePrincipal(authDevice(requestContext)), secure));
+        requestContext.setSecurityContext(new HiveSecurityContext(new UserPrincipal(authUser(requestContext)), secure));
     }
-
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {
         String deviceId = requestContext.getHeaderString("Auth-DeviceID");
@@ -51,13 +48,22 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private User authUser(ContainerRequestContext requestContext) throws IOException {
-        String login = "test"; //TODO
-        String password = "test"; //TODO
-        if(login == null) {
+        String auth = requestContext.getHeaders().getFirst("authorization");
+        if (auth == null) {
             return null;
         }
 
+        String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()));
+        int pos = decodedAuth.indexOf(":");
+        if (pos <= 0) {
+            return null;
+        }
+
+        String login = decodedAuth.substring(0, pos);
+        String password = decodedAuth.substring(pos + 1);
+
         try {
+            // TODO: Should we really do JNDI lookup here?
             UserService userService = (UserService) new InitialContext().lookup("java:comp/env/UserService");
             return userService.authenticate(login, password);
         } catch (IllegalArgumentException ex) {

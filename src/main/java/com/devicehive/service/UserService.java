@@ -6,13 +6,14 @@ import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
 import java.util.List;
 
 @Stateless
@@ -52,7 +53,7 @@ public class UserService {
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts() >= maxLoginAttempts) {
-                user.setStatus(User.STATUS.LockedOut.ordinal());
+                user.setStatus(UserStatus.LOCKED_OUT);
             }
             return null;
         } else {
@@ -71,7 +72,7 @@ public class UserService {
     }
 
     @Lock
-    public User createUser(@NotNull String login, @NotNull User.ROLE role, @NotNull User.STATUS status, @NotNull String password) {
+    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
         query.setParameter("login", login);
         List<User> list = query.getResultList();
@@ -80,24 +81,24 @@ public class UserService {
         }
         User user = new User();
         user.setLogin(login);
-        user.setRole(role.ordinal());
-        user.setStatus(status.ordinal());
+        user.setRole(role);
+        user.setStatus(status);
         user.setPasswordSalt(passwordService.generateSalt());
         user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
         user.setLoginAttempts(0);
         return em.merge(user);
     }
 
-    public void updateUser(@NotNull Long id, String login, User.ROLE role, User.STATUS status, String password) {
+    public void updateUser(@NotNull Long id, String login, UserRole role, UserStatus status, String password) {
         User u = em.find(User.class,id);
         if (login != null) {
             u.setLogin(login);
         }
         if (role != null) {
-            u.setRole(role.ordinal());
+            u.setRole(role);
         }
         if (status != null) {
-            u.setStatus(status.ordinal());
+            u.setStatus(status);
         }
         if (password != null) {
             String salt = passwordService.generateSalt();
