@@ -28,10 +28,10 @@ public class DeviceNotificationDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public void createNotification(DeviceNotification deviceNotification) {
+    public DeviceNotification createNotification(DeviceNotification deviceNotification) {
         deviceNotification.setTimestamp(new Timestamp(System.currentTimeMillis()));
         em.persist(deviceNotification);
-
+        return deviceNotification;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -119,7 +119,7 @@ public class DeviceNotificationDAO {
         return query.executeUpdate() != 0;
     }
 
-    public int deleteNotificationByFK(@NotNull Device device){
+    public int deleteNotificationByFK(@NotNull Device device) {
         Query query = em.createNamedQuery("DeviceNotification.deleteByFK");
         query.setParameter("device", device);
         return query.executeUpdate();

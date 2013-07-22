@@ -40,7 +40,6 @@ public class DeviceDAO {
         return res.isEmpty() ? null : res.get(0);
     }
 
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDAndKey(UUID uuid, String key) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
@@ -72,11 +71,12 @@ public class DeviceDAO {
         return query.getResultList();
     }
 
-    public void saveDevice(Device device){
+    public Device createDevice(Device device) {
         em.persist(device);
+        return device;
     }
 
-    public boolean updateDevice(@NotNull Long id, Device device){
+    public boolean updateDevice(@NotNull Long id, Device device) {
         Query query = em.createNamedQuery("Device.updateById");
         query.setParameter("name", device.getName());
         query.setParameter("status", device.getStatus());
@@ -87,13 +87,13 @@ public class DeviceDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean deleteDevice(@NotNull Long id){
+    public boolean deleteDevice(@NotNull Long id) {
         Query query = em.createNamedQuery("Device.deleteById");
         query.setParameter("id", id);
         return query.executeUpdate() != 0;
     }
 
-    public int deleteDeviceByFK (@NotNull Network network){
+    public int deleteDeviceByFK(@NotNull Network network) {
         Query query = em.createNamedQuery("Device.deleteByNetwork");
         query.setParameter("network", network);
         return query.executeUpdate();

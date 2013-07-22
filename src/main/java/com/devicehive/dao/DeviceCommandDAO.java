@@ -29,8 +29,9 @@ public class DeviceCommandDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public void createCommand(DeviceCommand deviceCommand) {
+    public DeviceCommand createCommand(DeviceCommand deviceCommand) {
         em.persist(deviceCommand);
+        return deviceCommand;
     }
 
     public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
@@ -65,7 +66,7 @@ public class DeviceCommandDAO {
         return query.executeUpdate() != 0;
     }
 
-    public int deleteCommand(@NotNull Device device, @NotNull User user){
+    public int deleteCommand(@NotNull Device device, @NotNull User user) {
         Query query = em.createNamedQuery("DeviceCommand.deleteByDeviceAndUser");
         query.setParameter("user", user);
         query.setParameter("device", device);
