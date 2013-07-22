@@ -1,7 +1,6 @@
 .idea/
 target/
 *.iml
-/bin
+.settings/
 .classpath
 .project
-.settings/
