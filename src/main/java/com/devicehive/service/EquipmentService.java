@@ -17,7 +17,7 @@ public class EquipmentService {
     @Inject
     private EquipmentDAO equipmentDAO;
 
-    public Equipment getEquipmentForDevice(@NotNull long deviceClassId, @NotNull long equipmentId) {
+    public Equipment getEquipment(@NotNull long deviceClassId, @NotNull long equipmentId) {
         return equipmentDAO.getByDeviceClass(deviceClassId, equipmentId);
     }
 

@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 public class DeviceNotificationService {
+
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
 

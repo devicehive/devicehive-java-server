@@ -31,6 +31,7 @@ public class UserController {
 
 
     @GET
+    @RolesAllowed("Administrator")
     @Produces(MediaType.APPLICATION_JSON)
     public List<User> getUsersList(
             @QueryParam("login") String login,
@@ -57,38 +58,41 @@ public class UserController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("Client")
+    @RolesAllowed("Administrator")
     @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public DetailedUserResponse getUser(@PathParam("id") long id) {
-        try {
-            User u = userService.findById(id);
-            DetailedUserResponse userResponse = new DetailedUserResponse();
-            userResponse.setId(u.getId());
-            userResponse.setLogin(u.getLogin());
-            userResponse.setRole(u.getRole());
-            userResponse.setStatus(u.getStatus());
-            userResponse.setLastLogin(u.getLastLogin());
+        User u = userService.findUserWithNetworks(id);
 
-            Set<SimpleNetworkResponse> networks = new HashSet<>();
-
-            for (Network n : u.getNetworks()) {
-                SimpleNetworkResponse snr = new SimpleNetworkResponse();
-                snr.setId(n.getId());
-                snr.setDescription(n.getDescription());
-                snr.setKey(n.getKey());
-                snr.setName(n.getName());
-                networks.add(snr);
-            }
-
-            userResponse.setNetworks(networks);
-
-            return userResponse;
-        } catch (Error e) {
-            throw new NotFoundException();
+        if(u==null){
+            throw new NotFoundException("No such user");
         }
+
+
+        DetailedUserResponse userResponse = new DetailedUserResponse();
+        userResponse.setId(u.getId());
+        userResponse.setLogin(u.getLogin());
+        userResponse.setRole(u.getRole());
+        userResponse.setStatus(u.getStatus());
+        userResponse.setLastLogin(u.getLastLogin());
+
+        Set<SimpleNetworkResponse> networks = new HashSet<>();
+
+        for (Network n : u.getNetworks()) {
+            SimpleNetworkResponse snr = new SimpleNetworkResponse();
+            snr.setId(n.getId());
+            snr.setDescription(n.getDescription());
+            snr.setKey(n.getKey());
+            snr.setName(n.getName());
+            networks.add(snr);
+        }
+
+        userResponse.setNetworks(networks);
+
+        return userResponse;
     }
 
     @POST
+    @RolesAllowed("Administrator")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleUserResponse insertUser(UserInsert user) {
@@ -110,6 +114,7 @@ public class UserController {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed("Administrator")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserInsert user, @PathParam("id") long userId) {
         User u = userService.findByLogin(user.getLogin());
@@ -124,6 +129,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed("Administrator")
     public Response updateUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
         return Response.ok().build();
@@ -132,6 +138,7 @@ public class UserController {
 
     @GET
     @Path("/{id}/network/{networkId}")
+    @RolesAllowed("Administrator")
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleNetworkResponse getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
@@ -155,6 +162,7 @@ public class UserController {
 
     @PUT
     @Path("/{id}/network/{networkId}")
+    @RolesAllowed("Administrator")
     @Produces(MediaType.APPLICATION_JSON)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
@@ -167,6 +175,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}/network/{networkId}")
+    @RolesAllowed("Administrator")
     @Produces(MediaType.APPLICATION_JSON)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
@@ -174,11 +183,6 @@ public class UserController {
         } catch (Exception e) {
             throw new NotFoundException();
         }
-        return Response.ok().build();
-    }
-
-
-    public Response getDeviceList() {
         return Response.ok().build();
     }
 }

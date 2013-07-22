@@ -1,6 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.exceptions.dao.HivePersistingException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import org.slf4j.Logger;
@@ -9,12 +10,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.interceptor.Interceptors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
+import javax.persistence.*;
 import java.util.Collection;
 import java.util.List;
 
@@ -41,15 +37,12 @@ public class EquipmentDAO {
 
         Equipment e = em.find(Equipment.class, equipmentId);
 
-        if (e == null) {
+        if (e == null||e.getDeviceClass().getId() != deviceClassId) {
             return null;
         }
 
-        if (e.getDeviceClass().getId() == deviceClassId) {
-            return e;
-        }
+        return e;
 
-        return null;
     }
 
 
@@ -59,13 +52,22 @@ public class EquipmentDAO {
      * @param e Equipment instance to save
      * @Return managed instance of Equipment
      */
-    public Equipment insert(Equipment e){
-        return em.merge(e);
+    public Equipment insert(Equipment e) throws PersistenceException {
+        try{
+            return em.merge(e);
+        }catch (Exception ex) {
+            throw new HivePersistingException("Unable to persist entity",ex);
+        }
     }
 
-    public Equipment update(Equipment e){
-        return em.merge(e);
+    public Equipment update(Equipment e) throws PersistenceException {
+        try{
+            return em.merge(e);
+        }catch (Exception ex) {
+            throw new HivePersistingException("Unable to persist entity",ex);
+        }
     }
+
     public void delete(Equipment e){
         em.remove(e);
     }

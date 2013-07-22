@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.request.DeviceClassInsert;
 
 import javax.persistence.*;
 import javax.persistence.Version;
@@ -22,7 +23,11 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "device_class")
 @NamedQueries({
         @NamedQuery(name = "DeviceClass.findByNameAndVersion",
-                query = "select d from DeviceClass d where d.name = :name and d.version = :version")
+                query = "select d from DeviceClass d where d.name = :name and d.version = :version"),
+        @NamedQuery(name = "DeviceClass.list",
+                query = "select d from DeviceClass d where d.name = :name and d.version = :version"),
+        @NamedQuery(name = "DeviceClass.getWithEquipment",
+                query = "select d from DeviceClass d left join fetch d.equipment where d.id = :id"),
 })
 public class DeviceClass implements HiveEntity {
 
@@ -63,9 +68,8 @@ public class DeviceClass implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
-    public DeviceClass() {
-
-    }
+    @OneToMany(mappedBy = "deviceClass")
+    private Set<Equipment> equipment;
 
     /**
      * Validates deviceClass representation. Returns set of strings which are represent constraint violations. Set will
@@ -85,6 +89,36 @@ public class DeviceClass implements HiveEntity {
         }
         return result;
 
+    }
+
+    /**
+     * copies fields from {@link DeviceClassInsert}
+     * @param insert object, that will be used as data source
+     */
+    public void copyFieldsFrom(DeviceClassInsert insert) {
+        setName(insert.getName());
+        setPermanent(insert.getIsPermanent());
+        setVersion(insert.getVersion());
+        setOfflineTimeout(insert.getOfflineTimeout());
+        setData(insert.getData());
+    }
+
+    public void copyFieldsFromOmmitingNulls(DeviceClassInsert insert) {
+        if(insert.getName()!=null){
+            setName(insert.getName());
+        }
+        if(insert.getIsPermanent()!=null){
+            setPermanent(insert.getIsPermanent());
+        }
+        if(insert.getVersion()!=null){
+            setVersion(insert.getVersion());
+        }
+        if(insert.getOfflineTimeout()!=null){
+            setOfflineTimeout(insert.getOfflineTimeout());
+        }
+        if(insert.getOfflineTimeout()!=null){
+            setData(insert.getData());
+        }
     }
 
     public long getEntityVersion() {
@@ -141,5 +175,23 @@ public class DeviceClass implements HiveEntity {
 
     public void setData(JsonStringWrapper data) {
         this.data = data;
+    }
+
+    public Set<Equipment> getEquipment() {
+        return equipment;
+    }
+
+    public void setEquipment(Set<Equipment> equipment) {
+        this.equipment = equipment;
+    }
+
+    @Override
+    public boolean equals(Object dc){
+
+        if(dc instanceof DeviceClass) {
+            return ((DeviceClass)dc).getId()==getId();
+        }
+
+        return false;
     }
 }

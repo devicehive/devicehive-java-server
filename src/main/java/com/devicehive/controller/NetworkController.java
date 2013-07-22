@@ -1,12 +1,14 @@
 package com.devicehive.controller;
 
 import com.devicehive.model.Network;
+import com.devicehive.model.User;
 import com.devicehive.model.request.NetworkInsert;
 import com.devicehive.model.response.SimpleNetworkResponse;
 import com.devicehive.service.NetworkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -54,6 +56,7 @@ public class NetworkController {
      * @param skip offset, default 0
      */
     @GET
+    @RolesAllowed("Administrator")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<SimpleNetworkResponse> getNetworkList(@QueryParam("name") String name, @QueryParam("namePattern") String namePattern,
                                                      @QueryParam("sortField") String sortField, @QueryParam("sortOrder") String sortOrder,
