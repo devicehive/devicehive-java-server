@@ -65,8 +65,7 @@ public class HiveEntityProvider implements MessageBodyWriter<HiveEntity>, Messag
             if (annotation.annotationType().equals(JsonPolicyApply.class)) {
                 JsonPolicyApply jsonPolicyApply = (JsonPolicyApply) annotation;
                 policy = jsonPolicyApply.value();
-                // TODO: why is it here?
-                if (count > 0) {
+                if (++count > 1) {
                     throw new IllegalArgumentException("Two or more active JSON policies");
                 }
             }
