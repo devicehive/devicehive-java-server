@@ -22,25 +22,38 @@ import java.util.Set;
 
 @Stateless
 public class DeviceService {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
+
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
+
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
+
     @Inject
     private MessagePublisher messagePublisher;
+
     @Inject
     private LocalMessageBus localMessageBus;
+
     @Inject
     private DeviceClassDAO deviceClassDAO;
+
     @Inject
     private DeviceDAO deviceDAO;
+
     @Inject
     private EquipmentDAO equipmentDAO;
+
     @Inject
     private NetworkService networkService;
+
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
+
+
+
 
     public void deviceSave(Device device, Set<Equipment> equipmentSet) {
         if (device.getNetwork() != null) {

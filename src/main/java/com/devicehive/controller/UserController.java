@@ -71,8 +71,8 @@ public class UserController {
         DetailedUserResponse userResponse = new DetailedUserResponse();
         userResponse.setId(u.getId());
         userResponse.setLogin(u.getLogin());
-        userResponse.setRole(u.getRole());
-        userResponse.setStatus(u.getStatus());
+        userResponse.setRole(u.getRole().getValue());
+        userResponse.setStatus(u.getStatus().getValue());
         userResponse.setLastLogin(u.getLastLogin());
 
         Set<SimpleNetworkResponse> networks = new HashSet<>();
