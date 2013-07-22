@@ -21,8 +21,9 @@ public class EquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public void createEquipment(Equipment equipment) {
+    public Equipment createEquipment(Equipment equipment) {
         em.persist(equipment);
+        return equipment;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -32,6 +33,7 @@ public class EquipmentDAO {
         return query.getResultList();
     }
 
+    @Deprecated
     public Equipment getByDeviceClass(long deviceClassId, long equipmentId) {
 
         Equipment e = em.find(Equipment.class, equipmentId);
@@ -50,6 +52,7 @@ public class EquipmentDAO {
      * @param e Equipment instance to save
      * @Return managed instance of Equipment
      */
+    @Deprecated
     public Equipment insert(Equipment e) throws PersistenceException {
         try {
             return em.merge(e);
@@ -58,6 +61,7 @@ public class EquipmentDAO {
         }
     }
 
+    @Deprecated
     public Equipment update(Equipment e) throws PersistenceException {
         try {
             return em.merge(e);
@@ -66,6 +70,8 @@ public class EquipmentDAO {
         }
     }
 
+    //TODO api
+    @Deprecated
     public void delete(Equipment e) {
         em.remove(e);
     }

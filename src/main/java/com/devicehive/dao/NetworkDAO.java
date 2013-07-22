@@ -10,6 +10,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -22,6 +23,8 @@ import java.util.List;
 @Stateless
 public class NetworkDAO {
 
+    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
+    private static final Logger logger = LoggerFactory.getLogger(NetworkDAO.class);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -29,8 +32,6 @@ public class NetworkDAO {
         em.persist(network);
         return network;
     }
-
-    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getById(@NotNull long id) {
@@ -44,17 +45,23 @@ public class NetworkDAO {
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
-    private static final Logger logger = LoggerFactory.getLogger(NetworkDAO.class);
-
-    public void delete(@NotNull long id) {
-        Network n = em.find(Network.class, id);
-        em.remove(n);
-    }
 
     public Network insert(Network n) {
         return em.merge(n);
     }
 
+    public boolean update(@NotNull Long id, @NotNull Network network) {
+        Query query = em.createNamedQuery("Network.updateById");
+        query.setParameter("description", network.getDescription());
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean delete(@NotNull Long id) {
+        Query query = em.createNamedQuery("Network.deleteById");
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
 
     public List<Network> list(String name, String namePattern,
                               String sortField, boolean sortOrderAsc,

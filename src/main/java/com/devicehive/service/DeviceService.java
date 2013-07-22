@@ -143,7 +143,7 @@ public class DeviceService {
             return stored;
         } else {
             //create
-            deviceClassDAO.saveDeviceClass(deviceClass);
+            deviceClassDAO.createDeviceClass(deviceClass);
             updateEquipment(newEquipmentSet, deviceClass);
             return deviceClass;
         }
@@ -164,7 +164,7 @@ public class DeviceService {
     public void createOrUpdateDevice(Device device) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         if (existingDevice == null) {
-            deviceDAO.saveDevice(device);
+            deviceDAO.createDevice(device);
         } else {
             existingDevice.setDeviceClass(device.getDeviceClass());
             existingDevice.setStatus(device.getStatus());

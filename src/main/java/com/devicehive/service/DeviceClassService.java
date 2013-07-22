@@ -67,7 +67,7 @@ public class DeviceClassService {
             throw new DublicateEntryException("Entity with same name and version already exists with different id");
         }
         try{
-            deviceClassDAO.saveDeviceClass(deviceClass);
+            deviceClassDAO.createDeviceClass(deviceClass);
         }catch (Exception e){
             throw new HivePersistingException("Persisting Exception",e);
         }

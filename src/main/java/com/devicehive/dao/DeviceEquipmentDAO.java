@@ -18,9 +18,9 @@ public class DeviceEquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-
-    public void createDeviceEquipment(DeviceEquipment deviceEquipment) {
+    public DeviceEquipment createDeviceEquipment(DeviceEquipment deviceEquipment) {
         em.persist(deviceEquipment);
+        return deviceEquipment;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -28,7 +28,7 @@ public class DeviceEquipmentDAO {
         return em.find(DeviceEquipment.class, id);
     }
 
-    public boolean update(DeviceEquipment deviceEquipment){
+    public boolean update(DeviceEquipment deviceEquipment) {
         Query query = em.createNamedQuery("DeviceEquipment.updateByCodeAndDevice");
         query.setParameter("timestamp", new Date());
         query.setParameter("parameters", deviceEquipment.getParameters());
@@ -37,18 +37,17 @@ public class DeviceEquipmentDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean deleteDeviceEquipment(@NotNull Long id){
+    public boolean deleteDeviceEquipment(@NotNull Long id) {
         Query query = em.createNamedQuery("DeviceEquipment.deleteById");
         query.setParameter("id", id);
         return query.executeUpdate() != 0;
     }
 
-    public int deleteByFK(@NotNull Device device){
+    public int deleteByFK(@NotNull Device device) {
         Query query = em.createNamedQuery("DeviceEquipment.deleteByFK");
         query.setParameter("device", device);
         return query.executeUpdate();
     }
-
 
 
 }

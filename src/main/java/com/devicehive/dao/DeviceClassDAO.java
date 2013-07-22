@@ -75,6 +75,7 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
+    @Deprecated
     public void delete(@NotNull Long id) {
         DeviceClass dc = em.find(DeviceClass.class, id);
         if (dc == null) {
@@ -88,7 +89,6 @@ public class DeviceClassDAO {
     }
 
     /**
-     *
      * @param id
      * @param deviceClass
      * @return true if update was executed, false otherwise
@@ -118,8 +118,10 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
-    public void saveDeviceClass(DeviceClass deviceClass) {
+    //check addDeviceClass method
+    public DeviceClass createDeviceClass(DeviceClass deviceClass) {
         em.persist(deviceClass);
+        return deviceClass;
     }
 
     public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {
@@ -129,10 +131,5 @@ public class DeviceClassDAO {
         List<DeviceClass> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
-
-    public DeviceClass createDeviceClass(DeviceClass deviceClass) {
-        return em.merge(deviceClass);
-    }
-
 
 }
