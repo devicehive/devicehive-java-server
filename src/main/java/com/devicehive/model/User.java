@@ -27,7 +27,12 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
     @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
     @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
             "where u = :user and n = :network"),
-    @NamedQuery(name= "User.getWithNetworks", query = "select u from User u left join fetch u.networks where u.id = :id")
+    @NamedQuery(name= "User.getWithNetworks",
+            query = "select u from User u left join fetch u.networks where u.id = :id"),
+    @NamedQuery(name = "User.updateById",
+            query = "update User u set u.passwordHash = :passwordHash, u.passwordSalt = :passwordSalt, u.loginAttempts = :loginAttempts," +
+                    " u.role = :role, u.lastLogin = :lastLogin where u.id = :id"),
+        @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
 })
 
 public class User implements HiveEntity {

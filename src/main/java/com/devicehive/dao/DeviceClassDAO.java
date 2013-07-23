@@ -3,23 +3,18 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.dao.NoSuchRecordException;
 import com.devicehive.model.DeviceClass;
-import com.devicehive.model.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +28,8 @@ import java.util.List;
 public class DeviceClassDAO {
 
     private static int DEFAULT_TAKE = 1000;
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
-
-
 
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
@@ -79,27 +71,42 @@ public class DeviceClassDAO {
         return resultQuery.getResultList();
     }
 
-    public DeviceClass get(@NotNull long id){
-        return em.find(DeviceClass.class,id);
+    public DeviceClass get(@NotNull Long id) {
+        return em.find(DeviceClass.class, id);
     }
 
-    public void delete(@NotNull long id) {
-        DeviceClass dc = em.find(DeviceClass.class,id);
-        if( dc == null ) {
+    @Deprecated
+    public void delete(@NotNull Long id) {
+        DeviceClass dc = em.find(DeviceClass.class, id);
+        if (dc == null) {
             throw new NoSuchRecordException("There is no DeviceClass entity with id '" + id + "'");
         }
-        try{
+        try {
             em.remove(dc);
-        }catch (Throwable e){
+        } catch (Throwable e) {
             throw e;
         }
     }
 
-    public DeviceClass getWithEquipment(@NotNull long id){
-        TypedQuery<DeviceClass> tq = em.createNamedQuery("DeviceClass.getWithEquipment",DeviceClass.class);
-        tq.setParameter("id",id);
+    /**
+     * @param id
+     * @param deviceClass
+     * @return true if update was executed, false otherwise
+     */
+    public boolean update(@NotNull Long id, DeviceClass deviceClass) {
+        Query query = em.createNamedQuery("DeviceClass.updateDeviceClassById");
+        query.setParameter("isPermanent", deviceClass.getPermanent());
+        query.setParameter("offlineTimeout", deviceClass.getOfflineTimeout());
+        query.setParameter("data", deviceClass.getData());
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public DeviceClass getWithEquipment(@NotNull long id) {
+        TypedQuery<DeviceClass> tq = em.createNamedQuery("DeviceClass.getWithEquipment", DeviceClass.class);
+        tq.setParameter("id", id);
         List<DeviceClass> result = tq.getResultList();
-        return result.isEmpty()?null:result.get(0);
+        return result.isEmpty() ? null : result.get(0);
     }
 
     public List<DeviceClass> getList() {
@@ -111,8 +118,10 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
-    public void saveDeviceClass(DeviceClass deviceClass){
-        em.merge(deviceClass);
+    //check addDeviceClass method
+    public DeviceClass createDeviceClass(DeviceClass deviceClass) {
+        em.persist(deviceClass);
+        return deviceClass;
     }
 
     public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {
@@ -120,12 +129,7 @@ public class DeviceClassDAO {
         query.setParameter("version", version);
         query.setParameter("name", name);
         List<DeviceClass> result = query.getResultList();
-        return  result.isEmpty() ? null : result.get(0);
+        return result.isEmpty() ? null : result.get(0);
     }
-
-    public DeviceClass addDeviceClass(DeviceClass deviceClass) {
-        return em.merge(deviceClass);
-    }
-
 
 }

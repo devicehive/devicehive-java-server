@@ -8,15 +8,15 @@ import com.devicehive.model.User;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.transaction.Transactional;
+import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,10 +28,10 @@ public class DeviceNotificationDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public void saveNotification(DeviceNotification deviceNotification) {
+    public DeviceNotification createNotification(DeviceNotification deviceNotification) {
         deviceNotification.setTimestamp(new Timestamp(System.currentTimeMillis()));
         em.persist(deviceNotification);
-
+        return deviceNotification;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -57,7 +57,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getByUserNewerThan(User user, Date timestamp){
+    public List<DeviceNotification> getByUserNewerThan(User user, Date timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserNewerThan",
                 DeviceNotification.class);
         query.setParameter("user", user);
@@ -102,7 +102,27 @@ public class DeviceNotificationDAO {
             resultQuery.setMaxResults(take);
         }
         return resultQuery.getResultList();
+    }
 
+    public boolean updateNotification(@NotNull Long id, DeviceNotification notification) {
+        Query query = em.createNamedQuery("DeviceNotification.updateById");
+        query.setParameter("parameters", notification.getParameters());
+        query.setParameter("timestamp", notification.getTimestamp());
+        query.setParameter("notification", notification.getNotification());
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean deleteNotification(@NotNull Long id) {
+        Query query = em.createNamedQuery("DeviceNotification.deleteById");
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public int deleteNotificationByFK(@NotNull Device device) {
+        Query query = em.createNamedQuery("DeviceNotification.deleteByFK");
+        query.setParameter("device", device);
+        return query.executeUpdate();
     }
 
 

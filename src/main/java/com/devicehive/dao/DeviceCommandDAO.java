@@ -4,17 +4,20 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.User;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
-import javax.transaction.Transactional;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,8 +29,9 @@ public class DeviceCommandDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public void saveCommand(DeviceCommand deviceCommand) {
+    public DeviceCommand createCommand(DeviceCommand deviceCommand) {
         em.persist(deviceCommand);
+        return deviceCommand;
     }
 
     public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
@@ -43,6 +47,30 @@ public class DeviceCommandDAO {
         cmd.setResult(update.getResult());
         return em.merge(cmd);
 
+    }
+
+    public boolean deleteById(@NotNull Long id) {
+        Query query = em.createNamedQuery("DeviceCommand.deleteById");
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean updateCommand(@NotNull Long id, DeviceCommand command) {
+        Query query = em.createNamedQuery("DeviceCommand.updateById");
+        query.setParameter("parameters", command.getParameters());
+        query.setParameter("lifetime", command.getLifetime());
+        query.setParameter("flags", command.getFlags());
+        query.setParameter("status", command.getStatus());
+        query.setParameter("result", command.getResult());
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
+    }
+
+    public int deleteCommand(@NotNull Device device, @NotNull User user) {
+        Query query = em.createNamedQuery("DeviceCommand.deleteByDeviceAndUser");
+        query.setParameter("user", user);
+        query.setParameter("device", device);
+        return query.executeUpdate();
     }
 
     public DeviceCommand findById(Long id) {

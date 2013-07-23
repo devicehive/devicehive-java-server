@@ -20,8 +20,6 @@ import java.util.UUID;
 @Priority(Priorities.AUTHENTICATION)
 public class AuthenticationFilter implements ContainerRequestFilter {
 
-
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         boolean secure = requestContext.getSecurityContext().isSecure();

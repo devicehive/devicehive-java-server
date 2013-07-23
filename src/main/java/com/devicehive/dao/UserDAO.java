@@ -10,11 +10,13 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,6 @@ public class UserDAO {
 
     private static final int maxLoginAttempts = 10;
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -40,7 +41,6 @@ public class UserDAO {
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
     }
-
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
@@ -122,6 +122,22 @@ public class UserDAO {
         query.setParameter("network", network);
         Long count = query.getSingleResult();
         return count != null && count > 0;
+    }
+
+    public boolean update(@NotNull Long id, @NotNull User user) {
+        Query query = em.createNamedQuery("User.updateById");
+        query.setParameter("passwordHash", user.getPasswordHash());
+        query.setParameter("passwordSalt", user.getPasswordSalt());
+        query.setParameter("loginAttempts", user.getLoginAttempts());
+        query.setParameter("role", user.getRole());
+        query.setParameter("lastLogin", user.getLastLogin());
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean delete(@NotNull Long id) {
+        Query query = em.createNamedQuery("User.deleteById");
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
     }
 
 

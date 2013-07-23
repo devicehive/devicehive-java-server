@@ -11,7 +11,6 @@ import com.devicehive.model.Equipment;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.QueryParam;
 import java.util.List;
 
 /**
@@ -58,7 +57,7 @@ public class DeviceClassService {
         if(deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(),deviceClass.getVersion())!=null){
             throw new DublicateEntryException("Device with such name and version already exists");
         }
-        return deviceClassDAO.addDeviceClass(deviceClass);
+        return deviceClassDAO.createDeviceClass(deviceClass);
     }
 
     public void update(DeviceClass deviceClass){
@@ -68,7 +67,7 @@ public class DeviceClassService {
             throw new DublicateEntryException("Entity with same name and version already exists with different id");
         }
         try{
-            deviceClassDAO.saveDeviceClass(deviceClass);
+            deviceClassDAO.createDeviceClass(deviceClass);
         }catch (Exception e){
             throw new HivePersistingException("Persisting Exception",e);
         }

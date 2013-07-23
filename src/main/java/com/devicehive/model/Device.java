@@ -40,7 +40,16 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                         "where dn.timestamp > :timestamp " +
                         "and d.guid in :guidList " +
                         "and u = :user"),
-        @NamedQuery(name = "Device.findByListUUID", query = "select d from Device d where d.guid in :guidList")
+        @NamedQuery(name = "Device.findByListUUID", query = "select d from Device d where d.guid in :guidList"),
+        @NamedQuery(name = "Device.updateById",
+                query = "update Device d set d.name = :name," +
+                        " d.status = :status," +
+                        " d.network = :network," +
+                        " d.deviceClass = :deviceClass," +
+                        " d.data = :data" +
+                        " where d.id = :id"),
+        @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.id = :id"),
+        @NamedQuery(name = "Device.deleteByNetwork", query = "delete from Device d where d.network = :network")
 })
 public class Device implements HiveEntity {
 
@@ -49,34 +58,29 @@ public class Device implements HiveEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef(DEVICE_PUBLISHED)
     private Long id;
-
     @SerializedName("guid")
     @Column
     @Type(type = "pg-uuid") //That's hibernate-specific and postgres-specific, ugly
     @JsonPolicyDef(DEVICE_PUBLISHED)
     private UUID guid;
-
     @SerializedName("key")
     @Column
     @NotNull(message = "key field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key shouldn't be more than 64 symbols.")
     @JsonPolicyDef(DEVICE_SUBMITTED)
     private String key;
-
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private String name;
-
     @SerializedName("status")
     @Column
     @Size(min = 1, max = 128,
             message = "Field cannot be empty. The length of status shouldn't be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private String status;
-
     @SerializedName("data")
     @Embedded
     @AttributeOverrides({
@@ -84,20 +88,17 @@ public class Device implements HiveEntity {
     })
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private JsonStringWrapper data;
-
     @SerializedName("network")
     @ManyToOne
     @JoinColumn(name = "network_id", updatable = false)
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
-
     @SerializedName("deviceClass")
     @ManyToOne
     @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "deviceClass field cannot be null.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private DeviceClass deviceClass;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;

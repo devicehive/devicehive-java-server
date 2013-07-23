@@ -16,12 +16,14 @@ public class AnnotatedStrategy implements ExclusionStrategy {
 
     @Override
     public boolean shouldSkipField(FieldAttributes f) {
-        JsonPolicyDef hjp = f.getAnnotation(JsonPolicyDef.class);
-        if (hjp == null) {
+        JsonPolicyDef policyAnnotation = f.getAnnotation(JsonPolicyDef.class);
+        if (policyAnnotation == null) {
+            // no policy annotation - filed should be skipped
             return true;
         }
-        for (JsonPolicyDef.Policy definedPolicy : hjp.value()) {
+        for (JsonPolicyDef.Policy definedPolicy : policyAnnotation.value()) {
             if (definedPolicy == policy) {
+                // policy is found - field is to be included
                 return false;
             }
         }
