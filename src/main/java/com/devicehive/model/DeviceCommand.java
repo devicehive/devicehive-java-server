@@ -9,7 +9,6 @@ import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,16 +39,16 @@ public class DeviceCommand implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({COMMAND_TO_CLIENT})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private Long id;
     @SerializedName("timestamp")
     @Column
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private Timestamp timestamp;
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private User user;
     @SerializedName("device")
     @ManyToOne
@@ -61,33 +60,33 @@ public class DeviceCommand implements HiveEntity {
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 " +
             "symbols.")
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private String command;
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private JsonStringWrapper parameters;
     @SerializedName("lifetime")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private Integer lifetime;
     @SerializedName("flags")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private Integer flags;
     @SerializedName("status")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private String status;
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
     })
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private JsonStringWrapper result;
 
     public DeviceCommand() {

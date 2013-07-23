@@ -28,6 +28,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
@@ -112,7 +113,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 .submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
         deviceCommand.setUser(user);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("command", GsonFactory.createGson(COMMAND_TO_DEVICE)
+                .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT)
                         .toJsonTree(deviceCommand))
                 .build();
         logger.debug("submit device command ended" + ". Session " + session.getId());
@@ -233,6 +234,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     }
 
     private void checkDevicesAndGuidsList(List<Device> devices, List<UUID> guids, boolean isSubscribe) {
+        if (devices == null && (guids == null || guids.size() == 0)) {
+            return;
+        }
         if (devices.size() != guids.size()) {
             StringBuilder responseBuilder;
             if (isSubscribe) {
@@ -240,6 +244,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             } else {
                 responseBuilder = new StringBuilder("Unable to unsubscribe from devices with guids: ");
             }
+
             for (UUID guid : guids) {
                 boolean contains = false;
                 for (Device device : devices) {
@@ -251,10 +256,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     responseBuilder.append(guid + " ");
                 }
             }
-            responseBuilder.append(". Device(s) with such guids doesn't exist(s) or you haven't permissions to get " +
-                    "notifications from this device.");
+
+            responseBuilder
+                    .append(". Device(s) with such guids doesn't exist(s) or you haven't permissions to get " +
+                            "notifications from this device.");
             throw new HiveException(responseBuilder.toString());
         }
+
     }
 
     @Action(value = "server/info", needsAuth = false)

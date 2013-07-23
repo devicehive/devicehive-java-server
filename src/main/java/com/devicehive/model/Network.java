@@ -37,7 +37,7 @@ public class Network implements HiveEntity {
     @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key shouldn't be more than 64 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED,USER_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED,USER_PUBLISHED})
     private String key;
 
     @SerializedName("name")
