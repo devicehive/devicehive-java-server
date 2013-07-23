@@ -31,8 +31,9 @@ public class UserController {
     private UserService userService;
 
     @GET
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
+    @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public List<User> getUsersList(
             @QueryParam("login") String login,
             @QueryParam("loginPattern") String loginPattern,
@@ -51,6 +52,7 @@ public class UserController {
             throw new HiveException("The sort field cannot be equal " + sortField);//maybe better to do sort field null
         }
         //TODO validation for role and status
+
         return userService.getList(login, loginPattern, role, status, sortField, sortOrderASC, take, skip);
 
     }
@@ -58,63 +60,38 @@ public class UserController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
-    public DetailedUserResponse getUser(@PathParam("id") long id) {
+    public User getUser(@PathParam("id") long id) {
         User u = userService.findUserWithNetworks(id);
 
-        if(u==null){
+        if (u == null) {
             throw new NotFoundException("No such user");
         }
 
-
-        DetailedUserResponse userResponse = new DetailedUserResponse();
-        userResponse.setId(u.getId());
-        userResponse.setLogin(u.getLogin());
-        userResponse.setRole(u.getRole().getValue());
-        userResponse.setStatus(u.getStatus().getValue());
-        userResponse.setLastLogin(u.getLastLogin());
-
-        Set<SimpleNetworkResponse> networks = new HashSet<>();
-
-        for (Network n : u.getNetworks()) {
-            SimpleNetworkResponse snr = new SimpleNetworkResponse();
-            snr.setId(n.getId());
-            snr.setDescription(n.getDescription());
-            snr.setKey(n.getKey());
-            snr.setName(n.getName());
-            networks.add(snr);
-        }
-
-        userResponse.setNetworks(networks);
-
-        return userResponse;
+        return u;
     }
 
     @POST
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SimpleUserResponse insertUser(UserInsert user) {
+    @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
+    public User insertUser(UserInsert user) {
         User u = userService.findByLogin(user.getLogin());
 
         if (u != null) {
             throw new ForbiddenException("User with such login already exists");
         }
 
-        u = userService.createUser(user.getLogin(), user.getRole(), user.getStatus(), user.getPassword());
-        SimpleUserResponse response = new SimpleUserResponse();
-        response.setId(u.getId());
-        response.setLogin(u.getLogin());
-        response.setRole(u.getRole().getValue());
-        response.setStatus(u.getStatus().getValue());
-        return response;
+        return userService.createUser(user.getLogin(), user.getRole(), user.getStatus(), user.getPassword());
+
     }
 
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserInsert user, @PathParam("id") long userId) {
         User u = userService.findByLogin(user.getLogin());
@@ -129,7 +106,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     public Response updateUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
         return Response.ok().build();
@@ -138,19 +115,14 @@ public class UserController {
 
     @GET
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
-    public SimpleNetworkResponse getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+    public Network getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
             User u = userService.findUserWithNetworks(id);
             for (Network n : u.getNetworks()) {
                 if (n.getId() == networkId) {
-                    SimpleNetworkResponse response = new SimpleNetworkResponse();
-                    response.setId(n.getId());
-                    response.setKey(n.getKey());
-                    response.setName(n.getName());
-                    response.setDescription(n.getDescription());
-                    return response;
+                    return n;
                 }
             }
         } catch (Exception e) {
@@ -162,7 +134,7 @@ public class UserController {
 
     @PUT
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
@@ -175,7 +147,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {

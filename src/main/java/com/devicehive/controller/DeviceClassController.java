@@ -41,7 +41,7 @@ public class DeviceClassController {
 
     @GET
     @Path("/class")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     public List<DeviceClassSimpleResponse> getDeviceClassList(@QueryParam("name") String name,
                                                 @QueryParam("namePattern") String namePattern,
@@ -122,7 +122,7 @@ public class DeviceClassController {
 
     @DELETE
     @Path("/class/{id}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     public Response deleteDeviceClass(@PathParam("id") long id) {
         try{
             deviceClassService.delete(id);

@@ -35,14 +35,14 @@ public class User implements HiveEntity {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @SerializedName("id")
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED,USERS_LISTED})
     private Long id;
 
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of login shouldn't be more than 64 symbols.")
-    @JsonPolicyDef({USER_PUBLISHED})
+    @JsonPolicyDef({USER_PUBLISHED,USERS_LISTED})
     private String login;
 
     @Column(name = "password_hash")
@@ -61,18 +61,18 @@ public class User implements HiveEntity {
 
     @Column
     @SerializedName("role")
-    @JsonPolicyDef({USER_PUBLISHED})
+    @JsonPolicyDef({USER_PUBLISHED,USERS_LISTED})
     private UserRole role;
 
     @Column
     @SerializedName("status")
-    @JsonPolicyDef({USER_PUBLISHED})
+    @JsonPolicyDef({USER_PUBLISHED,USERS_LISTED})
     private UserStatus status;
 
     @Column(name = "last_login")
     @SerializedName("lastLogin")
-    @JsonPolicyDef({USER_PUBLISHED})
-    private Timestamp lastLogin;
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    private Timestamp lastLogin = new Timestamp(0);
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})

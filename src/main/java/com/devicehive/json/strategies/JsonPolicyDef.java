@@ -24,6 +24,7 @@ public @interface JsonPolicyDef {
         NOTIFICATION_TO_CLEINT,
         DEVICE_EQUIPMENT_SUBMITTED,
         EQUIPMENT_SUBMITTED,
-        USER_PUBLISHED
+        USER_PUBLISHED,
+        USERS_LISTED
     }
 }

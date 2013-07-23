@@ -28,6 +28,8 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.List;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceMessageHandlers implements HiveMessageHandlers {
