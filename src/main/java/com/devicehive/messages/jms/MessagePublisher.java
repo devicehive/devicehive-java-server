@@ -1,4 +1,4 @@
-package com.devicehive.messages.bus.global;
+package com.devicehive.messages.jms;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.jms.JMSConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
 import javax.jms.Topic;
@@ -19,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.messages.bus.local.MessageListener;
+import com.devicehive.messages.bus.MessageListener;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.Message;
@@ -30,7 +29,7 @@ public class MessagePublisher {
     private static final Logger logger = LoggerFactory.getLogger(MessagePublisher.class);
 
     @Inject
-    @JMSConnectionFactory(Constants.JMS_TOPIC_FACTORY)
+    //@JMSConnectionFactory(Constants.JMS_TOPIC_FACTORY)
     private JMSContext context;
     @Resource(lookup = Constants.JMS_COMMAND_TOPIC)
     private Topic commandTopic;

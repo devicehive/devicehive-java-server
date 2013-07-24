@@ -22,7 +22,7 @@ import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.messages.bus.local.MessageBus;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.ApiInfo;
 import com.devicehive.model.Configuration;
 import com.devicehive.model.Device;

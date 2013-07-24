@@ -1,4 +1,4 @@
-package com.devicehive.messages.bus.global;
+package com.devicehive.messages.jms;
 
 import java.io.IOException;
 
@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.messages.bus.local.MessageBus;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.MessageType;
 

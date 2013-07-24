@@ -1,4 +1,4 @@
-package com.devicehive.messages.bus.local;
+package com.devicehive.messages.bus;
 
 import com.devicehive.model.Message;
 

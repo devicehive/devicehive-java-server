@@ -1,4 +1,4 @@
-package com.devicehive.messages.bus.local;
+package com.devicehive.messages.bus;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Condition;

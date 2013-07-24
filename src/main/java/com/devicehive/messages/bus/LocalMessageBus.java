@@ -1,4 +1,4 @@
-package com.devicehive.messages.bus.local;
+package com.devicehive.messages.bus;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,13 +24,13 @@ import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.messages.bus.global.GlobalMessageBus;
-import com.devicehive.messages.bus.global.MessagePublisher;
 import com.devicehive.messages.data.MessagesDataSource;
 import com.devicehive.messages.data.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
+import com.devicehive.messages.jms.MessagePublisher;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
