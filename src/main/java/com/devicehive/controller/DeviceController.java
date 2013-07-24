@@ -1,6 +1,14 @@
 package com.devicehive.controller;
 
+import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.Device;
+import com.devicehive.model.Equipment;
 import com.devicehive.service.DeviceService;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
