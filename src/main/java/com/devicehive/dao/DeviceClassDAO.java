@@ -1,8 +1,7 @@
 package com.devicehive.dao;
 
-import com.devicehive.configuration.Constants;
-import com.devicehive.exceptions.dao.NoSuchRecordException;
-import com.devicehive.model.DeviceClass;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -16,8 +15,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.devicehive.configuration.Constants;
+import com.devicehive.model.DeviceClass;
 
 
 /**

@@ -1,11 +1,10 @@
 package com.devicehive.model.request;
 
-import com.devicehive.model.User;
+import java.io.Serializable;
+
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.google.gson.annotations.SerializedName;
-
-import java.io.Serializable;
 
 /**
  * @author Nikolay Loboda

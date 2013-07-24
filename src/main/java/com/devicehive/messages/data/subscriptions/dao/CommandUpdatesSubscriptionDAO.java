@@ -1,11 +1,5 @@
 package com.devicehive.messages.data.subscriptions.dao;
 
-import com.devicehive.configuration.Constants;
-import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -13,7 +7,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.configuration.Constants;
+import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 
 
 @Stateless

@@ -1,12 +1,11 @@
 package com.devicehive.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-
-import java.sql.Timestamp;
-import java.util.Date;
-
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_INFO;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
+
+import java.sql.Timestamp;
+
+import com.devicehive.json.strategies.JsonPolicyDef;
 
 /**
  * TODO JavaDoc

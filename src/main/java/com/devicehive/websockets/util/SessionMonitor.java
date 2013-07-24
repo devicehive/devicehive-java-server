@@ -1,25 +1,22 @@
 package com.devicehive.websockets.util;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.ejb.*;
+import javax.ejb.Schedule;
+import javax.ejb.Singleton;
 import javax.websocket.CloseReason;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class SessionMonitor {

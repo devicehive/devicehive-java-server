@@ -1,21 +1,30 @@
 package com.devicehive.controller;
 
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import com.devicehive.model.request.NetworkInsert;
-import com.devicehive.model.response.SimpleNetworkResponse;
-import com.devicehive.service.NetworkService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.model.Network;
+import com.devicehive.model.request.NetworkInsert;
+import com.devicehive.model.response.SimpleNetworkResponse;
+import com.devicehive.service.NetworkService;
 
 /**
  * TODO JavaDoc

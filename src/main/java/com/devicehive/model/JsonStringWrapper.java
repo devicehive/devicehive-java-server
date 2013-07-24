@@ -1,7 +1,6 @@
 package com.devicehive.model;
 
 import javax.persistence.Embeddable;
-import java.io.Serializable;
 
 @Embeddable
 public class JsonStringWrapper implements HiveEntity {

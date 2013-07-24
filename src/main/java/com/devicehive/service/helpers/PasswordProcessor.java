@@ -1,7 +1,5 @@
 package com.devicehive.service.helpers;
 
-import com.devicehive.model.User;
-
 import java.io.Serializable;
 
 public interface PasswordProcessor extends Serializable {
