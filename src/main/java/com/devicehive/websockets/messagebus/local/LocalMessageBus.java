@@ -139,7 +139,7 @@ public class LocalMessageBus {
      */
     public void subscribeForCommands(Device device, String sessionId) {
         logger.debug("Subscribing for commands for device : " + device.getId() + " and session : " + sessionId);
-        commandSubscriptionDAO.deleteByDeviceAndSession(device.getId(), sessionId);
+        commandSubscriptionDAO.deleteByDevice(device.getId());
         commandSubscriptionDAO.insert(new CommandsSubscription(device.getId(), sessionId));
     }
 
@@ -151,7 +151,7 @@ public class LocalMessageBus {
      */
     public void unsubscribeFromCommands(Device device, String sessionId) {
         logger.debug("Unsubscribing from commands for device : " + device.getId() + " and session : " + sessionId);
-        commandSubscriptionDAO.deleteByDeviceAndSession(device.getId(), sessionId);
+        commandSubscriptionDAO.deleteByDevice(device.getId());
     }
 
     public void subscribeForCommandUpdates(Long commandId, Session session) {
@@ -171,7 +171,7 @@ public class LocalMessageBus {
         logger.debug("Submit notification action for deviceNotification :" + deviceNotification.getId());
         JsonObject resultMessage = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
 
-        Set<Session> delivers = new HashSet();
+        Set<Session> delivers = new HashSet<>();
 
         logger.debug("Getting sessionIdsSubscribedForAll");
         List<String> sessionIdsSubscribedForAll = notificationSubscriptionDAO.getSessionIdSubscribedForAll();
@@ -222,8 +222,11 @@ public class LocalMessageBus {
      */
     public void subscribeForNotifications(String sessionId, Collection<Device> devices) {
         if (devices == null) {
+            notificationSubscriptionDAO.deleteBySession(sessionId);
             notificationSubscriptionDAO.insertSubscriptions(sessionId);
         } else {
+
+            notificationSubscriptionDAO.deleteByDevicesAndSession(sessionId, devices);
             notificationSubscriptionDAO.insertSubscriptions(devices, sessionId);
         }
     }
@@ -241,13 +244,8 @@ public class LocalMessageBus {
             if (devices.isEmpty()) {
                 return;
             }
-            List<Long> list = new ArrayList<Long>(devices.size());
-            for (Device device : devices) {
-                list.add(device.getId());
-            }
-            for (Device device : devices) {
-                notificationSubscriptionDAO.deleteByDeviceAndSession(device, sessionId);
-            }
+            notificationSubscriptionDAO.deleteByDevicesAndSession(sessionId, devices);
+
         }
     }
 

@@ -13,8 +13,6 @@ import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 
 import javax.annotation.security.RolesAllowed;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

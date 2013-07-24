@@ -13,21 +13,18 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
-import javax.websocket.Session;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 @Stateless
 public class NotificationSubscriptionDAO {
     private static final Logger logger = LoggerFactory.getLogger(CommandUpdatesSubscriptionDAO.class);
-
     @PersistenceContext(unitName = Constants.EMBEDDED_PERSISTENCE_UNIT)
     private EntityManager em;
 
     public void insertSubscriptions(Collection<Device> devices, String sessionId) {
         for (Device device : devices) {
-            deleteByDeviceAndSession(device, sessionId);
             em.persist(new NotificationsSubscription(device.getId(), sessionId));
         }
     }
@@ -42,9 +39,13 @@ public class NotificationSubscriptionDAO {
         query.executeUpdate();
     }
 
-    public void deleteByDeviceAndSession(Device device, String sessionId) {
-        Query query = em.createNamedQuery("NotificationsSubscription.deleteByDeviceAndSession");
-        query.setParameter("deviceId", device.getId());
+    public void deleteByDevicesAndSession(String sessionId, Collection<Device> devices) {
+        Collection<Long> devicesIds = new LinkedList<>();
+        for (Device device : devices) {
+            devicesIds.add(device.getId());
+        }
+        Query query = em.createNamedQuery("NotificationsSubscription.deleteByDevicesAndSession");
+        query.setParameter("deviceIdList", devicesIds);
         query.setParameter("sessionId", sessionId);
         query.executeUpdate();
     }

@@ -173,4 +173,19 @@ public class DeviceService {
         }
 
     }
+
+    public void checkDevice(Device device) throws HiveException {
+        if (device == null) {
+            throw new HiveException("Device is empty");
+        }
+        if (device.getName() == null) {
+            throw new HiveException("Device name is empty");
+        }
+        if (device.getKey() == null) {
+            throw new HiveException("Device key is empty");
+        }
+        if (device.getDeviceClass() == null) {
+            throw new HiveException("Device class is empty");
+        }
+    }
 }

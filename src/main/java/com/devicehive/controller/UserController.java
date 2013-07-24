@@ -5,7 +5,6 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
 import com.devicehive.model.request.UserInsert;
 import com.devicehive.model.response.DetailedUserResponse;
 import com.devicehive.model.response.SimpleNetworkResponse;
