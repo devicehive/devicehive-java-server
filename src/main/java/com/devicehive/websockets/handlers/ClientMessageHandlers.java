@@ -1,43 +1,54 @@
 package com.devicehive.websockets.handlers;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.inject.Inject;
+import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.bus.local.MessageBus;
+import com.devicehive.model.ApiInfo;
+import com.devicehive.model.Configuration;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.MessageType;
+import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.Version;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.json.GsonFactory;
-import com.devicehive.websockets.messagebus.global.MessagePublisher;
-import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.websocket.Session;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
+    
     @Inject
-    private MessagePublisher messagePublisher;
-    @Inject
-    private LocalMessageBus localMessageBus;
+    private MessageBus messageBus;
     @Inject
     private UserService userService;
     @Inject
@@ -101,20 +112,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
 
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
-        logger.debug(
-                "command/insert action for " + deviceGuid + ". Device command found: " + deviceCommand + ". Session " +
-                        session.getId());
+        logger.debug("command/insert action for " + deviceGuid + ". Device command found: " + deviceCommand + ". Session " + session.getId());
         if (deviceCommand == null) {
             throw new HiveException("Command is empty");
         }
 
         logger.debug("submit device command process" + ". Session " + session.getId());
-        deviceService
-                .submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
+        deviceService.submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
         deviceCommand.setUser(user);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT)
-                        .toJsonTree(deviceCommand))
+                .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(deviceCommand))
                 .build();
         logger.debug("submit device command ended" + ". Session " + session.getId());
         return jsonObject;
@@ -129,8 +136,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             timestamp = new Date();
         }
         //TODO set notification's limit (do not try to get notifications for last year :))
-        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
-        }.getType());
+        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {}.getType());
         if (list == null || list.isEmpty()) {
             prepareForNotificationSubscribeNullCase(session, timestamp);
         } else {
@@ -147,11 +153,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
         List<DeviceNotification> deviceNotifications;
         if (authorizedUser.getRole() == UserRole.ADMIN) {
-            deviceNotifications =
-                    deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, true);
+            deviceNotifications = deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, true);
         } else {
-            deviceNotifications =
-                    deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, false);
+            deviceNotifications = deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, false);
         }
         logger.debug("notification/subscribe action - null guid case." + "get device notification. found " +
                 deviceNotifications.size() + " notifications. " + "Session " + session.getId());
@@ -174,23 +178,26 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
 
         logger.debug("Found " + devices.size() + " devices" + ". Session " + session.getId());
-        List<DeviceNotification> deviceNotifications = deviceNotificationService.getDeviceNotificationList(devices,
-                authorizedUser, timestamp, null);
+        List<DeviceNotification> deviceNotifications = deviceNotificationService.getDeviceNotificationList(devices, authorizedUser, timestamp, null);
 
         notificationSubscribeAction(deviceNotifications, session, devices);
 
         checkDevicesAndGuidsList(devices, guids, true);
     }
 
-    private void notificationSubscribeAction(List<DeviceNotification> deviceNotifications, Session session,
-                                             List<Device> devices)
+    private void notificationSubscribeAction(List<DeviceNotification> deviceNotifications, Session session, List<Device> devices)
             throws IOException {
         try {
             logger.debug("notification/subscribe action - not null guid case. found " + deviceNotifications.size() +
                     " devices. " + "Session " + session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-            localMessageBus.subscribeForNotifications(session.getId(), devices);
-            if (deviceNotifications != null && !deviceNotifications.isEmpty()) {
+            
+            List<Long> ids = new ArrayList<>(devices.size());
+            for (Device device : devices) {
+                ids.add(device.getId());
+            }
+            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, session.getId(), ids); 
+            if (!deviceNotifications.isEmpty()) {
                 for (DeviceNotification deviceNotification : deviceNotifications) {
                     logger.debug("This device notification will be added to queue: " + deviceNotification +
                             "Session " + session.getId());
@@ -209,21 +216,24 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         logger.debug("notification/unsubscribe action. Session " + session.getId());
         Gson gson = GsonFactory.createGson();
-        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
-        }.getType());
+        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {}.getType());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             List<Device> devices = null;
             if (list != null && !list.isEmpty()) {
                 devices = deviceDAO.findByUUID(list);
-                logger.debug("notification/unsubscribe. found " + devices.size() +
-                        " devices. " + "Session " + session.getId());
+                logger.debug("notification/unsubscribe. found " + devices.size() + " devices. " + "Session " + session.getId());
                 if (devices.isEmpty()) {
                     throw new HiveException("No available devices found");
                 }
             }
             logger.debug("notification/unsubscribe. performing unsubscribing action");
-            localMessageBus.unsubscribeFromNotifications(session.getId(), devices);
+            
+            List<Long> ids = new ArrayList<>(devices.size());
+            for (Device device : devices) {
+                ids.add(device.getId());
+            }
+            messageBus.unsubscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, session.getId(), ids); 
             checkDevicesAndGuidsList(devices, list, false);
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
@@ -257,9 +267,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 }
             }
 
-            responseBuilder
-                    .append(". Device(s) with such guids doesn't exist(s) or you haven't permissions to get " +
-                            "notifications from this device.");
+            responseBuilder.append(". Device(s) with such guids doesn't exist(s) or you haven't permissions to get notifications from this device.");
             throw new HiveException(responseBuilder.toString());
         }
 
@@ -296,8 +304,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (message.get("name") == null || message.get("value") == null) {
             throw new HiveException("Name and value fields cannot be empty!");
         }
-        Configuration configuration =
-                new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
+        Configuration configuration = new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
         configurationDAO.mergeConfiguration(configuration);
         JsonObject response = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("requestId", message.get("requestId"))

@@ -1,4 +1,4 @@
-package com.devicehive.websockets.messagebus.local.subscriptions.model;
+package com.devicehive.messages.data.subscriptions.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

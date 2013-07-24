@@ -1,10 +1,4 @@
-package com.devicehive.websockets.messagebus.local.subscriptions.dao;
-
-import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
-import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSubscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.devicehive.messages.data.subscriptions.dao;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -13,8 +7,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
-import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.configuration.Constants;
+import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
 
 @Stateless
 public class CommandSubscriptionDAO {
@@ -33,6 +31,7 @@ public class CommandSubscriptionDAO {
 
     public void insert(CommandsSubscription subscription){
         em.persist(subscription);
+        em.flush();
     }
 
     public void deleteBySession(String sessionId){
@@ -45,5 +44,6 @@ public class CommandSubscriptionDAO {
         Query query = em.createNamedQuery("CommandsSubscription.deleteByDevice");
         query.setParameter("deviceId", deviceId);
         query.executeUpdate();
+        em.flush();
     }
 }

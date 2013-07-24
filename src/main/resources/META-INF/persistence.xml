@@ -31,9 +31,9 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>java:global/jdbc/DeviceHiveEmbeddedDataSource</jta-data-source>
 
-        <class>com.devicehive.websockets.messagebus.local.subscriptions.model.CommandsSubscription</class>
-        <class>com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription</class>
-        <class>com.devicehive.websockets.messagebus.local.subscriptions.model.NotificationsSubscription</class>
+        <class>com.devicehive.messages.data.subscriptions.model.CommandsSubscription</class>
+        <class>com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription</class>
+        <class>com.devicehive.messages.data.subscriptions.model.NotificationsSubscription</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.DerbyTenSevenDialect"/>

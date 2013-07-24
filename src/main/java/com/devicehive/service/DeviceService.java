@@ -1,23 +1,38 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.*;
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
-import com.devicehive.json.GsonFactory;
-import com.devicehive.websockets.messagebus.global.MessagePublisher;
-import com.devicehive.websockets.messagebus.local.LocalMessageBus;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Set;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.websocket.Session;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.dao.DeviceClassDAO;
+import com.devicehive.dao.DeviceCommandDAO;
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.DeviceEquipmentDAO;
+import com.devicehive.dao.DeviceNotificationDAO;
+import com.devicehive.dao.EquipmentDAO;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.bus.global.MessagePublisher;
+import com.devicehive.messages.bus.local.MessageBus;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.MessageType;
+import com.devicehive.model.User;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 @Stateless
 public class DeviceService {
@@ -26,28 +41,20 @@ public class DeviceService {
 
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
-
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
-
     @Inject
     private MessagePublisher messagePublisher;
-
     @Inject
-    private LocalMessageBus localMessageBus;
-
+    private MessageBus messageBus;
     @Inject
     private DeviceClassDAO deviceClassDAO;
-
     @Inject
     private DeviceDAO deviceDAO;
-
     @Inject
     private EquipmentDAO equipmentDAO;
-
     @Inject
     private NetworkService networkService;
-
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
@@ -68,7 +75,7 @@ public class DeviceService {
         command.setTimestamp(new Timestamp(System.currentTimeMillis()));
         deviceCommandDAO.createCommand(command);
         if (userWebsocketSession != null) {
-            localMessageBus.subscribeForCommandUpdates(command.getId(), userWebsocketSession);
+            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, userWebsocketSession.getId(), command.getId());
         }
         messagePublisher.publishCommand(command);
     }

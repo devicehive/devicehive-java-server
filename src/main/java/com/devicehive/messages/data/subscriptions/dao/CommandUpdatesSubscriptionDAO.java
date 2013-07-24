@@ -1,7 +1,8 @@
-package com.devicehive.websockets.messagebus.local.subscriptions.dao;
+package com.devicehive.messages.data.subscriptions.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.websockets.messagebus.local.subscriptions.model.CommandUpdatesSubscription;
+import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

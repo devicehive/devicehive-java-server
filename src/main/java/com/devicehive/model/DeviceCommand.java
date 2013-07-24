@@ -1,18 +1,35 @@
 package com.devicehive.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.annotations.SerializedName;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
 
-import javax.persistence.*;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
 
 
 /**
@@ -36,7 +53,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 " = :user and dc.device = :device"),
         @NamedQuery(name = "DeviceCommand.deleteByFK", query = "delete from DeviceCommand dc where dc.device = :device")
 })
-public class DeviceCommand implements HiveEntity {
+public class DeviceCommand implements Message {
 
     @SerializedName("id")
     @Id
@@ -60,8 +77,7 @@ public class DeviceCommand implements HiveEntity {
     @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 " +
-            "symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 symbols.")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private String command;
     @SerializedName("parameters")

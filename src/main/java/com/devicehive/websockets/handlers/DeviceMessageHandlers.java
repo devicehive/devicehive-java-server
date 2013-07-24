@@ -1,16 +1,44 @@
 package com.devicehive.websockets.handlers;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.inject.Inject;
+import javax.jms.JMSException;
+import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.bus.local.MessageBus;
+import com.devicehive.model.ApiInfo;
+import com.devicehive.model.Configuration;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.MessageType;
+import com.devicehive.model.Version;
 import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.json.GsonFactory;
-import com.devicehive.websockets.messagebus.global.MessagePublisher;
-import com.devicehive.websockets.messagebus.local.LocalMessageBus;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
@@ -18,26 +46,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.jms.JMSException;
-import javax.websocket.Session;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.*;
-import java.util.List;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
     @Inject
-    private LocalMessageBus localMessageBus;
-    @Inject
-    private MessagePublisher messagePublisher;
+    private MessageBus messageBus;
     @Inject
     private DeviceDAO deviceDAO;
     @Inject
@@ -125,7 +139,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("will subscribe device for commands : " + device.getGuid());
-            localMessageBus.subscribeForCommands(device, session.getId());
+            messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, session.getId(), device.getId());
             logger.debug("will get commands newer than : " + timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
@@ -146,7 +160,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Device device = getDevice(session, message);
         logger.debug("command/unsubscribe for device" + device.getGuid());
-        localMessageBus.unsubscribeFromCommands(device, session.getId());
+        messageBus.unsubscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, session.getId(), device.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
