@@ -103,6 +103,7 @@ public class DeviceDAO {
         return query.executeUpdate();
     }
 
+    //TODO refactor
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(String name, String namePattern, String status, Long networkId,
                                 String networkName, Long deviceClassId, String deviceClassName,
@@ -119,6 +120,10 @@ public class DeviceDAO {
                 devicePredicates.add(criteriaBuilder.equal(fromDevice.get("name"), name));
             }
         }
+        if (status != null) {
+            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
+        }
+        // to network dao
         if (networkId != null || networkName != null) {
             CriteriaQuery<Network> networkCriteria = criteriaBuilder.createQuery(Network.class);
             Root fromNetwork = networkCriteria.from(Network.class);
@@ -129,11 +134,16 @@ public class DeviceDAO {
             if (networkName != null) {
                 networkPredicates.add(criteriaBuilder.equal(fromNetwork.get("name"), networkName));
             }
+            networkCriteria.where(networkPredicates.toArray(new Predicate[networkPredicates.size()]));
             TypedQuery<Network> networksQuery = em.createQuery(networkCriteria);
             List<Network> networksResult = networksQuery.getResultList();
+            if (networksResult.size() == 0) {
+                return new ArrayList<>();
+            }
             Expression<Network> inExpression = fromDevice.get("network");
             devicePredicates.add(inExpression.in(networksResult));
         }
+        //to deviceClassDAO
         if (deviceClassId != null || deviceClassName != null || deviceClassVersion != null) {
             CriteriaQuery<DeviceClass> deviceClassCriteria = criteriaBuilder.createQuery(DeviceClass.class);
             Root fromDeviceClass = deviceClassCriteria.from(DeviceClass.class);
@@ -147,8 +157,12 @@ public class DeviceDAO {
             if (deviceClassVersion != null) {
                 deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("version"), deviceClassVersion));
             }
+            deviceClassCriteria.where(deviceClassPredicates.toArray(new Predicate[deviceClassPredicates.size()]));
             TypedQuery<DeviceClass> deviceClassQuery = em.createQuery(deviceClassCriteria);
             List<DeviceClass> deviceClassResult = deviceClassQuery.getResultList();
+            if (deviceClassResult.size() == 0) {
+                return new ArrayList<>();
+            }
             Expression<DeviceClass> inExpresion = fromDevice.get("deviceClass");
             devicePredicates.add(inExpresion.in(deviceClassResult));
         }
@@ -167,8 +181,8 @@ public class DeviceDAO {
         }
         if (take == null) {
             take = DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
         }
+        resultQuery.setMaxResults(take);
         return resultQuery.getResultList();
     }
 
