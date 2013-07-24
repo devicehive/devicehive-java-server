@@ -8,7 +8,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
 // TODO: that's probably not needed here
-@DeclareRoles({"Device", "Client", "Administrator"})
+@DeclareRoles({"Device", "CLIENT", "ADMIN"})
 public class HiveSecurityContext implements SecurityContext {
     private final UserPrincipal userPrincipal;
     private final boolean secure;

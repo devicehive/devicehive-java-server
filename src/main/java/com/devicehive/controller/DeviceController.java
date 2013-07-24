@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.service.DeviceService;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,6 +21,7 @@ public class DeviceController {
     private DeviceService deviceService;
 
     @GET
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     public Response list(@QueryParam("name") String name,
                          @QueryParam("namePattern") String namePattern,

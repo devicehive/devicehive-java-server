@@ -64,7 +64,7 @@ public class DeviceClassController {
 
     @GET
     @Path("/class/{id}")
-    @RolesAllowed({"Administrator","Client"})
+    @RolesAllowed({"ADMIN","CLIENT"})
     @Produces(MediaType.APPLICATION_JSON)
     public DetailedDeviceClassResponse getDeviceClass(@PathParam("id") long id) {
 
@@ -96,7 +96,7 @@ public class DeviceClassController {
 
     @POST
     @Path("/class")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public DeviceClassSimpleResponse insertDeviceClass(DeviceClassInsert insert) {
@@ -110,7 +110,7 @@ public class DeviceClassController {
 
     @PUT
     @Path("/class/{id}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public DeviceClassSimpleResponse updateDeviceClass(@PathParam("id") long id,DeviceClassInsert insert) {
@@ -135,7 +135,7 @@ public class DeviceClassController {
 
     @GET
     @Path("/class/{deviceClassId}/equipment/{id}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     public SimpleEquipmentResponse getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
 
         SimpleEquipmentResponse response = new SimpleEquipmentResponse();
@@ -158,6 +158,7 @@ public class DeviceClassController {
 
     @POST
     @Path("/class/{deviceClassId}/equipment")
+    @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleEquipmentResponse insertEquipment(@PathParam("deviceClassId") long classId, EquipmentInsert eq) {
@@ -180,6 +181,7 @@ public class DeviceClassController {
 
     @PUT
     @Path("/class/{deviceClassId}/equipment/{id}")
+    @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleEquipmentResponse updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId, EquipmentInsert eq) {
@@ -200,6 +202,7 @@ public class DeviceClassController {
 
     @DELETE
     @Path("/class/{deviceClassId}/equipment/{id}")
+    @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
         Equipment e = equipmentService.getEquipment(classId, eqId);
