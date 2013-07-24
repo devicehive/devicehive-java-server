@@ -20,7 +20,7 @@ public class MessagePublisher {
 
     private static final Logger logger = LoggerFactory.getLogger(MessagePublisher.class);
     @Inject
-    @JMSConnectionFactory(Constants.JMS_TOPIC_FACTORY)
+    //@JMSConnectionFactory(Constants.JMS_TOPIC_FACTORY)
     private JMSContext context;
     @Resource(lookup = Constants.JMS_COMMAND_TOPIC)
     private Topic commandTopic;
