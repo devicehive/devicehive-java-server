@@ -32,7 +32,9 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                         "dc.status = :status, " +
                         "dc.result = :result " +
                         "where dc.id = :id"),
-        @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user = :user and dc.device = :device")
+        @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
+                " = :user and dc.device = :device"),
+        @NamedQuery(name = "DeviceCommand.deleteByFK", query = "delete from DeviceCommand dc where dc.device = :device")
 })
 public class DeviceCommand implements HiveEntity {
 

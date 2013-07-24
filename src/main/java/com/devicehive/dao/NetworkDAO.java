@@ -46,6 +46,7 @@ public class NetworkDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    @Deprecated
     public Network insert(Network n) {
         return em.merge(n);
     }

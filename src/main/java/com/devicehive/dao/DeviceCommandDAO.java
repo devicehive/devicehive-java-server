@@ -55,6 +55,12 @@ public class DeviceCommandDAO {
         return query.executeUpdate() != 0;
     }
 
+    public int deleteByFK(@NotNull Device device) {
+        Query query = em.createNamedQuery("DeviceCommand.deleteByFK");
+        query.setParameter("device", device);
+        return query.executeUpdate();
+    }
+
     public boolean updateCommand(@NotNull Long id, DeviceCommand command) {
         Query query = em.createNamedQuery("DeviceCommand.updateById");
         query.setParameter("parameters", command.getParameters());

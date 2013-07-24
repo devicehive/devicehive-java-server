@@ -75,17 +75,10 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
-    @Deprecated
-    public void delete(@NotNull Long id) {
-        DeviceClass dc = em.find(DeviceClass.class, id);
-        if (dc == null) {
-            throw new NoSuchRecordException("There is no DeviceClass entity with id '" + id + "'");
-        }
-        try {
-            em.remove(dc);
-        } catch (Throwable e) {
-            throw e;
-        }
+    public boolean delete(@NotNull Long id){
+        Query query =  em.createNamedQuery("DeviceClass.deleteById");
+        query.setParameter("id", id);
+        return query.executeUpdate() != 0;
     }
 
     /**
@@ -114,11 +107,11 @@ public class DeviceClassDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Deprecated
     public DeviceClass getDeviceClass(long id) {
         return em.find(DeviceClass.class, id);
     }
 
-    //check addDeviceClass method
     public DeviceClass createDeviceClass(DeviceClass deviceClass) {
         em.persist(deviceClass);
         return deviceClass;
