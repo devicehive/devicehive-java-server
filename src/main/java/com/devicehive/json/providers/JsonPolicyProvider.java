@@ -1,4 +1,5 @@
-package com.devicehive.providers;
+package com.devicehive.json.providers;
+
 
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -16,42 +17,22 @@ import javax.ws.rs.ext.Provider;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Collection;
 
-/**
- * @author: Nikolay Loboda
- * @since:  23.07.13
- */
-@Provider
-public class CollectionProvider implements MessageBodyWriter<Collection<? extends HiveEntity>>, MessageBodyReader<Collection<? extends HiveEntity>> {
-    @Override
-    public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
-    }
-
-    @Override
-    public Collection<? extends HiveEntity> readFrom(Class<Collection<? extends HiveEntity>> type, Type genericType,
-                                                     Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders,
-                                                     InputStream entityStream) throws IOException, WebApplicationException {
-        Gson gson = createGson(annotations);
-        Reader reader = new InputStreamReader(entityStream);
-        return gson.fromJson(reader, genericType);
-    }
-
+public abstract class  JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
     }
 
     @Override
-    public long getSize(Collection<? extends HiveEntity> hiveEntities, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+    public long getSize(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return -1;
     }
 
     @Override
-    public void writeTo(Collection<? extends HiveEntity> hiveEntities, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+    public void writeTo(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
-        JsonElement jsonElement = gson.toJsonTree(hiveEntities);
+        JsonElement jsonElement = gson.toJsonTree(entity);
         Writer writer = null;
         try {
             writer = new OutputStreamWriter(entityStream);
@@ -63,12 +44,28 @@ public class CollectionProvider implements MessageBodyWriter<Collection<? extend
         }
     }
 
+    @Override
+    public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+        return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
+    }
+
+    @Override
+    public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+        Gson gson = createGson(annotations);
+        Reader reader = new InputStreamReader(entityStream);
+        return gson.fromJson(reader, genericType);
+    }
+
     private Gson createGson(Annotation[] annotations) {
+        int count = 0;
         JsonPolicyDef.Policy policy = null;
         for (Annotation annotation : annotations) {
             if (annotation.annotationType().equals(JsonPolicyApply.class)) {
                 JsonPolicyApply jsonPolicyApply = (JsonPolicyApply) annotation;
                 policy = jsonPolicyApply.value();
+                if (++count > 1) {
+                    throw new IllegalArgumentException("Two or more active JSON policies");
+                }
             }
         }
         return policy != null ? GsonFactory.createGson(policy) : GsonFactory.createGson();
