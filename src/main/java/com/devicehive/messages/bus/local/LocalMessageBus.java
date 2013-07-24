@@ -335,7 +335,7 @@ public class LocalMessageBus implements MessageBus {
     @SuppressWarnings("unchecked")
     public static <T extends Message> List<T> expandPollResult(PollResult pollResult, long timeout, Class<T> type) {
         if (!pollResult.messages().isEmpty() || timeout == 0L) {
-            return (List<T>) pollResult.messages();
+            return (List<T>) new ArrayList<>(pollResult.messages());
         }
         else {
             Lock lock = pollResult.pollLock();
@@ -353,7 +353,7 @@ public class LocalMessageBus implements MessageBus {
                     }
                 }
 
-                return (List<T>) pollResult.messages();
+                return (List<T>) new ArrayList<>(pollResult.messages());
             }
             finally {
                 lock.unlock();
