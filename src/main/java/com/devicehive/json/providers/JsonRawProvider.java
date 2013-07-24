@@ -1,4 +1,4 @@
-package com.devicehive.providers;
+package com.devicehive.json.providers;
 
 
 import com.devicehive.json.GsonFactory;

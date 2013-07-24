@@ -20,20 +20,21 @@ import java.util.UUID;
 @Priority(Priorities.AUTHENTICATION)
 public class AuthenticationFilter implements ContainerRequestFilter {
 
-
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         boolean secure = requestContext.getSecurityContext().isSecure();
 
-        requestContext.setSecurityContext(new HiveSecurityContext(new UserPrincipal(authUser(requestContext)), secure));
+        requestContext.setSecurityContext(
+                new HiveSecurityContext(
+                        new UserPrincipal(authUser(requestContext)),
+                        new DevicePrincipal(authDevice(requestContext)),
+                        secure));
     }
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {
         String deviceId = requestContext.getHeaderString("Auth-DeviceID");
         if (deviceId == null) {
             return null;
-
         }
         String deviceKey = requestContext.getHeaderString("Auth-DeviceKey");
 

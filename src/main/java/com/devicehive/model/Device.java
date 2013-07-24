@@ -49,6 +49,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                         " d.data = :data" +
                         " where d.id = :id"),
         @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.id = :id"),
+        @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid"),
         @NamedQuery(name = "Device.deleteByNetwork", query = "delete from Device d where d.network = :network")
 })
 public class Device implements HiveEntity {

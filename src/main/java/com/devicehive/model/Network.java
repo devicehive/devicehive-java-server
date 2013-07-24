@@ -21,7 +21,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "network")
 @NamedQueries({
         @NamedQuery(name = "Network.findByName", query = "select n from Network n where name = :name"),
-        @NamedQuery(name = "Network.findWithUsers", query = "select n from Network n join fetch n.users where id = " +
+        @NamedQuery(name = "Network.findWithUsers", query = "select n from Network n join fetch n.users where n.id = " +
                 ":id"),
         @NamedQuery(name = "Network.updateById", query = "update Network n set n.description = :description where n.id = :id"),
         @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id")
@@ -37,7 +37,7 @@ public class Network implements HiveEntity {
     @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key shouldn't be more than 64 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED,USER_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED,USER_PUBLISHED})
     private String key;
 
     @SerializedName("name")

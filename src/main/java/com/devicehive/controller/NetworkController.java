@@ -56,7 +56,7 @@ public class NetworkController {
      * @param skip offset, default 0
      */
     @GET
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<SimpleNetworkResponse> getNetworkList(@QueryParam("name") String name, @QueryParam("namePattern") String namePattern,
                                                      @QueryParam("sortField") String sortField, @QueryParam("sortOrder") String sortOrder,
@@ -91,6 +91,7 @@ public class NetworkController {
      */
     @GET
     @Path("/{id}")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleNetworkResponse getNetworkList(@PathParam("id") long id) {
         Network n = networkService.getById(id);
@@ -131,6 +132,7 @@ public class NetworkController {
      *
      */
     @POST
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public SimpleNetworkResponse insert(NetworkInsert nr) {
@@ -176,6 +178,7 @@ public class NetworkController {
      */
     @PUT
     @Path("/{id}")
+    @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     public SimpleNetworkResponse update(NetworkInsert nr, @PathParam("id") long id) {
         Network n = networkService.getById(id);
@@ -207,6 +210,7 @@ public class NetworkController {
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed("ADMIN")
     public Response delete(@PathParam("id") long id) {
         networkService.delete(id);
         return Response.ok().build();

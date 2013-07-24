@@ -1,10 +1,10 @@
-package com.devicehive.providers;
+package com.devicehive.json.providers;
 
 
+import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
@@ -18,23 +18,21 @@ import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-
-@Provider
-public class HiveEntityProvider implements MessageBodyWriter<HiveEntity>, MessageBodyReader<HiveEntity> {
+public abstract class  JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
     }
 
     @Override
-    public long getSize(HiveEntity hiveEntity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return 0;
+    public long getSize(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+        return -1;
     }
 
     @Override
-    public void writeTo(HiveEntity hiveEntity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+    public void writeTo(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
-        JsonElement jsonElement = gson.toJsonTree(hiveEntity);
+        JsonElement jsonElement = gson.toJsonTree(entity);
         Writer writer = null;
         try {
             writer = new OutputStreamWriter(entityStream);
@@ -52,7 +50,7 @@ public class HiveEntityProvider implements MessageBodyWriter<HiveEntity>, Messag
     }
 
     @Override
-    public HiveEntity readFrom(Class<HiveEntity> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+    public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
         Reader reader = new InputStreamReader(entityStream);
         return gson.fromJson(reader, genericType);

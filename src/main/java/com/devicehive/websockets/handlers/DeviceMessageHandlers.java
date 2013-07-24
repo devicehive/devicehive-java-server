@@ -27,6 +27,8 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.List;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceMessageHandlers implements HiveMessageHandlers {
@@ -189,15 +191,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
-        Gson gson = GsonFactory.createGson();
-        JsonElement requestId = message.get("requestId");
-        UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"),
-                UUID.class);
-        Device device = deviceDAO.findByUUID(deviceId);
+        Device device = getDevice(session, message);
         Gson gsonResponse = GsonFactory.createGson(DEVICE_PUBLISHED);
         JsonElement deviceElem = gsonResponse.toJsonTree(device);
         JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addRequestId(requestId)
                 .addElement("device", deviceElem)
                 .build();
         return result;
@@ -216,7 +213,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
         Device device = mainGson.fromJson(message.get("device"), Device.class);
         logger.debug("check requered fields in device ");
-        checkDevice(device);
+        deviceService.checkDevice(device);
         Gson gsonForEquipment = GsonFactory.createGson();
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(message.getAsJsonObject("device").get("equipment"),
                 new TypeToken<HashSet<Equipment>>() {
@@ -244,19 +241,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return deviceDAO.findByUUID(deviceId);
     }
 
-    private void checkDevice(Device device) throws HiveException {
-        if (device == null) {
-            throw new HiveException("Device is empty");
-        }
-        if (device.getName() == null) {
-            throw new HiveException("Device name is empty");
-        }
-        if (device.getKey() == null) {
-            throw new HiveException("Device key is empty");
-        }
-        if (device.getDeviceClass() == null) {
-            throw new HiveException("Device class is empty");
-        }
-    }
+
 
 }

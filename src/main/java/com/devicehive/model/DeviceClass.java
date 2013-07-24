@@ -33,7 +33,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                         "d.isPermanent = :isPermanent, " +
                         "d.offlineTimeout = :offlineTimeout, " +
                         "d.data = :data " +
-                        "where d.id = :id")
+                        "where d.id = :id"),
+        @NamedQuery(name = "DeviceClass.deleteById", query = "delete from DeviceClass d where d.id = :id")
 })
 public class DeviceClass implements HiveEntity {
 

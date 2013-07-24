@@ -2,6 +2,7 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import org.slf4j.Logger;
@@ -15,7 +16,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +26,7 @@ import java.util.UUID;
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
 public class DeviceDAO {
 
+    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
@@ -97,6 +101,89 @@ public class DeviceDAO {
         Query query = em.createNamedQuery("Device.deleteByNetwork");
         query.setParameter("network", network);
         return query.executeUpdate();
+    }
+
+    //TODO refactor
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<Device> getList(String name, String namePattern, String status, Long networkId,
+                                String networkName, Long deviceClassId, String deviceClassName,
+                                String deviceClassVersion, String sortField,
+                                Boolean sortOrderAsc, Integer take, Integer skip) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
+        Root fromDevice = deviceCriteria.from(Device.class);
+        List<Predicate> devicePredicates = new ArrayList<>();
+        if (namePattern != null) {
+            devicePredicates.add(criteriaBuilder.like(fromDevice.get("name"), namePattern));
+        } else {
+            if (name != null) {
+                devicePredicates.add(criteriaBuilder.equal(fromDevice.get("name"), name));
+            }
+        }
+        if (status != null) {
+            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
+        }
+        // to network dao
+        if (networkId != null || networkName != null) {
+            CriteriaQuery<Network> networkCriteria = criteriaBuilder.createQuery(Network.class);
+            Root fromNetwork = networkCriteria.from(Network.class);
+            List<Predicate> networkPredicates = new ArrayList<>();
+            if (networkId != null) {
+                networkPredicates.add(criteriaBuilder.equal(fromNetwork.get("id"), networkId));
+            }
+            if (networkName != null) {
+                networkPredicates.add(criteriaBuilder.equal(fromNetwork.get("name"), networkName));
+            }
+            networkCriteria.where(networkPredicates.toArray(new Predicate[networkPredicates.size()]));
+            TypedQuery<Network> networksQuery = em.createQuery(networkCriteria);
+            List<Network> networksResult = networksQuery.getResultList();
+            if (networksResult.size() == 0) {
+                return new ArrayList<>();
+            }
+            Expression<Network> inExpression = fromDevice.get("network");
+            devicePredicates.add(inExpression.in(networksResult));
+        }
+        //to deviceClassDAO
+        if (deviceClassId != null || deviceClassName != null || deviceClassVersion != null) {
+            CriteriaQuery<DeviceClass> deviceClassCriteria = criteriaBuilder.createQuery(DeviceClass.class);
+            Root fromDeviceClass = deviceClassCriteria.from(DeviceClass.class);
+            List<Predicate> deviceClassPredicates = new ArrayList<>();
+            if (deviceClassId != null) {
+                deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("id"), deviceClassId));
+            }
+            if (deviceClassName != null) {
+                deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("name"), name));
+            }
+            if (deviceClassVersion != null) {
+                deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("version"), deviceClassVersion));
+            }
+            deviceClassCriteria.where(deviceClassPredicates.toArray(new Predicate[deviceClassPredicates.size()]));
+            TypedQuery<DeviceClass> deviceClassQuery = em.createQuery(deviceClassCriteria);
+            List<DeviceClass> deviceClassResult = deviceClassQuery.getResultList();
+            if (deviceClassResult.size() == 0) {
+                return new ArrayList<>();
+            }
+            Expression<DeviceClass> inExpresion = fromDevice.get("deviceClass");
+            devicePredicates.add(inExpresion.in(deviceClassResult));
+        }
+        deviceCriteria.where(devicePredicates.toArray(new Predicate[devicePredicates.size()]));
+        if (sortField != null) {
+            if (sortOrderAsc == null || sortOrderAsc) {
+                deviceCriteria.orderBy(criteriaBuilder.asc(fromDevice.get(sortField)));
+            } else {
+                deviceCriteria.orderBy(criteriaBuilder.desc(fromDevice.get(sortField)));
+            }
+        }
+
+        TypedQuery<Device> resultQuery = em.createQuery(deviceCriteria);
+        if (skip != null) {
+            resultQuery.setFirstResult(skip);
+        }
+        if (take == null) {
+            take = DEFAULT_TAKE;
+        }
+        resultQuery.setMaxResults(take);
+        return resultQuery.getResultList();
     }
 
 

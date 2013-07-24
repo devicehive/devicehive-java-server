@@ -21,8 +21,9 @@ public class ServerResponsesFactory {
     }
 
     public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand) {
-        JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE)
-                .toJsonTree(deviceCommand, DeviceCommand.class);
+
+        JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
+                DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
@@ -33,7 +34,7 @@ public class ServerResponsesFactory {
 
     public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
         JsonElement deviceCommandJson =
-                GsonFactory.createGson(COMMAND_UPDATE_TO_CLEINT).toJsonTree(deviceCommand);
+                GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/update");
         resultJsonObject.add("command", deviceCommandJson);

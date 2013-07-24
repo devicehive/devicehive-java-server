@@ -12,8 +12,7 @@ import javax.validation.constraints.NotNull;
 @NamedQueries({
         @NamedQuery(name = "CommandsSubscription.deleteBySession", query = "delete from CommandsSubscription c where " +
                 "c.sessionId = :sessionId "),
-        @NamedQuery(name = "CommandsSubscription.deleteByDeviceAndSession", query = "delete from CommandsSubscription c where " +
-                "c.sessionId = :sessionId and c.deviceId = :deviceId"),
+        @NamedQuery(name = "CommandsSubscription.deleteByDevice", query = "delete from CommandsSubscription c where c.deviceId = :deviceId"),
         @NamedQuery(name = "CommandsSubscription.getByDeviceId", query = "select c from CommandsSubscription c where c.deviceId = :deviceId")
 })
 public class CommandsSubscription {

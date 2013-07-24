@@ -10,8 +10,10 @@ import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.List;
 
 @Stateless
 public class DeviceEquipmentDAO {
@@ -26,6 +28,14 @@ public class DeviceEquipmentDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceEquipment findById(Long id) {
         return em.find(DeviceEquipment.class, id);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceEquipment> findByFK(@NotNull Device device) {
+        TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByDevice",
+                DeviceEquipment.class);
+        query.setParameter("device", device);
+        return query.getResultList();
     }
 
     public boolean update(DeviceEquipment deviceEquipment) {
