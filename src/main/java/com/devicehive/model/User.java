@@ -194,25 +194,35 @@ public class User implements HiveEntity {
      * @return Set of strings which are represent constraint violations
      */
     public static Set<String> validate(User user, Validator validator) {
+
         Set<ConstraintViolation<User>> constraintViolations = validator.validate(user);
         Set<String> result = new HashSet<>();
+
         if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<User> cv : constraintViolations)
+            for (ConstraintViolation<User> cv : constraintViolations) {
                 result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
                         cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+            }
         }
+
         return result;
 
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         User user = (User) o;
 
-        return id.equals(user.id);
+        return id != null && id.equals(user.id);
     }
 
     @Override
