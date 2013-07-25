@@ -18,6 +18,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +37,9 @@ public class DeviceCommandDAO {
 
     public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
         DeviceCommand cmd = em.find(DeviceCommand.class, update.getId());
+        if (cmd == null) {
+            throw new HiveException("Command not found!");
+        }
         if (!cmd.getDevice().getId().equals(expectedDevice.getId())) {
             throw new HiveException("Device tries to update incorrect command");
         }
@@ -91,14 +95,14 @@ public class DeviceCommandDAO {
         return query.getResultList();
     }
 
-    public List<DeviceCommand> queryDeviceCommand(Device device, Date start, Date end, String command,
+    public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
         Root from = criteria.from(DeviceCommand.class);
         List<Predicate> predicates = new ArrayList<>();
-
+        predicates.add(criteriaBuilder.equal(from.get("device"), device));
         if (start != null) {
             predicates.add(criteriaBuilder.greaterThan(from.get("timestamp"), start));
         }
