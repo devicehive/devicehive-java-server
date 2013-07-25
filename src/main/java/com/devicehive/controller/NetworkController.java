@@ -1,8 +1,12 @@
 package com.devicehive.controller;
 
-import java.util.HashSet;
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.Network;
+import com.devicehive.service.NetworkService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -18,13 +22,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.devicehive.model.Network;
-import com.devicehive.model.request.NetworkInsert;
-import com.devicehive.model.response.SimpleNetworkResponse;
-import com.devicehive.service.NetworkService;
 
 /**
  * TODO JavaDoc
@@ -67,23 +64,15 @@ public class NetworkController {
     @GET
     @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<SimpleNetworkResponse> getNetworkList(@QueryParam("name") String name, @QueryParam("namePattern") String namePattern,
-                                                     @QueryParam("sortField") String sortField, @QueryParam("sortOrder") String sortOrder,
-                                                     @QueryParam("take") Integer take, @QueryParam("skip") Integer skip) {
+    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
+    public List<Network> getNetworkList( @QueryParam("name") String name,
+                                         @QueryParam("namePattern") String namePattern,
+                                         @QueryParam("sortField") String sortField,
+                                         @QueryParam("sortOrder") String sortOrder,
+                                         @QueryParam("take") Integer take,
+                                         @QueryParam("skip") Integer skip) {
 
-        List<Network> networks = networkService.list(name, namePattern, sortField, "ASC".equals(sortOrder), take, skip);
-        Set<SimpleNetworkResponse> response = new HashSet<>();
-
-        for (Network n : networks) {
-            SimpleNetworkResponse rn = new SimpleNetworkResponse();
-            rn.setId(n.getId());
-            rn.setKey(n.getKey());
-            rn.setName(n.getName());
-            rn.setDescription(n.getDescription());
-            response.add(rn);
-        }
-
-        return response;
+        return networkService.list(name, namePattern, sortField, "ASC".equals(sortOrder), take, skip);
     }
 
     /**
@@ -102,14 +91,9 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
-    public SimpleNetworkResponse getNetworkList(@PathParam("id") long id) {
-        Network n = networkService.getById(id);
-        SimpleNetworkResponse rn = new SimpleNetworkResponse();
-        rn.setId(n.getId());
-        rn.setKey(n.getKey());
-        rn.setName(n.getName());
-        rn.setDescription(n.getDescription());
-        return rn;
+    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORK_PUBLISHED)
+    public Network getNetworkList(@PathParam("id") long id) {
+        return networkService.getWithDevicesAndDeviceClasses(id);
     }
 
 
@@ -144,20 +128,13 @@ public class NetworkController {
     @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public SimpleNetworkResponse insert(NetworkInsert nr) {
+    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
+    public Network insert(Network nr) {
         Network n = new Network();
         n.setKey(nr.getKey());
         n.setDescription(nr.getDescription());
         n.setName(nr.getName());
-        n = networkService.insert(n);
-
-        SimpleNetworkResponse r = new SimpleNetworkResponse();
-        r.setId(n.getId());
-        r.setKey(n.getKey());
-        r.setName(n.getName());
-        r.setDescription(n.getDescription());
-
-        return r;
+        return networkService.insert(n);
     }
 
 
@@ -189,7 +166,8 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
-    public SimpleNetworkResponse update(NetworkInsert nr, @PathParam("id") long id) {
+    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
+    public Network update(Network nr, @PathParam("id") long id) {
         Network n = networkService.getById(id);
         if (nr.getKey() != null) {
             n.setKey(nr.getKey());
@@ -200,15 +178,7 @@ public class NetworkController {
         if (nr.getName() != null) {
             n.setName(nr.getName());
         }
-        n = networkService.insert(n);
-
-        SimpleNetworkResponse r = new SimpleNetworkResponse();
-        r.setId(n.getId());
-        r.setKey(n.getKey());
-        r.setName(n.getName());
-        r.setDescription(n.getDescription());
-
-        return r;
+        return networkService.insert(n);
     }
 
     /**

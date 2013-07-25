@@ -12,7 +12,7 @@ public class ServerResponsesFactory {
 
     public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification) {
         JsonElement deviceNotificationJson =
-                GsonFactory.createGson(NOTIFICATION_TO_CLEINT).toJsonTree(deviceNotification);
+                GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());

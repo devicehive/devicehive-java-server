@@ -16,10 +16,10 @@ public class UserInsert implements Serializable {
     private String login;
 
     @SerializedName("role")
-    private UserRole role;
+    private Integer role;
 
     @SerializedName("status")
-    private UserStatus status;
+    private Integer status;
 
     @SerializedName("password")
     private String password;
@@ -32,19 +32,27 @@ public class UserInsert implements Serializable {
         this.login = login;
     }
 
-    public UserRole getRole() {
+    public Integer getRole() {
         return role;
     }
 
-    public void setRole(UserRole role) {
+    public UserRole getRoleEnum() {
+        return UserRole.values()[role];
+    }
+
+    public void setRole(Integer role) {
         this.role = role;
     }
 
-    public UserStatus getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(UserStatus status) {
+    public UserStatus getStatusEnum() {
+        return UserStatus.values()[status];
+    }
+
+    public void setStatus(Integer status) {
         this.status = status;
     }
 

@@ -113,6 +113,25 @@
                     </dependency>
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>org.glassfish.maven.plugin</groupId>
+                <artifactId>maven-glassfish-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <glassfishDirectory>${glassfish.home}</glassfishDirectory>
+                    <domain>
+                        <name>${project.artifactId}</name>
+                    </domain>
+                    <components>
+                        <component>
+                            <name>${project.artifactId}</name>
+                            <artifact>
+                                ${project.build.directory}/${project.build.finalName}.war
+                            </artifact>
+                        </component>
+                    </components>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

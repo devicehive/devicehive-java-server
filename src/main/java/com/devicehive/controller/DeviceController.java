@@ -1,32 +1,8 @@
 package com.devicehive.controller;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceEquipmentDAO;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -37,6 +13,19 @@ import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -55,7 +44,7 @@ public class DeviceController {
     private DeviceEquipmentDAO equipmentDAO;
 
     @GET
-    @RolesAllowed({"Client", "ADMIN"})
+    @RolesAllowed({"CLIENT", "ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(DEVICE_PUBLISHED)
     public List<Device> list(@QueryParam("name") String name,
@@ -72,12 +61,15 @@ public class DeviceController {
                              @QueryParam("skip") Integer skip) {
 
         boolean sortOrderAsc = true;
+        if (sortOrder!= null && (!sortOrder.equals("DESC") || !sortOrder.equals("ASC"))){
+            throw new BadRequestException("The sort order cannot be equal " + sortOrder);
+        }
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
-            throw new HiveException("The sort field cannot be equal " + sortField);//maybe better to do sort field null
+            throw new BadRequestException("The sort field cannot be equal " + sortField);
         }
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
                 deviceClassVersion, sortField, sortOrderAsc, take, skip);
@@ -90,7 +82,12 @@ public class DeviceController {
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
     public Response register(JsonObject jsonObject, @PathParam("id") String guid) {
-        UUID deviceGuid = parseUUID(guid);
+        UUID deviceGuid;
+        try {
+            deviceGuid = UUID.fromString(guid);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("unparseable guid: " + guid);
+        }
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
         Device device = mainGson.fromJson(jsonObject, Device.class);
         device.setGuid(deviceGuid);
@@ -109,29 +106,18 @@ public class DeviceController {
 
     @GET
     @Path("/{id}")
-//    @RolesAllowed({"Device", "Client", "Administrator"})
-    @PermitAll
+    @RolesAllowed({"Device", "CLIENT", "ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(DEVICE_PUBLISHED)
     public Device get(@PathParam("id") String guid) {
-        UUID deviceGuid = parseUUID(guid);
-        Device device = deviceDAO.findByUUID(deviceGuid);
-        if (device == null) {
-            //TODO throw smth
-            throw new HiveException("device with guid " + guid + " not found");
-        }
-        return device;
+        return getDevice(guid);
     }
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("Administrator")
+    @RolesAllowed("ADMIN")
     public Response delete(@PathParam("id") String guid) {
-        UUID deviceGuid = parseUUID(guid);
-        Device device = deviceDAO.findByUUID(deviceGuid);
-        if (device == null) {
-            return Response.status(404).build();
-        }
+        Device device = getDevice(guid);
         commandDAO.deleteByFK(device);
         deviceDAO.deleteDevice(device.getId());
         return Response.ok().build();
@@ -139,27 +125,25 @@ public class DeviceController {
 
     @GET
     @Path("/{id}/equipment")
-    @PermitAll
+    @RolesAllowed({"CLIENT", "ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(DEVICE_EQUIPMENT_SUBMITTED)
     public List<DeviceEquipment> equipment(@PathParam("id") String guid) {
-        UUID deviceId = parseUUID(guid);
-        Device device = deviceDAO.findByUUID(deviceId);
-        if (device == null) {
-            //TODO throw smth
-            throw new HiveException("device with guid " + guid + " not found");
-        }
+        Device device = getDevice(guid);
         return equipmentDAO.findByFK(device);
     }
 
-    private UUID parseUUID(String uuid) {
+    private Device getDevice (String uuid) {
         UUID deviceId;
         try {
             deviceId = UUID.fromString(uuid);
         } catch (IllegalArgumentException e) {
-            //TODO throw smth
-            throw new HiveException("unparseable guid: " + uuid);
+            throw new BadRequestException("unparseable guid: " + uuid);
         }
-        return deviceId;
+        Device device = deviceDAO.findByUUID(deviceId);
+        if (device == null) {
+            throw new NotFoundException("device with guid " + uuid + " not found");
+        }
+        return device;
     }
 }

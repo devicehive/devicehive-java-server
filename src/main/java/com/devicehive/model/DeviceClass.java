@@ -2,7 +2,6 @@ package com.devicehive.model;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.request.DeviceClassInsert;
 
 import javax.persistence.*;
 import javax.persistence.Version;
@@ -40,35 +39,35 @@ public class DeviceClass implements HiveEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,})
     private Long id;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
     private String name;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version shouldn't be more than 32 " +
             "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
     private String version;
 
     @Column(name = "is_permanent")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
     private Boolean isPermanent;
 
     @Column(name = "offline_timeout")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
     private Integer offlineTimeout;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
     private JsonStringWrapper data;
 
     @Version
@@ -76,6 +75,7 @@ public class DeviceClass implements HiveEntity {
     private long entityVersion;
 
     @OneToMany(mappedBy = "deviceClass")
+    @JsonPolicyDef({DEVICECLASS_PUBLISHED})
     private Set<Equipment> equipment;
 
     /**
@@ -96,36 +96,6 @@ public class DeviceClass implements HiveEntity {
         }
         return result;
 
-    }
-
-    /**
-     * copies fields from {@link DeviceClassInsert}
-     * @param insert object, that will be used as data source
-     */
-    public void copyFieldsFrom(DeviceClassInsert insert) {
-        setName(insert.getName());
-        setPermanent(insert.getIsPermanent());
-        setVersion(insert.getVersion());
-        setOfflineTimeout(insert.getOfflineTimeout());
-        setData(insert.getData());
-    }
-
-    public void copyFieldsFromOmmitingNulls(DeviceClassInsert insert) {
-        if(insert.getName()!=null){
-            setName(insert.getName());
-        }
-        if(insert.getIsPermanent()!=null){
-            setPermanent(insert.getIsPermanent());
-        }
-        if(insert.getVersion()!=null){
-            setVersion(insert.getVersion());
-        }
-        if(insert.getOfflineTimeout()!=null){
-            setOfflineTimeout(insert.getOfflineTimeout());
-        }
-        if(insert.getOfflineTimeout()!=null){
-            setData(insert.getData());
-        }
     }
 
     public long getEntityVersion() {
@@ -193,10 +163,10 @@ public class DeviceClass implements HiveEntity {
     }
 
     @Override
-    public boolean equals(Object dc){
+    public boolean equals(Object dc) {
 
-        if(dc instanceof DeviceClass) {
-            return ((DeviceClass)dc).getId()==getId();
+        if (dc instanceof DeviceClass) {
+            return getId() == ((DeviceClass) dc).getId();
         }
 
         return false;

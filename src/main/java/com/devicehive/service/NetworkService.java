@@ -19,6 +19,10 @@ public class NetworkService {
         return networkDAO.getById(id);
     }
 
+    public Network getWithDevicesAndDeviceClasses(long id) {
+        return networkDAO.getWithDevicesAndDeviceClasses(id);
+    }
+
     public void delete(long id) {
         networkDAO.delete(id);
     }
@@ -27,7 +31,7 @@ public class NetworkService {
         if (n.getName() == null) {
             throw new HiveException("Name must be provided");
         }
-        return networkDAO.insert(n);
+        return networkDAO.createNetwork(n);
     }
 
 

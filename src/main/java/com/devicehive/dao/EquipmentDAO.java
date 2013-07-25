@@ -11,6 +11,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import java.util.List;
 public class EquipmentDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -62,7 +64,7 @@ public class EquipmentDAO {
     }
 
     @Deprecated
-    public Equipment update(Equipment e) throws PersistenceException {
+    public Equipment update(@NotNull Equipment e) {
         try {
             return em.merge(e);
         } catch (Exception ex) {
@@ -77,10 +79,31 @@ public class EquipmentDAO {
     }
 
     /**
-     * returns Equipment by id
+     * @param id Equipment Id
+     * @returns Equipment
      */
     public Equipment get(long id) {
         return em.find(Equipment.class, id);
+    }
+
+    public Equipment updateEquipment(@NotNull Equipment e){
+
+        if(e.getId()==null) {
+            logger.error("Equipment id must be provided");
+            return null;
+        }
+
+        Equipment toUpdate = em.find(Equipment.class,e.getId());
+        Query query = em.createNamedQuery("Equipment.updateProperties");
+
+        query.setParameter("id",e.getId());
+        query.setParameter("name",e.getName()==null?toUpdate.getName():e.getName());
+        query.setParameter("code",e.getCode()==null?toUpdate.getCode():e.getCode());
+        query.setParameter("type",e.getType()==null?toUpdate.getType():e.getType());
+        query.setParameter("data",e.getData()==null?toUpdate.getCode():e.getData());
+
+        query.executeUpdate();
+        return toUpdate;
     }
 
     /**

@@ -14,6 +14,7 @@ import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 
 @Stateless
@@ -36,6 +37,7 @@ public class UserService {
 
     /**
      * Tries to authenticate with given credentials
+     *
      * @param login
      * @param password
      * @return User object if authentication is successful or null if not
@@ -86,43 +88,72 @@ public class UserService {
         user.setPasswordSalt(passwordService.generateSalt());
         user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
         user.setLoginAttempts(0);
-        return em.merge(user);
+        user.setEntityVersion(1);
+        user.setNetworks(new HashSet<Network>());
+        em.persist(user);
+        return user;
     }
 
-    public void updateUser(@NotNull Long id, String login, UserRole role, UserStatus status, String password) {
-        User u = em.find(User.class,id);
-        if (login != null) {
-            u.setLogin(login);
-        }
-        if (role != null) {
-            u.setRole(role);
-        }
-        if (status != null) {
-            u.setStatus(status);
-        }
+    public User updatePassword(@NotNull Long id, String password) {
+
+        User u = userDAO.findById(id);
+
         if (password != null) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
             u.setPasswordHash(hash);
             u.setPasswordSalt(salt);
         }
-        em.merge(u);
+        if (userDAO.update(id, u)) {
+            return u;
+        }
+        return null;
+    }
+
+    public User updateUser(@NotNull Long id, String login, UserRole role, UserStatus status, String password) {
+
+        User u = userDAO.findById(id);
+
+        if (login != null) {
+            u.setLogin(login);
+        }
+
+        if (role != null) {
+            u.setRole(role);
+        }
+
+        if (status != null) {
+            u.setStatus(status);
+        }
+
+        if (password != null) {
+            String salt = passwordService.generateSalt();
+            String hash = passwordService.hashPassword(password, salt);
+            u.setPasswordHash(hash);
+            u.setPasswordSalt(salt);
+        }
+
+        if (userDAO.update(id, u)) {
+            return u;
+        }
+
+        return null;
     }
 
     public boolean deleteUser(@NotNull Long id) {
         Query q = em.createNamedQuery("User.delete");
-        q.setParameter("id",id);
+        q.setParameter("id", id);
         return q.executeUpdate() > 0;
     }
 
-    public void assignNetwork(@NotNull Long userId,@NotNull Long networkId) {
+    public void assignNetwork(@NotNull Long userId, @NotNull Long networkId) {
         User u = userDAO.findById(userId);
         Network n = networkDAO.getByIdWithUsers(networkId);
         n.getUsers().add(u);
         em.persist(n);
     }
 
-    public void unassignNetwork(@NotNull Long userId,@NotNull Long networkId) {
+    public void unassignNetwork(@NotNull Long userId, @NotNull Long networkId) {
         User u = userDAO.findById(userId);
         Network n = networkDAO.getByIdWithUsers(networkId);
         n.getUsers().remove(u);
@@ -147,8 +178,9 @@ public class UserService {
         return userDAO.findUserWithNetworks(id);
     }
 
-
-
+    public User findUserWithNetworksByLogin(@NotNull String login) {
+        return userDAO.findUserWithNetworksByLogin(login);
+    }
 
 
 }

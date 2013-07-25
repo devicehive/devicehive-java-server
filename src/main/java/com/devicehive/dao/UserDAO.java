@@ -95,6 +95,14 @@ public class UserDAO {
 
     }
 
+    public User findUserWithNetworksByLogin(String login) {
+        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworksById", User.class);
+        query.setParameter("login", login);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+
+    }
+
     @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public User incrementLoginAttempts(User user) {
         em.refresh(user);
@@ -124,13 +132,14 @@ public class UserDAO {
         return count != null && count > 0;
     }
 
-    public boolean update(@NotNull Long id, @NotNull User user) {
+    public boolean update(@NotNull long id, @NotNull User user) {
         Query query = em.createNamedQuery("User.updateById");
         query.setParameter("passwordHash", user.getPasswordHash());
         query.setParameter("passwordSalt", user.getPasswordSalt());
         query.setParameter("loginAttempts", user.getLoginAttempts());
         query.setParameter("role", user.getRole());
         query.setParameter("lastLogin", user.getLastLogin());
+        query.setParameter("id", id);
         return query.executeUpdate() != 0;
     }
 
