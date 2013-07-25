@@ -83,8 +83,7 @@ public class WebSocketsNotifier implements StatefulNotifier {
     @Override
     public void sendCommandUpdate(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Submitting command update for command " + deviceCommand.getId());
-        CommandUpdatesSubscription commandUpdatesSubscription =
-                commandUpdatesSubscriptionDAO.getByCommandId(deviceCommand.getId());
+        CommandUpdatesSubscription commandUpdatesSubscription = commandUpdatesSubscriptionDAO.getByCommandId(deviceCommand.getId());
         if (commandUpdatesSubscription == null) {
             logger.warn("No updates for command with id = " + deviceCommand.getId() + " found");
             return;

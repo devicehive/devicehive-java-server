@@ -8,7 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.devicehive.model.Message;
 
 /**
- * DeferredResponse represents the result of {@link MessageBus#poll(com.devicehive.model.MessageType, java.util.Date, Long, Long)} command.
+ * DeferredResponse represents the result of {@link MessageBus#subscribe(com.devicehive.messages.MessageType, com.devicehive.messages.MessageDetails)} command.
  * It used in cases when poll requests in non-permanent connection are performed.
  * How to use: after messageBus.poll() invoked you have deferred instance.
  * 

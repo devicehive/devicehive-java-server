@@ -176,7 +176,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = getDevice(session, message);
         logger.debug("process submit device notification started for deviceNotification : " + deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
-        deviceService.submitDeviceNotification(deviceNotification, device);
+        deviceService.submitDeviceNotification(deviceNotification, device, session);
 
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));

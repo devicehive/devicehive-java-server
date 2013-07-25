@@ -22,9 +22,9 @@ import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
+import com.devicehive.messages.Transport;
 import com.devicehive.messages.bus.notify.StatefulNotifier;
 import com.devicehive.messages.data.MessagesDataSource;
-import com.devicehive.messages.jms.MessagePublisher;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
@@ -50,7 +50,7 @@ public class LocalMessageBus implements MessageBus {
     @Inject
     private MessagesDataSource messagesDataSource;
     @Inject
-    private MessagePublisher messagePublisher;
+    private MessageBroadcaster messagePublisher;
     @Inject
     private SessionMonitor sessionMonitor;
 
@@ -101,8 +101,8 @@ public class LocalMessageBus implements MessageBus {
             break;
         }
 
-        if (messages.isEmpty()) {
-            messagePublisher.addMessageListener(new MessageListener(deferred));
+        if (messages.isEmpty() && details.transport() == Transport.REST) {
+            messagePublisher.addMessageListener(new StatelessMessageListener(deferred));
         }
         else {
             deferred.messages().addAll((Collection<? extends Message>) messages);

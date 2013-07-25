@@ -121,7 +121,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
 
         logger.debug("submit device command process" + ". Session " + session.getId());
-        deviceService.submitDeviceCommand(deviceCommand, device, user, session); //saves command to DB and sends it in JMS
+        deviceService.submitDeviceCommand(deviceCommand, device, user, session);
+  
+        try {
+            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).lock();
+            logger.debug("will subscribe device for commands : " + device.getGuid());
+            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, MessageDetails.create().ids(deviceCommand.getId()).session(session.getId()));
+        } finally {
+            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).unlock();
+        }
+        
         deviceCommand.setUser(user);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(deviceCommand))
