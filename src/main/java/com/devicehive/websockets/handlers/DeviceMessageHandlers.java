@@ -28,6 +28,8 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.MessageDetails;
+import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.ApiInfo;
 import com.devicehive.model.Configuration;
@@ -35,7 +37,6 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.Equipment;
-import com.devicehive.model.MessageType;
 import com.devicehive.model.Version;
 import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -139,7 +140,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("will subscribe device for commands : " + device.getGuid());
-            messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, session.getId(), device.getId());
+            messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, MessageDetails.create().ids(device.getId()).session(session.getId()));
             logger.debug("will get commands newer than : " + timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
@@ -160,7 +161,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Device device = getDevice(session, message);
         logger.debug("command/unsubscribe for device" + device.getGuid());
-        messageBus.unsubscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, session.getId(), device.getId());
+        messageBus.unsubscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, MessageDetails.create().ids(device.getId()).session(session.getId()));
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 

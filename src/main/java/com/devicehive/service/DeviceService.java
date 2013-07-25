@@ -19,6 +19,8 @@ import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.MessageDetails;
+import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.jms.MessagePublisher;
 import com.devicehive.model.Device;
@@ -28,7 +30,6 @@ import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.MessageType;
 import com.devicehive.model.User;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -58,9 +59,6 @@ public class DeviceService {
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
-
-
-
     public void deviceSave(Device device, Set<Equipment> equipmentSet) {
         if (device.getNetwork() != null) {
             device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
@@ -75,7 +73,7 @@ public class DeviceService {
         command.setTimestamp(new Timestamp(System.currentTimeMillis()));
         deviceCommandDAO.createCommand(command);
         if (userWebsocketSession != null) {
-            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, userWebsocketSession.getId(), command.getId());
+            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, MessageDetails.create().ids(command.getId()).session(userWebsocketSession.getId()));
         }
         messagePublisher.publishCommand(command);
     }
@@ -134,7 +132,7 @@ public class DeviceService {
     public DeviceClass createOrUpdateDeviceClass(DeviceClass deviceClass, Set<Equipment> newEquipmentSet) {
         DeviceClass stored;
         if (deviceClass.getId() != null) {
-            stored = deviceClassDAO.getDeviceClass(deviceClass.getId());
+            stored = deviceClassDAO.get(deviceClass.getId());
         } else {
             stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(),
                     deviceClass.getVersion());

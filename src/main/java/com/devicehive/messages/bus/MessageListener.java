@@ -4,9 +4,9 @@ import com.devicehive.model.Message;
 
 public class MessageListener {
 
-    private PollResult pollResult;
+    private DeferredResponse pollResult;
 
-    public MessageListener(PollResult pollResult) {
+    public MessageListener(DeferredResponse pollResult) {
         this.pollResult = pollResult;
     }
 

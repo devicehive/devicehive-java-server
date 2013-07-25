@@ -3,6 +3,7 @@ package com.devicehive.websockets.handlers;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
+import static com.devicehive.messages.Transport.WEBSOCKET;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -22,13 +23,14 @@ import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.MessageDetails;
+import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.ApiInfo;
 import com.devicehive.model.Configuration;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.MessageType;
 import com.devicehive.model.User;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.Version;
@@ -42,11 +44,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
-    
+
     @Inject
     private MessageBus messageBus;
     @Inject
@@ -75,7 +76,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (user != null) {
             WebsocketSession.setAuthorisedUser(session, user);
             return JsonMessageBuilder.createSuccessResponseBuilder().build();
-        } else {
+        }
+        else {
             throw new HiveException("Client authentication error: credentials are incorrect");
         }
     }
@@ -101,7 +103,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         Device device;
         if (user.getRole() == UserRole.ADMIN) {
             device = deviceDAO.findByUUID(deviceGuid);
-        } else {
+        }
+        else {
             device = deviceDAO.findByUUIDAndUser(user, deviceGuid);
         }
 
@@ -136,10 +139,12 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             timestamp = new Date();
         }
         //TODO set notification's limit (do not try to get notifications for last year :))
-        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {}.getType());
+        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
+        }.getType());
         if (list == null || list.isEmpty()) {
             prepareForNotificationSubscribeNullCase(session, timestamp);
-        } else {
+        }
+        else {
             prepareForNotificationSubscribeNotNullCase(list, session, timestamp);
         }
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
@@ -154,7 +159,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         List<DeviceNotification> deviceNotifications;
         if (authorizedUser.getRole() == UserRole.ADMIN) {
             deviceNotifications = deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, true);
-        } else {
+        }
+        else {
             deviceNotifications = deviceNotificationService.getDeviceNotificationList(null, authorizedUser, timestamp, false);
         }
         logger.debug("notification/subscribe action - null guid case." + "get device notification. found " +
@@ -169,7 +175,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         List<Device> devices;
         if (authorizedUser.getRole() == UserRole.ADMIN) {
             devices = deviceDAO.findByUUID(guids);
-        } else {
+        }
+        else {
             devices = deviceDAO.findByUUIDListAndUser(authorizedUser, guids);
         }
         if (devices.isEmpty()) {
@@ -191,12 +198,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             logger.debug("notification/subscribe action - not null guid case. found " + deviceNotifications.size() +
                     " devices. " + "Session " + session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-            
+
             List<Long> ids = new ArrayList<>(devices.size());
             for (Device device : devices) {
                 ids.add(device.getId());
             }
-            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, session.getId(), ids); 
+            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
+                    MessageDetails.create().ids(ids).session(session.getId()).transport(WEBSOCKET));
             if (!deviceNotifications.isEmpty()) {
                 for (DeviceNotification deviceNotification : deviceNotifications) {
                     logger.debug("This device notification will be added to queue: " + deviceNotification +
@@ -205,7 +213,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                             ServerResponsesFactory.createNotificationInsertMessage(deviceNotification));
                 }
             }
-        } finally {
+        }
+        finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
@@ -216,7 +225,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         logger.debug("notification/unsubscribe action. Session " + session.getId());
         Gson gson = GsonFactory.createGson();
-        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {}.getType());
+        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
+        }.getType());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             List<Device> devices = null;
@@ -228,14 +238,15 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 }
             }
             logger.debug("notification/unsubscribe. performing unsubscribing action");
-            
+
             List<Long> ids = new ArrayList<>(devices.size());
             for (Device device : devices) {
                 ids.add(device.getId());
             }
-            messageBus.unsubscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, session.getId(), ids); 
+            messageBus.unsubscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, MessageDetails.create().ids(ids).session(session.getId()));
             checkDevicesAndGuidsList(devices, list, false);
-        } finally {
+        }
+        finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
         }
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
@@ -251,7 +262,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             StringBuilder responseBuilder;
             if (isSubscribe) {
                 responseBuilder = new StringBuilder("Unable to subscribe for devices with guids: ");
-            } else {
+            }
+            else {
                 responseBuilder = new StringBuilder("Unable to unsubscribe from devices with guids: ");
             }
 

@@ -1,4 +1,4 @@
-package com.devicehive.messages.data.subscriptions.dao;
+package com.devicehive.messages.data.derby.subscriptions.dao;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.messages.data.subscriptions.model.NotificationsSubscription;
+import com.devicehive.messages.data.derby.subscriptions.model.NotificationsSubscription;
 import com.devicehive.model.Device;
 
 @Stateless

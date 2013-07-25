@@ -1,12 +1,8 @@
 package com.devicehive.dao;
 
-import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -16,18 +12,30 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.configuration.Constants;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
 public class DeviceDAO {
 
-    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
+    
+    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
+    
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -104,6 +112,7 @@ public class DeviceDAO {
     }
 
     //TODO refactor
+    @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(String name, String namePattern, String status, Long networkId,
                                 String networkName, Long deviceClassId, String deviceClassName,

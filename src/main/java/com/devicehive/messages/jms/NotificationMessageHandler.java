@@ -14,9 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.MessageType;
 
 @JMSDestinationDefinition(
         name = Constants.JMS_NOTIFICATION_TOPIC,
@@ -36,7 +36,7 @@ public class NotificationMessageHandler implements MessageListener {
             DeviceNotification notification = (DeviceNotification) objectMessage.getObject();
             if (notification != null) {
                 logger.debug("DeviceNotification received: " + notification);
-                messageBus.send(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, notification);
+                messageBus.notify(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, notification);
             }
         }
         catch (JMSException e) {

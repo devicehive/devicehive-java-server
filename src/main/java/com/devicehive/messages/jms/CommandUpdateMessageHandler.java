@@ -14,9 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.MessageType;
 
 @JMSDestinationDefinition(
         name = Constants.JMS_COMMAND_UPDATE_TOPIC,
@@ -36,7 +36,7 @@ public class CommandUpdateMessageHandler implements MessageListener {
             DeviceCommand deviceCommand = (DeviceCommand) objectMessage.getObject();
             if (deviceCommand != null) {
                 logger.debug("DeviceCommand update received: " + deviceCommand);
-                messageBus.send(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, deviceCommand);
+                messageBus.notify(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, deviceCommand);
             }
         }
         catch (JMSException e) {

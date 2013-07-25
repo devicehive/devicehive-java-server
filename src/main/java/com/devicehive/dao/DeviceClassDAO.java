@@ -31,6 +31,7 @@ public class DeviceClassDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
+    @SuppressWarnings("unchecked")
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
@@ -102,6 +103,7 @@ public class DeviceClassDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    @SuppressWarnings("unchecked")
     public List<DeviceClass> getList() {
         return em.createQuery("select dc from DeviceClass dc").getResultList();
     }

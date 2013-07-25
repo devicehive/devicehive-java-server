@@ -8,36 +8,36 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.devicehive.model.Message;
 
 /**
- * PollResult represents the result of {@link MessageBus#poll(com.devicehive.model.MessageType, java.util.Date, Long, Long)} command.
+ * DeferredResponse represents the result of {@link MessageBus#poll(com.devicehive.model.MessageType, java.util.Date, Long, Long)} command.
  * It used in cases when poll requests in non-permanent connection are performed.
- * How to use: after messageBus.poll() invoked you have pollResult instance.
+ * How to use: after messageBus.poll() invoked you have deferred instance.
  * 
- * Check for pollResult.messages().size() - if size > 0 just return list of messages and that is all.
- * If there are no messages, but you want to wait for messages while timeout, use pollResult.pollLock() and pollResult.hasMessages() objects to wait:
+ * Check for deferred.messages().size() - if size > 0 just return list of messages and that is all.
+ * If there are no messages, but you want to wait for messages while timeout, use deferred.pollLock() and deferred.hasMessages() objects to wait:
  * 
  *  <pre>
  * {@code}
- *  PollResult pollResult = messageBus.poll(..., long timeout, ...);
- *  if (!pollResult.messages().isEmpty()) {
- *      return pollResult.messages();
+ *  DeferredResponse deferred = messageBus.poll(..., long timeout, ...);
+ *  if (!deferred.messages().isEmpty()) {
+ *      return deferred.messages();
  *  } else {
- *      Lock lock = pollResult.pollLock();
- *      Condition hasMessages = pollResult.hasMessages();
+ *      Lock lock = deferred.pollLock();
+ *      Condition hasMessages = deferred.hasMessages();
  *      
  *      lock.lock();
  *      
  *      try {
- *          while (pollResult.messages().isEmpty()) {
+ *          while (deferred.messages().isEmpty()) {
  *              try {
  *                  hasMessages.await(timeout, TimeUnit.SECONDS);
  *              } catch (InterruptedException e) {...}
  *          }
  *           
- *          //Here you have messages to return. Please don't use this PollResult anymore. 
+ *          //Here you have messages to return. Please don't use this DeferredResponse anymore. 
  *          hasMessages.signal();
  *      } finally {
  *          lock.unlock();
- *          return pollResult.messages();
+ *          return deferred.messages();
  *      }
  *  }
  * </pre>
@@ -46,13 +46,13 @@ import com.devicehive.model.Message;
  * @author rroschin
  *
  */
-public final class PollResult {
+public final class DeferredResponse {
 
     private final CopyOnWriteArrayList<Message> messages;
     private final Lock pollLock;
     private final Condition hasMessages;
 
-    protected PollResult() {
+    protected DeferredResponse() {
         this.messages = new CopyOnWriteArrayList<>();
         this.pollLock = new ReentrantLock();
         this.hasMessages = this.pollLock.newCondition();
