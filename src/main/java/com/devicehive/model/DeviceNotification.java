@@ -2,7 +2,7 @@ package com.devicehive.model;
 
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLEINT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 
 import java.sql.Timestamp;
@@ -28,6 +28,9 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
@@ -67,18 +70,18 @@ public class DeviceNotification implements Message {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
-    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_FROM_DEVICE})
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private JsonStringWrapper parameters;
 
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_TO_DEVICE})
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Long id;
 
     @SerializedName("timestamp")
     @Column
-    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_TO_DEVICE})
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Timestamp timestamp;
 
     @SerializedName("notification")
@@ -86,7 +89,7 @@ public class DeviceNotification implements Message {
     @NotNull(message = "notification field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification shouldn't be more than " +
             "128 symbols.")
-    @JsonPolicyDef({NOTIFICATION_TO_CLEINT, NOTIFICATION_FROM_DEVICE})
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private String notification;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -66,14 +66,15 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> queryDeviceNotification(Device device, Date start, Date end, String notification,
+    public List<DeviceNotification> queryDeviceNotification(Device device, Timestamp start, Timestamp end,
+                                                            String notification,
                                                             String sortField, Boolean sortOrderAsc, Integer take,
                                                             Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root from = criteria.from(DeviceNotification.class);
         List<Predicate> predicates = new ArrayList<>();
-
+        predicates.add(criteriaBuilder.equal(from.get("device"), device));
         if (start != null) {
             predicates.add(criteriaBuilder.greaterThan(from.get("timestamp"), start));
         }
@@ -85,8 +86,9 @@ public class DeviceNotificationDAO {
         }
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+
         if (sortField != null) {
-            if (sortOrderAsc == null || sortOrderAsc) {
+            if (sortOrderAsc) {
                 criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
             } else {
                 criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));
