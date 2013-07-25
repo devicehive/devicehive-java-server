@@ -43,6 +43,9 @@ import com.google.gson.annotations.SerializedName;
     @NamedQuery(name = "User.updateById",
             query = "update User u set u.passwordHash = :passwordHash, u.passwordSalt = :passwordSalt, u.loginAttempts = :loginAttempts," +
                     " u.role = :role, u.lastLogin = :lastLogin where u.id = :id"),
+        @NamedQuery(name= "User.getWithNetworksById",
+                query = "select u from User u left join fetch u.networks where u.login = :login"),
+
         @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
 })
 
