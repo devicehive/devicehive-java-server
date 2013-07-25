@@ -32,18 +32,18 @@ import com.google.gson.annotations.SerializedName;
 @Entity(name = "User")
 @Table(name = "\"user\"")
 @NamedQueries({
-    @NamedQuery(name= "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
-    @NamedQuery(name= "User.findByIdWithNetworks", query = "select u from User u left join fetch u.networks where u.id = :id"),
-    @NamedQuery(name= "User.delete", query = "update User u set u.status = 3 where u.id = :id"),
-    @NamedQuery(name= "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
-    @NamedQuery(name= "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
-            "where u = :user and n = :network"),
-    @NamedQuery(name= "User.getWithNetworks",
-            query = "select u from User u left join fetch u.networks where u.id = :id"),
-    @NamedQuery(name = "User.updateById",
-            query = "update User u set u.passwordHash = :passwordHash, u.passwordSalt = :passwordSalt, u.loginAttempts = :loginAttempts," +
-                    " u.role = :role, u.lastLogin = :lastLogin where u.id = :id"),
-        @NamedQuery(name= "User.getWithNetworksById",
+        @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
+        @NamedQuery(name = "User.findByIdWithNetworks", query = "select u from User u left join fetch u.networks where u.id = :id"),
+        @NamedQuery(name = "User.delete", query = "update User u set u.status = 3 where u.id = :id"),
+        @NamedQuery(name = "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
+        @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
+                "where u = :user and n = :network"),
+        @NamedQuery(name = "User.getWithNetworks",
+                query = "select u from User u left join fetch u.networks where u.id = :id"),
+        @NamedQuery(name = "User.updateById",
+                query = "update User u set u.passwordHash = :passwordHash, u.passwordSalt = :passwordSalt, u.loginAttempts = :loginAttempts," +
+                        " u.role = :role, u.lastLogin = :lastLogin where u.id = :id"),
+        @NamedQuery(name = "User.getWithNetworksById",
                 query = "select u from User u left join fetch u.networks where u.login = :login"),
 
         @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
@@ -52,16 +52,16 @@ import com.google.gson.annotations.SerializedName;
 public class User implements HiveEntity {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SerializedName("id")
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED,USERS_LISTED})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED})
     private Long id;
 
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of login shouldn't be more than 64 symbols.")
-    @JsonPolicyDef({USER_PUBLISHED,USERS_LISTED})
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
 
     @Column(name = "password_hash")
@@ -80,12 +80,12 @@ public class User implements HiveEntity {
 
     @Column
     @SerializedName("role")
-    @JsonPolicyDef({USER_PUBLISHED,USERS_LISTED})
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserRole role;
 
     @Column
     @SerializedName("status")
-    @JsonPolicyDef({USER_PUBLISHED,USERS_LISTED})
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
 
     @Column(name = "last_login")
@@ -188,16 +188,15 @@ public class User implements HiveEntity {
     /**
      * Validates user representation. Returns set of strings which are represent constraint violations. Set will
      * be empty if no constraint violations found.
-     * @param user
-     * User that should be validated
-     * @param validator
-     * Validator
+     *
+     * @param user      User that should be validated
+     * @param validator Validator
      * @return Set of strings which are represent constraint violations
      */
     public static Set<String> validate(User user, Validator validator) {
         Set<ConstraintViolation<User>> constraintViolations = validator.validate(user);
         Set<String> result = new HashSet<>();
-        if (constraintViolations.size()>0){
+        if (constraintViolations.size() > 0) {
             for (ConstraintViolation<User> cv : constraintViolations)
                 result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
                         cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
@@ -218,6 +217,6 @@ public class User implements HiveEntity {
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return id == null ? 0 : id.hashCode();
     }
 }

@@ -99,7 +99,7 @@ public class UserController {
             throw new ForbiddenException("User with such login already exists");
         }
 
-        return userService.createUser(user.getLogin(), user.getRole(), user.getStatus(), user.getPassword());
+        return userService.createUser(user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
 
     }
 
@@ -115,7 +115,7 @@ public class UserController {
             throw new ForbiddenException("User with such login already exists");
         }
 
-        userService.updateUser(userId, user.getLogin(), user.getRole(), user.getStatus(), user.getPassword());
+        userService.updateUser(userId, user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
         return Response.ok().build();
     }
 

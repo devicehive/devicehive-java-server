@@ -14,6 +14,7 @@ import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 
 @Stateless
@@ -65,20 +66,27 @@ public class UserService {
 
     @Lock
     public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
-        TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
-        query.setParameter("login", login);
-        List<User> list = query.getResultList();
-        if (!list.isEmpty()) {
-            throw new HiveException("User " + login + " exists");
+        try {
+            TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
+            query.setParameter("login", login);
+            List<User> list = query.getResultList();
+            if (!list.isEmpty()) {
+                throw new HiveException("User " + login + " exists");
+            }
+            User user = new User();
+            user.setLogin(login);
+            user.setRole(role);
+            user.setStatus(status);
+            user.setPasswordSalt(passwordService.generateSalt());
+            user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
+            user.setLoginAttempts(0);
+            user.setEntityVersion(1);
+            user.setNetworks(new HashSet<Network>());
+            em.persist(user);
+            return user;
+        } catch (Throwable t) {
+            throw t;
         }
-        User user = new User();
-        user.setLogin(login);
-        user.setRole(role);
-        user.setStatus(status);
-        user.setPasswordSalt(passwordService.generateSalt());
-        user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
-        user.setLoginAttempts(0);
-        return em.merge(user);
     }
 
     public User updatePassword(@NotNull Long id, String password) {
