@@ -168,17 +168,8 @@ public class NetworkController {
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
     public Network update(Network nr, @PathParam("id") long id) {
-        Network n = networkService.getById(id);
-        if (nr.getKey() != null) {
-            n.setKey(nr.getKey());
-        }
-        if (nr.getDescription() != null) {
-            n.setDescription(nr.getDescription());
-        }
-        if (nr.getName() != null) {
-            n.setName(nr.getName());
-        }
-        return networkService.insert(n);
+        nr.setId(id);
+        return networkService.update(nr);
     }
 
     /**
