@@ -52,7 +52,16 @@ public class UserService {
             return null;
         }
         User user = list.get(0);
-        return user;
+        if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
+            user.setLoginAttempts(user.getLoginAttempts() + 1);
+            if (user.getLoginAttempts() >= maxLoginAttempts) {
+                user.setStatus(UserStatus.LOCKED_OUT);
+            }
+            return null;
+        } else {
+            user.setLoginAttempts(0);
+            return user;
+        }
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -66,27 +75,23 @@ public class UserService {
 
     @Lock
     public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
-        try {
-            TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
-            query.setParameter("login", login);
-            List<User> list = query.getResultList();
-            if (!list.isEmpty()) {
-                throw new HiveException("User " + login + " exists");
-            }
-            User user = new User();
-            user.setLogin(login);
-            user.setRole(role);
-            user.setStatus(status);
-            user.setPasswordSalt(passwordService.generateSalt());
-            user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
-            user.setLoginAttempts(0);
-            user.setEntityVersion(1);
-            user.setNetworks(new HashSet<Network>());
-            em.persist(user);
-            return user;
-        } catch (Throwable t) {
-            throw t;
+        TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
+        query.setParameter("login", login);
+        List<User> list = query.getResultList();
+        if (!list.isEmpty()) {
+            throw new HiveException("User " + login + " exists");
         }
+        User user = new User();
+        user.setLogin(login);
+        user.setRole(role);
+        user.setStatus(status);
+        user.setPasswordSalt(passwordService.generateSalt());
+        user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
+        user.setLoginAttempts(0);
+        user.setEntityVersion(1);
+        user.setNetworks(new HashSet<Network>());
+        em.persist(user);
+        return user;
     }
 
     public User updatePassword(@NotNull Long id, String password) {
