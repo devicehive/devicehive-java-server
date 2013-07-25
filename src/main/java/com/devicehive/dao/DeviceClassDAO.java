@@ -18,6 +18,8 @@ import javax.validation.constraints.NotNull;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -28,6 +30,9 @@ import com.devicehive.model.DeviceClass;
 public class DeviceClassDAO {
 
     private static int DEFAULT_TAKE = 1000;
+
+    private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -75,8 +80,8 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
-    public boolean delete(@NotNull Long id){
-        Query query =  em.createNamedQuery("DeviceClass.deleteById");
+    public boolean delete(@NotNull Long id) {
+        Query query = em.createNamedQuery("DeviceClass.deleteById");
         query.setParameter("id", id);
         return query.executeUpdate() != 0;
     }
@@ -113,8 +118,28 @@ public class DeviceClassDAO {
     }
 
     public DeviceClass createDeviceClass(DeviceClass deviceClass) {
-        em.persist(deviceClass);
-        return deviceClass;
+        try {
+            em.persist(deviceClass);
+            return deviceClass;
+        } catch (RuntimeException ex) {
+            logger.error("Persistence Exception: ", ex);
+            return null;
+        }
+    }
+
+    /**
+     * Updates Device Class
+     *
+     * @param deviceClass
+     * @return
+     */
+    public DeviceClass updateDeviceClass(DeviceClass deviceClass) {
+        try {
+            return em.merge(deviceClass);
+        } catch (RuntimeException ex) {
+            logger.error("Persistence Exception: ", ex);
+            return null;
+        }
     }
 
     public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {

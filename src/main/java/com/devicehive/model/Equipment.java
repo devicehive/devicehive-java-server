@@ -24,34 +24,37 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @NamedQueries({
         @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
                 ":deviceClass"),
-        @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList")
+        @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList"),
+        @NamedQuery(name = "Equipment.updateProperties", query = "update Equipment e set e.name = :name, e.code = :code," +
+                " e.type = :type, e.data = :data where e.id = :id")
 })
 public class Equipment implements HiveEntity {
 
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private Long id;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
     private String name;
 
     @SerializedName("code")
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
-    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
     private String code;
 
     @SerializedName("type")
     @Column
     @NotNull(message = "type field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type shouldn't be more than 128 symbols.")
-    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
     private String type;
 
     @SerializedName("data")
@@ -59,7 +62,7 @@ public class Equipment implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef(EQUIPMENT_SUBMITTED)
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
     private JsonStringWrapper data;
 
     @ManyToOne

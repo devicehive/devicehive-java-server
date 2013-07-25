@@ -24,40 +24,46 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Network.findWithUsers", query = "select n from Network n join fetch n.users where n.id = " +
                 ":id"),
         @NamedQuery(name = "Network.updateById", query = "update Network n set n.description = :description where n.id = :id"),
-        @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id")
+        @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id"),
+        @NamedQuery(name = "Network.getWithDevicesAndDeviceClasses", query = "select n from Network n " +
+                "left join fetch n.devices where n.id = :id")
 })
 public class Network implements HiveEntity {
 
     @SerializedName("id")
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED,USER_PUBLISHED})
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
     private Long id;
 
     @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key shouldn't be more than 64 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED,USER_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
     private String key;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED,USER_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
     private String name;
 
     @SerializedName("description")
     @Column
     @Size(max = 128, message = "The length of description shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED,DEVICE_SUBMITTED,USER_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_network", joinColumns = {@JoinColumn(name = "network_id", nullable = false,
             updatable = false)},
-            inverseJoinColumns = {@JoinColumn(name = "user_id",nullable = false, updatable = false)})
+            inverseJoinColumns = {@JoinColumn(name = "user_id", nullable = false, updatable = false)})
     private Set<User> users;
+
+    @OneToMany(fetch = FetchType.LAZY,mappedBy = "network")
+    @JsonPolicyDef({NETWORK_PUBLISHED})
+    private Set<Device> devices;
 
     @Version
     @Column(name = "entity_version")
@@ -120,16 +126,15 @@ public class Network implements HiveEntity {
     /**
      * Validates network representation. Returns set of strings which are represent constraint violations. Set will
      * be empty if no constraint violations found.
-     * @param network
-     * Network that should be validated
-     * @param validator
-     * Validator
+     *
+     * @param network   Network that should be validated
+     * @param validator Validator
      * @return Set of strings which are represent constraint violations
      */
     public static Set<String> validate(Network network, Validator validator) {
         Set<ConstraintViolation<Network>> constraintViolations = validator.validate(network);
         Set<String> result = new HashSet<>();
-        if (constraintViolations.size()>0){
+        if (!constraintViolations.isEmpty()) {
             for (ConstraintViolation<Network> cv : constraintViolations)
                 result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
                         cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
@@ -138,10 +143,10 @@ public class Network implements HiveEntity {
     }
 
     @Override
-    public boolean equals(Object o){
-        if(!(o instanceof Network)){
+    public boolean equals(Object o) {
+        if (!(o instanceof Network)) {
             return false;
         }
-        return this.id ==((Network) o).getId();
+        return this.id == ((Network) o).getId();
     }
 }

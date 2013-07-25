@@ -37,12 +37,12 @@ public class DeviceClassService {
 
     public void delete(@NotNull long id) {
         DeviceClass dc = deviceClassDAO.get(id);
-        if(dc==null){
+        if (dc == null) {
             throw new NoSuchRecordException("There is no such DeviceClass");
         }
         List<Equipment> equipment = equipmentDAO.getByDeviceClass(dc);
         //TODO: optimize performance
-        for(Equipment e:equipment) {
+        for (Equipment e : equipment) {
             equipmentDAO.delete(e);
         }
 
@@ -54,22 +54,47 @@ public class DeviceClassService {
     }
 
     public DeviceClass addDeviceClass(DeviceClass deviceClass) throws DublicateEntryException {
-        if(deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(),deviceClass.getVersion())!=null){
+
+        if (deviceClass.getPermanent() == null) {
+            throw new HivePersistingException("Unable to persisst DeviceClass without 'permanent' property");
+        }
+
+        if (deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
             throw new DublicateEntryException("Device with such name and version already exists");
         }
         return deviceClassDAO.createDeviceClass(deviceClass);
     }
 
-    public void update(DeviceClass deviceClass){
-        DeviceClass existingDeviceClass = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(),deviceClass.getVersion());
-
-        if(existingDeviceClass!=null && !deviceClass.equals(existingDeviceClass)) {
-            throw new DublicateEntryException("Entity with same name and version already exists with different id");
+    public DeviceClass update(DeviceClass deviceClass) {
+        if (deviceClass.getName() != null && deviceClass.getVersion() != null) {
+            DeviceClass existingDeviceClass = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
+            if (existingDeviceClass != null && !deviceClass.equals(existingDeviceClass)) {
+                throw new DublicateEntryException("Entity with same name and version already exists with different id");
+            }
         }
-        try{
-            deviceClassDAO.createDeviceClass(deviceClass);
-        }catch (Exception e){
-            throw new HivePersistingException("Persisting Exception",e);
+
+
+        try {
+            DeviceClass recordToUpdate = deviceClassDAO.get(deviceClass.getId());
+            if (deviceClass.getName() != null) {
+                recordToUpdate.setName(deviceClass.getName());
+            }
+            if (deviceClass.getVersion() != null) {
+                recordToUpdate.setVersion(deviceClass.getVersion());
+            }
+            if (deviceClass.getPermanent() != null) {
+                recordToUpdate.setPermanent(deviceClass.getPermanent());
+            }
+            if (deviceClass.getOfflineTimeout() != null) {
+                recordToUpdate.setOfflineTimeout(deviceClass.getOfflineTimeout());
+            }
+            if (deviceClass.getData() != null) {
+                recordToUpdate.setData(deviceClass.getData());
+            }
+
+            return deviceClassDAO.updateDeviceClass(recordToUpdate);
+        } catch (Exception e) {
+            throw new HivePersistingException("Persisting Exception", e);
         }
     }
 

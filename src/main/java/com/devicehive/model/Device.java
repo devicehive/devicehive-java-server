@@ -57,55 +57,60 @@ public class Device implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef(DEVICE_PUBLISHED)
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private Long id;
+
     @SerializedName("guid")
     @Column
     @Type(type = "pg-uuid") //That's hibernate-specific and postgres-specific, ugly
-    @JsonPolicyDef(DEVICE_PUBLISHED)
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private UUID guid;
+
     @SerializedName("key")
     @Column
     @NotNull(message = "key field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key shouldn't be more than 64 symbols.")
-    @JsonPolicyDef(DEVICE_SUBMITTED)
+    @JsonPolicyDef({DEVICE_SUBMITTED})
     private String key;
+
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String name;
+
     @SerializedName("status")
     @Column
     @Size(min = 1, max = 128,
             message = "Field cannot be empty. The length of status shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String status;
+
     @SerializedName("data")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
+
     @SerializedName("network")
     @ManyToOne
     @JoinColumn(name = "network_id", updatable = false)
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
+
     @SerializedName("deviceClass")
     @ManyToOne
     @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "deviceClass field cannot be null.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private DeviceClass deviceClass;
+
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
-
-    public Device() {
-    }
 
     /**
      * Validates device representation. Returns set of strings which are represent constraint violations. Set will be
@@ -134,12 +139,6 @@ public class Device implements HiveEntity {
     public void setEntityVersion(long entityVersion) {
         this.entityVersion = entityVersion;
     }
-
-    /*
-    @SerializedName("equipment")
-    @OneToMany
-    private List<Equipment> equipment;
-    */
 
     public JsonStringWrapper getData() {
         return data;
@@ -200,14 +199,6 @@ public class Device implements HiveEntity {
     public DeviceClass getDeviceClass() {
         return deviceClass;
     }
-                  /*
-    public List<Equipment> getEquipment() {
-        return equipment;
-    }
-
-    public void setEquipment(List<Equipment> equipment) {
-        this.equipment = equipment;
-    }                                            */
 
     public void setDeviceClass(DeviceClass deviceClass) {
         this.deviceClass = deviceClass;

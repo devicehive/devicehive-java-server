@@ -109,7 +109,6 @@ public class DeviceController {
 
     @GET
     @Path("/{id}")
-//    @RolesAllowed({"Device", "Client", "Administrator"})
     @PermitAll
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(DEVICE_PUBLISHED)

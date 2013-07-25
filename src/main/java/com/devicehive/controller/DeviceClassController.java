@@ -21,13 +21,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.devicehive.exceptions.dao.NoSuchRecordException;
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import com.devicehive.model.request.DeviceClassInsert;
-import com.devicehive.model.request.EquipmentInsert;
-import com.devicehive.model.response.DetailedDeviceClassResponse;
-import com.devicehive.model.response.DeviceClassSimpleResponse;
-import com.devicehive.model.response.SimpleEquipmentResponse;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 
@@ -47,55 +44,25 @@ public class DeviceClassController {
     @Path("/class")
     @RolesAllowed("ADMIN")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<DeviceClassSimpleResponse> getDeviceClassList(@QueryParam("name") String name,
+    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_LISTED)
+    public List<DeviceClass> getDeviceClassList(@QueryParam("name") String name,
                                                 @QueryParam("namePattern") String namePattern,
                                                 @QueryParam("version") String version,
                                                 @QueryParam("sortField") String sortField,
                                                 @QueryParam("sortOrder") String sortOrder,
                                                 @QueryParam("take") Integer take,
                                                 @QueryParam("skip") Integer skip
-                                                ) {
-        List<DeviceClass> deviceClassList = deviceClassService.getDeviceClassList(name, namePattern, version, sortField, sortOrder, take, skip);
-
-        List<DeviceClassSimpleResponse> result = new ArrayList<>();
-
-        for(DeviceClass record:deviceClassList) {
-            result.add(DeviceClassSimpleResponse.fromDeviceClass(record));
-        }
-
-        return result;
+    ) {
+        return deviceClassService.getDeviceClassList(name, namePattern, version, sortField, sortOrder, take, skip);
     }
 
     @GET
     @Path("/class/{id}")
-    @RolesAllowed({"ADMIN","CLIENT"})
+    @RolesAllowed({"ADMIN", "CLIENT"})
     @Produces(MediaType.APPLICATION_JSON)
-    public DetailedDeviceClassResponse getDeviceClass(@PathParam("id") long id) {
-
-        DeviceClass deviceClass = deviceClassService.getWithEquipment(id);
-
-        DetailedDeviceClassResponse result = new DetailedDeviceClassResponse();
-        result.setId(deviceClass.getId());
-        result.setVersion(deviceClass.getVersion());
-        result.setData(deviceClass.getData());
-        result.setPermanent(deviceClass.getPermanent());
-        result.setOfflineTimeout(deviceClass.getOfflineTimeout());
-        result.setName(deviceClass.getName());
-        Set<SimpleEquipmentResponse> equipmentResponseSet = new HashSet<>();
-
-        for(Equipment e:deviceClass.getEquipment()){
-            SimpleEquipmentResponse r = new SimpleEquipmentResponse();
-            r.setId(e.getId());
-            r.setName(e.getName());
-            r.setCode(e.getCode());
-            r.setType(e.getType());
-            r.setData(e.getData());
-            equipmentResponseSet.add(r);
-        }
-
-        result.setEquipment(equipmentResponseSet);
-
-        return result;
+    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED)
+    public DeviceClass getDeviceClass(@PathParam("id") long id) {
+        return deviceClassService.getWithEquipment(id);
     }
 
     @POST
@@ -103,13 +70,9 @@ public class DeviceClassController {
     @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public DeviceClassSimpleResponse insertDeviceClass(DeviceClassInsert insert) {
-
-        DeviceClass deviceClass = new DeviceClass();
-
-        deviceClass.copyFieldsFrom(insert);
-
-        return DeviceClassSimpleResponse.fromDeviceClass(deviceClassService.addDeviceClass(deviceClass));
+    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
+    public DeviceClass insertDeviceClass(DeviceClass insert) {
+        return deviceClassService.addDeviceClass(insert);
     }
 
     @PUT
@@ -117,21 +80,21 @@ public class DeviceClassController {
     @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public DeviceClassSimpleResponse updateDeviceClass(@PathParam("id") long id,DeviceClassInsert insert) {
-        DeviceClass deviceClass = deviceClassService.getWithEquipment(id);
-        deviceClass.copyFieldsFromOmmitingNulls(insert);
-        deviceClassService.update(deviceClass);
-        return DeviceClassSimpleResponse.fromDeviceClass(deviceClass);
+    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
+    public Response updateDeviceClass(@PathParam("id") long id, DeviceClass insert) {
+        insert.setId(id);
+        deviceClassService.update(insert);
+        return Response.ok().build();
     }
 
     @DELETE
     @Path("/class/{id}")
     @RolesAllowed("ADMIN")
     public Response deleteDeviceClass(@PathParam("id") long id) {
-        try{
+        try {
             deviceClassService.delete(id);
             return Response.ok().build();
-        }catch(NoSuchRecordException e){
+        } catch (NoSuchRecordException e) {
             throw new NotFoundException(e);
         }
     }
@@ -140,23 +103,9 @@ public class DeviceClassController {
     @GET
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed("ADMIN")
-    public SimpleEquipmentResponse getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-
-        SimpleEquipmentResponse response = new SimpleEquipmentResponse();
-
-        Equipment e = equipmentService.getEquipment(classId, eqId);
-
-        if(e == null) {
-            throw new NotFoundException("No such equipment");
-        }
-
-        response.setId(e.getId());
-        response.setName(e.getName());
-        response.setCode(e.getCode());
-        response.setData(e.getData());
-        response.setType(e.getType());
-
-        return response;
+    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)
+    public Equipment getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
+        return equipmentService.getEquipment(classId, eqId);
     }
 
 
@@ -165,22 +114,14 @@ public class DeviceClassController {
     @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SimpleEquipmentResponse insertEquipment(@PathParam("deviceClassId") long classId, EquipmentInsert eq) {
-
-        Equipment e = new Equipment();
-        e.setType(eq.getType());
-        e.setData(eq.getData());
-        e.setCode(eq.getCode());
-        e.setName(eq.getName());
+    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
+    public Equipment insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq) {
 
         DeviceClass dc = new DeviceClass();
         dc.setId(classId);
+        eq.setDeviceClass(dc);
 
-        e.setDeviceClass(dc);
-
-        e = equipmentService.insertEquipment(e);
-
-        return SimpleEquipmentResponse.fromEquipment(e);
+        return equipmentService.insertEquipment(eq);
     }
 
     @PUT
@@ -188,20 +129,29 @@ public class DeviceClassController {
     @RolesAllowed("ADMIN")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SimpleEquipmentResponse updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId, EquipmentInsert eq) {
+    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
+    public Equipment updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId, Equipment eq) {
         Equipment e = equipmentService.get(eqId);
 
-        if (e == null || e.getDeviceClass().getId() != classId) {
+        if (e == null || e.getDeviceClass() == null || e.getDeviceClass().getId() != classId) {
             throw new NotFoundException("No such Equipment");
         }
+        if (eq.getName() != null) {
+            e.setName(eq.getName());
+        }
+        if (eq.getCode() != null) {
+            e.setCode(eq.getCode());
+        }
+        if (eq.getType() != null) {
+            e.setType(eq.getType());
+        }
+        if (eq.getData() != null) {
+            e.setData(eq.getData());
+        }
 
-        e.setName(eq.getName());
-        e.setCode(eq.getCode());
-        e.setType(eq.getType());
-        e.setData(eq.getData());
         equipmentService.updateEquipment(e);
 
-        return SimpleEquipmentResponse.fromEquipment(e);
+        return e;
     }
 
     @DELETE

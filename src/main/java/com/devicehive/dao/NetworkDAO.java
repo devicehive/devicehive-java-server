@@ -33,6 +33,17 @@ public class NetworkDAO {
         return network;
     }
 
+
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Network getWithDevicesAndDeviceClasses(@NotNull long id) {
+        ///Network.getWithDevicesAndDeviceClasses/
+        TypedQuery<Network> query = em.createNamedQuery("Network.getWithDevicesAndDeviceClasses", Network.class);
+        query.setParameter("id", id);
+        List<Network> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getById(@NotNull long id) {
         return em.find(Network.class, id);
@@ -44,11 +55,6 @@ public class NetworkDAO {
         query.setParameter("name", name);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
-    }
-
-    @Deprecated
-    public Network insert(Network n) {
-        return em.merge(n);
     }
 
     public boolean update(@NotNull Long id, @NotNull Network network) {

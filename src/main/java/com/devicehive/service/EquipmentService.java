@@ -22,6 +22,7 @@ public class EquipmentService {
     }
 
     public Equipment insertEquipment(Equipment e) {
+        e.setId(null);//resetting identifier to avoid updates
         return equipmentDAO.insert(e);
     }
 
