@@ -34,6 +34,33 @@ public class NetworkService {
         return networkDAO.createNetwork(n);
     }
 
+    public Network update(Network n) {
+
+        if (n.getId() == null) {
+            throw new HiveException("Id must pe provided");
+        }
+
+        Network updated = networkDAO.getById(n.getId());
+
+        if (n.getKey() != null) {
+            updated.setKey(n.getKey());
+        }
+
+        if (n.getDescription() != null) {
+            updated.setDescription(n.getDescription());
+        }
+
+        if (n.getName() != null) {
+            updated.setName(n.getName());
+        }
+
+        if (networkDAO.update(n.getId(), n)) {
+            return n;
+        }
+        return null;
+
+    }
+
 
     public List<Network> list(String name, String namePattern,
                               String sortField, boolean sortOrder,

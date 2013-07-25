@@ -141,10 +141,12 @@ public class DeviceCommandController {
         catch (IllegalArgumentException e) {
             throw new BadRequestException("unparseable guid: " + uuid);
         }
+
         Device device = deviceDAO.findByUUID(deviceId);
         if (device == null) {
             throw new NotFoundException("device with guid " + uuid + " not found");
         }
+
         return device;
     }
 }
