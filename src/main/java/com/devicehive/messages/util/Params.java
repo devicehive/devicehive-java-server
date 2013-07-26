@@ -3,12 +3,18 @@ package com.devicehive.messages.util;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public final class Params {
 
     public final static long DEFAULT_WAIT_TIMEOUT = 30L;
     public final static long MAX_WAIT_TIMEOUT = 60L;
+    public final static DateFormat UTC_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    {
+        UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
 
     private Params() {
     }
