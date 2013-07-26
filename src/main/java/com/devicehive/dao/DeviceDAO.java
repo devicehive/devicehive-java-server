@@ -1,6 +1,7 @@
 package com.devicehive.dao;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,6 +79,9 @@ public class DeviceDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> findByUUID(List<UUID> list) {
+        if(list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);
         return query.getResultList();

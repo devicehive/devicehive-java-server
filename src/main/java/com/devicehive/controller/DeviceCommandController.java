@@ -43,11 +43,6 @@ public class DeviceCommandController {
     @Inject
     private MessageBus messageBus;
 
-    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-    {
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
-
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
      *
@@ -129,9 +124,7 @@ public class DeviceCommandController {
             }
         }
         Device device = getDevice(guid);
-        return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField,
-                sortOrderAsc,
-                take, skip);
+        return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField, sortOrderAsc, take, skip);
     }
 
     private Device getDevice(String uuid) {

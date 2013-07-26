@@ -1,5 +1,6 @@
 package com.devicehive.messages.data.derby.subscriptions.dao;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,17 +21,17 @@ import com.devicehive.model.Device;
 
 @Stateless
 public class NotificationSubscriptionDAO {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(CommandUpdatesSubscriptionDAO.class);
-    
+
     @PersistenceContext(unitName = Constants.EMBEDDED_PERSISTENCE_UNIT)
     private EntityManager em;
 
     public void insertSubscriptions(Collection<Long> deviceIds, String sessionId) {
-        if (deviceIds == null) {
+        if (deviceIds == null || deviceIds.isEmpty()) {
             insertSubscriptions(sessionId);
         }
-        else {
+        else if (sessionId != null) {
             for (Long deviceId : deviceIds) {
                 deleteByDeviceAndSession(deviceId, sessionId);
                 em.persist(new NotificationsSubscription(deviceId, sessionId));
@@ -39,7 +40,9 @@ public class NotificationSubscriptionDAO {
     }
 
     public void insertSubscriptions(String sessionId) {
-        em.persist(new NotificationsSubscription(null, sessionId));
+        if (sessionId != null) {
+            em.persist(new NotificationsSubscription(null, sessionId));
+        }
     }
 
     public void deleteBySession(String sessionId) {
@@ -49,8 +52,8 @@ public class NotificationSubscriptionDAO {
     }
 
     public void deleteByDeviceAndSession(Long deviceId, String sessionId) {
-        Query query = em.createNamedQuery("NotificationsSubscription.deleteByDeviceAndSession");
-        query.setParameter("deviceId", deviceId);
+        Query query = em.createNamedQuery("NotificationsSubscription.deleteByDevicesAndSession");
+        query.setParameter("deviceIdList", Arrays.asList(deviceId));
         query.setParameter("sessionId", sessionId);
         query.executeUpdate();
     }

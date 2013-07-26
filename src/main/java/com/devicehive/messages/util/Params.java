@@ -1,6 +1,7 @@
 package com.devicehive.messages.util;
 
-import java.text.DateFormat;
+import static com.devicehive.json.adapters.DateAdapter.UTC_DATE_FORMAT;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,7 +17,7 @@ public final class Params {
 
     public static long parseWaitTimeout(String waitTimeout) {
         long timeout = waitTimeout == null ? DEFAULT_WAIT_TIMEOUT : Long.parseLong(waitTimeout);
-        return timeout > MAX_WAIT_TIMEOUT ? MAX_WAIT_TIMEOUT : timeout;
+        return timeout > MAX_WAIT_TIMEOUT ? DEFAULT_WAIT_TIMEOUT : timeout;
 
     }
 
