@@ -5,6 +5,12 @@ import static com.devicehive.json.adapters.DateAdapter.UTC_DATE_FORMAT;
 import java.text.ParseException;
 import java.util.Date;
 
+/**
+ * Util static methods to parse input parameters.
+ * 
+ * @author rroschin
+ *
+ */
 public final class Params {
 
     public final static long DEFAULT_WAIT_TIMEOUT = 30L;

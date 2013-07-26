@@ -36,6 +36,11 @@ import com.devicehive.model.User;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 
+/**
+ * Implementation of {@link MessageBus} with some useful methods.
+ * @author rroschin
+ *
+ */
 @Stateless
 public class LocalMessageBus implements MessageBus {
 

@@ -13,6 +13,15 @@ import org.slf4j.LoggerFactory;
 
 import com.devicehive.model.Message;
 
+/**
+ * Just proxy for messages.
+ * Use {@link #addMessageListener(MessageListener)} to add request to deliver message.
+ * It will later invoke {@link #notifyListeners(Serializable)} to deliver message to listeners.
+ * After message delivered listener will be removed.
+ * 
+ * @author rroschin
+ *
+ */
 @Singleton
 public class MessageBroadcaster {
 

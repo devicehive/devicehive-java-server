@@ -8,16 +8,12 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.data.derby.subscriptions.model.CommandUpdatesSubscription;
 
 
 @Stateless
 public class CommandUpdatesSubscriptionDAO {
-    private static final Logger logger = LoggerFactory.getLogger(CommandUpdatesSubscriptionDAO.class);
 
     @PersistenceContext(unitName = Constants.EMBEDDED_PERSISTENCE_UNIT)
     private EntityManager em;
