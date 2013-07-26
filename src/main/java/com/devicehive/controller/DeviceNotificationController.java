@@ -1,6 +1,9 @@
 package com.devicehive.controller;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -173,8 +176,30 @@ public class DeviceNotificationController {
     public List<DeviceNotification> pollMany(
             @QueryParam("deviceGuids") String deviceGuids,
             @QueryParam("timestamp") String timestampUTC,
-            @QueryParam("waitTimeout") String waitTimeout) {
+            @QueryParam("waitTimeout") String waitTimeout,
+            @Context SecurityContext securityContext) {
 
-        return null;
+        List<String> guids = deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
+        List<UUID> uuids = new ArrayList<>(guids.size());
+        for (String guid : guids) {
+            uuids.add(UUID.fromString(guid));
+        }
+        
+        List<Device> devices = deviceDAO.findByUUID(uuids);
+        List<Long> ids = new ArrayList<>(devices.size());
+        for (Device device : devices) {
+            ids.add(device.getId());
+        }
+
+        Date timestamp = Params.parseUTCDate(timestampUTC);
+        long timeout = Params.parseWaitTimeout(waitTimeout);
+
+        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+
+        DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
+                MessageDetails.create().ids(ids).timestamp(timestamp).user(user));
+        List<DeviceNotification> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
+
+        return response;
     }
 }

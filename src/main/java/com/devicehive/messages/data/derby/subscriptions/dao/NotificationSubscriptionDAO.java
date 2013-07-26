@@ -28,7 +28,7 @@ public class NotificationSubscriptionDAO {
     private EntityManager em;
 
     public void insertSubscriptions(Collection<Long> deviceIds, String sessionId) {
-        if (deviceIds == null) {
+        if (deviceIds == null || deviceIds.isEmpty()) {
             insertSubscriptions(sessionId);
         }
         else if (sessionId != null) {
