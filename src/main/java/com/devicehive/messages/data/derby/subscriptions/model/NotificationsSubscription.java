@@ -1,4 +1,4 @@
-package com.devicehive.messages.data.subscriptions.model;
+package com.devicehive.messages.data.derby.subscriptions.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

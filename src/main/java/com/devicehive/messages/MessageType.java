@@ -1,0 +1,9 @@
+package com.devicehive.messages;
+
+public enum MessageType {
+    CLIENT_TO_DEVICE_COMMAND,
+    DEVICE_TO_CLIENT_UPDATE_COMMAND,
+    DEVICE_TO_CLIENT_NOTIFICATION,
+    CLOSED_SESSION_DEVICE,
+    CLOSED_SESSION_CLIENT;
+}

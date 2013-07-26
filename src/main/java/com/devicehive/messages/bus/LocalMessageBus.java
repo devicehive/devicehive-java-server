@@ -1,20 +1,17 @@
 package com.devicehive.messages.bus;
 
+import static com.devicehive.messages.Transport.WEBSOCKET;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.websocket.Session;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,26 +19,19 @@ import org.slf4j.LoggerFactory;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
-import com.devicehive.dao.UserDAO;
-import com.devicehive.messages.bus.global.GlobalMessageBus;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.MessageDetails;
+import com.devicehive.messages.MessageType;
+import com.devicehive.messages.Transport;
+import com.devicehive.messages.bus.notify.StatefulNotifier;
 import com.devicehive.messages.data.MessagesDataSource;
-import com.devicehive.messages.data.subscriptions.dao.CommandSubscriptionDAO;
-import com.devicehive.messages.data.subscriptions.dao.CommandUpdatesSubscriptionDAO;
-import com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO;
-import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
-import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
-import com.devicehive.messages.jms.MessagePublisher;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.Message;
-import com.devicehive.model.MessageType;
 import com.devicehive.model.User;
-import com.devicehive.websockets.handlers.ServerResponsesFactory;
-import com.devicehive.websockets.util.AsyncMessageDeliverer;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.google.gson.JsonObject;
 
 @Stateless
 public class LocalMessageBus implements MessageBus {
@@ -49,46 +39,37 @@ public class LocalMessageBus implements MessageBus {
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
 
     @Inject
-    private GlobalMessageBus globalBus;
-    @Inject
-    private UserDAO userDAO;
-    @Inject
-    private NotificationSubscriptionDAO notificationSubscriptionDAO;
-    @Inject
-    private CommandSubscriptionDAO commandSubscriptionDAO;
-    @Inject
-    private SessionMonitor sessionMonitor;
-    @Inject
-    private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
-    @Inject
     private DeviceDAO deviceDAO;
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
+
     @Inject
-    private AsyncMessageDeliverer asyncMessageDeliverer;
+    private StatefulNotifier notifier;
     @Inject
     private MessagesDataSource messagesDataSource;
     @Inject
-    private MessagePublisher messagePublisher;
+    private MessageBroadcaster messagePublisher;
+    @Inject
+    private SessionMonitor sessionMonitor;
 
     public LocalMessageBus() {
     }
 
     @Override
-    public void send(MessageType messageType, Message message) throws IOException {
+    public void notify(MessageType messageType, Message message) throws IOException {
         logger.info("Sending message: " + message + " with type: " + messageType);
 
         switch (messageType) {
         case CLIENT_TO_DEVICE_COMMAND:
-            submitCommand((DeviceCommand) message);
+            notifier.sendCommand((DeviceCommand) message);
             break;
         case DEVICE_TO_CLIENT_UPDATE_COMMAND:
-            submitCommandUpdate((DeviceCommand) message);
+            notifier.sendCommandUpdate((DeviceCommand) message);
             break;
         case DEVICE_TO_CLIENT_NOTIFICATION:
-            submitNotification((DeviceNotification) message);
+            notifier.sendNotification((DeviceNotification) message);
             break;
         default:
             logger.warn("Unsupported MessageType found: " + messageType);
@@ -96,145 +77,80 @@ public class LocalMessageBus implements MessageBus {
         }
     }
 
-    public void submitCommand(DeviceCommand deviceCommand) throws IOException {
-        logger.debug("Getting subscription for command " + deviceCommand.getId());
-        CommandsSubscription commandsSubscription = commandSubscriptionDAO.getByDeviceId(deviceCommand.getDevice()
-                .getId());
-        if (commandsSubscription == null) {
-            return;
-        }
-        logger.debug("Subscription for command " + deviceCommand.getId() + ": " + commandsSubscription);
-        Session session = sessionMonitor.getSession(commandsSubscription.getSessionId());
-        if (session == null || !session.isOpen()) {
-            return;
-        }
-        JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
-
-        Lock lock = WebsocketSession.getCommandsSubscriptionsLock(session);
-        try {
-            lock.lock();
-            logger.debug("Add messages to queue process for session " + session.getId());
-            WebsocketSession.addMessagesToQueue(session, jsonObject);
-        }
-        finally {
-            lock.unlock();
-            logger.debug("Deliver messages process for session " + session.getId());
-            asyncMessageDeliverer.deliverMessages(session);
-        }
-    }
-
-    public void submitCommandUpdate(DeviceCommand deviceCommand) throws IOException {
-        logger.debug("Submitting command update for command " + deviceCommand.getId());
-        CommandUpdatesSubscription commandUpdatesSubscription =
-                commandUpdatesSubscriptionDAO.getByCommandId(deviceCommand.getId());
-        if (commandUpdatesSubscription == null) {
-            logger.warn("No updates for command with id = " + deviceCommand.getId() + " found");
-            return;
-        }
-        Session session = sessionMonitor.getSession(commandUpdatesSubscription.getSessionId());
-
-        if (session == null || !session.isOpen()) {
-            return;
-        }
-        JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
-        try {
-            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).lock();
-            logger.debug("Add messages to queue process for session " + session.getId());
-            WebsocketSession.addMessagesToQueue(session, jsonObject);
-        }
-        finally {
-            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).unlock();
-            logger.debug("Deliver messages process for session " + session.getId());
-            asyncMessageDeliverer.deliverMessages(session);
-        }
-    }
-
-    public void submitNotification(DeviceNotification deviceNotification) throws IOException {
-        logger.debug("Submit notification action for deviceNotification :" + deviceNotification.getId());
-        JsonObject resultMessage = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
-
-        Set<Session> delivers = new HashSet<>();
-
-        logger.debug("Getting sessionIdsSubscribedForAll");
-        List<String> sessionIdsSubscribedForAll = notificationSubscriptionDAO.getSessionIdSubscribedForAll();
-        logger.debug("Getting sessions subscribed for all");
-        Set<Session> subscribedForAll = new HashSet<>();
-        for (String sessionId : sessionIdsSubscribedForAll) {
-            subscribedForAll.add(sessionMonitor.getSession(sessionId));
-        }
-        for (Session session : subscribedForAll) {
-            User user = WebsocketSession.getAuthorisedUser(session);
-            if (userDAO.hasAccessToNetwork(user, deviceNotification.getDevice().getNetwork())) {
-                delivers.add(session);
-            }
-        }
-
-        Long deviceId = deviceDAO.findByUUID(deviceNotification.getDevice().getGuid()).getId();
-        Collection<String> sessionIds = notificationSubscriptionDAO.getSessionIdSubscribedByDevice(deviceId);
-
-        Set<Session> sessions = new HashSet<>();
-        for (String sesionId : sessionIds) {
-            sessions.add(sessionMonitor.getSession(sesionId));
-
-        }
-
-        delivers.addAll(sessions);
-
-        for (Session session : delivers) {
-            Lock lock = WebsocketSession.getNotificationSubscriptionsLock(session);
-            try {
-                lock.lock();
-                logger.debug("add messages to queue for session : " + session.getId());
-                WebsocketSession.addMessagesToQueue(session, resultMessage);
-            }
-            finally {
-                lock.unlock();
-                logger.debug("deliver messages for session : " + session.getId());
-                asyncMessageDeliverer.deliverMessages(session);
-            }
-        }
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
-    public void subscribe(MessageType messageType, String sessionId, List<Long> ids) {
-        logger.info("Subscribing to message type: " + messageType + " for ids: " + ids);
+    public DeferredResponse subscribe(MessageType messageType, MessageDetails details) throws HiveException {
+        DeferredResponse deferred = new DeferredResponse();
 
-        Long id = ids != null && !ids.isEmpty() ? ids.get(0) : null;
+        Long id = details.id();
+
+        List<?> messages = new ArrayList<>();
 
         switch (messageType) {
         case CLIENT_TO_DEVICE_COMMAND:
-            if (id == null) {
-                logger.warn("DeviceId to subscribe for commands is null.");
-                return;
-            }
-            messagesDataSource.addCommandsSubscription(sessionId, id);
-            break;
-        case DEVICE_TO_CLIENT_UPDATE_COMMAND:
-            if (id == null) {
-                logger.warn("CommandId to subscribe for command-updates is null.");
-                return;
-            }
-            messagesDataSource.addCommandUpdatesSubscription(sessionId, id);
+            messages = doCommandsSubscription(id, details);
             break;
         case DEVICE_TO_CLIENT_NOTIFICATION:
-            messagesDataSource.addNotificationsSubscription(sessionId, ids);
+            messages = doNotificationsSubscription(details);
+            break;
+        case DEVICE_TO_CLIENT_UPDATE_COMMAND:
+            doCommandUpdatesSubscription(id, details);
             break;
         default:
             logger.warn("Unsupported MessageType found: " + messageType);
             break;
         }
+
+        if (messages.isEmpty() && details.transport() == Transport.REST) {
+            messagePublisher.addMessageListener(new StatelessMessageListener(deferred));
+        }
+        else {
+            deferred.messages().addAll((Collection<? extends Message>) messages);
+        }
+
+        return deferred;
+    }
+
+    private void doCommandUpdatesSubscription(Long id, MessageDetails details) {
+        if (id == null) {
+            throw new HiveException("CommandId to subscribe for command-updates is null.");
+        }
+        messagesDataSource.addCommandUpdatesSubscription(details.session(), id);
+    }
+
+    private List<DeviceNotification> doNotificationsSubscription(MessageDetails details) {
+        User user = getUser(details);
+        if (user == null) {
+            throw new HiveException("User to view notifications not found.");
+        }
+
+        messagesDataSource.addNotificationsSubscription(details.session(), details.ids());
+        return deviceNotificationDAO.getByUserNewerThan(user, details.timestamp());
+    }
+
+    private List<DeviceCommand> doCommandsSubscription(Long id, MessageDetails details) throws HiveException {
+        if (id == null) {
+            throw new HiveException("DeviceId to subscribe for commands is null.");
+        }
+
+        Device device = deviceDAO.findById(id);
+        if (device == null) {
+            throw new HiveException("Device to subscribe for commands not found. DeviceId = " + id);
+        }
+
+        messagesDataSource.addCommandsSubscription(details.session(), id);
+        return deviceCommandDAO.getNewerThan(device, details.timestamp());
+    }
+
+    private User getUser(MessageDetails details) {
+        return details.transport() == WEBSOCKET ? WebsocketSession.getAuthorisedUser(sessionMonitor.getSession(details.session())) : details.user();
     }
 
     @Override
-    public void subscribe(MessageType messageType, String sessionId, Long... ids) {
-        subscribe(messageType, sessionId, Arrays.asList(ids));
-    }
+    public void unsubscribe(MessageType messageType, MessageDetails details) {
+        logger.info("Unsubscribing from message type: " + messageType + " for ids: " + details.ids());
 
-    @Override
-    public void unsubscribe(MessageType messageType, String sessionId, List<Long> ids) {
-        logger.info("Unsubscribing from message type: " + messageType + " for ids: " + ids);
-
-        Long id = ids != null && !ids.isEmpty() ? ids.get(0) : null;
+        Long id = details.id();
 
         switch (messageType) {
         case CLIENT_TO_DEVICE_COMMAND:
@@ -242,118 +158,62 @@ public class LocalMessageBus implements MessageBus {
                 logger.warn("DeviceId to unsubscribe from commands is null.");
                 return;
             }
-            messagesDataSource.removeCommandsSubscription(sessionId, id);
+            messagesDataSource.removeCommandsSubscription(details.session(), id);
             break;
         case DEVICE_TO_CLIENT_UPDATE_COMMAND:
             if (id == null) {
                 logger.warn("CommandId to unsubscribe from command-updates is null.");
                 return;
             }
-            messagesDataSource.removeCommandUpdatesSubscription(sessionId, id);
+            messagesDataSource.removeCommandUpdatesSubscription(details.session(), id);
             break;
         case DEVICE_TO_CLIENT_NOTIFICATION:
-            messagesDataSource.removeNotificationsSubscription(sessionId, ids);
+            messagesDataSource.removeNotificationsSubscription(details.session(), details.ids());
+            break;
+        case CLOSED_SESSION_DEVICE:
+            messagesDataSource.removeCommandsSubscriptions(details.session());
+            break;
+        case CLOSED_SESSION_CLIENT:
+            messagesDataSource.removeCommandUpdatesSubscriptions(details.session());
             break;
         default:
             logger.warn("Unsupported MessageType found: " + messageType);
             break;
         }
 
-    }
-
-    @Override
-    public void unsubscribe(MessageType messageType, String sessionId, Long... ids) {
-        unsubscribe(messageType, sessionId, Arrays.asList(ids));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public PollResult poll(MessageType messageType, Date timestamp, Long id) {
-        PollResult pollResult = new PollResult();
-
-        if (id == null) {
-            return null;
-        }
-
-        List<?> messages = new ArrayList<>();
-
-        switch (messageType) {
-        case CLIENT_TO_DEVICE_COMMAND:
-
-            Device device = deviceDAO.findById(id);
-            if (device == null) {
-                return null;
-            }
-
-            messages = deviceCommandDAO.getNewerThan(device, timestamp);
-
-            break;
-        case DEVICE_TO_CLIENT_NOTIFICATION:
-            User user = userDAO.findById(id);
-            if (user == null) {
-                return null;
-            }
-
-            messages = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
-
-            break;
-        default:
-            logger.warn("Unsupported MessageType found: " + messageType);
-            break;
-        }
-
-        if (messages.isEmpty()) {
-            messagePublisher.addMessageListener(new MessageListener(pollResult));
-        }
-        else {
-            pollResult.messages().addAll((Collection<? extends Message>) messages);
-        }
-
-        return pollResult;
-
-    }
-
-    @Override
-    public void unsubscribeDevice(String sessionId) {
-        messagesDataSource.removeCommandsSubscriptions(sessionId);
-    }
-
-    @Override
-    public void unsubscribeClient(String sessionId) {
-        messagesDataSource.removeCommandUpdatesSubscriptions(sessionId);
     }
 
     /**
-     * Method does for what described in {@link PollResult} class.
-     * @param <T>
+     * Method does for what described in {@link DeferredResponse} class.
+     * @param <T> Message extends {@link Message} to return list of this type.
      * 
-     * @param pollResult
+     * @param deferred
      * @param timeout
-     * @param type 
-     * @return Messages
+     * @param type
+     * @return Messages list of <T extends {@link Message}>
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Message> List<T> expandPollResult(PollResult pollResult, long timeout, Class<T> type) {
-        if (!pollResult.messages().isEmpty() || timeout == 0L) {
-            return (List<T>) new ArrayList<>(pollResult.messages());
+    public static <T extends Message> List<T> expandDeferredResponse(DeferredResponse deferred, long timeout, Class<T> type) {
+        if (!deferred.messages().isEmpty() || timeout == 0L) {
+            return (List<T>) new ArrayList<>(deferred.messages());
         }
         else {
-            Lock lock = pollResult.pollLock();
-            Condition hasMessages = pollResult.hasMessages();
+            Lock lock = deferred.pollLock();
+            Condition hasMessages = deferred.hasMessages();
 
             lock.lock();
 
             try {
-                if (pollResult.messages().isEmpty()) {//do it only once
+                if (deferred.messages().isEmpty()) {//do it only once
                     try {
                         hasMessages.await(timeout, TimeUnit.SECONDS);
                     }
                     catch (InterruptedException e) {
-                        logger.warn("hasMessages await: ", e);
+                        logger.warn("hasMessages await error: ", e);
                     }
                 }
 
-                return (List<T>) new ArrayList<>(pollResult.messages());
+                return (List<T>) new ArrayList<>(deferred.messages());
             }
             finally {
                 lock.unlock();

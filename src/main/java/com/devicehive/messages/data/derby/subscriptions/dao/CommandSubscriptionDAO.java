@@ -1,4 +1,4 @@
-package com.devicehive.messages.data.subscriptions.dao;
+package com.devicehive.messages.data.derby.subscriptions.dao;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
+import com.devicehive.messages.data.derby.subscriptions.model.CommandsSubscription;
 
 @Stateless
 public class CommandSubscriptionDAO {
@@ -31,7 +31,6 @@ public class CommandSubscriptionDAO {
 
     public void insert(CommandsSubscription subscription){
         em.persist(subscription);
-        em.flush();
     }
 
     public void deleteBySession(String sessionId){
@@ -44,6 +43,5 @@ public class CommandSubscriptionDAO {
         Query query = em.createNamedQuery("CommandsSubscription.deleteByDevice");
         query.setParameter("deviceId", deviceId);
         query.executeUpdate();
-        em.flush();
     }
 }

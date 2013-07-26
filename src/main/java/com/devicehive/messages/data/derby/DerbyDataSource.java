@@ -1,4 +1,4 @@
-package com.devicehive.messages.data;
+package com.devicehive.messages.data.derby;
 
 import java.sql.Connection;
 import java.util.Collection;
@@ -11,11 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.messages.data.subscriptions.dao.CommandSubscriptionDAO;
-import com.devicehive.messages.data.subscriptions.dao.CommandUpdatesSubscriptionDAO;
-import com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO;
-import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
-import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
+import com.devicehive.messages.data.MessagesDataSource;
+import com.devicehive.messages.data.derby.subscriptions.dao.CommandSubscriptionDAO;
+import com.devicehive.messages.data.derby.subscriptions.dao.CommandUpdatesSubscriptionDAO;
+import com.devicehive.messages.data.derby.subscriptions.dao.NotificationSubscriptionDAO;
+import com.devicehive.messages.data.derby.subscriptions.model.CommandUpdatesSubscription;
+import com.devicehive.messages.data.derby.subscriptions.model.CommandsSubscription;
 
 @DataSourceDefinition(
         className = Constants.DATA_SOURCE_CLASS_NAME,
@@ -43,22 +44,28 @@ public class DerbyDataSource implements MessagesDataSource {
 
     @Override
     public void addCommandsSubscription(String sessionId, Long deviceId) {
-        logger.debug("Subscribing for commands for device : " + deviceId + " and session : " + sessionId);
-        commandSubscriptionDAO.deleteByDevice(deviceId);
-        commandSubscriptionDAO.insert(new CommandsSubscription(deviceId, sessionId));
+        if (sessionId != null) {
+            logger.debug("Subscribing for commands for device : " + deviceId + " and session : " + sessionId);
+            commandSubscriptionDAO.deleteByDevice(deviceId);
+            commandSubscriptionDAO.insert(new CommandsSubscription(deviceId, sessionId));
+        }
     }
 
     @Override
     public void removeCommandsSubscription(String sessionId, Long deviceId) {
-        logger.debug("Unsubscribing from commands for device : " + deviceId + " and session : " + sessionId);
-        commandSubscriptionDAO.deleteByDevice(deviceId);
+        if (sessionId != null) {
+            logger.debug("Unsubscribing from commands for device : " + deviceId + " and session : " + sessionId);
+            commandSubscriptionDAO.deleteByDevice(deviceId);
+        }
     }
 
     @Override
     public void addCommandUpdatesSubscription(String sessionId, Long commandId) {
-        logger.debug("Subscribing for commands update for command : " + commandId + " and session : " + sessionId);
-        commandUpdatesSubscriptionDAO.deleteByCommandId(commandId);
-        commandUpdatesSubscriptionDAO.insert(new CommandUpdatesSubscription(commandId, sessionId));
+        if (sessionId != null) {
+            logger.debug("Subscribing for commands update for command : " + commandId + " and session : " + sessionId);
+            commandUpdatesSubscriptionDAO.deleteByCommandId(commandId);
+            commandUpdatesSubscriptionDAO.insert(new CommandUpdatesSubscription(commandId, sessionId));
+        }
     }
 
     @Override

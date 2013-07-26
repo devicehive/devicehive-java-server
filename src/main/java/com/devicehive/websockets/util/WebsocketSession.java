@@ -1,18 +1,20 @@
 package com.devicehive.websockets.util;
 
 
-import com.devicehive.model.Device;
-import com.devicehive.model.User;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.model.Device;
+import com.devicehive.model.User;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 
 public class WebsocketSession {
 
@@ -94,6 +96,7 @@ public class WebsocketSession {
     }
 
     public static void deliverMessages(Session session) throws IOException {
+        @SuppressWarnings("unchecked")
         ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(QUEUE);
         while (!queue.isEmpty()) {
             JsonElement jsonElement = queue.peek();
@@ -115,6 +118,7 @@ public class WebsocketSession {
     }
 
     public static void addMessagesToQueue(Session session, JsonElement... jsons) {
+        @SuppressWarnings("unchecked")
         ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(QUEUE);
         for (JsonElement json : jsons) {
             queue.add(json);

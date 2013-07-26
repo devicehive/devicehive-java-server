@@ -1,4 +1,4 @@
-package com.devicehive.messages.data.subscriptions.dao;
+package com.devicehive.messages.data.derby.subscriptions.dao;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
+import com.devicehive.messages.data.derby.subscriptions.model.CommandUpdatesSubscription;
 
 
 @Stateless

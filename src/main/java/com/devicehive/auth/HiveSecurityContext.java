@@ -9,30 +9,27 @@ import java.security.Principal;
 // TODO: that's probably not needed here
 @DeclareRoles({"Device", "CLIENT", "ADMIN"})
 public class HiveSecurityContext implements SecurityContext {
-    private final UserPrincipal userPrincipal;
-    private final DevicePrincipal devicePrincipal;
+    private final HivePrincipal hivePrincipal;
     private final boolean secure;
 
-    public HiveSecurityContext(UserPrincipal userPrincipal, DevicePrincipal devicePrincipal, boolean secure) {
-        this.userPrincipal = userPrincipal;
-        this.devicePrincipal = devicePrincipal;
+    public HiveSecurityContext(HivePrincipal hivePrincipal, boolean secure) {
+        this.hivePrincipal = hivePrincipal;
         this.secure = secure;
     }
 
     @Override
     public Principal getUserPrincipal() {
-        return userPrincipal == null ? devicePrincipal : userPrincipal;
+        return hivePrincipal;
     }
 
     @Override
     public boolean isUserInRole(String roleString) {
-        if (roleString.equalsIgnoreCase("device")) {
-            return devicePrincipal != null && devicePrincipal.getDevice() != null;
-        } else {
-            return userPrincipal != null
-                    && userPrincipal.getUser() != null
-                    && userPrincipal.getUser().getRole() == UserRole.valueOf(roleString);
+        if (roleString.equalsIgnoreCase("device")){
+            return hivePrincipal != null && hivePrincipal.getDevice() != null;
         }
+        return hivePrincipal!=null
+                && hivePrincipal.getUser() != null
+                && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
     }
 
     @Override

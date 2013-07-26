@@ -1,26 +1,12 @@
 package com.devicehive.service;
 
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Set;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.websocket.Session;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.devicehive.dao.DeviceClassDAO;
-import com.devicehive.dao.DeviceCommandDAO;
-import com.devicehive.dao.DeviceDAO;
-import com.devicehive.dao.DeviceEquipmentDAO;
-import com.devicehive.dao.DeviceNotificationDAO;
-import com.devicehive.dao.EquipmentDAO;
+import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.MessageType;
+import com.devicehive.messages.bus.MessageBroadcaster;
 import com.devicehive.messages.bus.MessageBus;
-import com.devicehive.messages.jms.MessagePublisher;
+import com.devicehive.messages.bus.StatefulMessageListener;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.DeviceCommand;
@@ -28,23 +14,30 @@ import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.MessageType;
 import com.devicehive.model.User;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.websocket.Session;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Set;
 
 @Stateless
 public class DeviceService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
-
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
     @Inject
-    private MessagePublisher messagePublisher;
+    private MessageBroadcaster messagePublisher;
     @Inject
     private MessageBus messageBus;
     @Inject
@@ -58,9 +51,6 @@ public class DeviceService {
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
-
-
-
     public void deviceSave(Device device, Set<Equipment> equipmentSet) {
         if (device.getNetwork() != null) {
             device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
@@ -69,29 +59,40 @@ public class DeviceService {
         createOrUpdateDevice(device);
     }
 
-    public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session userWebsocketSession) {
+    public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session session) {
         command.setDevice(device);
         command.setUser(user);
         command.setTimestamp(new Timestamp(System.currentTimeMillis()));
         deviceCommandDAO.createCommand(command);
-        if (userWebsocketSession != null) {
-            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, userWebsocketSession.getId(), command.getId());
-        }
-        messagePublisher.publishCommand(command);
+        messagePublisher.addMessageListener(
+                new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, messageBus));
+        messagePublisher.publish(command);
     }
 
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
         deviceCommandDAO.updateCommand(update, device);
-        messagePublisher.publishCommandUpdate(update);
+        messagePublisher.addMessageListener(
+                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, messageBus));
+        messagePublisher.publish(update);
     }
 
-    public void submitDeviceNotification(DeviceNotification notification, Device device) {
+    public void submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
         DeviceEquipment deviceEquipment = null;
         if (notification.getNotification().equals("equipment")) {
             deviceEquipment = parseNotification(notification, device);
         }
-        submitDeviceNotificationTransactionProcess(notification, device, deviceEquipment);
 
+        if (deviceEquipment != null) {
+            if (!deviceEquipmentDAO.update(deviceEquipment)) {
+                deviceEquipment.setTimestamp(new Timestamp(System.currentTimeMillis()));
+                deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
+            }
+        }
+        notification.setDevice(device);
+        deviceNotificationDAO.createNotification(notification);
+        messagePublisher
+                .addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, messageBus));
+        messagePublisher.publish(notification);
     }
 
     private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {
@@ -105,20 +106,6 @@ public class DeviceService {
             throw new HiveException("\"parameters\" must be JSON Object!");
         }
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
-    }
-
-    public void submitDeviceNotificationTransactionProcess(DeviceNotification notification, Device device,
-                                                           DeviceEquipment deviceEquipment) {
-        if (deviceEquipment != null) {
-            if (!deviceEquipmentDAO.update(deviceEquipment)) {
-                deviceEquipment.setTimestamp(new Timestamp(System.currentTimeMillis()));
-                deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
-            }
-        }
-        notification.setDevice(device);
-        deviceNotificationDAO.createNotification(notification);
-        messagePublisher.publishNotification(notification);
-
     }
 
     private DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
@@ -177,6 +164,7 @@ public class DeviceService {
             existingDevice.setStatus(device.getStatus());
             existingDevice.setData(device.getData());
             existingDevice.setNetwork(device.getNetwork());
+            existingDevice.setKey(device.getKey());
         }
 
     }

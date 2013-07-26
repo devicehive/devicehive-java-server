@@ -15,6 +15,8 @@ import javax.websocket.server.ServerEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devicehive.messages.MessageDetails;
+import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.util.SessionMonitor;
@@ -50,7 +52,7 @@ public class DeviceEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
-        messageBus.unsubscribeDevice(session.getId());
+        messageBus.unsubscribe(MessageType.CLOSED_SESSION_DEVICE, MessageDetails.create().session(session.getId()));
     }
 
     @OnError
