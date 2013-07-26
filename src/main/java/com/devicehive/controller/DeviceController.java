@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceEquipmentDAO;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -18,6 +19,8 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
@@ -42,6 +45,8 @@ public class DeviceController {
     private DeviceCommandDAO commandDAO;
     @Inject
     private DeviceEquipmentDAO equipmentDAO;
+    @Context
+    private ContainerRequestContext requestContext;
 
     @GET
     @RolesAllowed({"CLIENT", "ADMIN"})
@@ -61,7 +66,7 @@ public class DeviceController {
                              @QueryParam("skip") Integer skip) {
 
         boolean sortOrderAsc = true;
-        if (sortOrder!= null && (!sortOrder.equals("DESC") || !sortOrder.equals("ASC"))){
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             throw new BadRequestException("The sort order cannot be equal " + sortOrder);
         }
         if ("DESC".equals(sortOrder)) {
@@ -88,10 +93,18 @@ public class DeviceController {
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("unparseable guid: " + guid);
         }
+        if (jsonObject.get("key") == null) {
+            //use existing
+        }
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
         Device device = mainGson.fromJson(jsonObject, Device.class);
+        //todo no key
         device.setGuid(deviceGuid);
-        deviceService.checkDevice(device);
+        try {
+            deviceService.checkDevice(device);
+        } catch (HiveException e) {
+            throw new BadRequestException(e.getMessage(), e);
+        }
         Gson gsonForEquipment = GsonFactory.createGson();
         Set<Equipment> equipmentSet =
                 gsonForEquipment.fromJson(jsonObject.get("equipment"), new TypeToken<HashSet<Equipment>>() {
@@ -133,7 +146,7 @@ public class DeviceController {
         return equipmentDAO.findByFK(device);
     }
 
-    private Device getDevice (String uuid) {
+    private Device getDevice(String uuid) {
         UUID deviceId;
         try {
             deviceId = UUID.fromString(uuid);
@@ -146,4 +159,9 @@ public class DeviceController {
         }
         return device;
     }
+
+    private boolean checkPermission() {
+        return false;
+    }
+
 }

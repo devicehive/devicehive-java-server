@@ -22,8 +22,7 @@ public class EquipmentService {
     }
 
     public Equipment insertEquipment(Equipment e) {
-        e.setId(null);//resetting identifier to avoid updates
-        return equipmentDAO.insert(e);
+        return equipmentDAO.create(e);
     }
 
     public Equipment updateEquipment(Equipment e) {
@@ -31,7 +30,7 @@ public class EquipmentService {
     }
 
     public void deleteEquipment(Equipment e) {
-        equipmentDAO.delete(e);
+        equipmentDAO.delete(e.getId());
     }
 
     public Equipment get(@NotNull long id) {

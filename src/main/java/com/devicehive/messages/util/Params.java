@@ -9,7 +9,7 @@ public final class Params {
 
     public final static long DEFAULT_WAIT_TIMEOUT = 30L;
     public final static long MAX_WAIT_TIMEOUT = 60L;
-    public final static DateFormat UTC_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    public final static DateFormat UTC_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     private Params() {
     }

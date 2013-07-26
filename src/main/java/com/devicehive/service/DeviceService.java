@@ -147,11 +147,11 @@ public class DeviceService {
     public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
         List<Equipment> existingEquipments = equipmentDAO.getByDeviceClass(deviceClass);
         if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
-            equipmentDAO.removeEquipment(existingEquipments);
+            equipmentDAO.deleteEquipment(existingEquipments);
         }
         for (Equipment equipment : newEquipmentSet) {
             equipment.setDeviceClass(deviceClass);
-            equipmentDAO.createEquipment(equipment);
+            equipmentDAO.create(equipment);
         }
     }
 

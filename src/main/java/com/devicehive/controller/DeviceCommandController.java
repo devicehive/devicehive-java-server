@@ -22,9 +22,11 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 
 /**
@@ -41,16 +43,21 @@ public class DeviceCommandController {
     @Inject
     private MessageBus messageBus;
 
+    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    {
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
-     * 
-     * @param deviceGuid Device unique identifier.
+     *
+     * @param deviceGuid   Device unique identifier.
      * @param timestampUTC Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param waitTimeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param waitTimeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
     @Path("/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
@@ -81,19 +88,19 @@ public class DeviceCommandController {
     }
 
     @GET
-    @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_TO_DEVICE)
     public List<DeviceCommand> query(@PathParam("deviceGuid") String guid,
-            @QueryParam("start") String start,
-            @QueryParam("end") String end,
-            @QueryParam("command") String command,
-            @QueryParam("status") String status,
-            @QueryParam("sortField") String sortField,
-            @QueryParam("sortOrder") String sortOrder,
-            @QueryParam("take") Integer take,
-            @QueryParam("skip") Integer skip) {
-        if (sortOrder != null && (!sortOrder.equals("DESC") || !sortOrder.equals("ASC"))) {
+                                     @QueryParam("start") String start,
+                                     @QueryParam("end") String end,
+                                     @QueryParam("command") String command,
+                                     @QueryParam("status") String status,
+                                     @QueryParam("sortField") String sortField,
+                                     @QueryParam("sortOrder") String sortOrder,
+                                     @QueryParam("take") Integer take,
+                                     @QueryParam("skip") Integer skip) {
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             throw new BadRequestException("The sort order cannot be equal " + sortOrder);
         }
         boolean sortOrderAsc = true;
@@ -101,24 +108,25 @@ public class DeviceCommandController {
             sortOrderAsc = false;
         }
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField
-                    != null) {
+                != null) {
             throw new BadRequestException("The sort field cannot be equal " + sortField);
         }
         if (sortField == null) {
             sortField = "timestamp";
         }
         sortField = sortField.toLowerCase();
-        Timestamp startTimestamp = null, endTimestamp = null;
-        try {
-            if (start != null) {
-                startTimestamp = Timestamp.valueOf(start);
-            }
-            if (end != null) {
-                endTimestamp = Timestamp.valueOf(end);
+        Date startTimestamp = null, endTimestamp = null;
+        if (start != null) {
+            startTimestamp = Params.parseUTCDate(start);
+            if (startTimestamp == null) {
+                throw new BadRequestException("unparseable date " + start);
             }
         }
-        catch (IllegalArgumentException e) {
-            throw new BadRequestException("start and end dat must be in format yyyy-[m]m-[d]d hh:mm:ss[.f...]");
+        if (end != null) {
+            endTimestamp = Params.parseUTCDate(end);
+            if (endTimestamp == null) {
+                throw new BadRequestException("unparseable date " + end);
+            }
         }
         Device device = getDevice(guid);
         return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField,
@@ -130,8 +138,7 @@ public class DeviceCommandController {
         UUID deviceId;
         try {
             deviceId = UUID.fromString(uuid);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("unparseable guid: " + uuid);
         }
 

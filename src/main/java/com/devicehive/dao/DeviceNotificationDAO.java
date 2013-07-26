@@ -66,7 +66,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> queryDeviceNotification(Device device, Timestamp start, Timestamp end,
+    public List<DeviceNotification> queryDeviceNotification(Device device, Date start, Date end,
                                                             String notification,
                                                             String sortField, Boolean sortOrderAsc, Integer take,
                                                             Integer skip) {

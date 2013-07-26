@@ -26,7 +26,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 ":deviceClass"),
         @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList"),
         @NamedQuery(name = "Equipment.updateProperties", query = "update Equipment e set e.name = :name, e.code = :code," +
-                " e.type = :type, e.data = :data where e.id = :id")
+                " e.type = :type, e.data = :data where e.id = :id"),
+        @NamedQuery(name = "Equipment.deleteById", query = "delete from Equipment e where e.id = :id"),
+        @NamedQuery(name = "Equipment.deleteByFK", query = "delete from Equipment e where e.deviceClass = " +
+                ":deviceClass")
 })
 public class Equipment implements HiveEntity {
 

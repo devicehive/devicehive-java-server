@@ -97,7 +97,7 @@ public class DeviceCommandDAO {
     }
 
     @SuppressWarnings("unchecked")
-    public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
+    public List<DeviceCommand> queryDeviceCommand(Device device, Date start, Date end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();

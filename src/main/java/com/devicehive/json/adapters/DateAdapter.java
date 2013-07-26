@@ -12,7 +12,7 @@ import java.util.TimeZone;
 
 public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
 
-    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     {
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
@@ -25,7 +25,7 @@ public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
         try {
             return dateFormat.parse(jsonElement.getAsString());
         } catch (ParseException e) {
-            throw new JsonParseException("Error parsing date. Date must be in format yyyy-MM-dd HH:mm:ss.SSS", e);
+            throw new JsonParseException("Error parsing date. Date must be in format yyyy-MM-dd'T'HH:mm:ss.SSS", e);
         }
     }
 }
