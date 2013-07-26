@@ -20,6 +20,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
@@ -154,7 +155,9 @@ public class UserService {
     public void assignNetwork(@NotNull Long userId, @NotNull Long networkId) {
         User u = userDAO.findById(userId);
         Network n = networkDAO.getByIdWithUsers(networkId);
-        n.getUsers().add(u);
+        Set<User> usersSet = n.getUsers();
+        usersSet.add(u);
+        n.setUsers(usersSet);
         em.merge(n);
     }
 
