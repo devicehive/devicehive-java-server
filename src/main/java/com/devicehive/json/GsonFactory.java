@@ -1,13 +1,11 @@
 package com.devicehive.json;
 
 
-import com.devicehive.json.adapters.TimestampAdapter;
-import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.json.adapters.DateAdapter;
-import com.devicehive.json.adapters.JsonDbObjectAdapter;
-import com.devicehive.json.adapters.UUIDAdapter;
+import com.devicehive.json.adapters.*;
 import com.devicehive.json.strategies.AnnotatedStrategy;
-
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -37,7 +35,9 @@ public class GsonFactory {
                 .registerTypeAdapter(Date.class, new DateAdapter())
                 .registerTypeAdapter(UUID.class, new UUIDAdapter())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
-                .registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter());
+                .registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter())
+                .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
+                .registerTypeAdapter(UserStatus.class, new UserStatusAdapter());
     }
 
 }

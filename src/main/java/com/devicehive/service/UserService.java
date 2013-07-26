@@ -12,8 +12,12 @@ import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.*;
 import javax.inject.Inject;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
 
@@ -60,6 +64,7 @@ public class UserService {
             return null;
         } else {
             user.setLoginAttempts(0);
+            user.setLastLogin(new Timestamp(System.currentTimeMillis()));
             return user;
         }
     }

@@ -1,7 +1,7 @@
 package com.devicehive.messages.util;
 
-import static com.devicehive.json.adapters.DateAdapter.UTC_DATE_FORMAT;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
 
