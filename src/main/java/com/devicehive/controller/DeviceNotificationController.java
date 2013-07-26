@@ -168,6 +168,15 @@ public class DeviceNotificationController {
         return response;
     }
 
+    /**
+     * 
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
+     * 
+     * @param deviceGuids Device unique identifier.
+     * @param timestampUTC Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param waitTimeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
+     */
     @GET
     @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
     @Path("/notification/poll")

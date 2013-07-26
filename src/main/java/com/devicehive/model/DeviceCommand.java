@@ -23,6 +23,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -53,7 +54,7 @@ import com.google.gson.annotations.SerializedName;
                 " = :user and dc.device = :device"),
         @NamedQuery(name = "DeviceCommand.deleteByFK", query = "delete from DeviceCommand dc where dc.device = :device")
 })
-public class DeviceCommand implements Message {
+public class DeviceCommand implements HiveEntity, Message {
 
     @SerializedName("id")
     @Id
@@ -106,6 +107,9 @@ public class DeviceCommand implements Message {
     })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private JsonStringWrapper result;
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
 
     public DeviceCommand() {
     }
@@ -208,5 +212,9 @@ public class DeviceCommand implements Message {
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
     }
 }

@@ -1,5 +1,23 @@
 package com.devicehive.controller;
 
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
@@ -15,17 +33,6 @@ import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -61,12 +68,12 @@ public class DeviceCommandController {
             @Context SecurityContext securityContext) {
 
         if (deviceGuid == null) {
-            throw new NotFoundException();
+            throw new BadRequestException("deviceGuid should be provided.");
         }
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
-            throw new NotFoundException();
+            throw new NotFoundException("Device with guid = " + deviceGuid + " not found.");
         }
 
         Date timestamp = Params.parseUTCDate(timestampUTC);
@@ -78,6 +85,51 @@ public class DeviceCommandController {
         List<DeviceCommand> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
 
         return response;
+    }
+
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/wait">DeviceHive RESTful API: DeviceCommand: wait</a>
+     * 
+     * @param waitTimeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
+     */
+    @GET
+    @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @Path("/{commandId}/poll")
+    @Produces(MediaType.APPLICATION_JSON)
+    @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
+    public DeviceCommand wait(
+            @PathParam("deviceGuid") String deviceGuid,
+            @PathParam("commandId") String commandId,
+            @QueryParam("waitTimeout") String waitTimeout,
+            @Context SecurityContext securityContext) {
+
+        if (deviceGuid == null || commandId == null) {
+            throw new BadRequestException("Ids should be provided.");
+        }
+
+        Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
+        if (device == null) {
+            throw new NotFoundException("Device with guid = " + deviceGuid + " not found.");
+        }
+
+        DeviceCommand command = commandDAO.findById(Long.valueOf(commandId));
+        if (command == null) {
+            throw new NotFoundException("DeviceCommand with id = " + commandId + " not found.");
+        }
+
+        if (!command.getDevice().getId().equals(device.getId())) {
+            throw new BadRequestException("Command with id = " + commandId + " is not belong to device with guid = " + deviceGuid);
+        }
+
+        long timeout = Params.parseWaitTimeout(waitTimeout);
+
+        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND,
+                MessageDetails.create().ids(device.getId(), command.getId()).user(user));
+        List<DeviceCommand> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
+
+        return response.isEmpty() ? null : response.get(0);
     }
 
     @GET

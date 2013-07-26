@@ -1,10 +1,13 @@
 package com.devicehive.messages.bus;
 
 import static com.devicehive.messages.Transport.WEBSOCKET;
+import static com.devicehive.model.HiveEntity.INITIAL_ENTITY_VERSION;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -94,7 +97,7 @@ public class LocalMessageBus implements MessageBus {
             messages = doNotificationsSubscription(details);
             break;
         case DEVICE_TO_CLIENT_UPDATE_COMMAND:
-            doCommandUpdatesSubscription(id, details);
+            messages = doCommandUpdatesSubscription(id, details);
             break;
         default:
             logger.warn("Unsupported MessageType found: " + messageType);
@@ -111,11 +114,19 @@ public class LocalMessageBus implements MessageBus {
         return deferred;
     }
 
-    private void doCommandUpdatesSubscription(Long id, MessageDetails details) {
+    private List<DeviceCommand> doCommandUpdatesSubscription(Long id, MessageDetails details) {
         if (id == null) {
             throw new HiveException("CommandId to subscribe for command-updates is null.");
         }
         messagesDataSource.addCommandUpdatesSubscription(details.session(), id);
+
+        if (details.ids().size() == 2) {//deviceId and commandId
+            //We need to return command only if it has been updated by device
+            DeviceCommand command = deviceCommandDAO.findById(details.ids().get(1));
+            boolean wasUpdate = command.getEntityVersion() > INITIAL_ENTITY_VERSION;
+            return wasUpdate ? Arrays.asList(command) : Collections.<DeviceCommand> emptyList();
+        }
+        return Collections.<DeviceCommand> emptyList();
     }
 
     private List<DeviceNotification> doNotificationsSubscription(MessageDetails details) {
