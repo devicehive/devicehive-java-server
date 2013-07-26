@@ -150,7 +150,7 @@ public class UserService {
         User u = userDAO.findById(userId);
         Network n = networkDAO.getByIdWithUsers(networkId);
         n.getUsers().add(u);
-        em.persist(n);
+        em.merge(n);
     }
 
     public void unassignNetwork(@NotNull Long userId, @NotNull Long networkId) {
