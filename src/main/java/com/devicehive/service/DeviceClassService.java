@@ -22,13 +22,13 @@ public class DeviceClassService {
 
     @Inject
     private DeviceClassDAO deviceClassDAO;
-
     @Inject
     private EquipmentDAO equipmentDAO;
 
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 String sortOrder, Integer take, Integer skip) {
-        return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, "ASC".equals(sortOrder), take, skip);
+        return deviceClassDAO
+                .getDeviceClassList(name, namePattern, version, sortField, "ASC".equals(sortOrder), take, skip);
     }
 
     public DeviceClass get(@NotNull long id) {
@@ -41,7 +41,9 @@ public class DeviceClassService {
             throw new NoSuchRecordException("There is no such DeviceClass");
         }
         List<Equipment> equipment = equipmentDAO.getByDeviceClass(dc);
-        equipmentDAO.deleteEquipment(equipment);
+        if (!equipment.isEmpty()) {
+            equipmentDAO.deleteEquipment(equipment);
+        }
         deviceClassDAO.delete(id);
     }
 
@@ -63,7 +65,8 @@ public class DeviceClassService {
 
     public DeviceClass update(DeviceClass deviceClass) {
         if (deviceClass.getName() != null && deviceClass.getVersion() != null) {
-            DeviceClass existingDeviceClass = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
+            DeviceClass existingDeviceClass =
+                    deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
             if (existingDeviceClass != null && !deviceClass.equals(existingDeviceClass)) {
                 throw new DublicateEntryException("Entity with same name and version already exists with different id");
             }

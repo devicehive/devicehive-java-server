@@ -1,37 +1,23 @@
 package com.devicehive.controller;
 
-import java.util.List;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.xml.ws.http.HTTPException;
-
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
 import com.devicehive.model.request.UserInsert;
 import com.devicehive.service.UserService;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.xml.ws.http.HTTPException;
+import java.util.List;
 
 /**
  * TODO JavaDoc
@@ -59,16 +45,19 @@ public class UserController {
             @QueryParam("take") Integer take,
             @QueryParam("skip") Integer skip
     ) {
-        boolean sortOrderASC = true;
+        boolean sortOrderAsc = true;
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+            throw new BadRequestException("The sort order cannot be equal " + sortOrder);
+        }
         if ("DESC".equals(sortOrder)) {
-            sortOrderASC = false;
+            sortOrderAsc = false;
         }
         if (!"login".equals(sortField) && !"id".equals(sortField) && sortField != null) {  //ID??
             throw new HiveException("The sort field cannot be equal " + sortField);//maybe better to do sort field null
         }
         //TODO validation for role and status
 
-        return userService.getList(login, loginPattern, role, status, sortField, sortOrderASC, take, skip);
+        return userService.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
 
     }
 
