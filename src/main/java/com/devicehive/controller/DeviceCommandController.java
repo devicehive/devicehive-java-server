@@ -107,8 +107,7 @@ public class DeviceCommandController {
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
-        if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField
-                    != null) {
+        if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField != null) {
             throw new BadRequestException("The sort field cannot be equal " + sortField);
         }
         if (sortField == null) {
@@ -128,9 +127,7 @@ public class DeviceCommandController {
             throw new BadRequestException("start and end dat must be in format yyyy-[m]m-[d]d hh:mm:ss[.f...]");
         }
         Device device = getDevice(guid);
-        return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField,
-                sortOrderAsc,
-                take, skip);
+        return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField, sortOrderAsc, take, skip);
     }
 
     private Device getDevice(String uuid) {

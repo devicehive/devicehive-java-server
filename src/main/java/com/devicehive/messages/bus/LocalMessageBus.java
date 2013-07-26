@@ -187,24 +187,24 @@ public class LocalMessageBus implements MessageBus {
      * Method does for what described in {@link DeferredResponse} class.
      * @param <T> Message extends {@link Message} to return list of this type.
      * 
-     * @param pollResult
+     * @param deferred
      * @param timeout
      * @param type
-     * @return Messages list of <T extends{@link Message}>
+     * @return Messages list of <T extends {@link Message}>
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Message> List<T> expandDeferredResponse(DeferredResponse pollResult, long timeout, Class<T> type) {
-        if (!pollResult.messages().isEmpty() || timeout == 0L) {
-            return (List<T>) new ArrayList<>(pollResult.messages());
+    public static <T extends Message> List<T> expandDeferredResponse(DeferredResponse deferred, long timeout, Class<T> type) {
+        if (!deferred.messages().isEmpty() || timeout == 0L) {
+            return (List<T>) new ArrayList<>(deferred.messages());
         }
         else {
-            Lock lock = pollResult.pollLock();
-            Condition hasMessages = pollResult.hasMessages();
+            Lock lock = deferred.pollLock();
+            Condition hasMessages = deferred.hasMessages();
 
             lock.lock();
 
             try {
-                if (pollResult.messages().isEmpty()) {//do it only once
+                if (deferred.messages().isEmpty()) {//do it only once
                     try {
                         hasMessages.await(timeout, TimeUnit.SECONDS);
                     }
@@ -213,7 +213,7 @@ public class LocalMessageBus implements MessageBus {
                     }
                 }
 
-                return (List<T>) new ArrayList<>(pollResult.messages());
+                return (List<T>) new ArrayList<>(deferred.messages());
             }
             finally {
                 lock.unlock();
