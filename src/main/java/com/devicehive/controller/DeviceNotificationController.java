@@ -27,6 +27,7 @@ import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
+import com.devicehive.messages.util.Params;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.DeferredResponse;
@@ -37,13 +38,20 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
 
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 /**
  * 
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceHive RESTful API: DeviceNotification</a> for details.
  * 
  * @author rroschin
- *
  */
 @Path("/device")
 public class DeviceNotificationController {
@@ -57,18 +65,18 @@ public class DeviceNotificationController {
 
     @GET
     @Path("/{deviceGuid}/notification")
-    @RolesAllowed({ "CLIENT", "ADMIN" })
+    @RolesAllowed({"CLIENT", "ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)
     public List<DeviceNotification> query(@PathParam("deviceGuid") String guid,
-            @QueryParam("start") String start,
-            @QueryParam("end") String end,
-            @QueryParam("notification") String notification,
-            @QueryParam("sortField") String sortField,
-            @QueryParam("sortOrder") String sortOrder,
-            @QueryParam("take") Integer take,
-            @QueryParam("skip") Integer skip) {
-        if (sortOrder != null && (!sortOrder.equals("DESC") || !sortOrder.equals("ASC"))) {
+                                          @QueryParam("start") String start,
+                                          @QueryParam("end") String end,
+                                          @QueryParam("notification") String notification,
+                                          @QueryParam("sortField") String sortField,
+                                          @QueryParam("sortOrder") String sortOrder,
+                                          @QueryParam("take") Integer take,
+                                          @QueryParam("skip") Integer skip) {
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             throw new BadRequestException("The sort order cannot be equal " + sortOrder);
         }
         boolean sortOrderAsc = true;
@@ -82,25 +90,29 @@ public class DeviceNotificationController {
             sortField = "timestamp";
         }
         sortField = sortField.toLowerCase();
-        Timestamp startTimestamp = null, endTimestamp = null;
-        try {
-            if (start != null) {
-                startTimestamp = Timestamp.valueOf(start);
-            }
-            if (end != null) {
-                endTimestamp = Timestamp.valueOf(end);
+
+        Date startTimestamp = null, endTimestamp = null;
+
+        if (start != null) {
+            startTimestamp = Params.parseUTCDate(start);
+            if (startTimestamp == null) {
+                throw new BadRequestException("unparseable date " + start);
             }
         }
-        catch (IllegalArgumentException e) {
-            throw new BadRequestException("start and end dat must be in format yyyy-[m]m-[d]d hh:mm:ss[.f...]");
+        if (end != null) {
+            endTimestamp = Params.parseUTCDate(end);
+            if (endTimestamp == null) {
+                throw new BadRequestException("unparseable date " + end);
+            }
         }
+
         Device device = getDevice(guid);
         return notificationDAO.queryDeviceNotification(device, startTimestamp, endTimestamp, notification, sortField, sortOrderAsc, take, skip);
     }
 
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @RolesAllowed({ "CLIENT", "ADMIN" })
+    @RolesAllowed({"CLIENT", "ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)
     public DeviceNotification get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId) {
@@ -116,8 +128,7 @@ public class DeviceNotificationController {
         UUID deviceId;
         try {
             deviceId = UUID.fromString(uuid);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("unparseable guid: " + uuid);
         }
         Device device = deviceDAO.findByUUID(deviceId);
@@ -137,7 +148,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
     @Path("/{deviceGuid}/notification/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.NOTIFICATION_TO_CLIENT)
@@ -178,7 +189,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
     @Path("/notification/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.NOTIFICATION_TO_CLIENT)

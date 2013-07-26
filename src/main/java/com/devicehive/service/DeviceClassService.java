@@ -41,11 +41,7 @@ public class DeviceClassService {
             throw new NoSuchRecordException("There is no such DeviceClass");
         }
         List<Equipment> equipment = equipmentDAO.getByDeviceClass(dc);
-        //TODO: optimize performance
-        for (Equipment e : equipment) {
-            equipmentDAO.delete(e);
-        }
-
+        equipmentDAO.deleteEquipment(equipment);
         deviceClassDAO.delete(id);
     }
 
