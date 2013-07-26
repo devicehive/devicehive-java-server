@@ -18,7 +18,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
-import com.devicehive.auth.UserPrincipal;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -156,7 +156,7 @@ public class DeviceNotificationController {
         Date timestamp = Params.parseUTCDate(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
-        User user = ((UserPrincipal) securityContext.getUserPrincipal()).getUser();
+        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
 
         DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
