@@ -1,11 +1,8 @@
 package com.devicehive.json;
 
 
-import com.devicehive.json.adapters.TimestampAdapter;
+import com.devicehive.json.adapters.*;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.json.adapters.DateAdapter;
-import com.devicehive.json.adapters.JsonDbObjectAdapter;
-import com.devicehive.json.adapters.UUIDAdapter;
 import com.devicehive.json.strategies.AnnotatedStrategy;
 
 import com.google.gson.Gson;
@@ -34,6 +31,8 @@ public class GsonFactory {
     public static GsonBuilder createGsonBuilder() {
         return new GsonBuilder()
                 .setPrettyPrinting()
+                .serializeNulls()
+                .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
                 .registerTypeAdapter(Date.class, new DateAdapter())
                 .registerTypeAdapter(UUID.class, new UUIDAdapter())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
