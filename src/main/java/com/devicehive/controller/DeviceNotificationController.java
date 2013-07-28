@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -65,7 +66,7 @@ public class DeviceNotificationController {
 
     @GET
     @Path("/{deviceGuid}/notification")
-    @RolesAllowed({"CLIENT", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)
     public List<DeviceNotification> query(@PathParam("deviceGuid") String guid,
@@ -112,7 +113,7 @@ public class DeviceNotificationController {
 
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @RolesAllowed({"CLIENT", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)
     public DeviceNotification get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId) {
@@ -148,7 +149,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.NOTIFICATION_TO_CLIENT)
@@ -189,7 +190,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/notification/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.NOTIFICATION_TO_CLIENT)

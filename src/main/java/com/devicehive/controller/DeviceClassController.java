@@ -17,6 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.dao.NoSuchRecordException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -39,7 +40,7 @@ public class DeviceClassController {
 
     @GET
     @Path("/class")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_LISTED)
     public List<DeviceClass> getDeviceClassList(@QueryParam("name") String name,
@@ -55,7 +56,7 @@ public class DeviceClassController {
 
     @GET
     @Path("/class/{id}")
-    @RolesAllowed({"ADMIN", "CLIENT"})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED)
     public DeviceClass getDeviceClass(@PathParam("id") long id) {
@@ -64,7 +65,7 @@ public class DeviceClassController {
 
     @POST
     @Path("/class")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
@@ -74,7 +75,7 @@ public class DeviceClassController {
 
     @PUT
     @Path("/class/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
@@ -86,7 +87,7 @@ public class DeviceClassController {
 
     @DELETE
     @Path("/class/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
         try {
             deviceClassService.delete(id);
@@ -99,7 +100,7 @@ public class DeviceClassController {
 
     @GET
     @Path("/class/{deviceClassId}/equipment/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)
     public Equipment getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
         return equipmentService.getEquipment(classId, eqId);
@@ -108,7 +109,7 @@ public class DeviceClassController {
 
     @POST
     @Path("/class/{deviceClassId}/equipment")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
@@ -123,7 +124,7 @@ public class DeviceClassController {
 
     @PUT
     @Path("/class/{deviceClassId}/equipment/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
@@ -153,7 +154,7 @@ public class DeviceClassController {
 
     @DELETE
     @Path("/class/{deviceClassId}/equipment/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
         Equipment e = equipmentService.getEquipment(classId, eqId);

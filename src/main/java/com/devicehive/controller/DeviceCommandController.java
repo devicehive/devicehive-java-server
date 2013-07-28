@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -56,7 +57,7 @@ public class DeviceCommandController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
@@ -93,7 +94,7 @@ public class DeviceCommandController {
      * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{commandId}/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
@@ -132,7 +133,7 @@ public class DeviceCommandController {
     }
 
     @GET
-    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_TO_DEVICE)
     public List<DeviceCommand> query(@PathParam("deviceGuid") String guid,

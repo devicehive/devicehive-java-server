@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -32,7 +33,7 @@ public class UserController {
     private ContainerRequestContext requestContext;
 
     @GET
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public List<User> getUsersList(
@@ -64,7 +65,7 @@ public class UserController {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public User getUser(@PathParam("id") long id) {
         User u = userService.findUserWithNetworks(id);
@@ -77,7 +78,7 @@ public class UserController {
     }
 
     @POST
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
@@ -95,7 +96,7 @@ public class UserController {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserInsert user, @PathParam("id") long userId) {
         User u = userService.findByLogin(user.getLogin());
@@ -110,7 +111,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     public Response updateUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
         return Response.ok().build();
@@ -119,7 +120,7 @@ public class UserController {
 
     @GET
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     public Network getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
@@ -138,7 +139,7 @@ public class UserController {
 
     @PUT
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {
@@ -151,7 +152,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         try {

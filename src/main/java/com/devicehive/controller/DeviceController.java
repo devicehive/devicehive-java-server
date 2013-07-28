@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceEquipmentDAO;
@@ -49,7 +50,7 @@ public class DeviceController {
     private ContainerRequestContext requestContext;
 
     @GET
-    @RolesAllowed({"CLIENT", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(DEVICE_PUBLISHED)
     public List<Device> list(@QueryParam("name") String name,
@@ -119,7 +120,7 @@ public class DeviceController {
 
     @GET
     @Path("/{id}")
-    @RolesAllowed({"Device", "CLIENT", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(DEVICE_PUBLISHED)
     public Device get(@PathParam("id") String guid) {
@@ -128,7 +129,7 @@ public class DeviceController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") String guid) {
         Device device = getDevice(guid);
         commandDAO.deleteByFK(device);
@@ -138,7 +139,7 @@ public class DeviceController {
 
     @GET
     @Path("/{id}/equipment")
-    @RolesAllowed({"CLIENT", "ADMIN"})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(DEVICE_EQUIPMENT_SUBMITTED)
     public List<DeviceEquipment> equipment(@PathParam("id") String guid) {

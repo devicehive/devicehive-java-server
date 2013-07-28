@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
@@ -62,7 +63,7 @@ public class NetworkController {
      * @param skip offset, default 0
      */
     @GET
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
     public List<Network> getNetworkList( @QueryParam("name") String name,
@@ -89,7 +90,7 @@ public class NetworkController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORK_PUBLISHED)
     public Network getNetworkList(@PathParam("id") long id) {
@@ -125,7 +126,7 @@ public class NetworkController {
      *
      */
     @POST
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
@@ -164,7 +165,7 @@ public class NetworkController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
     public Network update(Network nr, @PathParam("id") long id) {
@@ -180,7 +181,7 @@ public class NetworkController {
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") long id) {
         networkService.delete(id);
         return Response.ok().build();
