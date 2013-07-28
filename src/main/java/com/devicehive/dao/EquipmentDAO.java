@@ -19,11 +19,16 @@ import java.util.List;
 public class EquipmentDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public Equipment createEquipment(Equipment equipment) {
+    /**
+     * Inserts new record
+     *
+     * @param equipment Equipment instance to save
+     * @Return managed instance of Equipment
+     */
+    public Equipment create(@NotNull Equipment equipment) {
         em.persist(equipment);
         return equipment;
     }
@@ -35,32 +40,14 @@ public class EquipmentDAO {
         return query.getResultList();
     }
 
-    @Deprecated
-    public Equipment getByDeviceClass(long deviceClassId, long equipmentId) {
-
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Equipment getByDeviceClass(@NotNull Long deviceClassId, @NotNull Long equipmentId) {
         Equipment e = em.find(Equipment.class, equipmentId);
-
-        if (e == null || e.getDeviceClass().getId() != deviceClassId) {
+        if (e == null || !e.getDeviceClass().getId().equals(deviceClassId)) {
             return null;
         }
-
         return e;
 
-    }
-
-    /**
-     * Inserts new record
-     *
-     * @param e Equipment instance to save
-     * @Return managed instance of Equipment
-     */
-    @Deprecated
-    public Equipment insert(Equipment e) throws PersistenceException {
-        try {
-            return em.merge(e);
-        } catch (Exception ex) {
-            throw new HivePersistingException("Unable to persist entity", ex);
-        }
     }
 
     @Deprecated
@@ -72,45 +59,41 @@ public class EquipmentDAO {
         }
     }
 
-    //TODO api
-    @Deprecated
-    public void delete(Equipment e) {
-        em.remove(e);
+    public boolean update (@NotNull Equipment equipment, @NotNull Long equipmentId){
+        Query query = em.createNamedQuery("Equipment.updateProperties");
+        query.setParameter("id", equipmentId);
+        query.setParameter("name", equipment.getName());
+        query.setParameter("code", equipment.getCode());
+        query.setParameter("type", equipment.getType());
+        query.setParameter("data", equipment.getData());
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean delete(@NotNull Long equipmentId){
+        Query query =  em.createNamedQuery("Equipment.deleteById");
+        query.setParameter("id", equipmentId);
+        return query.executeUpdate() != 0;
+    }
+
+    public int deleteByFK(@NotNull DeviceClass deviceClass){
+        Query query = em.createNamedQuery("Equipment.deleteByFK");
+        query.setParameter("deviceClass", deviceClass);
+        return query.executeUpdate();
     }
 
     /**
      * @param id Equipment Id
      * @returns Equipment
      */
-    public Equipment get(long id) {
+    public Equipment get(@NotNull Long id) {
         return em.find(Equipment.class, id);
-    }
-
-    public Equipment updateEquipment(@NotNull Equipment e){
-
-        if(e.getId()==null) {
-            logger.error("Equipment id must be provided");
-            return null;
-        }
-
-        Equipment toUpdate = em.find(Equipment.class,e.getId());
-        Query query = em.createNamedQuery("Equipment.updateProperties");
-
-        query.setParameter("id",e.getId());
-        query.setParameter("name",e.getName()==null?toUpdate.getName():e.getName());
-        query.setParameter("code",e.getCode()==null?toUpdate.getCode():e.getCode());
-        query.setParameter("type",e.getType()==null?toUpdate.getType():e.getType());
-        query.setParameter("data",e.getData()==null?toUpdate.getCode():e.getData());
-
-        query.executeUpdate();
-        return toUpdate;
     }
 
     /**
      * @param equipments equipments to remove
      * @return
      */
-    public int removeEquipment(Collection<Equipment> equipments) {
+    public int deleteEquipment(Collection<Equipment> equipments) {
         Query query = em.createNamedQuery("Equipment.deleteByEquipmentList");
         query.setParameter("equipmentList", equipments);
         return query.executeUpdate();

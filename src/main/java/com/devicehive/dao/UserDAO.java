@@ -88,7 +88,7 @@ public class UserDAO {
     }
 
     public User findUserWithNetworks(Long id) {
-        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworks", User.class);
+        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworksById", User.class);
         query.setParameter("id", id);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
@@ -96,7 +96,7 @@ public class UserDAO {
     }
 
     public User findUserWithNetworksByLogin(String login) {
-        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworksById", User.class);
+        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworks", User.class);
         query.setParameter("login", login);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);

@@ -1,10 +1,13 @@
 package com.devicehive.messages.bus;
 
 import static com.devicehive.messages.Transport.WEBSOCKET;
+import static com.devicehive.model.HiveEntity.INITIAL_ENTITY_VERSION;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -33,6 +36,11 @@ import com.devicehive.model.User;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 
+/**
+ * Implementation of {@link MessageBus} with some useful methods.
+ * @author rroschin
+ *
+ */
 @Stateless
 public class LocalMessageBus implements MessageBus {
 
@@ -94,7 +102,7 @@ public class LocalMessageBus implements MessageBus {
             messages = doNotificationsSubscription(details);
             break;
         case DEVICE_TO_CLIENT_UPDATE_COMMAND:
-            doCommandUpdatesSubscription(id, details);
+            messages = doCommandUpdatesSubscription(id, details);
             break;
         default:
             logger.warn("Unsupported MessageType found: " + messageType);
@@ -111,11 +119,19 @@ public class LocalMessageBus implements MessageBus {
         return deferred;
     }
 
-    private void doCommandUpdatesSubscription(Long id, MessageDetails details) {
+    private List<DeviceCommand> doCommandUpdatesSubscription(Long id, MessageDetails details) {
         if (id == null) {
             throw new HiveException("CommandId to subscribe for command-updates is null.");
         }
         messagesDataSource.addCommandUpdatesSubscription(details.session(), id);
+
+        if (details.ids().size() == 2) {//deviceId and commandId
+            //We need to return command only if it has been updated by device
+            DeviceCommand command = deviceCommandDAO.findById(details.ids().get(1));
+            boolean wasUpdate = command.getEntityVersion() > INITIAL_ENTITY_VERSION;
+            return wasUpdate ? Arrays.asList(command) : Collections.<DeviceCommand> emptyList();
+        }
+        return Collections.<DeviceCommand> emptyList();
     }
 
     private List<DeviceNotification> doNotificationsSubscription(MessageDetails details) {
@@ -187,24 +203,24 @@ public class LocalMessageBus implements MessageBus {
      * Method does for what described in {@link DeferredResponse} class.
      * @param <T> Message extends {@link Message} to return list of this type.
      * 
-     * @param pollResult
+     * @param deferred
      * @param timeout
      * @param type
-     * @return Messages list of <T extends{@link Message}>
+     * @return Messages list of <T extends {@link Message}>
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Message> List<T> expandDeferredResponse(DeferredResponse pollResult, long timeout, Class<T> type) {
-        if (!pollResult.messages().isEmpty() || timeout == 0L) {
-            return (List<T>) new ArrayList<>(pollResult.messages());
+    public static <T extends Message> List<T> expandDeferredResponse(DeferredResponse deferred, long timeout, Class<T> type) {
+        if (!deferred.messages().isEmpty() || timeout == 0L) {
+            return (List<T>) new ArrayList<>(deferred.messages());
         }
         else {
-            Lock lock = pollResult.pollLock();
-            Condition hasMessages = pollResult.hasMessages();
+            Lock lock = deferred.pollLock();
+            Condition hasMessages = deferred.hasMessages();
 
             lock.lock();
 
             try {
-                if (pollResult.messages().isEmpty()) {//do it only once
+                if (deferred.messages().isEmpty()) {//do it only once
                     try {
                         hasMessages.await(timeout, TimeUnit.SECONDS);
                     }
@@ -213,7 +229,7 @@ public class LocalMessageBus implements MessageBus {
                     }
                 }
 
-                return (List<T>) new ArrayList<>(pollResult.messages());
+                return (List<T>) new ArrayList<>(deferred.messages());
             }
             finally {
                 lock.unlock();

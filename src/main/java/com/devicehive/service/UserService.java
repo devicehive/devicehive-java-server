@@ -12,10 +12,15 @@ import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.*;
 import javax.inject.Inject;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
@@ -60,6 +65,7 @@ public class UserService {
             return null;
         } else {
             user.setLoginAttempts(0);
+            user.setLastLogin(new Timestamp(System.currentTimeMillis()));
             return user;
         }
     }
@@ -149,8 +155,10 @@ public class UserService {
     public void assignNetwork(@NotNull Long userId, @NotNull Long networkId) {
         User u = userDAO.findById(userId);
         Network n = networkDAO.getByIdWithUsers(networkId);
-        n.getUsers().add(u);
-        em.persist(n);
+        Set<User> usersSet = n.getUsers();
+        usersSet.add(u);
+        n.setUsers(usersSet);
+        em.merge(n);
     }
 
     public void unassignNetwork(@NotNull Long userId, @NotNull Long networkId) {

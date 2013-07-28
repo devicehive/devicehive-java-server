@@ -10,16 +10,7 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -38,12 +29,12 @@ import com.google.gson.annotations.SerializedName;
         @NamedQuery(name = "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
         @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
                 "where u = :user and n = :network"),
-        @NamedQuery(name = "User.getWithNetworks",
+        @NamedQuery(name = "User.getWithNetworksById",
                 query = "select u from User u left join fetch u.networks where u.id = :id"),
         @NamedQuery(name = "User.updateById",
                 query = "update User u set u.passwordHash = :passwordHash, u.passwordSalt = :passwordSalt, u.loginAttempts = :loginAttempts," +
                         " u.role = :role, u.lastLogin = :lastLogin where u.id = :id"),
-        @NamedQuery(name = "User.getWithNetworksById",
+        @NamedQuery(name = "User.getWithNetworks",
                 query = "select u from User u left join fetch u.networks where u.login = :login"),
 
         @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
@@ -88,14 +79,15 @@ public class User implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
 
-    @Column(name = "last_login")
-    @SerializedName("lastLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
-    private Timestamp lastLogin = new Timestamp(0);
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})
     private Set<Network> networks;
+
+    @Column(name = "last_login")
+    @SerializedName("lastLogin")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    private Timestamp lastLogin = new Timestamp(0);
 
     @Version
     @Column(name = "entity_version")

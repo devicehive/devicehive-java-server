@@ -24,6 +24,7 @@ import com.devicehive.messages.data.derby.subscriptions.model.CommandUpdatesSubs
 import com.devicehive.messages.data.derby.subscriptions.model.CommandsSubscription;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Message;
 import com.devicehive.model.User;
 import com.devicehive.websockets.handlers.ServerResponsesFactory;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
@@ -31,6 +32,12 @@ import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonObject;
 
+/**
+ * Class-notifier. It can be used to deliver messages to open websocket connections.
+ * Use it if you have any {@link Message} and you want to send it to session.
+ * @author rroschin
+ *
+ */
 @Singleton
 public class WebSocketsNotifier implements StatefulNotifier {
 

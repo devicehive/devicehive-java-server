@@ -6,8 +6,18 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.User;
 
+/**
+ * Used in pair with {@link MessageType}. It is a container for important information. 
+ * This information usually used in {@link MessageBus#subscribe(MessageType, MessageDetails)} method.
+ * Not every field is necessary. Any can bu null or empty.
+ * It is only business logic can decide what field it needs in current moment.
+ *  
+ * @author rroschin
+ *
+ */
 public class MessageDetails {
 
     private List<Long> ids;

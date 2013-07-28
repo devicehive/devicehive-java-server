@@ -1,6 +1,5 @@
 package com.devicehive.controller;
 
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +17,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
-import com.devicehive.auth.UserPrincipal;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -50,14 +49,14 @@ public class DeviceCommandController {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
-     * 
-     * @param deviceGuid Device unique identifier.
+     *
+     * @param deviceGuid   Device unique identifier.
      * @param timestampUTC Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param waitTimeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param waitTimeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
     @Path("/poll")
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
@@ -68,18 +67,18 @@ public class DeviceCommandController {
             @Context SecurityContext securityContext) {
 
         if (deviceGuid == null) {
-            throw new NotFoundException();
+            throw new BadRequestException("deviceGuid should be provided.");
         }
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
-            throw new NotFoundException();
+            throw new NotFoundException("Device with guid = " + deviceGuid + " not found.");
         }
 
         Date timestamp = Params.parseUTCDate(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
-        User user = ((UserPrincipal) securityContext.getUserPrincipal()).getUser();
+        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         DeferredResponse result = messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
         List<DeviceCommand> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
@@ -87,20 +86,65 @@ public class DeviceCommandController {
         return response;
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/wait">DeviceHive RESTful API: DeviceCommand: wait</a>
+     * 
+     * @param waitTimeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
+     */
     @GET
     @RolesAllowed({ "CLIENT", "DEVICE", "ADMIN" })
+    @Path("/{commandId}/poll")
+    @Produces(MediaType.APPLICATION_JSON)
+    @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
+    public DeviceCommand wait(
+            @PathParam("deviceGuid") String deviceGuid,
+            @PathParam("commandId") String commandId,
+            @QueryParam("waitTimeout") String waitTimeout,
+            @Context SecurityContext securityContext) {
+
+        if (deviceGuid == null || commandId == null) {
+            throw new BadRequestException("Ids should be provided.");
+        }
+
+        Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
+        if (device == null) {
+            throw new NotFoundException("Device with guid = " + deviceGuid + " not found.");
+        }
+
+        DeviceCommand command = commandDAO.findById(Long.valueOf(commandId));
+        if (command == null) {
+            throw new NotFoundException("DeviceCommand with id = " + commandId + " not found.");
+        }
+
+        if (!command.getDevice().getId().equals(device.getId())) {
+            throw new BadRequestException("Command with id = " + commandId + " is not belong to device with guid = " + deviceGuid);
+        }
+
+        long timeout = Params.parseWaitTimeout(waitTimeout);
+
+        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND,
+                MessageDetails.create().ids(device.getId(), command.getId()).user(user));
+        List<DeviceCommand> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
+
+        return response.isEmpty() ? null : response.get(0);
+    }
+
+    @GET
+    @RolesAllowed({"CLIENT", "DEVICE", "ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_TO_DEVICE)
     public List<DeviceCommand> query(@PathParam("deviceGuid") String guid,
-            @QueryParam("start") String start,
-            @QueryParam("end") String end,
-            @QueryParam("command") String command,
-            @QueryParam("status") String status,
-            @QueryParam("sortField") String sortField,
-            @QueryParam("sortOrder") String sortOrder,
-            @QueryParam("take") Integer take,
-            @QueryParam("skip") Integer skip) {
-        if (sortOrder != null && (!sortOrder.equals("DESC") || !sortOrder.equals("ASC"))) {
+                                     @QueryParam("start") String start,
+                                     @QueryParam("end") String end,
+                                     @QueryParam("command") String command,
+                                     @QueryParam("status") String status,
+                                     @QueryParam("sortField") String sortField,
+                                     @QueryParam("sortOrder") String sortOrder,
+                                     @QueryParam("take") Integer take,
+                                     @QueryParam("skip") Integer skip) {
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             throw new BadRequestException("The sort order cannot be equal " + sortOrder);
         }
         boolean sortOrderAsc = true;
@@ -108,37 +152,35 @@ public class DeviceCommandController {
             sortOrderAsc = false;
         }
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField
-                    != null) {
+                != null) {
             throw new BadRequestException("The sort field cannot be equal " + sortField);
         }
         if (sortField == null) {
             sortField = "timestamp";
         }
         sortField = sortField.toLowerCase();
-        Timestamp startTimestamp = null, endTimestamp = null;
-        try {
-            if (start != null) {
-                startTimestamp = Timestamp.valueOf(start);
-            }
-            if (end != null) {
-                endTimestamp = Timestamp.valueOf(end);
+        Date startTimestamp = null, endTimestamp = null;
+        if (start != null) {
+            startTimestamp = Params.parseUTCDate(start);
+            if (startTimestamp == null) {
+                throw new BadRequestException("unparseable date " + start);
             }
         }
-        catch (IllegalArgumentException e) {
-            throw new BadRequestException("start and end dat must be in format yyyy-[m]m-[d]d hh:mm:ss[.f...]");
+        if (end != null) {
+            endTimestamp = Params.parseUTCDate(end);
+            if (endTimestamp == null) {
+                throw new BadRequestException("unparseable date " + end);
+            }
         }
         Device device = getDevice(guid);
-        return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField,
-                sortOrderAsc,
-                take, skip);
+        return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField, sortOrderAsc, take, skip);
     }
 
     private Device getDevice(String uuid) {
         UUID deviceId;
         try {
             deviceId = UUID.fromString(uuid);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("unparseable guid: " + uuid);
         }
 

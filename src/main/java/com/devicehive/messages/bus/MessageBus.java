@@ -9,11 +9,17 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.model.Message;
-
+/**
+ * Interface for messaging between in and out.
+ * 
+ * Known implementations: {@link LocalMessageBus}
+ * @author rroschin
+ *
+ */
 public interface MessageBus {
 
     /**
-     * Sends command. Command can be client-to-device command or device-to-client update-command.
+     * Sends command if there is open connection.
      *
      * @param messageType Type of command. Describes how it should be sent. See {@link MessageType} for command types.
      * @param message The {@link Message} (command, notification) to send.

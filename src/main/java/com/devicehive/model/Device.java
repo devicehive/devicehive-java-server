@@ -54,13 +54,11 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 })
 public class Device implements HiveEntity {
 
-    @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private Long id;
 
-    @SerializedName("guid")
+    @SerializedName("id")
     @Column
     @Type(type = "pg-uuid") //That's hibernate-specific and postgres-specific, ugly
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})

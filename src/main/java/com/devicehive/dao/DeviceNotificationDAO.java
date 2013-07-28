@@ -1,9 +1,9 @@
 package com.devicehive.dao;
 
-import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.User;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -17,10 +17,11 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
+import com.devicehive.configuration.Constants;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.User;
 
 @Stateless
 public class DeviceNotificationDAO {
@@ -65,8 +66,9 @@ public class DeviceNotificationDAO {
         return query.getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> queryDeviceNotification(Device device, Timestamp start, Timestamp end,
+    public List<DeviceNotification> queryDeviceNotification(Device device, Date start, Date end,
                                                             String notification,
                                                             String sortField, Boolean sortOrderAsc, Integer take,
                                                             Integer skip) {
