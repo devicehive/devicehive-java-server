@@ -32,6 +32,8 @@ public class GsonFactory {
     public static GsonBuilder createGsonBuilder() {
         return new GsonBuilder()
                 .setPrettyPrinting()
+                .serializeNulls()
+                .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
                 .registerTypeAdapter(Date.class, new DateAdapter())
                 .registerTypeAdapter(UUID.class, new UUIDAdapter())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
