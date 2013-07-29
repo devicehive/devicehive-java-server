@@ -2,9 +2,6 @@ package com.devicehive.messages.data.hash;
 
 import java.util.Collection;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,16 +21,16 @@ import com.devicehive.messages.data.hash.subscriptions.dao.NotificationSubscript
  * @author rroschin
  *
  */
-@Stateless
+//@Stateless
 public class HashBasedDataSource /*implements MessagesDataSource*/ {
 
     private static final Logger logger = LoggerFactory.getLogger(HashBasedDataSource.class);
 
-    @Inject
+    //@Inject
     private NotificationSubscriptionDAO notificationSubscriptionDAO;
-    @Inject
+    //@Inject
     private CommandSubscriptionDAO commandSubscriptionDAO;
-    @Inject
+    //@Inject
     private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
 
     //@Override

@@ -3,31 +3,23 @@ package com.devicehive.messages.data.hash.subscriptions.dao;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import java.util.Map;
 
 import com.devicehive.messages.data.derby.subscriptions.model.NotificationsSubscription;
 import com.devicehive.model.Device;
 
-@Stateless
+//@Stateless
 public class NotificationSubscriptionDAO {
-
-    private Lock lock = new ReentrantLock();
 
     private static long counter = 0L;
 
-    private ConcurrentMap<Key, NotificationsSubscription> keyToObject = new ConcurrentHashMap<>();
-    private ConcurrentMap<Long, List<NotificationsSubscription>> deviceToObject = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, List<NotificationsSubscription>> sessionToObject = new ConcurrentHashMap<>();
+    private Map<Key, NotificationsSubscription> keyToObject = new HashMap<>();
+    private Map<Long, List<NotificationsSubscription>> deviceToObject = new HashMap<>();
+    private Map<String, List<NotificationsSubscription>> sessionToObject = new HashMap<>();
 
-    public void insertSubscriptions(Collection<Long> deviceIds, String sessionId) {
+    public synchronized void insertSubscriptions(Collection<Long> deviceIds, String sessionId) {
         if (deviceIds == null || deviceIds.isEmpty()) {
             insertSubscriptions((Long) null, sessionId);
         }
@@ -39,77 +31,54 @@ public class NotificationSubscriptionDAO {
         }
     }
 
-    public void insertSubscriptions(Long deviceId, String sessionId) {
-        if (sessionId != null) {
-            try {
-                lock.lock();
-                NotificationsSubscription entity = new NotificationsSubscription(deviceId, sessionId);
-                entity.setId(Long.valueOf(counter));
+    public synchronized void insertSubscriptions(Long deviceId, String sessionId) {
+        NotificationsSubscription entity = new NotificationsSubscription(deviceId, sessionId);
+        entity.setId(Long.valueOf(counter));
 
-                Key key = new Key(deviceId, sessionId);
-                keyToObject.put(key, entity);
+        Key key = new Key(deviceId, sessionId);
+        keyToObject.put(key, entity);
 
-                List<NotificationsSubscription> deviceRecords = deviceToObject.get(deviceId);
-                if (deviceRecords == null) {
-                    deviceRecords = new ArrayList<>();
-                }
-                deviceRecords.add(entity);
-                deviceToObject.put(deviceId, deviceRecords);
+        List<NotificationsSubscription> deviceRecords = deviceToObject.get(deviceId);
+        if (deviceRecords == null) {
+            deviceRecords = new ArrayList<>();
+        }
+        deviceRecords.add(entity);
+        deviceToObject.put(deviceId, deviceRecords);
 
-                List<NotificationsSubscription> sessionRecords = sessionToObject.get(sessionId);
-                if (sessionRecords == null) {
-                    sessionRecords = new ArrayList<>();
-                }
-                sessionRecords.add(entity);
-                sessionToObject.put(sessionId, sessionRecords);
+        List<NotificationsSubscription> sessionRecords = sessionToObject.get(sessionId);
+        if (sessionRecords == null) {
+            sessionRecords = new ArrayList<>();
+        }
+        sessionRecords.add(entity);
+        sessionToObject.put(sessionId, sessionRecords);
 
-                ++counter;
-            }
-            finally {
-                lock.unlock();
+        ++counter;
+    }
+
+    public synchronized void deleteBySession(String sessionId) {
+        List<NotificationsSubscription> entities = sessionToObject.remove(sessionId);
+        if (entities != null) {
+            for (NotificationsSubscription entity : entities) {
+                deviceToObject.remove(entity.getDeviceId());
+                keyToObject.remove(new Key(entity.getDeviceId(), sessionId));
             }
         }
     }
 
-    public void deleteBySession(String sessionId) {
-        try {
-            lock.lock();
-            List<NotificationsSubscription> entities = sessionToObject.remove(sessionId);
-            if (entities != null) {
-                for (NotificationsSubscription entity : entities) {
-                    deviceToObject.remove(entity.getDeviceId());
-                    keyToObject.remove(new Key(entity.getDeviceId(), sessionId));
-                }
-            }
-
-        }
-        finally {
-            lock.unlock();
-        }
+    public synchronized void deleteByDeviceAndSession(Long deviceId, String sessionId) {
+        NotificationsSubscription entity = keyToObject.remove(new Key(deviceId, sessionId));
+        deviceToObject.remove(entity.getDeviceId());
     }
 
-    public void deleteByDeviceAndSession(Long deviceId, String sessionId) {
-        try {
-            lock.lock();
-            NotificationsSubscription entity = keyToObject.remove(new Key(deviceId, sessionId));
-            deviceToObject.remove(entity.getDeviceId());
-        }
-        finally {
-            lock.unlock();
-        }
-    }
-
-    public void deleteByDeviceAndSession(Device device, String sessionId) {
+    public synchronized void deleteByDeviceAndSession(Device device, String sessionId) {
         deleteByDeviceAndSession(device.getId(), sessionId);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<String> getSessionIdSubscribedForAll() {
+    public synchronized List<String> getSessionIdSubscribedForAll() {
         return getSessionIdSubscribedByDevice(null);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<String> getSessionIdSubscribedByDevice(Long deviceId) {
+    public synchronized List<String> getSessionIdSubscribedByDevice(Long deviceId) {
         List<NotificationsSubscription> records = deviceToObject.get(deviceId);
         if (records != null) {
             List<String> sessions = new ArrayList<>(records.size());
