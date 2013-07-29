@@ -18,7 +18,8 @@ import com.google.gson.JsonSerializer;
 
 public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
 
-    public final static DateFormat UTC_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    public final static String UTC_DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+    public final static DateFormat UTC_DATE_FORMAT = new SimpleDateFormat(UTC_DATE_FORMAT_PATTERN);
     {
         UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
@@ -31,7 +32,7 @@ public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
         try {
             return UTC_DATE_FORMAT.parse(jsonElement.getAsString());
         } catch (ParseException e) {
-            throw new JsonParseException("Error parsing date. Date must be in format yyyy-MM-dd'T'HH:mm:ss.SSS", e);
+            throw new JsonParseException("Error parsing date. Date must be in format " + DateAdapter.UTC_DATE_FORMAT_PATTERN, e);
         }
     }
 }

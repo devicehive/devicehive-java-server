@@ -4,6 +4,10 @@ import java.util.Collection;
 
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.data.derby.DerbyDataSource;
+import com.devicehive.messages.data.hash.HashBasedDataSource;
+import com.devicehive.messages.data.subscriptions.dao.CommandSubscriptionDAO;
+import com.devicehive.messages.data.subscriptions.dao.CommandUpdatesSubscriptionDAO;
+import com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO;
 
 /**
  * Usually injected in {@link MessageBus} to represent storage for subscriptions.
@@ -36,5 +40,24 @@ public interface MessagesDataSource {
     public void removeCommandsSubscriptions(String sessionId);
 
     public void removeCommandUpdatesSubscriptions(String sessionId);
+
+    /**
+     * Acessor
+     * @return CommandSubscriptionDAO implementation
+     */
+    public CommandSubscriptionDAO commandSubscriptions();
+
+    /**
+     * Acessor
+     * @return CommandUpdatesSubscriptionDAO implementation
+     */
+    public CommandUpdatesSubscriptionDAO commandUpdatesSubscriptions();
+
+    /**
+     * Acessor
+     * @return NotificationSubscriptionDAO implementation
+     */
+    public NotificationSubscriptionDAO notificationSubscriptions();
+
 
 }

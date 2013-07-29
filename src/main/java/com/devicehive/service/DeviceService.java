@@ -1,6 +1,22 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.*;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Set;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.dao.DeviceClassDAO;
+import com.devicehive.dao.DeviceCommandDAO;
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.DeviceEquipmentDAO;
+import com.devicehive.dao.DeviceNotificationDAO;
+import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.MessageType;
@@ -18,15 +34,6 @@ import com.devicehive.model.User;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.websocket.Session;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Set;
 
 @Stateless
 public class DeviceService {
@@ -90,8 +97,7 @@ public class DeviceService {
         }
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
-        messagePublisher
-                .addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, messageBus));
+        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, messageBus));
         messagePublisher.publish(notification);
     }
 
@@ -121,10 +127,9 @@ public class DeviceService {
     public DeviceClass createOrUpdateDeviceClass(DeviceClass deviceClass, Set<Equipment> newEquipmentSet) {
         DeviceClass stored;
         if (deviceClass.getId() != null) {
-            stored = deviceClassDAO.getDeviceClass(deviceClass.getId());
+            stored = deviceClassDAO.get(deviceClass.getId());
         } else {
-            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(),
-                    deviceClass.getVersion());
+            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
         }
         if (stored != null) {
             //update

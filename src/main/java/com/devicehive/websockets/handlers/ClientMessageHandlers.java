@@ -141,15 +141,15 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "notification/subscribe")
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) throws IOException {
-        logger.debug("notification/subscribe action" + ". Session " + session.getId());
+        logger.debug("notification/subscribe action. Session " + session.getId());
         Gson gson = GsonFactory.createGson();
         Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
         if (timestamp == null) {
             timestamp = new Date();
         }
         //TODO set notification's limit (do not try to get notifications for last year :))
-        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
-        }.getType());
+        List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {}.getType());
+        
         if (list == null || list.isEmpty()) {
             prepareForNotificationSubscribeNullCase(session, timestamp);
         }
@@ -208,9 +208,11 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     " devices. " + "Session " + session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
 
-            List<Long> ids = new ArrayList<>(devices.size());
-            for (Device device : devices) {
-                ids.add(device.getId());
+            List<Long> ids = new ArrayList<>();
+            if (devices != null) {
+                for (Device device : devices) {
+                    ids.add(device.getId());
+                }
             }
             messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
                     MessageDetails.create().ids(ids).session(session.getId()).transport(WEBSOCKET));

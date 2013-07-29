@@ -28,6 +28,7 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.json.adapters.DateAdapter;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
@@ -119,6 +120,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
+       
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -131,8 +133,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         try {
             timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
         } catch (JsonParseException e) {
-            throw new HiveException(e.getCause().getMessage() + " Date must be in format \"yyyy-MM-dd HH:mm:ss" +
-                    ".SSS\"", e);
+            throw new HiveException(e.getCause().getMessage() + " Date must be in format " + DateAdapter.UTC_DATE_FORMAT_PATTERN, e);
         }
         if (timestamp == null) {
             timestamp = new Date();
@@ -177,10 +178,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("process submit device notification started for deviceNotification : " + deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
         deviceService.submitDeviceNotification(deviceNotification, device, session);
-
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
         logger.debug("notification/insert ended for session " + session.getId());
+        
         return jsonObject;
     }
 

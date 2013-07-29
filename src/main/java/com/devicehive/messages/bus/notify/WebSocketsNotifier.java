@@ -17,11 +17,10 @@ import org.slf4j.LoggerFactory;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.messages.bus.LocalMessageBus;
-import com.devicehive.messages.data.derby.subscriptions.dao.CommandSubscriptionDAO;
-import com.devicehive.messages.data.derby.subscriptions.dao.CommandUpdatesSubscriptionDAO;
-import com.devicehive.messages.data.derby.subscriptions.dao.NotificationSubscriptionDAO;
-import com.devicehive.messages.data.derby.subscriptions.model.CommandUpdatesSubscription;
-import com.devicehive.messages.data.derby.subscriptions.model.CommandsSubscription;
+import com.devicehive.messages.data.MessagesDataSource;
+import com.devicehive.messages.data.hash.HashMapBased;
+import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
+import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.Message;
@@ -47,23 +46,19 @@ public class WebSocketsNotifier implements StatefulNotifier {
     private UserDAO userDAO;
     @Inject
     private DeviceDAO deviceDAO;
-    @Inject
-    private NotificationSubscriptionDAO notificationSubscriptionDAO;
-    @Inject
-    private CommandSubscriptionDAO commandSubscriptionDAO;
-    @Inject
-    private CommandUpdatesSubscriptionDAO commandUpdatesSubscriptionDAO;
 
     @Inject
     private SessionMonitor sessionMonitor;
     @Inject
     private AsyncMessageDeliverer asyncMessageDeliverer;
+    @Inject
+    @HashMapBased
+    private MessagesDataSource messagesDataSource;
 
     @Override
     public void sendCommand(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Getting subscription for command " + deviceCommand.getId());
-        CommandsSubscription commandsSubscription = commandSubscriptionDAO.getByDeviceId(deviceCommand.getDevice()
-                .getId());
+        CommandsSubscription commandsSubscription = messagesDataSource.commandSubscriptions().getByDeviceId(deviceCommand.getDevice().getId());
         if (commandsSubscription == null) {
             return;
         }
@@ -90,7 +85,7 @@ public class WebSocketsNotifier implements StatefulNotifier {
     @Override
     public void sendCommandUpdate(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Submitting command update for command " + deviceCommand.getId());
-        CommandUpdatesSubscription commandUpdatesSubscription = commandUpdatesSubscriptionDAO.getByCommandId(deviceCommand.getId());
+        CommandUpdatesSubscription commandUpdatesSubscription = messagesDataSource.commandUpdatesSubscriptions().getByCommandId(deviceCommand.getId());
         if (commandUpdatesSubscription == null) {
             logger.warn("No updates for command with id = " + deviceCommand.getId() + " found");
             return;
@@ -121,7 +116,7 @@ public class WebSocketsNotifier implements StatefulNotifier {
         Set<Session> delivers = new HashSet<>();
 
         logger.debug("Getting sessionIdsSubscribedForAll");
-        List<String> sessionIdsSubscribedForAll = notificationSubscriptionDAO.getSessionIdSubscribedForAll();
+        List<String> sessionIdsSubscribedForAll = messagesDataSource.notificationSubscriptions().getSessionIdSubscribedForAll();
         logger.debug("Getting sessions subscribed for all");
         Set<Session> subscribedForAll = new HashSet<>();
         for (String sessionId : sessionIdsSubscribedForAll) {
@@ -135,7 +130,7 @@ public class WebSocketsNotifier implements StatefulNotifier {
         }
 
         Long deviceId = deviceDAO.findByUUID(deviceNotification.getDevice().getGuid()).getId();
-        Collection<String> sessionIds = notificationSubscriptionDAO.getSessionIdSubscribedByDevice(deviceId);
+        Collection<String> sessionIds = messagesDataSource.notificationSubscriptions().getSessionIdSubscribedByDevice(deviceId);
 
         Set<Session> sessions = new HashSet<>();
         for (String sesionId : sessionIds) {

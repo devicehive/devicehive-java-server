@@ -7,18 +7,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.devicehive.messages.data.derby.subscriptions.model.NotificationsSubscription;
+import javax.enterprise.context.Dependent;
+
+import com.devicehive.messages.data.subscriptions.model.NotificationsSubscription;
 import com.devicehive.model.Device;
 
-//@Stateless
-public class NotificationSubscriptionDAO {
+@Dependent
+public class NotificationSubscriptionDAO implements com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO {
 
-    private static long counter = 0L;
+    private long counter = 0L;
 
     private Map<Key, NotificationsSubscription> keyToObject = new HashMap<>();
     private Map<Long, List<NotificationsSubscription>> deviceToObject = new HashMap<>();
     private Map<String, List<NotificationsSubscription>> sessionToObject = new HashMap<>();
+    
+    public NotificationSubscriptionDAO() {}
 
+    @Override
     public synchronized void insertSubscriptions(Collection<Long> deviceIds, String sessionId) {
         if (deviceIds == null || deviceIds.isEmpty()) {
             insertSubscriptions((Long) null, sessionId);
@@ -31,6 +36,7 @@ public class NotificationSubscriptionDAO {
         }
     }
 
+    @Override
     public synchronized void insertSubscriptions(Long deviceId, String sessionId) {
         NotificationsSubscription entity = new NotificationsSubscription(deviceId, sessionId);
         entity.setId(Long.valueOf(counter));
@@ -55,6 +61,12 @@ public class NotificationSubscriptionDAO {
         ++counter;
     }
 
+    @Override
+    public void insertSubscriptions(String sessionId) {
+        insertSubscriptions((Long) null, sessionId);
+    }
+
+    @Override
     public synchronized void deleteBySession(String sessionId) {
         List<NotificationsSubscription> entities = sessionToObject.remove(sessionId);
         if (entities != null) {
@@ -65,19 +77,25 @@ public class NotificationSubscriptionDAO {
         }
     }
 
+    @Override
     public synchronized void deleteByDeviceAndSession(Long deviceId, String sessionId) {
         NotificationsSubscription entity = keyToObject.remove(new Key(deviceId, sessionId));
-        deviceToObject.remove(entity.getDeviceId());
+        if (entity != null) {
+            deviceToObject.remove(entity.getDeviceId());
+        }
     }
 
+    @Override
     public synchronized void deleteByDeviceAndSession(Device device, String sessionId) {
         deleteByDeviceAndSession(device.getId(), sessionId);
     }
 
+    @Override
     public synchronized List<String> getSessionIdSubscribedForAll() {
         return getSessionIdSubscribedByDevice(null);
     }
 
+    @Override
     public synchronized List<String> getSessionIdSubscribedByDevice(Long deviceId) {
         List<NotificationsSubscription> records = deviceToObject.get(deviceId);
         if (records != null) {
