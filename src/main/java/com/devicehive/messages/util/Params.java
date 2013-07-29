@@ -22,8 +22,6 @@ public final class Params {
         UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
-    private Params() {
-    }
 
     public static long parseWaitTimeout(String waitTimeout) {
         long timeout = waitTimeout == null ? DEFAULT_WAIT_TIMEOUT : Long.parseLong(waitTimeout);

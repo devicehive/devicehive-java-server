@@ -23,31 +23,42 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Stateless
 public class DeviceService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
+
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
+
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
+
     @Inject
     private MessageBroadcaster messagePublisher;
+
     @Inject
     private MessageBus messageBus;
+
     @Inject
     private DeviceClassDAO deviceClassDAO;
+
     @Inject
     private DeviceDAO deviceDAO;
+
     @Inject
     private EquipmentDAO equipmentDAO;
+
     @Inject
     private NetworkService networkService;
+
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
@@ -67,6 +78,10 @@ public class DeviceService {
         messagePublisher.addMessageListener(
                 new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, messageBus));
         messagePublisher.publish(command);
+    }
+
+    public Device findByGuid(UUID guid){
+        return deviceDAO.findByUUID(guid);
     }
 
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
@@ -90,8 +105,7 @@ public class DeviceService {
         }
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
-        messagePublisher
-                .addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, messageBus));
+        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, messageBus));
         messagePublisher.publish(notification);
     }
 

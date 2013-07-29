@@ -24,6 +24,6 @@ public class HivePrincipal implements Principal {
 
     @Override
     public String getName() {
-        return user == null ? user.getLogin() : device.getGuid().toString();
+        return user != null ? user.getLogin() : device.getGuid().toString();
     }
 }

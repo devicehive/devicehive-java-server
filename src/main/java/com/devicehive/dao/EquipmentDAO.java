@@ -75,12 +75,6 @@ public class EquipmentDAO {
         return query.executeUpdate() != 0;
     }
 
-    public int deleteByFK(@NotNull DeviceClass deviceClass){
-        Query query = em.createNamedQuery("Equipment.deleteByFK");
-        query.setParameter("deviceClass", deviceClass);
-        return query.executeUpdate();
-    }
-
     /**
      * @param id Equipment Id
      * @returns Equipment

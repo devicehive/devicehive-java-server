@@ -94,8 +94,6 @@ public class User implements HiveEntity {
     private long entityVersion;
 
 
-    public User() {
-    }
 
     public Long getId() {
         return id;

@@ -55,6 +55,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class Device implements HiveEntity {
 
     @Id
+    @SerializedName("sid")//overwork for  "declares multiple JSON fields" exception
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

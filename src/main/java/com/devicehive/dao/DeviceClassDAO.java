@@ -77,14 +77,16 @@ public class DeviceClassDAO {
         return resultQuery.getResultList();
     }
 
-    public DeviceClass get(@NotNull Long id) {
+    public DeviceClass get(@NotNull long id) {
         return em.find(DeviceClass.class, id);
     }
 
     public boolean delete(@NotNull Long id) {
         Query query = em.createNamedQuery("DeviceClass.deleteById");
         query.setParameter("id", id);
-        return query.executeUpdate() != 0;
+        query.executeUpdate();
+        em.clear();
+        return true;
     }
 
     /**

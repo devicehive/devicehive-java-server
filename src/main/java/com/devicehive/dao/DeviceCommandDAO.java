@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -28,6 +29,7 @@ import com.devicehive.model.User;
 public class DeviceCommandDAO {
 
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -37,21 +39,24 @@ public class DeviceCommandDAO {
     }
 
     public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
+
         DeviceCommand cmd = em.find(DeviceCommand.class, update.getId());
         if (cmd == null) {
             throw new HiveException("Command not found!");
         }
+
         if (!cmd.getDevice().getId().equals(expectedDevice.getId())) {
             throw new HiveException("Device tries to update incorrect command");
         }
+
         cmd.setCommand(update.getCommand());
         cmd.setParameters(update.getParameters());
         cmd.setLifetime(update.getLifetime());
         cmd.setFlags(update.getFlags());
         cmd.setStatus(update.getStatus());
         cmd.setResult(update.getResult());
-        return em.merge(cmd);
 
+        return em.merge(cmd);
     }
 
     public boolean deleteById(@NotNull Long id) {
@@ -86,6 +91,37 @@ public class DeviceCommandDAO {
 
     public DeviceCommand findById(Long id) {
         return em.find(DeviceCommand.class, id);
+    }
+
+    public DeviceCommand getWithDevice(@NotNull long id) {
+
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getWithDeviceById", DeviceCommand.class);
+        query.setParameter("id", id);
+
+        List<DeviceCommand> resultList = query.getResultList();
+
+        return resultList.isEmpty() ? null : resultList.get(0);
+    }
+
+    public DeviceCommand getByDeviceGuidAndId(@NotNull UUID guid, @NotNull long id) {
+
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByDeviceUuidAndId", DeviceCommand.class);
+        query.setParameter("id", id);
+        query.setParameter("guid", guid);
+
+        List<DeviceCommand> resultList = query.getResultList();
+
+        return resultList.isEmpty() ? null : resultList.get(0);
+    }
+
+    public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
+
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getWithDeviceAndUserById", DeviceCommand.class);
+        query.setParameter("id", id);
+
+        List<DeviceCommand> resultList = query.getResultList();
+
+        return resultList.isEmpty() ? null : resultList.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

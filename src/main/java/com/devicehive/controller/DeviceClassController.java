@@ -89,12 +89,12 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
-        try {
-            deviceClassService.delete(id);
+
+        if (deviceClassService.delete(id)) {
             return Response.ok().build();
-        } catch (NoSuchRecordException e) {
-            throw new NotFoundException(e);
         }
+
+        return null;
     }
 
 

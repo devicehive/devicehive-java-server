@@ -36,7 +36,6 @@ public class MessageBroadcaster {
      */
     private Queue<MessageListener> listeners = new ConcurrentLinkedQueue<>();
 
-    @Transactional(Transactional.TxType.MANDATORY)
     public void publish(Message message) {
         notifyListeners(message);
     }

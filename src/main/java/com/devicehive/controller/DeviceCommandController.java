@@ -1,20 +1,17 @@
 package com.devicehive.controller;
 
+import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.devicehive.auth.HivePrincipal;
@@ -33,6 +30,9 @@ import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
+import com.devicehive.service.DeviceCommandService;
+import com.devicehive.service.DeviceService;
+import com.devicehive.service.UserService;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -43,10 +43,24 @@ public class DeviceCommandController {
 
     @Inject
     private DeviceCommandDAO commandDAO;
+
+    @Inject
+    private DeviceCommandService commandService;
+
+    @Inject
+    private DeviceService deviceService;
+
     @Inject
     private DeviceDAO deviceDAO;
+
     @Inject
     private MessageBus messageBus;
+
+    @Inject
+    private UserService userService;
+
+    @Context
+    private ContainerRequestContext requestContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
@@ -89,7 +103,7 @@ public class DeviceCommandController {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/wait">DeviceHive RESTful API: DeviceCommand: wait</a>
-     * 
+     *
      * @param waitTimeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
@@ -175,6 +189,36 @@ public class DeviceCommandController {
         }
         Device device = getDevice(guid);
         return commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command, status, sortField, sortOrderAsc, take, skip);
+    }
+
+
+    @GET
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_TO_DEVICE)
+    public DeviceCommand get(@PathParam("deviceGuid") String guid, @PathParam("id") Long id) {
+        return commandService.getByGuidAndId(UUID.fromString(guid), id);
+    }
+
+
+    @POST
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @JsonPolicyApply(JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE)
+    public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand) {
+        Device device = deviceService.findByGuid(UUID.fromString(guid));
+
+        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+
+        if (login == null) {
+            throw new ForbiddenException("User Must be authenticated");
+        }
+
+        User u = userService.findUserWithNetworksByLogin(login);
+        deviceService.submitDeviceCommand(deviceCommand, device, u, null);
+        return Response.ok().build();
     }
 
     private Device getDevice(String uuid) {

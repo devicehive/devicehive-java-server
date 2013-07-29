@@ -1,11 +1,5 @@
 package com.devicehive.model;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
-
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +26,7 @@ import javax.validation.constraints.Size;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -52,7 +47,8 @@ import com.google.gson.annotations.SerializedName;
                         "where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
                 " = :user and dc.device = :device"),
-        @NamedQuery(name = "DeviceCommand.deleteByFK", query = "delete from DeviceCommand dc where dc.device = :device")
+        @NamedQuery(name = "DeviceCommand.deleteByFK", query = "delete from DeviceCommand dc where dc.device = :device"),
+        @NamedQuery(name = "DeviceCommand.getByDeviceUuidAndId", query = "select dc from DeviceCommand dc where dc.id = :id and dc.device.guid = :guid")
 })
 public class DeviceCommand implements HiveEntity, Message {
 
@@ -61,45 +57,54 @@ public class DeviceCommand implements HiveEntity, Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private Long id;
+
     @SerializedName("timestamp")
     @Column
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private Timestamp timestamp;
+
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private User user;
+
     @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
+
     @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
     private String command;
+
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
     private JsonStringWrapper parameters;
+
     @SerializedName("lifetime")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
     private Integer lifetime;
+
     @SerializedName("flags")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
     private Integer flags;
+
     @SerializedName("status")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private String status;
+
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
@@ -107,12 +112,11 @@ public class DeviceCommand implements HiveEntity, Message {
     })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private JsonStringWrapper result;
+
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
 
-    public DeviceCommand() {
-    }
 
     /**
      * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
@@ -126,9 +130,10 @@ public class DeviceCommand implements HiveEntity, Message {
         Set<ConstraintViolation<DeviceCommand>> constraintViolations = validator.validate(deviceCommand);
         Set<String> result = new HashSet<>();
         if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<DeviceCommand> cv : constraintViolations)
+            for (ConstraintViolation<DeviceCommand> cv : constraintViolations) {
                 result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
                         cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+            }
         }
         return result;
 

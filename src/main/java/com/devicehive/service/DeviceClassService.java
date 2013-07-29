@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceClassDAO;
+import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.dao.DublicateEntryException;
 import com.devicehive.exceptions.dao.HivePersistingException;
@@ -27,24 +28,15 @@ public class DeviceClassService {
 
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 String sortOrder, Integer take, Integer skip) {
-        return deviceClassDAO
-                .getDeviceClassList(name, namePattern, version, sortField, "ASC".equals(sortOrder), take, skip);
+        return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, "ASC".equals(sortOrder), take, skip);
     }
 
     public DeviceClass get(@NotNull long id) {
         return deviceClassDAO.get(id);
     }
 
-    public void delete(@NotNull long id) {
-        DeviceClass dc = deviceClassDAO.get(id);
-        if (dc == null) {
-            throw new NoSuchRecordException("There is no such DeviceClass");
-        }
-        List<Equipment> equipment = equipmentDAO.getByDeviceClass(dc);
-        if (!equipment.isEmpty()) {
-            equipmentDAO.deleteEquipment(equipment);
-        }
-        deviceClassDAO.delete(id);
+    public boolean delete(@NotNull long id) {
+        return deviceClassDAO.delete(id);
     }
 
     public DeviceClass getWithEquipment(@NotNull long id) {
@@ -65,8 +57,7 @@ public class DeviceClassService {
 
     public DeviceClass update(DeviceClass deviceClass) {
         if (deviceClass.getName() != null && deviceClass.getVersion() != null) {
-            DeviceClass existingDeviceClass =
-                    deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
+            DeviceClass existingDeviceClass = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
             if (existingDeviceClass != null && !deviceClass.equals(existingDeviceClass)) {
                 throw new DublicateEntryException("Entity with same name and version already exists with different id");
             }

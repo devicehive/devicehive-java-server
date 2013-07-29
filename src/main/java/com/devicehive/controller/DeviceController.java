@@ -89,15 +89,20 @@ public class DeviceController {
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
     public Response register(JsonObject jsonObject, @PathParam("id") String guid) {
         UUID deviceGuid;
+
         try {
             deviceGuid = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("unparseable guid: " + guid);
         }
+
         if (jsonObject.get("key") == null) {
             //use existing
         }
+
+
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
+
         Device device = mainGson.fromJson(jsonObject, Device.class);
         //todo no key
         device.setGuid(deviceGuid);
@@ -107,14 +112,17 @@ public class DeviceController {
             throw new BadRequestException(e.getMessage(), e);
         }
         Gson gsonForEquipment = GsonFactory.createGson();
-        Set<Equipment> equipmentSet =
-                gsonForEquipment.fromJson(jsonObject.get("equipment"), new TypeToken<HashSet<Equipment>>() {
+
+        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(jsonObject.get("equipment"), new TypeToken<HashSet<Equipment>>() {
                 }.getType());
+
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
+
         device.setGuid(deviceGuid);
         deviceService.deviceSave(device, equipmentSet);
+
         return Response.ok().build();
     }
 

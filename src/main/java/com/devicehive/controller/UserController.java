@@ -17,7 +17,9 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.xml.ws.http.HTTPException;
+import java.security.Principal;
 import java.util.List;
 
 /**
