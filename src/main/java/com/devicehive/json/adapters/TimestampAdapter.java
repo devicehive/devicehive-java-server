@@ -32,7 +32,7 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
         try {
             return Timestamp.valueOf(jsonElement.getAsString());
         } catch (IllegalArgumentException e) {
-            throw new JsonParseException("Error parsing date. Date must be in format yyyy-MM-dd HH:mm:ss.SSSSSSS", e);
+            throw new JsonParseException("Error parsing date. Date must be in format " + DateAdapter.UTC_DATE_FORMAT_PATTERN, e);
         }
     }
 }

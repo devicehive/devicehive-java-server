@@ -51,7 +51,7 @@ public class MessageBroadcaster {
     }
 
     @Asynchronous
-    protected void notifyListeners(final Serializable message) {
+    protected void notifyListeners(Serializable message) {
         while (!listeners.isEmpty()) {
             MessageListener listener = listeners.poll();
             try {

@@ -28,6 +28,7 @@ import com.devicehive.messages.MessageType;
 import com.devicehive.messages.Transport;
 import com.devicehive.messages.bus.notify.StatefulNotifier;
 import com.devicehive.messages.data.MessagesDataSource;
+import com.devicehive.messages.data.hash.HashMapBased;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
@@ -56,6 +57,8 @@ public class LocalMessageBus implements MessageBus {
     @Inject
     private StatefulNotifier notifier;
     @Inject
+    @HashMapBased
+    /* Supported implementations: DerbyBased and HashMapBased */
     private MessagesDataSource messagesDataSource;
     @Inject
     private MessageBroadcaster messagePublisher;
@@ -236,5 +239,4 @@ public class LocalMessageBus implements MessageBus {
             }
         }
     }
-
 }

@@ -18,8 +18,6 @@ import com.devicehive.model.User;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -135,10 +133,9 @@ public class DeviceService {
     public DeviceClass createOrUpdateDeviceClass(DeviceClass deviceClass, Set<Equipment> newEquipmentSet) {
         DeviceClass stored;
         if (deviceClass.getId() != null) {
-            stored = deviceClassDAO.getDeviceClass(deviceClass.getId());
+            stored = deviceClassDAO.get(deviceClass.getId());
         } else {
-            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(),
-                    deviceClass.getVersion());
+            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
         }
         if (stored != null) {
             //update

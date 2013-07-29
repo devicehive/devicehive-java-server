@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.util.Collection;
 
 import javax.annotation.sql.DataSourceDefinition;
-import javax.ejb.Stateless;
+import javax.ejb.Singleton;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -15,8 +15,8 @@ import com.devicehive.messages.data.MessagesDataSource;
 import com.devicehive.messages.data.derby.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.derby.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.derby.subscriptions.dao.NotificationSubscriptionDAO;
-import com.devicehive.messages.data.derby.subscriptions.model.CommandUpdatesSubscription;
-import com.devicehive.messages.data.derby.subscriptions.model.CommandsSubscription;
+import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
+import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
 
 @DataSourceDefinition(
         className = Constants.DATA_SOURCE_CLASS_NAME,
@@ -27,7 +27,8 @@ import com.devicehive.messages.data.derby.subscriptions.model.CommandsSubscripti
         initialPoolSize = 2,
         minPoolSize = 2,
         maxPoolSize = 100)
-@Stateless
+@Singleton
+@DerbyBased
 public class DerbyDataSource implements MessagesDataSource {
 
     private static final Logger logger = LoggerFactory.getLogger(DerbyDataSource.class);
@@ -100,6 +101,21 @@ public class DerbyDataSource implements MessagesDataSource {
     public void removeCommandUpdatesSubscriptions(String sessionId) {
         commandUpdatesSubscriptionDAO.deleteBySession(sessionId);
         notificationSubscriptionDAO.deleteBySession(sessionId);
+    }
+
+    @Override
+    public com.devicehive.messages.data.subscriptions.dao.CommandSubscriptionDAO commandSubscriptions() {
+        return commandSubscriptionDAO;
+    }
+
+    @Override
+    public com.devicehive.messages.data.subscriptions.dao.CommandUpdatesSubscriptionDAO commandUpdatesSubscriptions() {
+        return commandUpdatesSubscriptionDAO;
+    }
+
+    @Override
+    public com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO notificationSubscriptions() {
+        return notificationSubscriptionDAO;
     }
 
 }
