@@ -7,14 +7,9 @@ import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBroadcaster;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.bus.StatefulMessageListener;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
+import com.devicehive.model.updates.DeviceClassUpdate;
+import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -23,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import javax.websocket.Session;
 import java.sql.Timestamp;
 import java.util.List;
@@ -62,12 +56,14 @@ public class DeviceService {
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
-    public void deviceSave(Device device, Set<Equipment> equipmentSet) {
-        if (device.getNetwork() != null) {
-            device.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork()));
-        }
-        device.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet));
-        createOrUpdateDevice(device);
+    public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment) {
+        Device deviceToUpdate = device.convertTo();
+
+        deviceToUpdate
+                .setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
+        deviceToUpdate.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet,
+                device.getGuid().getValue(), useExistingEquipment));
+        createOrUpdateDevice(deviceToUpdate, device);
     }
 
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session session) {
@@ -132,27 +128,46 @@ public class DeviceService {
         return result;
     }
 
-    public DeviceClass createOrUpdateDeviceClass(DeviceClass deviceClass, Set<Equipment> newEquipmentSet) {
+    public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
+                                                 Set<Equipment> newEquipmentSet, UUID guid,
+                                                 boolean useExistingEquipment) {
         DeviceClass stored;
-        if (deviceClass.getId() != null) {
-            stored = deviceClassDAO.get(deviceClass.getId());
+        //use existing
+        if (deviceClass == null) {
+            return deviceClassDAO.getByDevice(guid);
+        }
+        //check is already done
+        DeviceClass deviceClassFromMessage = deviceClass.getValue().convertTo();
+        if (deviceClassFromMessage.getId() != null) {
+            stored = deviceClassDAO.getDeviceClass(deviceClassFromMessage.getId());
         } else {
-            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
+            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClassFromMessage.getName(),
+                    deviceClassFromMessage.getVersion());
         }
         if (stored != null) {
             //update
             if (!stored.getPermanent()) {
-                stored.setData(deviceClass.getData());
-                stored.setOfflineTimeout(deviceClass.getOfflineTimeout());
-                stored.setPermanent(deviceClass.getPermanent());
-                updateEquipment(newEquipmentSet, stored);
+                if (deviceClass.getValue().getData() != null) {
+                    stored.setData(deviceClassFromMessage.getData());
+                }
+                if (deviceClass.getValue().getOfflineTimeout() != null) {
+                    stored.setOfflineTimeout(deviceClassFromMessage.getOfflineTimeout());
+                }
+                if (deviceClass.getValue().getPermanent() != null) {
+                    stored.setPermanent(deviceClassFromMessage.getPermanent());
+                }
+                if (!useExistingEquipment) {
+                    updateEquipment(newEquipmentSet, stored);
+                }
             }
             return stored;
         } else {
             //create
-            deviceClassDAO.createDeviceClass(deviceClass);
-            updateEquipment(newEquipmentSet, deviceClass);
-            return deviceClass;
+            deviceClassDAO.createDeviceClass(deviceClassFromMessage);
+            if (!useExistingEquipment) {
+                updateEquipment(newEquipmentSet, deviceClassFromMessage);
+            }
+            return deviceClassFromMessage;
         }
 
     }
@@ -168,31 +183,50 @@ public class DeviceService {
         }
     }
 
-    public void createOrUpdateDevice(Device device) {
+    public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         if (existingDevice == null) {
             deviceDAO.createDevice(device);
         } else {
             existingDevice.setDeviceClass(device.getDeviceClass());
-            existingDevice.setStatus(device.getStatus());
-            existingDevice.setData(device.getData());
-            existingDevice.setNetwork(device.getNetwork());
-            existingDevice.setKey(device.getKey());
+            if (deviceUpdate.getStatus() != null) {
+                existingDevice.setStatus(device.getStatus());
+            }
+            if (deviceUpdate.getData() != null) {
+                existingDevice.setData(device.getData());
+            }
+            if (deviceUpdate.getNetwork() != null) {
+                existingDevice.setNetwork(device.getNetwork());
+            }
+            if (deviceUpdate.getName() != null) {
+                existingDevice.setName(device.getName());
+            }
+            if (deviceUpdate.getKey() != null) {
+                existingDevice.setKey(device.getKey());
+            }
         }
 
     }
 
-    public void checkDevice(Device device) throws HiveException {
+    /**
+     * Implementation for model:
+     * if field exists and null - error
+     * if field does not exists - use field from database
+     *
+     * @param device
+     * @throws HiveException
+     */
+    public void checkDevice(DeviceUpdate device) throws HiveException {
         if (device == null) {
             throw new HiveException("Device is empty");
         }
-        if (device.getName() == null) {
+        if (device.getName() != null && device.getName().getValue() == null) {
             throw new HiveException("Device name is empty");
         }
-        if (device.getKey() == null) {
+        if (device.getKey() != null && device.getKey().getValue() == null) {
             throw new HiveException("Device key is empty");
         }
-        if (device.getDeviceClass() == null) {
+        if (device.getDeviceClass() != null && device.getDeviceClass().getValue() == null) {
             throw new HiveException("Device class is empty");
         }
     }

@@ -25,7 +25,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Network.updateById", query = "update Network n set n.description = :description where n.id = :id"),
         @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id"),
         @NamedQuery(name = "Network.getWithDevicesAndDeviceClasses", query = "select n from Network n " +
-                "left join fetch n.devices where n.id = :id")
+                "left join fetch n.devices where n.id = :id"),
+        @NamedQuery(name = "Network.getByDevice", query = "select d.network from Device d where d.guid = :guid")
 })
 public class Network implements HiveEntity {
 

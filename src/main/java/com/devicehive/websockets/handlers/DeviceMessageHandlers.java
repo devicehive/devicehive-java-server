@@ -1,27 +1,5 @@
 package com.devicehive.websockets.handlers;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
-
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.inject.Inject;
-import javax.jms.JMSException;
-import javax.websocket.Session;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceCommandDAO;
@@ -32,13 +10,8 @@ import com.devicehive.json.adapters.DateAdapter;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
-import com.devicehive.model.ApiInfo;
-import com.devicehive.model.Configuration;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.Version;
+import com.devicehive.model.*;
+import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
@@ -48,6 +21,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import javax.jms.JMSException;
+import javax.websocket.Session;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.List;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
@@ -91,7 +76,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             return;
         }
         UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
-        if (request.get("deviceKey") == null){
+        if (request.get("deviceKey") == null) {
             throw new HiveException("device key cannot be empty");
         }
         String deviceKey = request.get("deviceKey").getAsString();
@@ -141,7 +126,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("will subscribe device for commands : " + device.getGuid());
-            messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, MessageDetails.create().ids(device.getId()).session(session.getId()));
+            messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
+                    MessageDetails.create().ids(device.getId()).session(session.getId()));
             logger.debug("will get commands newer than : " + timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
@@ -162,7 +148,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Device device = getDevice(session, message);
         logger.debug("command/unsubscribe for device" + device.getGuid());
-        messageBus.unsubscribe(MessageType.CLIENT_TO_DEVICE_COMMAND, MessageDetails.create().ids(device.getId()).session(session.getId()));
+        messageBus.unsubscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
+                MessageDetails.create().ids(device.getId()).session(session.getId()));
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -171,7 +158,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("notification/insert started for session " + session.getId());
         DeviceNotification deviceNotification = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE)
                 .fromJson(message.get("notification"), DeviceNotification.class);
-        if (deviceNotification == null || deviceNotification.getNotification() == null){
+        if (deviceNotification == null || deviceNotification.getNotification() == null) {
             throw new HiveException("Notification is empty!");
         }
         Device device = getDevice(session, message);
@@ -227,10 +214,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("Device key is undefined!");
         }
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
-        Device device = mainGson.fromJson(message.get("device"), Device.class);
+        DeviceUpdate device = mainGson.fromJson(message.get("device"), DeviceUpdate.class);
         logger.debug("check requered fields in device ");
         deviceService.checkDevice(device);
         Gson gsonForEquipment = GsonFactory.createGson();
+        boolean useExistingEquipment = message.getAsJsonObject("device").get("equipment") == null;
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(message.getAsJsonObject("device").get("equipment"),
                 new TypeToken<HashSet<Equipment>>() {
                 }.getType());
@@ -238,8 +226,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             equipmentSet.remove(null);
         }
         logger.debug("device/save started");
-        device.setGuid(deviceId);
-        deviceService.deviceSave(device, equipmentSet);
+        device.setGuid(new NullableWrapper<>(deviceId));
+        deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")
                 .addRequestId(message.get("requestId"))
@@ -256,7 +244,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         UUID deviceId = gson.fromJson(request.get("deviceId"), UUID.class);
         return deviceDAO.findByUUID(deviceId);
     }
-
 
 
 }

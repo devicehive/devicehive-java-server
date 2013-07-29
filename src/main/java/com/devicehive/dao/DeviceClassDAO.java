@@ -2,14 +2,12 @@ package com.devicehive.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -18,6 +16,8 @@ import javax.validation.constraints.NotNull;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
+import com.devicehive.model.User;
+import com.devicehive.model.updates.DeviceClassUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +81,12 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
+    public DeviceClass getByDevice(@NotNull UUID guid){
+        TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.getByDevice", DeviceClass.class);
+        query.setParameter("guid", guid);
+        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
+    }
+
     public boolean delete(@NotNull Long id) {
         Query query = em.createNamedQuery("DeviceClass.deleteById");
         query.setParameter("id", id);
@@ -97,6 +103,8 @@ public class DeviceClassDAO {
     public boolean update(@NotNull Long id, DeviceClass deviceClass) {
         Query query = em.createNamedQuery("DeviceClass.updateDeviceClassById");
         query.setParameter("isPermanent", deviceClass.getPermanent());
+        query.setParameter("name", deviceClass.getName());
+        query.setParameter("version", deviceClass.getVersion());
         query.setParameter("offlineTimeout", deviceClass.getOfflineTimeout());
         query.setParameter("data", deviceClass.getData());
         query.setParameter("id", id);
@@ -116,8 +124,7 @@ public class DeviceClassDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Deprecated
-    public DeviceClass getDeviceClass(long id) {
+    public DeviceClass getDeviceClass(@NotNull Long id) {
         return em.find(DeviceClass.class, id);
     }
 

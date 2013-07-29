@@ -1,16 +1,10 @@
 package com.devicehive.messages.data.hash.subscriptions.dao;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.enterprise.context.Dependent;
-
 import com.devicehive.messages.data.subscriptions.model.NotificationsSubscription;
 import com.devicehive.model.Device;
+
+import javax.enterprise.context.Dependent;
+import java.util.*;
 
 @Dependent
 public class NotificationSubscriptionDAO implements com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO {
@@ -88,6 +82,17 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
     @Override
     public synchronized void deleteByDeviceAndSession(Device device, String sessionId) {
         deleteByDeviceAndSession(device.getId(), sessionId);
+    }
+
+    @Override
+    public synchronized void deleteByDevice(Long deviceId) {
+        List<NotificationsSubscription> entities = deviceToObject.remove(deviceId);
+        if (entities != null) {
+            for (NotificationsSubscription entity : entities) {
+                sessionToObject.remove(entity.getSessionId());
+                keyToObject.remove(new Key(deviceId, entity.getSessionId()));
+            }
+        }
     }
 
     @Override

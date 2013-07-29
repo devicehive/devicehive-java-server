@@ -3,10 +3,12 @@ package com.devicehive.service;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
+import com.devicehive.model.NullableWrapper;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.List;
+import java.util.UUID;
 
 @Stateless
 public class NetworkService {
@@ -61,7 +63,6 @@ public class NetworkService {
 
     }
 
-
     public List<Network> list(String name, String namePattern,
                               String sortField, boolean sortOrder,
                               Integer take, Integer skip) {
@@ -69,24 +70,31 @@ public class NetworkService {
 
     }
 
-
-    public Network createOrVeriryNetwork(Network network) {
+    public Network createOrVeriryNetwork(NullableWrapper<Network> network, UUID deviceGuid) {
         Network stored;
-        if (network.getId() != null) {
-            stored = networkDAO.getById(network.getId());
-        } else {
-            stored = networkDAO.findByName(network.getName());
+        //case network is not defined
+        if (network == null) {
+            return networkDAO.findByDevice(deviceGuid);
         }
-        if (stored != null) {
-            if (stored.getKey() != null) {
-                if (!stored.getKey().equals(network.getKey())) {
-                    throw new HiveException("Wrong network key!");
-                }
+        if (network.getValue() != null) {
+            Network update = network.getValue();
+            if (update.getId() != null) {
+                stored = networkDAO.getById(update.getId());
+            } else {
+                stored = networkDAO.findByName(update.getName());
             }
-        } else {
-            stored = networkDAO.createNetwork(network);
+            if (stored != null) {
+                if (stored.getKey() != null) {
+                    if (!stored.getKey().equals(update.getKey())) {
+                        throw new HiveException("Wrong network key!");
+                    }
+                }
+            } else {
+                stored = networkDAO.createNetwork(update);
+            }
+            assert (stored != null);
+            return stored;
         }
-        assert (stored != null);
-        return stored;
+        return null;
     }
 }

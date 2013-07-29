@@ -1,19 +1,17 @@
 package com.devicehive.messages.data.hash;
 
-import java.util.Collection;
-
-import javax.ejb.Singleton;
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devicehive.messages.data.MessagesDataSource;
 import com.devicehive.messages.data.hash.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.hash.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.hash.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.Singleton;
+import javax.inject.Inject;
+import java.util.Collection;
 
 /**
  * Implementation of {@link MessagesDataSource}. Stores all subscription data in hash-based collections.
@@ -55,6 +53,14 @@ public class HashBasedDataSource implements MessagesDataSource {
     }
 
     @Override
+    public void removeCommandsSubscription(Long deviceId) {
+        if (deviceId != null) {
+            logger.debug("Unsubscribing from commands for device : " + deviceId);
+            commandSubscriptionDAO.deleteByDevice(deviceId);
+        }
+    }
+
+    @Override
     public void addCommandUpdatesSubscription(String sessionId, Long commandId) {
         if (sessionId != null) {
             logger.debug("Subscribing for commands update for command : " + commandId + " and session : " + sessionId);
@@ -66,6 +72,12 @@ public class HashBasedDataSource implements MessagesDataSource {
     @Override
     public void removeCommandUpdatesSubscription(String sessionId, Long commandId) {
         logger.debug("Unsubscribing from commands update for command : " + commandId + " and session : " + sessionId);
+        commandUpdatesSubscriptionDAO.deleteByCommandId(commandId);
+    }
+
+    @Override
+    public void removeCommandsUpdatesSubscription(Long commandId) {
+        logger.debug("Unsubscribing from commands update for command : " + commandId);
         commandUpdatesSubscriptionDAO.deleteByCommandId(commandId);
     }
 
@@ -84,6 +96,11 @@ public class HashBasedDataSource implements MessagesDataSource {
                 notificationSubscriptionDAO.deleteByDeviceAndSession(deviceId, sessionId);
             }
         }
+    }
+
+    @Override
+    public void removeNotificationSubscription(Long deviceId) {
+        notificationSubscriptionDAO.deleteByDevice(deviceId);
     }
 
     @Override

@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
         @NamedQuery(name = "NotificationsSubscription.deleteByDevicesAndSession",
                 query = "delete from NotificationsSubscription n where n.deviceId in :deviceIdList and n.sessionId = " +
                         ":sessionId"),
+        @NamedQuery(name = "NotificationsSubscription.deleteByDevice", query = "delete from NotificationsSubscription n where n.deviceId = :deviceId"),
         @NamedQuery(name = "NotificationsSubscription.selectAll", query = "select n from NotificationsSubscription n"),
         @NamedQuery(name = "NotificationsSubscription.getSubscribedForAll",
                 query = "select n.sessionId from NotificationsSubscription n where n.deviceId is null"),

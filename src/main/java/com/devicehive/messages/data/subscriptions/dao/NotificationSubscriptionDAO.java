@@ -1,12 +1,11 @@
 package com.devicehive.messages.data.subscriptions.dao;
 
-import java.util.Collection;
-import java.util.List;
+import com.devicehive.model.Device;
 
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-
-import com.devicehive.model.Device;
+import java.util.Collection;
+import java.util.List;
 
 public interface NotificationSubscriptionDAO {
 
@@ -21,6 +20,8 @@ public interface NotificationSubscriptionDAO {
     public void deleteByDeviceAndSession(Long deviceId, String sessionId);
 
     public void deleteByDeviceAndSession(Device device, String sessionId);
+
+    public void deleteByDevice(Long deviceId);
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<String> getSessionIdSubscribedForAll();

@@ -3,11 +3,13 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.EquipmentDAO;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.dao.DublicateEntryException;
 import com.devicehive.exceptions.dao.HivePersistingException;
 import com.devicehive.exceptions.dao.NoSuchRecordException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
+import com.devicehive.model.updates.DeviceClassUpdate;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -25,6 +27,8 @@ public class DeviceClassService {
     private DeviceClassDAO deviceClassDAO;
     @Inject
     private EquipmentDAO equipmentDAO;
+    @Inject
+    private DeviceService deviceService;
 
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 String sortOrder, Integer take, Integer skip) {
@@ -62,8 +66,6 @@ public class DeviceClassService {
                 throw new DublicateEntryException("Entity with same name and version already exists with different id");
             }
         }
-
-
         try {
             DeviceClass recordToUpdate = deviceClassDAO.get(deviceClass.getId());
             if (deviceClass.getName() != null) {
@@ -86,6 +88,36 @@ public class DeviceClassService {
         } catch (Exception e) {
             throw new HivePersistingException("Persisting Exception", e);
         }
+    }
+
+    public void update(long id, DeviceClassUpdate update) {
+        if (update == null) {
+            return;
+        }
+        DeviceClass stored = deviceClassDAO.getDeviceClass(id);
+        if (stored == null) {
+            throw new HiveException("device with id = " + id + " does not exists");
+        }
+        if (update.getData() != null)
+            stored.setData(update.getData().getValue());
+        if (update.getEquipment() != null) {
+            deviceService.updateEquipment(update.getEquipment().getValue(), stored);
+            stored.setEquipment(update.getEquipment().getValue());
+        }
+        if (update.getName() != null) {
+            stored.setName(update.getName().getValue());
+        }
+        if (update.getPermanent() != null) {
+            stored.setPermanent(update.getPermanent().getValue());
+        }
+        if (update.getOfflineTimeout() != null) {
+            stored.setOfflineTimeout(update.getOfflineTimeout().getValue());
+        }
+        if (update.getVersion() != null) {
+            stored.setVersion(update.getVersion().getValue());
+        }
+        deviceClassDAO.updateDeviceClass(stored);
+
     }
 
 }

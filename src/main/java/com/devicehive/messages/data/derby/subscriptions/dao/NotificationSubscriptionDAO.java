@@ -68,6 +68,13 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
     }
 
     @Override
+    public void deleteByDevice(Long deviceId) {
+        Query query = em.createNamedQuery("NotificationsSubscription.deleteByDevice");
+        query.setParameter("deviceId", deviceId);
+        query.executeUpdate();
+    }
+
+    @Override
     public List<String> getSessionIdSubscribedForAll() {
         TypedQuery<String> query = em.createNamedQuery("NotificationsSubscription.getSubscribedForAll", String.class);
         return query.getResultList();

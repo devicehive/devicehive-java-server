@@ -1,30 +1,22 @@
 package com.devicehive.controller;
 
-import java.util.List;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.dao.NoSuchRecordException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
+import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
+
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * TODO JavaDoc
@@ -34,7 +26,6 @@ public class DeviceClassController {
 
     @Inject
     private DeviceClassService deviceClassService;
-
     @Inject
     private EquipmentService equipmentService;
 
@@ -79,24 +70,26 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
-    public Response updateDeviceClass(@PathParam("id") long id, DeviceClass insert) {
-        insert.setId(id);
-        deviceClassService.update(insert);
-        return Response.ok().build();
+    public Response updateDeviceClass(@PathParam("id") long id, DeviceClassUpdate insert) {
+        try {
+            deviceClassService.update(id, insert);
+        } catch (HiveException e) {
+            throw new NotFoundException(e.getMessage());
+        }
+        return Response.status(201).build();
     }
 
     @DELETE
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
-
-        if (deviceClassService.delete(id)) {
-            return Response.ok().build();
+        try {
+            deviceClassService.delete(id);
+            return Response.status(204).build();
+        } catch (NoSuchRecordException e) {
+            throw new NotFoundException(e);
         }
-
-        return null;
     }
-
 
     @GET
     @Path("/class/{deviceClassId}/equipment/{id}")
@@ -105,7 +98,6 @@ public class DeviceClassController {
     public Equipment getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
         return equipmentService.getEquipment(classId, eqId);
     }
-
 
     @POST
     @Path("/class/{deviceClassId}/equipment")
@@ -128,7 +120,8 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
-    public Equipment updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId, Equipment eq) {
+    public Equipment updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId,
+                                     Equipment eq) {
         Equipment e = equipmentService.get(eqId);
 
         if (e == null || e.getDeviceClass() == null || e.getDeviceClass().getId() != classId) {

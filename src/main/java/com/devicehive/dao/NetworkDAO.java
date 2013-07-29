@@ -1,6 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Stateless
 public class NetworkDAO {
@@ -32,8 +34,6 @@ public class NetworkDAO {
         em.persist(network);
         return network;
     }
-
-
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getWithDevicesAndDeviceClasses(@NotNull long id) {
@@ -55,6 +55,13 @@ public class NetworkDAO {
         query.setParameter("name", name);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Network findByDevice(@NotNull UUID guid) {
+        TypedQuery<Network> query = em.createNamedQuery("Network.getByDevice", Network.class);
+        query.setParameter("guid", guid);
+        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
 
     public boolean update(@NotNull Long id, @NotNull Network network) {

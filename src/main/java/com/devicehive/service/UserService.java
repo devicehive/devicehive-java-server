@@ -96,6 +96,7 @@ public class UserService {
         user.setLoginAttempts(0);
         user.setEntityVersion(1);
         user.setNetworks(new HashSet<Network>());
+        user.setLastLogin(null);
         em.persist(user);
         return user;
     }

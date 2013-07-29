@@ -1,27 +1,20 @@
 package com.devicehive.json.providers;
 
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
-
-import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 public abstract class  JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
     @Override
@@ -51,7 +44,8 @@ public abstract class  JsonPolicyProvider<T> implements MessageBodyWriter<T>, Me
 
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
+        return MediaType.APPLICATION_JSON_TYPE.getType().equals(mediaType.getType()) && MediaType
+                .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
     }
 
     @Override
