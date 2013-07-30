@@ -1,19 +1,5 @@
 package com.devicehive.controller;
 
-import java.security.Principal;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceCommandDAO;
@@ -33,6 +19,19 @@ import com.devicehive.model.User;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
+
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -218,7 +217,7 @@ public class DeviceCommandController {
 
         User u = userService.findUserWithNetworksByLogin(login);
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
-        return Response.ok().build();
+        return Response.status(HttpServletResponse.SC_CREATED).build();
     }
 
     private Device getDevice(String uuid) {

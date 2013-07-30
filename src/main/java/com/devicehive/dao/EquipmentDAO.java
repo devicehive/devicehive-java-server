@@ -50,15 +50,6 @@ public class EquipmentDAO {
 
     }
 
-    @Deprecated
-    public Equipment update(@NotNull Equipment e) {
-        try {
-            return em.merge(e);
-        } catch (Exception ex) {
-            throw new HivePersistingException("Unable to persist entity", ex);
-        }
-    }
-
     public boolean update (@NotNull Equipment equipment, @NotNull Long equipmentId){
         Query query = em.createNamedQuery("Equipment.updateProperties");
         query.setParameter("id", equipmentId);
@@ -69,9 +60,27 @@ public class EquipmentDAO {
         return query.executeUpdate() != 0;
     }
 
+    public boolean update (@NotNull Equipment equipment, @NotNull Long equipmentId, @NotNull Long deviceClassId){
+        Query query = em.createNamedQuery("Equipment.updatePropertiesUsingDeviceClass");
+        query.setParameter("equipmentId", equipmentId);
+        query.setParameter("deviceClassId", deviceClassId);
+        query.setParameter("name", equipment.getName());
+        query.setParameter("code", equipment.getCode());
+        query.setParameter("type", equipment.getType());
+        query.setParameter("data", equipment.getData());
+        return query.executeUpdate() != 0;
+    }
+
     public boolean delete(@NotNull Long equipmentId){
         Query query =  em.createNamedQuery("Equipment.deleteById");
         query.setParameter("id", equipmentId);
+        return query.executeUpdate() != 0;
+    }
+
+    public boolean delete(@NotNull Long equipmentId, @NotNull Long deviceClassId){
+        Query query =  em.createNamedQuery("Equipment.deleteByIdAndDeviceClass");
+        query.setParameter("id", equipmentId);
+        query.setParameter("deviceClassId", deviceClassId);
         return query.executeUpdate() != 0;
     }
 
@@ -87,7 +96,7 @@ public class EquipmentDAO {
      * @param equipments equipments to remove
      * @return
      */
-    public int deleteEquipment(Collection<Equipment> equipments) {
+    public int delete(Collection<Equipment> equipments) {
         Query query = em.createNamedQuery("Equipment.deleteByEquipmentList");
         query.setParameter("equipmentList", equipments);
         return query.executeUpdate();

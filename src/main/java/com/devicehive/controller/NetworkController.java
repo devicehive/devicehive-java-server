@@ -7,21 +7,16 @@ import com.devicehive.model.Network;
 import com.devicehive.service.NetworkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 
 /**
@@ -34,6 +29,7 @@ public class NetworkController {
 
     @Inject
     private NetworkService networkService;
+
 
 
     /**
@@ -135,7 +131,8 @@ public class NetworkController {
         n.setKey(nr.getKey());
         n.setDescription(nr.getDescription());
         n.setName(nr.getName());
-        return networkService.insert(n);
+        Network result = networkService.insert(n);
+        return result;
     }
 
 
@@ -168,9 +165,11 @@ public class NetworkController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
-    public Network update(Network nr, @PathParam("id") long id) {
+    public Network update(Network nr, @PathParam("id") long id, @Context ContainerResponseContext responseContext) {
         nr.setId(id);
-        return networkService.update(nr);
+        Network result = networkService.update(nr);
+        responseContext.setStatus(HttpServletResponse.SC_CREATED);
+        return result;
     }
 
     /**
@@ -184,6 +183,6 @@ public class NetworkController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") long id) {
         networkService.delete(id);
-        return Response.ok().build();
+        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
     }
 }

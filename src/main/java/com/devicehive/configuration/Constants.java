@@ -25,4 +25,5 @@ public class Constants {
     public static final String WEBSOCKET_SERVER_URL = "WebSocketServerUrl";
 
     public static final String REST_SERVER_URL = "RestServerUrl";
+
 }

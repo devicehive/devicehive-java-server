@@ -175,7 +175,7 @@ public class DeviceService {
     public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
         List<Equipment> existingEquipments = equipmentDAO.getByDeviceClass(deviceClass);
         if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
-            equipmentDAO.deleteEquipment(existingEquipments);
+            equipmentDAO.delete(existingEquipments);
         }
         for (Equipment equipment : newEquipmentSet) {
             equipment.setDeviceClass(deviceClass);

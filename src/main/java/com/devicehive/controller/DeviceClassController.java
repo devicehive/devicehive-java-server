@@ -1,25 +1,27 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.exceptions.dao.NoSuchRecordException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
-import com.devicehive.service.EquipmentService;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
- * TODO JavaDoc
+ * REST controller for device classes: <i>/DeviceClass</i>.
+ * See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive RESTful API: DeviceClass</a> for details.
  */
 @Path("/device")
 public class DeviceClassController {
@@ -27,8 +29,25 @@ public class DeviceClassController {
     @Inject
     private DeviceClassService deviceClassService;
     @Inject
-    private EquipmentService equipmentService;
+    private EquipmentDAO equipmentDAO;
 
+
+
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/list"> DeviceHive RESTful API:
+     * DeviceClass: list</a>
+     * Gets list of device classes.
+     *
+     * @param name        Device class name.
+     * @param namePattern Device class name pattern.
+     * @param version     Device class version.
+     * @param sortField   Result list sort field. Available values are ID and Name.
+     * @param sortOrder   Result list sort order. Available values are ASC and DESC.
+     * @param take        Number of records to take from the result list.
+     * @param skip        Number of records to skip from the result list.
+     * @return If successful, this method returns array of <a href="http://www.devicehive
+     *         .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
+     */
     @GET
     @Path("/class")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -45,6 +64,15 @@ public class DeviceClassController {
         return deviceClassService.getDeviceClassList(name, namePattern, version, sortField, sortOrder, take, skip);
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/get"> DeviceHive RESTful API:
+     * DeviceClass: get</a>
+     * Gets information about device class and its equipment.
+     *
+     * @param id Device class identifier.
+     * @return If successful, this method returns a <a href="http://www.devicehive
+     *         .com/restful#Reference/DeviceClass">DeviceClass</a> resource in the response body.
+     */
     @GET
     @Path("/class/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
@@ -54,6 +82,25 @@ public class DeviceClassController {
         return deviceClassService.getWithEquipment(id);
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/insert"> DeviceHive RESTful
+     * API: DeviceClass: insert</a>
+     * Creates new device class.
+     *
+     * @param insert In the request body, supply a DeviceClass resource.
+     *               {
+     *               "name" : "Device class display name. String."
+     *               "version" : "Device class version. String."
+     *               "isPermanent" : "Indicates whether device class is permanent. Permanent device classes could
+     *               not be modified by devices during registration. Boolean."
+     *               "offlineTimeout" : "If set, specifies inactivity timeout in seconds before the framework
+     *               changes device status to 'Offline'. Device considered inactive when it does not send any
+     *               notifications. Integer."
+     *               "data" : "Device class data, a JSON object with an arbitrary structure."
+     *               }
+     *               name, version and isPermanent are required fields
+     * @return If successful, this method returns a DeviceClass resource in the response body.
+     */
     @POST
     @Path("/class")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -61,9 +108,20 @@ public class DeviceClassController {
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
     public DeviceClass insertDeviceClass(DeviceClass insert) {
-        return deviceClassService.addDeviceClass(insert);
+        DeviceClass result = deviceClassService.addDeviceClass(insert);
+        return result;
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/update"> DeviceHive RESTful
+     * API: DeviceClass: update</a>
+     * Updates an existing device class.
+     *
+     * @param id     Device class identifier.
+     * @param insert In the request body, supply a <a href="http://www.devicehive
+     *               .com/restful#Reference/DeviceClass">DeviceClass</a> resource.
+     * @return If successful, this method returns an empty response body.
+     */
     @PUT
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -76,19 +134,26 @@ public class DeviceClassController {
         } catch (HiveException e) {
             throw new NotFoundException(e.getMessage());
         }
-        return Response.status(201).build();
+        return Response.status(HttpServletResponse.SC_CREATED).build();
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/delete"> DeviceHive RESTful
+     * API: DeviceClass: delete</a>
+     * Deletes an existing device class.
+     *
+     * @param id Device class identifier.
+     * @return If successful, this method returns an empty response body.
+     */
     @DELETE
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
-        try {
-            deviceClassService.delete(id);
-            return Response.status(204).build();
-        } catch (NoSuchRecordException e) {
-            throw new NotFoundException(e);
+        if (!deviceClassService.delete(id)) {
+            throw new NotFoundException("device with id = " + id + " does not exists");
         }
+        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+
     }
 
     @GET
@@ -96,7 +161,7 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)
     public Equipment getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        return equipmentService.getEquipment(classId, eqId);
+        return equipmentDAO.getByDeviceClass(classId, eqId);
     }
 
     @POST
@@ -105,13 +170,16 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
-    public Equipment insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq) {
+    public Equipment insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq,
+                                     @Context HttpServletResponse response) {
 
         DeviceClass dc = new DeviceClass();
         dc.setId(classId);
         eq.setDeviceClass(dc);
 
-        return equipmentService.insertEquipment(eq);
+        Equipment result = equipmentDAO.create(eq);
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        return result;
     }
 
     @PUT
@@ -121,28 +189,12 @@ public class DeviceClassController {
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
     public Equipment updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId,
-                                     Equipment eq) {
-        Equipment e = equipmentService.get(eqId);
-
-        if (e == null || e.getDeviceClass() == null || e.getDeviceClass().getId() != classId) {
-            throw new NotFoundException("No such Equipment");
+                                     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)Equipment
+                                             equipment) {
+        if (!equipmentDAO.update(equipment, eqId, classId)) {
+            throw new NotFoundException("equipment with id = " + eqId + " does not exists");
         }
-        if (eq.getName() != null) {
-            e.setName(eq.getName());
-        }
-        if (eq.getCode() != null) {
-            e.setCode(eq.getCode());
-        }
-        if (eq.getType() != null) {
-            e.setType(eq.getType());
-        }
-        if (eq.getData() != null) {
-            e.setData(eq.getData());
-        }
-
-        equipmentService.updateEquipment(e);
-
-        return e;
+        return equipment;
     }
 
     @DELETE
@@ -150,11 +202,9 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        Equipment e = equipmentService.getEquipment(classId, eqId);
-        if (e == null) {
-            throw new NotFoundException("No such Equipment");
+        if (!equipmentDAO.delete(eqId, classId)) {
+            throw new NotFoundException("No equipment found with id = " + eqId + " associated with the " + classId);
         }
-        equipmentService.deleteEquipment(e);
-        return Response.ok().build();
+        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
     }
 }

@@ -12,14 +12,13 @@ import com.devicehive.service.UserService;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.xml.ws.http.HTTPException;
-import java.security.Principal;
 import java.util.List;
 
 /**
@@ -91,7 +90,9 @@ public class UserController {
             throw new ForbiddenException("User with such login already exists");
         }
 
-        return userService.createUser(user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
+        User result = userService.createUser(user.getLogin(), user.getRoleEnum(), user.getStatusEnum(),
+                user.getPassword());
+        return result;
 
     }
 
@@ -108,7 +109,7 @@ public class UserController {
         }
 
         userService.updateUser(userId, user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
-        return Response.ok().build();
+        return Response.status(HttpServletResponse.SC_CREATED).build();
     }
 
     @DELETE
@@ -116,7 +117,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response updateUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
-        return Response.ok().build();
+        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
     }
 
 
@@ -149,7 +150,7 @@ public class UserController {
         } catch (Exception e) {
             throw new NotFoundException();
         }
-        return Response.ok().build();
+        return Response.status(HttpServletResponse.SC_CREATED).build();
     }
 
     @DELETE
@@ -162,7 +163,7 @@ public class UserController {
         } catch (Exception e) {
             throw new NotFoundException();
         }
-        return Response.ok().build();
+        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
     }
 
     @GET
@@ -202,7 +203,6 @@ public class UserController {
         User u = userService.findUserWithNetworksByLogin(login);
 
         userService.updatePassword(u.getId(), password);
-
         return u;
     }
 

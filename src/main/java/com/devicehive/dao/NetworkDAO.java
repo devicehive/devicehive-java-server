@@ -122,4 +122,21 @@ public class NetworkDAO {
         return networks.isEmpty() ? null : networks.get(0);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<Network> getByNameOrId(Long networkId, String networkName){
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<Network> networkCriteria = criteriaBuilder.createQuery(Network.class);
+        Root fromNetwork = networkCriteria.from(Network.class);
+        List<Predicate> networkPredicates = new ArrayList<>();
+        if (networkId != null) {
+            networkPredicates.add(criteriaBuilder.equal(fromNetwork.get("id"), networkId));
+        }
+        if (networkName != null) {
+            networkPredicates.add(criteriaBuilder.equal(fromNetwork.get("name"), networkName));
+        }
+        networkCriteria.where(networkPredicates.toArray(new Predicate[networkPredicates.size()]));
+        TypedQuery<Network> networksQuery = em.createQuery(networkCriteria);
+        return networksQuery.getResultList();
+    }
+
 }
