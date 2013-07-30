@@ -217,7 +217,7 @@ public class UserController {
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public User updateCurrent(UserInsert ui) {
 
-        String password = ui.getPassword();
+        String password = ui.getPassword().getValue();
 
         if (password == null) {
             throw new HTTPException(400);
