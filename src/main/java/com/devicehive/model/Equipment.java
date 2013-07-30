@@ -29,35 +29,39 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 " e.type = :type, e.data = :data where e.id = :id"),
         @NamedQuery(name = "Equipment.deleteById", query = "delete from Equipment e where e.id = :id"),
         @NamedQuery(name = "Equipment.deleteByFK", query = "delete from Equipment e where e.deviceClass = " +
-                ":deviceClass")
+                ":deviceClass"),
+        @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from Equipment e where e.id = :id " +
+                "and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)" ),
+        @NamedQuery(name = "Equipment.updatePropertiesUsingDeviceClass", query = "update Equipment e set e.name = :name, e.code = :code," +
+                " e.type = :type, e.data = :data where e.id = :equipmentId and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)")
 })
 public class Equipment implements HiveEntity {
 
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
+    @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
     private Long id;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private String name;
 
     @SerializedName("code")
     @Column
     @NotNull(message = "code field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private String code;
 
     @SerializedName("type")
     @Column
     @NotNull(message = "type field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private String type;
 
     @SerializedName("data")
@@ -65,7 +69,7 @@ public class Equipment implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
+    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private JsonStringWrapper data;
 
     @ManyToOne

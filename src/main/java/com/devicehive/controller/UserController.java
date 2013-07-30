@@ -11,6 +11,7 @@ import com.devicehive.service.UserService;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -191,7 +192,7 @@ public class UserController {
         } catch (Exception e) {
             throw new NotFoundException();
         }
-        return Response.status(Response.Status.NO_CONTENT).build();
+        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
     }
 
     @GET
@@ -216,11 +217,7 @@ public class UserController {
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public User updateCurrent(UserInsert ui) {
 
-        if (ui.getPassword() == null) {
-            throw new HTTPException(400);
-        }
-
-        String password = ui.getPassword().getValue();
+        String password = ui.getPassword();
 
         if (password == null) {
             throw new HTTPException(400);

@@ -90,9 +90,8 @@ public class DeviceClassDAO {
     public boolean delete(@NotNull Long id) {
         Query query = em.createNamedQuery("DeviceClass.deleteById");
         query.setParameter("id", id);
-        query.executeUpdate();
-        em.clear();
-        return true;
+        return query.executeUpdate() != 0;
+
     }
 
     /**
@@ -159,6 +158,26 @@ public class DeviceClassDAO {
         query.setParameter("name", name);
         List<DeviceClass> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceClass> getByIdOrNameOrVersion(Long deviceClassId, String deviceClassName, String deviceClassVersion){
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<DeviceClass> deviceClassCriteria = criteriaBuilder.createQuery(DeviceClass.class);
+        Root fromDeviceClass = deviceClassCriteria.from(DeviceClass.class);
+        List<Predicate> deviceClassPredicates = new ArrayList<>();
+        if (deviceClassId != null) {
+            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("id"), deviceClassId));
+        }
+        if (deviceClassName != null) {
+            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("name"), deviceClassName));
+        }
+        if (deviceClassVersion != null) {
+            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("version"), deviceClassVersion));
+        }
+        deviceClassCriteria.where(deviceClassPredicates.toArray(new Predicate[deviceClassPredicates.size()]));
+        TypedQuery<DeviceClass> deviceClassQuery = em.createQuery(deviceClassCriteria);
+        return deviceClassQuery.getResultList();
     }
 
 }
