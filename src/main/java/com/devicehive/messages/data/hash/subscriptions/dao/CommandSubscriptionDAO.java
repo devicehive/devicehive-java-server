@@ -1,7 +1,9 @@
 package com.devicehive.messages.data.hash.subscriptions.dao;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.context.Dependent;
 
@@ -12,10 +14,13 @@ public class CommandSubscriptionDAO implements com.devicehive.messages.data.subs
 
     private long counter = 0L;
 
+    /* deviceId is unique */
     private Map<Long, CommandsSubscription> deviceToObject = new HashMap<>();
-    private Map<String, CommandsSubscription> sessionToObject = new HashMap<>();
-    
-    public CommandSubscriptionDAO() {}
+    /* sessionId is not unique */
+    private Map<String, Set<CommandsSubscription>> sessionToObject = new HashMap<>();
+
+    public CommandSubscriptionDAO() {
+    }
 
     @Override
     public CommandsSubscription getByDeviceId(Long id) {
@@ -27,15 +32,25 @@ public class CommandSubscriptionDAO implements com.devicehive.messages.data.subs
     public synchronized void insert(CommandsSubscription entity) {
         entity.setId(Long.valueOf(counter));
         deviceToObject.put(entity.getDeviceId(), entity);
-        sessionToObject.put(entity.getSessionId(), entity);
+
+        Set<CommandsSubscription> records = sessionToObject.get(entity.getSessionId());
+        if (records == null) {
+            records = new HashSet<>();
+        }
+        records.add(entity);
+        sessionToObject.put(entity.getSessionId(), records);
+
         ++counter;
     }
 
     @Override
     public synchronized void deleteBySession(String sessionId) {
-        CommandsSubscription entity = sessionToObject.remove(sessionId);
-        if (entity != null) {
-            deviceToObject.remove(entity.getDeviceId());
+        Set<CommandsSubscription> records = sessionToObject.remove(sessionId);
+        if (records != null) {
+            for (CommandsSubscription entity : records) {
+                deviceToObject.remove(entity.getDeviceId());
+            }
+
         }
     }
 
@@ -43,7 +58,10 @@ public class CommandSubscriptionDAO implements com.devicehive.messages.data.subs
     public synchronized void deleteByDevice(Long deviceId) {
         CommandsSubscription entity = deviceToObject.remove(deviceId);
         if (entity != null) {
-            sessionToObject.remove(entity.getSessionId());
+            Set<CommandsSubscription> records = sessionToObject.get(entity.getSessionId());
+            if (records != null) {
+                records.remove(entity);
+            }
         }
     }
 
