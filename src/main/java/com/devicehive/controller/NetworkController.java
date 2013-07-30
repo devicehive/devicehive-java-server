@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
@@ -128,7 +125,7 @@ public class NetworkController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(Network nr) {
+    public Response insert(NetworkRequest nr) {
         Network n = new Network();
         //TODO: if request if malformed this code will fall with NullPointerException
         n.setKey(nr.getKey().getValue());
@@ -168,7 +165,7 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(Network nr, @PathParam("id") long id) {
+    public Response update(NetworkRequest nr, @PathParam("id") long id) {
         nr.setId(id);
         Network n = networkService.getById(id);
 
@@ -183,7 +180,7 @@ public class NetworkController {
         if (nr.getDescription() != null) {
             n.setDescription(nr.getDescription().getValue());
         }
-        networkService.update(nr);
+        networkService.update(n);
         return Response.status(Response.Status.CREATED).build();
     }
 
