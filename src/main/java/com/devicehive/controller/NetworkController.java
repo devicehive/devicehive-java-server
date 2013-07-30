@@ -4,6 +4,7 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
+import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,6 @@ public class NetworkController {
     private NetworkService networkService;
 
 
-
     /**
      * Produces following output:
      * <pre>
@@ -51,23 +51,23 @@ public class NetworkController {
      * ]
      * </pre>
      *
-     * @param name exact network's name, ignored, when  namePattern is not null
+     * @param name        exact network's name, ignored, when  namePattern is not null
      * @param namePattern
-     * @param sortField Sort Field, can be either "id", "key", "name" or "description"
-     * @param sortOrder ASC - ascending, otherwise descending
-     * @param take limit, default 1000
-     * @param skip offset, default 0
+     * @param sortField   Sort Field, can be either "id", "key", "name" or "description"
+     * @param sortOrder   ASC - ascending, otherwise descending
+     * @param take        limit, default 1000
+     * @param skip        offset, default 0
      */
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
-    public List<Network> getNetworkList( @QueryParam("name") String name,
-                                         @QueryParam("namePattern") String namePattern,
-                                         @QueryParam("sortField") String sortField,
-                                         @QueryParam("sortOrder") String sortOrder,
-                                         @QueryParam("take") Integer take,
-                                         @QueryParam("skip") Integer skip) {
+    public List<Network> getNetworkList(@QueryParam("name") String name,
+                                        @QueryParam("namePattern") String namePattern,
+                                        @QueryParam("sortField") String sortField,
+                                        @QueryParam("sortOrder") String sortOrder,
+                                        @QueryParam("take") Integer take,
+                                        @QueryParam("skip") Integer skip) {
 
         return networkService.list(name, namePattern, sortField, "ASC".equals(sortOrder), take, skip);
     }
@@ -82,6 +82,7 @@ public class NetworkController {
      *      "name":"Network Name"
      *     }
      * </pre>
+     *
      * @param id network id, can't be null
      */
     @GET
@@ -107,7 +108,7 @@ public class NetworkController {
      * "key" is not required
      * "description" is not required
      * "name" is required
-     *
+     * <p/>
      * In case of success will produce following output:
      * <pre>
      *     {
@@ -119,20 +120,20 @@ public class NetworkController {
      * </pre>
      * Where "description" and "key" will be provided, if they are specified in request.
      * Fields "id" and "name" will be provided anyway.
-     *
      */
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
-    public Network insert(Network nr) {
+    public Network insert(NetworkRequest nr) {
         Network n = new Network();
-        n.setKey(nr.getKey());
-        n.setDescription(nr.getDescription());
-        n.setName(nr.getName());
-        Network result = networkService.insert(n);
-        return result;
+        //TODO: if request if malformed this code will fall with NullPointerException
+        n.setKey(nr.getKey().getValue());
+        n.setDescription(nr.getDescription().getValue());
+        n.setName(nr.getName().getValue());
+
+        return networkService.insert(n);
     }
 
 
@@ -165,16 +166,30 @@ public class NetworkController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
-    public Network update(Network nr, @PathParam("id") long id, @Context ContainerResponseContext responseContext) {
+    public Response update(NetworkRequest nr, @PathParam("id") long id) {
         nr.setId(id);
-        Network result = networkService.update(nr);
-        responseContext.setStatus(HttpServletResponse.SC_CREATED);
-        return result;
+        Network n = networkService.getById(id);
+
+        if (nr.getKey() != null) {
+            n.setKey(nr.getKey().getValue());
+        }
+
+        if (nr.getName() != null) {
+            n.setName(nr.getName().getValue());
+        }
+
+        if (nr.getDescription() != null) {
+            n.setDescription(nr.getDescription().getValue());
+        }
+
+        Network result = networkService.update(n);
+        return Response.status(Response.Status.CREATED).entity(result).build();
     }
 
     /**
      * Deletes network by specified id.
      * If success, outputs empty response
+     *
      * @param id network's id
      */
     @DELETE

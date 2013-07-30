@@ -8,6 +8,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserInsert;
 import com.devicehive.service.UserService;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -113,7 +114,7 @@ public class UserController {
         if (user.getLogin() != null) {
             User u = userService.findByLogin(user.getLogin().getValue());
 
-            if (u != null) {
+            if (u != null && u.getId() != userId) {
                 throw new ForbiddenException("User with such login already exists");
             }
         }
@@ -205,8 +206,7 @@ public class UserController {
         if (login == null) {
             throw new ForbiddenException("User Must be authenticated");
         }
-        User u = userService.findUserWithNetworksByLogin(login);
-        return u;
+        return userService.findUserWithNetworksByLogin(login);
     }
 
     @PUT
