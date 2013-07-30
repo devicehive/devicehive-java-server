@@ -191,7 +191,7 @@ public class DeviceController {
         notificationDAO.deleteNotificationByFK(device);
         messagesDataSource.removeCommandsSubscription(device.getId());
         for (DeviceCommand command : commandList) {
-            messagesDataSource.removeCommandsUpdatesSubscription(command.getId());
+            messagesDataSource.removeCommandUpdatesSubscription(command.getId());
         }
         commandDAO.deleteByFK(device);
         deviceEquipmentDAO.deleteByFK(device);
