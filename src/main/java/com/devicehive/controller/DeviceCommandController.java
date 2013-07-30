@@ -22,13 +22,13 @@ import com.devicehive.service.UserService;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.lang.annotation.Annotation;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -205,7 +205,6 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE)
     public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand) {
         Device device = deviceService.findByGuid(UUID.fromString(guid));
 
@@ -217,7 +216,9 @@ public class DeviceCommandController {
 
         User u = userService.findUserWithNetworksByLogin(login);
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
-        return Response.status(HttpServletResponse.SC_CREATED).build();
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE)};
+        return Response.status(Response.Status.CREATED).entity(deviceCommand, annotations).build();
+
     }
 
     private Device getDevice(String uuid) {

@@ -10,12 +10,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 
@@ -125,14 +123,14 @@ public class NetworkController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
-    public Network insert(Network nr) {
+    public Response insert(Network nr) {
         Network n = new Network();
         n.setKey(nr.getKey());
         n.setDescription(nr.getDescription());
         n.setName(nr.getName());
         Network result = networkService.insert(n);
-        return result;
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORK_SUBMITTED)};
+        return Response.status(Response.Status.CREATED).entity(result,annotations).build();
     }
 
 
@@ -164,12 +162,10 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
-    public Network update(Network nr, @PathParam("id") long id, @Context ContainerResponseContext responseContext) {
+    public Response update(Network nr, @PathParam("id") long id) {
         nr.setId(id);
-        Network result = networkService.update(nr);
-        responseContext.setStatus(HttpServletResponse.SC_CREATED);
-        return result;
+        networkService.update(nr);
+        return Response.status(Response.Status.CREATED).build();
     }
 
     /**
@@ -183,6 +179,6 @@ public class NetworkController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") long id) {
         networkService.delete(id);
-        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 }
