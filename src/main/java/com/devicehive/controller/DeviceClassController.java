@@ -12,11 +12,10 @@ import com.devicehive.service.DeviceClassService;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -30,8 +29,6 @@ public class DeviceClassController {
     private DeviceClassService deviceClassService;
     @Inject
     private EquipmentDAO equipmentDAO;
-
-
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/list"> DeviceHive RESTful API:
@@ -106,10 +103,12 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
-    public DeviceClass insertDeviceClass(DeviceClass insert) {
-        DeviceClass result = deviceClassService.addDeviceClass(insert);
-        return result;
+    public Response insertDeviceClass(DeviceClass insert) {
+        Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy
+                .DEVICECLASS_SUBMITTED)};
+        return responseBuilder.entity(deviceClassService.addDeviceClass(insert), annotations).build();
+
     }
 
     /**
@@ -127,14 +126,13 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
-    public Response updateDeviceClass(@PathParam("id") long id, DeviceClassUpdate insert) {
+    public Response updateDeviceClass(@PathParam("id") long id,@JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
         try {
             deviceClassService.update(id, insert);
         } catch (HiveException e) {
             throw new NotFoundException(e.getMessage());
         }
-        return Response.status(HttpServletResponse.SC_CREATED).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 
     /**
@@ -152,7 +150,7 @@ public class DeviceClassController {
         if (!deviceClassService.delete(id)) {
             throw new NotFoundException("device with id = " + id + " does not exists");
         }
-        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+        return Response.status(Response.Status.NO_CONTENT).build();
 
     }
 
@@ -169,17 +167,13 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
-    public Equipment insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq,
-                                     @Context HttpServletResponse response) {
-
+    public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq) {
         DeviceClass dc = new DeviceClass();
         dc.setId(classId);
         eq.setDeviceClass(dc);
-
         Equipment result = equipmentDAO.create(eq);
-        response.setStatus(HttpServletResponse.SC_CREATED);
-        return result;
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)};
+        return Response.status(Response.Status.CREATED).entity(result, annotations).build();
     }
 
     @PUT
@@ -187,14 +181,13 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
-    public Equipment updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId,
-                                     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)Equipment
+    public Response updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId,
+                                     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) Equipment
                                              equipment) {
         if (!equipmentDAO.update(equipment, eqId, classId)) {
             throw new NotFoundException("equipment with id = " + eqId + " does not exists");
         }
-        return equipment;
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @DELETE
@@ -205,6 +198,6 @@ public class DeviceClassController {
         if (!equipmentDAO.delete(eqId, classId)) {
             throw new NotFoundException("No equipment found with id = " + eqId + " associated with the " + classId);
         }
-        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

@@ -21,7 +21,6 @@ import com.google.gson.reflect.TypeToken;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -153,7 +152,7 @@ public class DeviceController {
             equipmentSet.remove(null);
         }
         deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
-        return Response.status(HttpServletResponse.SC_CREATED).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 
     /**
@@ -198,7 +197,7 @@ public class DeviceController {
         if (!deviceDAO.deleteDevice(device.getId())) {
             throw new NotFoundException("Device with id = " + guid + " not found");
         }
-        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     /**

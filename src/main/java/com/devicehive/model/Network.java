@@ -33,7 +33,7 @@ public class Network implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED,NETWORK_SUBMITTED})
     private Long id;
 
     @SerializedName("key")

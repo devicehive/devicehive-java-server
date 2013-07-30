@@ -8,16 +8,16 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserInsert;
 import com.devicehive.service.UserService;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.ws.http.HTTPException;
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -81,16 +81,15 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public User insertUser(UserInsert user) {
+    public Response insertUser(UserInsert user) {
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null || user.getStatus() == null) {
-            throw new HTTPException(400);
+            throw new BadRequestException();
         }
         //nor we want these parameters to be null
         if (user.getLogin().getValue() == null || user.getPassword().getValue() == null
                 || user.getRole().getValue() == null || user.getStatus().getValue() == null) {
-            throw new HTTPException(400);
+            throw new BadRequestException();
         }
 
         User u = userService.findByLogin(user.getLogin().getValue());
@@ -98,9 +97,8 @@ public class UserController {
         if (u != null) {
             throw new ForbiddenException("User with such login already exists");
         }
-
-        return userService.createUser(user.getLogin().getValue(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword().getValue());
-
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.USERS_LISTED)};
+        return Response.status(Response.Status.CREATED).entity(u, annotations).build();
     }
 
 
@@ -113,25 +111,24 @@ public class UserController {
         if (user.getLogin() != null) {
             User u = userService.findByLogin(user.getLogin().getValue());
 
-            if (u != null) {
+            if (u != null && u.getId() != userId) {
                 throw new ForbiddenException("User with such login already exists");
             }
         }
-
         if (user.getLogin() != null && user.getLogin().getValue() == null) {
-            throw new HTTPException(400);
+            throw new BadRequestException();
         }
 
         if (user.getPassword() != null && user.getPassword().getValue() == null) {
-            throw new HTTPException(400);
+            throw new BadRequestException();
         }
 
         if (user.getRole() != null && user.getRole().getValue() == null) {
-            throw new HTTPException(400);
+            throw new BadRequestException();
         }
 
         if (user.getStatus() != null && user.getStatus().getValue() == null) {
-            throw new HTTPException(400);
+            throw new BadRequestException();
         }
         String loginValue = user.getLogin() == null ? null : user.getLogin().getValue();
         String passwordValue = user.getPassword() == null ? null : user.getPassword().getValue();
@@ -192,7 +189,7 @@ public class UserController {
         } catch (Exception e) {
             throw new NotFoundException();
         }
-        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @GET
@@ -205,8 +202,7 @@ public class UserController {
         if (login == null) {
             throw new ForbiddenException("User Must be authenticated");
         }
-        User u = userService.findUserWithNetworksByLogin(login);
-        return u;
+        return userService.findUserWithNetworksByLogin(login);
     }
 
     @PUT
@@ -214,13 +210,12 @@ public class UserController {
     @PermitAll
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public User updateCurrent(UserInsert ui) {
+    public Response updateCurrent(UserInsert ui) {
 
         String password = ui.getPassword().getValue();
 
         if (password == null) {
-            throw new HTTPException(400);
+            throw new BadRequestException();
         }
 
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
@@ -232,8 +227,7 @@ public class UserController {
         User u = userService.findUserWithNetworksByLogin(login);
 
         userService.updatePassword(u.getId(), password);
-
-        return u;
+        return Response.status(Response.Status.CREATED).build();
     }
 
 
