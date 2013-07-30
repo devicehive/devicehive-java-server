@@ -1,7 +1,9 @@
 package com.devicehive.messages.data.hash.subscriptions.dao;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.context.Dependent;
 
@@ -12,10 +14,13 @@ public class CommandUpdatesSubscriptionDAO implements com.devicehive.messages.da
 
     private long counter = 0L;
 
+    /* commandId is unique */
     private Map<Long, CommandUpdatesSubscription> commandToObject = new HashMap<>();
-    private Map<String, CommandUpdatesSubscription> sessionToObject = new HashMap<>();
-    
-    public CommandUpdatesSubscriptionDAO() {}
+    /* sessionId is not unique */
+    private Map<String, Set<CommandUpdatesSubscription>> sessionToObject = new HashMap<>();
+
+    public CommandUpdatesSubscriptionDAO() {
+    }
 
     @Override
     public synchronized CommandUpdatesSubscription getByCommandId(Long id) {
@@ -27,15 +32,23 @@ public class CommandUpdatesSubscriptionDAO implements com.devicehive.messages.da
     public synchronized void insert(CommandUpdatesSubscription entity) {
         entity.setId(Long.valueOf(counter));
         commandToObject.put(entity.getCommandId(), entity);
-        sessionToObject.put(entity.getSessionId(), entity);
+
+        Set<CommandUpdatesSubscription> records = sessionToObject.get(entity.getSessionId());
+        if (records == null) {
+            records = new HashSet<>();
+        }
+        records.add(entity);
+        sessionToObject.put(entity.getSessionId(), records);
         ++counter;
     }
 
     @Override
     public synchronized void deleteBySession(String sessionId) {
-        CommandUpdatesSubscription entity = sessionToObject.remove(sessionId);
-        if (entity != null) {
-            commandToObject.remove(entity.getCommandId());
+        Set<CommandUpdatesSubscription> records = sessionToObject.remove(sessionId);
+        if (records != null) {
+            for (CommandUpdatesSubscription entity : records) {
+                commandToObject.remove(entity.getCommandId());
+            }
         }
     }
 

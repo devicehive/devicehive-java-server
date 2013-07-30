@@ -1,10 +1,18 @@
 package com.devicehive.messages.data.hash.subscriptions.dao;
 
-import com.devicehive.messages.data.subscriptions.model.NotificationsSubscription;
-import com.devicehive.model.Device;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.enterprise.context.Dependent;
-import java.util.*;
+
+import com.devicehive.messages.data.subscriptions.model.NotificationsSubscription;
+import com.devicehive.model.Device;
 
 @Dependent
 public class NotificationSubscriptionDAO implements com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO {
@@ -12,8 +20,8 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
     private long counter = 0L;
 
     private Map<Key, NotificationsSubscription> keyToObject = new HashMap<>();
-    private Map<Long, List<NotificationsSubscription>> deviceToObject = new HashMap<>();
-    private Map<String, List<NotificationsSubscription>> sessionToObject = new HashMap<>();
+    private Map<Long, Set<NotificationsSubscription>> deviceToObject = new HashMap<>();
+    private Map<String, Set<NotificationsSubscription>> sessionToObject = new HashMap<>();
     
     public NotificationSubscriptionDAO() {}
 
@@ -38,16 +46,16 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
         Key key = new Key(deviceId, sessionId);
         keyToObject.put(key, entity);
 
-        List<NotificationsSubscription> deviceRecords = deviceToObject.get(deviceId);
+        Set<NotificationsSubscription> deviceRecords = deviceToObject.get(deviceId);
         if (deviceRecords == null) {
-            deviceRecords = new ArrayList<>();
+            deviceRecords = new HashSet<>();
         }
         deviceRecords.add(entity);
         deviceToObject.put(deviceId, deviceRecords);
 
-        List<NotificationsSubscription> sessionRecords = sessionToObject.get(sessionId);
+        Set<NotificationsSubscription> sessionRecords = sessionToObject.get(sessionId);
         if (sessionRecords == null) {
-            sessionRecords = new ArrayList<>();
+            sessionRecords = new HashSet<>();
         }
         sessionRecords.add(entity);
         sessionToObject.put(sessionId, sessionRecords);
@@ -62,7 +70,7 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
 
     @Override
     public synchronized void deleteBySession(String sessionId) {
-        List<NotificationsSubscription> entities = sessionToObject.remove(sessionId);
+        Set<NotificationsSubscription> entities = sessionToObject.remove(sessionId);
         if (entities != null) {
             for (NotificationsSubscription entity : entities) {
                 deviceToObject.remove(entity.getDeviceId());
@@ -86,7 +94,7 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
 
     @Override
     public synchronized void deleteByDevice(Long deviceId) {
-        List<NotificationsSubscription> entities = deviceToObject.remove(deviceId);
+        Set<NotificationsSubscription> entities = deviceToObject.remove(deviceId);
         if (entities != null) {
             for (NotificationsSubscription entity : entities) {
                 sessionToObject.remove(entity.getSessionId());
@@ -102,7 +110,7 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
 
     @Override
     public synchronized List<String> getSessionIdSubscribedByDevice(Long deviceId) {
-        List<NotificationsSubscription> records = deviceToObject.get(deviceId);
+        Set<NotificationsSubscription> records = deviceToObject.get(deviceId);
         if (records != null) {
             List<String> sessions = new ArrayList<>(records.size());
             for (NotificationsSubscription entity : records) {
