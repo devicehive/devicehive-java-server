@@ -6,7 +6,7 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.request.UserInsert;
+import com.devicehive.model.request.UserRequest;
 import com.devicehive.service.UserService;
 
 import javax.annotation.security.PermitAll;
@@ -83,7 +83,7 @@ public class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public User insertUser(UserInsert user) {
+    public User insertUser(UserRequest user) {
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null || user.getStatus() == null) {
             throw new HTTPException(400);
@@ -109,7 +109,7 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUser(UserInsert user, @PathParam("id") long userId) {
+    public Response updateUser(UserRequest user, @PathParam("id") long userId) {
 
         if (user.getLogin() != null) {
             User u = userService.findByLogin(user.getLogin().getValue());
@@ -215,7 +215,7 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public User updateCurrent(UserInsert ui) {
+    public User updateCurrent(UserRequest ui) {
 
         String password = ui.getPassword().getValue();
 

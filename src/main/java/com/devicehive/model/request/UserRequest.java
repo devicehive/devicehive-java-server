@@ -12,7 +12,7 @@ import com.google.gson.annotations.SerializedName;
  * @author Nikolay Loboda
  * @since 17.07.13
  */
-public class UserInsert implements HiveEntity {
+public class UserRequest implements HiveEntity {
 
     @SerializedName("login")
     private NullableWrapper<String> login;
