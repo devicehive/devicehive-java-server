@@ -226,7 +226,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             equipmentSet.remove(null);
         }
         logger.debug("device/save started");
-        device.setGuid(new NullableWrapper<>(deviceId));
+
+        NullableWrapper<UUID> uuidNullableWrapper = new NullableWrapper<>();
+        uuidNullableWrapper.setValue(deviceId);
+
+        device.setGuid(uuidNullableWrapper);
         deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")

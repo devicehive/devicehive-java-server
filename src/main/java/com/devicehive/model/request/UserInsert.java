@@ -2,6 +2,8 @@ package com.devicehive.model.request;
 
 import java.io.Serializable;
 
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.google.gson.annotations.SerializedName;
@@ -10,58 +12,71 @@ import com.google.gson.annotations.SerializedName;
  * @author Nikolay Loboda
  * @since 17.07.13
  */
-public class UserInsert implements Serializable {
+public class UserInsert implements HiveEntity {
 
     @SerializedName("login")
-    private String login;
+    private NullableWrapper<String> login;
 
     @SerializedName("role")
-    private Integer role;
+    private NullableWrapper<Integer> role;
 
     @SerializedName("status")
-    private Integer status;
+    private NullableWrapper<Integer> status;
 
     @SerializedName("password")
-    private String password;
+    private NullableWrapper<String> password;
 
-    public String getLogin() {
+    public NullableWrapper<String> getLogin() {
         return login;
     }
 
-    public void setLogin(String login) {
+    public void setLogin(NullableWrapper<String> login) {
         this.login = login;
     }
 
-    public Integer getRole() {
+    public NullableWrapper<Integer> getRole() {
         return role;
     }
 
-    public UserRole getRoleEnum() {
-        return UserRole.values()[role];
-    }
-
-    public void setRole(Integer role) {
+    public void setRole(NullableWrapper<Integer> role) {
         this.role = role;
     }
 
-    public Integer getStatus() {
+    public NullableWrapper<Integer> getStatus() {
         return status;
     }
 
-    public UserStatus getStatusEnum() {
-        return UserStatus.values()[status];
-    }
-
-    public void setStatus(Integer status) {
+    public void setStatus(NullableWrapper<Integer> status) {
         this.status = status;
     }
 
-    public String getPassword() {
+    public NullableWrapper<String> getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(NullableWrapper<String> password) {
         this.password = password;
     }
 
+    public UserRole getRoleEnum() {
+        if (role == null) {
+            return null;
+        }
+        Integer r = role.getValue();
+        if (r == null) {
+            return null;
+        }
+        return UserRole.values()[r];
+    }
+
+    public UserStatus getStatusEnum() {
+        if (status == null) {
+            return null;
+        }
+        Integer s = status.getValue();
+        if (s == null) {
+            return null;
+        }
+        return UserStatus.values()[s];
+    }
 }

@@ -9,7 +9,14 @@ public class NullableWrapper<K> {
         this.value = value;
     }
 
+    public NullableWrapper() {
+    }
+
     public K getValue() {
         return value;
+    }
+
+    public void setValue(K value) {
+        this.value = value;
     }
 }

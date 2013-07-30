@@ -104,7 +104,11 @@ public class DeviceController {
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
         DeviceUpdate device;
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
-        device.setGuid(new NullableWrapper<>(deviceGuid));
+
+        NullableWrapper<UUID> uuidNullableWrapper = new NullableWrapper<>();
+        uuidNullableWrapper.setValue(deviceGuid);
+
+        device.setGuid(uuidNullableWrapper);
         try {
             deviceService.checkDevice(device);
         } catch (HiveException e) {

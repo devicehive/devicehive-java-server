@@ -8,7 +8,6 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserInsert;
 import com.devicehive.service.UserService;
-
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -17,9 +16,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.xml.ws.http.HTTPException;
-import java.security.Principal;
 import java.util.List;
 
 /**
@@ -85,13 +82,23 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public User insertUser(UserInsert user) {
-        User u = userService.findByLogin(user.getLogin());
+        //neither we want left some params omitted
+        if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null || user.getStatus() == null) {
+            throw new HTTPException(400);
+        }
+        //nor we want these parameters to be null
+        if (user.getLogin().getValue() == null || user.getPassword().getValue() == null
+                || user.getRole().getValue() == null || user.getStatus().getValue() == null) {
+            throw new HTTPException(400);
+        }
+
+        User u = userService.findByLogin(user.getLogin().getValue());
 
         if (u != null) {
             throw new ForbiddenException("User with such login already exists");
         }
 
-        return userService.createUser(user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
+        return userService.createUser(user.getLogin().getValue(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword().getValue());
 
     }
 
@@ -101,14 +108,36 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserInsert user, @PathParam("id") long userId) {
-        User u = userService.findByLogin(user.getLogin());
 
-        if (u != null) {
-            throw new ForbiddenException("User with such login already exists");
+        if (user.getLogin() != null) {
+            User u = userService.findByLogin(user.getLogin().getValue());
+
+            if (u != null) {
+                throw new ForbiddenException("User with such login already exists");
+            }
         }
 
-        userService.updateUser(userId, user.getLogin(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword());
-        return Response.ok().build();
+        if (user.getLogin() != null && user.getLogin().getValue() == null) {
+            throw new HTTPException(400);
+        }
+
+        if (user.getPassword() != null && user.getPassword().getValue() == null) {
+            throw new HTTPException(400);
+        }
+
+        if (user.getRole() != null && user.getRole().getValue() == null) {
+            throw new HTTPException(400);
+        }
+
+        if (user.getStatus() != null && user.getStatus().getValue() == null) {
+            throw new HTTPException(400);
+        }
+        String loginValue = user.getLogin() == null ? null : user.getLogin().getValue();
+        String passwordValue = user.getPassword() == null ? null : user.getPassword().getValue();
+
+        userService.updateUser(userId, loginValue, user.getRoleEnum(), user.getStatusEnum(), passwordValue);
+
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @DELETE
@@ -116,7 +145,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response updateUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
-        return Response.ok().build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
 
@@ -149,7 +178,7 @@ public class UserController {
         } catch (Exception e) {
             throw new NotFoundException();
         }
-        return Response.ok().build();
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @DELETE
@@ -162,7 +191,7 @@ public class UserController {
         } catch (Exception e) {
             throw new NotFoundException();
         }
-        return Response.ok().build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @GET
@@ -187,7 +216,11 @@ public class UserController {
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public User updateCurrent(UserInsert ui) {
 
-        String password = ui.getPassword();
+        if (ui.getPassword() == null) {
+            throw new HTTPException(400);
+        }
+
+        String password = ui.getPassword().getValue();
 
         if (password == null) {
             throw new HTTPException(400);
