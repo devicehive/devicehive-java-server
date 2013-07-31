@@ -1,10 +1,7 @@
 package com.devicehive.model.response;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.HiveEntity;
-import com.devicehive.model.Network;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.*;
 import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
@@ -34,12 +31,6 @@ public class UserResponse implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
 
-    @Column(name = "password_hash")
-    private String passwordHash;
-
-    @Column(name = "password_salt")
-    private String passwordSalt;
-
     @Column(name = "login_attempts")
     private Integer loginAttempts;
 
@@ -50,14 +41,28 @@ public class UserResponse implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
 
-
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})
-    private Set<Network> networks;
+    private Set<UserNetworkResponse> networks;
 
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private Timestamp lastLogin = new Timestamp(0);
+
+
+    public static UserResponse createFromUser(User u){
+        UserResponse response = new UserResponse();
+        response.setId(u.getId());
+        response.setLogin(u.getLogin());
+        response.setLoginAttempts(u.getLoginAttempts());
+        response.setRole(u.getRole());
+        response.setStatus(u.getStatus());
+        response.networks = new HashSet<>();
+        for(Network n:u.getNetworks()){
+            response.networks.add(UserNetworkResponse.fromNetwork(n));
+        }
+        response.setLastLogin(u.getLastLogin());
+        return response;
+    }
 
     public Long getId() {
         return id;
@@ -99,12 +104,11 @@ public class UserResponse implements HiveEntity {
         this.lastLogin = lastLogin;
     }
 
-
-    public Set<Network> getNetworks() {
+    public Set<UserNetworkResponse> getNetworks() {
         return networks;
     }
 
-    public void setNetworks(Set<Network> networks) {
+    public void setNetworks(Set<UserNetworkResponse> networks) {
         this.networks = networks;
     }
 

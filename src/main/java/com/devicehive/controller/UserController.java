@@ -7,6 +7,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserRequest;
+import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 
 import javax.annotation.security.PermitAll;
@@ -71,14 +72,15 @@ public class UserController {
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed(HiveRoles.ADMIN)
+    @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public Response getUser(@PathParam("id") long id) {
         User user = userDAO.findUserWithNetworks(id);
 
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.USER_PUBLISHED)};
-        return Response.ok().entity(user, annotations).build();
+
+        return Response.ok().entity(UserResponse.createFromUser(user)).build();
     }
 
     @POST
@@ -88,8 +90,8 @@ public class UserController {
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserRequest user) {
         //neither we want left some params omitted
-        if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null ||
-                user.getStatus() == null) {
+        if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null
+                || user.getStatus() == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         //nor we want these parameters to be null
