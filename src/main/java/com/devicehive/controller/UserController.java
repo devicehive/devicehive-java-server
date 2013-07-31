@@ -37,7 +37,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public List<User> getUsersList(
+    public Response getUsersList(
             @QueryParam("login") String login,
             @QueryParam("loginPattern") String loginPattern,
             @QueryParam("role") Integer role,
@@ -48,19 +48,23 @@ public class UserController {
             @QueryParam("skip") Integer skip
     ) {
         boolean sortOrderAsc = true;
+
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
+
         if (!"ID".equals(sortField) && !"Login".equals(sortField) && sortField != null) {  //ID??
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+
         //TODO validation for role and status
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.USERS_LISTED)};
         List<User> result = userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
-        return Response.ok().entity(result, annotations).build();
+
+        return Response.ok().entity(result).build();
     }
 
     @GET
@@ -82,7 +86,7 @@ public class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response insertUser(UserInsert user) {
+    public Response insertUser(UserRequest user) {
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null ||
                 user.getStatus() == null) {
@@ -94,20 +98,20 @@ public class UserController {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        User u = userService.findByLogin(user.getLogin().getValue());
-
-        if (existing != null) {
+        if (userService.findByLogin(user.getLogin().getValue()) != null) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.USERS_LISTED)};
-        return Response.status(Response.Status.CREATED).entity(existing, annotations).build();
+
+        User created = userService.createUser(user.getLogin().getValue(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword().getValue());
+
+        return Response.status(Response.Status.CREATED).entity(created).build();
     }
 
     @PUT
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUser(UserInsert user, @PathParam("id") long userId) {
+    public Response updateUser(UserRequest user, @PathParam("id") long userId) {
 
         if (user.getLogin() != null) {
             User u = userService.findByLogin(user.getLogin().getValue());
@@ -204,8 +208,8 @@ public class UserController {
     public Response getCurrent() {
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
         if (login == null) {
-           return Response.status(Response.Status.FORBIDDEN).build();
-        }        
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         return Response.ok(userService.findUserWithNetworksByLogin(login)).build();
     }
 
@@ -215,7 +219,7 @@ public class UserController {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response updateCurrent(UserInsert ui) {
+    public Response updateCurrent(UserRequest ui) {
 
         String password = ui.getPassword().getValue();
 
