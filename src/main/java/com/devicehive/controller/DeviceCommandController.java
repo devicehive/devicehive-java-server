@@ -14,9 +14,7 @@ import com.devicehive.messages.bus.DeferredResponse;
 import com.devicehive.messages.bus.LocalMessageBus;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 
@@ -31,6 +29,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.lang.annotation.Annotation;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -187,21 +186,20 @@ public class DeviceCommandController {
 
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long id) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(guid);
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        Device device = getDevice(guid);
+
+        if (!checkPermissions(device)){
+            return Response.status(Response.Status.FORBIDDEN).build();
         }
-        DeviceCommand result = commandService.getByGuidAndId(uuid, id);
+
+        DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
         if (result == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(Policy.COMMAND_TO_DEVICE)};
-        return Response.ok().entity(result, annotations).build();
+        return Response.ok().entity(result, annotations).type(MediaType.APPLICATION_JSON).build();
     }
 
     @POST
@@ -238,5 +236,25 @@ public class DeviceCommandController {
         }
 
         return device;
+    }
+
+    private boolean checkPermissions(Device device) {
+        HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
+        if (principal.getDevice() != null) {
+            if (!device.getGuid().equals(principal.getDevice().getGuid())) {
+                return false;
+            }
+            if (device.getNetwork() == null) {
+                return false;
+            }
+        } else {
+            User user = principal.getUser();
+            if (user.getRole().equals(UserRole.CLIENT)) {
+                User userWithNetworks = userDAO.findUserWithNetworks(user.getId());
+                Set<Network> networkSet = userWithNetworks.getNetworks();
+                return networkSet.contains(device.getNetwork());
+            }
+        }
+        return true;
     }
 }

@@ -9,14 +9,14 @@ import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.devicehive.service.helpers.PasswordProcessor;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
+import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 
 @Stateless
@@ -136,5 +136,36 @@ public class UserService {
         existingNetwork.getUsers().remove(existingUser);
         em.merge(existingNetwork);
     }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
+                              Boolean sortOrderAsc, Integer take, Integer skip) {
+        return userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
+    }
+
+    public User findByLogin(String login) {
+        return userDAO.findByLogin(login);
+    }
+
+    public User findById(@NotNull Long id) {
+        return userDAO.findById(id);
+    }
+
+    public User findUserWithNetworks(@NotNull Long id) {
+        return userDAO.findUserWithNetworks(id);
+    }
+
+    public User findUserWithNetworksByLogin(@NotNull String login) {
+        return userDAO.findUserWithNetworksByLogin(login);
+    }
+
+    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
+        return userDAO.createUser(login, role, status, password);
+    }
+
+    public boolean deleteUser(long id){
+        return userDAO.deleteUser(id);
+    }
+
 
 }

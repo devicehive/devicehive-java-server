@@ -1,16 +1,10 @@
 package com.devicehive.json.adapters;
 
 
+import com.google.gson.*;
+
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
-
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
 public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
 
@@ -30,9 +24,10 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
             return null;
         }
         try {
-            return Timestamp.valueOf(jsonElement.getAsString());
-        } catch (IllegalArgumentException e) {
-            throw new JsonParseException("Error parsing date. Date must be in format " + DateAdapter.UTC_DATE_FORMAT_PATTERN, e);
+//            return Timestamp.valueOf(jsonElement.getAsString());  fix for device command insert?
+            return new Timestamp(Long.parseLong(jsonElement.getAsString()));
+        } catch (NumberFormatException e) {
+            throw new JsonParseException("Error parsing date. Date must be reperesented as long");
         }
     }
 }
