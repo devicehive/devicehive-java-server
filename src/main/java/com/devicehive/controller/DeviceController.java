@@ -9,9 +9,10 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.messages.data.MessagesDataSource;
-import com.devicehive.messages.data.hash.HashMapBased;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
@@ -24,13 +25,13 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
+import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
 
 /**
  * REST controller for devices: <i>/device</i>.
@@ -49,10 +50,6 @@ public class DeviceController {
     private DeviceNotificationDAO notificationDAO;
     @Inject
     private DeviceEquipmentDAO equipmentDAO;
-    @Inject
-    @HashMapBased
-    /* Supported implementations: DerbyBased and HashMapBased */
-    private MessagesDataSource messagesDataSource;
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
@@ -77,8 +74,7 @@ public class DeviceController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(DEVICE_PUBLISHED)
-    public List<Device> list(@QueryParam("name") String name,
+    public Response list(@QueryParam("name") String name,
                              @QueryParam("namePattern") String namePattern,
                              @QueryParam("status") String status,
                              @QueryParam("networkId") Long networkId,
@@ -93,17 +89,19 @@ public class DeviceController {
 
         boolean sortOrderAsc = true;
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            throw new BadRequestException("The sort order cannot be equal " + sortOrder);
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
-            throw new BadRequestException("The sort field cannot be equal " + sortField);
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                deviceClassVersion, sortField, sortOrderAsc, take, skip);
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICE_PUBLISHED)};
+        List<Device> result = deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId,
+                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip);
+        return Response.ok().entity(result, annotations).build();
     }
 
     /**
@@ -128,7 +126,7 @@ public class DeviceController {
         try {
             deviceGuid = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("unparseable guid: " + guid);
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
         DeviceUpdate device;
@@ -141,7 +139,7 @@ public class DeviceController {
         try {
             deviceService.checkDevice(device);
         } catch (HiveException e) {
-            throw new BadRequestException(e.getMessage(), e);
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         Gson gsonForEquipment = GsonFactory.createGson();
         boolean useExistingEquipment = jsonObject.get("equipment") == null;
@@ -167,9 +165,13 @@ public class DeviceController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(DEVICE_PUBLISHED)
-    public Device get(@PathParam("id") String guid) {
-        return getDevice(guid);
+    public Response get(@PathParam("id") String guid) {
+        Device device = getDevice(guid);
+        if (device == null){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICE_PUBLISHED)};
+        return Response.ok().entity(device, annotations).build();
     }
 
     /**
@@ -185,17 +187,14 @@ public class DeviceController {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") String guid) {
-        Device device = getDevice(guid);
-        List<DeviceCommand> commandList = commandDAO.getNewerThan(device, new Timestamp(0));
-        notificationDAO.deleteNotificationByFK(device);
-        messagesDataSource.removeCommandsSubscription(device.getId());
-        for (DeviceCommand command : commandList) {
-            messagesDataSource.removeCommandUpdatesSubscription(command.getId());
+        UUID deviceId;
+        try {
+            deviceId = UUID.fromString(guid);
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        commandDAO.deleteByFK(device);
-        deviceEquipmentDAO.deleteByFK(device);
-        if (!deviceDAO.deleteDevice(device.getId())) {
-            throw new NotFoundException("Device with id = " + guid + " not found");
+        if (!deviceDAO.deleteDevice(deviceId)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.status(Response.Status.NO_CONTENT).build();
     }
@@ -237,10 +236,11 @@ public class DeviceController {
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(DEVICE_EQUIPMENT_SUBMITTED)
-    public List<DeviceEquipment> equipment(@PathParam("id") String guid) {
+    public Response  equipment(@PathParam("id") String guid) {
         Device device = getDevice(guid);
-        return equipmentDAO.findByFK(device);
+        List<DeviceEquipment> equipments = equipmentDAO.findByFK(device);
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED)};
+        return Response.ok().entity(equipments, annotations).build();
     }
 
     private Device getDevice(String uuid) {

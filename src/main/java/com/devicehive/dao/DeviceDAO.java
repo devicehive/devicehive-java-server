@@ -112,6 +112,12 @@ public class DeviceDAO {
         return query.executeUpdate() != 0;
     }
 
+    public boolean deleteDevice(@NotNull UUID guid) {
+        Query query = em.createNamedQuery("Device.deleteByUUID");
+        query.setParameter("guid", guid);
+        return query.executeUpdate() != 0;
+    }
+
     public int deleteDeviceByFK(@NotNull Network network) {
         Query query = em.createNamedQuery("Device.deleteByNetwork");
         query.setParameter("network", network);

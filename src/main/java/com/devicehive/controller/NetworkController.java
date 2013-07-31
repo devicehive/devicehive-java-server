@@ -30,7 +30,6 @@ public class NetworkController {
     private NetworkService networkService;
 
 
-
     /**
      * Produces following output:
      * <pre>
@@ -60,15 +59,26 @@ public class NetworkController {
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
-    public List<Network> getNetworkList(@QueryParam("name") String name,
+    public Response getNetworkList(@QueryParam("name") String name,
                                         @QueryParam("namePattern") String namePattern,
                                         @QueryParam("sortField") String sortField,
                                         @QueryParam("sortOrder") String sortOrder,
                                         @QueryParam("take") Integer take,
                                         @QueryParam("skip") Integer skip) {
-
-        return networkService.list(name, namePattern, sortField, "ASC".equals(sortOrder), take, skip);
+        boolean sortOrderAsc = true;
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if ("DESC".equals(sortOrder)) {
+            sortOrderAsc = false;
+        }
+        if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORKS_LISTED)};
+        List<Network> result = networkService.list(name, namePattern, sortField, sortOrderAsc, take,
+                skip);
+        return Response.ok().entity(result, annotations).build();
     }
 
     /**
@@ -88,9 +98,13 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORK_PUBLISHED)
-    public Network getNetworkList(@PathParam("id") long id) {
-        return networkService.getWithDevicesAndDeviceClasses(id);
+    public Response getNetworkList(@PathParam("id") long id) {
+        Network existing = networkService.getWithDevicesAndDeviceClasses(id);
+        if (existing == null){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORK_PUBLISHED)};
+        return Response.ok().entity(existing, annotations).build();
     }
 
 
@@ -168,6 +182,9 @@ public class NetworkController {
     public Response update(NetworkRequest nr, @PathParam("id") long id) {
         nr.setId(id);
         Network n = networkService.getById(id);
+        if (n == null){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
 
         if (nr.getKey() != null) {
             n.setKey(nr.getKey().getValue());
@@ -195,7 +212,9 @@ public class NetworkController {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") long id) {
-        networkService.delete(id);
+        if (!networkService.delete(id)){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

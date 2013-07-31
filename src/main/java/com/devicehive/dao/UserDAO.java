@@ -1,13 +1,18 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
+import com.devicehive.service.helpers.PasswordProcessor;
 
+import javax.ejb.Lock;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -18,6 +23,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -28,6 +34,8 @@ public class UserDAO {
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
+    @Inject
+    private PasswordProcessor passwordService;
 
     /**
      * Search user by login
@@ -40,6 +48,13 @@ public class UserDAO {
         query.setParameter("login", login);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
+    }
+
+    public User findActiveByName(@NotNull String login){
+        TypedQuery<User> query = em.createNamedQuery("User.findActiveByName", User.class);
+        query.setParameter("login", login);
+        List<User> list = query.getResultList();
+        return list.isEmpty() ? null : list.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -149,5 +164,31 @@ public class UserDAO {
         return query.executeUpdate() != 0;
     }
 
+    @Lock
+    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
+        TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
+        query.setParameter("login", login);
+        List<User> list = query.getResultList();
+        if (!list.isEmpty()) {
+            throw new HiveException("User " + login + " exists");
+        }
+        User user = new User();
+        user.setLogin(login);
+        user.setRole(role);
+        user.setStatus(status);
+        user.setPasswordSalt(passwordService.generateSalt());
+        user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
+        user.setLoginAttempts(0);
+        user.setEntityVersion(1);
+        user.setNetworks(new HashSet<Network>());
+        user.setLastLogin(null);
+        em.persist(user);
+        return user;
+    }
 
+    public boolean deleteUser(@NotNull Long id) {
+        Query q = em.createNamedQuery("User.delete");
+        q.setParameter("id", id);
+        return q.executeUpdate() > 0;
+    }
 }

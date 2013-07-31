@@ -25,8 +25,8 @@ public class NetworkService {
         return networkDAO.getWithDevicesAndDeviceClasses(id);
     }
 
-    public void delete(long id) {
-        networkDAO.delete(id);
+    public boolean delete(long id) {
+        return networkDAO.delete(id);
     }
 
     public Network insert(Network n) {
