@@ -29,6 +29,7 @@ public @interface JsonPolicyDef {
         USERS_LISTED,
         NETWORK_PUBLISHED,
         NETWORKS_LISTED,
+        NETWORK_SUBMITTED,
         DEVICECLASS_LISTED,
         DEVICECLASS_PUBLISHED,
         DEVICECLASS_SUBMITTED,

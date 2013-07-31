@@ -56,7 +56,10 @@ public class CommandUpdatesSubscriptionDAO implements com.devicehive.messages.da
     public synchronized void deleteByCommandId(Long commandId) {
         CommandUpdatesSubscription entity = commandToObject.remove(commandId);
         if (entity != null) {
-            sessionToObject.remove(entity.getSessionId());
+            Set<CommandUpdatesSubscription> records = sessionToObject.get(entity.getSessionId());
+            if (records != null) {
+                records.remove(entity);
+            }
         }
     }
 

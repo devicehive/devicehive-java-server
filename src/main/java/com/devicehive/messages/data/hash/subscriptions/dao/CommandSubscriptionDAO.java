@@ -1,9 +1,7 @@
 package com.devicehive.messages.data.hash.subscriptions.dao;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.enterprise.context.Dependent;
 
@@ -14,10 +12,11 @@ public class CommandSubscriptionDAO implements com.devicehive.messages.data.subs
 
     private long counter = 0L;
 
+    /* 1 device per 1 session, no more no less */
     /* deviceId is unique */
     private Map<Long, CommandsSubscription> deviceToObject = new HashMap<>();
     /* sessionId is not unique */
-    private Map<String, Set<CommandsSubscription>> sessionToObject = new HashMap<>();
+    private Map<String, CommandsSubscription> sessionToObject = new HashMap<>();
 
     public CommandSubscriptionDAO() {
     }
@@ -32,36 +31,25 @@ public class CommandSubscriptionDAO implements com.devicehive.messages.data.subs
     public synchronized void insert(CommandsSubscription entity) {
         entity.setId(Long.valueOf(counter));
         deviceToObject.put(entity.getDeviceId(), entity);
-
-        Set<CommandsSubscription> records = sessionToObject.get(entity.getSessionId());
-        if (records == null) {
-            records = new HashSet<>();
-        }
-        records.add(entity);
-        sessionToObject.put(entity.getSessionId(), records);
-
+        sessionToObject.put(entity.getSessionId(), entity);
         ++counter;
     }
 
     @Override
     public synchronized void deleteBySession(String sessionId) {
-        Set<CommandsSubscription> records = sessionToObject.remove(sessionId);
-        if (records != null) {
-            for (CommandsSubscription entity : records) {
-                deviceToObject.remove(entity.getDeviceId());
-            }
-
+        /* Remove session - removes device, device must reconnect if no session */
+        CommandsSubscription entity = sessionToObject.remove(sessionId);
+        if (entity != null) {
+            deviceToObject.remove(entity.getDeviceId());
         }
     }
 
     @Override
     public synchronized void deleteByDevice(Long deviceId) {
+        /* Remove device - removes session. No Session if no device */
         CommandsSubscription entity = deviceToObject.remove(deviceId);
         if (entity != null) {
-            Set<CommandsSubscription> records = sessionToObject.get(entity.getSessionId());
-            if (records != null) {
-                records.remove(entity);
-            }
+            sessionToObject.remove(entity.getSessionId());
         }
     }
 

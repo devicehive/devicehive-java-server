@@ -1,20 +1,16 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceClassDAO;
-import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.dao.DublicateEntryException;
 import com.devicehive.exceptions.dao.HivePersistingException;
-import com.devicehive.exceptions.dao.NoSuchRecordException;
 import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.DeviceClassUpdate;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * @author Nikolay Loboda
@@ -30,10 +26,10 @@ public class DeviceClassService {
     @Inject
     private DeviceService deviceService;
 
-    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
-                                                String sortOrder, Integer take, Integer skip) {
-        return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, "ASC".equals(sortOrder), take, skip);
-    }
+//    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
+//                                                String sortOrder, Integer take, Integer skip) {
+//        return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, "ASC".equals(sortOrder), take, skip);
+//    }
 
     public DeviceClass get(@NotNull long id) {
         return deviceClassDAO.get(id);

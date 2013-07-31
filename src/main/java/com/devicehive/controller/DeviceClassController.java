@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -12,11 +13,10 @@ import com.devicehive.service.DeviceClassService;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -30,8 +30,8 @@ public class DeviceClassController {
     private DeviceClassService deviceClassService;
     @Inject
     private EquipmentDAO equipmentDAO;
-
-
+    @Inject
+    private DeviceClassDAO deviceClassDAO;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/list"> DeviceHive RESTful API:
@@ -52,8 +52,7 @@ public class DeviceClassController {
     @Path("/class")
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_LISTED)
-    public List<DeviceClass> getDeviceClassList(@QueryParam("name") String name,
+    public Response getDeviceClassList(@QueryParam("name") String name,
                                                 @QueryParam("namePattern") String namePattern,
                                                 @QueryParam("version") String version,
                                                 @QueryParam("sortField") String sortField,
@@ -61,7 +60,20 @@ public class DeviceClassController {
                                                 @QueryParam("take") Integer take,
                                                 @QueryParam("skip") Integer skip
     ) {
-        return deviceClassService.getDeviceClassList(name, namePattern, version, sortField, sortOrder, take, skip);
+        boolean sortOrderAsc = true;
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if ("DESC".equals(sortOrder)) {
+            sortOrderAsc = false;
+        }
+        if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICECLASS_LISTED)};
+        List<DeviceClass> result = deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField,
+                sortOrderAsc, take, skip);
+        return Response.ok().entity(result, annotations).build();
     }
 
     /**
@@ -77,9 +89,13 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED)
-    public DeviceClass getDeviceClass(@PathParam("id") long id) {
-        return deviceClassService.getWithEquipment(id);
+    public Response getDeviceClass(@PathParam("id") long id) {
+        DeviceClass result = deviceClassService.getWithEquipment(id);
+        if (result == null){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED)};
+        return Response.ok().entity(result, annotations).build();
     }
 
     /**
@@ -106,10 +122,12 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
-    public DeviceClass insertDeviceClass(DeviceClass insert) {
-        DeviceClass result = deviceClassService.addDeviceClass(insert);
-        return result;
+    public Response insertDeviceClass(DeviceClass insert) {
+        Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy
+                .DEVICECLASS_SUBMITTED)};
+        return responseBuilder.entity(deviceClassService.addDeviceClass(insert), annotations).build();
+
     }
 
     /**
@@ -127,14 +145,13 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED)
-    public Response updateDeviceClass(@PathParam("id") long id, DeviceClassUpdate insert) {
+    public Response updateDeviceClass(@PathParam("id") long id,@JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
         try {
             deviceClassService.update(id, insert);
         } catch (HiveException e) {
-            throw new NotFoundException(e.getMessage());
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.status(HttpServletResponse.SC_CREATED).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 
     /**
@@ -150,18 +167,22 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
         if (!deviceClassService.delete(id)) {
-            throw new NotFoundException("device with id = " + id + " does not exists");
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+        return Response.status(Response.Status.NO_CONTENT).build();
 
     }
 
     @GET
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)
-    public Equipment getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        return equipmentDAO.getByDeviceClass(classId, eqId);
+    public Response getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
+        Equipment result = equipmentDAO.getByDeviceClass(classId, eqId);
+        if (result == null){
+           return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)};
+        return Response.ok().entity(result, annotations).build();
     }
 
     @POST
@@ -169,17 +190,16 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
-    public Equipment insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq,
-                                     @Context HttpServletResponse response) {
-
+    public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq) {
         DeviceClass dc = new DeviceClass();
         dc.setId(classId);
         eq.setDeviceClass(dc);
-
         Equipment result = equipmentDAO.create(eq);
-        response.setStatus(HttpServletResponse.SC_CREATED);
-        return result;
+        if (result == null){
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)};
+        return Response.status(Response.Status.CREATED).entity(result, annotations).build();
     }
 
     @PUT
@@ -187,14 +207,13 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED)
-    public Equipment updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId,
-                                     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED)Equipment
+    public Response updateEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId,
+                                     @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) Equipment
                                              equipment) {
         if (!equipmentDAO.update(equipment, eqId, classId)) {
-            throw new NotFoundException("equipment with id = " + eqId + " does not exists");
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return equipment;
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @DELETE
@@ -203,8 +222,8 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
         if (!equipmentDAO.delete(eqId, classId)) {
-            throw new NotFoundException("No equipment found with id = " + eqId + " associated with the " + classId);
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.status(HttpServletResponse.SC_NO_CONTENT).build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

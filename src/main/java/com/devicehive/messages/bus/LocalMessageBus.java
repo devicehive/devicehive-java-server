@@ -184,16 +184,16 @@ public class LocalMessageBus implements MessageBus {
                 logger.warn("CommandId to unsubscribe from command-updates is null.");
                 return;
             }
-            messagesDataSource.removeCommandUpdatesSubscription(details.session(), id);
+            messagesDataSource.removeCommandUpdatesSubscription(id);
             break;
         case DEVICE_TO_CLIENT_NOTIFICATION:
             messagesDataSource.removeNotificationsSubscription(details.session(), details.ids());
             break;
         case CLOSED_SESSION_DEVICE:
-            messagesDataSource.removeCommandsSubscriptions(details.session());
+            messagesDataSource.removeDeviceSubscriptions(details.session());
             break;
         case CLOSED_SESSION_CLIENT:
-            messagesDataSource.removeCommandUpdatesSubscriptions(details.session());
+            messagesDataSource.removeClientSubscriptions(details.session());
             break;
         default:
             logger.warn("Unsupported MessageType found: " + messageType);

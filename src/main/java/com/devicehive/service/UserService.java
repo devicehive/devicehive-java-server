@@ -3,23 +3,20 @@ package com.devicehive.service;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.devicehive.service.helpers.PasswordProcessor;
 
-import javax.ejb.*;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Stateless
@@ -49,14 +46,10 @@ public class UserService {
      */
 
     public User authenticate(String login, String password) {
-        TypedQuery<User> query = em.createNamedQuery("User.findActiveByName", User.class);
-        query.setParameter("login", login);
-        List<User> list = query.getResultList();
-
-        if (list.isEmpty()) {
-            return null;
+        User user = userDAO.findActiveByName(login);
+        if (user == null){
+            return  null;
         }
-        User user = list.get(0);
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts() >= maxLoginAttempts) {
@@ -68,37 +61,6 @@ public class UserService {
             user.setLastLogin(new Timestamp(System.currentTimeMillis()));
             return user;
         }
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean hasAccessToNetwork(User user, Network network) {
-        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToNetwork", Long.class);
-        query.setParameter("user", user);
-        query.setParameter("network", network);
-        Long count = query.getSingleResult();
-        return count != null && count > 0;
-    }
-
-    @Lock
-    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
-        TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
-        query.setParameter("login", login);
-        List<User> list = query.getResultList();
-        if (!list.isEmpty()) {
-            throw new HiveException("User " + login + " exists");
-        }
-        User user = new User();
-        user.setLogin(login);
-        user.setRole(role);
-        user.setStatus(status);
-        user.setPasswordSalt(passwordService.generateSalt());
-        user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
-        user.setLoginAttempts(0);
-        user.setEntityVersion(1);
-        user.setNetworks(new HashSet<Network>());
-        user.setLastLogin(null);
-        em.persist(user);
-        return user;
     }
 
     public User updatePassword(@NotNull Long id, String password) {
@@ -147,49 +109,32 @@ public class UserService {
         return null;
     }
 
-    public boolean deleteUser(@NotNull Long id) {
-        Query q = em.createNamedQuery("User.delete");
-        q.setParameter("id", id);
-        return q.executeUpdate() > 0;
-    }
-
     public void assignNetwork(@NotNull Long userId, @NotNull Long networkId) {
-        User u = userDAO.findById(userId);
-        Network n = networkDAO.getByIdWithUsers(networkId);
-        Set<User> usersSet = n.getUsers();
-        usersSet.add(u);
-        n.setUsers(usersSet);
-        em.merge(n);
+        User existingUser = userDAO.findById(userId);
+        if (existingUser == null){
+            throw new NotFoundException();
+        }
+        Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
+        if (existingNetwork == null){
+            throw new NotFoundException();
+        }
+        Set<User> usersSet = existingNetwork.getUsers();
+        usersSet.add(existingUser);
+        existingNetwork.setUsers(usersSet);
+        em.merge(existingNetwork);
     }
 
     public void unassignNetwork(@NotNull Long userId, @NotNull Long networkId) {
-        User u = userDAO.findById(userId);
-        Network n = networkDAO.getByIdWithUsers(networkId);
-        n.getUsers().remove(u);
-        em.merge(n);
+        User existingUser = userDAO.findById(userId);
+        if (existingUser == null){
+            throw new NotFoundException();
+        }
+        Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
+        if (existingNetwork == null){
+            throw new NotFoundException();
+        }
+        existingNetwork.getUsers().remove(existingUser);
+        em.merge(existingNetwork);
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
-                              Boolean sortOrderAsc, Integer take, Integer skip) {
-        return userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
-    }
-
-    public User findByLogin(String login) {
-        return userDAO.findByLogin(login);
-    }
-
-    public User findById(@NotNull Long id) {
-        return userDAO.findById(id);
-    }
-
-    public User findUserWithNetworks(@NotNull Long id) {
-        return userDAO.findUserWithNetworks(id);
-    }
-
-    public User findUserWithNetworksByLogin(@NotNull String login) {
-        return userDAO.findUserWithNetworksByLogin(login);
-    }
-
 
 }

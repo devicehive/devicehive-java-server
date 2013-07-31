@@ -42,35 +42,35 @@ public class DeviceClass implements HiveEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,})
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
     private Long id;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED})
     private String name;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version shouldn't be more than 32 " +
             "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED})
     private String version;
 
     @Column(name = "is_permanent")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED})
     private Boolean isPermanent;
 
     @Column(name = "offline_timeout")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED})
     private Integer offlineTimeout;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED,DEVICECLASS_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED,DEVICECLASS_LISTED,DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
 
     @Version

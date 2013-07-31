@@ -1,13 +1,13 @@
 package com.devicehive.messages.data;
 
+import java.util.Collection;
+
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.data.derby.DerbyDataSource;
 import com.devicehive.messages.data.hash.HashBasedDataSource;
 import com.devicehive.messages.data.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO;
-
-import java.util.Collection;
 
 /**
  * Usually injected in {@link MessageBus} to represent storage for subscriptions.
@@ -33,9 +33,7 @@ public interface MessagesDataSource {
 
     public void addCommandUpdatesSubscription(String sessionId, Long commandId);
 
-    public void removeCommandUpdatesSubscription(String sessionId, Long commandId);
-
-    public void removeCommandsUpdatesSubscription(Long commandId);
+    public void removeCommandUpdatesSubscription(Long commandId);
 
     public void addNotificationsSubscription(String sessionId, Collection<Long> deviceIds);
 
@@ -43,9 +41,9 @@ public interface MessagesDataSource {
 
     public void removeNotificationSubscription(Long deviceId);
 
-    public void removeCommandsSubscriptions(String sessionId);
+    public void removeDeviceSubscriptions(String sessionId);
 
-    public void removeCommandUpdatesSubscriptions(String sessionId);
+    public void removeClientSubscriptions(String sessionId);
 
     /**
      * Acessor
@@ -64,6 +62,5 @@ public interface MessagesDataSource {
      * @return NotificationSubscriptionDAO implementation
      */
     public NotificationSubscriptionDAO notificationSubscriptions();
-
 
 }
