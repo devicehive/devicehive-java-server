@@ -1,5 +1,7 @@
 package com.devicehive.messages.data.subscriptions.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,7 +25,10 @@ import javax.validation.constraints.NotNull;
         @NamedQuery(name = "CommandUpdatesSubscription.deleteByCommandId",
                 query = "delete from CommandUpdatesSubscription c where c.commandId = :commandId")
 })
-public class CommandUpdatesSubscription {
+public class CommandUpdatesSubscription implements Serializable{
+
+    /** */
+    private static final long serialVersionUID = -2473408531678699159L;
 
     @Id
     @GeneratedValue

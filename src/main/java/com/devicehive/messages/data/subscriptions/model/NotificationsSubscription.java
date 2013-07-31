@@ -1,5 +1,7 @@
 package com.devicehive.messages.data.subscriptions.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -29,8 +31,11 @@ import javax.validation.constraints.NotNull;
         @NamedQuery(name = "NotificationsSubscription.getSubscribedByDevice",
                 query = "select n.sessionId from NotificationsSubscription n where n.deviceId = :deviceId")
 })
-public class NotificationsSubscription {
+public class NotificationsSubscription implements Serializable{
 
+    /** */
+    private static final long serialVersionUID = -6361773345693051443L;
+    
     @Id
     @GeneratedValue
     private Long id;

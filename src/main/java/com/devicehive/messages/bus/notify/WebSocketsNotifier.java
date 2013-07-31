@@ -18,7 +18,7 @@ import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.messages.bus.LocalMessageBus;
 import com.devicehive.messages.data.MessagesDataSource;
-import com.devicehive.messages.data.hash.HashMapBased;
+import com.devicehive.messages.data.cluster.hazelcast.HazelcastBased;
 import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
 import com.devicehive.model.DeviceCommand;
@@ -52,7 +52,7 @@ public class WebSocketsNotifier implements StatefulNotifier {
     @Inject
     private AsyncMessageDeliverer asyncMessageDeliverer;
     @Inject
-    @HashMapBased
+    @HazelcastBased
     private MessagesDataSource messagesDataSource;
 
     @Override
