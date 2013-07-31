@@ -99,4 +99,9 @@ public class CommandsSubscription {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "CommandsSubscription [id=" + id + ", deviceId=" + deviceId + ", sessionId=" + sessionId + "]";
+    }
 }

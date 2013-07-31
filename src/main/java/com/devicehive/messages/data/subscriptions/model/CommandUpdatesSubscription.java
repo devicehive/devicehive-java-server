@@ -101,4 +101,9 @@ public class CommandUpdatesSubscription {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "CommandUpdatesSubscription [id=" + id + ", commandId=" + commandId + ", sessionId=" + sessionId + "]";
+    }
 }

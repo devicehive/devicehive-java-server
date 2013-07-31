@@ -63,7 +63,7 @@ import com.google.gson.annotations.SerializedName;
                 query = "delete from DeviceNotification dn where dn.device = :device")
 
 })
-public class DeviceNotification implements Message {
+public class DeviceNotification implements Message, HiveEntity {
 
     @SerializedName("parameters")
     @Embedded

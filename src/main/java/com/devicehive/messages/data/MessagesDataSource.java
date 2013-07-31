@@ -37,7 +37,7 @@ public interface MessagesDataSource {
 
     public void addNotificationsSubscription(String sessionId, Collection<Long> deviceIds);
 
-    public void removeNotificationsSubscription(String sessionId, Collection<Long> deviceIds);
+    public void removeNotificationSubscriptions(String sessionId, Collection<Long> deviceIds);
 
     public void removeNotificationSubscription(Long deviceId);
 

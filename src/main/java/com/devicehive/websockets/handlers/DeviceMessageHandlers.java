@@ -172,7 +172,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return jsonObject;
     }
 
-    @Action(value = "server/info")
+    @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
         logger.debug("server/info action started. Session " + session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);

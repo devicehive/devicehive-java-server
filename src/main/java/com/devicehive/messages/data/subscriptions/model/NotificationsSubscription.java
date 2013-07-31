@@ -106,4 +106,9 @@ public class NotificationsSubscription {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "NotificationsSubscription [id=" + id + ", deviceId=" + deviceId + ", sessionId=" + sessionId + "]";
+    }
+
 }
