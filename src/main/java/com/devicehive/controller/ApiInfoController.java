@@ -9,8 +9,10 @@ import javax.ejb.EJB;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.MediaType;
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +33,12 @@ public class ApiInfoController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(REST_SERVER_INFO)
     @PermitAll
-    public ApiInfo getApiInfo() {
+    public Response getApiInfo() {
         logger.debug("ApiInfo requested");
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(new Timestamp(System.currentTimeMillis()));
-        return apiInfo;
+        return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
 }
