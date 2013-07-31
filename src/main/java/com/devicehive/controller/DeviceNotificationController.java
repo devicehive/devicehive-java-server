@@ -4,6 +4,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.MessageDetails;
@@ -15,6 +16,9 @@ import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
+import com.devicehive.service.DeviceService;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -41,6 +45,8 @@ public class DeviceNotificationController {
     private DeviceDAO deviceDAO;
     @Inject
     private MessageBus messageBus;
+    @Inject
+    private DeviceService deviceService;
 
     @GET
     @Path("/{deviceGuid}/notification")
@@ -105,20 +111,6 @@ public class DeviceNotificationController {
         Annotation[] annotations =
                 {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
         return Response.ok().entity(deviceNotification, annotations).build();
-    }
-
-    private Device getDevice(String uuid) {
-        UUID deviceId;
-        try {
-            deviceId = UUID.fromString(uuid);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("unparseable guid: " + uuid);
-        }
-        Device device = deviceDAO.findByUUID(deviceId);
-        if (device == null) {
-            throw new NotFoundException("device with guid " + uuid + " not found");
-        }
-        return device;
     }
 
     /**
@@ -205,5 +197,41 @@ public class DeviceNotificationController {
         Annotation[] annotations =
                 {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
         return Response.ok().entity(response, annotations).build();
+    }
+
+    @POST
+    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @Path("/{deviceGuid}/notification")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response insert (@PathParam("deviceGuid") String guid, JsonObject jsonObject){
+        Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE);
+        DeviceNotification notification = gson.fromJson(jsonObject, DeviceNotification.class);
+        Device device = getDevice(guid);
+        if (device.getNetwork() == null){
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        if (notification == null || notification.getNotification() == null){
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        deviceService.submitDeviceNotification(notification, device, null);
+        Annotation[] annotations =
+                {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE)};
+        return Response.status(Response.Status.CREATED).type(MediaType.APPLICATION_JSON).entity(notification, annotations).build();
+
+    }
+
+
+    private Device getDevice(String uuid) {
+        UUID deviceId;
+        try {
+            deviceId = UUID.fromString(uuid);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("unparseable guid: " + uuid);
+        }
+        Device device = deviceDAO.findByUUID(deviceId);
+        if (device == null) {
+            throw new NotFoundException("device with guid " + uuid + " not found");
+        }
+        return device;
     }
 }
