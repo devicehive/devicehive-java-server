@@ -22,18 +22,21 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
     private Map<Key, NotificationsSubscription> keyToObject = new HashMap<>();
     private Map<Long, Set<NotificationsSubscription>> deviceToObject = new HashMap<>();
     private Map<String, Set<NotificationsSubscription>> sessionToObject = new HashMap<>();
-    
-    public NotificationSubscriptionDAO() {}
+
+    public NotificationSubscriptionDAO() {
+    }
 
     @Override
     public synchronized void insertSubscriptions(Collection<Long> deviceIds, String sessionId) {
-        if (deviceIds == null || deviceIds.isEmpty()) {
-            insertSubscriptions((Long) null, sessionId);
-        }
-        else if (sessionId != null) {
-            for (Long deviceId : deviceIds) {
-                deleteByDeviceAndSession(deviceId, sessionId);
-                insertSubscriptions(deviceId, sessionId);
+        if (sessionId != null) {
+            if (deviceIds == null || deviceIds.isEmpty()) {
+                insertSubscriptions((Long) null, sessionId);
+            }
+            else {
+                for (Long deviceId : deviceIds) {
+                    deleteByDeviceAndSession(deviceId, sessionId);
+                    insertSubscriptions(deviceId, sessionId);
+                }
             }
         }
     }
@@ -83,7 +86,8 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
     public synchronized void deleteByDeviceAndSession(Long deviceId, String sessionId) {
         NotificationsSubscription entity = keyToObject.remove(new Key(deviceId, sessionId));
         if (entity != null) {
-            deviceToObject.remove(entity.getDeviceId());
+            deviceToObject.get(entity.getDeviceId()).remove(entity);
+            sessionToObject.get(entity.getSessionId()).remove(entity);;
         }
     }
 
@@ -97,7 +101,7 @@ public class NotificationSubscriptionDAO implements com.devicehive.messages.data
         Set<NotificationsSubscription> entities = deviceToObject.remove(deviceId);
         if (entities != null) {
             for (NotificationsSubscription entity : entities) {
-                sessionToObject.remove(entity.getSessionId());
+                sessionToObject.get(entity.getSessionId()).remove(entity);
                 keyToObject.remove(new Key(deviceId, entity.getSessionId()));
             }
         }

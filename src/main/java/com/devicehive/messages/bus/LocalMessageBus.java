@@ -187,7 +187,7 @@ public class LocalMessageBus implements MessageBus {
             messagesDataSource.removeCommandUpdatesSubscription(id);
             break;
         case DEVICE_TO_CLIENT_NOTIFICATION:
-            messagesDataSource.removeNotificationsSubscription(details.session(), details.ids());
+            messagesDataSource.removeNotificationSubscriptions(details.session(), details.ids());
             break;
         case CLOSED_SESSION_DEVICE:
             messagesDataSource.removeDeviceSubscriptions(details.session());

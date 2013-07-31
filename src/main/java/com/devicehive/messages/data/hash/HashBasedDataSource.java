@@ -83,7 +83,7 @@ public class HashBasedDataSource implements MessagesDataSource {
     }
 
     @Override
-    public void removeNotificationsSubscription(String sessionId, Collection<Long> deviceIds) {
+    public void removeNotificationSubscriptions(String sessionId, Collection<Long> deviceIds) {
         if (deviceIds == null) {
             notificationSubscriptionDAO.deleteBySession(sessionId);
         }

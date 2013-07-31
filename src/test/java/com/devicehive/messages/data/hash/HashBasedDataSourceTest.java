@@ -1,6 +1,7 @@
 package com.devicehive.messages.data.hash;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -8,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -300,9 +302,9 @@ public class HashBasedDataSourceTest {
         /* Session = ok, Ids = ok */
         String sessionId = UUID.randomUUID().toString();
         List<Long> ids = new ArrayList<>();
-        ids.add(1L);
-        ids.add(2L);
-        ids.add(3L);
+        ids.add(Long.valueOf(1L));
+        ids.add(Long.valueOf(2L));
+        ids.add(Long.valueOf(3L));
 
         dataSource.addNotificationsSubscription(sessionId, ids);
 
@@ -323,16 +325,169 @@ public class HashBasedDataSourceTest {
         Object key = lego.newInstance(dataSource.notificationSubscriptions(), ids.get(0), sessionId);
 
         assertTrue(keyMap.keySet().contains(key));
+
+        /*--------------*/
+
+        Set set = (Set) sessionMap.get(sessionId);
+        assertNotNull(set);
+        assertEquals(ids.size(), set.size());
+
+        /*--------------*/
+
+        set = (Set) deviceMap.get(ids.get(0));
+        assertNotNull(set);
+        assertEquals(1, set.size());
+
+        set = (Set) deviceMap.get(ids.get(1));
+        assertNotNull(set);
+        assertEquals(1, set.size());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void testRemoveNotificationsSubscription() {
+    public void testAddNotificationsSubscriptionNull() throws Exception {
+        /* Session = ok, Ids = null */
+        String sessionId = UUID.randomUUID().toString();
 
+        dataSource.addNotificationsSubscription(sessionId, null);
+
+        Field mapF = NotificationSubscriptionDAO.class.getDeclaredField("keyToObject");
+        mapF.setAccessible(true);
+        Map keyMap = (Map) mapF.get(dataSource.notificationSubscriptions());
+        mapF = NotificationSubscriptionDAO.class.getDeclaredField("deviceToObject");
+        mapF.setAccessible(true);
+        Map<Long, NotificationsSubscription> deviceMap = (Map<Long, NotificationsSubscription>) mapF.get(dataSource.notificationSubscriptions());
+        mapF = NotificationSubscriptionDAO.class.getDeclaredField("sessionToObject");
+        mapF.setAccessible(true);
+        Map<Long, NotificationsSubscription> sessionMap = (Map<Long, NotificationsSubscription>) mapF.get(dataSource.notificationSubscriptions());
+
+        Class<?> c = NotificationSubscriptionDAO.class.getClassLoader().loadClass(
+                "com.devicehive.messages.data.hash.subscriptions.dao.NotificationSubscriptionDAO$Key");
+        Constructor lego = c.getConstructor(NotificationSubscriptionDAO.class, Long.class, String.class);
+        lego.setAccessible(true);
+        Object key = lego.newInstance(dataSource.notificationSubscriptions(), (Long) null, sessionId);
+
+        assertTrue(keyMap.keySet().contains(key));
+
+        /*--------------*/
+
+        Set set = (Set) sessionMap.get(sessionId);
+        assertNotNull(set);
+        assertEquals(1, set.size());
+
+        /*--------------*/
+
+        set = (Set) deviceMap.get(null);
+        assertNotNull(set);
+        assertEquals(1, set.size());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void testRemoveNotificationSubscription() {
+    public void testRemoveNotificationsSubscription() throws Exception {
+        String sessionId = UUID.randomUUID().toString();
+        List<Long> ids = new ArrayList<>();
+        ids.add(Long.valueOf(1L));
+        ids.add(Long.valueOf(2L));
+        ids.add(Long.valueOf(3L));
 
+        dataSource.addNotificationsSubscription(sessionId, ids);
+
+        Field mapF = NotificationSubscriptionDAO.class.getDeclaredField("keyToObject");
+        mapF.setAccessible(true);
+        Map keyMap = (Map) mapF.get(dataSource.notificationSubscriptions());
+        mapF = NotificationSubscriptionDAO.class.getDeclaredField("deviceToObject");
+        mapF.setAccessible(true);
+        Map<Long, NotificationsSubscription> deviceMap = (Map<Long, NotificationsSubscription>) mapF.get(dataSource.notificationSubscriptions());
+        mapF = NotificationSubscriptionDAO.class.getDeclaredField("sessionToObject");
+        mapF.setAccessible(true);
+        Map<Long, NotificationsSubscription> sessionMap = (Map<Long, NotificationsSubscription>) mapF.get(dataSource.notificationSubscriptions());
+
+        Class<?> c = NotificationSubscriptionDAO.class.getClassLoader().loadClass(
+                "com.devicehive.messages.data.hash.subscriptions.dao.NotificationSubscriptionDAO$Key");
+        Constructor lego = c.getConstructor(NotificationSubscriptionDAO.class, Long.class, String.class);
+        lego.setAccessible(true);
+        Object key = lego.newInstance(dataSource.notificationSubscriptions(), ids.get(0), sessionId);
+
+        dataSource.removeNotificationSubscriptions(sessionId, Collections.<Long>emptyList());
+        assertTrue(keyMap.keySet().contains(key));
+
+        Set set = (Set) sessionMap.get(sessionId);
+        assertNotNull(set);
+        assertEquals(ids.size(), set.size());
+
+        set = (Set) deviceMap.get(ids.get(0));
+        assertNotNull(set);
+        assertEquals(1, set.size());
+
+        set = (Set) deviceMap.get(ids.get(1));
+        assertNotNull(set);
+        assertEquals(1, set.size());
+
+        /*--------------*/
+        
+        dataSource.removeNotificationSubscriptions(sessionId, ids);
+        assertFalse(keyMap.keySet().contains(key));
+
+        set = (Set) sessionMap.get(sessionId);
+        assertNotNull(set);
+        assertTrue(set.isEmpty());
+
+        set = (Set) deviceMap.get(ids.get(0));
+        assertNotNull(set);
+        assertTrue(set.isEmpty());
+
+        set = (Set) deviceMap.get(ids.get(1));
+        assertNotNull(set);
+        assertTrue(set.isEmpty());        
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testRemoveNotificationSubscription() throws Exception {
+        String sessionId = UUID.randomUUID().toString();
+        List<Long> ids = new ArrayList<>();
+        ids.add(Long.valueOf(1L));
+        ids.add(Long.valueOf(2L));
+        ids.add(Long.valueOf(3L));
+
+        dataSource.addNotificationsSubscription(sessionId, ids);
+
+        Field mapF = NotificationSubscriptionDAO.class.getDeclaredField("keyToObject");
+        mapF.setAccessible(true);
+        Map keyMap = (Map) mapF.get(dataSource.notificationSubscriptions());
+        mapF = NotificationSubscriptionDAO.class.getDeclaredField("deviceToObject");
+        mapF.setAccessible(true);
+        Map<Long, NotificationsSubscription> deviceMap = (Map<Long, NotificationsSubscription>) mapF.get(dataSource.notificationSubscriptions());
+        mapF = NotificationSubscriptionDAO.class.getDeclaredField("sessionToObject");
+        mapF.setAccessible(true);
+        Map<Long, NotificationsSubscription> sessionMap = (Map<Long, NotificationsSubscription>) mapF.get(dataSource.notificationSubscriptions());
+
+        Class<?> c = NotificationSubscriptionDAO.class.getClassLoader().loadClass(
+                "com.devicehive.messages.data.hash.subscriptions.dao.NotificationSubscriptionDAO$Key");
+        Constructor lego = c.getConstructor(NotificationSubscriptionDAO.class, Long.class, String.class);
+        lego.setAccessible(true);
+        Object key = lego.newInstance(dataSource.notificationSubscriptions(), ids.get(0), sessionId);
+
+        /*--------------*/
+        
+        dataSource.removeNotificationSubscription(ids.get(1));
+        assertTrue(keyMap.keySet().contains(key));
+        dataSource.removeNotificationSubscription(ids.get(0));
+        assertFalse(keyMap.keySet().contains(key));
+
+        /*--------------*/
+        
+        Set set = (Set) sessionMap.get(sessionId);
+        assertNotNull(set);
+        assertEquals(1, set.size());
+
+        set = (Set) deviceMap.get(ids.get(0));
+        assertNull(set);
+
+        set = (Set) deviceMap.get(ids.get(2));
+        assertNotNull(set);
+        assertEquals(1, set.size());
     }
 
     @Test
