@@ -10,6 +10,7 @@ import java.lang.annotation.Annotation;
 public class ResponseFactory {
 
     public static Response response(Response.Status status, Object entity, JsonPolicyDef.Policy policy) {
+
         Response.ResponseBuilder responseBuilder = Response.status(status);
 
         if (policy == null && entity != null) {
@@ -18,6 +19,7 @@ public class ResponseFactory {
             Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(policy)};
             responseBuilder.entity(entity, annotations);
         }
+
         return responseBuilder.type(MediaType.APPLICATION_JSON).build();
     }
 

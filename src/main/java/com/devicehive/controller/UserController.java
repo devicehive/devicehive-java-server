@@ -4,6 +4,7 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserRequest;
@@ -36,77 +37,75 @@ public class UserController {
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response getUsersList(
-            @QueryParam("login") String login,
-            @QueryParam("loginPattern") String loginPattern,
-            @QueryParam("role") Integer role,
-            @QueryParam("status") Integer status,
-            @QueryParam("sortField") String sortField,
-            @QueryParam("sortOrder") String sortOrder,
-            @QueryParam("take") Integer take,
-            @QueryParam("skip") Integer skip
-    ) {
+    public Response getUsersList(@QueryParam("login") String login,
+                                 @QueryParam("loginPattern") String loginPattern,
+                                 @QueryParam("role") Integer role,
+                                 @QueryParam("status") Integer status,
+                                 @QueryParam("sortField") String sortField,
+                                 @QueryParam("sortOrder") String sortOrder,
+                                 @QueryParam("take") Integer take,
+                                 @QueryParam("skip") Integer skip) {
+
         boolean sortOrderAsc = true;
 
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
-
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
-
-        if (!"ID".equals(sortField) && !"Login".equals(sortField) && sortField != null) {  //ID??
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (!"ID".equals(sortField) && !"Login".equals(sortField) && sortField != null) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
         //TODO validation for role and status
         List<User> result = userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
 
-        return Response.ok().entity(result).build();
+        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
 
     @GET
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed(HiveRoles.ADMIN)
-    @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public Response getUser(@PathParam("id") long id) {
+
         User user = userDAO.findUserWithNetworks(id);
 
         if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
         }
 
-        return Response.ok().entity(UserResponse.createFromUser(user)).build();
+        return ResponseFactory.response(Response.Status.OK,
+                UserResponse.createFromUser(user),
+                JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserRequest user) {
+
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null
                 || user.getStatus() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
         //nor we want these parameters to be null
         if (user.getLogin().getValue() == null || user.getPassword().getValue() == null
                 || user.getRole().getValue() == null || user.getStatus().getValue() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
         if (userService.findByLogin(user.getLogin().getValue()) != null) {
-            return Response.status(Response.Status.FORBIDDEN).build();
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be created."));
         }
 
-        User created = userService.createUser(user.getLogin().getValue(), user.getRoleEnum(), user.getStatusEnum(), user.getPassword().getValue());
+        User created = userService.createUser(user.getLogin().getValue(),
+                                              user.getRoleEnum(),
+                                              user.getStatusEnum(),
+                                              user.getPassword().getValue());
 
-        return Response.status(Response.Status.CREATED).entity(created).build();
+        return ResponseFactory.response(Response.Status.CREATED, created, JsonPolicyDef.Policy.USERS_LISTED);
     }
 
     @PUT
@@ -119,106 +118,110 @@ public class UserController {
             User u = userService.findByLogin(user.getLogin().getValue());
 
             if (u != null && u.getId() != userId) {
-                return Response.status(Response.Status.FORBIDDEN).build();
+                return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be updated."));
             }
         }
 
         if (user.getLogin() != null && user.getLogin().getValue() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
         if (user.getPassword() != null && user.getPassword().getValue() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
         if (user.getRole() != null && user.getRole().getValue() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
         if (user.getStatus() != null && user.getStatus().getValue() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
+
         String loginValue = user.getLogin() == null ? null : user.getLogin().getValue();
         String passwordValue = user.getPassword() == null ? null : user.getPassword().getValue();
 
         userService.updateUser(userId, loginValue, user.getRoleEnum(), user.getStatusEnum(), passwordValue);
 
-        return Response.status(Response.Status.CREATED).build();
+        return ResponseFactory.response(Response.Status.CREATED);
     }
 
     @DELETE
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteUser(@PathParam("id") long userId) {
-        if (!userService.deleteUser(userId)) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.status(Response.Status.NO_CONTENT).build();
+
+        userService.deleteUser(userId);
+
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     @GET
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
 
         User existingUser = userDAO.findUserWithNetworks(id);
         if (existingUser == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
         }
+
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
-                Annotation[] annotations =
-                        {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORKS_LISTED)};
-                Response.ok().entity(network, annotations).build();
+                return ResponseFactory.response(Response.Status.OK, network, JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
-        return Response.status(Response.Status.NOT_FOUND).build();
+
+        return ResponseFactory.response(Response.Status.NOT_FOUND);
     }
 
     @PUT
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+
         try {
             userService.assignNetwork(id, networkId);
-        } catch (Exception e) {
-            throw new NotFoundException();
+        } catch (NotFoundException e) {
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User or network not found"));
         }
-        return Response.status(Response.Status.CREATED).build();
+
+        return ResponseFactory.response(Response.Status.CREATED);
     }
 
     @DELETE
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+
         try {
             userService.unassignNetwork(id, networkId);
-        } catch (Exception e) {
-            throw new NotFoundException();
+        } catch (NotFoundException e) {
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User or network not found"));
         }
-        return Response.status(Response.Status.NO_CONTENT).build();
+
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     @GET
     @Path("/current")
     @PermitAll
-    @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.USER_PUBLISHED)
     public Response getCurrent() {
+
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+
         if (login == null) {
-            return Response.status(Response.Status.FORBIDDEN).build();
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Couldn't get current user."));
         }
-        return Response.ok(userService.findUserWithNetworksByLogin(login)).build();
+
+        User result = userService.findUserWithNetworksByLogin(login);
+
+        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     @PUT
     @Path("/current")
     @PermitAll
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public Response updateCurrent(UserRequest ui) {
@@ -226,19 +229,20 @@ public class UserController {
         String password = ui.getPassword().getValue();
 
         if (password == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
         if (login == null) {
-            return Response.status(Response.Status.FORBIDDEN).build();
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be updated"));
         }
 
         User u = userService.findUserWithNetworksByLogin(login);
 
         userService.updatePassword(u.getId(), password);
-        return Response.status(Response.Status.CREATED).build();
+
+        return ResponseFactory.response(Response.Status.CREATED);
     }
 
 

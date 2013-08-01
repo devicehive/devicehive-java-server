@@ -9,10 +9,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
@@ -73,42 +70,44 @@ public class DeviceController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     public Response list(@QueryParam("name") String name,
-                             @QueryParam("namePattern") String namePattern,
-                             @QueryParam("status") String status,
-                             @QueryParam("networkId") Long networkId,
-                             @QueryParam("networkName") String networkName,
-                             @QueryParam("deviceClassId") Long deviceClassId,
-                             @QueryParam("deviceClassName") String deviceClassName,
-                             @QueryParam("deviceClassVersion") String deviceClassVersion,
-                             @QueryParam("sortField") String sortField,
-                             @QueryParam("sortOrder") String sortOrder,
-                             @QueryParam("take") Integer take,
-                             @QueryParam("skip") Integer skip) {
+                         @QueryParam("namePattern") String namePattern,
+                         @QueryParam("status") String status,
+                         @QueryParam("networkId") Long networkId,
+                         @QueryParam("networkName") String networkName,
+                         @QueryParam("deviceClassId") Long deviceClassId,
+                         @QueryParam("deviceClassName") String deviceClassName,
+                         @QueryParam("deviceClassVersion") String deviceClassVersion,
+                         @QueryParam("sortField") String sortField,
+                         @QueryParam("sortOrder") String sortOrder,
+                         @QueryParam("take") Integer take,
+                         @QueryParam("skip") Integer skip) {
 
         boolean sortOrderAsc = true;
+
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICE_PUBLISHED)};
+
         List<Device> result = deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                 deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip);
-        return Response.ok().entity(result, annotations).build();
+
+        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/register">DeviceHive RESTful
      * API: Device: register</a>
      * Registers a device.
-     * If device with specified identifier has already been registered, it gets updated in case when valid key is provided in the authorization header.
+     * If device with specified identifier has already been registered,
+     * it gets updated in case when valid key is provided in the authorization header.
      *
      * @param jsonObject In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                   .com/restful#Reference/Device/register">
@@ -119,44 +118,46 @@ public class DeviceController {
     @Path("/{id}")
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
     public Response register(JsonObject jsonObject, @PathParam("id") String guid) {
-        UUID deviceGuid;
+
+        UUID deviceGuid = null;
+
         try {
             deviceGuid = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
+
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
-        DeviceUpdate device;
+        DeviceUpdate device = null;
 
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
 
         NullableWrapper<UUID> uuidNullableWrapper = new NullableWrapper<>();
-        uuidNullableWrapper.setValue(deviceGuid);
 
+        uuidNullableWrapper.setValue(deviceGuid);
         device.setGuid(uuidNullableWrapper);
+
         try {
             deviceService.checkDevice(device);
         } catch (HiveException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
+
         Gson gsonForEquipment = GsonFactory.createGson();
         boolean useExistingEquipment = jsonObject.get("equipment") == null;
-        Set<Equipment> equipmentSet =
-                gsonForEquipment.fromJson(jsonObject.get("equipment"), new TypeToken<HashSet<Equipment>>() {
-                }.getType());
+        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
+                                        jsonObject.get("equipment"),
+                                        new TypeToken<HashSet<Equipment>>() { }.getType());
+
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        try{
+
         deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
-        }
-        catch (Exception r){
-            throw r;
-        }
-        return Response.status(Response.Status.CREATED).build();
+
+        return ResponseFactory.response(Response.Status.CREATED);
     }
 
     /**
@@ -165,19 +166,25 @@ public class DeviceController {
      * Gets information about device.
      *
      * @param guid Device unique identifier
-     * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
+     * @return If successful, this method returns
+     * a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
      */
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     public Response get(@PathParam("id") String guid) {
-        Device device = getDevice(guid);
-        if (device == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
+
+        Device device = null;
+
+        try {
+            device = getDevice(guid);
+        } catch (BadRequestException e) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+        } catch (NotFoundException e) {
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
         }
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICE_PUBLISHED)};
-        return Response.ok().entity(device, annotations).build();
+
+        return ResponseFactory.response(Response.Status.OK, device, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
     /**
@@ -190,26 +197,28 @@ public class DeviceController {
      */
     @DELETE
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") String guid) {
+
         UUID deviceId;
+
         try {
             deviceId = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
-        if (!deviceDAO.deleteDevice(deviceId)) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.status(Response.Status.NO_CONTENT).build();
+
+        deviceDAO.deleteDevice(deviceId);
+
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/equipment">DeviceHive RESTful
      * API: Device: equipment</a>
      * Gets current state of device equipment.
-     * The equipment state is tracked by framework and it could be updated by sending 'equipment' notification with the following parameters:
+     * The equipment state is tracked by framework and it could be updated by sending 'equipment' notification
+     * with the following parameters:
      * equipment: equipment code
      * parameters: current equipment state
      *
@@ -241,26 +250,39 @@ public class DeviceController {
     @GET
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     public Response  equipment(@PathParam("id") String guid) {
-        Device device = getDevice(guid);
+
+        Device device = null;
+
+        try {
+            device = getDevice(guid);
+        } catch (BadRequestException e) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+        } catch (NotFoundException e) {
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+        }
+
         List<DeviceEquipment> equipments = equipmentDAO.findByFK(device);
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED)};
-        return Response.ok().entity(equipments, annotations).build();
+
+        return ResponseFactory.response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
 
     private Device getDevice(String uuid) {
+
         UUID deviceId;
+
         try {
             deviceId = UUID.fromString(uuid);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("unparseable guid: " + uuid);
         }
+
         Device device = deviceDAO.findByUUID(deviceId);
+
         if (device == null) {
             throw new NotFoundException("device with guid " + uuid + " not found");
         }
+
         return device;
     }
-
 }
