@@ -14,6 +14,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <build.number>DEV</build.number>
     </properties>
 
     <dependencies>
@@ -23,14 +24,12 @@
             <version>1.0.13</version>
         </dependency>
 
-
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
             <version>7.0</version>
             <scope>provided</scope>
         </dependency>
-
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -43,7 +42,6 @@
             <artifactId>hibernate-entitymanager</artifactId>
             <version>4.3.0.Beta3</version>
         </dependency>
-
 
         <dependency>
             <groupId>javax.jms</groupId>
@@ -76,18 +74,23 @@
             <artifactId>commons-beanutils</artifactId>
             <version>1.8.3</version>
         </dependency>
-
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
             <plugin>
