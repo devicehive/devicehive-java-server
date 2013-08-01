@@ -6,8 +6,6 @@ import javax.annotation.security.DeclareRoles;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
-// TODO: that's probably not needed here
-@DeclareRoles({"Device", "CLIENT", "ADMIN"})
 public class HiveSecurityContext implements SecurityContext {
     private final HivePrincipal hivePrincipal;
     private final boolean secure;

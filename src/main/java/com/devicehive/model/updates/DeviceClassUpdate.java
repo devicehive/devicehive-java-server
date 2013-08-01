@@ -9,6 +9,8 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceClassUpdate implements HiveEntity {
+    @JsonPolicyDef(DEVICE_PUBLISHED)
+    Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     NullableWrapper<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
@@ -72,6 +74,7 @@ public class DeviceClassUpdate implements HiveEntity {
 
     public DeviceClass convertTo() {
         DeviceClass deviceClass = new DeviceClass();
+        deviceClass.setId(id);
         if (isPermanent != null) {
             deviceClass.setPermanent(isPermanent.getValue());
         }

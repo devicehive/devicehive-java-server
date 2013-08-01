@@ -9,14 +9,13 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import javax.annotation.security.PermitAll;
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 
 /**
  * REST controller for devices: <i>/device</i>.
@@ -128,8 +127,29 @@ public class DeviceController {
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
+        Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
         DeviceUpdate device;
+
+        Long networkId = null;
+        JsonElement elemNetwork = jsonObject.get("network");
+        if (elemNetwork instanceof JsonPrimitive){
+            networkId = elemNetwork.getAsLong();
+            Network networkFromInt = new Network();
+            networkFromInt.setId(networkId);
+            jsonObject.remove("network");
+            Gson gson = GsonFactory.createGson();
+            jsonObject.add("network", gson.toJsonTree(networkFromInt));
+        }
+        Long deviceClassId = null;
+        JsonElement elemDeviceClass = jsonObject.get("deviceClass");
+        if (elemDeviceClass instanceof JsonPrimitive){
+            deviceClassId = elemDeviceClass.getAsLong();
+            DeviceClass deviceClassFromInt = new DeviceClass();
+            deviceClassFromInt.setId(deviceClassId);
+            jsonObject.remove("deviceClass");
+            Gson gson = GsonFactory.createGson();
+            jsonObject.add("deviceClass", gson.toJsonTree(deviceClassFromInt));
+        }
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
 
         NullableWrapper<UUID> uuidNullableWrapper = new NullableWrapper<>();
@@ -149,7 +169,12 @@ public class DeviceController {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
+        try{
         deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
+        }
+        catch (Exception r){
+            throw r;
+        }
         return Response.status(Response.Status.CREATED).build();
     }
 
