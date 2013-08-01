@@ -6,7 +6,6 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
@@ -26,7 +25,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.lang.annotation.Annotation;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -65,7 +63,6 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/poll")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response poll(
             @PathParam("deviceGuid") String deviceGuid,
             @QueryParam("timestamp") String timestampUTC,
@@ -73,12 +70,12 @@ public class DeviceCommandController {
             @Context SecurityContext securityContext) {
 
         if (deviceGuid == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
         Date timestamp = Params.parseUTCDate(timestampUTC);
@@ -88,8 +85,7 @@ public class DeviceCommandController {
         DeferredResponse result = messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
         List<DeviceCommand> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(Policy.COMMAND_TO_DEVICE)};
-        return Response.ok().entity(response, annotations).build();
+        return ResponseFactory.response(Response.Status.OK,response, Policy.COMMAND_TO_DEVICE);
     }
 
     /**
@@ -101,7 +97,6 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{commandId}/poll")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response wait(
             @PathParam("deviceGuid") String deviceGuid,
             @PathParam("commandId") String commandId,
@@ -109,21 +104,21 @@ public class DeviceCommandController {
             @Context SecurityContext securityContext) {
 
         if (deviceGuid == null || commandId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
         DeviceCommand command = commandDAO.findById(Long.valueOf(commandId));
         if (command == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
         if (!command.getDevice().getId().equals(device.getId())) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
         long timeout = Params.parseWaitTimeout(waitTimeout);
@@ -132,14 +127,12 @@ public class DeviceCommandController {
         DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND,
                 MessageDetails.create().ids(device.getId(), command.getId()).user(user));
         List<DeviceCommand> commandList = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(Policy.COMMAND_TO_DEVICE)};
         DeviceCommand response = commandList.isEmpty() ? null : commandList.get(0);
-        return Response.ok().entity(response, annotations).build();
+        return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
     }
 
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     public Response query(@PathParam("deviceGuid") String guid,
                           @QueryParam("start") String start,
                           @QueryParam("end") String end,
@@ -150,7 +143,7 @@ public class DeviceCommandController {
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip) {
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
         boolean sortOrderAsc = true;
         if ("DESC".equals(sortOrder)) {
@@ -158,7 +151,7 @@ public class DeviceCommandController {
         }
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField
                 != null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
         if (sortField == null) {
             sortField = "timestamp";
@@ -168,20 +161,19 @@ public class DeviceCommandController {
         if (start != null) {
             startTimestamp = Params.parseUTCDate(start);
             if (startTimestamp == null) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return ResponseFactory.response(Response.Status.BAD_REQUEST);
             }
         }
         if (end != null) {
             endTimestamp = Params.parseUTCDate(end);
             if (endTimestamp == null) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return ResponseFactory.response(Response.Status.BAD_REQUEST);
             }
         }
         Device device = getDevice(guid);
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(Policy.COMMAND_TO_DEVICE)};
         List<DeviceCommand> commandList = commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command,
                 status, sortField, sortOrderAsc, take, skip);
-        return Response.ok().entity(commandList, annotations).build();
+        return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
     }
 
     @GET
@@ -191,37 +183,50 @@ public class DeviceCommandController {
         Device device = getDevice(guid);
 
         if (!checkPermissions(device)) {
-            return Response.status(Response.Status.FORBIDDEN).build();
+            return ResponseFactory.response(Response.Status.FORBIDDEN);
         }
 
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
         if (result == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(Policy.COMMAND_TO_DEVICE)};
-        return Response.ok().entity(result, annotations).type(MediaType.APPLICATION_JSON).build();
+        return ResponseFactory.response(Response.Status.OK, result, Policy.COMMAND_TO_DEVICE);
     }
 
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand) {
         Device device = getDevice(guid);
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
         if (login == null) {
-            return Response.status(Response.Status.FORBIDDEN).build();
+            return ResponseFactory.response(Response.Status.FORBIDDEN);
         }
 
         User u = userDAO.findUserWithNetworksByLogin(login);
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
-        Annotation[] annotations =
-                {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE)};
-        return Response.status(Response.Status.CREATED).entity(deviceCommand, annotations).build();
 
+        return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.POST_COMMAND_TO_DEVICE);
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/update">DeviceHive
+     * RESTful API: DeviceCommand: update</a>
+     * Updates an existing device command.
+     *
+     * @param guid Device unique identifier.
+     * @param commandId Device command identifier.
+     * @param command In the request body, supply a <a href="http://www.devicehive
+     *                .com/restful#Reference/DeviceCommand">DeviceCommand</a> resource.
+     *                All fields are not required:
+     *                flags - Command flags, and optional value that could be supplied for
+     *                device or related infrastructure.
+     *                status - Command status, as reported by device or related infrastructure.
+     *                result - Command execution result, an optional value that could be provided by device.
+     *
+     * @return If successful, this method returns an empty response body.
+     */
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
