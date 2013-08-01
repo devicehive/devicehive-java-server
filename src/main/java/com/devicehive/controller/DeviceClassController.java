@@ -5,6 +5,7 @@ import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.dao.DublicateEntryException;
+import com.devicehive.exceptions.dao.HivePersistingException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceClass;
@@ -96,10 +97,10 @@ public class DeviceClassController {
     public Response getDeviceClass(@PathParam("id") long id) {
         DeviceClass result = deviceClassService.getWithEquipment(id);
 
-        if (result == null){
+        if (result == null) {
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id = " + id + " doesn't find."));
+                    new ErrorResponse("DeviceClass with id = " + id + " isn't found."));
         }
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED);
@@ -136,10 +137,10 @@ public class DeviceClassController {
             result = deviceClassService.addDeviceClass(insert);
         } catch (DublicateEntryException ex) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse(ex.getMessage()));
-        } catch (Exception ex) {
+        } catch (HivePersistingException ex) {
             return ResponseFactory.response(
-                    Response.Status.INTERNAL_SERVER_ERROR,
-                    new ErrorResponse("Unhandled exception"));
+                    Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ex.getMessage()));
         }
 
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
@@ -162,15 +163,11 @@ public class DeviceClassController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateDeviceClass(
             @PathParam("id") long id,
-            @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED)DeviceClassUpdate insert) {
+            @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
         try {
             deviceClassService.update(id, insert);
         } catch (HiveException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new Error(e.getMessage()));
-        } catch (Exception ex) {
-            return ResponseFactory.response(
-                    Response.Status.INTERNAL_SERVER_ERROR,
-                    new ErrorResponse("Unhandled exception"));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("DeviceClass with id = " + id + " isn't found."));
         }
 
         return Response.status(Response.Status.CREATED).build();
@@ -188,12 +185,7 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
-         if (!deviceClassService.delete(id)) {
-            return ResponseFactory.response(
-                    Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id = " + id + " doesn't find."));
-        }
-
+        deviceClassService.delete(id);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -201,17 +193,12 @@ public class DeviceClassController {
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        Equipment result = null;
+        Equipment result = equipmentDAO.getByDeviceClass(classId, eqId);
 
-        try {
-            result = equipmentDAO.getByDeviceClass(classId, eqId);
-        } catch (Exception ex) {
-            return ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(ex.getMessage()));
-        }
-        if (result == null){
-           return ResponseFactory.response(
-                   Response.Status.NOT_FOUND,
-                   new ErrorResponse("Equipment with id = " + eqId + " doesn't find"));
+        if (result == null) {
+            return ResponseFactory.response(
+                    Response.Status.NOT_FOUND,
+                    new ErrorResponse("Equipment with id = " + eqId + " isn't found"));
         }
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
@@ -223,30 +210,18 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq) {
-        DeviceClass dc = null;
-
-        try {
-            dc = deviceClassService.get(classId);
-        } catch (Exception ex) {
-            return ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(ex.getMessage()));
-        }
+        DeviceClass dc = deviceClassService.get(classId);
 
         if (dc == null) {
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id = " + classId + " isn't find."));
+                    new ErrorResponse("DeviceClass with id = " + classId + " isn't found."));
         }
 
         eq.setDeviceClass(dc);
+        Equipment result = equipmentDAO.create(eq);
 
-        Equipment result = null;
-        try {
-            result = equipmentDAO.create(eq);
-        } catch(Exception ex) {
-            return ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(ex.getMessage()));
-        }
-
-        if (result == null){
+        if (result == null) {
             return ResponseFactory.response(
                     Response.Status.FORBIDDEN,
                     new ErrorResponse("Equipment couldn't be created"));
@@ -264,18 +239,14 @@ public class DeviceClassController {
             @PathParam("deviceClassId") long classId,
             @PathParam("id") long eqId,
             @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) Equipment equipment) {
-        try {
-            if (!equipmentDAO.update(equipment, eqId, classId)) {
-                return ResponseFactory.response(
-                        Response.Status.NOT_FOUND,
-                        new ErrorResponse("Equipment with id = "
-                                + eqId
-                                + " and DeviceClass id = "
-                                + classId
-                                + " isn't found"));
-            }
-        } catch (Exception ex) {
-            return ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(ex.getMessage()));
+        if (!equipmentDAO.update(equipment, eqId, classId)) {
+            return ResponseFactory.response(
+                    Response.Status.NOT_FOUND,
+                    new ErrorResponse("Equipment with id = "
+                            + eqId
+                            + " and DeviceClass id = "
+                            + classId
+                            + " isn't found"));
         }
 
         return ResponseFactory.response(Response.Status.CREATED);
@@ -286,18 +257,14 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        try {
-            if (!equipmentDAO.delete(eqId, classId)) {
-                return ResponseFactory.response(
-                        Response.Status.NOT_FOUND,
-                        new ErrorResponse("Equipment with id = "
-                                + eqId
-                                + " and DeviceClass id = "
-                                + classId
-                                + " isn't found"));
-            }
-        } catch (Exception ex) {
-            return ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(ex.getMessage()));
+        if (!equipmentDAO.delete(eqId, classId)) {
+            return ResponseFactory.response(
+                    Response.Status.NOT_FOUND,
+                    new ErrorResponse("Equipment with id = "
+                            + eqId
+                            + " and DeviceClass id = "
+                            + classId
+                            + " isn't found"));
         }
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
