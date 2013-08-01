@@ -47,8 +47,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                         "where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
                 " = :user and dc.device = :device"),
-        @NamedQuery(name = "DeviceCommand.deleteByFK", query = "delete from DeviceCommand dc where dc.device = :device"),
-        @NamedQuery(name = "DeviceCommand.getByDeviceUuidAndId", query = "select dc from DeviceCommand dc where dc.id = :id and dc.device.guid = :guid")
+        @NamedQuery(name = "DeviceCommand.deleteByFK",
+                query = "delete from DeviceCommand dc where dc.device = :device"),
+        @NamedQuery(name = "DeviceCommand.getByDeviceUuidAndId",
+                query = "select dc from DeviceCommand dc where dc.id = :id and dc.device.guid = :guid")
 })
 public class DeviceCommand implements HiveEntity, Message {
 
@@ -78,8 +80,10 @@ public class DeviceCommand implements HiveEntity, Message {
     @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of command shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
+    @Size(min = 1, max = 128,
+            message = "Field cannot be empty. The length of command shouldn't be more than 128 symbols.")
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE})
     private String command;
 
     @SerializedName("parameters")
@@ -87,22 +91,26 @@ public class DeviceCommand implements HiveEntity, Message {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE})
     private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE})
     private Integer lifetime;
 
     @SerializedName("flags")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE})
     private Integer flags;
 
     @SerializedName("status")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            REST_COMMAND_UPDATE_FROM_DEVICE})
     private String status;
 
     @SerializedName("result")
@@ -110,13 +118,13 @@ public class DeviceCommand implements HiveEntity, Message {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
     })
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            REST_COMMAND_UPDATE_FROM_DEVICE})
     private JsonStringWrapper result;
 
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
-
 
     /**
      * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
