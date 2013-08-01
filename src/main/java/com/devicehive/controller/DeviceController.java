@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
 
 /**
  * REST controller for devices: <i>/device</i>.
@@ -146,7 +145,7 @@ public class DeviceController {
         if (elemDeviceClass instanceof JsonPrimitive){
             deviceClassId = elemDeviceClass.getAsLong();
             DeviceClass deviceClassFromInt = new DeviceClass();
-            deviceClassFromInt.setId(networkId);
+            deviceClassFromInt.setId(deviceClassId);
             jsonObject.remove("deviceClass");
             Gson gson = GsonFactory.createGson();
             jsonObject.add("deviceClass", gson.toJsonTree(deviceClassFromInt));
