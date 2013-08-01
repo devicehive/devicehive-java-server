@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import javax.json.JsonObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -137,17 +139,23 @@ public class NetworkController {
      */
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(NetworkRequest nr) {
+
         Network n = new Network();
         //TODO: if request if malformed this code will fall with NullPointerException
-        n.setKey(nr.getKey().getValue());
-        n.setDescription(nr.getDescription().getValue());
+        if (nr.getName() == null || nr.getName().getValue()==null){
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Name is required property"));
+        }
         n.setName(nr.getName().getValue());
+        if (nr.getKey()!=null){
+           n.setKey(nr.getKey().getValue());
+        }
+        if (nr.getDescription()!=null){
+            n.setDescription(nr.getDescription().getValue());
+        }
         Network result = networkService.insert(n);
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORK_SUBMITTED)};
-        return Response.status(Response.Status.CREATED).entity(result,annotations).build();
+        return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
 
 

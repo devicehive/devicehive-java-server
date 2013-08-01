@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 
@@ -17,7 +18,7 @@ public class ResponseFactory {
             Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(policy)};
             responseBuilder.entity(entity, annotations);
         }
-        return responseBuilder.build();
+        return responseBuilder.type(MediaType.APPLICATION_JSON).build();
     }
 
     public static Response response(Response.Status status, Object entity) {
