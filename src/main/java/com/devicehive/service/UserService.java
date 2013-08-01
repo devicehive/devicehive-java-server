@@ -75,7 +75,7 @@ public class UserService {
      * @param password password
      * @return User with updated parameters
      */
-    public User updatePassword(@NotNull Long id, String password) {
+    public User updatePassword(@NotNull long id, String password) {
 
         User u = userDAO.findById(id);
 
@@ -159,7 +159,7 @@ public class UserService {
      * @param userId id of user
      * @param networkId id of network
      */
-    public void unassignNetwork(@NotNull Long userId, @NotNull Long networkId) {
+    public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
             throw new NotFoundException();
