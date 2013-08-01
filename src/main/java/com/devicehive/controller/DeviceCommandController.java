@@ -190,7 +190,7 @@ public class DeviceCommandController {
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long id) {
         Device device = getDevice(guid);
 
-        if (!checkPermissions(device)){
+        if (!checkPermissions(device)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
@@ -220,6 +220,30 @@ public class DeviceCommandController {
                 {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE)};
         return Response.status(Response.Status.CREATED).entity(deviceCommand, annotations).build();
 
+    }
+
+    @PUT
+    @Path("/{id}")
+    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
+                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE)DeviceCommand command){
+        UUID deviceId;
+        try {
+            deviceId = UUID.fromString(guid);
+        } catch (IllegalArgumentException e) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, "unparseable guid: " + guid);
+        }
+        DeviceCommand commandUpdate = commandDAO.getByDeviceGuidAndId(deviceId, commandId);
+        if (commandUpdate == null){
+            return ResponseFactory.response(Response.Status.FORBIDDEN, "no permissions for device with guid " + guid
+                    + "to update command with id " + commandId);
+        }
+        commandUpdate.setFlags(command.getFlags());
+        commandUpdate.setStatus(command.getStatus());
+        commandUpdate.setResult(command.getResult());
+        deviceService.submitDeviceCommandUpdate(commandUpdate, commandUpdate.getDevice());
+        return ResponseFactory.response(Response.Status.CREATED);
     }
 
     private Device getDevice(String uuid) {
