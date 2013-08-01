@@ -9,13 +9,14 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import javax.annotation.security.PermitAll;
@@ -130,26 +131,6 @@ public class DeviceController {
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
         DeviceUpdate device;
 
-        Long networkId = null;
-        JsonElement elemNetwork = jsonObject.get("network");
-        if (elemNetwork instanceof JsonPrimitive){
-            networkId = elemNetwork.getAsLong();
-            Network networkFromInt = new Network();
-            networkFromInt.setId(networkId);
-            jsonObject.remove("network");
-            Gson gson = GsonFactory.createGson();
-            jsonObject.add("network", gson.toJsonTree(networkFromInt));
-        }
-        Long deviceClassId = null;
-        JsonElement elemDeviceClass = jsonObject.get("deviceClass");
-        if (elemDeviceClass instanceof JsonPrimitive){
-            deviceClassId = elemDeviceClass.getAsLong();
-            DeviceClass deviceClassFromInt = new DeviceClass();
-            deviceClassFromInt.setId(deviceClassId);
-            jsonObject.remove("deviceClass");
-            Gson gson = GsonFactory.createGson();
-            jsonObject.add("deviceClass", gson.toJsonTree(deviceClassFromInt));
-        }
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
 
         NullableWrapper<UUID> uuidNullableWrapper = new NullableWrapper<>();
