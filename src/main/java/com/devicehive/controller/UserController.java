@@ -34,38 +34,6 @@ public class UserController {
     @Context
     private ContainerRequestContext requestContext;
 
-    /**
-     * This method will generate following output
-     *
-     * <code>
-     *  [
-     *  {
-     *  "id": 2,
-     *  "login": "login",
-     *  "role": 0,
-     *  "status": 0,
-     *  "lastLogin": "1970-01-01 03:00:00.0"
-     *  },
-     *  {
-     *  "id": 3,
-     *  "login": "login1",
-     *  "role": 1,
-     *  "status": 2,
-     *  "lastLogin": "1970-01-01 03:00:00.0"
-     *  }
-     *]
-     *</code>
-     *
-     * @param login user login ignored, when loginPattern is specified
-     * @param loginPattern login pattern (LIKE %VALUE%) user login will be ignored, if not null
-     * @param role User's role ADMIN - 0, CLIENT - 1
-     * @param status ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
-     * @param sortField    either of "login", "loginAttempts", "role", "status", "lastLogin"
-     * @param sortOrder either ASC or DESC
-     * @param take like SQL LIMIT
-     * @param skip like SQL OFFSET
-     * @return List of User
-     */
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
@@ -82,15 +50,15 @@ public class UserController {
     ) {
         boolean sortOrderAsc = true;
 
-        if (sortOrder != null && !sortOrder.equalsIgnoreCase("DESC") && !sortOrder.equalsIgnoreCase("ASC")) {
+        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        if ("DESC".equalsIgnoreCase(sortOrder)) {
+        if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
 
-        if (!"ID".equalsIgnoreCase(sortField) && !"Login".equalsIgnoreCase(sortField) && sortField != null) {  //ID??
+        if (!"ID".equals(sortField) && !"Login".equals(sortField) && sortField != null) {  //ID??
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
@@ -100,33 +68,6 @@ public class UserController {
         return Response.ok().entity(result).build();
     }
 
-
-    /**
-     * Method will generate following output:
-     *
-     *<code>
-     *{
-     *     "id": 2,
-     *     "login": "login",
-     *     "status": 0,
-     *     "networks": [
-     *     {
-     *          "network": {
-     *              "id": 5,
-     *              "key": "network key",
-     *              "name": "name of network",
-     *              "description": "short description of network"
-     *          }
-     *     }
-     *     ],
-     *     "lastLogin": "1970-01-01 03:00:00.0"
-     *}
-     *</code>
-     *
-     * If success, response with status 200, if user is not found 400
-     * @param id user id
-     * @return
-     */
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -142,30 +83,6 @@ public class UserController {
         return Response.ok().entity(UserResponse.createFromUser(user)).build();
     }
 
-
-    /**
-     * One needs to provide user resource in request body (all parameters are mandatory):
-     *
-     * <code>
-     * {
-     *     "login":"login"
-     *     "role":0
-     *     "status":0
-     *     "password":"qwerty"
-     * }
-     * </code>
-     *
-     * In case of success server will provide following response with code 201
-     *
-     * <code>
-     *     {
-     *         "id": 1,
-     *         "lastLogin": null
-     *     }
-     * </code>
-     *
-     * @return Empty body, status 201 if success, 403 if forbidden, 400 otherwise
-     */
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -192,24 +109,6 @@ public class UserController {
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
 
-
-    /**
-     * Updates user. One should specify following json to update user (none of parameters are mandatory, bot neither of them can be null):
-     *
-     * <code>
-     * {
-     *   "login": "login",
-     *   "role": 0,
-     *   "status": 0,
-     *   "password": "password"
-     * }
-     * </code>
-     *
-     * role:  Administrator - 0, Client - 1
-     * status: ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
-     * @param userId - id of user beign edited
-     * @return empty response, status 201 if succeeded, 403 if action is forbidden, 400 otherwise
-     */
     @PUT
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -247,11 +146,6 @@ public class UserController {
         return Response.status(Response.Status.CREATED).build();
     }
 
-    /**
-     * Deletes user by id
-     * @param userId id of user to delete
-     * @return empty response. state 204 in case of success, 404 if not found
-     */
     @DELETE
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -262,48 +156,26 @@ public class UserController {
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 
-    /**
-     * Method returns following body in case of success (status 200):
-     *<code>
-     *     {
-     *       "id": 5,
-     *       "key": "network_key",
-     *       "name": "network name",
-     *       "description": "short description of net"
-     *     }
-     *</code>
-     *in case, there is no such network, or user, or user doesn't have access
-     *
-     * @param id user id
-     * @param networkId network id
-     */
     @GET
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORKS_LISTED)
     public Response getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
 
         User existingUser = userDAO.findUserWithNetworks(id);
-
         if (existingUser == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
-                return Response.ok().entity(network).build();
+                Annotation[] annotations =
+                        {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORKS_LISTED)};
+                Response.ok().entity(network, annotations).build();
             }
         }
-
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    /**
-     * Request body must be empty. Returns Empty body.
-     * @param id user id
-     * @param networkId network id
-     */
     @PUT
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -317,12 +189,6 @@ public class UserController {
         return Response.status(Response.Status.CREATED).build();
     }
 
-    /**
-     *   Removes user permissions on network
-     * @param id user id
-     * @param networkId network id
-     * @return Empty body. Status 204 in case of success, 404 otherwise
-     */
     @DELETE
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -331,35 +197,11 @@ public class UserController {
         try {
             userService.unassignNetwork(id, networkId);
         } catch (Exception e) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException();
         }
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 
-    /**
-     * Returns current user with networks:
-     *<code>
-     *{
-     *     "id": 2,
-     *     "login": "login",
-     *     "status": 0,
-     *     "networks": [
-     *     {
-     *          "network": {
-     *              "id": 5,
-     *              "key": "network key",
-     *              "name": "network name",
-     *              "description": "short description of network"
-     *          }
-     *     }
-     *     ],
-     *     "lastLogin": "1970-01-01 03:00:00.0"
-     *}
-     *</code>
-     *
-     * Or empty body and 403 status in case of user is not logged on
-     *
-     */
     @GET
     @Path("/current")
     @PermitAll
@@ -373,23 +215,6 @@ public class UserController {
         return Response.ok(userService.findUserWithNetworksByLogin(login)).build();
     }
 
-    /**
-     * Updates user currently logged on.
-     * One should specify following json to update user (none of parameters are mandatory, bot neither of them can be null):
-     *
-     * <code>
-     * {
-     *   "login": "login",
-     *   "role": 0,
-     *   "status": 0,
-     *   "password": "password"
-     * }
-     * </code>
-     *
-     * role:  Administrator - 0, Client - 1
-     * status: ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
-     * @return empty response, status 201 if succeeded, 403 if action is forbidden, 400 otherwise
-     */
     @PUT
     @Path("/current")
     @PermitAll
