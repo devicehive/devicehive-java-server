@@ -31,9 +31,10 @@ import java.util.List;
 public class DeviceClassController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
-    @Inject
 
+    @Inject
     private DeviceClassService deviceClassService;
+
     @Inject
     private EquipmentDAO equipmentDAO;
 
@@ -212,12 +213,12 @@ public class DeviceClassController {
      *       [
      *          {
      *            "id":1,
-     *           "timestamp": "1970-01-01 03:00:00.0",
+     *           "timestamp": "1970-01-01 00:00:00.0",
      *           "parameters":{/ *custom json object* /}
      *          },
      *          {
      *            "id":2,
-     *           "timestamp": "1970-01-01 03:00:00.0",
+     *           "timestamp": "1970-01-01 00:00:00.0",
      *           "parameters":{/ *custom json object* /}
      *          }
      *       ]

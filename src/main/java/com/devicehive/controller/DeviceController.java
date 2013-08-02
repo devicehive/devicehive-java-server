@@ -11,6 +11,7 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -48,6 +49,9 @@ public class DeviceController {
     private DeviceEquipmentDAO equipmentDAO;
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
+
+    @Inject
+    private DeviceCommandService deviceCommandService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -181,7 +185,7 @@ public class DeviceController {
         Device device = null;
 
         try {
-            device = getDevice(guid);
+            device = deviceCommandService.getDevice(guid);
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
@@ -261,7 +265,7 @@ public class DeviceController {
         Device device = null;
 
         try {
-            device = getDevice(guid);
+            device = deviceCommandService.getDevice(guid);
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
@@ -273,24 +277,5 @@ public class DeviceController {
 
         return ResponseFactory
                 .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
-    }
-
-    private Device getDevice(String uuid) {
-
-        UUID deviceId;
-
-        try {
-            deviceId = UUID.fromString(uuid);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("unparseable guid: " + uuid);
-        }
-
-        Device device = deviceDAO.findByUUID(deviceId);
-
-        if (device == null) {
-            throw new NotFoundException("device with guid " + uuid + " not found");
-        }
-
-        return device;
     }
 }

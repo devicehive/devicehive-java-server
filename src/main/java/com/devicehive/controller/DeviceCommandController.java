@@ -55,6 +55,9 @@ public class DeviceCommandController {
     @Inject
     private UserDAO userDAO;
 
+    @Inject
+    private DeviceCommandService deviceCommandService;
+
     @Context
     private ContainerRequestContext requestContext;
 
@@ -217,7 +220,7 @@ public class DeviceCommandController {
                 return ResponseFactory.response(Response.Status.BAD_REQUEST);
             }
         }
-        Device device = getDevice(guid);
+        Device device = deviceCommandService.getDevice(guid);
         List<DeviceCommand> commandList = commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command,
                 status, sortField, sortOrderAsc, take, skip);
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
@@ -249,9 +252,9 @@ public class DeviceCommandController {
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id) {
 
-        Device device = getDevice(guid);
+        Device device = deviceCommandService.getDevice(guid);
 
-        if (!checkPermissions(device)) {
+        if (!deviceCommandService.checkPermissions(device)) {
             return ResponseFactory.response(Response.Status.FORBIDDEN);
         }
 
@@ -302,7 +305,7 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand) {
-        Device device = getDevice(guid);
+        Device device = deviceCommandService.getDevice(guid);
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
         if (login == null) {
@@ -355,44 +358,4 @@ public class DeviceCommandController {
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
-    private Device getDevice(String uuid) {
-        UUID deviceId;
-
-        try {
-            deviceId = UUID.fromString(uuid);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("unparseable guid: " + uuid);
-        }
-
-        Device device = deviceDAO.findByUUID(deviceId);
-
-        if (device == null) {
-            throw new NotFoundException("device with guid " + uuid + " not found");
-        }
-
-        return device;
-    }
-
-    private boolean checkPermissions(Device device) {
-        HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
-        if (principal.getDevice() != null) {
-
-            if (!device.getGuid().equals(principal.getDevice().getGuid())) {
-                return false;
-            }
-
-            if (device.getNetwork() == null) {
-                return false;
-            }
-
-        } else {
-            User user = principal.getUser();
-            if (user.getRole().equals(UserRole.CLIENT)) {
-                User userWithNetworks = userDAO.findUserWithNetworks(user.getId());
-                Set<Network> networkSet = userWithNetworks.getNetworks();
-                return networkSet.contains(device.getNetwork());
-            }
-        }
-        return true;
-    }
 }
