@@ -29,11 +29,14 @@ import java.util.List;
  */
 @Path("/device")
 public class DeviceClassController {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
     @Inject
+
     private DeviceClassService deviceClassService;
     @Inject
     private EquipmentDAO equipmentDAO;
+
     @Inject
     private DeviceClassDAO deviceClassDAO;
 
@@ -63,14 +66,19 @@ public class DeviceClassController {
             @QueryParam("sortOrder") String sortOrder,
             @QueryParam("take") Integer take,
             @QueryParam("skip") Integer skip) {
+
         logger.info("DeviceClass list requested");
+
         boolean sortOrderAsc = true;
+
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
+
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
+
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
@@ -78,6 +86,7 @@ public class DeviceClassController {
         List<DeviceClass> result = deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrderAsc, take, skip);
         logger.info("DeviceClass list proceed result. Result list contains " + result.size() + " elems");
+
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);
     }
 
@@ -94,16 +103,18 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
     public Response getDeviceClass(@PathParam("id") long id) {
+
         logger.info("Get device class by id requested");
+
         DeviceClass result = deviceClassService.getWithEquipment(id);
 
         if (result == null) {
             logger.info("No device class with id = " + id + "found");
-            return ResponseFactory.response(
-                    Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id = " + id + " not found."));
+            return ResponseFactory.response( Response.Status.NOT_FOUND, new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
+
         logger.info("Requested device class found");
+
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED);
     }
 
@@ -282,13 +293,16 @@ public class DeviceClassController {
             @PathParam("deviceClassId") long classId,
             @PathParam("id") long eqId,
             @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) Equipment equipment) {
+
         logger.info("Update device class's equipment requested");
+
         if (!equipmentDAO.update(equipment, eqId, classId)) {
-            return ResponseFactory.response(
-                    Response.Status.NOT_FOUND,
+            return ResponseFactory.response( Response.Status.NOT_FOUND,
                     new ErrorResponse("Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
         }
+
         logger.info("Update device class's equipment finished");
+
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
@@ -305,13 +319,17 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
+
         logger.info("Delete device class's equipment requested");
+
         if (!equipmentDAO.delete(eqId, classId)) {
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
         }
+
         logger.info("Delete device class's equipment finished");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }
