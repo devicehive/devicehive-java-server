@@ -22,7 +22,6 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -86,14 +85,16 @@ public class DeviceController {
         boolean sortOrderAsc = true;
 
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters"));
         }
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters"));
         }
 
         List<Device> result = deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId,
@@ -126,7 +127,8 @@ public class DeviceController {
         try {
             deviceGuid = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters."));
         }
 
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
@@ -142,14 +144,16 @@ public class DeviceController {
         try {
             deviceService.checkDevice(device);
         } catch (HiveException e) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters."));
         }
 
         Gson gsonForEquipment = GsonFactory.createGson();
         boolean useExistingEquipment = jsonObject.get("equipment") == null;
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
-                                        jsonObject.get("equipment"),
-                                        new TypeToken<HashSet<Equipment>>() { }.getType());
+                jsonObject.get("equipment"),
+                new TypeToken<HashSet<Equipment>>() {
+                }.getType());
 
         if (equipmentSet != null) {
             equipmentSet.remove(null);
@@ -167,7 +171,7 @@ public class DeviceController {
      *
      * @param guid Device unique identifier
      * @return If successful, this method returns
-     * a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
+     *         a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
      */
     @GET
     @Path("/{id}")
@@ -179,7 +183,8 @@ public class DeviceController {
         try {
             device = getDevice(guid);
         } catch (BadRequestException e) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         } catch (NotFoundException e) {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
         }
@@ -205,7 +210,8 @@ public class DeviceController {
         try {
             deviceId = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters"));
         }
 
         deviceDAO.deleteDevice(deviceId);
@@ -224,47 +230,49 @@ public class DeviceController {
      *
      * @param guid Device unique identifier.
      * @return If successful, this method returns array of the following structures in the response body.
-     * <table>
-     *   <tr>
-     *     <td>Property Name</td>
-     *     <td>Type</td>
-     *     <td>Description</td>
-     *   </tr>
-     *   <tr>
-     *     <td>id</td>
-     *     <td>string</td>
-     *     <td>Equipment code.</td>
-     *   </tr>
-     *   <tr>
-     *     <td>timestamp</td>
-     *     <td>datetime</td>
-     *     <td>Equipment state timestamp.</td>
-     *   </tr>
-     *   <tr>
-     *     <td>parameters</td>
-     *     <td>object</td>
-     *     <td>Current equipment state.</td>
-     *   </tr>
-     *</table>
+     *         <table>
+     *         <tr>
+     *         <td>Property Name</td>
+     *         <td>Type</td>
+     *         <td>Description</td>
+     *         </tr>
+     *         <tr>
+     *         <td>id</td>
+     *         <td>string</td>
+     *         <td>Equipment code.</td>
+     *         </tr>
+     *         <tr>
+     *         <td>timestamp</td>
+     *         <td>datetime</td>
+     *         <td>Equipment state timestamp.</td>
+     *         </tr>
+     *         <tr>
+     *         <td>parameters</td>
+     *         <td>object</td>
+     *         <td>Current equipment state.</td>
+     *         </tr>
+     *         </table>
      */
     @GET
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response  equipment(@PathParam("id") String guid) {
+    public Response equipment(@PathParam("id") String guid) {
 
         Device device = null;
 
         try {
             device = getDevice(guid);
         } catch (BadRequestException e) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         } catch (NotFoundException e) {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
         }
 
         List<DeviceEquipment> equipments = equipmentDAO.findByFK(device);
 
-        return ResponseFactory.response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
+        return ResponseFactory
+                .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
 
     private Device getDevice(String uuid) {

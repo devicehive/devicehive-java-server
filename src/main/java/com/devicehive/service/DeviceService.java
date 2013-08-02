@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBroadcaster;
 import com.devicehive.messages.bus.MessageBus;
@@ -185,8 +186,10 @@ public class DeviceService {
 
     public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
+        DeviceNotification notification =  new DeviceNotification();
         if (existingDevice == null) {
-            deviceDAO.createDevice(device);
+            existingDevice = deviceDAO.createDevice(device);
+            notification.setNotification(SpecialNotifications.DEVICE_ADD);
         } else {
             existingDevice.setDeviceClass(device.getDeviceClass());
             if (deviceUpdate.getStatus() != null) {
@@ -205,8 +208,14 @@ public class DeviceService {
                 existingDevice.setKey(device.getKey());
             }
             deviceDAO.updateDevice(existingDevice.getId(), existingDevice);
+            notification.setNotification(SpecialNotifications.DEVICE_UPDATE);
         }
-
+        notification.setDevice(existingDevice);
+        Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        JsonElement deviceAsJson = gson.toJsonTree(existingDevice);
+        JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
+        notification.setParameters(wrapperOverDevice);
+        submitDeviceNotification(notification, existingDevice, null);
     }
 
     /**
