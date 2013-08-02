@@ -114,14 +114,14 @@ public class DeviceClassController {
      *
      * @param insert In the request body, supply a DeviceClass resource.
      *               {
-     *               "name" : "Device class display name. String."
-     *               "version" : "Device class version. String."
-     *               "isPermanent" : "Indicates whether device class is permanent. Permanent device classes could
-     *               not be modified by devices during registration. Boolean."
-     *               "offlineTimeout" : "If set, specifies inactivity timeout in seconds before the framework
-     *               changes device status to 'Offline'. Device considered inactive when it does not send any
-     *               notifications. Integer."
-     *               "data" : "Device class data, a JSON object with an arbitrary structure."
+     *                 "name" : "Device class display name. String."
+     *                  "version" : "Device class version. String."
+     *                  "isPermanent" : "Indicates whether device class is permanent. Permanent device classes could
+     *                  not be modified by devices during registration. Boolean."
+     *                  "offlineTimeout" : "If set, specifies inactivity timeout in seconds before the framework
+     *                  changes device status to 'Offline'. Device considered inactive when it does not send any
+     *                  notifications. Integer."
+     *                  "data" : "Device class data, a JSON object with an arbitrary structure."
      *               }
      *               name, version and isPermanent are required fields
      * @return If successful, this method returns a DeviceClass resource in the response body.
@@ -180,10 +180,10 @@ public class DeviceClassController {
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/delete"> DeviceHive RESTful
      * API: DeviceClass: delete</a>
-     * Deletes an existing device class.
+     * Deletes an existing device class by id.
      *
      * @param id Device class identifier.
-     * @return If successful, this method returns an empty response body.
+     * @return If successful, this method returns an empty response body with 204 status
      */
     @DELETE
     @Path("/class/{id}")
@@ -195,6 +195,27 @@ public class DeviceClassController {
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
+    /**
+     * Gets current state of device equipment.
+     * <code>
+     *       [
+     *          {
+     *            "id":1,
+     *           "timestamp": "1970-01-01 03:00:00.0",
+     *           "parameters":{/ *custom json object* /}
+     *          },
+     *          {
+     *            "id":2,
+     *           "timestamp": "1970-01-01 03:00:00.0",
+     *           "parameters":{/ *custom json object* /}
+     *          }
+     *       ]
+     *
+     * </code>
+     * @param classId device class id
+     * @param eqId equipment id
+     * @return
+     */
     @GET
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -212,6 +233,11 @@ public class DeviceClassController {
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
     }
 
+    /**
+     * Adds new equipment type to device class
+     * @param classId device class id
+     * @return
+     */
     @POST
     @Path("/class/{deviceClassId}/equipment")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -223,6 +249,31 @@ public class DeviceClassController {
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED);
     }
 
+    /**
+     * Updates device class' equipment. None of following parameters are mandatory.
+     * Parameters, if left unspecified, remains unchanged, instead setting parameter to
+     * null will null corresponding value.
+     * In following JSON
+     *
+     *  name 	Equipment display name.
+     *  code 	Equipment code. It's used to reference particular equipment and it should be unique within a device class.
+     *  type 	Equipment type. An arbitrary string representing equipment capabilities.
+     *  data 	Equipment data, a JSON object with an arbitrary structure.
+     *
+     *  <code>
+     *  {
+     *   "name": "equipment name",
+     *   "code": "equipment_code",
+     *   "type": "equipment_type",
+     *   "data": {/ * json object* /}
+     *  }
+     *  </code>
+     *
+     * @param classId id of class
+     * @param eqId equipment id
+     * @param equipment Json  object
+     * @return empty response with status 201 in case of success, empty response with status 404, if there's no such record
+     */
     @PUT
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
@@ -241,6 +292,14 @@ public class DeviceClassController {
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
+    /**
+     * Will cascade deletes specified equipment and all
+     * data for this equipment for all devise of this type.
+     *
+     * @param classId Device class id
+     * @param eqId Equipment id
+     * @return empty body, 204 if success, 404 if no record found
+     */
     @DELETE
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
