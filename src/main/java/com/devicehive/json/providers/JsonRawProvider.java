@@ -24,7 +24,8 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
 
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
+        return MediaType.APPLICATION_JSON_TYPE.getType().equals(mediaType.getType()) && MediaType
+                .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
     }
 
     @Override
@@ -38,7 +39,8 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
+        return MediaType.APPLICATION_JSON_TYPE.getType().equals(mediaType.getType()) && MediaType
+                .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
     }
 
     @Override

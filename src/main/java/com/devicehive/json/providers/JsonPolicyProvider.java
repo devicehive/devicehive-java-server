@@ -20,7 +20,8 @@ public abstract class  JsonPolicyProvider<T> implements MessageBodyWriter<T>, Me
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return MediaType.APPLICATION_JSON_TYPE.equals(mediaType);
+        return MediaType.APPLICATION_JSON_TYPE.getType().equals(mediaType.getType()) && MediaType
+                .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
     }
 
     @Override
