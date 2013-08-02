@@ -2,7 +2,6 @@ package com.devicehive.messages.data.hash;
 
 import java.util.Collection;
 
-import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -29,7 +28,6 @@ import com.devicehive.model.Message;
  *
  */
 @Singleton
-@Alternative
 public class HashBasedDataSource implements MessagesDataSource {
 
     private static final Logger logger = LoggerFactory.getLogger(HashBasedDataSource.class);

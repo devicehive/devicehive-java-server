@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import com.hazelcast.core.HazelcastInstance;
  */
 @Singleton
 @Startup
+@Alternative
 public class HazelcastDataSource implements MessagesDataSource {
 
     private static final Logger logger = LoggerFactory.getLogger(HazelcastDataSource.class);
