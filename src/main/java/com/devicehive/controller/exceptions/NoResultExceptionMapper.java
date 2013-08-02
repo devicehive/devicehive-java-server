@@ -1,6 +1,9 @@
 package com.devicehive.controller.exceptions;
 
 
+import com.devicehive.controller.ResponseFactory;
+import com.devicehive.model.ErrorResponse;
+
 import javax.persistence.NoResultException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -11,6 +14,6 @@ public class NoResultExceptionMapper implements ExceptionMapper<NoResultExceptio
 
     @Override
     public Response toResponse(NoResultException exception) {
-        return Response.status(Response.Status.NOT_FOUND).build();
+        return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Object not found"));
     }
 }

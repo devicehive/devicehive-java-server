@@ -1,6 +1,9 @@
 package com.devicehive.controller.exceptions;
 
 
+import com.devicehive.controller.ResponseFactory;
+import com.devicehive.model.ErrorResponse;
+
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -11,6 +14,6 @@ public class ConstraintViolationExceptionMapper implements ExceptionMapper<Const
 
     @Override
     public Response toResponse(ConstraintViolationException exception) {
-        return Response.status(Response.Status.BAD_REQUEST).build();
+        return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(exception.getMessage()));
     }
 }

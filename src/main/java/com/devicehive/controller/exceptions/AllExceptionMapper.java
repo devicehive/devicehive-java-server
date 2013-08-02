@@ -1,5 +1,6 @@
 package com.devicehive.controller.exceptions;
 
+import com.devicehive.controller.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,6 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception exception) {
         logger.error("Error: ",exception);
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new ErrorResponse(exception.getMessage())).type(MediaType.APPLICATION_JSON_TYPE).build();
+        return ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(exception.getMessage()));
     }
 }

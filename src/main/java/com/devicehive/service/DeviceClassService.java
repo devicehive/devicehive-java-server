@@ -43,10 +43,6 @@ public class DeviceClassService {
 
     public DeviceClass addDeviceClass(DeviceClass deviceClass) throws DuplicateEntryException {
 
-        if (deviceClass.getPermanent() == null) {
-            throw new HivePersistingException("Unable to persist DeviceClass without 'permanent' property");
-        }
-
         if (deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
             throw new DuplicateEntryException("Device with such name and version already exists");
         }
