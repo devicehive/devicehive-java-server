@@ -39,16 +39,22 @@ public class DeviceCommandController {
 
     @Inject
     private DeviceCommandDAO commandDAO;
+
     @Inject
     private DeviceCommandService commandService;
+
     @Inject
     private DeviceService deviceService;
+
     @Inject
     private DeviceDAO deviceDAO;
+
     @Inject
     private MessageBus messageBus;
+
     @Inject
     private UserDAO userDAO;
+
     @Context
     private ContainerRequestContext requestContext;
 
@@ -85,7 +91,7 @@ public class DeviceCommandController {
         DeferredResponse result = messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
         List<DeviceCommand> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
-        return ResponseFactory.response(Response.Status.OK,response, Policy.COMMAND_TO_DEVICE);
+        return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
     }
 
     /**
@@ -131,6 +137,47 @@ public class DeviceCommandController {
         return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
     }
 
+    /**
+     * Example response:
+     *
+     * <code>
+     * [
+     * {
+     * "id": 1
+     * "timestamp": 	"1970-01-01 00:00:00.0",
+     * "userId": 	1,
+     * "command": 	"command_name",
+     * "parameters": 	{/ *command parameters* /},
+     * "lifetime": 10,
+     * "flags":0,
+     * "status":"device_status",
+     * "result":{/ * result, JSON object* /}
+     * },
+     * {
+     * "id": 2
+     * "timestamp": 	"1970-01-01 00:00:00.0",
+     * "userId": 	1,
+     * "command": 	"command_name",
+     * "parameters": 	{/ * command parameters * /},
+     * "lifetime": 10,
+     * "flags":0,
+     * "status":"device_status",
+     * "result":{/ * result, JSON object* /}
+     * }
+     * ]
+     * </code>
+     *
+     * @param guid      UUID, string like "550e8400-e29b-41d4-a716-446655440000"
+     * @param start     start date in format "yyyy-MM-dd'T'HH:mm:ss.SSS"
+     * @param end       end date in format "yyyy-MM-dd'T'HH:mm:ss.SSS"
+     * @param command   filter by command
+     * @param status    filter by status
+     * @param sortField either "Timestamp", "Command" or "Status"
+     * @param sortOrder ASC or DESC
+     * @param take      like mysql LIMIT
+     * @param skip      like mysql OFFSET
+     * @return list of device command with status 200, otherwise empty response with status 400
+     */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     public Response query(@PathParam("deviceGuid") String guid,
@@ -176,10 +223,32 @@ public class DeviceCommandController {
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
     }
 
+    /**
+     * Response contains following output:
+     * <p/>
+     * <code>
+     * {
+     * "id": 	1
+     * "timestamp": 	"1970-01-01 00:00:00.0"
+     * "userId": 	1
+     * "command": 	"command_name"
+     * "parameters": 	{/ * JSON Object * /}
+     * "lifetime": 	100
+     * "flags": 	1
+     * "status": 	"comand_status"
+     * "result": 	{ / * JSON Object* /}
+     * }
+     * </code>
+     *
+     * @param guid String with Device UUID like "550e8400-e29b-41d4-a716-446655440000"
+     * @param id   command id
+     */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{id}")
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long id) {
+    @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
+    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id) {
+
         Device device = getDevice(guid);
 
         if (!checkPermissions(device)) {
@@ -187,12 +256,48 @@ public class DeviceCommandController {
         }
 
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
+
         if (result == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
-        return ResponseFactory.response(Response.Status.OK, result, Policy.COMMAND_TO_DEVICE);
+
+        return ResponseFactory.response(Response.Status.OK, result);
     }
 
+    /**
+     * <b>Creates new device command.</b>
+     *
+     * <i>Example request:</i>
+     * <code>
+     * {
+     * "command": 	"command name",
+     * "parameters": 	{/ * Custom Json Object * /},
+     * "lifetime": 0,
+     * "flags": 0
+     * }
+     * </code>
+     * <p>
+     * Where,
+     * command 	is Command name, required
+     * parameters 	Command parameters, a JSON object with an arbitrary structure. is not required
+     * lifetime 	Command lifetime, a number of seconds until this command expires. is not required
+     * flags 	Command flags, and optional value that could be supplied for device or related infrastructure. is not required\
+     * </p>
+     * <p>
+     * <i>Example response:</i>
+     * </p>
+     * <code>
+     * {
+     * "id": 1,
+     * "timestamp": "1970-01-01 00:00:00.0",
+     * "userId": 	1
+     * }
+     * </code>
+     *
+     * @param guid
+     * @param deviceCommand
+     * @return
+     */
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
@@ -215,16 +320,15 @@ public class DeviceCommandController {
      * RESTful API: DeviceCommand: update</a>
      * Updates an existing device command.
      *
-     * @param guid Device unique identifier.
+     * @param guid      Device unique identifier.
      * @param commandId Device command identifier.
-     * @param command In the request body, supply a <a href="http://www.devicehive
-     *                .com/restful#Reference/DeviceCommand">DeviceCommand</a> resource.
-     *                All fields are not required:
-     *                flags - Command flags, and optional value that could be supplied for
-     *                device or related infrastructure.
-     *                status - Command status, as reported by device or related infrastructure.
-     *                result - Command execution result, an optional value that could be provided by device.
-     *
+     * @param command   In the request body, supply a <a href="http://www.devicehive
+     *                  .com/restful#Reference/DeviceCommand">DeviceCommand</a> resource.
+     *                  All fields are not required:
+     *                  flags - Command flags, and optional value that could be supplied for
+     *                  device or related infrastructure.
+     *                  status - Command status, as reported by device or related infrastructure.
+     *                  result - Command execution result, an optional value that could be provided by device.
      * @return If successful, this method returns an empty response body.
      */
     @PUT
@@ -232,7 +336,7 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
-                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE)DeviceCommand command){
+                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommand command) {
         UUID deviceId;
         try {
             deviceId = UUID.fromString(guid);
@@ -240,7 +344,7 @@ public class DeviceCommandController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST, "unparseable guid: " + guid);
         }
         DeviceCommand commandUpdate = commandDAO.getByDeviceGuidAndId(deviceId, commandId);
-        if (commandUpdate == null){
+        if (commandUpdate == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, "no permissions for device with guid " + guid
                     + "to update command with id " + commandId);
         }
@@ -253,6 +357,7 @@ public class DeviceCommandController {
 
     private Device getDevice(String uuid) {
         UUID deviceId;
+
         try {
             deviceId = UUID.fromString(uuid);
         } catch (IllegalArgumentException e) {
@@ -260,6 +365,7 @@ public class DeviceCommandController {
         }
 
         Device device = deviceDAO.findByUUID(deviceId);
+
         if (device == null) {
             throw new NotFoundException("device with guid " + uuid + " not found");
         }
@@ -270,12 +376,15 @@ public class DeviceCommandController {
     private boolean checkPermissions(Device device) {
         HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
         if (principal.getDevice() != null) {
+
             if (!device.getGuid().equals(principal.getDevice().getGuid())) {
                 return false;
             }
+
             if (device.getNetwork() == null) {
                 return false;
             }
+
         } else {
             User user = principal.getUser();
             if (user.getRole().equals(UserRole.CLIENT)) {
