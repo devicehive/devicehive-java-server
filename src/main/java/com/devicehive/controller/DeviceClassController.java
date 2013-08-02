@@ -13,6 +13,8 @@ import com.devicehive.model.Equipment;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -27,7 +29,7 @@ import java.util.List;
  */
 @Path("/device")
 public class DeviceClassController {
-
+    private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
     @Inject
     private DeviceClassService deviceClassService;
     @Inject
@@ -61,8 +63,8 @@ public class DeviceClassController {
             @QueryParam("sortOrder") String sortOrder,
             @QueryParam("take") Integer take,
             @QueryParam("skip") Integer skip) {
+        logger.info("DeviceClass list requested");
         boolean sortOrderAsc = true;
-
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
@@ -75,7 +77,7 @@ public class DeviceClassController {
 
         List<DeviceClass> result = deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrderAsc, take, skip);
-
+        logger.info("DeviceClass list proceed result. Result list contains " + result.size() + " elems");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);
     }
 
@@ -92,14 +94,16 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
     public Response getDeviceClass(@PathParam("id") long id) {
+        logger.info("Get device class by id requested");
         DeviceClass result = deviceClassService.getWithEquipment(id);
 
         if (result == null) {
+            logger.info("No device class with id = " + id + "found");
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
-
+        logger.info("Requested device class found");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED);
     }
 
@@ -127,16 +131,18 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertDeviceClass(DeviceClass insert) {
-        DeviceClass result = null;
+        logger.info("Insert device class requested");
+        DeviceClass result;
 
         try {
             result = deviceClassService.addDeviceClass(insert);
         } catch (DuplicateEntryException ex) {
+            logger.info("Unable to insert device class. This device class is already exists");
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("DeviceClass couldn't be created"));
         } catch (HivePersistingException ex) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ex.getMessage()));
         }
-
+        logger.info("Device class inserted");
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
     }
 
@@ -158,14 +164,16 @@ public class DeviceClassController {
             @PathParam("id") long id,
             @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
 
+        logger.info("Device class update requested");
         try {
             deviceClassService.update(id, insert);
         } catch (HiveException e) {
+            logger.info("Unable to update device class");
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
-
+        logger.info("Device class updated");
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
@@ -181,7 +189,9 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
+        logger.info("Device class delete requested");
         deviceClassService.delete(id);
+        logger.info("Device class deleted");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -189,14 +199,16 @@ public class DeviceClassController {
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
+        logger.info("Device class's equipment requested");
         Equipment result = equipmentDAO.getByDeviceClass(classId, eqId);
 
         if (result == null) {
+            logger.info("No equipment with id = " + eqId + " for device class with id = " + classId + " found");
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("Equipment with id = " + eqId + " not found"));
         }
-
+        logger.info("Device class's equipment found");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
     }
 
@@ -204,24 +216,10 @@ public class DeviceClassController {
     @Path("/class/{deviceClassId}/equipment")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment eq) {
-        DeviceClass dc = deviceClassService.get(classId);
-
-        if (dc == null) {
-            return ResponseFactory.response(
-                    Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id = " + classId + " not found."));
-        }
-
-        eq.setDeviceClass(dc);
-        Equipment result = equipmentDAO.create(eq);
-
-        if (result == null) {
-            return ResponseFactory.response(
-                    Response.Status.FORBIDDEN,
-                    new ErrorResponse("Equipment couldn't be created"));
-        }
-
+    public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment equipmentq) {
+        logger.info("Insert device class's equipment requested");
+        Equipment result = deviceClassService.createEquipment(classId, equipmentq);
+        logger.info("New device class's equipment created");
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED);
     }
 
@@ -233,13 +231,13 @@ public class DeviceClassController {
             @PathParam("deviceClassId") long classId,
             @PathParam("id") long eqId,
             @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) Equipment equipment) {
-
+        logger.info("Update device class's equipment requested");
         if (!equipmentDAO.update(equipment, eqId, classId)) {
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
         }
-
+        logger.info("Update device class's equipment finished");
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
@@ -248,12 +246,13 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
+        logger.info("Delete device class's equipment requested");
         if (!equipmentDAO.delete(eqId, classId)) {
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
         }
-
+        logger.info("Delete device class's equipment finished");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }

@@ -111,9 +111,31 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      * Creates new device command.
      *
      * @param message Json Object with following message representation
-     *
-     * @param session
-     * @return
+     *                {
+     *                "action": {string},
+     *                "requestId": {object},
+     *                "deviceGuid": {guid},
+     *                "command": {
+     *                "command": {string},
+     *                "parameters": {object},
+     *                "lifetime": {integer},
+     *                "flags": {integer},
+     *                "status": {string},
+     *                "result": {object}
+     *                }
+     *                }
+     * @param session Current session
+     * @return JsonObject with structure:
+     *         {
+     *         "action": {string},
+     *         "status": {string},
+     *         "requestId": {object},
+     *         "command": {
+     *         "id": {integer},
+     *         "timestamp": {datetime},
+     *         "userId": {integer}
+     *         }
+     *         }
      */
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) {
