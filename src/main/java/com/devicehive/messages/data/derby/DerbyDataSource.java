@@ -4,19 +4,23 @@ import java.sql.Connection;
 import java.util.Collection;
 
 import javax.annotation.sql.DataSourceDefinition;
-import javax.ejb.Singleton;
+import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.MessageType;
+import com.devicehive.messages.bus.notify.StatefulNotifier;
 import com.devicehive.messages.data.MessagesDataSource;
 import com.devicehive.messages.data.derby.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.derby.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.derby.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
+import com.devicehive.model.Message;
 
 @DataSourceDefinition(
         className = Constants.DATA_SOURCE_CLASS_NAME,
@@ -28,7 +32,7 @@ import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
         minPoolSize = 2,
         maxPoolSize = 100)
 @Singleton
-@DerbyBased
+@Alternative
 public class DerbyDataSource implements MessagesDataSource {
 
     private static final Logger logger = LoggerFactory.getLogger(DerbyDataSource.class);
@@ -62,7 +66,7 @@ public class DerbyDataSource implements MessagesDataSource {
 
     @Override
     public void removeCommandsSubscription(Long deviceId) {
-        if (deviceId !=null){
+        if (deviceId != null) {
             logger.debug("Unsubscribing from commands for device : " + deviceId);
             commandSubscriptionDAO.deleteByDevice(deviceId);
         }
@@ -102,7 +106,7 @@ public class DerbyDataSource implements MessagesDataSource {
 
     @Override
     public void removeNotificationSubscription(Long deviceId) {
-       notificationSubscriptionDAO.deleteByDevice(deviceId);
+        notificationSubscriptionDAO.deleteByDevice(deviceId);
     }
 
     @Override
@@ -131,4 +135,16 @@ public class DerbyDataSource implements MessagesDataSource {
         return notificationSubscriptionDAO;
     }
 
+    @Override
+    public InstallationType getType() {
+        return InstallationType.SINGLE_NODE;
+    }
+
+    @Override
+    public void init(StatefulNotifier notifier) {
+    }
+
+    @Override
+    public void publish(Message message, MessageType messageType) {   
+    }
 }

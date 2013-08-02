@@ -1,5 +1,6 @@
 package com.devicehive.messages.bus;
 
+import com.devicehive.messages.MessageType;
 import com.devicehive.model.Message;
 
 /**
@@ -16,5 +17,7 @@ public interface MessageListener {
      * @param message {@link Message}
      */
     public void messageAdded(Message message);
+
+    public MessageType getMessageType();
 
 }

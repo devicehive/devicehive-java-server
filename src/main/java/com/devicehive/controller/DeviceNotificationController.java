@@ -10,7 +10,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.DeferredResponse;
-import com.devicehive.messages.bus.LocalMessageBus;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
@@ -148,7 +148,7 @@ public class DeviceNotificationController {
         DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
         List<DeviceNotification> response =
-                LocalMessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
+                MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
         Annotation[] annotations =
                 {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
         return Response.ok().entity(response, annotations).build();
@@ -193,7 +193,7 @@ public class DeviceNotificationController {
         DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
                 MessageDetails.create().ids(ids).timestamp(timestamp).user(user));
         List<DeviceNotification> response =
-                LocalMessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
+                MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
         Annotation[] annotations =
                 {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
         return Response.ok().entity(response, annotations).build();

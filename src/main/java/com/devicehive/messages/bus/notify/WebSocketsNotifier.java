@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.inject.Inject;
 import javax.websocket.Session;
 
@@ -16,9 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.UserDAO;
-import com.devicehive.messages.bus.LocalMessageBus;
+import com.devicehive.messages.MessageType;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.data.MessagesDataSource;
-import com.devicehive.messages.data.cluster.hazelcast.HazelcastBased;
 import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
 import com.devicehive.model.DeviceCommand;
@@ -38,22 +40,46 @@ import com.google.gson.JsonObject;
  *
  */
 @Singleton
+@Startup
 public class WebSocketsNotifier implements StatefulNotifier {
 
-    private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
+    private static final Logger logger = LoggerFactory.getLogger(MessageBus.class);
 
     @Inject
     private UserDAO userDAO;
     @Inject
     private DeviceDAO deviceDAO;
-
     @Inject
     private SessionMonitor sessionMonitor;
     @Inject
     private AsyncMessageDeliverer asyncMessageDeliverer;
     @Inject
-    @HazelcastBased
     private MessagesDataSource messagesDataSource;
+
+    @PostConstruct
+    public void init() {
+        messagesDataSource.init(this);
+    }
+    
+    @Override
+    public void notify(MessageType messageType, Message message) throws IOException {
+        logger.info("Sending message: " + message + " with type: " + messageType);
+
+        switch (messageType) {
+        case CLIENT_TO_DEVICE_COMMAND:
+            sendCommand((DeviceCommand) message);
+            break;
+        case DEVICE_TO_CLIENT_UPDATE_COMMAND:
+            sendCommandUpdate((DeviceCommand) message);
+            break;
+        case DEVICE_TO_CLIENT_NOTIFICATION:
+            sendNotification((DeviceNotification) message);
+            break;
+        default:
+            logger.warn("Unsupported MessageType found: " + messageType);
+            break;
+        }
+    }
 
     @Override
     public void sendCommand(DeviceCommand deviceCommand) throws IOException {
@@ -85,7 +111,8 @@ public class WebSocketsNotifier implements StatefulNotifier {
     @Override
     public void sendCommandUpdate(DeviceCommand deviceCommand) throws IOException {
         logger.debug("Submitting command update for command " + deviceCommand.getId());
-        CommandUpdatesSubscription commandUpdatesSubscription = messagesDataSource.commandUpdatesSubscriptions().getByCommandId(deviceCommand.getId());
+        CommandUpdatesSubscription commandUpdatesSubscription = messagesDataSource.commandUpdatesSubscriptions()
+                .getByCommandId(deviceCommand.getId());
         if (commandUpdatesSubscription == null) {
             logger.warn("No updates for command with id = " + deviceCommand.getId() + " found");
             return;
@@ -135,7 +162,6 @@ public class WebSocketsNotifier implements StatefulNotifier {
         Set<Session> sessions = new HashSet<>();
         for (String sesionId : sessionIds) {
             sessions.add(sessionMonitor.getSession(sesionId));
-
         }
 
         delivers.addAll(sessions);

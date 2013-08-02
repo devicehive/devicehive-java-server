@@ -2,8 +2,10 @@ package com.devicehive.messages.bus.notify;
 
 import java.io.IOException;
 
+import com.devicehive.messages.MessageType;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Message;
 
 /**
  * Interface for statefull protocol notification.
@@ -13,6 +15,14 @@ import com.devicehive.model.DeviceNotification;
  *
  */
 public interface StatefulNotifier {
+
+    /**
+     * Sends command if there is open connection.
+     *
+     * @param messageType Type of command. Describes how it should be sent. See {@link MessageType} for command types.
+     * @param message The {@link Message} (command, notification) to send.
+     */
+    public void notify(MessageType messageType, Message message) throws IOException;
 
     /**
      * Sends {@link DeviceCommand} if session is open

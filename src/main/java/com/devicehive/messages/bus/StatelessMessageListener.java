@@ -1,5 +1,6 @@
 package com.devicehive.messages.bus;
 
+import com.devicehive.messages.MessageType;
 import com.devicehive.model.Message;
 
 /**
@@ -11,9 +12,11 @@ import com.devicehive.model.Message;
 public class StatelessMessageListener implements MessageListener {
 
     private DeferredResponse deferred;
+    private MessageType messageType;
 
-    public StatelessMessageListener(DeferredResponse deferred) {
+    public StatelessMessageListener(DeferredResponse deferred, MessageType messageType) {
         this.deferred = deferred;
+        this.messageType = messageType;
     }
 
     @Override
@@ -27,6 +30,10 @@ public class StatelessMessageListener implements MessageListener {
         finally {
             deferred.pollLock().unlock();
         }
+    }
+
+    public MessageType getMessageType() {
+        return messageType;
     }
 
 }

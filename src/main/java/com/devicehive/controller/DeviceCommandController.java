@@ -1,5 +1,28 @@
 package com.devicehive.controller;
 
+import java.lang.annotation.Annotation;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceCommandDAO;
@@ -11,26 +34,15 @@ import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.DeferredResponse;
-import com.devicehive.messages.bus.LocalMessageBus;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.lang.annotation.Annotation;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -87,7 +99,7 @@ public class DeviceCommandController {
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         DeferredResponse result = messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
-        List<DeviceCommand> response = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
+        List<DeviceCommand> response = MessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
         Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(Policy.COMMAND_TO_DEVICE)};
         return Response.ok().entity(response, annotations).build();
     }
@@ -131,7 +143,7 @@ public class DeviceCommandController {
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND,
                 MessageDetails.create().ids(device.getId(), command.getId()).user(user));
-        List<DeviceCommand> commandList = LocalMessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
+        List<DeviceCommand> commandList = MessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
         Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(Policy.COMMAND_TO_DEVICE)};
         DeviceCommand response = commandList.isEmpty() ? null : commandList.get(0);
         return Response.ok().entity(response, annotations).build();

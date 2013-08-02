@@ -2,12 +2,15 @@ package com.devicehive.messages.data;
 
 import java.util.Collection;
 
+import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
+import com.devicehive.messages.bus.notify.StatefulNotifier;
 import com.devicehive.messages.data.derby.DerbyDataSource;
 import com.devicehive.messages.data.hash.HashBasedDataSource;
 import com.devicehive.messages.data.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO;
+import com.devicehive.model.Message;
 
 /**
  * Usually injected in {@link MessageBus} to represent storage for subscriptions.
@@ -62,5 +65,16 @@ public interface MessagesDataSource {
      * @return NotificationSubscriptionDAO implementation
      */
     public NotificationSubscriptionDAO notificationSubscriptions();
+
+    public InstallationType getType();
+
+    public enum InstallationType {
+        CLUSTER,
+        SINGLE_NODE;
+    }
+
+    public void init(StatefulNotifier notifier);
+
+    public void publish(Message message, MessageType messageType);
 
 }

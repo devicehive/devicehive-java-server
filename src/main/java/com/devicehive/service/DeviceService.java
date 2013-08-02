@@ -1,28 +1,43 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.*;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devicehive.dao.DeviceClassDAO;
+import com.devicehive.dao.DeviceCommandDAO;
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.DeviceEquipmentDAO;
+import com.devicehive.dao.DeviceNotificationDAO;
+import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBroadcaster;
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.bus.StatefulMessageListener;
-import com.devicehive.model.*;
+import com.devicehive.messages.bus.notify.StatefulNotifier;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.websocket.Session;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 @Stateless
 public class DeviceService {
@@ -31,28 +46,20 @@ public class DeviceService {
 
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
-
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
-
     @Inject
     private MessageBroadcaster messagePublisher;
-
     @Inject
-    private MessageBus messageBus;
-
+    private StatefulNotifier statefulNotifier;
     @Inject
     private DeviceClassDAO deviceClassDAO;
-
     @Inject
     private DeviceDAO deviceDAO;
-
     @Inject
     private EquipmentDAO equipmentDAO;
-
     @Inject
     private NetworkService networkService;
-
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
@@ -71,20 +78,20 @@ public class DeviceService {
         command.setUser(user);
         command.setTimestamp(new Timestamp(System.currentTimeMillis()));
         deviceCommandDAO.createCommand(command);
-        messagePublisher.addMessageListener(
-                new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, messageBus));
-        messagePublisher.publish(command);
+
+        /* TODO: refactor */
+        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, statefulNotifier));
+        messagePublisher.publish(MessageType.CLIENT_TO_DEVICE_COMMAND, command);
     }
 
-    public Device findByGuid(UUID guid){
+    public Device findByGuid(UUID guid) {
         return deviceDAO.findByUUID(guid);
     }
 
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
         deviceCommandDAO.updateCommand(update, device);
-        messagePublisher.addMessageListener(
-                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, messageBus));
-        messagePublisher.publish(update);
+        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, statefulNotifier));
+        messagePublisher.publish(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, update);
     }
 
     public void submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
@@ -101,8 +108,8 @@ public class DeviceService {
         }
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
-        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, messageBus));
-        messagePublisher.publish(notification);
+        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, statefulNotifier));
+        messagePublisher.publish(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, notification);
     }
 
     private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {
@@ -112,7 +119,8 @@ public class DeviceService {
         JsonObject jsonEquipmentObject;
         if (parametersJsonElement instanceof JsonObject) {
             jsonEquipmentObject = (JsonObject) parametersJsonElement;
-        } else {
+        }
+        else {
             throw new HiveException("\"parameters\" must be JSON Object!");
         }
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
@@ -129,8 +137,8 @@ public class DeviceService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-                                                 Set<Equipment> newEquipmentSet, UUID guid,
-                                                 boolean useExistingEquipment) {
+            Set<Equipment> newEquipmentSet, UUID guid,
+            boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
@@ -140,7 +148,8 @@ public class DeviceService {
         DeviceClass deviceClassFromMessage = deviceClass.getValue().convertTo();
         if (deviceClassFromMessage.getId() != null) {
             stored = deviceClassDAO.getDeviceClass(deviceClassFromMessage.getId());
-        } else {
+        }
+        else {
             stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClassFromMessage.getName(),
                     deviceClassFromMessage.getVersion());
         }
@@ -161,7 +170,8 @@ public class DeviceService {
                 }
             }
             return stored;
-        } else {
+        }
+        else {
             //create
             deviceClassDAO.createDeviceClass(deviceClassFromMessage);
             if (!useExistingEquipment) {
@@ -187,7 +197,8 @@ public class DeviceService {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         if (existingDevice == null) {
             deviceDAO.createDevice(device);
-        } else {
+        }
+        else {
             existingDevice.setDeviceClass(device.getDeviceClass());
             if (deviceUpdate.getStatus() != null) {
                 existingDevice.setStatus(device.getStatus());

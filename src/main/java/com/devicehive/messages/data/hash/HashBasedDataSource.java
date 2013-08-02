@@ -2,18 +2,22 @@ package com.devicehive.messages.data.hash;
 
 import java.util.Collection;
 
-import javax.ejb.Singleton;
+import javax.enterprise.inject.Alternative;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devicehive.messages.MessageType;
+import com.devicehive.messages.bus.notify.StatefulNotifier;
 import com.devicehive.messages.data.MessagesDataSource;
 import com.devicehive.messages.data.hash.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.hash.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.hash.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
+import com.devicehive.model.Message;
 
 /**
  * Implementation of {@link MessagesDataSource}. Stores all subscription data in hash-based collections.
@@ -25,7 +29,7 @@ import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
  *
  */
 @Singleton
-@HashMapBased
+@Alternative
 public class HashBasedDataSource implements MessagesDataSource {
 
     private static final Logger logger = LoggerFactory.getLogger(HashBasedDataSource.class);
@@ -123,6 +127,19 @@ public class HashBasedDataSource implements MessagesDataSource {
     @Override
     public com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO notificationSubscriptions() {
         return notificationSubscriptionDAO;
+    }
+
+    @Override
+    public InstallationType getType() {
+        return InstallationType.SINGLE_NODE;
+    }
+
+    @Override
+    public void init(StatefulNotifier notifier) {       
+    }
+
+    @Override
+    public void publish(Message message, MessageType messageType) {
     }
 
 }

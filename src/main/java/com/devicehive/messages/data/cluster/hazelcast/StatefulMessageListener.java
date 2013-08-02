@@ -1,4 +1,4 @@
-package com.devicehive.messages.bus;
+package com.devicehive.messages.data.cluster.hazelcast;
 
 import java.io.IOException;
 
@@ -7,15 +7,10 @@ import org.slf4j.LoggerFactory;
 
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.notify.StatefulNotifier;
-import com.devicehive.model.Message;
+import com.hazelcast.core.Message;
+import com.hazelcast.core.MessageListener;
 
-/**
- * Implementation of {@link MessageListener} for stateful connections (WebSocket).
- * 
- * @author rroschin
- *
- */
-public class StatefulMessageListener implements MessageListener {
+public class StatefulMessageListener implements MessageListener<Object> {
 
     private final Logger logger = LoggerFactory.getLogger(StatefulMessageListener.class);
 
@@ -28,21 +23,16 @@ public class StatefulMessageListener implements MessageListener {
     }
 
     @Override
-    public void messageAdded(Message message) {
+    public void onMessage(Message message) {
         if (message != null) {
             logger.debug("Message received: " + message);
             try {
-                notifier.notify(messageType, message);
+                notifier.notify(messageType, (com.devicehive.model.Message) message.getMessageObject());
             }
             catch (IOException e) {
                 logger.warn("Can not notify with message: " + message, e);
             }
         }
-    }
-
-    @Override
-    public MessageType getMessageType() {
-        return messageType;
     }
 
 }

@@ -2,7 +2,6 @@ package com.devicehive.messages.data.cluster.hazelcast;
 
 import java.util.Collection;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
@@ -10,12 +9,15 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devicehive.messages.MessageType;
+import com.devicehive.messages.bus.notify.StatefulNotifier;
 import com.devicehive.messages.data.MessagesDataSource;
 import com.devicehive.messages.data.cluster.hazelcast.subscriptions.dao.CommandSubscriptionDAO;
 import com.devicehive.messages.data.cluster.hazelcast.subscriptions.dao.CommandUpdatesSubscriptionDAO;
 import com.devicehive.messages.data.cluster.hazelcast.subscriptions.dao.NotificationSubscriptionDAO;
 import com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription;
 import com.devicehive.messages.data.subscriptions.model.CommandsSubscription;
+import com.devicehive.model.Message;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -27,8 +29,8 @@ import com.hazelcast.core.HazelcastInstance;
  * @author rroschin
  *
  */
-@Singleton @Startup
-@HazelcastBased
+@Singleton
+@Startup
 public class HazelcastDataSource implements MessagesDataSource {
 
     private static final Logger logger = LoggerFactory.getLogger(HazelcastDataSource.class);
@@ -42,19 +44,30 @@ public class HazelcastDataSource implements MessagesDataSource {
 
     private HazelcastInstance hazelcast;
 
-    @PostConstruct
-    public void init() {
+    public HazelcastDataSource() {
         if (hazelcast != null) {
             return;
         }
 
+        logger.debug("Initializing Hazelcast instance...");
         Config config = new Config();
+        config.setProperty("hazelcast.logging.type", "slf4j");
         hazelcast = Hazelcast.newHazelcastInstance(config);
         logger.debug("New Hazelcast instance created: " + hazelcast);
-        
+    }
+
+    @Override
+    public void init(StatefulNotifier statefulNotifier) {
         commandSubscriptionDAO.setHazelcast(hazelcast);
         commandUpdatesSubscriptionDAO.setHazelcast(hazelcast);
         notificationSubscriptionDAO.setHazelcast(hazelcast);
+
+        hazelcast.getTopic(MessageType.CLIENT_TO_DEVICE_COMMAND.toString()).addMessageListener(
+                new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, statefulNotifier));
+        hazelcast.getTopic(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND.toString()).addMessageListener(
+                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, statefulNotifier));
+        hazelcast.getTopic(MessageType.DEVICE_TO_CLIENT_NOTIFICATION.toString()).addMessageListener(
+                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, statefulNotifier));
     }
 
     @Override
@@ -148,6 +161,16 @@ public class HazelcastDataSource implements MessagesDataSource {
     @Override
     public com.devicehive.messages.data.subscriptions.dao.NotificationSubscriptionDAO notificationSubscriptions() {
         return notificationSubscriptionDAO;
+    }
+
+    @Override
+    public void publish(Message message, MessageType messageType) {
+        hazelcast.getTopic(messageType.toString()).publish(message);
+    }
+
+    @Override
+    public InstallationType getType() {
+        return InstallationType.CLUSTER;
     }
 
 }

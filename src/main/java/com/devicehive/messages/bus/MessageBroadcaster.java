@@ -5,17 +5,19 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.ejb.Asynchronous;
-import javax.inject.Singleton;
+import javax.ejb.Singleton;
+import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devicehive.messages.MessageType;
+import com.devicehive.messages.data.MessagesDataSource;
 import com.devicehive.model.Message;
 
 /**
  * Just proxy for messages.
  * Use {@link #addMessageListener(MessageListener)} to add request to deliver message.
- * It will later invoke {@link #notifyListeners(Serializable)} to deliver message to listeners.
  * After message delivered listener will be removed.
  * 
  * @author rroschin
@@ -24,7 +26,10 @@ import com.devicehive.model.Message;
 @Singleton
 public class MessageBroadcaster {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageBroadcaster.class);
+    private final Logger logger = LoggerFactory.getLogger(MessageBroadcaster.class);
+
+    @Inject
+    private MessagesDataSource messagesDataSource;
 
     /*
      * TODO: This is a potentionally big point to improve performance: 
@@ -33,26 +38,25 @@ public class MessageBroadcaster {
      * Since we don't care about messages order in different sessions it can be faster.
      * Ask rroschin for details.  
      */
-    private Queue<MessageListener> listeners = new ConcurrentLinkedQueue<>();
+    private Queue<MessageListener> localListeners = new ConcurrentLinkedQueue<>();
 
-    public void publish(Message message) {
-        notifyListeners(message);
-    }
-
-    public void addMessageListener(MessageListener listener) {
-        listeners.offer(listener);
-    }
-
-    public void removeMessageListener(MessageListener listener) {
-        if (listeners.contains(listener)) {
-            listeners.remove(listener);
+    public void publish(MessageType messageType, Message message) {
+        if (messagesDataSource.getType() == MessagesDataSource.InstallationType.CLUSTER) {
+            notifyRemoteListeners(message, messageType);
+        }
+        else {
+            notifyLocalListeners(message);
         }
     }
 
+    public void addMessageListener(MessageListener listener) {
+        localListeners.offer(listener);
+    }
+
     @Asynchronous
-    protected void notifyListeners(Serializable message) {
-        while (!listeners.isEmpty()) {
-            MessageListener listener = listeners.poll();
+    protected void notifyLocalListeners(Serializable message) {
+        while (!localListeners.isEmpty()) {
+            MessageListener listener = localListeners.poll();
             try {
                 listener.messageAdded((Message) message);
             }
@@ -60,5 +64,9 @@ public class MessageBroadcaster {
                 logger.warn("Exception while notifying MessageListener: " + listener, e);
             }
         }
+    }
+
+    protected void notifyRemoteListeners(Message message, MessageType messageType) {
+        messagesDataSource.publish(message, messageType);
     }
 }
