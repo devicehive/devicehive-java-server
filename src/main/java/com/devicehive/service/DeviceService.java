@@ -20,6 +20,7 @@ import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBroadcaster;
 import com.devicehive.messages.bus.StatefulMessageListener;
@@ -32,6 +33,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -78,9 +80,8 @@ public class DeviceService {
         command.setUser(user);
         command.setTimestamp(new Timestamp(System.currentTimeMillis()));
         deviceCommandDAO.createCommand(command);
-
-        /* TODO: refactor */
-        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, statefulNotifier));
+        messagePublisher.addMessageListener(
+                new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, statefulNotifier));
         messagePublisher.publish(MessageType.CLIENT_TO_DEVICE_COMMAND, command);
     }
 
@@ -90,7 +91,8 @@ public class DeviceService {
 
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
         deviceCommandDAO.updateCommand(update, device);
-        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, statefulNotifier));
+        messagePublisher.addMessageListener(
+                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, statefulNotifier));
         messagePublisher.publish(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, update);
     }
 
@@ -195,8 +197,10 @@ public class DeviceService {
 
     public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
+        DeviceNotification notification = new DeviceNotification();
         if (existingDevice == null) {
-            deviceDAO.createDevice(device);
+            existingDevice = deviceDAO.createDevice(device);
+            notification.setNotification(SpecialNotifications.DEVICE_ADD);
         }
         else {
             existingDevice.setDeviceClass(device.getDeviceClass());
@@ -215,8 +219,15 @@ public class DeviceService {
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(device.getKey());
             }
+            deviceDAO.updateDevice(existingDevice.getId(), existingDevice);
+            notification.setNotification(SpecialNotifications.DEVICE_UPDATE);
         }
-
+        notification.setDevice(existingDevice);
+        Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        JsonElement deviceAsJson = gson.toJsonTree(existingDevice);
+        JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
+        notification.setParameters(wrapperOverDevice);
+        submitDeviceNotification(notification, existingDevice, null);
     }
 
     /**

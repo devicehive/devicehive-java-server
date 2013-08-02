@@ -100,7 +100,7 @@ public class DeviceDAO {
         query.setParameter("name", device.getName());
         query.setParameter("status", device.getStatus());
         query.setParameter("network", device.getNetwork());
-        query.setParameter("deviceClass", device.getClass());
+        query.setParameter("deviceClass", device.getDeviceClass());
         query.setParameter("data", device.getData());
         query.setParameter("id", device.getId());
         return query.executeUpdate() != 0;

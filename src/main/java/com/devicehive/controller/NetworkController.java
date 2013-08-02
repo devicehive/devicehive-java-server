@@ -1,8 +1,8 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
@@ -12,9 +12,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.annotation.Annotation;
 import java.util.List;
 
 
@@ -58,27 +56,29 @@ public class NetworkController {
      */
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response getNetworkList(@QueryParam("name") String name,
-                                        @QueryParam("namePattern") String namePattern,
-                                        @QueryParam("sortField") String sortField,
-                                        @QueryParam("sortOrder") String sortOrder,
-                                        @QueryParam("take") Integer take,
-                                        @QueryParam("skip") Integer skip) {
+                                   @QueryParam("namePattern") String namePattern,
+                                   @QueryParam("sortField") String sortField,
+                                   @QueryParam("sortOrder") String sortOrder,
+                                   @QueryParam("take") Integer take,
+                                   @QueryParam("skip") Integer skip) {
+
         boolean sortOrderAsc = true;
+
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORKS_LISTED)};
+
         List<Network> result = networkService.list(name, namePattern, sortField, sortOrderAsc, take,
                 skip);
-        return Response.ok().entity(result, annotations).build();
+
+        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
 
     /**
@@ -97,14 +97,15 @@ public class NetworkController {
     @GET
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response getNetworkList(@PathParam("id") long id) {
+
         Network existing = networkService.getWithDevicesAndDeviceClasses(id);
+
         if (existing == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
         }
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORK_PUBLISHED)};
-        return Response.ok().entity(existing, annotations).build();
+
+        return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }
 
 
@@ -137,17 +138,31 @@ public class NetworkController {
      */
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(NetworkRequest nr) {
+
         Network n = new Network();
+
         //TODO: if request if malformed this code will fall with NullPointerException
-        n.setKey(nr.getKey().getValue());
-        n.setDescription(nr.getDescription().getValue());
+        if (nr.getName() == null || nr.getName().getValue()==null){
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+        }
         n.setName(nr.getName().getValue());
-        Network result = networkService.insert(n);
-        Annotation[] annotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NETWORK_SUBMITTED)};
-        return Response.status(Response.Status.CREATED).entity(result,annotations).build();
+        if (nr.getKey()!=null){
+           n.setKey(nr.getKey().getValue());
+        }
+        if (nr.getDescription()!=null){
+            n.setDescription(nr.getDescription().getValue());
+        }
+
+        Network result = null;
+
+        try {
+            result = networkService.insert(n);
+        } catch (Exception ex) {
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network couldn't be created"));
+        }
+
+        return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
 
 
@@ -178,12 +193,14 @@ public class NetworkController {
     @PUT
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response update(NetworkRequest nr, @PathParam("id") long id) {
+
         nr.setId(id);
+
         Network n = networkService.getById(id);
+
         if (n == null){
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
         }
 
         if (nr.getKey() != null) {
@@ -197,8 +214,10 @@ public class NetworkController {
         if (nr.getDescription() != null) {
             n.setDescription(nr.getDescription().getValue());
         }
+
         networkService.update(n);
-        return Response.status(Response.Status.CREATED).build();
+
+        return ResponseFactory.response(Response.Status.CREATED);
     }
 
     /**
@@ -209,12 +228,11 @@ public class NetworkController {
      */
     @DELETE
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") long id) {
-        if (!networkService.delete(id)){
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.status(Response.Status.NO_CONTENT).build();
+
+        networkService.delete(id);
+
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }

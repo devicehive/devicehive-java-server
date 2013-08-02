@@ -57,13 +57,28 @@ public class UserDAO {
         return list.isEmpty() ? null : list.get(0);
     }
 
+    /**
+     *
+     * @param login user login ignored, when loginPattern is specified
+     * @param loginPattern login pattern (LIKE %VALUE%) user login will be ignored, if not null
+     * @param role User's role ADMIN - 0, CLIENT - 1
+     * @param status ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
+     * @param sortField    either of "login", "loginAttempts", "role", "status", "lastLogin"
+     * @param sortOrderAsc Ascending order, if true
+     * @param take like SQL LIMIT
+     * @param skip like SQL OFFSET
+     * @return List of User
+     */
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
+
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<User> criteria = criteriaBuilder.createQuery(User.class);
         Root from = criteria.from(User.class);
+
         List<Predicate> predicates = new ArrayList<>();
+
         if (loginPattern != null) {
             predicates.add(criteriaBuilder.like(from.get("login"), loginPattern));
         } else {
@@ -71,14 +86,17 @@ public class UserDAO {
                 predicates.add(criteriaBuilder.equal(from.get("login"), login));
             }
         }
+
         if (role != null) {
             predicates.add(criteriaBuilder.equal(from.get("role"), role));
         }
+
         if (status != null) {
             predicates.add(criteriaBuilder.equal(from.get("status"), status));
         }
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+
         if (sortField != null) {
             if (sortOrderAsc == null || sortOrderAsc) {
                 criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
@@ -88,13 +106,16 @@ public class UserDAO {
         }
 
         TypedQuery<User> resultQuery = em.createQuery(criteria);
+
         if (skip != null) {
             resultQuery.setFirstResult(skip);
         }
+
         if (take == null) {
             take = DEFAULT_TAKE;
             resultQuery.setMaxResults(take);
         }
+
         return resultQuery.getResultList();
     }
 
@@ -158,7 +179,7 @@ public class UserDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean delete(@NotNull Long id) {
+    public boolean delete(@NotNull long id) {
         Query query = em.createNamedQuery("User.deleteById");
         query.setParameter("id", id);
         return query.executeUpdate() != 0;
@@ -186,7 +207,7 @@ public class UserDAO {
         return user;
     }
 
-    public boolean deleteUser(@NotNull Long id) {
+    public boolean deleteUser(@NotNull long id) {
         Query q = em.createNamedQuery("User.delete");
         q.setParameter("id", id);
         return q.executeUpdate() > 0;

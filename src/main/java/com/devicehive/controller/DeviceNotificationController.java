@@ -1,16 +1,37 @@
 package com.devicehive.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.DeferredResponse;
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
@@ -19,16 +40,6 @@ import com.devicehive.model.User;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.lang.annotation.Annotation;
-import java.util.*;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -51,7 +62,6 @@ public class DeviceNotificationController {
     @GET
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     public Response query(@PathParam("deviceGuid") String guid,
                           @QueryParam("start") String start,
                           @QueryParam("end") String end,
@@ -61,14 +71,14 @@ public class DeviceNotificationController {
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip) {
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
         boolean sortOrderAsc = true;
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
         if (!"Timestamp".equals(sortField) && !"Notification".equals(sortField) && sortField != null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
         if (sortField == null) {
             sortField = "timestamp";
@@ -80,37 +90,32 @@ public class DeviceNotificationController {
         if (start != null) {
             startTimestamp = Params.parseUTCDate(start);
             if (startTimestamp == null) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return ResponseFactory.response(Response.Status.BAD_REQUEST);
             }
         }
         if (end != null) {
             endTimestamp = Params.parseUTCDate(end);
             if (endTimestamp == null) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return ResponseFactory.response(Response.Status.BAD_REQUEST);
             }
         }
 
         Device device = getDevice(guid);
-        Annotation[] annotations =
-                {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
         List<DeviceNotification> result = notificationDAO.queryDeviceNotification(device, startTimestamp,
                 endTimestamp, notification, sortField, sortOrderAsc, take, skip);
-        return Response.ok().entity(result, annotations).build();
+        return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    @Produces(MediaType.APPLICATION_JSON)
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId) {
         DeviceNotification deviceNotification = notificationDAO.findById(notificationId);
         String deviceGuidFromNotification = deviceNotification.getDevice().getGuid().toString();
         if (!deviceGuidFromNotification.equals(guid)) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
-        Annotation[] annotations =
-                {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
-        return Response.ok().entity(deviceNotification, annotations).build();
+        return ResponseFactory.response(Response.Status.OK, deviceNotification, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**
@@ -124,7 +129,6 @@ public class DeviceNotificationController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification/poll")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response poll(
             @PathParam("deviceGuid") String deviceGuid,
             @QueryParam("timestamp") String timestampUTC,
@@ -132,12 +136,12 @@ public class DeviceNotificationController {
             @Context SecurityContext securityContext) {
 
         if (deviceGuid == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
         Date timestamp = Params.parseUTCDate(timestampUTC);
@@ -149,9 +153,7 @@ public class DeviceNotificationController {
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
         List<DeviceNotification> response =
                 MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
-        Annotation[] annotations =
-                {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
-        return Response.ok().entity(response, annotations).build();
+        return ResponseFactory.response(Response.Status.OK, response, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**
@@ -165,7 +167,6 @@ public class DeviceNotificationController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/notification/poll")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response pollMany(
             @QueryParam("deviceGuids") String deviceGuids,
             @QueryParam("timestamp") String timestampUTC,
@@ -194,32 +195,27 @@ public class DeviceNotificationController {
                 MessageDetails.create().ids(ids).timestamp(timestamp).user(user));
         List<DeviceNotification> response =
                 MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
-        Annotation[] annotations =
-                {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)};
-        return Response.ok().entity(response, annotations).build();
+        return ResponseFactory.response(Response.Status.OK, response, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     @POST
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert (@PathParam("deviceGuid") String guid, JsonObject jsonObject){
+    public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject) {
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE);
         DeviceNotification notification = gson.fromJson(jsonObject, DeviceNotification.class);
         Device device = getDevice(guid);
-        if (device.getNetwork() == null){
-            return Response.status(Response.Status.FORBIDDEN).build();
+        if (device.getNetwork() == null) {
+            return ResponseFactory.response(Response.Status.FORBIDDEN);
         }
-        if (notification == null || notification.getNotification() == null){
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (notification == null || notification.getNotification() == null) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
         deviceService.submitDeviceNotification(notification, device, null);
-        Annotation[] annotations =
-                {new JsonPolicyApply.JsonPolicyApplyLiteral(JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE)};
-        return Response.status(Response.Status.CREATED).type(MediaType.APPLICATION_JSON).entity(notification, annotations).build();
+        return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
 
     }
-
 
     private Device getDevice(String uuid) {
         UUID deviceId;

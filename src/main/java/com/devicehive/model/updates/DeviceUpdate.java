@@ -16,7 +16,7 @@ public class DeviceUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     NullableWrapper<UUID> guid;
     @SerializedName("key")
-    @JsonPolicyDef({DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     NullableWrapper<String> key;
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})

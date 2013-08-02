@@ -19,13 +19,19 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This class serves all requests to database from controller.
+ */
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
 
     private static final int maxLoginAttempts = 10;
-
+    /**
+     * @deprecated we should remove entity manager from Service
+     */
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
+    @Deprecated
     private EntityManager em;
 
     @Inject
@@ -44,11 +50,10 @@ public class UserService {
      * @param password
      * @return User object if authentication is successful or null if not
      */
-
     public User authenticate(String login, String password) {
         User user = userDAO.findActiveByName(login);
-        if (user == null){
-            return  null;
+        if (user == null) {
+            return null;
         }
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
@@ -63,7 +68,14 @@ public class UserService {
         }
     }
 
-    public User updatePassword(@NotNull Long id, String password) {
+    /**
+     * updates password for user
+     *
+     * @param id       user id
+     * @param password password
+     * @return User with updated parameters
+     */
+    public User updatePassword(@NotNull long id, String password) {
 
         User u = userDAO.findById(id);
 
@@ -79,10 +91,22 @@ public class UserService {
         return null;
     }
 
-    public User updateUser(@NotNull Long id, String login, UserRole role, UserStatus status, String password) {
+    /**
+     * updates user, returns null in case of error (for example there is no such user)
+     *
+     * @param id       user id to update if null field is left unchanged
+     * @param login    new login if null field is left unchanged
+     * @param role     new role if null field is left unchanged
+     * @param status   new status if null field is left unchanged
+     * @param password new password if null field is left unchanged
+     * @return updated user model
+     */
+    public User updateUser(@NotNull long id, String login, UserRole role, UserStatus status, String password) {
 
         User u = userDAO.findById(id);
-
+        if (u == null) {
+            return null;
+        }
         if (login != null) {
             u.setLogin(login);
         }
@@ -109,13 +133,19 @@ public class UserService {
         return null;
     }
 
-    public void assignNetwork(@NotNull Long userId, @NotNull Long networkId) {
+    /**
+     * Allows user access to given network
+     *
+     * @param userId id of user
+     * @param networkId id of network
+     */
+    public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
-        if (existingUser == null){
+        if (existingUser == null) {
             throw new NotFoundException();
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
-        if (existingNetwork == null){
+        if (existingNetwork == null) {
             throw new NotFoundException();
         }
         Set<User> usersSet = existingNetwork.getUsers();
@@ -124,13 +154,18 @@ public class UserService {
         em.merge(existingNetwork);
     }
 
-    public void unassignNetwork(@NotNull Long userId, @NotNull Long networkId) {
+    /**
+     * Revokes user access to given network
+     * @param userId id of user
+     * @param networkId id of network
+     */
+    public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
-        if (existingUser == null){
+        if (existingUser == null) {
             throw new NotFoundException();
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
-        if (existingNetwork == null){
+        if (existingNetwork == null) {
             throw new NotFoundException();
         }
         existingNetwork.getUsers().remove(existingUser);
@@ -143,27 +178,62 @@ public class UserService {
         return userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
     }
 
+    /**
+     * retrieves user by login
+     * @param login user login
+     * @return User model, or null if there is no such user
+     */
     public User findByLogin(String login) {
         return userDAO.findByLogin(login);
     }
 
-    public User findById(@NotNull Long id) {
+    /**
+     * Retrieves user by id (no networks fetched in this case)
+     * @param id user id
+     * @return User model without networks, or null if there is no such user
+     */
+    public User findById(@NotNull long id) {
         return userDAO.findById(id);
     }
 
-    public User findUserWithNetworks(@NotNull Long id) {
+    /**
+     * Retrieves user with networks by id, if there is no networks user hass access to
+     * networks will be represented by empty set
+     * @param id user id
+     * @return User model with networks, or null, if there is no such user
+     */
+    public User findUserWithNetworks(@NotNull long id) {
         return userDAO.findUserWithNetworks(id);
     }
 
+    /**
+     * Retrieves user with networks by id, if there is no networks user hass access to
+     * networks will be represented by empty set
+     * @param login user login
+     * @return User model with networks, or null, if there is no such user
+     */
     public User findUserWithNetworksByLogin(@NotNull String login) {
         return userDAO.findUserWithNetworksByLogin(login);
     }
 
+    /**
+     * creates new user
+     * @param login user login
+     * @param role user role
+     * @param status user status
+     * @param password password
+     * @return User model of newly created user
+     */
     public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
         return userDAO.createUser(login, role, status, password);
     }
 
-    public boolean deleteUser(long id){
+    /**
+     * Deletes user by id. deletion is cascade
+     * @param id user id
+     * @return true in case of success, false otherwise
+     */
+    public boolean deleteUser(long id) {
         return userDAO.deleteUser(id);
     }
 

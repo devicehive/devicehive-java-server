@@ -3,14 +3,17 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.exceptions.dao.DublicateEntryException;
+import com.devicehive.exceptions.dao.DuplicateEntryException;
 import com.devicehive.exceptions.dao.HivePersistingException;
 import com.devicehive.model.DeviceClass;
+import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.DeviceClassUpdate;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author Nikolay Loboda
@@ -26,11 +29,6 @@ public class DeviceClassService {
     @Inject
     private DeviceService deviceService;
 
-//    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
-//                                                String sortOrder, Integer take, Integer skip) {
-//        return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, "ASC".equals(sortOrder), take, skip);
-//    }
-
     public DeviceClass get(@NotNull long id) {
         return deviceClassDAO.get(id);
     }
@@ -43,23 +41,24 @@ public class DeviceClassService {
         return deviceClassDAO.getWithEquipment(id);
     }
 
-    public DeviceClass addDeviceClass(DeviceClass deviceClass) throws DublicateEntryException {
+    public DeviceClass addDeviceClass(DeviceClass deviceClass) throws DuplicateEntryException {
 
         if (deviceClass.getPermanent() == null) {
-            throw new HivePersistingException("Unable to persisst DeviceClass without 'permanent' property");
+            throw new HivePersistingException("Unable to persist DeviceClass without 'permanent' property");
         }
 
         if (deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
-            throw new DublicateEntryException("Device with such name and version already exists");
+            throw new DuplicateEntryException("Device with such name and version already exists");
         }
         return deviceClassDAO.createDeviceClass(deviceClass);
     }
 
     public DeviceClass update(DeviceClass deviceClass) {
         if (deviceClass.getName() != null && deviceClass.getVersion() != null) {
-            DeviceClass existingDeviceClass = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
+            DeviceClass existingDeviceClass =
+                    deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion());
             if (existingDeviceClass != null && !deviceClass.equals(existingDeviceClass)) {
-                throw new DublicateEntryException("Entity with same name and version already exists with different id");
+                throw new DuplicateEntryException("Entity with same name and version already exists with different id");
             }
         }
         try {
@@ -113,7 +112,25 @@ public class DeviceClassService {
             stored.setVersion(update.getVersion().getValue());
         }
         deviceClassDAO.updateDeviceClass(stored);
+    }
 
+    public Equipment createEquipment(Long classId, Equipment equipment) {
+        DeviceClass deviceClass = deviceClassDAO.get(classId);
+
+        if (deviceClass == null) {
+            throw new NoResultException("No device class with id = " + classId + "found");
+        }
+
+        List<Equipment> equipments = equipmentDAO.getByDeviceClass(deviceClass);
+        String newCode = equipment.getCode();
+        for (Equipment e : equipments) {
+            if (newCode.equals(e.getCode())) {
+                throw new HiveException("Equipment with code = " + newCode + " and device class id = " + classId +
+                        " already exists");
+            }
+        }
+        equipment.setDeviceClass(deviceClass);
+        return equipmentDAO.create(equipment);
     }
 
 }
