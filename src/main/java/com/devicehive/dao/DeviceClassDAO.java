@@ -81,7 +81,7 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
-    public DeviceClass getByDevice(@NotNull UUID guid){
+    public DeviceClass getByDevice(@NotNull UUID guid) {
         TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.getByDevice", DeviceClass.class);
         query.setParameter("guid", guid);
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
@@ -128,13 +128,11 @@ public class DeviceClassDAO {
     }
 
     public DeviceClass createDeviceClass(DeviceClass deviceClass) {
-        try {
-            em.persist(deviceClass);
-            return deviceClass;
-        } catch (RuntimeException ex) {
-            logger.error("Persistence Exception: ", ex);
-            return null;
+        if (deviceClass.getPermanent() == null) {
+            deviceClass.setPermanent(false);
         }
+        em.persist(deviceClass);
+        return deviceClass;
     }
 
     /**
@@ -144,12 +142,7 @@ public class DeviceClassDAO {
      * @return
      */
     public DeviceClass updateDeviceClass(DeviceClass deviceClass) {
-        try {
-            return em.merge(deviceClass);
-        } catch (RuntimeException ex) {
-            logger.error("Persistence Exception: ", ex);
-            return null;
-        }
+        return em.merge(deviceClass);
     }
 
     public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {
@@ -161,7 +154,7 @@ public class DeviceClassDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceClass> getByIdOrNameOrVersion(Long deviceClassId, String deviceClassName, String deviceClassVersion){
+    public List<DeviceClass> getByIdOrNameOrVersion(Long deviceClassId, String deviceClassName, String deviceClassVersion) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceClass> deviceClassCriteria = criteriaBuilder.createQuery(DeviceClass.class);
         Root fromDeviceClass = deviceClassCriteria.from(DeviceClass.class);
