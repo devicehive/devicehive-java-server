@@ -9,6 +9,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+import javax.ws.rs.NotFoundException;
 
 /**
  * @author Nikolay Loboda
@@ -22,6 +23,15 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception exception) {
         logger.error("Error: ",exception);
-        return ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(exception.getMessage()));
+
+        Response.Status responseCode = Response.Status.INTERNAL_SERVER_ERROR;
+        String message = exception.getMessage();
+
+        if (exception.getCause() instanceof NotFoundException) {
+            responseCode = Response.Status.NOT_FOUND;
+            message = exception.getCause().getMessage();
+        }
+
+        return ResponseFactory.response(responseCode, new ErrorResponse(message));
     }
 }

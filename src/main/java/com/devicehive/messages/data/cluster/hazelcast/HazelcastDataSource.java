@@ -31,7 +31,7 @@ import com.hazelcast.core.HazelcastInstance;
  *
  */
 @Singleton
-@Startup
+//@Startup
 @Alternative
 public class HazelcastDataSource implements MessagesDataSource {
 

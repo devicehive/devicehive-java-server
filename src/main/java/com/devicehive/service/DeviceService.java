@@ -8,16 +8,18 @@ import java.util.UUID;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
+import java.util.Set;
 
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.dao.*;
+import com.devicehive.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devicehive.dao.DeviceClassDAO;
-import com.devicehive.dao.DeviceCommandDAO;
-import com.devicehive.dao.DeviceDAO;
-import com.devicehive.dao.DeviceEquipmentDAO;
-import com.devicehive.dao.DeviceNotificationDAO;
-import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -25,16 +27,6 @@ import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBroadcaster;
 import com.devicehive.messages.bus.StatefulMessageListener;
 import com.devicehive.messages.bus.notify.StatefulNotifier;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.Gson;
@@ -64,6 +56,10 @@ public class DeviceService {
     private NetworkService networkService;
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
+    @Inject
+    private UserDAO userDAO;
+    @Context
+    private ContainerRequestContext requestContext;
 
     public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment) {
         Device deviceToUpdate = device.convertTo();
@@ -85,8 +81,21 @@ public class DeviceService {
         messagePublisher.publish(MessageType.CLIENT_TO_DEVICE_COMMAND, command);
     }
 
-    public Device findByGuid(UUID guid) {
-        return deviceDAO.findByUUID(guid);
+    public Device getDevice(String deviceGuid, HivePrincipal principal) {
+        UUID deviceId = null;
+
+        try {
+            deviceId = UUID.fromString(deviceGuid);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("unparseable guid: '" + deviceGuid + "'");
+        }
+
+        Device device = deviceDAO.findByUUID(deviceId);
+
+        if (device == null || !checkPermissions(device, principal)) {
+            throw new NotFoundException("Device not found.");
+        }
+        return device;
     }
 
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
@@ -251,5 +260,24 @@ public class DeviceService {
         if (device.getDeviceClass() != null && device.getDeviceClass().getValue() == null) {
             throw new HiveException("Device class is empty");
         }
+    }
+
+    private boolean checkPermissions(Device device, HivePrincipal principal) {
+        if (principal.getDevice() != null) {
+            if (!device.getGuid().equals(principal.getDevice().getGuid())) {
+                return false;
+            }
+            if (device.getNetwork() == null) {
+                return false;
+            }
+        } else {
+            User user = principal.getUser();
+            if (user.getRole().equals(UserRole.CLIENT)) {
+                User userWithNetworks = userDAO.findUserWithNetworks(user.getId());
+                Set<Network> networkSet = userWithNetworks.getNetworks();
+                return networkSet.contains(device.getNetwork());
+            }
+        }
+        return true;
     }
 }

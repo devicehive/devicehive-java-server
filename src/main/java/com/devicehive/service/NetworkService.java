@@ -86,7 +86,7 @@ public class NetworkService {
             if (stored != null) {
                 if (stored.getKey() != null) {
                     if (!stored.getKey().equals(update.getKey())) {
-                        throw new HiveException("Wrong network key!");
+                        throw new HiveException("Wrong network key!", 403);
                     }
                 }
             } else {

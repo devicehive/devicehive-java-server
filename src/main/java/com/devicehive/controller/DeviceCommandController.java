@@ -6,13 +6,7 @@ import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -33,6 +27,7 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
@@ -199,8 +194,10 @@ public class DeviceCommandController {
                           @QueryParam("sortOrder") String sortOrder,
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip) {
+
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST);
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters"));
         }
         boolean sortOrderAsc = true;
         if ("DESC".equals(sortOrder)) {
@@ -208,7 +205,8 @@ public class DeviceCommandController {
         }
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField
                 != null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST);
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters"));
         }
         if (sortField == null) {
             sortField = "timestamp";
@@ -218,16 +216,28 @@ public class DeviceCommandController {
         if (start != null) {
             startTimestamp = Params.parseUTCDate(start);
             if (startTimestamp == null) {
-                return ResponseFactory.response(Response.Status.BAD_REQUEST);
+                return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                        new ErrorResponse("Invalid request parameters"));
             }
         }
         if (end != null) {
             endTimestamp = Params.parseUTCDate(end);
             if (endTimestamp == null) {
-                return ResponseFactory.response(Response.Status.BAD_REQUEST);
+                return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                        new ErrorResponse("Invalid request parameters"));
             }
         }
-        Device device = deviceCommandService.getDevice(guid);
+
+        Device device = null;
+        try {
+            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+        } catch (BadRequestException e) {
+            return ResponseFactory
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+        } catch (NotFoundException e) {
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+        }
+
         List<DeviceCommand> commandList = commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command,
                 status, sortField, sortOrderAsc, take, skip);
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
@@ -258,11 +268,14 @@ public class DeviceCommandController {
     @Path("/{id}")
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id) {
-
-        Device device = deviceCommandService.getDevice(guid);
-
-        if (!deviceCommandService.checkPermissions(device)) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN);
+        Device device = null;
+        try {
+            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+        } catch (BadRequestException e) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters."));
+        } catch (NotFoundException e) {
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
         }
 
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
@@ -311,14 +324,22 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand) {
-        Device device = deviceCommandService.getDevice(guid);
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
-
         if (login == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN);
         }
-
         User u = userDAO.findUserWithNetworksByLogin(login);
+
+        Device device = null;
+        try {
+            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+        } catch (BadRequestException e) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse("Invalid request parameters."));
+        } catch (NotFoundException e) {
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+        }
+
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
 
         return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.POST_COMMAND_TO_DEVICE);

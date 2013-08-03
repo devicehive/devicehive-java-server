@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
@@ -21,6 +22,8 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
@@ -38,8 +41,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISH
 public class DeviceController {
 
     @Inject
-    private DeviceService deviceService;
-    @Inject
     private DeviceDAO deviceDAO;
     @Inject
     private DeviceCommandDAO commandDAO;
@@ -49,9 +50,12 @@ public class DeviceController {
     private DeviceEquipmentDAO equipmentDAO;
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
-
     @Inject
     private DeviceCommandService deviceCommandService;
+    @Inject
+    private DeviceService deviceService;
+    @Context
+    private ContainerRequestContext requestContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -181,11 +185,10 @@ public class DeviceController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     public Response get(@PathParam("id") String guid) {
-
         Device device = null;
 
         try {
-            device = deviceCommandService.getDevice(guid);
+            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
@@ -261,11 +264,10 @@ public class DeviceController {
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response equipment(@PathParam("id") String guid) {
-
         Device device = null;
 
         try {
-            device = deviceCommandService.getDevice(guid);
+            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
@@ -278,4 +280,5 @@ public class DeviceController {
         return ResponseFactory
                 .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
+
 }

@@ -17,6 +17,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -58,6 +59,8 @@ public class DeviceNotificationController {
     private MessageBus messageBus;
     @Inject
     private DeviceService deviceService;
+    @Context
+    private ContainerRequestContext requestContext;
 
     @GET
     @Path("/{deviceGuid}/notification")
