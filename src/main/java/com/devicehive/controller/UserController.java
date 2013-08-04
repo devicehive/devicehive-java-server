@@ -8,6 +8,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.request.UserRequest;
+import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 
@@ -168,7 +169,9 @@ public class UserController {
 
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
-                return ResponseFactory.response(Response.Status.OK, network, JsonPolicyDef.Policy.NETWORKS_LISTED);
+                return ResponseFactory.response(Response.Status.OK,
+                                                UserNetworkResponse.fromNetwork(network),
+                                                JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
 
