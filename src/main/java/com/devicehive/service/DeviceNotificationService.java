@@ -6,7 +6,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
 
 import javax.inject.Inject;
-import java.util.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class DeviceNotificationService {
@@ -14,7 +14,7 @@ public class DeviceNotificationService {
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
 
-    public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList, User user, Date timestamp,
+    public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList, User user, Timestamp timestamp,
                                                               Boolean isAdmin) {
         if (deviceList == null) {
             if (isAdmin) {

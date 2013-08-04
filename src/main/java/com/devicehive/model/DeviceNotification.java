@@ -80,7 +80,7 @@ public class DeviceNotification implements Message, HiveEntity {
     private Long id;
 
     @SerializedName("timestamp")
-    @Column
+    @Column(insertable = false, updatable = false)
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Timestamp timestamp;
 

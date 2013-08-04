@@ -4,7 +4,7 @@ CREATE TABLE network (
     name VARCHAR(128) NOT NULL,
     description VARCHAR(128) NULL,
     key VARCHAR(64) NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE network ADD CONSTRAINT network_pk PRIMARY KEY (id);
@@ -19,7 +19,7 @@ CREATE TABLE "user" (
     status INT NOT NULL,
     login_attempts INT NOT NULL,
     last_login TIMESTAMP NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE "user" ADD CONSTRAINT user_pk PRIMARY KEY (id);
@@ -29,7 +29,7 @@ CREATE TABLE user_network (
     id BIGSERIAL NOT NULL,
     user_id BIGINT NOT NULL,
     network_id BIGINT NOT NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT DEFAULT 0
 );
 
 ALTER TABLE user_network ADD CONSTRAINT user_network_pk PRIMARY KEY (id);
@@ -43,7 +43,7 @@ CREATE TABLE device_class (
     is_permanent BOOLEAN NOT NULL,
     offline_timeout INT NULL,
     data TEXT NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE device_class ADD CONSTRAINT device_class_pk PRIMARY KEY (id);
@@ -58,12 +58,12 @@ CREATE TABLE device (
     device_class_id BIGINT NOT NULL,
     key VARCHAR(64) NOT NULL,
     data TEXT NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE device ADD CONSTRAINT device_pk PRIMARY KEY (id);
-ALTER TABLE device ADD CONSTRAINT device_network_fk FOREIGN KEY (network_id) REFERENCES network (id);
-ALTER TABLE device ADD CONSTRAINT device_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id);
+ALTER TABLE device ADD CONSTRAINT device_network_fk FOREIGN KEY (network_id) REFERENCES network (id)  ON DELETE CASCADE;
+ALTER TABLE device ADD CONSTRAINT device_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id)  ON DELETE CASCADE;
 ALTER TABLE device ADD CONSTRAINT device_guid_unique UNIQUE (guid);
 
 CREATE TABLE device_command (
@@ -77,11 +77,11 @@ CREATE TABLE device_command (
     result TEXT NULL,
     device_id BIGINT NOT NULL,
     user_id BIGINT NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE device_command ADD CONSTRAINT device_command_pk PRIMARY KEY (id);
-ALTER TABLE device_command ADD CONSTRAINT device_command_device_fk FOREIGN KEY (device_id) REFERENCES device (id);
+ALTER TABLE device_command ADD CONSTRAINT device_command_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
 ALTER TABLE device_command ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id);
 
 CREATE TABLE device_equipment (
@@ -90,11 +90,11 @@ CREATE TABLE device_equipment (
     timestamp TIMESTAMP NOT NULL,
     parameters TEXT NULL,
     device_id BIGINT NOT NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_pk PRIMARY KEY (id);
-ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_fk FOREIGN KEY (device_id) REFERENCES device (id);
+ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_id_code_unique UNIQUE (device_id, code);
 
 CREATE TABLE device_notification (
@@ -103,11 +103,11 @@ CREATE TABLE device_notification (
     notification VARCHAR(128) NOT NULL,
     parameters TEXT NULL,
     device_id BIGINT NOT NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE device_notification ADD CONSTRAINT device_notification_pk PRIMARY KEY (id);
-ALTER TABLE device_notification ADD CONSTRAINT device_notification_device_fk FOREIGN KEY (device_id) REFERENCES device (id);
+ALTER TABLE device_notification ADD CONSTRAINT device_notification_device_fk FOREIGN KEY (device_id) REFERENCES device (id)  ON DELETE CASCADE;
 
 CREATE TABLE equipment (
     id BIGSERIAL NOT NULL,
@@ -116,17 +116,47 @@ CREATE TABLE equipment (
     device_class_id BIGINT NOT NULL,
     type VARCHAR(128) NOT NULL,
     data TEXT NULL,
-    entity_version BIGINT DEFAULT 1
+    entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE equipment ADD CONSTRAINT equipment_pk PRIMARY KEY (id);
-ALTER TABLE equipment ADD CONSTRAINT equipment_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id);
+ALTER TABLE equipment ADD CONSTRAINT equipment_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id)  ON DELETE CASCADE;
 ALTER TABLE equipment ADD CONSTRAINT equipment_code_device_class_id_unique UNIQUE (code, device_class_id);
 
 CREATE TABLE configuration (
   name VARCHAR(32) NOT NULL,
   value VARCHAR(128) NOT NULL,
-  entity_version BIGINT DEFAULT 1
+  entity_version BIGINT NOT NULL DEFAULT 0
 );
 
 ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (name);
+
+create view get_timestamp as
+  select now() as timestamp;
+
+
+-- Reference data for initial database setup:
+
+-- 1. Default users
+INSERT INTO "user"
+(login, password_hash, password_salt, role, status, login_attempts)
+  VALUES
+  ('admin', 'T6v58XVyDZ/pqmSbSrf5b7bmNIT6TJQt6myUGCcm4as=', '0QSyWc39YneN2CbYrsCg88oK', 0, 0, 0);
+
+-- 2. Default device classes
+INSERT INTO device_class
+(name, version, is_permanent, offline_timeout)
+  VALUES
+  ('Sample VirtualLed Device', 1.0, false, 600);
+
+-- 3. Default networks
+INSERT INTO network
+(name, description)
+  VALUES
+  ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
+
+-- 4. Default devices
+INSERT INTO device
+(guid, name, status, network_id, device_class_id, key)
+  VALUES
+  ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, '05F94BF509C8');

@@ -61,7 +61,7 @@ public class DeviceCommand implements HiveEntity, Message {
     private Long id;
 
     @SerializedName("timestamp")
-    @Column
+    @Column(insertable = false, updatable = false)
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private Timestamp timestamp;
 

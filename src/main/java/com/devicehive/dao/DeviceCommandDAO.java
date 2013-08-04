@@ -1,10 +1,10 @@
 package com.devicehive.dao;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import com.devicehive.configuration.Constants;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.User;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -18,12 +18,10 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-
-import com.devicehive.configuration.Constants;
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.User;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Stateless
 public class DeviceCommandDAO {
@@ -125,7 +123,7 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(Device device, Date timestamp) {
+    public List<DeviceCommand> getNewerThan(Device device, Timestamp timestamp) {
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
         query.setParameter("device", device);
@@ -133,7 +131,7 @@ public class DeviceCommandDAO {
     }
 
     @SuppressWarnings("unchecked")
-    public List<DeviceCommand> queryDeviceCommand(Device device, Date start, Date end, String command,
+    public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();

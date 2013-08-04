@@ -1,33 +1,11 @@
 package com.devicehive.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.MessageDetails;
@@ -41,6 +19,17 @@ import com.devicehive.model.User;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -88,16 +77,16 @@ public class DeviceNotificationController {
         }
         sortField = sortField.toLowerCase();
 
-        Date startTimestamp = null, endTimestamp = null;
+        Timestamp startTimestamp = null, endTimestamp = null;
 
         if (start != null) {
-            startTimestamp = Params.parseUTCDate(start);
+            startTimestamp = TimestampAdapter.parseTimestampQuietly(start);
             if (startTimestamp == null) {
                 return ResponseFactory.response(Response.Status.BAD_REQUEST);
             }
         }
         if (end != null) {
-            endTimestamp = Params.parseUTCDate(end);
+            endTimestamp = TimestampAdapter.parseTimestampQuietly(end);
             if (endTimestamp == null) {
                 return ResponseFactory.response(Response.Status.BAD_REQUEST);
             }
@@ -147,7 +136,7 @@ public class DeviceNotificationController {
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
-        Date timestamp = Params.parseUTCDate(timestampUTC);
+        Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
@@ -189,7 +178,7 @@ public class DeviceNotificationController {
             ids.add(device.getId());
         }
 
-        Date timestamp = Params.parseUTCDate(timestampUTC);
+        Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
