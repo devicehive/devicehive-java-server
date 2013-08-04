@@ -10,7 +10,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy;
@@ -34,7 +33,6 @@ public class GsonFactory {
                 .setPrettyPrinting()
                 .serializeNulls()
                 .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
-                .registerTypeAdapter(Date.class, new DateAdapter())
                 .registerTypeAdapter(UUID.class, new UUIDAdapter())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
                 .registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter())

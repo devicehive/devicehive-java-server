@@ -11,6 +11,7 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
@@ -26,7 +27,6 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,6 +50,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private DeviceNotificationService deviceNotificationService;
     @Inject
     private AsyncMessageDeliverer asyncMessageDeliverer;
+    @Inject
+    private TimestampService timestampService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Client/authenticate">WebSocket API:
@@ -193,9 +195,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) throws IOException {
         logger.debug("notification/subscribe action. Session " + session.getId());
         Gson gson = GsonFactory.createGson();
-        Date timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
+        Timestamp timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Timestamp.class);
         if (timestamp == null) {
-            timestamp = new Date();
+            timestamp = timestampService.getTimestamp();
         }
         //TODO set notification's limit (do not try to get notifications for last year :))
         List<UUID> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<UUID>>() {
@@ -212,7 +214,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     }
 
-    private void prepareForNotificationSubscribeNullCase(Session session, Date timestamp) throws IOException {
+    private void prepareForNotificationSubscribeNullCase(Session session, Timestamp timestamp) throws IOException {
         logger.debug("notification/subscribe action - null guid case." + ". Session " + session.getId());
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
         List<DeviceNotification> deviceNotifications;
@@ -228,7 +230,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         notificationSubscribeAction(deviceNotifications, session, null);
     }
 
-    private void prepareForNotificationSubscribeNotNullCase(List<UUID> guids, Session session, Date timestamp)
+    private void prepareForNotificationSubscribeNotNullCase(List<UUID> guids, Session session, Timestamp timestamp)
             throws IOException {
         logger.debug("notification/subscribe action - null guid case." + ". Session " + session.getId());
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
@@ -354,7 +356,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
-        apiInfo.setServerTimestamp(new Timestamp(System.currentTimeMillis()));
+        apiInfo.setServerTimestamp(timestampService.getTimestamp());
         Configuration webSocketServerUrl = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
         if (webSocketServerUrl == null) {
             logger.error("Websocket server url isn't set!");

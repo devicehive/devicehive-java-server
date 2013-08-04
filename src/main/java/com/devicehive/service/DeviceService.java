@@ -58,8 +58,7 @@ public class DeviceService {
     private DeviceEquipmentDAO deviceEquipmentDAO;
     @Inject
     private UserDAO userDAO;
-    @Context
-    private ContainerRequestContext requestContext;
+    private TimestampService timestampService;
 
     public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment) {
         Device deviceToUpdate = device.convertTo();
@@ -74,7 +73,6 @@ public class DeviceService {
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session session) {
         command.setDevice(device);
         command.setUser(user);
-        command.setTimestamp(new Timestamp(System.currentTimeMillis()));
         deviceCommandDAO.createCommand(command);
         messagePublisher.addMessageListener(
                 new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, statefulNotifier));
@@ -113,7 +111,7 @@ public class DeviceService {
 
         if (deviceEquipment != null) {
             if (!deviceEquipmentDAO.update(deviceEquipment)) {
-                deviceEquipment.setTimestamp(new Timestamp(System.currentTimeMillis()));
+                deviceEquipment.setTimestamp(timestampService.getTimestamp());
                 deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
             }
         }

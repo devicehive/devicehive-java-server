@@ -1,9 +1,9 @@
 package com.devicehive.messages;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import com.devicehive.messages.bus.MessageBus;
@@ -21,7 +21,7 @@ import com.devicehive.model.User;
 public class MessageDetails {
 
     private List<Long> ids;
-    private Date timestamp;
+    private Timestamp timestamp;
     private String session;
     private Transport transport;
     private User user;
@@ -40,7 +40,7 @@ public class MessageDetails {
         return this;
     }
 
-    public MessageDetails timestamp(Date timestamp) {
+    public MessageDetails timestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
         return this;
     }
@@ -68,7 +68,7 @@ public class MessageDetails {
         return ids != null && !ids.isEmpty() ? ids.get(0) : null;
     }
 
-    public Date timestamp() {
+    public Timestamp timestamp() {
         return timestamp;
     }
 

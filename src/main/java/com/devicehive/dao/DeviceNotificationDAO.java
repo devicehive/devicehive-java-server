@@ -2,7 +2,6 @@ package com.devicehive.dao;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.ejb.Stateless;
@@ -30,7 +29,6 @@ public class DeviceNotificationDAO {
     private EntityManager em;
 
     public DeviceNotification createNotification(DeviceNotification deviceNotification) {
-        deviceNotification.setTimestamp(new Timestamp(System.currentTimeMillis()));
         em.persist(deviceNotification);
         return deviceNotification;
     }
@@ -41,7 +39,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findByDevicesNewerThan(List<Device> deviceList, Date timestamp) {
+    public List<DeviceNotification> findByDevicesNewerThan(List<Device> deviceList, Timestamp timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceNewerThan",
                 DeviceNotification.class);
         query.setParameter("deviceList", deviceList);
@@ -50,7 +48,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNewerThan(Date timestamp) {
+    public List<DeviceNotification> findNewerThan(Timestamp timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByNewerThan",
                 DeviceNotification.class);
         query.setParameter("timestamp", timestamp);
@@ -58,7 +56,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getByUserNewerThan(User user, Date timestamp) {
+    public List<DeviceNotification> getByUserNewerThan(User user, Timestamp timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserNewerThan",
                 DeviceNotification.class);
         query.setParameter("user", user);
@@ -68,7 +66,7 @@ public class DeviceNotificationDAO {
 
     @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> queryDeviceNotification(Device device, Date start, Date end,
+    public List<DeviceNotification> queryDeviceNotification(Device device, Timestamp start, Timestamp end,
                                                             String notification,
                                                             String sortField, Boolean sortOrderAsc, Integer take,
                                                             Integer skip) {

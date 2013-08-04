@@ -15,6 +15,7 @@
         <class>com.devicehive.model.Configuration</class>
         <class>com.devicehive.model.Equipment</class>
         <class>com.devicehive.model.Network</class>
+        <class>com.devicehive.model.ServerTimestamp</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <validation-mode>AUTO</validation-mode>
         <properties>

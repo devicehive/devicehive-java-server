@@ -79,9 +79,6 @@ public class Configuration implements HiveEntity {
         return value;
     }
 
-    public void setValue(Date value) {
-        this.value = value.toString();
-    }
 
     public void setValue(String value) {
         this.value = value;

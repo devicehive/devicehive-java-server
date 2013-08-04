@@ -6,13 +6,13 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.json.adapters.DateAdapter;
 import com.devicehive.messages.MessageDetails;
 import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.TimestampService;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
 import com.devicehive.websockets.util.WebsocketSession;
@@ -49,6 +49,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     private ConfigurationDAO configurationDAO;
     @Inject
     private AsyncMessageDeliverer asyncMessageDeliverer;
+    @Inject
+    private TimestampService timestampService;
 
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -114,14 +116,14 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("command subscribe action started for session : " + session.getId());
         Gson gson = GsonFactory.createGson();
         Device device = getDevice(session, message);
-        Date timestamp;
+        Timestamp timestamp;
         try {
-            timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Date.class);
+            timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Timestamp.class);
         } catch (JsonParseException e) {
-            throw new HiveException(e.getCause().getMessage() + " Date must be in format " + DateAdapter.UTC_DATE_FORMAT_PATTERN, e);
+            throw new HiveException(e.getCause().getMessage() + " Incorrect timestamp format", e);
         }
         if (timestamp == null) {
-            timestamp = new Date();
+            timestamp = timestampService.getTimestamp();
         }
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
@@ -178,7 +180,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
-        apiInfo.setServerTimestamp(new Timestamp(System.currentTimeMillis()));
+        apiInfo.setServerTimestamp(timestampService.getTimestamp());
         Configuration webSocketServerUrl = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
         if (webSocketServerUrl == null) {
             logger.error("Websocket server url isn't set!");

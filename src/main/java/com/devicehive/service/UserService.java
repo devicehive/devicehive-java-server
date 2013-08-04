@@ -43,6 +43,9 @@ public class UserService {
     @Inject
     private NetworkDAO networkDAO;
 
+    @Inject
+    private TimestampService timestampService;
+
     /**
      * Tries to authenticate with given credentials
      *
@@ -63,7 +66,7 @@ public class UserService {
             return null;
         } else {
             user.setLoginAttempts(0);
-            user.setLastLogin(new Timestamp(System.currentTimeMillis()));
+            user.setLastLogin(timestampService.getTimestamp());
             return user;
         }
     }

@@ -40,7 +40,7 @@ public class DeviceEquipmentDAO {
 
     public boolean update(DeviceEquipment deviceEquipment) {
         Query query = em.createNamedQuery("DeviceEquipment.updateByCodeAndDevice");
-        query.setParameter("timestamp", new Date());
+        query.setParameter("timestamp", deviceEquipment.getTimestamp());
         query.setParameter("parameters", deviceEquipment.getParameters());
         query.setParameter("device", deviceEquipment.getDevice());
         query.setParameter("code", deviceEquipment.getCode());
