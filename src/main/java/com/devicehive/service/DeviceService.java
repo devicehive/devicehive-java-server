@@ -1,25 +1,7 @@
 package com.devicehive.service;
 
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-import javax.websocket.Session;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import java.util.Set;
-
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.*;
-import com.devicehive.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -27,11 +9,24 @@ import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.MessageBroadcaster;
 import com.devicehive.messages.bus.StatefulMessageListener;
 import com.devicehive.messages.bus.notify.StatefulNotifier;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.websocket.Session;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Stateless
 public class DeviceService {
@@ -60,14 +55,15 @@ public class DeviceService {
     private UserDAO userDAO;
     private TimestampService timestampService;
 
-    public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment, HivePrincipal principal) {
+    public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+                           boolean isAllowedToUpdate) {
         Device deviceToUpdate = device.convertTo();
 
         deviceToUpdate
                 .setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
         deviceToUpdate.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet,
                 device.getGuid().getValue(), useExistingEquipment));
-        createOrUpdateDevice(deviceToUpdate, device, principal);
+        createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
     }
 
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session session) {
@@ -80,7 +76,7 @@ public class DeviceService {
     }
 
     public Device getDevice(String deviceGuid, HivePrincipal principal) {
-        UUID deviceId = null;
+        UUID deviceId;
 
         try {
             deviceId = UUID.fromString(deviceGuid);
@@ -147,8 +143,7 @@ public class DeviceService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-            Set<Equipment> newEquipmentSet, UUID guid,
-            boolean useExistingEquipment) {
+            Set<Equipment> newEquipmentSet, UUID guid, boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
@@ -206,7 +201,7 @@ public class DeviceService {
         }
     }
 
-    public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate, HivePrincipal principal) {
+    public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate, boolean isAllowedToUpdate) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         DeviceNotification notification = new DeviceNotification();
         if (existingDevice == null) {
@@ -220,10 +215,8 @@ public class DeviceService {
             notification.setNotification(SpecialNotifications.DEVICE_ADD);
         }
         else {
-            User currentUser = principal.getUser();
-            Device currentDevice = principal.getDevice();
-            if (currentDevice == null && currentUser == null) {
-                throw new HiveException("Unauthorixed.", 401);
+            if (!isAllowedToUpdate){
+                throw new HiveException("Unauthorized. No permissions to update device", 401);
             }
             existingDevice.setDeviceClass(device.getDeviceClass());
             if (deviceUpdate.getStatus() != null) {
