@@ -4,14 +4,18 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
+import com.devicehive.model.User;
 import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
+import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -26,6 +30,9 @@ public class NetworkController {
 
     @Inject
     private NetworkService networkService;
+
+    @Inject
+    private UserService userService;
 
 
     /**
@@ -61,7 +68,8 @@ public class NetworkController {
                                    @QueryParam("sortField") String sortField,
                                    @QueryParam("sortOrder") String sortOrder,
                                    @QueryParam("take") Integer take,
-                                   @QueryParam("skip") Integer skip) {
+                                   @QueryParam("skip") Integer skip,
+                                   @Context ContainerRequestContext requestContext) {
 
         logger.debug("Network list requested");
 
@@ -71,18 +79,27 @@ public class NetworkController {
             logger.debug("Unable to proceed network list request. Invalid sortOrder");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
+
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
+
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             logger.debug("Unable to proceed network list request. Invalid sortField");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
-        List<Network> result = networkService.list(name, namePattern, sortField, sortOrderAsc, take,
-                skip);
+        User u = userService.getCurrent(requestContext);
+
+        if (u == null) {
+            logger.debug("User is not authorized to run");
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
+        }
+
+        List<Network> result = networkService.list(name, namePattern, sortField, sortOrderAsc, take, skip, u.isAdmin() ? null : u.getId());
 
         logger.debug("Network list request proceed successfully.");
+
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
 
@@ -106,7 +123,7 @@ public class NetworkController {
         logger.debug("Network get requested.");
         Network existing = networkService.getWithDevicesAndDeviceClasses(id);
 
-        if (existing == null){
+        if (existing == null) {
             logger.debug("Network with id = " + id + "does not exists");
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
         }
@@ -140,7 +157,6 @@ public class NetworkController {
      * </pre>
      * Where "description" and "key" will be provided, if they are specified in request.
      * Fields "id" and "name" will be provided anyway.
-     *
      */
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
@@ -149,15 +165,15 @@ public class NetworkController {
         Network n = new Network();
 
         //TODO: if request if malformed this code will fall with NullPointerException
-        if (nr.getName() == null || nr.getName().getValue()==null){
+        if (nr.getName() == null || nr.getName().getValue() == null) {
             logger.debug("Unable to proceed network insert. Name field is required.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
         n.setName(nr.getName().getValue());
-        if (nr.getKey()!=null){
-           n.setKey(nr.getKey().getValue());
+        if (nr.getKey() != null) {
+            n.setKey(nr.getKey().getValue());
         }
-        if (nr.getDescription()!=null){
+        if (nr.getDescription() != null) {
             n.setDescription(nr.getDescription().getValue());
         }
 
@@ -208,7 +224,7 @@ public class NetworkController {
 
         Network n = networkService.getById(id);
 
-        if (n == null){
+        if (n == null) {
             logger.debug("Unable to update network. Network with id = " + id + " does not exists");
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
         }
@@ -227,7 +243,9 @@ public class NetworkController {
 
         networkService.update(n);
         logger.debug("Network has been updated successfully");
+
         return ResponseFactory.response(Response.Status.CREATED);
+
     }
 
     /**
