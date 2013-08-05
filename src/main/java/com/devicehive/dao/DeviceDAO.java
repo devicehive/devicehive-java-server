@@ -1,9 +1,9 @@
 package com.devicehive.dao;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import com.devicehive.configuration.Constants;
+import com.devicehive.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -14,21 +14,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
+import java.util.*;
+import java.util.List;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
@@ -129,7 +118,8 @@ public class DeviceDAO {
     public List<Device> getList(String name, String namePattern, String status, Long networkId,
                                 String networkName, Long deviceClassId, String deviceClassName,
                                 String deviceClassVersion, String sortField,
-                                Boolean sortOrderAsc, Integer take, Integer skip) {
+                                Boolean sortOrderAsc, Integer take, Integer skip, UserRole currentUserRole,
+                                Set<Network> allowedNetworks) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
         Root fromDevice = deviceCriteria.from(Device.class);
@@ -146,11 +136,25 @@ public class DeviceDAO {
         }
         if (networkId != null || networkName != null) {
             List<Network> networksResult = networkDAO.getByNameOrId(networkId, networkName);
+            if (currentUserRole.equals(UserRole.CLIENT)) {
+                for (Network network : networksResult) {
+                    if (!allowedNetworks.contains(network)) {
+                        networksResult.remove(network);
+                    }
+                }
+            }
             if (networksResult.size() == 0) {
                 return new ArrayList<>();
             }
             Expression<Network> inExpression = fromDevice.get("network");
             devicePredicates.add(inExpression.in(networksResult));
+        } else {
+            if (currentUserRole.equals(UserRole.CLIENT)) {
+                if (allowedNetworks.size() == 0)
+                    return new ArrayList<>();
+                Expression<Network> inExpression = fromDevice.get("network");
+                devicePredicates.add(inExpression.in(allowedNetworks));
+            }
         }
         if (deviceClassId != null || deviceClassName != null || deviceClassVersion != null) {
             List<DeviceClass> deviceClassResult = deviceClassDAO.getByIdOrNameOrVersion(deviceClassId,

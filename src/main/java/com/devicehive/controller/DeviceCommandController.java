@@ -19,6 +19,8 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -39,6 +41,7 @@ import java.util.UUID;
 @Path("/device/{deviceGuid}/command")
 public class DeviceCommandController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
     @Inject
     private DeviceCommandDAO commandDAO;
 
@@ -60,8 +63,6 @@ public class DeviceCommandController {
     @Inject
     private DeviceCommandService deviceCommandService;
 
-    @Context
-    private ContainerRequestContext requestContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
@@ -80,12 +81,16 @@ public class DeviceCommandController {
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
 
+        logger.debug("DeviceCommand poll requested");
+
         if (deviceGuid == null) {
+            logger.debug("DeviceCommand poll request failed. deviceGuid is required.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
+            logger.debug("DeviceCommand poll request failed. No device found for device with guid = " + deviceGuid);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
@@ -96,6 +101,7 @@ public class DeviceCommandController {
         DeferredResponse result = messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
         List<DeviceCommand> response = MessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
+        logger.debug("DeviceCommand poll proceed successfully");
         return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -106,7 +112,7 @@ public class DeviceCommandController {
      * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/{commandId}/poll")
     public Response wait(
             @PathParam("deviceGuid") String deviceGuid,
@@ -114,21 +120,28 @@ public class DeviceCommandController {
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
 
+        logger.debug("DeviceCommand wait requested");
+
         if (deviceGuid == null || commandId == null) {
+            logger.debug("DeviceCommand wait request failed. Bad request for sortOrder.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
+            logger.debug("DeviceCommand wait request failed. No device found with guid = " + deviceGuid);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
         DeviceCommand command = commandDAO.findById(Long.valueOf(commandId));
         if (command == null) {
+            logger.debug("DeviceCommand wait request failed. No command found with id = " + commandId);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
         if (!command.getDevice().getId().equals(device.getId())) {
+            logger.debug("DeviceCommand wait request failed. Command with id = " + commandId + " was not sent for " +
+                    "device with guid = " + deviceGuid);
             ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
@@ -139,6 +152,9 @@ public class DeviceCommandController {
                 MessageDetails.create().ids(device.getId(), command.getId()).user(user));
         List<DeviceCommand> commandList = MessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
         DeviceCommand response = commandList.isEmpty() ? null : commandList.get(0);
+
+        logger.debug("DeviceCommand wait proceed successfully");
+
         return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -193,9 +209,14 @@ public class DeviceCommandController {
                           @QueryParam("sortField") String sortField,
                           @QueryParam("sortOrder") String sortOrder,
                           @QueryParam("take") Integer take,
-                          @QueryParam("skip") Integer skip) {
+                          @QueryParam("skip") Integer skip,
+                          @Context ContainerRequestContext requestContext) {
+
+
+        logger.debug("Device command query requested");
 
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+            logger.debug("Device command query failed. Bad request for sortOrder.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse("Invalid request parameters"));
         }
@@ -205,6 +226,7 @@ public class DeviceCommandController {
         }
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField
                 != null) {
+            logger.debug("Device command query failed. Bad request for sortField.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse("Invalid request parameters"));
         }
@@ -216,6 +238,7 @@ public class DeviceCommandController {
         if (start != null) {
             startTimestamp = TimestampAdapter.parseTimestampQuietly(start);
             if (startTimestamp == null) {
+                logger.debug("Device command query failed. Unparseable timestamp.");
                 return ResponseFactory.response(Response.Status.BAD_REQUEST,
                         new ErrorResponse("Invalid request parameters"));
             }
@@ -223,12 +246,13 @@ public class DeviceCommandController {
         if (end != null) {
             endTimestamp = TimestampAdapter.parseTimestampQuietly(end);
             if (endTimestamp == null) {
+                logger.debug("Device command query failed. Unparseable timestamp.");
                 return ResponseFactory.response(Response.Status.BAD_REQUEST,
                         new ErrorResponse("Invalid request parameters"));
             }
         }
 
-        Device device = null;
+        Device device;
         try {
             device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
@@ -240,6 +264,9 @@ public class DeviceCommandController {
 
         List<DeviceCommand> commandList = commandDAO.queryDeviceCommand(device, startTimestamp, endTimestamp, command,
                 status, sortField, sortOrderAsc, take, skip);
+
+        logger.debug("Device command query request proceed successfully");
+
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -267,7 +294,8 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{id}")
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id) {
+    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id, @Context ContainerRequestContext requestContext) {
+        logger.debug("Device command get requested");
         Device device = null;
         try {
             device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
@@ -281,15 +309,19 @@ public class DeviceCommandController {
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
         if (result == null) {
+            logger.debug("Device command get failed. No command with id = " + id + " found for device with guid = " +
+                    guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
+
+        logger.debug("Device command get proceed successfully");
 
         return ResponseFactory.response(Response.Status.OK, result);
     }
 
     /**
      * <b>Creates new device command.</b>
-     *
+     * <p/>
      * <i>Example request:</i>
      * <code>
      * {
@@ -321,9 +353,9 @@ public class DeviceCommandController {
      * @param deviceCommand
      */
     @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand) {
+    public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand, @Context ContainerRequestContext requestContext) {
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
         if (login == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN);
@@ -341,6 +373,8 @@ public class DeviceCommandController {
         }
 
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
+
+        logger.debug("Device command insert proceed successfully");
 
         return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.POST_COMMAND_TO_DEVICE);
     }
@@ -367,6 +401,9 @@ public class DeviceCommandController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommand command) {
+
+        logger.debug("Device command update requested");
+
         UUID deviceId;
         try {
             deviceId = UUID.fromString(guid);
@@ -382,6 +419,9 @@ public class DeviceCommandController {
         commandUpdate.setStatus(command.getStatus());
         commandUpdate.setResult(command.getResult());
         deviceService.submitDeviceCommandUpdate(commandUpdate, commandUpdate.getDevice());
+
+        logger.debug("Device command update proceed successfully");
+
         return ResponseFactory.response(Response.Status.CREATED);
     }
 

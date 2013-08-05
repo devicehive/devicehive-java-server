@@ -2,10 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.dao.DeviceCommandDAO;
-import com.devicehive.dao.DeviceDAO;
-import com.devicehive.dao.DeviceEquipmentDAO;
-import com.devicehive.dao.DeviceNotificationDAO;
+import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -17,6 +14,8 @@ import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -26,10 +25,9 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashSet;
+import javax.ws.rs.core.SecurityContext;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 
@@ -39,6 +37,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISH
  */
 @Path("/device")
 public class DeviceController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
 
     @Inject
     private DeviceDAO deviceDAO;
@@ -54,8 +54,8 @@ public class DeviceController {
     private DeviceCommandService deviceCommandService;
     @Inject
     private DeviceService deviceService;
-    @Context
-    private ContainerRequestContext requestContext;
+    @Inject
+    private UserDAO userDAO;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -88,11 +88,15 @@ public class DeviceController {
                          @QueryParam("sortField") String sortField,
                          @QueryParam("sortOrder") String sortOrder,
                          @QueryParam("take") Integer take,
-                         @QueryParam("skip") Integer skip) {
+                         @QueryParam("skip") Integer skip,
+                         @Context SecurityContext securityContext) {
+
+        logger.debug("Device list requested");
 
         boolean sortOrderAsc = true;
 
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+            logger.debug("Device list request failed. ");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse("Invalid request parameters"));
         }
@@ -104,9 +108,12 @@ public class DeviceController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse("Invalid request parameters"));
         }
-
+        User currentUser = ((HivePrincipal)securityContext.getUserPrincipal()).getUser();
+        Set<Network> allowedNetworks = userDAO.findUserWithNetworksByLogin(currentUser.getLogin()).getNetworks();
         List<Device> result = deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip);
+                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser.getRole(), allowedNetworks);
+
+        logger.debug("Device list proceed result. Result list contains " + result.size() + " elems");
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
@@ -130,7 +137,9 @@ public class DeviceController {
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
     public Response register(JsonObject jsonObject, @PathParam("id") String guid) {
 
-        UUID deviceGuid = null;
+        logger.debug("Device register method requested");
+
+        UUID deviceGuid;
 
         try {
             deviceGuid = UUID.fromString(guid);
@@ -140,7 +149,7 @@ public class DeviceController {
         }
 
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
-        DeviceUpdate device = null;
+        DeviceUpdate device;
 
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
 
@@ -169,6 +178,8 @@ public class DeviceController {
 
         deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
 
+        logger.debug("Device register finished successfully");
+
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
@@ -184,11 +195,14 @@ public class DeviceController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    public Response get(@PathParam("id") String guid) {
-        Device device = null;
+    public Response get(@PathParam("id") String guid, @Context ContainerRequestContext requestContext) {
 
+        logger.debug("Device get requested");
+
+        Device device;
         try {
-            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+            device = deviceService.getDevice(guid,
+                    (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
@@ -196,6 +210,7 @@ public class DeviceController {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
         }
 
+        logger.debug("Device get proceed successfully");
         return ResponseFactory.response(Response.Status.OK, device, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
@@ -212,6 +227,8 @@ public class DeviceController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") String guid) {
 
+        logger.debug("Device delete requested");
+
         UUID deviceId;
 
         try {
@@ -223,6 +240,7 @@ public class DeviceController {
 
         deviceDAO.deleteDevice(deviceId);
 
+        logger.debug("Device with id = " + guid + " deleted");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -263,11 +281,15 @@ public class DeviceController {
     @GET
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response equipment(@PathParam("id") String guid) {
-        Device device = null;
+    public Response equipment(@PathParam("id") String guid, @Context ContainerRequestContext requestContext) {
+
+        logger.debug("Device equipment requested");
+
+        Device device;
 
         try {
-            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+            device = deviceService.getDevice(guid,
+                    (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
@@ -277,6 +299,7 @@ public class DeviceController {
 
         List<DeviceEquipment> equipments = equipmentDAO.findByFK(device);
 
+        logger.debug("Device equipment request proceed successfully");
         return ResponseFactory
                 .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }

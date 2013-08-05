@@ -12,7 +12,6 @@ import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -20,7 +19,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -34,9 +32,6 @@ public class UserController {
 
     @Inject
     private UserDAO userDAO;
-
-    @Context
-    private ContainerRequestContext requestContext;
 
     /**
      * This method will generate following output
@@ -362,8 +357,8 @@ public class UserController {
      */
     @GET
     @Path("/current")
-    @PermitAll
-    public Response getCurrent() {
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    public Response getCurrent(@Context ContainerRequestContext requestContext) {
 
         User u = userService.getCurrent(requestContext);
 
@@ -393,10 +388,10 @@ public class UserController {
      */
     @PUT
     @Path("/current")
-    @PermitAll
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response updateCurrent(UserRequest ui) {
+    public Response updateCurrent(UserRequest ui, @Context ContainerRequestContext requestContext) {
 
         String password = ui.getPassword().getValue();
 

@@ -55,7 +55,7 @@ public class NetworkController {
      * @param skip        offset, default 0
      */
     @GET
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response getNetworkList(@QueryParam("name") String name,
                                    @QueryParam("namePattern") String namePattern,
                                    @QueryParam("sortField") String sortField,
@@ -63,21 +63,26 @@ public class NetworkController {
                                    @QueryParam("take") Integer take,
                                    @QueryParam("skip") Integer skip) {
 
+        logger.debug("Network list requested");
+
         boolean sortOrderAsc = true;
 
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+            logger.debug("Unable to proceed network list request. Invalid sortOrder");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
         if ("DESC".equals(sortOrder)) {
             sortOrderAsc = false;
         }
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
+            logger.debug("Unable to proceed network list request. Invalid sortField");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
 
         List<Network> result = networkService.list(name, namePattern, sortField, sortOrderAsc, take,
                 skip);
 
+        logger.debug("Network list request proceed successfully.");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
 
@@ -96,15 +101,16 @@ public class NetworkController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
-    public Response getNetworkList(@PathParam("id") long id) {
-
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    public Response getNetwork(@PathParam("id") long id) {
+        logger.debug("Network get requested.");
         Network existing = networkService.getWithDevicesAndDeviceClasses(id);
 
         if (existing == null){
+            logger.debug("Network with id = " + id + "does not exists");
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
         }
-
+        logger.debug("Network get proceed successfully.");
         return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }
 
@@ -139,11 +145,12 @@ public class NetworkController {
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     public Response insert(NetworkRequest nr) {
-
+        logger.debug("Network insert requested");
         Network n = new Network();
 
         //TODO: if request if malformed this code will fall with NullPointerException
         if (nr.getName() == null || nr.getName().getValue()==null){
+            logger.debug("Unable to proceed network insert. Name field is required.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
         }
         n.setName(nr.getName().getValue());
@@ -154,14 +161,15 @@ public class NetworkController {
             n.setDescription(nr.getDescription().getValue());
         }
 
-        Network result = null;
+        Network result;
 
         try {
             result = networkService.insert(n);
         } catch (Exception ex) {
+            logger.debug("Unable to proceed network insert.", ex);
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network couldn't be created"));
         }
-
+        logger.debug("New network has been created");
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
 
@@ -195,11 +203,13 @@ public class NetworkController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response update(NetworkRequest nr, @PathParam("id") long id) {
 
+        logger.debug("Network update requested");
         nr.setId(id);
 
         Network n = networkService.getById(id);
 
         if (n == null){
+            logger.debug("Unable to update network. Network with id = " + id + " does not exists");
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
         }
 
@@ -216,7 +226,7 @@ public class NetworkController {
         }
 
         networkService.update(n);
-
+        logger.debug("Network has been updated successfully");
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
@@ -230,9 +240,9 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") long id) {
-
+        logger.debug("Network delete requested");
         networkService.delete(id);
-
+        logger.debug("Network with id = " + id + " does not exists any more.");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }
