@@ -135,7 +135,7 @@ public class DeviceController {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
-    public Response register(JsonObject jsonObject, @PathParam("id") String guid) {
+    public Response register(JsonObject jsonObject, @PathParam("id") String guid, @Context SecurityContext securityContext) {
 
         logger.debug("Device register method requested");
 
@@ -176,7 +176,8 @@ public class DeviceController {
             equipmentSet.remove(null);
         }
 
-        deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
+        HivePrincipal principal = ((HivePrincipal) securityContext.getUserPrincipal());
+        deviceService.deviceSave(device, equipmentSet, useExistingEquipment, principal);
 
         logger.debug("Device register finished successfully");
 
