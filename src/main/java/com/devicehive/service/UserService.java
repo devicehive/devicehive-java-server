@@ -168,11 +168,10 @@ public class UserService {
             throw new NotFoundException();
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
-        if (existingNetwork == null) {
-            throw new NotFoundException();
+        if (existingNetwork != null) {
+            existingNetwork.getUsers().remove(existingUser);
+            em.merge(existingNetwork);
         }
-        existingNetwork.getUsers().remove(existingUser);
-        em.merge(existingNetwork);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

@@ -164,7 +164,7 @@ public class UserController {
 
         User existingUser = userDAO.findUserWithNetworks(id);
         if (existingUser == null) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
+            throw new NotFoundException("User not found.");
         }
 
         for (Network network : existingUser.getNetworks()) {
@@ -175,7 +175,7 @@ public class UserController {
             }
         }
 
-        return ResponseFactory.response(Response.Status.NOT_FOUND);
+        throw new NotFoundException("User network not found.");
     }
 
     @PUT
@@ -186,7 +186,7 @@ public class UserController {
         try {
             userService.assignNetwork(id, networkId);
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User or network not found"));
+            throw new NotFoundException("User network not found.");
         }
 
         return ResponseFactory.response(Response.Status.CREATED);
@@ -197,11 +197,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
 
-        try {
-            userService.unassignNetwork(id, networkId);
-        } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User or network not found"));
-        }
+        userService.unassignNetwork(id, networkId);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
