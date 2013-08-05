@@ -69,10 +69,6 @@ public class Network implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
-    public Network() {
-
-    }
-
     public Long getId() {
         return id;
     }

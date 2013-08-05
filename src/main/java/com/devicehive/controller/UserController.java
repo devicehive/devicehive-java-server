@@ -31,8 +31,10 @@ public class UserController {
 
     @Inject
     private UserService userService;
+
     @Inject
     private UserDAO userDAO;
+
     @Context
     private ContainerRequestContext requestContext;
 
@@ -363,15 +365,13 @@ public class UserController {
     @PermitAll
     public Response getCurrent() {
 
-        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+        User u = userService.getCurrent(requestContext);
 
-        if (login == null) {
+        if (u == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Couldn't get current user."));
         }
 
-        User result = userService.findUserWithNetworksByLogin(login);
-
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USER_PUBLISHED);
+        return ResponseFactory.response(Response.Status.OK, u, JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     /**

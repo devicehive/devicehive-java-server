@@ -3,19 +3,21 @@ package com.devicehive.service;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.*;
 import com.devicehive.service.helpers.PasswordProcessor;
 
-import javax.ejb.*;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.NotFoundException;
-import java.sql.Timestamp;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 
@@ -46,7 +48,7 @@ public class UserService {
     @Inject
     private TimestampService timestampService;
 
-    /**
+   /**
      * Tries to authenticate with given credentials
      *
      * @param login
@@ -139,7 +141,7 @@ public class UserService {
     /**
      * Allows user access to given network
      *
-     * @param userId id of user
+     * @param userId    id of user
      * @param networkId id of network
      */
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
@@ -159,7 +161,8 @@ public class UserService {
 
     /**
      * Revokes user access to given network
-     * @param userId id of user
+     *
+     * @param userId    id of user
      * @param networkId id of network
      */
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
@@ -182,6 +185,7 @@ public class UserService {
 
     /**
      * retrieves user by login
+     *
      * @param login user login
      * @return User model, or null if there is no such user
      */
@@ -191,6 +195,7 @@ public class UserService {
 
     /**
      * Retrieves user by id (no networks fetched in this case)
+     *
      * @param id user id
      * @return User model without networks, or null if there is no such user
      */
@@ -201,6 +206,7 @@ public class UserService {
     /**
      * Retrieves user with networks by id, if there is no networks user hass access to
      * networks will be represented by empty set
+     *
      * @param id user id
      * @return User model with networks, or null, if there is no such user
      */
@@ -211,6 +217,7 @@ public class UserService {
     /**
      * Retrieves user with networks by id, if there is no networks user hass access to
      * networks will be represented by empty set
+     *
      * @param login user login
      * @return User model with networks, or null, if there is no such user
      */
@@ -220,9 +227,10 @@ public class UserService {
 
     /**
      * creates new user
-     * @param login user login
-     * @param role user role
-     * @param status user status
+     *
+     * @param login    user login
+     * @param role     user role
+     * @param status   user status
      * @param password password
      * @return User model of newly created user
      */
@@ -232,11 +240,26 @@ public class UserService {
 
     /**
      * Deletes user by id. deletion is cascade
+     *
      * @param id user id
      * @return true in case of success, false otherwise
      */
     public boolean deleteUser(long id) {
         return userDAO.delete(id);
+    }
+
+    /**
+     * @param  requestContext ContainerRequestContext from calling controller
+     * @return user, currently logged on
+     */
+    public User getCurrent(ContainerRequestContext requestContext){
+        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+
+        if (login == null) {
+            return null;
+        }
+
+        return findUserWithNetworksByLogin(login);
     }
 
 
