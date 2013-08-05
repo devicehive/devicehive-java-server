@@ -206,6 +206,12 @@ public class DeviceService {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         DeviceNotification notification = new DeviceNotification();
         if (existingDevice == null) {
+            if (device.getName() == null || device.getName().equals("")) {
+                throw new HiveException("Invalid request parameters.");
+            }
+            if (device.getDeviceClass() == null) {
+                throw new HiveException("Invalid request parameters.");
+            }
             existingDevice = deviceDAO.createDevice(device);
             notification.setNotification(SpecialNotifications.DEVICE_ADD);
         }

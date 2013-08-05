@@ -35,6 +35,7 @@ public class UserResponse implements HiveEntity {
     private Integer loginAttempts;
 
     @SerializedName("role")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserRole role;
 
     @SerializedName("status")

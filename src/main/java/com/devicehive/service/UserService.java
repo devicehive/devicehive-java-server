@@ -237,7 +237,7 @@ public class UserService {
      * @return true in case of success, false otherwise
      */
     public boolean deleteUser(long id) {
-        return userDAO.deleteUser(id);
+        return userDAO.delete(id);
     }
 
 
