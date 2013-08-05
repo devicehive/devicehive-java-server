@@ -108,7 +108,7 @@ public class UserService {
 
         User u = userDAO.findById(id);
         if (u == null) {
-            return null;
+            throw new NotFoundException("User not found.");
         }
         if (login != null) {
             u.setLogin(login);
