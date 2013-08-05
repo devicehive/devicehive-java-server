@@ -13,10 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,20 +74,27 @@ public class NetworkDAO {
         return query.executeUpdate() != 0;
     }
 
-    public List<Network> list(String name, String namePattern,
-                              String sortField, boolean sortOrderAsc,
-                              Integer take, Integer skip) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<Network> criteria = criteriaBuilder.createQuery(Network.class);
-        Root from = criteria.from(Network.class);
-        List<Predicate> predicates = new ArrayList<>();
+    public List<Network> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip, Long userId) {
 
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+
+        CriteriaQuery<Network> criteria = criteriaBuilder.createQuery(Network.class);
+
+        Root from = criteria.from(Network.class);
+
+
+        List<Predicate> predicates = new ArrayList<>();
         if (namePattern != null) {
             predicates.add(criteriaBuilder.like(from.get("name"), namePattern));
         } else {
             if (name != null) {
                 predicates.add(criteriaBuilder.equal(from.get("name"), name));
             }
+        }
+
+        if (userId != null) {
+            Join joinNetworkUsers = from.join("users");
+            predicates.add(criteriaBuilder.equal(joinNetworkUsers.get("id"), userId));
         }
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -123,7 +127,7 @@ public class NetworkDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Network> getByNameOrId(Long networkId, String networkName){
+    public List<Network> getByNameOrId(Long networkId, String networkName) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Network> networkCriteria = criteriaBuilder.createQuery(Network.class);
         Root fromNetwork = networkCriteria.from(Network.class);

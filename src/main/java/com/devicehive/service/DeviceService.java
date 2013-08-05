@@ -60,14 +60,14 @@ public class DeviceService {
     private UserDAO userDAO;
     private TimestampService timestampService;
 
-    public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment) {
+    public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment, HivePrincipal principal) {
         Device deviceToUpdate = device.convertTo();
 
         deviceToUpdate
                 .setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
         deviceToUpdate.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet,
                 device.getGuid().getValue(), useExistingEquipment));
-        createOrUpdateDevice(deviceToUpdate, device);
+        createOrUpdateDevice(deviceToUpdate, device, principal);
     }
 
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session session) {
@@ -111,7 +111,8 @@ public class DeviceService {
 
         if (deviceEquipment != null) {
             if (!deviceEquipmentDAO.update(deviceEquipment)) {
-                deviceEquipment.setTimestamp(timestampService.getTimestamp());
+                Timestamp ts = timestampService.getTimestamp();
+                deviceEquipment.setTimestamp(ts);
                 deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
             }
         }
@@ -182,6 +183,9 @@ public class DeviceService {
         }
         else {
             //create
+            if (deviceClassFromMessage.getId() != null){
+                throw new HiveException("Invalid request");
+            }
             deviceClassDAO.createDeviceClass(deviceClassFromMessage);
             if (!useExistingEquipment) {
                 updateEquipment(newEquipmentSet, deviceClassFromMessage);
@@ -202,7 +206,7 @@ public class DeviceService {
         }
     }
 
-    public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate) {
+    public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate, HivePrincipal principal) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         DeviceNotification notification = new DeviceNotification();
         if (existingDevice == null) {
@@ -216,6 +220,11 @@ public class DeviceService {
             notification.setNotification(SpecialNotifications.DEVICE_ADD);
         }
         else {
+            User currentUser = principal.getUser();
+            Device currentDevice = principal.getDevice();
+            if (currentDevice == null && currentUser == null) {
+                throw new HiveException("Unauthorixed.", 401);
+            }
             existingDevice.setDeviceClass(device.getDeviceClass());
             if (deviceUpdate.getStatus() != null) {
                 existingDevice.setStatus(device.getStatus());

@@ -5,6 +5,7 @@ import com.devicehive.model.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -30,6 +31,8 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
         if (exception.getCause() instanceof NotFoundException) {
             responseCode = Response.Status.NOT_FOUND;
             message = exception.getCause().getMessage();
+        } else if (exception instanceof NotAllowedException) {
+            responseCode = Response.Status.METHOD_NOT_ALLOWED;
         }
 
         return ResponseFactory.response(responseCode, new ErrorResponse(message));
