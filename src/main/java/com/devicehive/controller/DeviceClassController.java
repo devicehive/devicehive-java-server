@@ -68,12 +68,14 @@ public class DeviceClassController {
             @QueryParam("take") Integer take,
             @QueryParam("skip") Integer skip) {
 
-        logger.info("DeviceClass list requested");
+        logger.debug("DeviceClass list requested");
 
         boolean sortOrderAsc = true;
 
         if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+            logger.debug("DeviceClass list request failed. Bad request for sortOrder");
+            return ResponseFactory
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
 
         if ("DESC".equals(sortOrder)) {
@@ -81,12 +83,14 @@ public class DeviceClassController {
         }
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+            logger.debug("DeviceClass list request failed. Bad request for sortField");
+            return ResponseFactory
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
 
         List<DeviceClass> result = deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrderAsc, take, skip);
-        logger.info("DeviceClass list proceed result. Result list contains " + result.size() + " elems");
+        logger.debug("DeviceClass list proceed result. Result list contains " + result.size() + " elems");
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);
     }
@@ -105,16 +109,17 @@ public class DeviceClassController {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
     public Response getDeviceClass(@PathParam("id") long id) {
 
-        logger.info("Get device class by id requested");
+        logger.debug("Get device class by id requested");
 
         DeviceClass result = deviceClassService.getWithEquipment(id);
 
         if (result == null) {
             logger.info("No device class with id = " + id + "found");
-            return ResponseFactory.response( Response.Status.NOT_FOUND, new ErrorResponse("DeviceClass with id = " + id + " not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
 
-        logger.info("Requested device class found");
+        logger.debug("Requested device class found");
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED);
     }
@@ -126,14 +131,14 @@ public class DeviceClassController {
      *
      * @param insert In the request body, supply a DeviceClass resource.
      *               {
-     *                 "name" : "Device class display name. String."
-     *                  "version" : "Device class version. String."
-     *                  "isPermanent" : "Indicates whether device class is permanent. Permanent device classes could
-     *                  not be modified by devices during registration. Boolean."
-     *                  "offlineTimeout" : "If set, specifies inactivity timeout in seconds before the framework
-     *                  changes device status to 'Offline'. Device considered inactive when it does not send any
-     *                  notifications. Integer."
-     *                  "data" : "Device class data, a JSON object with an arbitrary structure."
+     *               "name" : "Device class display name. String."
+     *               "version" : "Device class version. String."
+     *               "isPermanent" : "Indicates whether device class is permanent. Permanent device classes could
+     *               not be modified by devices during registration. Boolean."
+     *               "offlineTimeout" : "If set, specifies inactivity timeout in seconds before the framework
+     *               changes device status to 'Offline'. Device considered inactive when it does not send any
+     *               notifications. Integer."
+     *               "data" : "Device class data, a JSON object with an arbitrary structure."
      *               }
      *               name, version and isPermanent are required fields
      * @return If successful, this method returns a DeviceClass resource in the response body.
@@ -143,18 +148,20 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertDeviceClass(DeviceClass insert) {
-        logger.info("Insert device class requested");
+        logger.debug("Insert device class requested");
         DeviceClass result;
 
         try {
             result = deviceClassService.addDeviceClass(insert);
         } catch (DuplicateEntryException ex) {
-            logger.info("Unable to insert device class. This device class is already exists");
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("DeviceClass couldn't be created"));
+            logger.debug("Unable to insert device class. This device class is already exists");
+            return ResponseFactory
+                    .response(Response.Status.FORBIDDEN, new ErrorResponse("DeviceClass couldn't be created"));
         } catch (HivePersistingException ex) {
+            logger.debug("Unable to insert device class. This device class is already exists");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ex.getMessage()));
         }
-        logger.info("Device class inserted");
+        logger.debug("Device class inserted");
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
     }
 
@@ -176,16 +183,16 @@ public class DeviceClassController {
             @PathParam("id") long id,
             @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
 
-        logger.info("Device class update requested");
+        logger.debug("Device class update requested");
         try {
             deviceClassService.update(id, insert);
         } catch (HiveException e) {
-            logger.info("Unable to update device class");
+            logger.debug("Unable to update device class");
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
-        logger.info("Device class updated");
+        logger.debug("Device class updated");
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
@@ -201,9 +208,9 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
-        logger.info("Device class delete requested");
+        logger.debug("Device class delete requested");
         deviceClassService.delete(id);
-        logger.info("Device class deleted");
+        logger.debug("Device class deleted");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -224,6 +231,7 @@ public class DeviceClassController {
      *       ]
      *
      * </code>
+     *
      * @param classId device class id
      * @param eqId equipment id
      * @return
@@ -232,21 +240,22 @@ public class DeviceClassController {
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        logger.info("Device class's equipment requested");
+        logger.debug("Device class's equipment get requested");
         Equipment result = equipmentDAO.getByDeviceClass(classId, eqId);
 
         if (result == null) {
-            logger.info("No equipment with id = " + eqId + " for device class with id = " + classId + " found");
+            logger.debug("No equipment with id = " + eqId + " for device class with id = " + classId + " found");
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("Equipment with id = " + eqId + " not found"));
         }
-        logger.info("Device class's equipment found");
+        logger.debug("Device class's equipment get proceed successfully");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
     }
 
     /**
      * Adds new equipment type to device class
+     *
      * @param classId device class id
      * @return
      */
@@ -255,9 +264,9 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment equipmentq) {
-        logger.info("Insert device class's equipment requested");
+        logger.debug("Insert device class's equipment requested");
         Equipment result = deviceClassService.createEquipment(classId, equipmentq);
-        logger.info("New device class's equipment created");
+        logger.debug("New device class's equipment created");
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED);
     }
 
@@ -266,23 +275,23 @@ public class DeviceClassController {
      * Parameters, if left unspecified, remains unchanged, instead setting parameter to
      * null will null corresponding value.
      * In following JSON
+     * <p/>
+     * name 	Equipment display name.
+     * code 	Equipment code. It's used to reference particular equipment and it should be unique within a device class.
+     * type 	Equipment type. An arbitrary string representing equipment capabilities.
+     * data 	Equipment data, a JSON object with an arbitrary structure.
+     * <p/>
+     * <code>
+     * {
+     * "name": "equipment name",
+     * "code": "equipment_code",
+     * "type": "equipment_type",
+     * "data": {/ * json object* /}
+     * }
+     * </code>
      *
-     *  name 	Equipment display name.
-     *  code 	Equipment code. It's used to reference particular equipment and it should be unique within a device class.
-     *  type 	Equipment type. An arbitrary string representing equipment capabilities.
-     *  data 	Equipment data, a JSON object with an arbitrary structure.
-     *
-     *  <code>
-     *  {
-     *   "name": "equipment name",
-     *   "code": "equipment_code",
-     *   "type": "equipment_type",
-     *   "data": {/ * json object* /}
-     *  }
-     *  </code>
-     *
-     * @param classId id of class
-     * @param eqId equipment id
+     * @param classId   id of class
+     * @param eqId      equipment id
      * @param equipment Json  object
      * @return empty response with status 201 in case of success, empty response with status 404, if there's no such record
      */
@@ -295,14 +304,17 @@ public class DeviceClassController {
             @PathParam("id") long eqId,
             @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) Equipment equipment) {
 
-        logger.info("Update device class's equipment requested");
+        logger.debug("Update device class's equipment requested");
 
         if (!equipmentDAO.update(equipment, eqId, classId)) {
-            return ResponseFactory.response( Response.Status.NOT_FOUND,
-                    new ErrorResponse("Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
+            logger.debug("Unable to update equipment. Equipment with id = " + eqId + " for device class with id = " +
+                    classId + " not found");
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse(
+                            "Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
         }
 
-        logger.info("Update device class's equipment finished");
+        logger.debug("Update device class's equipment finished successfully");
 
         return ResponseFactory.response(Response.Status.CREATED);
     }
@@ -312,7 +324,7 @@ public class DeviceClassController {
      * data for this equipment for all devise of this type.
      *
      * @param classId Device class id
-     * @param eqId Equipment id
+     * @param eqId    Equipment id
      * @return empty body, 204 if success, 404 if no record found
      */
     @DELETE
@@ -321,15 +333,9 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
 
-        logger.info("Delete device class's equipment requested");
-
-        if (!equipmentDAO.delete(eqId, classId)) {
-            return ResponseFactory.response(
-                    Response.Status.NOT_FOUND,
-                    new ErrorResponse("Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
-        }
-
-        logger.info("Delete device class's equipment finished");
+        logger.debug("Delete device class's equipment requested");
+        equipmentDAO.delete(eqId, classId);
+        logger.debug("Delete device class's equipment finished");
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }

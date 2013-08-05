@@ -20,7 +20,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -33,8 +32,7 @@ public class UserController {
     private UserService userService;
     @Inject
     private UserDAO userDAO;
-    @Context
-    private ContainerRequestContext requestContext;
+
 
     /**
      * This method will generate following output
@@ -361,7 +359,7 @@ public class UserController {
     @GET
     @Path("/current")
     @PermitAll
-    public Response getCurrent() {
+    public Response getCurrent(@Context ContainerRequestContext requestContext) {
 
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
@@ -396,7 +394,7 @@ public class UserController {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response updateCurrent(UserRequest ui) {
+    public Response updateCurrent(UserRequest ui, @Context ContainerRequestContext requestContext) {
 
         String password = ui.getPassword().getValue();
 
