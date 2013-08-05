@@ -65,9 +65,8 @@ public class NetworkService {
 
     public List<Network> list(String name, String namePattern,
                               String sortField, boolean sortOrder,
-                              Integer take, Integer skip) {
-        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip);
-
+                              Integer take, Integer skip, Long userId) {
+        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId);
     }
 
     public Network createOrVeriryNetwork(NullableWrapper<Network> network, UUID deviceGuid) {

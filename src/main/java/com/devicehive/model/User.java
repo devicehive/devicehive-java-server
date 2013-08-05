@@ -93,6 +93,13 @@ public class User implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
+    /**
+     * @return true, if user is admin
+     */
+    public boolean isAdmin(){
+        return UserRole.ADMIN.equals(role);
+    }
+
 
 
     public Long getId() {
