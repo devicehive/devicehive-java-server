@@ -112,7 +112,7 @@ public class DeviceCommandController {
      * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/{commandId}/poll")
     public Response wait(
             @PathParam("deviceGuid") String deviceGuid,
@@ -353,7 +353,7 @@ public class DeviceCommandController {
      * @param deviceCommand
      */
     @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand, @Context ContainerRequestContext requestContext) {
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();

@@ -55,7 +55,7 @@ public class NetworkController {
      * @param skip        offset, default 0
      */
     @GET
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response getNetworkList(@QueryParam("name") String name,
                                    @QueryParam("namePattern") String namePattern,
                                    @QueryParam("sortField") String sortField,
@@ -101,7 +101,7 @@ public class NetworkController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response getNetwork(@PathParam("id") long id) {
         logger.debug("Network get requested.");
         Network existing = networkService.getWithDevicesAndDeviceClasses(id);

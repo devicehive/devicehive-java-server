@@ -137,7 +137,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification/poll")
     public Response poll(
             @PathParam("deviceGuid") String deviceGuid,
@@ -180,7 +180,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/notification/poll")
     public Response pollMany(
             @QueryParam("deviceGuids") String deviceGuids,

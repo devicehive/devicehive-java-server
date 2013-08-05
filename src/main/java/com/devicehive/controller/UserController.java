@@ -12,7 +12,6 @@ import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -358,7 +357,7 @@ public class UserController {
      */
     @GET
     @Path("/current")
-    @PermitAll
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response getCurrent(@Context ContainerRequestContext requestContext) {
 
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
@@ -391,7 +390,7 @@ public class UserController {
      */
     @PUT
     @Path("/current")
-    @PermitAll
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public Response updateCurrent(UserRequest ui, @Context ContainerRequestContext requestContext) {
