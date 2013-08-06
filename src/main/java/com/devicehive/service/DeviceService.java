@@ -63,6 +63,7 @@ public class DeviceService {
     @Inject
     private UserDAO userDAO;
 
+    @Inject
     private TimestampService timestampService;
 
     public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
@@ -121,16 +122,18 @@ public class DeviceService {
 
     public void submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
         DeviceEquipment deviceEquipment = null;
+        Timestamp ts = timestampService.getTimestamp();
         if (notification.getNotification().equals("equipment")) {
             deviceEquipment = parseNotification(notification, device);
+            if (deviceEquipment.getTimestamp() == null){
+                deviceEquipment.setTimestamp(ts);
+            }
         }
-
         if (deviceEquipment != null && !deviceEquipmentDAO.update(deviceEquipment)) {
-            Timestamp ts = timestampService.getTimestamp();
             deviceEquipment.setTimestamp(ts);
             deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
         }
-
+        notification.setTimestamp(ts);
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
         messagePublisher.addMessageListener(
@@ -297,7 +300,12 @@ public class DeviceService {
             if (user.getRole().equals(UserRole.CLIENT)) {
                 User userWithNetworks = userDAO.findUserWithNetworks(user.getId());
                 Set<Network> networkSet = userWithNetworks.getNetworks();
-                return networkSet.contains(device.getNetwork());
+                for (Network network : networkSet){
+                    if (network.getId().equals(device.getNetwork().getId())){
+                        return true;
+                    }
+                }
+                return false;
             }
         }
         return true;

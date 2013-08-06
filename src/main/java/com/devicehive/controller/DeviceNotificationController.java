@@ -124,14 +124,18 @@ public class DeviceNotificationController {
         logger.debug("Device notification requested");
 
         DeviceNotification deviceNotification = notificationDAO.findById(notificationId);
+        if (deviceNotification == null){
+            throw new NotFoundException("Device notification with id : " + notificationId + " not found");
+        }
         String deviceGuidFromNotification = deviceNotification.getDevice().getGuid().toString();
         if (!deviceGuidFromNotification.equals(guid)) {
-            logger.debug("No device notifications found for device with guid = " + guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications found for device with guid = " + guid));
+            logger.debug("No device notifications found for device with guid : " + guid);
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
+                    "found for device with guid : " + guid));
         }
         if (!deviceService.checkPermissions(deviceNotification.getDevice(), (HivePrincipal) securityContext
                 .getUserPrincipal())) {
-            logger.debug("No permissions to get notifications for device with guid = " + guid);
+            logger.debug("No permissions to get notifications for device with guid : " + guid);
             return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse("Unauthorized"));
         }
         logger.debug("Device notification proceed successfully");
