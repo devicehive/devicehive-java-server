@@ -1,9 +1,11 @@
 package com.devicehive.service;
 
-import com.devicehive.configuration.Constants;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
-import com.devicehive.model.*;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.EJB;
@@ -11,13 +13,9 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 
@@ -28,13 +26,7 @@ import java.util.Set;
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
 
-    private static final int maxLoginAttempts = 10;
-    /**
-     * @deprecated we should remove entity manager from Service
-     */
-    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
-    @Deprecated
-    private EntityManager em;
+    private static final int MAX_LOGIN_ATTEMPTS = 10;
 
     @Inject
     private PasswordProcessor passwordService;
@@ -48,7 +40,7 @@ public class UserService {
     @Inject
     private TimestampService timestampService;
 
-   /**
+    /**
      * Tries to authenticate with given credentials
      *
      * @param login
@@ -62,7 +54,7 @@ public class UserService {
         }
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >= maxLoginAttempts) {
+            if (user.getLoginAttempts() >= MAX_LOGIN_ATTEMPTS) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
             return null;
@@ -156,7 +148,7 @@ public class UserService {
         Set<User> usersSet = existingNetwork.getUsers();
         usersSet.add(existingUser);
         existingNetwork.setUsers(usersSet);
-        em.merge(existingNetwork);
+        networkDAO.merge(existingNetwork);
     }
 
     /**
@@ -173,7 +165,7 @@ public class UserService {
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
         if (existingNetwork != null) {
             existingNetwork.getUsers().remove(existingUser);
-            em.merge(existingNetwork);
+            networkDAO.merge(existingNetwork);
         }
     }
 
@@ -249,10 +241,10 @@ public class UserService {
     }
 
     /**
-     * @param  requestContext ContainerRequestContext from calling controller
+     * @param requestContext ContainerRequestContext from calling controller
      * @return user, currently logged on
      */
-    public User getCurrent(ContainerRequestContext requestContext){
+    public User getCurrent(ContainerRequestContext requestContext) {
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
         if (login == null) {

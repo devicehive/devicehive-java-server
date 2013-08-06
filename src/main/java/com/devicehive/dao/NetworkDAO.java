@@ -24,6 +24,7 @@ public class NetworkDAO {
 
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     private static final Logger logger = LoggerFactory.getLogger(NetworkDAO.class);
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -75,6 +76,10 @@ public class NetworkDAO {
         query.setParameter("description", network.getDescription());
         query.setParameter("id", id);
         return query.executeUpdate() != 0;
+    }
+
+    public Network merge(@NotNull Network n) {
+        return em.merge(n);
     }
 
     public boolean delete(@NotNull Long id) {
