@@ -95,7 +95,6 @@ public class DeviceNotification implements Message, HiveEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
-    @JsonPolicyDef(NOTIFICATION_TO_CLIENT)
     private Device device;
 
     @Version

@@ -14,6 +14,7 @@ import com.devicehive.messages.bus.DeferredResponse;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.*;
+import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceService;
 import com.devicehive.utils.RestParametersConverter;
 import com.google.gson.Gson;
@@ -232,8 +233,9 @@ public class DeviceNotificationController {
 
         DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
                 MessageDetails.create().ids(ids).timestamp(timestamp).user(user));
-        List<DeviceNotification> response =
+        List<DeviceNotification> notifications =
                 MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
+        List<NotificationPollManyResponse> response = NotificationPollManyResponse.getList(notifications);
         logger.debug("Device notification pollMany proceed successfully");
         return ResponseFactory.response(Response.Status.OK, response, Policy.NOTIFICATION_TO_CLIENT);
     }

@@ -64,7 +64,7 @@ public class Device implements HiveEntity {
     @SerializedName("id")
     @Column
     @Type(type = "pg-uuid") //That's hibernate-specific and postgres-specific, ugly
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, NOTIFICATION_TO_CLIENT})
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private UUID guid;
 
     @SerializedName("key")
