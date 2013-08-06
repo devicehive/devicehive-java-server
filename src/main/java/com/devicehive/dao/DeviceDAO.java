@@ -122,10 +122,19 @@ public class DeviceDAO {
 
     @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> getList(String name, String namePattern, String status, Long networkId,
-                                String networkName, Long deviceClassId, String deviceClassName,
-                                String deviceClassVersion, String sortField,
-                                Boolean sortOrderAsc, Integer take, Integer skip, UserRole currentUserRole,
+    public List<Device> getList(String name,
+                                String namePattern,
+                                String status,
+                                Long networkId,
+                                String networkName,
+                                Long deviceClassId,
+                                String deviceClassName,
+                                String deviceClassVersion,
+                                String sortField,
+                                Boolean sortOrderAsc,
+                                Integer take,
+                                Integer skip,
+                                UserRole currentUserRole,
                                 Set<Network> allowedNetworks) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);

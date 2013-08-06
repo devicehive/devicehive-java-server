@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
@@ -125,7 +126,7 @@ public class DeviceService {
         Timestamp ts = timestampService.getTimestamp();
         if (notification.getNotification().equals("equipment")) {
             deviceEquipment = parseNotification(notification, device);
-            if (deviceEquipment.getTimestamp() == null){
+            if (deviceEquipment.getTimestamp() == null) {
                 deviceEquipment.setTimestamp(ts);
             }
         }
@@ -165,7 +166,7 @@ public class DeviceService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-            Set<Equipment> newEquipmentSet, UUID guid, boolean useExistingEquipment) {
+                                                 Set<Equipment> newEquipmentSet, UUID guid, boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
@@ -300,8 +301,8 @@ public class DeviceService {
             if (user.getRole().equals(UserRole.CLIENT)) {
                 User userWithNetworks = userDAO.findUserWithNetworks(user.getId());
                 Set<Network> networkSet = userWithNetworks.getNetworks();
-                for (Network network : networkSet){
-                    if (network.getId().equals(device.getNetwork().getId())){
+                for (Network network : networkSet) {
+                    if (network.getId().equals(device.getNetwork().getId())) {
                         return true;
                     }
                 }
@@ -309,6 +310,28 @@ public class DeviceService {
             }
         }
         return true;
+    }
+
+    public boolean deleteDevice(@NotNull UUID guid) {
+        return deviceDAO.deleteDevice(guid);
+    }
+
+    public List<Device> getList(String name,
+                                String namePattern,
+                                String status,
+                                Long networkId,
+                                String networkName,
+                                Long deviceClassId,
+                                String deviceClassName,
+                                String deviceClassVersion,
+                                String sortField,
+                                Boolean sortOrderAsc,
+                                Integer take,
+                                Integer skip,
+                                UserRole currentUserRole,
+                                Set<Network> allowedNetworks) {
+        return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUserRole, allowedNetworks);
     }
 
 }

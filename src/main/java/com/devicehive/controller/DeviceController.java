@@ -10,7 +10,9 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceCommandService;
+import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.UserService;
 import com.devicehive.utils.RestParametersConverter;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -42,19 +44,7 @@ public class DeviceController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
 
     @Inject
-    private DeviceDAO deviceDAO;
-
-    @Inject
-    private DeviceCommandDAO commandDAO;
-
-    @Inject
-    private DeviceNotificationDAO notificationDAO;
-
-    @Inject
-    private DeviceEquipmentDAO equipmentDAO;
-
-    @Inject
-    private DeviceEquipmentDAO deviceEquipmentDAO;
+    private DeviceEquipmentService deviceEquipmentService;
 
     @Inject
     private DeviceCommandService deviceCommandService;
@@ -63,7 +53,7 @@ public class DeviceController {
     private DeviceService deviceService;
 
     @Inject
-    private UserDAO userDAO;
+    private UserService userService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -114,8 +104,8 @@ public class DeviceController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         User currentUser = ((HivePrincipal)securityContext.getUserPrincipal()).getUser();
-        Set<Network> allowedNetworks = userDAO.findUserWithNetworksByLogin(currentUser.getLogin()).getNetworks();
-        List<Device> result = deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId,
+        Set<Network> allowedNetworks = userService.findUserWithNetworksByLogin(currentUser.getLogin()).getNetworks();
+        List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                 deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser.getRole(), allowedNetworks);
 
         logger.debug("Device list proceed result. Result list contains " + result.size() + " elems");
@@ -248,7 +238,8 @@ public class DeviceController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        deviceDAO.deleteDevice(deviceId);
+
+        deviceService.deleteDevice(deviceId);
 
         logger.debug("Device with id = " + guid + " deleted");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
@@ -307,7 +298,7 @@ public class DeviceController {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
 
-        List<DeviceEquipment> equipments = equipmentDAO.findByFK(device);
+        List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully");
         return ResponseFactory
