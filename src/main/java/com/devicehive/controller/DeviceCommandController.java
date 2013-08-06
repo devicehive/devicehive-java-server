@@ -108,7 +108,7 @@ public class DeviceCommandController {
 
         logger.debug("DeviceCommand poll proceed successfully");
 
-        return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
+        return ResponseFactory.response(Response.Status.OK, response);
     }
 
     /**
