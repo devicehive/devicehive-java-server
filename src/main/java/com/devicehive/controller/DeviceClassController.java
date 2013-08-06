@@ -13,6 +13,7 @@ import com.devicehive.model.Equipment;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
+import com.devicehive.utils.RestParametersConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,16 +71,11 @@ public class DeviceClassController {
 
         logger.debug("DeviceClass list requested");
 
-        boolean sortOrderAsc = true;
+        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
 
-        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+        if (sortOrder == null) {
             logger.debug("DeviceClass list request failed. Bad request for sortOrder");
-            return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
-        }
-
-        if ("DESC".equals(sortOrder)) {
-            sortOrderAsc = false;
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {

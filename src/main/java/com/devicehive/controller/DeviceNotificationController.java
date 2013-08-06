@@ -15,6 +15,7 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
+import com.devicehive.utils.RestParametersConverter;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -41,12 +42,16 @@ import java.util.List;
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
+
     @Inject
     private DeviceNotificationDAO notificationDAO;
+
     @Inject
     private DeviceDAO deviceDAO;
+
     @Inject
     private MessageBus messageBus;
+
     @Inject
     private DeviceService deviceService;
 
@@ -65,21 +70,23 @@ public class DeviceNotificationController {
 
         logger.debug("Device notification requested");
 
-        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
+
+        if (sortOrderAsc == null) {
             logger.debug("Device notification request failed. Bad request for sortOrder.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
-        boolean sortOrderAsc = true;
-        if ("DESC".equals(sortOrder)) {
-            sortOrderAsc = false;
-        }
+
+
         if (!"Timestamp".equals(sortField) && !"Notification".equals(sortField) && sortField != null) {
             logger.debug("Device notification request failed. Bad request for sortField.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
         }
+
         if (sortField == null) {
             sortField = "timestamp";
         }
+
         sortField = sortField.toLowerCase();
 
         Timestamp startTimestamp = null, endTimestamp = null;

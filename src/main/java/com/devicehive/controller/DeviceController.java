@@ -11,6 +11,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.utils.RestParametersConverter;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -42,18 +43,25 @@ public class DeviceController {
 
     @Inject
     private DeviceDAO deviceDAO;
+
     @Inject
     private DeviceCommandDAO commandDAO;
+
     @Inject
     private DeviceNotificationDAO notificationDAO;
+
     @Inject
     private DeviceEquipmentDAO equipmentDAO;
+
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
+
     @Inject
     private DeviceCommandService deviceCommandService;
+
     @Inject
     private DeviceService deviceService;
+
     @Inject
     private UserDAO userDAO;
 
@@ -93,16 +101,13 @@ public class DeviceController {
 
         logger.debug("Device list requested");
 
-        boolean sortOrderAsc = true;
+        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
 
-        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+        if (sortOrderAsc == null) {
             logger.debug("Device list request failed. ");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters"));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
-        if ("DESC".equals(sortOrder)) {
-            sortOrderAsc = false;
-        }
+
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,

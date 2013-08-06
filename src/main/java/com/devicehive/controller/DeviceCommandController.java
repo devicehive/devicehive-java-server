@@ -17,6 +17,7 @@ import com.devicehive.model.User;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
+import com.devicehive.utils.RestParametersConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -229,13 +230,13 @@ public class DeviceCommandController {
 
         logger.debug("Device command query requested");
 
-        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
+
+        if (sortOrderAsc == null) {
             logger.debug("Device command query failed. Bad request for sortOrder.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters"));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
 
-        boolean sortOrderAsc = !"DESC".equals(sortOrder);
 
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField != null) {
             logger.debug("Device command query failed. Bad request for sortField.");

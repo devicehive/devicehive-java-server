@@ -4,7 +4,11 @@ package com.devicehive.model;
  * Implements response object for error requests
  */
 public class ErrorResponse implements HiveEntity {
+
+    public static final String WRONG_SORT_ORDER_PARAM_MESSAGE = "Invalid request parameters, sort order can be 'ASC' or 'DESC' only";
+
     private Integer error = null;
+
     private String message = null;
 
     public Integer getError() {

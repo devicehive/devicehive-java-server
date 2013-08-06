@@ -8,6 +8,7 @@ import com.devicehive.model.User;
 import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
+import com.devicehive.utils.RestParametersConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,15 +74,11 @@ public class NetworkController {
 
         logger.debug("Network list requested");
 
-        boolean sortOrderAsc = true;
+        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
 
-        if (sortOrder != null && !sortOrder.equals("DESC") && !sortOrder.equals("ASC")) {
+        if (sortOrderAsc == null) {
             logger.debug("Unable to proceed network list request. Invalid sortOrder");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
-        }
-
-        if ("DESC".equals(sortOrder)) {
-            sortOrderAsc = false;
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
