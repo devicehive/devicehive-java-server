@@ -119,9 +119,10 @@ public class NetworkController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response getNetwork(@PathParam("id") long id) {
+    public Response getNetwork(@PathParam("id") long id, @Context ContainerRequestContext requestContext) {
         logger.debug("Network get requested.");
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id);
+
+        Network existing = networkService.getWithDevicesAndDeviceClasses(id, userService.getCurrent(requestContext));
 
         if (existing == null) {
             logger.debug("Network with id = " + id + "does not exists");

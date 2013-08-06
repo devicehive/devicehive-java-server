@@ -34,12 +34,21 @@ public class NetworkDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getWithDevicesAndDeviceClasses(@NotNull long id) {
-        ///Network.getWithDevicesAndDeviceClasses/
         TypedQuery<Network> query = em.createNamedQuery("Network.getWithDevicesAndDeviceClasses", Network.class);
         query.setParameter("id", id);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Network getWithDevicesAndDeviceClasses(@NotNull long id, long userId) {
+        TypedQuery<Network> query = em.createNamedQuery("Network.getWithDevicesAndDeviceClassesForUser", Network.class);
+        query.setParameter("id", id);
+        query.setParameter("userId", userId);
+        List<Network> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    }
+
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getById(@NotNull long id) {

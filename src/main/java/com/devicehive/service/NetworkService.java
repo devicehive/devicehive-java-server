@@ -4,6 +4,7 @@ import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.User;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -21,8 +22,13 @@ public class NetworkService {
         return networkDAO.getById(id);
     }
 
-    public Network getWithDevicesAndDeviceClasses(long id) {
-        return networkDAO.getWithDevicesAndDeviceClasses(id);
+    public Network getWithDevicesAndDeviceClasses(long id, User u) {
+        if (u.isAdmin()) {
+            return networkDAO.getWithDevicesAndDeviceClasses(id);
+        } else {
+            return networkDAO.getWithDevicesAndDeviceClasses(id, u.getId());
+        }
+
     }
 
     public boolean delete(long id) {
