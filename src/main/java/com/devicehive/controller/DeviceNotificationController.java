@@ -112,7 +112,8 @@ public class DeviceNotificationController {
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId) {
+    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
+                        @Context SecurityContext securityContext) {
 
         logger.debug("Device notification requested");
 
@@ -122,7 +123,11 @@ public class DeviceNotificationController {
             logger.debug("No device notifications found for device with guid = " + guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
-
+        if (!deviceService.checkPermissions(deviceNotification.getDevice(),(HivePrincipal) securityContext
+                .getUserPrincipal())){
+            logger.debug("No permissions to get notifications for device with guid = " + guid);
+            return ResponseFactory.response(Response.Status.UNAUTHORIZED);
+        }
         logger.debug("Device notification proceed successfully");
 
         return ResponseFactory.response(Response.Status.OK, deviceNotification, Policy.NOTIFICATION_TO_CLIENT);
@@ -154,7 +159,6 @@ public class DeviceNotificationController {
 
         Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
         if (device == null) {
-            logger.debug("Device notification poll finished with error. No device found with uuid = " + deviceGuid);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
@@ -167,7 +171,6 @@ public class DeviceNotificationController {
                 MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
         List<DeviceNotification> response =
                 MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
-        logger.debug("Device notification poll proceed successfully");
         return ResponseFactory.response(Response.Status.OK, response, Policy.NOTIFICATION_TO_CLIENT);
     }
 
@@ -180,7 +183,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/notification/poll")
     public Response pollMany(
             @QueryParam("deviceGuids") String deviceGuids,
@@ -242,5 +245,17 @@ public class DeviceNotificationController {
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
     }
 
-
+    private Device getDevice(String uuid) {
+        UUID deviceId;
+        try {
+            deviceId = UUID.fromString(uuid);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("unparseable guid: " + uuid);
+        }
+        Device device = deviceDAO.findByUUID(deviceId);
+        if (device == null) {
+            throw new NotFoundException("device with guid " + uuid + " not found");
+        }
+        return device;
+    }
 }

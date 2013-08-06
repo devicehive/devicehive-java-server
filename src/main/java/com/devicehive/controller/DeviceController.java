@@ -135,7 +135,7 @@ public class DeviceController {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
-    public Response register(JsonObject jsonObject, @PathParam("id") String guid) {
+    public Response register(JsonObject jsonObject, @PathParam("id") String guid, @Context SecurityContext securityContext) {
 
         logger.debug("Device register method requested");
 
@@ -176,12 +176,17 @@ public class DeviceController {
             equipmentSet.remove(null);
         }
 
-        deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
+        User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        Device currentDevice = ((HivePrincipal) securityContext.getUserPrincipal()).getDevice();
+        boolean isAllowedToUpdate = ((currentUser != null && currentUser.isAdmin()) || (currentDevice != null &&
+                currentDevice.getGuid().equals(deviceGuid)));
+        deviceService.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
 
         logger.debug("Device register finished successfully");
 
         return ResponseFactory.response(Response.Status.CREATED);
     }
+
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful

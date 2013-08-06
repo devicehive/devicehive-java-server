@@ -18,7 +18,7 @@ CREATE TABLE "user" (
     role INT NOT NULL,
     status INT NOT NULL,
     login_attempts INT NOT NULL,
-    last_login TIMESTAMP NULL,
+    last_login TIMESTAMP WITH TIME ZONE NULL,
     entity_version BIGINT NOT NULL DEFAULT 0
 );
 
@@ -68,7 +68,7 @@ ALTER TABLE device ADD CONSTRAINT device_guid_unique UNIQUE (guid);
 
 CREATE TABLE device_command (
     id BIGSERIAL NOT NULL,
-    timestamp TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     command VARCHAR(128) NOT NULL,
     parameters TEXT NULL,
     lifetime INT NULL,
@@ -87,7 +87,7 @@ ALTER TABLE device_command ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) R
 CREATE TABLE device_equipment (
     id BIGSERIAL NOT NULL,
     code VARCHAR(128) NOT NULL,
-    timestamp TIMESTAMP NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     parameters TEXT NULL,
     device_id BIGINT NOT NULL,
     entity_version BIGINT NOT NULL DEFAULT 0
@@ -99,7 +99,7 @@ ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_id_code_uniq
 
 CREATE TABLE device_notification (
     id BIGSERIAL NOT NULL,
-    timestamp TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     notification VARCHAR(128) NOT NULL,
     parameters TEXT NULL,
     device_id BIGINT NOT NULL,

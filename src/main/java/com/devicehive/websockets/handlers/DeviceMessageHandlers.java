@@ -29,8 +29,10 @@ import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -107,7 +109,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
-       
+
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -170,7 +172,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
         logger.debug("notification/insert ended for session " + session.getId());
-        
+
         return jsonObject;
     }
 
@@ -217,7 +219,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
         DeviceUpdate device = mainGson.fromJson(message.get("device"), DeviceUpdate.class);
-        logger.debug("check requered fields in device ");
+        logger.debug("check required fields in device ");
         deviceService.checkDevice(device);
         Gson gsonForEquipment = GsonFactory.createGson();
         boolean useExistingEquipment = message.getAsJsonObject("device").get("equipment") == null;
@@ -233,7 +235,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         uuidNullableWrapper.setValue(deviceId);
 
         device.setGuid(uuidNullableWrapper);
-        deviceService.deviceSave(device, equipmentSet, useExistingEquipment);
+        Device authorizedDevice = getDevice(session, message);
+        boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
+                .getValue());
+        deviceService.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")
                 .addRequestId(message.get("requestId"))

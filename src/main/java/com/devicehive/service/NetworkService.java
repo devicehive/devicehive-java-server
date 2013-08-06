@@ -95,6 +95,9 @@ public class NetworkService {
                     }
                 }
             } else {
+                if (update.getId() != null){
+                    throw new HiveException("Invalid request");
+                }
                 stored = networkDAO.createNetwork(update);
             }
             assert (stored != null);

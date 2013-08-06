@@ -50,6 +50,7 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
         input = input.trim();
         int pos = input.indexOf(".");
         String dateSeconds = pos >= 0 ? input.substring(0, pos) : input;
+
         Date date = getDateFormat().parse(dateSeconds);
 
         int microseconds = 0;
@@ -62,7 +63,8 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
             microseconds = Integer.parseInt(micro);
         }
 
-        Timestamp timestamp = new Timestamp(date.getTime());
+        Timestamp timestamp = new Timestamp(Timestamp.parse(date.toGMTString()));
+
         timestamp.setNanos(microseconds * 1000);
         return timestamp;
     }
