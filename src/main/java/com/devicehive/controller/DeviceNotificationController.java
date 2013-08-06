@@ -15,6 +15,7 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.*;
 import com.devicehive.model.response.NotificationPollManyResponse;
+import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.utils.RestParametersConverter;
 import com.google.gson.Gson;
@@ -44,11 +45,9 @@ public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
 
-    @Inject
-    private DeviceNotificationDAO notificationDAO;
 
     @Inject
-    private DeviceDAO deviceDAO;
+    private DeviceNotificationService notificationService;
 
     @Inject
     private MessageBus messageBus;
@@ -108,7 +107,7 @@ public class DeviceNotificationController {
         }
 
         Device device = deviceService.getDevice(guid, (HivePrincipal) securityContext.getUserPrincipal());
-        List<DeviceNotification> result = notificationDAO.queryDeviceNotification(device, startTimestamp,
+        List<DeviceNotification> result = notificationService.queryDeviceNotification(device, startTimestamp,
                 endTimestamp, notification, sortField, sortOrderAsc, take, skip);
 
         logger.debug("Device notification proceed successfully");
@@ -124,7 +123,7 @@ public class DeviceNotificationController {
 
         logger.debug("Device notification requested");
 
-        DeviceNotification deviceNotification = notificationDAO.findById(notificationId);
+        DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null){
             throw new NotFoundException("Device notification with id : " + notificationId + " not found");
         }
@@ -217,9 +216,9 @@ public class DeviceNotificationController {
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         List<Device> devices;
         if (user.getRole().equals(UserRole.ADMIN)) {
-            devices = deviceDAO.findByUUID(uuids);
+            devices = deviceService.findByUUID(uuids);
         } else {
-            devices = deviceDAO.findByUUIDListAndUser(user, uuids);
+            devices = deviceService.findByUUIDListAndUser(user, uuids);
         }
 
         List<Long> ids = new ArrayList<>(devices.size());

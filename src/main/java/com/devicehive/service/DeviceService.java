@@ -95,6 +95,14 @@ public class DeviceService {
         }
     }
 
+    public List<Device> findByUUID(List<UUID> list) {
+        return deviceDAO.findByUUID(list);
+    }
+
+    public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
+        return deviceDAO.findByUUIDListAndUser(user, list);
+    }
+
 
     public Device getDevice(String deviceGuid, HivePrincipal principal) {
 

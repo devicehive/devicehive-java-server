@@ -24,7 +24,7 @@ import com.devicehive.model.User;
 
 @Stateless
 public class DeviceNotificationDAO {
-    private static final Integer DEFAULT_TAKE = Integer.valueOf(1000);
+    private static final Integer DEFAULT_TAKE = 1000;
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -34,7 +34,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceNotification findById(Long id) {
+    public DeviceNotification findById(@NotNull long id) {
         return em.find(DeviceNotification.class, id);
     }
 
@@ -106,7 +106,7 @@ public class DeviceNotificationDAO {
         return resultQuery.getResultList();
     }
 
-    public boolean updateNotification(@NotNull Long id, DeviceNotification notification) {
+    public boolean updateNotification(@NotNull long id, DeviceNotification notification) {
         Query query = em.createNamedQuery("DeviceNotification.updateById");
         query.setParameter("parameters", notification.getParameters());
         query.setParameter("timestamp", notification.getTimestamp());
@@ -115,7 +115,7 @@ public class DeviceNotificationDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean deleteNotification(@NotNull Long id) {
+    public boolean deleteNotification(@NotNull long id) {
         Query query = em.createNamedQuery("DeviceNotification.deleteById");
         query.setParameter("id", id);
         return query.executeUpdate() != 0;
