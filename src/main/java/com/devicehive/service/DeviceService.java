@@ -32,7 +32,6 @@ import java.util.UUID;
 public class DeviceService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
-
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
     @Inject
@@ -114,7 +113,8 @@ public class DeviceService {
         }
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
-        messagePublisher.addMessageListener(new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, statefulNotifier));
+        messagePublisher.addMessageListener(
+                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, statefulNotifier));
         messagePublisher.publish(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, notification);
     }
 
@@ -125,8 +125,7 @@ public class DeviceService {
         JsonObject jsonEquipmentObject;
         if (parametersJsonElement instanceof JsonObject) {
             jsonEquipmentObject = (JsonObject) parametersJsonElement;
-        }
-        else {
+        } else {
             throw new HiveException("\"parameters\" must be JSON Object!");
         }
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
@@ -143,7 +142,8 @@ public class DeviceService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-            Set<Equipment> newEquipmentSet, UUID guid, boolean useExistingEquipment) {
+                                                 Set<Equipment> newEquipmentSet, UUID guid,
+                                                 boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
@@ -153,8 +153,7 @@ public class DeviceService {
         DeviceClass deviceClassFromMessage = deviceClass.getValue().convertTo();
         if (deviceClassFromMessage.getId() != null) {
             stored = deviceClassDAO.getDeviceClass(deviceClassFromMessage.getId());
-        }
-        else {
+        } else {
             stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClassFromMessage.getName(),
                     deviceClassFromMessage.getVersion());
         }
@@ -175,10 +174,9 @@ public class DeviceService {
                 }
             }
             return stored;
-        }
-        else {
+        } else {
             //create
-            if (deviceClassFromMessage.getId() != null){
+            if (deviceClassFromMessage.getId() != null) {
                 throw new HiveException("Invalid request");
             }
             deviceClassDAO.createDeviceClass(deviceClassFromMessage);
@@ -213,9 +211,8 @@ public class DeviceService {
             }
             existingDevice = deviceDAO.createDevice(device);
             notification.setNotification(SpecialNotifications.DEVICE_ADD);
-        }
-        else {
-            if (!isAllowedToUpdate){
+        } else {
+            if (!isAllowedToUpdate) {
                 throw new HiveException("Unauthorized. No permissions to update device", 401);
             }
             existingDevice.setDeviceClass(device.getDeviceClass());
@@ -286,4 +283,5 @@ public class DeviceService {
         }
         return true;
     }
+
 }

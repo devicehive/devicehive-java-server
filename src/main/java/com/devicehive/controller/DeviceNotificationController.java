@@ -13,9 +13,7 @@ import com.devicehive.messages.MessageType;
 import com.devicehive.messages.bus.DeferredResponse;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -31,6 +29,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.List;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -123,8 +122,8 @@ public class DeviceNotificationController {
             logger.debug("No device notifications found for device with guid = " + guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
-        if (!deviceService.checkPermissions(deviceNotification.getDevice(),(HivePrincipal) securityContext
-                .getUserPrincipal())){
+        if (!deviceService.checkPermissions(deviceNotification.getDevice(), (HivePrincipal) securityContext
+                .getUserPrincipal())) {
             logger.debug("No permissions to get notifications for device with guid = " + guid);
             return ResponseFactory.response(Response.Status.UNAUTHORIZED);
         }
@@ -157,10 +156,7 @@ public class DeviceNotificationController {
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
 
-        Device device = deviceDAO.findByUUID(UUID.fromString(deviceGuid));
-        if (device == null) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND);
-        }
+        Device device = deviceService.getDevice(deviceGuid, (HivePrincipal) securityContext.getUserPrincipal());
 
         Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
@@ -183,7 +179,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/notification/poll")
     public Response pollMany(
             @QueryParam("deviceGuids") String deviceGuids,
@@ -196,11 +192,23 @@ public class DeviceNotificationController {
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
         List<UUID> uuids = new ArrayList<>(guids.size());
-        for (String guid : guids) {
-            uuids.add(UUID.fromString(guid));
+        try {
+            for (String guid : guids) {
+                uuids.add(UUID.fromString(guid));
+            }
+        } catch (IllegalArgumentException e) {
+            logger.debug("Device notification pollMany failed. Unparseable guid.");
+            return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
-        List<Device> devices = deviceDAO.findByUUID(uuids);
+        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        List<Device> devices;
+        if (user.getRole().equals(UserRole.ADMIN)) {
+            devices = deviceDAO.findByUUID(uuids);
+        } else {
+            devices = deviceDAO.findByUUIDListAndUser(user, uuids);
+        }
+
         List<Long> ids = new ArrayList<>(devices.size());
         for (Device device : devices) {
             ids.add(device.getId());
@@ -209,7 +217,6 @@ public class DeviceNotificationController {
         Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
-        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
 
         DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
                 MessageDetails.create().ids(ids).timestamp(timestamp).user(user));
@@ -245,17 +252,4 @@ public class DeviceNotificationController {
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
     }
 
-    private Device getDevice(String uuid) {
-        UUID deviceId;
-        try {
-            deviceId = UUID.fromString(uuid);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("unparseable guid: " + uuid);
-        }
-        Device device = deviceDAO.findByUUID(deviceId);
-        if (device == null) {
-            throw new NotFoundException("device with guid " + uuid + " not found");
-        }
-        return device;
-    }
 }
