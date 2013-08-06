@@ -15,7 +15,6 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
 import com.devicehive.service.DeviceService;
 import com.google.gson.Gson;
@@ -26,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -114,7 +112,8 @@ public class DeviceNotificationController {
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId) {
+    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
+                        @Context SecurityContext securityContext) {
 
         logger.debug("Device notification requested");
 
@@ -124,7 +123,11 @@ public class DeviceNotificationController {
             logger.debug("No device notifications found for device with guid = " + guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND);
         }
-
+        if (!deviceService.checkPermissions(deviceNotification.getDevice(),(HivePrincipal) securityContext
+                .getUserPrincipal())){
+            logger.debug("No permissions to get notifications for device with guid = " + guid);
+            return ResponseFactory.response(Response.Status.UNAUTHORIZED);
+        }
         logger.debug("Device notification proceed successfully");
 
         return ResponseFactory.response(Response.Status.OK, deviceNotification, Policy.NOTIFICATION_TO_CLIENT);

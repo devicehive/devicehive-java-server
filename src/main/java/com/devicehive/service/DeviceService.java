@@ -268,7 +268,7 @@ public class DeviceService {
         }
     }
 
-    private boolean checkPermissions(Device device, HivePrincipal principal) {
+    public boolean checkPermissions(Device device, HivePrincipal principal) {
         if (principal.getDevice() != null) {
             if (!device.getGuid().equals(principal.getDevice().getGuid())) {
                 return false;

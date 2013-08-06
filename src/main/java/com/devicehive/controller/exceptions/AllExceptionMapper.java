@@ -5,12 +5,12 @@ import com.devicehive.model.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-import javax.ws.rs.NotFoundException;
 
 /**
  * @author Nikolay Loboda
@@ -23,13 +23,16 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception exception) {
-        logger.error("Error: ",exception);
+        logger.error("Error: ", exception);
 
         Response.Status responseCode = Response.Status.INTERNAL_SERVER_ERROR;
         String message = exception.getMessage();
 
         if (exception.getCause() instanceof NotFoundException) {
             responseCode = Response.Status.NOT_FOUND;
+            message = exception.getCause().getMessage();
+        } else if (exception.getCause() instanceof BadRequestException) {
+            responseCode = Response.Status.BAD_REQUEST;
             message = exception.getCause().getMessage();
         } else if (exception instanceof NotAllowedException) {
             responseCode = Response.Status.METHOD_NOT_ALLOWED;

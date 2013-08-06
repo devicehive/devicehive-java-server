@@ -236,7 +236,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
         device.setGuid(uuidNullableWrapper);
         Device authorizedDevice = getDevice(session, message);
-        boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid());
+        boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
+                .getValue());
         deviceService.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")
