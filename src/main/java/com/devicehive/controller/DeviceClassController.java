@@ -73,7 +73,7 @@ public class DeviceClassController {
 
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
 
-        if (sortOrder == null) {
+        if (sortOrderAsc == null) {
             logger.debug("DeviceClass list request failed. Bad request for sortOrder");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
