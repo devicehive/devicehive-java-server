@@ -52,6 +52,13 @@ public class DeviceDAO {
         query.setParameter("key", key);
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Device findByUUID(UUID uuid, Long userId) {
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDForUser", Device.class);
+        query.setParameter("uuid", uuid);
+        query.setParameter("userId", userId);
+        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
+    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {

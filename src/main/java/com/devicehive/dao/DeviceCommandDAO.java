@@ -130,7 +130,6 @@ public class DeviceCommandDAO {
         return query.getResultList();
     }
 
-    @SuppressWarnings("unchecked")
     public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip) {

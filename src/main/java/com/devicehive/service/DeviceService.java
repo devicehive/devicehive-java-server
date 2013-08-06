@@ -32,26 +32,37 @@ import java.util.UUID;
 public class DeviceService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
+
     @Inject
     private DeviceCommandDAO deviceCommandDAO;
+
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
+
     @Inject
     private MessageBroadcaster messagePublisher;
+
     @Inject
     private StatefulNotifier statefulNotifier;
+
     @Inject
     private DeviceClassDAO deviceClassDAO;
+
     @Inject
     private DeviceDAO deviceDAO;
+
     @Inject
     private EquipmentDAO equipmentDAO;
+
     @Inject
     private NetworkService networkService;
+
     @Inject
     private DeviceEquipmentDAO deviceEquipmentDAO;
+
     @Inject
     private UserDAO userDAO;
+
     private TimestampService timestampService;
 
     public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
@@ -74,7 +85,17 @@ public class DeviceService {
         messagePublisher.publish(MessageType.CLIENT_TO_DEVICE_COMMAND, command);
     }
 
+    public Device findByUUID(UUID uuid, User u) {
+        if (u.isAdmin()) {
+            return deviceDAO.findByUUID(uuid);
+        } else {
+            return deviceDAO.findByUUID(uuid, u.getId());
+        }
+    }
+
+
     public Device getDevice(String deviceGuid, HivePrincipal principal) {
+
         UUID deviceId;
 
         try {
@@ -104,13 +125,12 @@ public class DeviceService {
             deviceEquipment = parseNotification(notification, device);
         }
 
-        if (deviceEquipment != null) {
-            if (!deviceEquipmentDAO.update(deviceEquipment)) {
-                Timestamp ts = timestampService.getTimestamp();
-                deviceEquipment.setTimestamp(ts);
-                deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
-            }
+        if (deviceEquipment != null && !deviceEquipmentDAO.update(deviceEquipment)) {
+            Timestamp ts = timestampService.getTimestamp();
+            deviceEquipment.setTimestamp(ts);
+            deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
         }
+
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
         messagePublisher.addMessageListener(
@@ -142,8 +162,7 @@ public class DeviceService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-                                                 Set<Equipment> newEquipmentSet, UUID guid,
-                                                 boolean useExistingEquipment) {
+            Set<Equipment> newEquipmentSet, UUID guid, boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
