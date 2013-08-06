@@ -13,6 +13,7 @@ import com.devicehive.model.Equipment;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
+import com.devicehive.service.EquipmentService;
 import com.devicehive.utils.RestParametersConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +37,9 @@ public class DeviceClassController {
     @Inject
     private DeviceClassService deviceClassService;
 
-    @Inject
-    private EquipmentDAO equipmentDAO;
 
     @Inject
-    private DeviceClassDAO deviceClassDAO;
+    private EquipmentService equipmentService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/list"> DeviceHive RESTful API:
@@ -84,7 +83,7 @@ public class DeviceClassController {
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        List<DeviceClass> result = deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField,
+        List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrderAsc, take, skip);
         logger.debug("DeviceClass list proceed result. Result list contains " + result.size() + " elems");
 
@@ -237,7 +236,7 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
         logger.debug("Device class's equipment get requested");
-        Equipment result = equipmentDAO.getByDeviceClass(classId, eqId);
+        Equipment result = equipmentService.getByDeviceClass(classId, eqId);
 
         if (result == null) {
             logger.debug("No equipment with id = " + eqId + " for device class with id = " + classId + " found");
@@ -302,7 +301,7 @@ public class DeviceClassController {
 
         logger.debug("Update device class's equipment requested");
 
-        if (!equipmentDAO.update(equipment, eqId, classId)) {
+        if (!equipmentService.update(equipment, eqId, classId)) {
             logger.debug("Unable to update equipment. Equipment with id = " + eqId + " for device class with id = " +
                     classId + " not found");
             return ResponseFactory.response(Response.Status.NOT_FOUND,
@@ -330,7 +329,7 @@ public class DeviceClassController {
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
 
         logger.debug("Delete device class's equipment requested");
-        equipmentDAO.delete(eqId, classId);
+        equipmentService.delete(eqId, classId);
         logger.debug("Delete device class's equipment finished");
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);

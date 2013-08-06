@@ -1,7 +1,6 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.exceptions.dao.HivePersistingException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import org.slf4j.Logger;
@@ -19,6 +18,7 @@ import java.util.List;
 public class EquipmentDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -41,7 +41,7 @@ public class EquipmentDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Equipment getByDeviceClass(@NotNull Long deviceClassId, @NotNull Long equipmentId) {
+    public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
         Equipment e = em.find(Equipment.class, equipmentId);
         if (e == null || !e.getDeviceClass().getId().equals(deviceClassId)) {
             return null;
@@ -50,7 +50,7 @@ public class EquipmentDAO {
 
     }
 
-    public boolean update (@NotNull Equipment equipment, @NotNull Long equipmentId){
+    public boolean update (@NotNull Equipment equipment, @NotNull long equipmentId){
         Query query = em.createNamedQuery("Equipment.updateProperties");
         query.setParameter("id", equipmentId);
         query.setParameter("name", equipment.getName());
@@ -60,7 +60,7 @@ public class EquipmentDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean update (@NotNull Equipment equipment, @NotNull Long equipmentId, @NotNull Long deviceClassId){
+    public boolean update (@NotNull Equipment equipment, @NotNull long equipmentId, @NotNull long deviceClassId){
         Query query = em.createNamedQuery("Equipment.updatePropertiesUsingDeviceClass");
         query.setParameter("equipmentId", equipmentId);
         query.setParameter("deviceClassId", deviceClassId);
@@ -71,13 +71,13 @@ public class EquipmentDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean delete(@NotNull Long equipmentId){
+    public boolean delete(@NotNull long equipmentId){
         Query query =  em.createNamedQuery("Equipment.deleteById");
         query.setParameter("id", equipmentId);
         return query.executeUpdate() != 0;
     }
 
-    public boolean delete(@NotNull Long equipmentId, @NotNull Long deviceClassId){
+    public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId){
         Query query =  em.createNamedQuery("Equipment.deleteByIdAndDeviceClass");
         query.setParameter("id", equipmentId);
         query.setParameter("deviceClassId", deviceClassId);
@@ -88,7 +88,7 @@ public class EquipmentDAO {
      * @param id Equipment Id
      * @returns Equipment
      */
-    public Equipment get(@NotNull Long id) {
+    public Equipment get(@NotNull long id) {
         return em.find(Equipment.class, id);
     }
 

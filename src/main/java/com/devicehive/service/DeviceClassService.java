@@ -128,5 +128,9 @@ public class DeviceClassService {
         equipment.setDeviceClass(deviceClass);
         return equipmentDAO.create(equipment);
     }
+    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
+                       Boolean sortOrderAsc, Integer take, Integer skip) {
+        return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, sortOrderAsc, take, skip);
+    }
 
 }
