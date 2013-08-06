@@ -30,9 +30,6 @@ public class UserController {
     @Inject
     private UserService userService;
 
-    @Inject
-    private UserDAO userDAO;
-
     /**
      * This method will generate following output
      *
@@ -89,7 +86,7 @@ public class UserController {
         }
 
         //TODO validation for role and status
-        List<User> result = userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
+        List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
@@ -125,7 +122,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getUser(@PathParam("id") long id) {
 
-        User user = userDAO.findUserWithNetworks(id);
+        User user = userService.findUserWithNetworks(id);
 
         if (user == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
@@ -279,7 +276,8 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
 
-        User existingUser = userDAO.findUserWithNetworks(id);
+
+        User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
             throw new NotFoundException("User not found.");
         }
