@@ -120,12 +120,12 @@ public class DeviceNotificationController {
         String deviceGuidFromNotification = deviceNotification.getDevice().getGuid().toString();
         if (!deviceGuidFromNotification.equals(guid)) {
             logger.debug("No device notifications found for device with guid = " + guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND);
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications found for device with guid = " + guid));
         }
         if (!deviceService.checkPermissions(deviceNotification.getDevice(), (HivePrincipal) securityContext
                 .getUserPrincipal())) {
             logger.debug("No permissions to get notifications for device with guid = " + guid);
-            return ResponseFactory.response(Response.Status.UNAUTHORIZED);
+            return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse("Unauthorized"));
         }
         logger.debug("Device notification proceed successfully");
 
@@ -153,7 +153,8 @@ public class DeviceNotificationController {
 
         if (deviceGuid == null) {
             logger.debug("Device notification poll finished with error. No device guid specified");
-            return ResponseFactory.response(Response.Status.NOT_FOUND);
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device with guid = " +
+                    deviceGuid + " found"));
         }
 
         Device device = deviceService.getDevice(deviceGuid, (HivePrincipal) securityContext.getUserPrincipal());
@@ -244,7 +245,7 @@ public class DeviceNotificationController {
         if (device.getNetwork() == null) {
             logger.debug("DeviceNotification insert proceed with error. No network specified for device with guid = "
                     + guid);
-            return ResponseFactory.response(Response.Status.FORBIDDEN);
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
         deviceService.submitDeviceNotification(notification, device, null);
 
