@@ -20,7 +20,7 @@ public class ResponseFactory {
             responseBuilder.entity(entity, annotations);
         }
 
-        return responseBuilder.type(MediaType.APPLICATION_JSON).build();
+        return responseBuilder.type(MediaType.APPLICATION_JSON_TYPE).build();
     }
 
     public static Response response(Response.Status status, Object entity) {
