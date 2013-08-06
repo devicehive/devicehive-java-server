@@ -83,7 +83,7 @@ public class NetworkController {
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             logger.debug("Unable to proceed network list request. Invalid sortField");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         User u = userService.getCurrent(requestContext);
@@ -123,7 +123,7 @@ public class NetworkController {
 
         if (existing == null) {
             logger.debug("Network with id = " + id + "does not exists");
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
         logger.debug("Network get proceed successfully.");
         return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
@@ -165,7 +165,7 @@ public class NetworkController {
         //TODO: if request if malformed this code will fall with NullPointerException
         if (nr.getName() == null || nr.getName().getValue() == null) {
             logger.debug("Unable to proceed network insert. Name field is required.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         n.setName(nr.getName().getValue());
         if (nr.getKey() != null) {
@@ -224,7 +224,7 @@ public class NetworkController {
 
         if (n == null) {
             logger.debug("Unable to update network. Network with id = " + id + " does not exists");
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Network not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
 
         if (nr.getKey() != null) {

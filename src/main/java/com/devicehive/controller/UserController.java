@@ -81,7 +81,7 @@ public class UserController {
         }
 
         if (!"ID".equalsIgnoreCase(sortField) && !"Login".equalsIgnoreCase(sortField) && sortField != null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         //TODO validation for role and status
@@ -164,12 +164,12 @@ public class UserController {
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null
                 || user.getStatus() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         //nor we want these parameters to be null
         if (user.getLogin().getValue() == null || user.getPassword().getValue() == null
                 || user.getRole().getValue() == null || user.getStatus().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (userService.findByLogin(user.getLogin().getValue()) != null) {
@@ -218,19 +218,19 @@ public class UserController {
         }
 
         if (user.getLogin() != null && user.getLogin().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (user.getPassword() != null && user.getPassword().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (user.getRole() != null && user.getRole().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (user.getStatus() != null && user.getStatus().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         String loginValue = user.getLogin() == null ? null : user.getLogin().getValue();
@@ -398,7 +398,7 @@ public class UserController {
         String password = ui.getPassword().getValue();
 
         if (password == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();

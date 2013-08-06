@@ -75,13 +75,13 @@ public class DeviceClassController {
 
         if (sortOrder == null) {
             logger.debug("DeviceClass list request failed. Bad request for sortOrder");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters"));
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         List<DeviceClass> result = deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField,

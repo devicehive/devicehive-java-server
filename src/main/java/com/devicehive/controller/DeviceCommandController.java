@@ -241,7 +241,7 @@ public class DeviceCommandController {
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) && sortField != null) {
             logger.debug("Device command query failed. Bad request for sortField.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters"));
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (sortField == null) {
@@ -256,7 +256,7 @@ public class DeviceCommandController {
             if (startTimestamp == null) {
                 logger.debug("Device command query failed. Unparseable timestamp.");
                 return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                        new ErrorResponse("Invalid request parameters"));
+                        new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
             }
         }
 
@@ -265,7 +265,7 @@ public class DeviceCommandController {
             if (endTimestamp == null) {
                 logger.debug("Device command query failed. Unparseable timestamp.");
                 return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                        new ErrorResponse("Invalid request parameters"));
+                        new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
             }
         }
 
@@ -275,9 +275,9 @@ public class DeviceCommandController {
             device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         List<DeviceCommand> commandList = commandService.queryDeviceCommand(device, startTimestamp, endTimestamp, command,
@@ -321,9 +321,9 @@ public class DeviceCommandController {
             device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters."));
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
 
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
@@ -388,9 +388,9 @@ public class DeviceCommandController {
             device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters."));
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
 
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);

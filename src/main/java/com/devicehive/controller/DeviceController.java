@@ -111,7 +111,7 @@ public class DeviceController {
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters"));
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         User currentUser = ((HivePrincipal)securityContext.getUserPrincipal()).getUser();
         Set<Network> allowedNetworks = userDAO.findUserWithNetworksByLogin(currentUser.getLogin()).getNetworks();
@@ -150,7 +150,7 @@ public class DeviceController {
             deviceGuid = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters."));
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
@@ -167,7 +167,7 @@ public class DeviceController {
             deviceService.checkDevice(device);
         } catch (HiveException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters."));
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         Gson gsonForEquipment = GsonFactory.createGson();
@@ -215,9 +215,9 @@ public class DeviceController {
                     (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
 
         logger.debug("Device get proceed successfully");
@@ -245,7 +245,7 @@ public class DeviceController {
             deviceId = UUID.fromString(guid);
         } catch (IllegalArgumentException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse("Invalid request parameters"));
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         deviceDAO.deleteDevice(deviceId);
@@ -302,9 +302,9 @@ public class DeviceController {
                     (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse("Invalid request parameters."));
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Device not found."));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
 
         List<DeviceEquipment> equipments = equipmentDAO.findByFK(device);

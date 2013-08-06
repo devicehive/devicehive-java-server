@@ -5,7 +5,6 @@ import com.devicehive.controller.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.JsonSyntaxException;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
@@ -15,6 +14,6 @@ public class JsonSyntaxExceptionMapper implements ExceptionMapper<JsonSyntaxExce
 
     @Override
     public Response toResponse(JsonSyntaxException exception) {
-        return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse("JSON syntax error"));
+        return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.JSON_SYNTAX_ERROR_MESSAGE));
     }
 }
