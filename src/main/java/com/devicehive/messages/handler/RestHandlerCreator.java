@@ -14,15 +14,8 @@ public class RestHandlerCreator implements HandlerCreator {
 
     private final FutureTask<Void> futureTask;
 
-    public RestHandlerCreator(final AbstractStorage storage, final Object eventSource, final String subscriberId) {
-        futureTask = new FutureTask<Void>(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                logger.debug("Unsubscribing REST: {}, {}", eventSource, subscriberId);
-                storage.remove(eventSource, subscriberId);
-                return null;
-            }
-        });
+    public RestHandlerCreator() {
+        futureTask = new FutureTask<Void>(DUMMY_TASK, null);
     }
 
     public FutureTask<Void> getFutureTask() {
@@ -31,7 +24,13 @@ public class RestHandlerCreator implements HandlerCreator {
 
     @Override
     public Runnable getHandler(final JsonElement message) {
+        logger.debug("REST subscription notified");
         return futureTask;
     }
 
+    private static final Runnable DUMMY_TASK = new Runnable() {
+        @Override
+        public void run() {
+        }
+    };
 }

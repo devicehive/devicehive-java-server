@@ -216,12 +216,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("will subscribe device for commands : " + device.getGuid());
 
-            CommandSubscription commandSubscription = new CommandSubscription(device.getId(), session.getId(), new WebsocketHandlerCreator(session, asyncMessageDeliverer) {
-                @Override
-                protected Lock getSessionLock(Session session) {
-                    return WebsocketSession.getCommandsSubscriptionsLock(session);
-                }
-            });
+            CommandSubscription commandSubscription = new CommandSubscription(device.getId(), session.getId(),
+                    new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK, asyncMessageDeliverer));
             subscriptionManager.getCommandSubscriptionStorage().insert(commandSubscription);
 
 

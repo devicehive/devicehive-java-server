@@ -10,31 +10,29 @@ import javax.naming.InitialContext;
 import javax.websocket.Session;
 import java.util.concurrent.locks.Lock;
 
-public abstract class WebsocketHandlerCreator implements HandlerCreator{
+public class WebsocketHandlerCreator implements HandlerCreator {
 
     private static final Logger logger = LoggerFactory.getLogger(WebsocketHandlerCreator.class);
 
     private final Session session;
     private final AsyncMessageDeliverer deliverer;
+    private final Lock lock;
 
-    public WebsocketHandlerCreator(Session session, AsyncMessageDeliverer deliverer) {
+    public WebsocketHandlerCreator(Session session, String lockAttribute, AsyncMessageDeliverer deliverer) {
         this.session = session;
         this.deliverer = deliverer;
+        this.lock = (Lock) session.getUserProperties().get(lockAttribute);
     }
-
-    protected abstract Lock getSessionLock(Session session);
 
     @Override
     public Runnable getHandler(final JsonElement message) {
+        logger.debug("Websocket subscription notified");
         return new Runnable() {
             @Override
             public void run() {
-
                 if (!session.isOpen()) {
                     return;
                 }
-
-                Lock lock = getSessionLock(session);
                 try {
                     lock.lock();
                     logger.debug("Add messages to queue process for session " + session.getId());

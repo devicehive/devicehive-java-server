@@ -21,9 +21,9 @@ public class WebsocketSession {
     private static final Logger logger = LoggerFactory.getLogger(WebsocketSession.class);
     private static final String AUTHORISED_USER = "AUTHORISED_USER";
     private static final String AUTHORISED_DEVICE = "AUTHORISED_DEVICE";
-    private static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
-    private static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
-    private static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
+    public static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
+    public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
+    public static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
     private static final String QUEUE_LOCK = "QUEUE_LOCK";
     private static final String QUEUE = "QUEUE";
 

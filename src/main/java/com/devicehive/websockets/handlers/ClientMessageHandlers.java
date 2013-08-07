@@ -295,16 +295,12 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             List<NotificationSubscription> nsList = new ArrayList<>();
             if (devices != null) {
                 for (Device device : devices) {
-                    NotificationSubscription ns = new NotificationSubscription(user, device.getId(), session.getId(), new WebsocketHandlerCreator(session, asyncMessageDeliverer) {
-                        @Override
-                        protected Lock getSessionLock(Session session) {
-                            return WebsocketSession.getNotificationSubscriptionsLock(session);
-                        }
-                    });
+                    NotificationSubscription ns = new NotificationSubscription(user, device.getId(), session.getId(),
+                            new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK, asyncMessageDeliverer));
                     nsList.add(ns);
                 }
             }
-            subscriptionManager.getNotificationSubscriptionStorage().insert(nsList);
+            subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (!deviceNotifications.isEmpty()) {
                 for (DeviceNotification deviceNotification : deviceNotifications) {
                     logger.debug("This device notification will be added to queue: " + deviceNotification +
@@ -366,7 +362,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             for (Device device : devices) {
                 subs.add(ImmutablePair.of(device.getId(), session.getId()));
             }
-            subscriptionManager.getNotificationSubscriptionStorage().remove(subs);
+            subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);
             checkDevicesAndGuidsList(devices, list, false);
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();

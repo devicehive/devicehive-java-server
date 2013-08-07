@@ -185,14 +185,14 @@ public class DeviceNotificationController {
             logger.debug("Waiting for command");
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator(storage, device.getId(), reqId);
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             NotificationSubscription notificationSubscription =
                 new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
-            storage.insert(notificationSubscription);
-            SimpleWait.waitFor(restHandlerCreator.getFutureTask(), timeout);
-            storage.remove(notificationSubscription);
+
+            if (SimpleWaiter.subscribeAndWait(storage, notificationSubscription, restHandlerCreator.getFutureTask(), timeout)) {
+                list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
+            }
         }
-        list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
 
         return ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
     }
@@ -260,23 +260,23 @@ public class DeviceNotificationController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,
                            @Context SecurityContext securityContext) {
-        logger.debug("DeviceNotification insert requested");
+        logger.debug("DeviceNotification insertAll requested");
 
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE);
         DeviceNotification notification = gson.fromJson(jsonObject, DeviceNotification.class);
         if (notification == null || notification.getNotification() == null) {
-            logger.debug("DeviceNotification insert proceed with error. Bad notification: notification is required.");
+            logger.debug("DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         Device device = deviceService.getDevice(guid, (HivePrincipal) securityContext.getUserPrincipal());
         if (device.getNetwork() == null) {
-            logger.debug("DeviceNotification insert proceed with error. No network specified for device with guid = "
+            logger.debug("DeviceNotification insertAll proceed with error. No network specified for device with guid = "
                     + guid);
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
         deviceService.submitDeviceNotification(notification, device, null);
 
-        logger.debug("DeviceNotification insert proceed successfully");
+        logger.debug("DeviceNotification insertAll proceed successfully");
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
     }
 

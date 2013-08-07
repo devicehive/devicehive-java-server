@@ -92,12 +92,8 @@ public class DeviceService {
         deviceCommandDAO.createCommand(command);
         if (session != null) {
             CommandUpdateSubscription commandUpdateSubscription =
-                new CommandUpdateSubscription(command.getId(),session.getId(), new WebsocketHandlerCreator(session, asyncMessageDeliverer){
-                    @Override
-                    protected Lock getSessionLock(Session session) {
-                        return WebsocketSession.getCommandUpdatesSubscriptionsLock(session);
-                    }
-                });
+                new CommandUpdateSubscription(command.getId(),session.getId(),
+                        new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK, asyncMessageDeliverer));
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
             globalMessageBus.publishDeviceCommand(command);
         }

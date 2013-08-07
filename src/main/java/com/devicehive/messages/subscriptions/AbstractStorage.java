@@ -5,6 +5,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,12 @@ public class AbstractStorage<E, T extends Subscription<E>> {
 
     private ConcurrentMap<Pair<E, String>, T> byPair = new ConcurrentHashMap<>();
 
+
+    public synchronized void insertAll(Collection<T> coll) {
+        for (T t : coll) {
+            insert(t);
+        }
+    }
 
     public synchronized void insert(T subscription) {
         Set<T> set = byEventSource.get(subscription.getEventSource());
@@ -46,6 +53,19 @@ public class AbstractStorage<E, T extends Subscription<E>> {
     public synchronized void remove(T subscription) {
         remove(subscription.getEventSource(), subscription.getSubscriberId());
     }
+
+    public synchronized void removeAll(Collection<T> coll) {
+        for (T t : coll) {
+            remove(t);
+        }
+    }
+
+    public synchronized void removePairs(Collection<Pair<E,String>> coll) {
+        for (Pair<E,String> pair : coll) {
+            remove(pair.getKey(), pair.getValue());
+        }
+    }
+
 
     public synchronized void remove(E eventSource, String subscriberId) {
         T sub = byPair.remove(ImmutablePair.of(eventSource, subscriberId));

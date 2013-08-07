@@ -5,7 +5,7 @@ import com.devicehive.messages.handler.HandlerCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class Subscription<EventSource> {
+public abstract class Subscription<EventSource> {
 
     private static final Logger logger = LoggerFactory.getLogger(Subscription.class);
 

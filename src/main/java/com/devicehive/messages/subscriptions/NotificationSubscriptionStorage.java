@@ -11,17 +11,6 @@ public class NotificationSubscriptionStorage extends AbstractStorage<Long, Notif
         return get(id);
     }
 
-    public synchronized void insert(Collection<NotificationSubscription> coll) {
-        for (NotificationSubscription ns : coll) {
-            insert(ns);
-        }
-    }
-
-    public synchronized void remove(Collection<Pair<Long,String>> coll) {
-        for (Pair<Long,String> pair : coll) {
-            remove(pair.getKey(), pair.getValue());
-        }
-    }
 
     public synchronized void removeBySession(String sessionId) {
         removeBySubscriber(sessionId);

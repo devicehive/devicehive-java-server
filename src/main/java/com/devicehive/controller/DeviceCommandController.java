@@ -107,14 +107,15 @@ public class DeviceCommandController {
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator(storage, device.getId(), reqId);
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             CommandSubscription commandSubscription =
                 new CommandSubscription(device.getId(), reqId, restHandlerCreator);
-            storage.insert(commandSubscription);
-            SimpleWait.waitFor(restHandlerCreator.getFutureTask(), timeout);
-            storage.remove(commandSubscription);
+
+
+            if (SimpleWaiter.subscribeAndWait(storage,commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
+                list = deviceCommandDAO.getNewerThan(device, timestamp);
+            }
         }
-        list = deviceCommandDAO.getNewerThan(device, timestamp);
 
         logger.debug("DeviceCommand poll proceed successfully");
 
@@ -174,14 +175,15 @@ public class DeviceCommandController {
         if (command.getEntityVersion() == 0) {
             CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator(storage, command.getId(), reqId);
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             CommandUpdateSubscription commandSubscription =
                 new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
-            storage.insert(commandSubscription);
-            SimpleWait.waitFor(restHandlerCreator.getFutureTask(), timeout);
-            storage.remove(commandSubscription);
+
+
+            if (SimpleWaiter.subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
+                command = commandService.findById(commandId);
+            }
         }
-        command = commandService.findById(commandId);
 
 
         DeviceCommand response = command.getEntityVersion() > 0 ? command : null;
@@ -413,7 +415,7 @@ public class DeviceCommandController {
 
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
 
-        logger.debug("Device command insert proceed successfully");
+        logger.debug("Device command insertAll proceed successfully");
 
         return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.POST_COMMAND_TO_DEVICE);
     }
