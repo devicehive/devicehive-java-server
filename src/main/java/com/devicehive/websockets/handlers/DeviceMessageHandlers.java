@@ -151,7 +151,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) {
-        logger.debug("command update action started for session : " + session.getId());
+        logger.debug("command update action started for session : {{}",  session.getId());
         DeviceCommand update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
                 .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
         if (message.get("commandId") == null) {
@@ -221,19 +221,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             subscriptionManager.getCommandSubscriptionStorage().insert(commandSubscription);
 
 
-            logger.debug("will get commands newer than : " + timestamp);
+            logger.debug("will get commands newer than : {}", timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
-                logger.debug("will add command to queue : " + deviceCommand.getId());
+                logger.debug("will add command to queue : {}",  deviceCommand.getId());
                 WebsocketSession
                         .addMessagesToQueue(session, ServerResponsesFactory.createCommandInsertMessage(deviceCommand));
             }
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
         }
-        logger.debug("deliver messages for session " + session.getId());
+        logger.debug("deliver messages for session {}", session.getId());
         asyncMessageDeliverer.deliverMessages(session);
-        logger.debug("command subscribe ended for session : " + session.getId());
+        logger.debug("command subscribe ended for session : {}",  session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -264,7 +264,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Device device = getDevice(session, message);
-        logger.debug("command/unsubscribe for device" + device.getGuid());
+        logger.debug("command/unsubscribe for device {}", device.getGuid());
         subscriptionManager.getCommandSubscriptionStorage().remove(device.getId(), session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
@@ -300,23 +300,22 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *           }
      *         }
      *         </pre>
-     * @throws JMSException
      */
     @Action(value = "notification/insert")
     public JsonObject processNotificationInsert(JsonObject message, Session session)  {
-        logger.debug("notification/insert started for session " + session.getId());
+        logger.debug("notification/insert started for session {} ", session.getId());
         DeviceNotification deviceNotification = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE)
                 .fromJson(message.get("notification"), DeviceNotification.class);
         if (deviceNotification == null || deviceNotification.getNotification() == null) {
             throw new HiveException("Notification is empty!");
         }
         Device device = getDevice(session, message);
-        logger.debug("process submit device notification started for deviceNotification : " + deviceNotification
+        logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
         deviceService.submitDeviceNotification(deviceNotification, device, session);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
-        logger.debug("notification/insert ended for session " + session.getId());
+        logger.debug("notification/insert ended for session {} ", session.getId());
 
         return jsonObject;
     }
@@ -350,7 +349,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
-        logger.debug("server/info action started. Session " + session.getId());
+        logger.debug("server/info action started. Session {} ", session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
@@ -364,7 +363,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("info", gson.toJsonTree(apiInfo))
                 .build();
-        logger.debug("server/info action completed. Session " + session.getId());
+        logger.debug("server/info action completed. Session {} ", session.getId());
         return jsonObject;
     }
 
@@ -465,7 +464,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "device/save", needsAuth = false)
     public JsonObject processDeviceSave(JsonObject message, Session session) {
-        logger.debug("device/save process started for session" + session.getId());
+        logger.debug("device/save process started for session {}", session.getId());
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
         if (deviceId == null) {
             throw new HiveException("Device ID is undefined!");
@@ -499,7 +498,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                 .addAction("device/save")
                 .addRequestId(message.get("requestId"))
                 .build();
-        logger.debug("device/save process ended for session" + session.getId());
+        logger.debug("device/save process ended for session  {}",  session.getId());
         return jsonResponseObject;
     }
 

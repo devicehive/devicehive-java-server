@@ -36,7 +36,7 @@ public class ClientEndpoint extends Endpoint {
 
     @OnOpen
     public void onOpen(Session session) {
-        logger.debug("[onOpen] session id " + session.getId());
+        logger.debug("[onOpen] session id {} ", session.getId());
         WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
         WebsocketSession.createNotificationSubscriptionsLock(session);
         WebsocketSession.createQueueLock(session);
@@ -45,13 +45,13 @@ public class ClientEndpoint extends Endpoint {
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public String onMessage(String rawMessage, Session session) throws InvocationTargetException, IllegalAccessException {
-        logger.debug("[onMessage] session id " + session.getId());
+        logger.debug("[onMessage] session id {} ", session.getId());
         return new GsonBuilder().setPrettyPrinting().create().toJson(processMessage(clientMessageHandlers, rawMessage, session));
     }
 
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
-        logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
+        logger.debug("[onClose] session id {}, close reason is {} ", session.getId(), closeReason);
         subscriptionManager.getCommandUpdateSubscriptionStorage().removeBySession(session.getId());
         subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
     }
