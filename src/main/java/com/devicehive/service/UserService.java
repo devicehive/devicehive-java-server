@@ -50,7 +50,7 @@ public class UserService {
      * @return User object if authentication is successful or null if not
      */
     public User authenticate(String login, String password) {
-        User user = userDAO.findActiveByName(login);
+        User user = userDAO.findByLogin(login);
         if (user == null) {
             return null;
         }
@@ -62,7 +62,7 @@ public class UserService {
             return null;
         } else {
             user.setLoginAttempts(0);
-            if (System.currentTimeMillis() - user.getLastLogin().getTime() > LAST_LOGIN_TIMEOUT) {
+            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > LAST_LOGIN_TIMEOUT) {
                 user.setLastLogin(timestampService.getTimestamp());
             }
             return user;

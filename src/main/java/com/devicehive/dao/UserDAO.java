@@ -13,10 +13,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -46,16 +43,11 @@ public class UserDAO {
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
         query.setParameter("login", login);
+        query.setHint("org.hibernate.cacheable", true);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
     }
 
-    public User findActiveByName(@NotNull String login){
-        TypedQuery<User> query = em.createNamedQuery("User.findActiveByName", User.class);
-        query.setParameter("login", login);
-        List<User> list = query.getResultList();
-        return list.isEmpty() ? null : list.get(0);
-    }
 
     /**
      *

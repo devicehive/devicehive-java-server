@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 @NamedQueries({
         @NamedQuery(name = "ServerTimestamp.get", query="select st from ServerTimestamp st")
 })
+@Cacheable(false)
 public class ServerTimestamp {
 
     @Id

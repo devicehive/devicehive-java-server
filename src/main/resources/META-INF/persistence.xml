@@ -17,6 +17,7 @@
         <class>com.devicehive.model.Network</class>
         <class>com.devicehive.model.ServerTimestamp</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
         <validation-mode>AUTO</validation-mode>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL82Dialect"/>
@@ -24,26 +25,14 @@
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.transaction.jta.platform" value="org.hibernate.engine.transaction.jta.platform.internal.SunOneJtaPlatform" />
+            <property name="hibernate.cache.region.factory_class" value="org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory"/>
+            <property name="hibernate.cache.use_second_level_cache" value="true"/>
+            <property name="hibernate.cache.use_query_cache" value="true"/>
         </properties>
     </persistence-unit>
 
 
-    <persistence-unit name="devicehiveEmbedded" transaction-type="JTA">
-        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-        <jta-data-source>java:global/jdbc/DeviceHiveEmbeddedDataSource</jta-data-source>
 
-        <class>com.devicehive.messages.data.subscriptions.model.CommandsSubscription</class>
-        <class>com.devicehive.messages.data.subscriptions.model.CommandUpdatesSubscription</class>
-        <class>com.devicehive.messages.data.subscriptions.model.NotificationsSubscription</class>
-        <exclude-unlisted-classes>true</exclude-unlisted-classes>
-        <properties>
-            <property name="hibernate.dialect" value="org.hibernate.dialect.DerbyTenSevenDialect"/>
-            <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
-            <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.transaction.jta.platform" value="org.hibernate.engine.transaction.jta.platform.internal.SunOneJtaPlatform" />
-        </properties>
-    </persistence-unit>
 
 
 </persistence>

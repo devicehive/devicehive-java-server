@@ -39,7 +39,7 @@ import com.google.gson.annotations.SerializedName;
 
         @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
 })
-
+@Cacheable
 public class User implements HiveEntity {
 
     @Id
