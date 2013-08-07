@@ -2,7 +2,6 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -29,8 +28,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 
@@ -42,16 +43,12 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISH
 public class DeviceController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
-
     @Inject
     private DeviceEquipmentService deviceEquipmentService;
-
     @Inject
     private DeviceCommandService deviceCommandService;
-
     @Inject
     private DeviceService deviceService;
-
     @Inject
     private UserService userService;
 
@@ -95,7 +92,8 @@ public class DeviceController {
 
         if (sortOrderAsc == null) {
             logger.debug("Device list request failed. ");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
 
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
@@ -103,10 +101,11 @@ public class DeviceController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-        User currentUser = ((HivePrincipal)securityContext.getUserPrincipal()).getUser();
+        User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         Set<Network> allowedNetworks = userService.findUserWithNetworksByLogin(currentUser.getLogin()).getNetworks();
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser.getRole(), allowedNetworks);
+                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser.getRole(),
+                allowedNetworks);
 
         logger.debug("Device list proceed result. Result list contains " + result.size() + " elems");
 
@@ -130,7 +129,8 @@ public class DeviceController {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
-    public Response register(JsonObject jsonObject, @PathParam("id") String guid, @Context SecurityContext securityContext) {
+    public Response register(JsonObject jsonObject, @PathParam("id") String guid,
+                             @Context SecurityContext securityContext) {
 
         logger.debug("Device register method requested");
 
@@ -205,9 +205,11 @@ public class DeviceController {
                     (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    .response(Response.Status.BAD_REQUEST,
+                            new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
 
         logger.debug("Device get proceed successfully");
@@ -293,9 +295,11 @@ public class DeviceController {
                     (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
         } catch (BadRequestException e) {
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    .response(Response.Status.BAD_REQUEST,
+                            new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } catch (NotFoundException e) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
 
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);

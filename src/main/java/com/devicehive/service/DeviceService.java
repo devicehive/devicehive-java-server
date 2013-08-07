@@ -25,6 +25,7 @@ import javax.websocket.Session;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -96,10 +97,16 @@ public class DeviceService {
     }
 
     public List<Device> findByUUID(List<UUID> list) {
+        if (list.size() == 0){
+            return new ArrayList<>(0);
+        }
         return deviceDAO.findByUUID(list);
     }
 
     public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
+        if (list.size() == 0){
+           return new ArrayList<>(0);
+        }
         return deviceDAO.findByUUIDListAndUser(user, list);
     }
 

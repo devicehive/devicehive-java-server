@@ -2,8 +2,6 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.dao.DeviceDAO;
-import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -136,7 +134,7 @@ public class DeviceNotificationController {
         if (!deviceService.checkPermissions(deviceNotification.getDevice(), (HivePrincipal) securityContext
                 .getUserPrincipal())) {
             logger.debug("No permissions to get notifications for device with guid : " + guid);
-            return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse("Unauthorized"));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No notifications found "));
         }
         logger.debug("Device notification proceed successfully");
 
