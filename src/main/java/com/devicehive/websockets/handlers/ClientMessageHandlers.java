@@ -426,12 +426,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        Configuration webSocketServerUrl = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
-        if (webSocketServerUrl == null) {
-            logger.error("Websocket server url isn't set!");
-            throw new HiveException("Websocket server url isn't set!");
+        Configuration url = configurationDAO.findByName(Constants.REST_SERVER_URL);
+        if (url != null) {
+            apiInfo.setRestServerUrl(url.getValue());
         }
-        apiInfo.setWebSocketServerUrl(webSocketServerUrl.getValue());
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("info", gson.toJsonTree(apiInfo))
                 .build();

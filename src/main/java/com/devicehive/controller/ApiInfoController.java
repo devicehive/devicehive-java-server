@@ -1,7 +1,10 @@
 package com.devicehive.controller;
 
+import com.devicehive.configuration.Constants;
+import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiInfo;
+import com.devicehive.model.Configuration;
 import com.devicehive.model.Version;
 import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
@@ -24,10 +27,10 @@ public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
 
     @EJB
-    private UserService userService;
+    private TimestampService timestampService;
 
     @EJB
-    private TimestampService timestampService;
+    private ConfigurationDAO configurationDAO;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -37,6 +40,10 @@ public class ApiInfoController {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
+        Configuration url = configurationDAO.findByName(Constants.WEBSOCKET_SERVER_URL);
+        if (url != null) {
+            apiInfo.setWebSocketServerUrl(url.getValue());
+        }
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
 }

@@ -18,10 +18,10 @@ public class ApiInfo implements HiveEntity {
     @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
     private Timestamp serverTimestamp;
 
-    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
+    @JsonPolicyDef(REST_SERVER_INFO)
     private String webSocketServerUrl;
 
-    @JsonPolicyDef(REST_SERVER_INFO)
+    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String restServerUrl;
 
     public ApiInfo() {
