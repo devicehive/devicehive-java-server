@@ -2,6 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.model.Equipment;
+import com.devicehive.model.updates.EquipmentUpdate;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -46,12 +47,32 @@ public class EquipmentService {
     /**
      * updates Equipment attributes
      *
-     * @param equipment     Equipment instance, containing fields to update (Id field will be ignored)
+     * @param equipmentUpdate     Equipment instance, containing fields to update (Id field will be ignored)
      * @param equipmentId   id of equipment to update
      * @param deviceClassId class of equipment to update
      * @return true, if update successful, false otherwise
      */
-    public boolean update(@NotNull Equipment equipment, @NotNull long equipmentId, @NotNull long deviceClassId) {
-        return equipmentDAO.update(equipment, equipmentId, deviceClassId);
+    public boolean update(EquipmentUpdate equipmentUpdate, @NotNull long equipmentId, @NotNull long deviceClassId) {
+        if (equipmentUpdate == null){
+            return true;
+        }
+        Equipment stored =  equipmentDAO.get(equipmentId);
+        if (stored == null){
+            return false; // equipment with id = equipmentId does not exists
+        }
+        Equipment toUpdate = equipmentUpdate.convertTo();
+        if (equipmentUpdate.getCode() == null){
+            toUpdate.setCode(stored.getCode());
+        }
+        if (equipmentUpdate.getName() == null){
+            toUpdate.setName(stored.getName());
+        }
+        if (equipmentUpdate.getType() == null){
+            toUpdate.setType(stored.getType());
+        }
+        if (equipmentUpdate.getData() == null){
+            toUpdate.setData(stored.getData());
+        }
+        return equipmentDAO.update(toUpdate, equipmentId, deviceClassId);
     }
 }

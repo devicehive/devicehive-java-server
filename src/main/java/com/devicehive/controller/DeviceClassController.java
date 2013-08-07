@@ -1,8 +1,6 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.dao.DeviceClassDAO;
-import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.dao.DuplicateEntryException;
 import com.devicehive.exceptions.dao.HivePersistingException;
@@ -12,6 +10,7 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
+import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 import com.devicehive.utils.RestParametersConverter;
@@ -287,7 +286,7 @@ public class DeviceClassController {
      *
      * @param classId   id of class
      * @param eqId      equipment id
-     * @param equipment Json  object
+     * @param equipmentUpdate Json  object
      * @return empty response with status 201 in case of success, empty response with status 404, if there's no such record
      */
     @PUT
@@ -297,11 +296,11 @@ public class DeviceClassController {
     public Response updateEquipment(
             @PathParam("deviceClassId") long classId,
             @PathParam("id") long eqId,
-            @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) Equipment equipment) {
+            @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) EquipmentUpdate equipmentUpdate) {
 
         logger.debug("Update device class's equipment requested");
 
-        if (!equipmentService.update(equipment, eqId, classId)) {
+        if (!equipmentService.update(equipmentUpdate, eqId, classId)) {
             logger.debug("Unable to update equipment. Equipment with id = " + eqId + " for device class with id = " +
                     classId + " not found");
             return ResponseFactory.response(Response.Status.NOT_FOUND,
