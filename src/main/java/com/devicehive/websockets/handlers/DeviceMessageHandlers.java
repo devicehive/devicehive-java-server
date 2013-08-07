@@ -6,9 +6,9 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.messages.MessageDetails;
-import com.devicehive.messages.MessageType;
-import com.devicehive.messages.bus.MessageBus;
+import com.devicehive.messages.handler.WebsocketHandlerCreator;
+import com.devicehive.messages.subscriptions.CommandSubscription;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.jms.JMSException;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -33,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -40,7 +40,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
     @Inject
-    private MessageBus messageBus;
+    private SubscriptionManager subscriptionManager;
     @Inject
     private DeviceDAO deviceDAO;
     @Inject
@@ -150,7 +150,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @throws JMSException
      */
     @Action(value = "command/update")
-    public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
+    public JsonObject processCommandUpdate(JsonObject message, Session session) {
         logger.debug("command update action started for session : " + session.getId());
         DeviceCommand update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
                 .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
@@ -215,8 +215,16 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("will subscribe device for commands : " + device.getGuid());
-            messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
-                    MessageDetails.create().ids(device.getId()).session(session.getId()));
+
+            CommandSubscription commandSubscription = new CommandSubscription(device.getId(), session.getId(), new WebsocketHandlerCreator(session, asyncMessageDeliverer) {
+                @Override
+                protected Lock getSessionLock(Session session) {
+                    return WebsocketSession.getCommandsSubscriptionsLock(session);
+                }
+            });
+            subscriptionManager.getCommandSubscriptionStorage().insert(commandSubscription);
+
+
             logger.debug("will get commands newer than : " + timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
@@ -261,8 +269,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Device device = getDevice(session, message);
         logger.debug("command/unsubscribe for device" + device.getGuid());
-        messageBus.unsubscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
-                MessageDetails.create().ids(device.getId()).session(session.getId()));
+        subscriptionManager.getCommandSubscriptionStorage().remove(device.getId(), session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -300,7 +307,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @throws JMSException
      */
     @Action(value = "notification/insert")
-    public JsonObject processNotificationInsert(JsonObject message, Session session) throws JMSException {
+    public JsonObject processNotificationInsert(JsonObject message, Session session)  {
         logger.debug("notification/insert started for session " + session.getId());
         DeviceNotification deviceNotification = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE)
                 .fromJson(message.get("notification"), DeviceNotification.class);

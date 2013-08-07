@@ -12,12 +12,10 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devicehive.messages.MessageDetails;
-import com.devicehive.messages.MessageType;
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
@@ -32,8 +30,9 @@ public class ClientEndpoint extends Endpoint {
     private ClientMessageHandlers clientMessageHandlers;
     @EJB
     private SessionMonitor sessionMonitor;
+
     @Inject
-    private MessageBus messageBus;
+    private SubscriptionManager subscriptionManager;
 
     @OnOpen
     public void onOpen(Session session) {
@@ -53,12 +52,13 @@ public class ClientEndpoint extends Endpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
-        messageBus.unsubscribe(MessageType.CLOSED_SESSION_CLIENT, MessageDetails.create().session(session.getId()));
+        subscriptionManager.getCommandUpdateSubscriptionStorage().removeBySession(session.getId());
+        subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
     }
 
     @OnError
     public void onError(Throwable exception, Session session) {
-        logger.debug("[onError] session id " + session.getId(), exception);
+        logger.debug("[onError] ", exception);
     }
 
 }

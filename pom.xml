@@ -43,12 +43,6 @@
             <version>4.3.0.Beta3</version>
         </dependency>
 
-        <dependency>
-            <groupId>javax.jms</groupId>
-            <artifactId>javax.jms-api</artifactId>
-            <version>2.0</version>
-            <scope>provided</scope>
-        </dependency>
 
         <dependency>
             <groupId>junit</groupId>

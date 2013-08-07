@@ -2,17 +2,20 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
-import com.devicehive.messages.MessageDetails;
-import com.devicehive.messages.MessageType;
-import com.devicehive.messages.bus.DeferredResponse;
-import com.devicehive.messages.bus.MessageBus;
+import com.devicehive.messages.handler.RestHandlerCreator;
+import com.devicehive.messages.subscriptions.NotificationSubscription;
+import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.messages.util.Params;
-import com.devicehive.model.*;
-import com.devicehive.model.response.NotificationPollManyResponse;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.User;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.utils.RestParametersConverter;
@@ -29,8 +32,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -48,7 +52,10 @@ public class DeviceNotificationController {
     private DeviceNotificationService notificationService;
 
     @Inject
-    private MessageBus messageBus;
+    private SubscriptionManager subscriptionManager;
+
+    @Inject
+    private DeviceNotificationDAO deviceNotificationDAO;
 
     @Inject
     private DeviceService deviceService;
@@ -173,11 +180,21 @@ public class DeviceNotificationController {
 
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
 
-        DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
-                MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
-        List<DeviceNotification> response =
-                MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
-        return ResponseFactory.response(Response.Status.OK, response, Policy.NOTIFICATION_TO_CLIENT);
+        List<DeviceNotification> list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
+        if (list.isEmpty()) {
+            logger.debug("Waiting for command");
+            NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator(storage, device.getId(), reqId);
+            NotificationSubscription notificationSubscription =
+                new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
+            storage.insert(notificationSubscription);
+            SimpleWait.waitFor(restHandlerCreator.getFutureTask(), timeout);
+            storage.remove(notificationSubscription);
+        }
+        list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
+
+        return ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**
@@ -196,7 +213,7 @@ public class DeviceNotificationController {
             @QueryParam("timestamp") String timestampUTC,
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
-
+        /*
         logger.debug("Device notification pollMany requested");
 
         List<String> guids =
@@ -233,8 +250,8 @@ public class DeviceNotificationController {
         List<DeviceNotification> notifications =
                 MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
         List<NotificationPollManyResponse> response = NotificationPollManyResponse.getList(notifications);
-        logger.debug("Device notification pollMany proceed successfully");
-        return ResponseFactory.response(Response.Status.OK, response, Policy.NOTIFICATION_TO_CLIENT);
+        logger.debug("Device notification pollMany proceed successfully");    */
+        return ResponseFactory.response(Response.Status.OK, Collections.EMPTY_LIST, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     @POST

@@ -52,7 +52,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "DeviceCommand.getByDeviceUuidAndId",
                 query = "select dc from DeviceCommand dc where dc.id = :id and dc.device.guid = :guid")
 })
-public class DeviceCommand implements HiveEntity, Message {
+public class DeviceCommand implements HiveEntity {
 
     @SerializedName("id")
     @Id

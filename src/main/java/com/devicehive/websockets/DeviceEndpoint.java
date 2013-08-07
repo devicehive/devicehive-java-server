@@ -12,12 +12,10 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devicehive.messages.MessageDetails;
-import com.devicehive.messages.MessageType;
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
@@ -31,13 +29,13 @@ public class DeviceEndpoint extends Endpoint {
     @Inject
     private DeviceMessageHandlers deviceMessageHandlers;
     @Inject
-    private MessageBus messageBus;
+    private SubscriptionManager subscriptionManager;
     @EJB
     private SessionMonitor sessionMonitor;
 
     @OnOpen
     public void onOpen(Session session) {
-        logger.debug("[onOpen] session id " + session.getId());
+        logger.debug("[onOpen] session id {}", session.getId());
         WebsocketSession.createCommandsSubscriptionsLock(session);
         WebsocketSession.createQueueLock(session);
         sessionMonitor.registerSession(session);
@@ -45,19 +43,19 @@ public class DeviceEndpoint extends Endpoint {
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public String onMessage(String message, Session session) throws InvocationTargetException, IllegalAccessException {
-        logger.debug("[onMessage] session id " + session.getId());
+        logger.debug("[onMessage] session id {}",session.getId());
         return new GsonBuilder().setPrettyPrinting().create().toJson(processMessage(deviceMessageHandlers, message, session));
     }
 
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
-        logger.debug("[onClose] session id " + session.getId() + ", close reason is " + closeReason);
-        messageBus.unsubscribe(MessageType.CLOSED_SESSION_DEVICE, MessageDetails.create().session(session.getId()));
+        logger.debug("[onClose] session id {}, close reason is {}",session.getId(), closeReason);
+        subscriptionManager.getCommandSubscriptionStorage().removeBySession(session.getId());
     }
 
     @OnError
     public void onError(Throwable exception, Session session) {
-        logger.debug("[onError] session id " + session.getId(), exception);
+        logger.error("[onError]", exception);
     }
 
 }

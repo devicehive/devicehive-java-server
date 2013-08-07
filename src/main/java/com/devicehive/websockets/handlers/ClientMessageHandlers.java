@@ -5,9 +5,10 @@ import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.messages.MessageDetails;
-import com.devicehive.messages.MessageType;
-import com.devicehive.messages.bus.MessageBus;
+import com.devicehive.messages.bus.GlobalMessageBus;
+import com.devicehive.messages.handler.WebsocketHandlerCreator;
+import com.devicehive.messages.subscriptions.NotificationSubscription;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -19,6 +20,8 @@ import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,15 +32,17 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.messages.Transport.WEBSOCKET;
 
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
     @Inject
-    private MessageBus messageBus;
+    private GlobalMessageBus globalMessageBus;
+    @Inject
+    private SubscriptionManager subscriptionManager;
     @Inject
     private UserService userService;
     @Inject
@@ -182,17 +187,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         logger.debug("submit device command process" + ". Session " + session.getId());
         deviceService.submitDeviceCommand(deviceCommand, device, user, session);
-
-        try {
-            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).lock();
-            logger.debug("will subscribe device for commands : " + device.getGuid());
-            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND,
-                    MessageDetails.create().ids(deviceCommand.getId()).session(session.getId()));
-        } finally {
-            WebsocketSession.getCommandUpdatesSubscriptionsLock(session).unlock();
-        }
-
-        deviceCommand.setUser(user);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(deviceCommand))
                 .build();
@@ -297,14 +291,20 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     " devices. " + "Session " + session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
 
-            List<Long> ids = new ArrayList<>();
+            User user = WebsocketSession.getAuthorisedUser(session);
+            List<NotificationSubscription> nsList = new ArrayList<>();
             if (devices != null) {
                 for (Device device : devices) {
-                    ids.add(device.getId());
+                    NotificationSubscription ns = new NotificationSubscription(user, device.getId(), session.getId(), new WebsocketHandlerCreator(session, asyncMessageDeliverer) {
+                        @Override
+                        protected Lock getSessionLock(Session session) {
+                            return WebsocketSession.getNotificationSubscriptionsLock(session);
+                        }
+                    });
+                    nsList.add(ns);
                 }
             }
-            messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
-                    MessageDetails.create().ids(ids).session(session.getId()).transport(WEBSOCKET));
+            subscriptionManager.getNotificationSubscriptionStorage().insert(nsList);
             if (!deviceNotifications.isEmpty()) {
                 for (DeviceNotification deviceNotification : deviceNotifications) {
                     logger.debug("This device notification will be added to queue: " + deviceNotification +
@@ -362,12 +362,11 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             }
             logger.debug("notification/unsubscribe. performing unsubscribing action");
 
-            List<Long> ids = new ArrayList<>(devices.size());
+            List<Pair<Long,String>> subs = new ArrayList<>(devices.size());
             for (Device device : devices) {
-                ids.add(device.getId());
+                subs.add(ImmutablePair.of(device.getId(), session.getId()));
             }
-            messageBus.unsubscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
-                    MessageDetails.create().ids(ids).session(session.getId()));
+            subscriptionManager.getNotificationSubscriptionStorage().remove(subs);
             checkDevicesAndGuidsList(devices, list, false);
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();

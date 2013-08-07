@@ -1,28 +1,10 @@
 package com.devicehive.model;
 
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
 
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -32,8 +14,7 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.annotations.SerializedName;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -63,7 +44,7 @@ import com.google.gson.annotations.SerializedName;
                 query = "delete from DeviceNotification dn where dn.device = :device")
 
 })
-public class DeviceNotification implements Message, HiveEntity {
+public class DeviceNotification implements HiveEntity {
 
     @SerializedName("parameters")
     @Embedded

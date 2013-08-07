@@ -27,6 +27,8 @@ import java.util.Set;
 public class UserService {
 
     private static final int MAX_LOGIN_ATTEMPTS = 10;
+    private static final long LAST_LOGIN_TIMEOUT = 60000;
+
 
     @Inject
     private PasswordProcessor passwordService;
@@ -60,7 +62,9 @@ public class UserService {
             return null;
         } else {
             user.setLoginAttempts(0);
-            user.setLastLogin(timestampService.getTimestamp());
+            if (System.currentTimeMillis() - user.getLastLogin().getTime() > LAST_LOGIN_TIMEOUT) {
+                user.setLastLogin(timestampService.getTimestamp());
+            }
             return user;
         }
     }

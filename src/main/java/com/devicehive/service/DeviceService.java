@@ -5,13 +5,15 @@ import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.messages.MessageType;
-import com.devicehive.messages.bus.MessageBroadcaster;
-import com.devicehive.messages.bus.StatefulMessageListener;
-import com.devicehive.messages.bus.notify.StatefulNotifier;
+import com.devicehive.messages.bus.GlobalMessageBus;
+import com.devicehive.messages.handler.WebsocketHandlerCreator;
+import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.websockets.util.AsyncMessageDeliverer;
+import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 @Stateless
 public class DeviceService {
@@ -40,12 +43,6 @@ public class DeviceService {
 
     @Inject
     private DeviceNotificationDAO deviceNotificationDAO;
-
-    @Inject
-    private MessageBroadcaster messagePublisher;
-
-    @Inject
-    private StatefulNotifier statefulNotifier;
 
     @Inject
     private DeviceClassDAO deviceClassDAO;
@@ -68,6 +65,16 @@ public class DeviceService {
     @Inject
     private TimestampService timestampService;
 
+    @Inject
+    private GlobalMessageBus globalMessageBus;
+
+
+    @Inject
+    private AsyncMessageDeliverer asyncMessageDeliverer;
+
+    @Inject
+    private SubscriptionManager subscriptionManager;
+
     public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                            boolean isAllowedToUpdate) {
         Device deviceToUpdate = device.convertTo();
@@ -79,13 +86,21 @@ public class DeviceService {
         createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
     }
 
-    public void submitDeviceCommand(DeviceCommand command, Device device, User user, Session session) {
+    public void submitDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
         deviceCommandDAO.createCommand(command);
-        messagePublisher.addMessageListener(
-                new StatefulMessageListener(MessageType.CLIENT_TO_DEVICE_COMMAND, statefulNotifier));
-        messagePublisher.publish(MessageType.CLIENT_TO_DEVICE_COMMAND, command);
+        if (session != null) {
+            CommandUpdateSubscription commandUpdateSubscription =
+                new CommandUpdateSubscription(command.getId(),session.getId(), new WebsocketHandlerCreator(session, asyncMessageDeliverer){
+                    @Override
+                    protected Lock getSessionLock(Session session) {
+                        return WebsocketSession.getCommandUpdatesSubscriptionsLock(session);
+                    }
+                });
+            subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
+            globalMessageBus.publishDeviceCommand(command);
+        }
     }
 
     public Device findByUUID(UUID uuid, User u) {
@@ -131,9 +146,7 @@ public class DeviceService {
 
     public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
         deviceCommandDAO.updateCommand(update, device);
-        messagePublisher.addMessageListener(
-                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, statefulNotifier));
-        messagePublisher.publish(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND, update);
+        globalMessageBus.publishDeviceCommandUpdate(update);
     }
 
     public void submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
@@ -152,9 +165,7 @@ public class DeviceService {
         notification.setTimestamp(ts);
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
-        messagePublisher.addMessageListener(
-                new StatefulMessageListener(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, statefulNotifier));
-        messagePublisher.publish(MessageType.DEVICE_TO_CLIENT_NOTIFICATION, notification);
+        globalMessageBus.publishDeviceNotification(notification);
     }
 
     private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {

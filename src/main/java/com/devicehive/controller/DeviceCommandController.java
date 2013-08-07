@@ -2,13 +2,12 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
-import com.devicehive.messages.MessageDetails;
-import com.devicehive.messages.MessageType;
-import com.devicehive.messages.bus.DeferredResponse;
-import com.devicehive.messages.bus.MessageBus;
+import com.devicehive.messages.handler.RestHandlerCreator;
+import com.devicehive.messages.subscriptions.*;
 import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
@@ -49,13 +48,16 @@ public class DeviceCommandController {
     private DeviceService deviceService;
 
     @Inject
-    private MessageBus messageBus;
-
-    @Inject
     private UserService userService;
 
     @Inject
+    private DeviceCommandDAO deviceCommandDAO;
+
+    @Inject
     private DeviceCommandService deviceCommandService;
+
+    @Inject
+    private SubscriptionManager subscriptionManager;
 
 
     /**
@@ -100,15 +102,23 @@ public class DeviceCommandController {
         Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
+        List<DeviceCommand> list = deviceCommandDAO.getNewerThan(device, timestamp);
 
-        DeferredResponse result = messageBus.subscribe(MessageType.CLIENT_TO_DEVICE_COMMAND,
-                MessageDetails.create().ids(device.getId()).timestamp(timestamp).user(user));
-
-        List<DeviceCommand> response = MessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
+        if (list.isEmpty()) {
+            CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator(storage, device.getId(), reqId);
+            CommandSubscription commandSubscription =
+                new CommandSubscription(device.getId(), reqId, restHandlerCreator);
+            storage.insert(commandSubscription);
+            SimpleWait.waitFor(restHandlerCreator.getFutureTask(), timeout);
+            storage.remove(commandSubscription);
+        }
+        list = deviceCommandDAO.getNewerThan(device, timestamp);
 
         logger.debug("DeviceCommand poll proceed successfully");
 
-        return ResponseFactory.response(Response.Status.OK, response);
+        return ResponseFactory.response(Response.Status.OK, list);
     }
 
     /**
@@ -161,12 +171,20 @@ public class DeviceCommandController {
 
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
+        if (command.getEntityVersion() == 0) {
+            CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator(storage, command.getId(), reqId);
+            CommandUpdateSubscription commandSubscription =
+                new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
+            storage.insert(commandSubscription);
+            SimpleWait.waitFor(restHandlerCreator.getFutureTask(), timeout);
+            storage.remove(commandSubscription);
+        }
+        command = commandService.findById(commandId);
 
-        DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_UPDATE_COMMAND,
-                MessageDetails.create().ids(device.getId(), command.getId()).user(user));
 
-        List<DeviceCommand> commandList = MessageBus.expandDeferredResponse(result, timeout, DeviceCommand.class);
-        DeviceCommand response = commandList.isEmpty() ? null : commandList.get(0);
+        DeviceCommand response = command.getEntityVersion() > 0 ? command : null;
 
         logger.debug("DeviceCommand wait proceed successfully");
 
