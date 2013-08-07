@@ -58,13 +58,15 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      * Client: authenticate</a>
      * Authenticates a user.
      *
-     * @param message Json Object with following message representation
+     * @param message Json Object with the following message representation
+     *                <pre>
      *                {
-     *                "action": {string},
-     *                "requestId": {object},
-     *                "login": {string},
-     *                "password": {string}
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "login": {string},
+     *                  "password": {string}
      *                }
+     *                </pre>
      *                Where:
      *                action (required) - Action name: authenticate
      *                requestId (is not required) - Request unique identifier, will be passed back in the response
@@ -72,11 +74,14 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *                login (required) - User login.
      *                password (required) - User password.
      * @param session Current session
-     * @return JsonObject with structure {
-     *         "action": {string},
-     *         "status": {string},
-     *         "requestId": {object}
-     *         }
+     * @return JsonObject with structure
+     *                 <pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object}
+     *                 }
+     *                 </pre>
      *         Where:
      *         action - Action name: authenticate
      *         status - Operation execution status (success or error).
@@ -112,32 +117,36 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      * Client: command/insert</a>
      * Creates new device command.
      *
-     * @param message Json Object with following message representation
+     * @param message Json Object with the following message representation
+     *                <pre>
      *                {
-     *                "action": {string},
-     *                "requestId": {object},
-     *                "deviceGuid": {guid},
-     *                "command": {
-     *                "command": {string},
-     *                "parameters": {object},
-     *                "lifetime": {integer},
-     *                "flags": {integer},
-     *                "status": {string},
-     *                "result": {object}
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceGuid": {guid},
+     *                  "command": {
+     *                    "command": {string},
+     *                    "parameters": {object},
+     *                    "lifetime": {integer},
+     *                    "flags": {integer},
+     *                    "status": {string},
+     *                    "result": {object}
+     *                  }
      *                }
-     *                }
+     *                </pre>
      * @param session Current session
      * @return JsonObject with structure:
+     *         <pre></pre>
      *         {
-     *         "action": {string},
-     *         "status": {string},
-     *         "requestId": {object},
-     *         "command": {
-     *         "id": {integer},
-     *         "timestamp": {datetime},
-     *         "userId": {integer}
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object},
+     *           "command": {
+     *             "id": {integer},
+     *             "timestamp": {datetime},
+     *             "userId": {integer}
+     *           }
      *         }
-     *         }
+     *         </pre>
      */
     @Action(value = "command/insert")
     public JsonObject processCommandInsert(JsonObject message, Session session) {
@@ -191,6 +200,32 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         return jsonObject;
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Client/notificationsubscribe">
+     * WebSocket API: Client: notification/subscribe</a>
+     * Subscribes to device notifications. After subscription is completed,
+     * the server will start to send notification/insert messages to the connected user.
+     *
+     * @param message Json Object with the following structure:
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "timestamp": {datetime},
+     *                  "deviceGuids": {guid[]}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure:
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     * @throws IOException if unable to deliver message
+     */
     @Action(value = "notification/subscribe")
     public JsonObject processNotificationSubscribe(JsonObject message, Session session) throws IOException {
         logger.debug("notification/subscribe action. Session " + session.getId());
@@ -285,6 +320,29 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
     }
 
+    /**
+     * Implementation of the <a href="http://www.devicehive.com/restful#WsReference/Client/notificationunsubscribe">
+     * WebSocket API: Client: notification/unsubscribe</a>
+     * Unsubscribes from device notifications.
+     *
+     * @param message Json object with following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceGuids": {guid[]}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     */
     @Action(value = "notification/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         logger.debug("notification/unsubscribe action. Session " + session.getId());
@@ -350,6 +408,33 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Client/serverinfo">WebSocket API:
+     * Client: server/info</a>
+     * Gets meta-information about the current API.
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object},
+     *           "info": {
+     *             "apiVersion": {string},
+     *             "serverTimestamp": {datetime},
+     *             "restServerUrl": {string}
+     *           }
+     *         }
+     *         </pre>
+     */
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
         logger.debug("server/info action started. Session " + session.getId());
@@ -370,6 +455,28 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         return jsonObject;
     }
 
+    /**
+     * Adds required information, for example, web socket server url
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "name": {string},
+     *                  "value": {string}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     */
     @Action(value = "configuration/set")
     public JsonObject processConfigurationSet(JsonObject message, Session session) {
         logger.debug("configuration/set action started. Session " + session.getId());

@@ -54,6 +54,30 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Inject
     private TimestampService timestampService;
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/authenticate">WebSocket API:
+     * Device: authenticate</a>
+     * Authenticates a device. After successful authentication, all subsequent messages may exclude deviceId and deviceKey parameters.
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceId": {guid},
+     *                  "deviceKey": {string}
+     *                }
+     *                </pre>
+     * @param session Current session.
+     * @return Json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     */
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         UUID deviceId = GsonFactory.createGson().fromJson(message.get("deviceId"), UUID.class);
@@ -91,6 +115,40 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/commandupdate">WebSocket API:
+     * Device: command/update</a>
+     * Updates an existing device command.
+     *
+     * @param message Json object with the following structure:
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceId": {guid},
+     *                  "deviceKey": {string},
+     *                  "commandId": {integer},
+     *                  "command": {
+     *                    "command": {string},
+     *                    "parameters": {object},
+     *                    "lifetime": {integer},
+     *                    "flags": {integer},
+     *                    "status": {string},
+     *                    "result": {object}
+     *                  }
+     *                }
+     *                </pre>
+     * @param session Current session.
+     * @return Json object with the following structure:
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     * @throws JMSException
+     */
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) throws JMSException {
         logger.debug("command update action started for session : " + session.getId());
@@ -113,6 +171,33 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/commandsubscribe">WebSocket API:
+     * Device: command/subscribe</a>
+     * Subscribes the device to commands. After subscription is completed, the server will start to send
+     * command/insert messages to the connected device.
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceId": {guid},
+     *                  "deviceKey": {string},
+     *                  "timestamp": {datetime}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return json object with the following structure:
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     * @throws IOException if unable to deliver message
+     */
     @Action(value = "command/subscribe")
     public JsonObject processCommandSubscribe(JsonObject message, Session session) throws IOException {
         logger.debug("command subscribe action started for session : " + session.getId());
@@ -148,6 +233,30 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/commandunsubscribe">WebSocket API:
+     * Device: command/unsubscribe</a>
+     * Unsubscribes the device from commands.
+     *
+     * @param message Json object with the following structure:
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceId": {guid},
+     *                  "deviceKey": {string}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure:
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     */
     @Action(value = "command/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
         Device device = getDevice(session, message);
@@ -157,6 +266,39 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/notificationinsert">WebSocket
+     * API: Device: notification/insert</a>
+     * Creates new device notification.
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceId": {guid},
+     *                  "deviceKey": {string},
+     *                  "notification": {
+     *                    "notification": {string},
+     *                    "parameters": {object}
+     *                  }
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object},
+     *           "notification": {
+     *             "id": {integer},
+     *             "timestamp": {datetime}
+     *           }
+     *         }
+     *         </pre>
+     * @throws JMSException
+     */
     @Action(value = "notification/insert")
     public JsonObject processNotificationInsert(JsonObject message, Session session) throws JMSException {
         logger.debug("notification/insert started for session " + session.getId());
@@ -176,6 +318,33 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return jsonObject;
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/serverinfo">WebSocketAPI:
+     * Device: server/info</a>
+     * Gets meta-information of the current API.
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object},
+     *           "info": {
+     *           "apiVersion": {string},
+     *             "serverTimestamp": {datetime},
+     *             "webSocketServerUrl": {string}
+     *         }
+     *         }
+     *         </pre>
+     */
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
         logger.debug("server/info action started. Session " + session.getId());
@@ -196,6 +365,49 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return jsonObject;
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/deviceget">WebSocketAPI:
+     * Device: device/get</a>
+     * Gets information about the current device.
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceId": {guid},
+     *                  "deviceKey": {string}
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object},
+     *           "device": {
+     *             "id": {guid},
+     *             "name": {string},
+     *             "status": {string},
+     *             "data": {object},
+     *             "network": {
+     *               "id": {integer},
+     *               "name": {string},
+     *               "description": {string}
+     *             },
+     *             "deviceClass": {
+     *               "id": {integer},
+     *               "name": {string},
+     *               "version": {string},
+     *               "isPermanent": {boolean},
+     *               "offlineTimeout": {integer},
+     *               "data": {object}
+     *              }
+     *            }
+     *         }
+     *         </pre>
+     */
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
         Device device = getDevice(session, message);
@@ -207,6 +419,47 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return result;
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/devicesave">WebSocketAPI:
+     * Device: device/save</a>
+     * Registers or updates a device. A valid device key is required in the deviceKey parameter in order to update an
+     * existing device.
+     *
+     * @param message Json object with the following structure
+     *                <pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceId": {guid},
+     *                  "deviceKey": {string},
+     *                  "device": {
+     *                    "key": {string},
+     *                    "name": {string},
+     *                    "status": {string},
+     *                    "data": {object},
+     *                    "network": {integer or object},
+     *                    "deviceClass": {integer or object},
+     *                    "equipment": [
+     *                    {
+     *                     "name": {string},
+     *                     "code": {string},
+     *                     "type": {string},
+     *                     "data": {object}
+     *                    }
+     *                    ]
+     *                  }
+     *                }
+     *                </pre>
+     * @param session Current session
+     * @return Json object with the following structure
+     *         <pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
+     */
     @Action(value = "device/save", needsAuth = false)
     public JsonObject processDeviceSave(JsonObject message, Session session) {
         logger.debug("device/save process started for session" + session.getId());
