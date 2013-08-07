@@ -16,6 +16,10 @@ public class GlobalMessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalMessageBus.class);
 
+    private static final String DEVICE_COMMAND = "DEVICE_COMMAND";
+    private static final String DEVICE_COMMAND_UPDATE = "DEVICE_COMMAND_UPDATE";
+    private static final String DEVICE_NOTIFICATION = "DEVICE_NOTIFICATION";
+
     private HazelcastInstance hazelcast;
 
     @Inject
@@ -31,27 +35,33 @@ public class GlobalMessageBus {
         hazelcast = Hazelcast.newHazelcastInstance(config);
         logger.debug("New Hazelcast instance created: " + hazelcast);
 
-        ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic("DEVICE_COMMAND");
+        ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
         deviceCommandTopic.addMessageListener(new DeviceCommandListener(localMessageBus));
 
-        ITopic<DeviceCommand> deviceCommandUpdateTopic = hazelcast.getTopic("DEVICE_COMMAND_UPDATE");
+        ITopic<DeviceCommand> deviceCommandUpdateTopic = hazelcast.getTopic(DEVICE_COMMAND_UPDATE);
         deviceCommandUpdateTopic.addMessageListener(new DeviceCommandUpdateListener(localMessageBus));
 
-        ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic("DEVICE_NOTIFICATION");
+        ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
         deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
     }
 
 
     public void publishDeviceCommand(DeviceCommand deviceCommand) {
-        hazelcast.getTopic("DEVICE_COMMAND").publish(deviceCommand);
+        logger.debug("Sending device command {}", deviceCommand.getId());
+        hazelcast.getTopic(DEVICE_COMMAND).publish(deviceCommand);
+        logger.debug("Sent");
     }
 
     public void publishDeviceCommandUpdate(DeviceCommand deviceCommand) {
-        hazelcast.getTopic("DEVICE_COMMAND_UPDATE").publish(deviceCommand);
+        logger.debug("Sending device command update {}", deviceCommand.getId());
+        hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommand);
+        logger.debug("Sent");
     }
 
     public void publishDeviceNotification(DeviceNotification deviceNotification) {
-        hazelcast.getTopic("DEVICE_NOTIFICATION").publish(deviceNotification);
+        logger.debug("Sending device notification {}", deviceNotification.getId());
+        hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
+        logger.debug("Sent");
     }
 
 
@@ -68,6 +78,7 @@ public class GlobalMessageBus {
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
+            logger.debug("Received device command {}", deviceCommandMessage.getMessageObject().getId());
             localMessageBus.submitDeviceCommand(deviceCommandMessage.getMessageObject());
         }
     }
@@ -82,6 +93,7 @@ public class GlobalMessageBus {
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
+            logger.debug("Received device command update {}", deviceCommandMessage.getMessageObject().getId());
             localMessageBus.submitDeviceCommandUpdate(deviceCommandMessage.getMessageObject());
         }
     }
@@ -97,6 +109,7 @@ public class GlobalMessageBus {
 
         @Override
         public void onMessage(Message<DeviceNotification> deviceNotificationMessage) {
+            logger.debug("Received device notification{}", deviceNotificationMessage.getMessageObject().getId());
             localMessageBus.submitDeviceNotification(deviceNotificationMessage.getMessageObject());
         }
     }
