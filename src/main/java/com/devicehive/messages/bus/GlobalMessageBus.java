@@ -34,25 +34,24 @@ public class GlobalMessageBus {
     @PostConstruct
     protected void postConstruct() {
         logger.debug("Initializing Hazelcast instance...");
-        Config config = new Config();
-        config.setProperty("hazelcast.logging.type", "slf4j");
-
-        NetworkConfig network = config.getNetworkConfig();
-        network.getInterfaces().clear();
-        network.getInterfaces().addInterface("127.0.0.1");
-
-        hazelcast = Hazelcast.newHazelcastInstance(config);
+        hazelcast = Hazelcast.newHazelcastInstance();
         logger.debug("New Hazelcast instance created: " + hazelcast);
 
-
+        logger.debug("Initializing topic {}...", DEVICE_COMMAND);
         ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
         deviceCommandTopic.addMessageListener(new DeviceCommandListener(localMessageBus));
+        logger.debug("Done");
 
+        logger.debug("Initializing topic {}...", DEVICE_COMMAND_UPDATE);
         ITopic<DeviceCommand> deviceCommandUpdateTopic = hazelcast.getTopic(DEVICE_COMMAND_UPDATE);
         deviceCommandUpdateTopic.addMessageListener(new DeviceCommandUpdateListener(localMessageBus));
+        logger.debug("Done");
 
+        logger.debug("Initializing topic {}...", DEVICE_NOTIFICATION);
         ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
         deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
+        logger.debug("Done");
+
     }
 
     @PreDestroy

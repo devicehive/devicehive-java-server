@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -247,8 +248,11 @@ public class NetworkController {
         if (nr.getDescription() != null) {
             n.setDescription(nr.getDescription().getValue());
         }
-
-        networkService.update(n);
+        try {
+            networkService.update(n);
+        } catch (Exception e) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(e.getMessage()));
+        }
         logger.debug("Network has been updated successfully");
         t.logMethodExecuted("NetworkController.update");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
