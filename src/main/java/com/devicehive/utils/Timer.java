@@ -14,6 +14,8 @@ public class Timer {
 
     private static final Logger logger = LoggerFactory.getLogger(Timer.class);
 
+    private static final int MAX_METHOD_EXECUTION_TIME = 800;
+
     /**
      * Creates new instance
      */
@@ -41,9 +43,16 @@ public class Timer {
         return end;
     }
 
+    /**
+     * logs message like "Execution of methodName  took 100 milliseconds"
+     * if execution time is less or equal MAX_METHOD_EXECUTION_TIME will log with debug priority,
+     * Will log with warning priority otherwise
+     *
+     * @param methodName executed method name
+     */
     public void logMethodExecuted(String methodName) {
         long time = click();
-        if (time > 800) {
+        if (time > MAX_METHOD_EXECUTION_TIME) {
             logger.warn("Execution of " + methodName + " took " + time + " milliseconds");
         }else{
             logger.debug("Execution of " + methodName + " took " + time + " milliseconds");
