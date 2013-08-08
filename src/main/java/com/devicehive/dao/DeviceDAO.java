@@ -50,6 +50,7 @@ public class DeviceDAO {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
         query.setParameter("uuid", uuid);
         query.setParameter("key", key);
+        query.setHint("org.hibernate.cacheable", true);
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
