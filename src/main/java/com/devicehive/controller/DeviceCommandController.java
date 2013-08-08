@@ -18,6 +18,7 @@ import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +80,7 @@ public class DeviceCommandController {
             @QueryParam("timestamp") String timestampUTC,
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("DeviceCommand poll requested");
 
         if (deviceGuid == null) {
@@ -107,7 +108,7 @@ public class DeviceCommandController {
         }
 
         logger.debug("DeviceCommand poll proceed successfully");
-
+        t.logMethodExecuted("DeviceCommandController.poll");
         return ResponseFactory.response(Response.Status.OK, list);
     }
 
@@ -125,7 +126,7 @@ public class DeviceCommandController {
             @PathParam("commandId") Long commandId,
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("DeviceCommand wait requested");
 
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
@@ -179,6 +180,7 @@ public class DeviceCommandController {
 
         logger.debug("DeviceCommand wait proceed successfully");
 
+        t.logMethodExecuted("DeviceCommandController.wait");
         return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -236,7 +238,7 @@ public class DeviceCommandController {
                           @QueryParam("skip") Integer skip,
                           @Context ContainerRequestContext requestContext) {
 
-
+        Timer t = Timer.newInstance();
         logger.debug("Device command query requested");
 
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
@@ -293,7 +295,7 @@ public class DeviceCommandController {
                 status, sortField, sortOrderAsc, take, skip);
 
         logger.debug("Device command query request proceed successfully");
-
+        t.logMethodExecuted("DeviceCommandController.query");
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -322,7 +324,7 @@ public class DeviceCommandController {
     @Path("/{id}")
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id, @Context ContainerRequestContext requestContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("Device command get requested");
 
         Device device;
@@ -346,7 +348,7 @@ public class DeviceCommandController {
         result.setUserId(result.getUser().getId());
 
         logger.debug("Device command get proceed successfully");
-
+        t.logMethodExecuted("DeviceCommandController.get");
         return ResponseFactory.response(Response.Status.OK, result);
     }
 
@@ -386,7 +388,11 @@ public class DeviceCommandController {
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") String guid, @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT)DeviceCommand deviceCommand, @Context ContainerRequestContext requestContext) {
+    public Response insert(@PathParam("deviceGuid") String guid,
+                           @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT)DeviceCommand deviceCommand,
+                           @Context ContainerRequestContext requestContext) {
+
+        Timer t = Timer.newInstance();
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
         if (login == null) {
@@ -409,7 +415,7 @@ public class DeviceCommandController {
         deviceCommand.setUserId(u.getId());
 
         logger.debug("Device command insertAll proceed successfully");
-
+        t.logMethodExecuted("DeviceCommandController.insert");
         return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
     }
 
@@ -436,6 +442,7 @@ public class DeviceCommandController {
     public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommand command,
                            @Context ContainerRequestContext requestContext) {
+        Timer t = Timer.newInstance();
         HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
 
 
@@ -471,7 +478,7 @@ public class DeviceCommandController {
         deviceService.submitDeviceCommandUpdate(commandUpdate, commandUpdate.getDevice());
 
         logger.debug("Device command update proceed successfully");
-
+        t.logMethodExecuted("DeviceCommandController.update");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 

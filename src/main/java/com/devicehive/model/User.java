@@ -87,7 +87,7 @@ public class User implements HiveEntity {
     @Column(name = "last_login")
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
-    private Timestamp lastLogin = new Timestamp(0);
+    private Timestamp lastLogin;
 
     @Version
     @Column(name = "entity_version")
