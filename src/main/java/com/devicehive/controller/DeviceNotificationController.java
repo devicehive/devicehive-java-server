@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import javax.persistence.NoResultException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -141,7 +142,7 @@ public class DeviceNotificationController {
         if (!deviceService.checkPermissions(deviceNotification.getDevice(), (HivePrincipal) securityContext
                 .getUserPrincipal())) {
             logger.debug("No permissions to get notifications for device with guid : " + guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No notifications found "));
+            return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse("Unauthorized"));
         }
         logger.debug("Device notification proceed successfully");
 
@@ -157,7 +158,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE})
     @Path("/{deviceGuid}/notification/poll")
     public Response poll(
             @PathParam("deviceGuid") String deviceGuid,

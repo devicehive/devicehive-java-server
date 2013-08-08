@@ -88,6 +88,7 @@ public class DeviceService {
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
+        command.setTimestamp(timestampService.getTimestamp());
         deviceCommandDAO.createCommand(command);
         if (session != null) {
             CommandUpdateSubscription commandUpdateSubscription =

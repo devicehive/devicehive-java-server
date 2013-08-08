@@ -179,7 +179,7 @@ public class DeviceController {
 
         logger.debug("Device register finished successfully");
 
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**

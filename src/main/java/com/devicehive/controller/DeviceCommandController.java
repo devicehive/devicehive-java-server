@@ -386,10 +386,7 @@ public class DeviceCommandController {
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(Policy.POST_COMMAND_TO_DEVICE)
-    public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand, @Context ContainerRequestContext requestContext) {
-
+    public Response insert(@PathParam("deviceGuid") String guid, @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT)DeviceCommand deviceCommand, @Context ContainerRequestContext requestContext) {
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
         if (login == null) {
@@ -413,7 +410,7 @@ public class DeviceCommandController {
 
         logger.debug("Device command insertAll proceed successfully");
 
-        return ResponseFactory.response(Response.Status.CREATED, deviceCommand);
+        return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
     }
 
     /**

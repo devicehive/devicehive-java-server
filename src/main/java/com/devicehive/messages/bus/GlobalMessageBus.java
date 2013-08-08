@@ -3,6 +3,8 @@ package com.devicehive.messages.bus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.hazelcast.config.Config;
+import com.hazelcast.config.JoinConfig;
+import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.persistence.criteria.Join;
 
 @Singleton
 public class GlobalMessageBus {
@@ -33,8 +36,14 @@ public class GlobalMessageBus {
         logger.debug("Initializing Hazelcast instance...");
         Config config = new Config();
         config.setProperty("hazelcast.logging.type", "slf4j");
+
+        NetworkConfig network = config.getNetworkConfig();
+        network.getInterfaces().clear();
+        network.getInterfaces().addInterface("127.0.0.1");
+
         hazelcast = Hazelcast.newHazelcastInstance(config);
         logger.debug("New Hazelcast instance created: " + hazelcast);
+
 
         ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
         deviceCommandTopic.addMessageListener(new DeviceCommandListener(localMessageBus));
