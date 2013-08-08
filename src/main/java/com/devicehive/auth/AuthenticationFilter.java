@@ -20,6 +20,16 @@ import java.util.UUID;
 @Priority(Priorities.AUTHENTICATION)
 public class AuthenticationFilter implements ContainerRequestFilter {
 
+    private DeviceDAO deviceDAO;
+
+    private UserService userService;
+
+    public AuthenticationFilter() throws NamingException {
+        InitialContext initialContext = new InitialContext();
+        this.userService = (UserService) initialContext.lookup("java:comp/env/UserService");
+        this.deviceDAO = (DeviceDAO) initialContext.lookup("java:comp/env/DeviceDAO");
+    }
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         boolean secure = requestContext.getSecurityContext().isSecure();
@@ -38,12 +48,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         UUID uuid;
         try {
             uuid = UUID.fromString(deviceId);
-            DeviceDAO deviceDAO = (DeviceDAO) new InitialContext().lookup("java:comp/env/DeviceDAO");
             return deviceDAO.findByUUIDAndKey(uuid, deviceKey);
         } catch (IllegalArgumentException ex) {
             return null;
-        } catch (NamingException ex) {
-            throw new IOException(ex);
         }
     }
 
@@ -63,13 +70,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         String password = decodedAuth.substring(pos + 1);
 
         try {
-            // TODO: Should we really do JNDI lookup here?
-            UserService userService = (UserService) new InitialContext().lookup("java:comp/env/UserService");
             return userService.authenticate(login, password);
         } catch (IllegalArgumentException ex) {
             return null;
-        } catch (NamingException ex) {
-            throw new IOException(ex);
         }
     }
 }
