@@ -4,6 +4,7 @@ import com.devicehive.dao.DeviceEquipmentDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -13,7 +14,7 @@ import java.util.List;
 @Stateless
 public class DeviceEquipmentService {
 
-    @Inject
+    @EJB
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
     /**

@@ -6,6 +6,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.UUID;
 public class NetworkService {
 
 
-    @Inject
+    @EJB
     private NetworkDAO networkDAO;
 
     public Network getById(long id) {

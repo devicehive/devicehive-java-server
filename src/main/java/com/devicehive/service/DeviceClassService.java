@@ -9,6 +9,7 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.DeviceClassUpdate;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.NoResultException;
@@ -22,11 +23,11 @@ import java.util.List;
 @Stateless
 public class DeviceClassService {
 
-    @Inject
+    @EJB
     private DeviceClassDAO deviceClassDAO;
-    @Inject
+    @EJB
     private EquipmentDAO equipmentDAO;
-    @Inject
+    @EJB
     private DeviceService deviceService;
 
     public DeviceClass get(@NotNull long id) {

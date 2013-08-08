@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.model.*;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -16,7 +17,7 @@ import java.util.List;
  */
 @Stateless
 public class DeviceCommandService {
-    @Inject
+    @EJB
     private DeviceCommandDAO commandDAO;
 
     public DeviceCommand getWithDevice(@NotNull long id) {

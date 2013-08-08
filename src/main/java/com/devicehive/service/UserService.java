@@ -33,13 +33,13 @@ public class UserService {
     @Inject
     private PasswordProcessor passwordService;
 
-    @Inject
+    @EJB
     private UserDAO userDAO;
 
-    @Inject
+    @EJB
     private NetworkDAO networkDAO;
 
-    @Inject
+    @EJB
     private TimestampService timestampService;
 
     /**
