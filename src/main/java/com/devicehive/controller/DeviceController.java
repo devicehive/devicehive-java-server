@@ -13,6 +13,7 @@ import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.Timer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -85,6 +86,7 @@ public class DeviceController {
                          @QueryParam("take") Integer take,
                          @QueryParam("skip") Integer skip,
                          @Context SecurityContext securityContext) {
+        Timer t = Timer.newInstance();
 
         logger.debug("Device list requested");
 
@@ -108,7 +110,7 @@ public class DeviceController {
                 allowedNetworks);
 
         logger.debug("Device list proceed result. Result list contains " + result.size() + " elems");
-
+        t.logMethodExecuted("DeviceController.list");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
@@ -131,7 +133,7 @@ public class DeviceController {
     @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
     public Response register(JsonObject jsonObject, @PathParam("id") String guid,
                              @Context SecurityContext securityContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("Device register method requested");
 
         UUID deviceGuid;
@@ -178,7 +180,7 @@ public class DeviceController {
         deviceService.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
 
         logger.debug("Device register finished successfully");
-
+        t.logMethodExecuted("DeviceController.register");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -195,7 +197,7 @@ public class DeviceController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     public Response get(@PathParam("id") String guid, @Context ContainerRequestContext requestContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("Device get requested");
 
         Device device;
@@ -212,6 +214,7 @@ public class DeviceController {
         }
 
         logger.debug("Device get proceed successfully");
+        t.logMethodExecuted("DeviceController.get");
         return ResponseFactory.response(Response.Status.OK, device, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
@@ -227,6 +230,7 @@ public class DeviceController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") String guid) {
+        Timer t = Timer.newInstance();
 
         logger.debug("Device delete requested");
 
@@ -243,6 +247,7 @@ public class DeviceController {
         deviceService.deleteDevice(deviceId);
 
         logger.debug("Device with id = " + guid + " deleted");
+        t.logMethodExecuted("DeviceController.delete");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -284,6 +289,7 @@ public class DeviceController {
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response equipment(@PathParam("id") String guid, @Context ContainerRequestContext requestContext) {
+        Timer t = Timer.newInstance();
 
         logger.debug("Device equipment requested");
 
@@ -304,6 +310,7 @@ public class DeviceController {
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully");
+        t.logMethodExecuted("DeviceController.equipment");
         return ResponseFactory
                 .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
@@ -311,8 +318,10 @@ public class DeviceController {
     @GET
     @Path("/{id}/equipment/{code}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response equipmentByCode(@PathParam("id") String guid, @PathParam("code") String code, @Context
-    SecurityContext securityContext) {
+    public Response equipmentByCode(@PathParam("id") String guid,
+                                    @PathParam("code") String code,
+                                    @Context SecurityContext securityContext) {
+        Timer t = Timer.newInstance();
         logger.debug("Device equipment by code requested");
 
         Device device = deviceService.getDevice(guid,(HivePrincipal) securityContext.getUserPrincipal());
@@ -323,6 +332,7 @@ public class DeviceController {
                     .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
         logger.debug("Device equipment by code proceed successfully");
+        t.logMethodExecuted("DeviceController.equipmentByCode");
         return ResponseFactory
                 .response(Response.Status.OK, equipment, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }

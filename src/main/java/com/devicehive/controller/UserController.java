@@ -12,6 +12,7 @@ import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.Timer;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -73,7 +74,7 @@ public class UserController {
                                  @QueryParam("sortOrder") String sortOrder,
                                  @QueryParam("take") Integer take,
                                  @QueryParam("skip") Integer skip) {
-
+        Timer t = Timer.newInstance();
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
 
         if (sortOrderAsc == null) {
@@ -86,7 +87,7 @@ public class UserController {
 
         //TODO validation for role and status
         List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
-
+        t.logMethodExecuted("UserController.getUsersList");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
 
@@ -121,13 +122,13 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getUser(@PathParam("id") long id) {
-
+        Timer t = Timer.newInstance();
         User user = userService.findUserWithNetworks(id);
 
         if (user == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
         }
-
+        t.logMethodExecuted("UserController.getUser");
         return ResponseFactory.response(Response.Status.OK,
                 UserResponse.createFromUser(user),
                 JsonPolicyDef.Policy.USER_PUBLISHED);
@@ -161,7 +162,7 @@ public class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserRequest user) {
-
+        Timer t = Timer.newInstance();
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null
                 || user.getStatus() == null) {
@@ -181,7 +182,7 @@ public class UserController {
                 user.getRoleEnum(),
                 user.getStatusEnum(),
                 user.getPassword().getValue());
-
+        t.logMethodExecuted("UserController.insertUser");
         return ResponseFactory.response(Response.Status.CREATED, created);
     }
 
@@ -209,7 +210,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserRequest user, @PathParam("id") long userId) {
-
+        Timer t = Timer.newInstance();
         if (user.getLogin() != null) {
             User u = userService.findByLogin(user.getLogin().getValue());
 
@@ -238,7 +239,7 @@ public class UserController {
         String passwordValue = user.getPassword() == null ? null : user.getPassword().getValue();
 
         userService.updateUser(userId, loginValue, user.getRoleEnum(), user.getStatusEnum(), passwordValue);
-
+        t.logMethodExecuted("UserController.updateUser");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -253,9 +254,9 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteUser(@PathParam("id") long userId) {
-
+        Timer t = Timer.newInstance();
         userService.deleteUser(userId);
-
+        t.logMethodExecuted("UserController.deleteUser");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -278,7 +279,7 @@ public class UserController {
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
-
+        Timer t = Timer.newInstance();
 
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
@@ -292,7 +293,7 @@ public class UserController {
                         JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
-
+        t.logMethodExecuted("UserController.getNetwork");
         throw new NotFoundException("User network not found.");
     }
 
@@ -306,13 +307,13 @@ public class UserController {
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
-
+        Timer t = Timer.newInstance();
         try {
             userService.assignNetwork(id, networkId);
         } catch (NotFoundException e) {
             throw new NotFoundException("User network not found.");
         }
-
+        t.logMethodExecuted("UserController.assignNetwork");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -327,9 +328,9 @@ public class UserController {
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
-
+        Timer t = Timer.newInstance();
         userService.unassignNetwork(id, networkId);
-
+        t.logMethodExecuted("UserController.unassignNetwork");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -361,13 +362,13 @@ public class UserController {
     @Path("/current")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response getCurrent(@Context ContainerRequestContext requestContext) {
-
+        Timer t = Timer.newInstance();
         User u = userService.getCurrent(requestContext);
 
         if (u == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Couldn't get current user."));
         }
-
+        t.logMethodExecuted("UserController.getCurrent");
         return ResponseFactory.response(Response.Status.OK, u, JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
@@ -395,7 +396,7 @@ public class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
     public Response updateCurrent(UserRequest ui, @Context ContainerRequestContext requestContext) {
-
+        Timer t = Timer.newInstance();
         String password = ui.getPassword().getValue();
 
         if (password == null) {
@@ -411,7 +412,7 @@ public class UserController {
         User u = userService.findUserWithNetworksByLogin(login);
 
         userService.updatePassword(u.getId(), password);
-
+        t.logMethodExecuted("UserController.updateCurrent");
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 

@@ -19,6 +19,7 @@ import com.devicehive.model.User;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.Timer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -73,7 +74,7 @@ public class DeviceNotificationController {
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip,
                           @Context SecurityContext securityContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("Device notification requested");
 
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
@@ -118,6 +119,8 @@ public class DeviceNotificationController {
 
         logger.debug("Device notification proceed successfully");
 
+        t.logMethodExecuted("DeviceNotificationController.query");
+
         return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
     }
 
@@ -126,7 +129,7 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
                         @Context SecurityContext securityContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("Device notification requested");
 
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
@@ -144,7 +147,10 @@ public class DeviceNotificationController {
             logger.debug("No permissions to get notifications for device with guid : " + guid);
             return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse("Unauthorized"));
         }
+
         logger.debug("Device notification proceed successfully");
+
+        t.logMethodExecuted("DeviceNotificationController.get");
 
         return ResponseFactory.response(Response.Status.OK, deviceNotification, Policy.NOTIFICATION_TO_CLIENT);
     }
@@ -165,7 +171,7 @@ public class DeviceNotificationController {
             @QueryParam("timestamp") String timestampUTC,
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
-
+        Timer t = Timer.newInstance();
         logger.debug("Device notification poll requested");
 
         if (deviceGuid == null) {
@@ -194,6 +200,8 @@ public class DeviceNotificationController {
                 list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
             }
         }
+
+        t.logMethodExecuted("DeviceNotificationController.poll");
 
         return ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
     }
@@ -261,6 +269,7 @@ public class DeviceNotificationController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,
                            @Context SecurityContext securityContext) {
+        Timer t = Timer.newInstance();
         logger.debug("DeviceNotification insertAll requested");
 
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE);
@@ -278,6 +287,7 @@ public class DeviceNotificationController {
         deviceService.submitDeviceNotification(notification, device, null);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
+        t.logMethodExecuted("DeviceNotificationController.insert");
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
     }
 

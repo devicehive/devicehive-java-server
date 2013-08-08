@@ -1,5 +1,7 @@
 package com.devicehive.controller;
 
+import com.devicehive.utils.Timer;
+
 import javax.annotation.security.PermitAll;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -20,9 +22,11 @@ public class VersionController {
     @GET
     @PermitAll
     public Response getVersionInfo() {
+        Timer t = Timer.newInstance();
         Properties properties = new Properties();
         try {
             properties.load(context.getResourceAsStream("/WEB-INF/classes/app.properties"));
+            t.logMethodExecuted("VersionController.getVersionInfo");
             return Response.ok(properties.getProperty("version")).build();
         } catch (IOException e) {
             return Response.status(Response.Status.NOT_FOUND).build();
