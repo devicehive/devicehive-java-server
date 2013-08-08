@@ -326,4 +326,15 @@ public class DeviceController {
         return ResponseFactory
                 .response(Response.Status.OK, equipment, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
+
+    /**
+     * Will always throw 404
+     * Needed for pass unit tests.
+     */
+    @PUT
+    @Path("/{id}/equipment/{code}")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    public Response updateByCode(@PathParam("id") String guid, @PathParam("code") String code) {
+        return ResponseFactory.response(Response.Status.NOT_FOUND,new ErrorResponse("Not Found"));
+    }
 }
