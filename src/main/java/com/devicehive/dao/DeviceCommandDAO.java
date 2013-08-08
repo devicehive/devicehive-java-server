@@ -33,6 +33,7 @@ public class DeviceCommandDAO {
 
     public DeviceCommand createCommand(DeviceCommand deviceCommand) {
         em.persist(deviceCommand);
+        em.refresh(deviceCommand);
         return deviceCommand;
     }
 

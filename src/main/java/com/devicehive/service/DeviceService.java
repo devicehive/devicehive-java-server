@@ -79,8 +79,7 @@ public class DeviceService {
                            boolean isAllowedToUpdate) {
         Device deviceToUpdate = device.convertTo();
 
-        deviceToUpdate
-                .setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
+        deviceToUpdate.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
         deviceToUpdate.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet,
                 device.getGuid().getValue(), useExistingEquipment));
         createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
@@ -135,7 +134,7 @@ public class DeviceService {
         Device device = deviceDAO.findByUUID(deviceId);
 
         if (device == null || !checkPermissions(device, principal)) {
-            throw new NotFoundException("Device not found.");
+            throw new HiveException("Device Not found",404);
         }
         return device;
     }

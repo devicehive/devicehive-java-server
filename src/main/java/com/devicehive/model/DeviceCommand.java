@@ -4,19 +4,7 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -57,19 +45,24 @@ public class DeviceCommand implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE})
     private Long id;
 
     @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE})
     private Timestamp timestamp;
 
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_UPDATE_TO_CLIENT})
     private User user;
+
+    @SerializedName("userId")
+    @Transient
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
+    private Long userId;
 
     @SerializedName("device")
     @ManyToOne
@@ -97,19 +90,18 @@ public class DeviceCommand implements HiveEntity {
 
     @SerializedName("lifetime")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
     private Integer lifetime;
 
     @SerializedName("flags")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+             REST_COMMAND_UPDATE_FROM_DEVICE})
     private Integer flags;
 
     @SerializedName("status")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE})
     private String status;
 
@@ -118,7 +110,7 @@ public class DeviceCommand implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
     })
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE})
     private JsonStringWrapper result;
 
@@ -229,5 +221,17 @@ public class DeviceCommand implements HiveEntity {
 
     public long getEntityVersion() {
         return entityVersion;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 }

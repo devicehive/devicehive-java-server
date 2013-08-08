@@ -13,6 +13,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
+import com.devicehive.model.response.DeviceCommandWithUserId;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
@@ -29,6 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,13 +80,6 @@ public class DeviceCommandController {
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
 
-        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
-
-
-        if (user == null) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN);
-        }
-
         logger.debug("DeviceCommand poll requested");
 
         if (deviceGuid == null) {
@@ -92,12 +87,7 @@ public class DeviceCommandController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
-        Device device = deviceService.findByUUID(UUID.fromString(deviceGuid), user);
-
-        if (device == null) {
-            logger.debug("DeviceCommand poll request failed. No device found for device with guid = " + deviceGuid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND);
-        }
+        Device device = deviceService.getDevice(deviceGuid,((HivePrincipal) securityContext.getUserPrincipal()));
 
         Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
@@ -108,8 +98,7 @@ public class DeviceCommandController {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-            CommandSubscription commandSubscription =
-                new CommandSubscription(device.getId(), reqId, restHandlerCreator);
+            CommandSubscription commandSubscription = new CommandSubscription(device.getId(), reqId, restHandlerCreator);
 
 
             if (SimpleWaiter.subscribeAndWait(storage,commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
@@ -351,8 +340,10 @@ public class DeviceCommandController {
         if (result == null) {
             logger.debug("Device command get failed. No command with id = " + id + " found for device with guid = " +
                     guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND);
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Command Not Found"));
         }
+
+        result.setUserId(result.getUser().getId());
 
         logger.debug("Device command get proceed successfully");
 
@@ -395,8 +386,12 @@ public class DeviceCommandController {
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @JsonPolicyApply(Policy.POST_COMMAND_TO_DEVICE)
     public Response insert(@PathParam("deviceGuid") String guid, DeviceCommand deviceCommand, @Context ContainerRequestContext requestContext) {
+
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+
         if (login == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN);
         }
@@ -414,10 +409,11 @@ public class DeviceCommandController {
         }
 
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
+        deviceCommand.setUserId(u.getId());
 
         logger.debug("Device command insertAll proceed successfully");
 
-        return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.POST_COMMAND_TO_DEVICE);
+        return ResponseFactory.response(Response.Status.CREATED, deviceCommand);
     }
 
     /**
@@ -457,22 +453,23 @@ public class DeviceCommandController {
         }
 
         if (principal.getUser() == null || !principal.getUser().isAdmin()) {
-            if (principal.getDevice().getGuid() != deviceId) {
-                return ResponseFactory.response(Response.Status.FORBIDDEN, "access is forbidden for device with  guid: "
-                        + principal.getDevice().getGuid() + " to command with device " + guid);
+            if (principal.getDevice().getGuid() == null || !principal.getDevice().getGuid().equals(deviceId)) {
+                return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("access is forbidden for device with  guid: "
+                        + principal.getDevice().getGuid() + " to command with device " + guid));
             }
         }
 
         DeviceCommand commandUpdate = commandService.getByDeviceGuidAndId(deviceId, commandId);
 
         if (commandUpdate == null) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN, "no permissions for device with guid " + guid
-                    + "to update command with id " + commandId);
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("command with id " + commandId + " for device with " + guid + " is not found"));
         }
 
         commandUpdate.setFlags(command.getFlags());
         commandUpdate.setStatus(command.getStatus());
         commandUpdate.setResult(command.getResult());
+        commandUpdate.setCommand(command.getCommand());
+        commandUpdate.setParameters(command.getParameters());
 
         deviceService.submitDeviceCommandUpdate(commandUpdate, commandUpdate.getDevice());
 

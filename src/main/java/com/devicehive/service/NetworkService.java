@@ -81,28 +81,32 @@ public class NetworkService {
         if (network == null) {
             return networkDAO.findByDevice(deviceGuid);
         }
-        if (network.getValue() != null) {
-            Network update = network.getValue();
-            if (update.getId() != null) {
-                stored = networkDAO.getById(update.getId());
-            } else {
-                stored = networkDAO.findByName(update.getName());
-            }
-            if (stored != null) {
-                if (stored.getKey() != null) {
-                    if (!stored.getKey().equals(update.getKey())) {
-                        throw new HiveException("Wrong network key!", 403);
-                    }
-                }
-            } else {
-                if (update.getId() != null){
-                    throw new HiveException("Invalid request");
-                }
-                stored = networkDAO.createNetwork(update);
-            }
-            assert (stored != null);
-            return stored;
+
+        if (network.getValue() == null) {
+            return null;
         }
-        return null;
+
+        Network update = network.getValue();
+
+        if (update.getId() != null) {
+            stored = networkDAO.getById(update.getId());
+        } else {
+            stored = networkDAO.findByName(update.getName());
+        }
+
+        if (stored != null) {
+            if (stored.getKey() != null) {
+                if (!stored.getKey().equals(update.getKey())) {
+                    throw new HiveException("Wrong network key!", 403);
+                }
+            }
+        } else {
+            if (update.getId() != null) {
+                throw new HiveException("Invalid request");
+            }
+            stored = networkDAO.createNetwork(update);
+        }
+        assert (stored != null);
+        return stored;
     }
 }

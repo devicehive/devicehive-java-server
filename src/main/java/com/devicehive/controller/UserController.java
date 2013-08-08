@@ -159,6 +159,7 @@ public class UserController {
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserRequest user) {
 
         //neither we want left some params omitted
@@ -181,7 +182,7 @@ public class UserController {
                 user.getStatusEnum(),
                 user.getPassword().getValue());
 
-        return ResponseFactory.response(Response.Status.CREATED, created, JsonPolicyDef.Policy.USERS_LISTED);
+        return ResponseFactory.response(Response.Status.CREATED, created);
     }
 
 

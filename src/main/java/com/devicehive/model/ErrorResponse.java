@@ -10,6 +10,7 @@ public class ErrorResponse implements HiveEntity {
     public static final String JSON_SYNTAX_ERROR_MESSAGE = "JSON syntax error";
     public static final String DEVICE_NOT_FOUND_MESSAGE = "Device not found.";
     public static final String NETWORK_NOT_FOUND_MESSAGE = "Network not found.";
+    public static final String FORBIDDEN_MESSAGE = "Access Forbidden";
 
 
 
