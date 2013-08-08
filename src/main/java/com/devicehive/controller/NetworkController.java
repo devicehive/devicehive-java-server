@@ -242,7 +242,7 @@ public class NetworkController {
         networkService.update(n);
         logger.debug("Network has been updated successfully");
 
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
 
     }
 

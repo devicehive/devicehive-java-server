@@ -239,7 +239,7 @@ public class UserController {
 
         userService.updateUser(userId, loginValue, user.getRoleEnum(), user.getStatusEnum(), passwordValue);
 
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
 
@@ -313,7 +313,7 @@ public class UserController {
             throw new NotFoundException("User network not found.");
         }
 
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**
@@ -412,7 +412,7 @@ public class UserController {
 
         userService.updatePassword(u.getId(), password);
 
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
 

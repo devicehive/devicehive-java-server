@@ -187,7 +187,7 @@ public class DeviceClassController {
                     new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
         logger.debug("Device class updated");
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**
@@ -310,7 +310,7 @@ public class DeviceClassController {
 
         logger.debug("Update device class's equipment finished successfully");
 
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**

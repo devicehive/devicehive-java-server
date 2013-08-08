@@ -472,7 +472,7 @@ public class DeviceCommandController {
 
         logger.debug("Device command update proceed successfully");
 
-        return ResponseFactory.response(Response.Status.CREATED);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
 }
