@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -43,6 +44,11 @@ public class GlobalMessageBus {
 
         ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
         deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
+    }
+
+    @PreDestroy
+    protected void preDestroy() {
+        hazelcast.getLifecycleService().shutdown();
     }
 
 
