@@ -49,6 +49,7 @@ public class UserService {
      * @param password
      * @return User object if authentication is successful or null if not
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User authenticate(String login, String password) {
         User user = userDAO.findByLogin(login);
         if (user == null) {
