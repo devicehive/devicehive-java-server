@@ -15,6 +15,8 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>DEV</build.number>
+        <hibernate-version>4.3.0.Beta3</hibernate-version>
+        <hazelcast-version>3.0-RC2</hazelcast-version>
     </properties>
 
     <dependencies>
@@ -40,13 +42,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>4.3.0.Beta3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-ehcache</artifactId>
-            <version>4.3.0.Beta3</version>
+            <version>${hibernate-version}</version>
         </dependency>
 
         <dependency>
@@ -77,8 +73,15 @@
         <dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
-			<version>3.0-RC2</version>
+			<version>${hazelcast-version}</version>
 		</dependency>
+
+        <dependency>
+	        <groupId>com.hazelcast</groupId>
+	        <artifactId>hazelcast-hibernate4</artifactId>
+	        <version>${hazelcast-version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
