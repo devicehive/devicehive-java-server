@@ -4,11 +4,7 @@ import java.sql.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Version;
+import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -20,6 +16,7 @@ import com.google.gson.annotations.SerializedName;
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "configuration")
+@Cacheable
 public class Configuration implements HiveEntity {
 
     @Id
