@@ -24,4 +24,8 @@ public class DeviceEquipmentService {
     public List<DeviceEquipment> findByFK(@NotNull Device device) {
         return deviceEquipmentDAO.findByFK(device);
     }
+
+    public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device){
+        return deviceEquipmentDAO.findByCodeAndDevice(code, device);
+    }
 }

@@ -40,6 +40,8 @@ import com.google.gson.annotations.SerializedName;
                 query = "update DeviceEquipment de set de.timestamp = :timestamp, de.parameters = :parameters " +
                         "where de.device = :device and de.code = :code"),
         @NamedQuery(name = "DeviceEquipment.deleteById", query = "delete from DeviceEquipment de where de.id = :id"),
+        @NamedQuery(name = "DeviceEquipment.getByDeviceAndCode",
+                query = "select de from DeviceEquipment de where de.device = :device and de.code = :code"),
         @NamedQuery(name = "DeviceEquipment.deleteByFK", query = "delete from DeviceEquipment de where de.device = " +
                 ":device"),
         @NamedQuery(name = "DeviceEquipment.getByDevice", query = "select de from DeviceEquipment de where de.device = " +

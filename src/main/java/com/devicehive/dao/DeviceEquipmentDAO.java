@@ -31,6 +31,16 @@ public class DeviceEquipmentDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public DeviceEquipment findByCodeAndDevice(String code, Device device) {
+        TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByDeviceAndCode",
+                DeviceEquipment.class);
+        query.setParameter("code", code);
+        query.setParameter("device", device);
+        List<DeviceEquipment> queryResult = query.getResultList();
+        return queryResult.isEmpty() ? null : queryResult.get(0);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceEquipment> findByFK(@NotNull Device device) {
         TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByDevice",
                 DeviceEquipment.class);

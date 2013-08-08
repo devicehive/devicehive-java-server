@@ -182,7 +182,6 @@ public class DeviceController {
         return ResponseFactory.response(Response.Status.CREATED);
     }
 
-
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful
      * API: Device: get</a>
@@ -309,4 +308,22 @@ public class DeviceController {
                 .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
 
+    @GET
+    @Path("/{id}/equipment/{code}")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    public Response equipmentByCode(@PathParam("id") String guid, @PathParam("code") String code, @Context
+    SecurityContext securityContext) {
+        logger.debug("Device equipment by code requested");
+
+        Device device = deviceService.getDevice(guid,(HivePrincipal) securityContext.getUserPrincipal());
+        DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
+        if (equipment == null){
+            logger.debug("No device equipment found for code : " + code + " and guid : " + guid);
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
+        }
+        logger.debug("Device equipment by code proceed successfully");
+        return ResponseFactory
+                .response(Response.Status.OK, equipment, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
+    }
 }
