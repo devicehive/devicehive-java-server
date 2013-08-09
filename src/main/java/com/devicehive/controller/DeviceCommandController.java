@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -17,6 +18,7 @@ import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
+import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
 import com.devicehive.utils.Timer;
 import org.slf4j.Logger;
@@ -25,6 +27,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -40,6 +45,7 @@ import java.util.UUID;
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for details.
  */
 @Path("/device/{deviceGuid}/command")
+@LogExecutionTime
 public class DeviceCommandController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
@@ -59,7 +65,7 @@ public class DeviceCommandController {
     @EJB
     private DeviceCommandService deviceCommandService;
 
-    @Inject
+    @EJB
     private SubscriptionManager subscriptionManager;
 
 
@@ -67,8 +73,8 @@ public class DeviceCommandController {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
      *
      * @param deviceGuid   Device unique identifier.
-     * @param timestampUTC Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param waitTimeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
@@ -76,22 +82,14 @@ public class DeviceCommandController {
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     @Path("/poll")
     public Response poll(
-            @PathParam("deviceGuid") String deviceGuid,
-            @QueryParam("timestamp") String timestampUTC,
-            @QueryParam("waitTimeout") String waitTimeout,
+            @PathParam("deviceGuid") UUID deviceGuid,
+            @QueryParam("timestamp") Timestamp timestamp,
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam("waitTimeout") long timeout,
             @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
         logger.debug("DeviceCommand poll requested");
-
-        if (deviceGuid == null) {
-            logger.debug("DeviceCommand poll request failed. deviceGuid is required.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST);
-        }
 
         Device device = deviceService.getDevice(deviceGuid, ((HivePrincipal) securityContext.getUserPrincipal()));
 
-        Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
-        long timeout = Params.parseWaitTimeout(waitTimeout);
 
         List<DeviceCommand> list = deviceCommandDAO.getNewerThan(device, timestamp);
 
@@ -108,25 +106,24 @@ public class DeviceCommandController {
         }
 
         logger.debug("DeviceCommand poll proceed successfully");
-        t.logMethodExecuted("DeviceCommandController.poll");
         return ResponseFactory.response(Response.Status.OK, list);
     }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/wait">DeviceHive RESTful API: DeviceCommand: wait</a>
      *
-     * @param waitTimeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param timeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/{commandId}/poll")
     public Response wait(
-            @PathParam("deviceGuid") String deviceGuid,
+            @PathParam("deviceGuid") UUID deviceGuid,
             @PathParam("commandId") Long commandId,
-            @QueryParam("waitTimeout") String waitTimeout,
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam("waitTimeout") long timeout,
             @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
+
         logger.debug("DeviceCommand wait requested");
 
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
@@ -136,7 +133,7 @@ public class DeviceCommandController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
-        Device device = deviceService.findByUUID(UUID.fromString(deviceGuid), user);
+        Device device = deviceService.findByUUID(deviceGuid, user);
 
         if (device == null) {
             logger.debug("DeviceCommand wait request failed. No device found with guid = " + deviceGuid);
@@ -160,7 +157,6 @@ public class DeviceCommandController {
             ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
-        long timeout = Params.parseWaitTimeout(waitTimeout);
 
         if (command.getEntityVersion() == 0) {
             CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
@@ -180,7 +176,6 @@ public class DeviceCommandController {
 
         logger.debug("DeviceCommand wait proceed successfully");
 
-        t.logMethodExecuted("DeviceCommandController.wait");
         return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -227,7 +222,7 @@ public class DeviceCommandController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    public Response query(@PathParam("deviceGuid") String guid,
+    public Response query(@PathParam("deviceGuid") UUID guid,
                           @QueryParam("start") String start,
                           @QueryParam("end") String end,
                           @QueryParam("command") String command,
@@ -238,7 +233,6 @@ public class DeviceCommandController {
                           @QueryParam("skip") Integer skip,
                           @Context ContainerRequestContext requestContext) {
 
-        Timer t = Timer.newInstance();
         logger.debug("Device command query requested");
 
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
@@ -295,7 +289,6 @@ public class DeviceCommandController {
                 status, sortField, sortOrderAsc, take, skip);
 
         logger.debug("Device command query request proceed successfully");
-        t.logMethodExecuted("DeviceCommandController.query");
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -323,8 +316,7 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{id}")
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id, @Context ContainerRequestContext requestContext) {
-        Timer t = Timer.newInstance();
+    public Response get(@PathParam("deviceGuid") UUID guid, @PathParam("id") long id, @Context ContainerRequestContext requestContext) {
         logger.debug("Device command get requested");
 
         Device device;
@@ -348,7 +340,6 @@ public class DeviceCommandController {
         result.setUserId(result.getUser().getId());
 
         logger.debug("Device command get proceed successfully");
-        t.logMethodExecuted("DeviceCommandController.get");
         return ResponseFactory.response(Response.Status.OK, result);
     }
 
@@ -388,11 +379,10 @@ public class DeviceCommandController {
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") String guid,
+    public Response insert(@PathParam("deviceGuid") UUID guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                            @Context ContainerRequestContext requestContext) {
 
-        Timer t = Timer.newInstance();
         String login = requestContext.getSecurityContext().getUserPrincipal().getName();
 
         if (login == null) {
@@ -415,7 +405,6 @@ public class DeviceCommandController {
         deviceCommand.setUserId(u.getId());
 
         logger.debug("Device command insertAll proceed successfully");
-        t.logMethodExecuted("DeviceCommandController.insert");
         return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
     }
 
@@ -439,10 +428,10 @@ public class DeviceCommandController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
+    public Response update(@PathParam("deviceGuid") UUID guid, @PathParam("id") long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command,
                            @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
+
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
 
 
@@ -459,7 +448,7 @@ public class DeviceCommandController {
         deviceService.submitDeviceCommandUpdate(command, device);
 
         logger.debug("Device command update proceed successfully");
-        t.logMethodExecuted("DeviceCommandController.update");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 

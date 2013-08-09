@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.model.Network;
@@ -26,8 +27,6 @@ import java.util.Set;
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
 
-    private static final int MAX_LOGIN_ATTEMPTS = 10;
-    private static final long LAST_LOGIN_TIMEOUT = 60000;
 
 
     @Inject
@@ -49,7 +48,6 @@ public class UserService {
      * @param password
      * @return User object if authentication is successful or null if not
      */
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User authenticate(String login, String password) {
         User user = userDAO.findByLogin(login);
         if (user == null) {
@@ -57,13 +55,13 @@ public class UserService {
         }
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >= MAX_LOGIN_ATTEMPTS) {
+            if (user.getLoginAttempts() >= Constants.MAX_LOGIN_ATTEMPTS) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
             return null;
         } else {
             user.setLoginAttempts(0);
-            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > LAST_LOGIN_TIMEOUT) {
+            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > Constants.LAST_LOGIN_TIMEOUT) {
                 user.setLastLogin(timestampService.getTimestamp());
             }
             return user;

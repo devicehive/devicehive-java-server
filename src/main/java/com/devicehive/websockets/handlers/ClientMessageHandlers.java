@@ -25,6 +25,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -38,23 +39,23 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
-    @Inject
+    @EJB
     private GlobalMessageBus globalMessageBus;
-    @Inject
+    @EJB
     private SubscriptionManager subscriptionManager;
-    @Inject
+    @EJB
     private UserService userService;
-    @Inject
+    @EJB
     private DeviceService deviceService;
-    @Inject
+    @EJB
     private DeviceDAO deviceDAO;
-    @Inject
+    @EJB
     private ConfigurationDAO configurationDAO;
-    @Inject
+    @EJB
     private DeviceNotificationService deviceNotificationService;
-    @Inject
+    @EJB
     private AsyncMessageDeliverer asyncMessageDeliverer;
-    @Inject
+    @EJB
     private TimestampService timestampService;
 
     /**

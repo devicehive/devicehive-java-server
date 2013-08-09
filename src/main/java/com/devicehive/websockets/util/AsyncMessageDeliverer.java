@@ -5,14 +5,19 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.inject.Singleton;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Singleton;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static javax.ejb.ConcurrencyManagementType.BEAN;
+
 
 @Singleton
+@ConcurrencyManagement(BEAN)
 public class AsyncMessageDeliverer {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageDeliverer.class);

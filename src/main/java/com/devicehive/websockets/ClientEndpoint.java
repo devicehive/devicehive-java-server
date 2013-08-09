@@ -24,7 +24,7 @@ public class ClientEndpoint extends Endpoint {
     @EJB
     private SessionMonitor sessionMonitor;
 
-    @Inject
+    @EJB
     private SubscriptionManager subscriptionManager;
 
     @OnOpen

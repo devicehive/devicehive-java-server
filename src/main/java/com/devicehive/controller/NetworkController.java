@@ -9,6 +9,7 @@ import com.devicehive.model.User;
 import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
+import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
 import com.devicehive.utils.Timer;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import java.util.List;
  * TODO JavaDoc
  */
 @Path("/network")
+@LogExecutionTime
 public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
@@ -73,7 +75,7 @@ public class NetworkController {
                                    @QueryParam("take") Integer take,
                                    @QueryParam("skip") Integer skip,
                                    @Context ContainerRequestContext requestContext) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Network list requested");
 
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
@@ -99,7 +101,7 @@ public class NetworkController {
 
         logger.debug("Network list request proceed successfully.");
 
-        t.logMethodExecuted("NetworkController.getNetworkList");
+
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
@@ -122,7 +124,7 @@ public class NetworkController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORK_PUBLISHED)
     public Response getNetwork(@PathParam("id") long id, @Context ContainerRequestContext requestContext) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Network get requested.");
 
         Network existing = networkService.getWithDevicesAndDeviceClasses(id, userService.getCurrent(requestContext));
@@ -132,7 +134,7 @@ public class NetworkController {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
         logger.debug("Network get proceed successfully.");
-        t.logMethodExecuted("NetworkController.getNetwork");
+
         return ResponseFactory.response(Response.Status.OK, existing);
     }
 
@@ -166,7 +168,7 @@ public class NetworkController {
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     public Response insert(NetworkRequest nr) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Network insert requested");
         Network n = new Network();
 
@@ -192,7 +194,7 @@ public class NetworkController {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network couldn't be created"));
         }
         logger.debug("New network has been created");
-        t.logMethodExecuted("NetworkController.insert");
+
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
 
@@ -225,7 +227,7 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response update(NetworkRequest nr, @PathParam("id") long id) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Network update requested");
         nr.setId(id);
 
@@ -253,7 +255,7 @@ public class NetworkController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(e.getMessage()));
         }
         logger.debug("Network has been updated successfully");
-        t.logMethodExecuted("NetworkController.update");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
 
     }
@@ -268,11 +270,11 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response delete(@PathParam("id") long id) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Network delete requested");
         networkService.delete(id);
         logger.debug("Network with id = " + id + " does not exists any more.");
-        t.logMethodExecuted("NetworkController.delete");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }

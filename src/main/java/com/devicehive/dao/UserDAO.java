@@ -161,7 +161,7 @@ public class UserDAO {
     }
 
 
-    @Lock
+
     public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
         query.setParameter("login", login);

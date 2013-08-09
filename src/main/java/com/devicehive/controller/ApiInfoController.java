@@ -7,6 +7,7 @@ import com.devicehive.model.ApiInfo;
 import com.devicehive.model.Configuration;
 import com.devicehive.model.Version;
 import com.devicehive.service.TimestampService;
+import com.devicehive.utils.LogExecutionTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ import javax.ws.rs.core.Response;
  * Provide API information
  */
 @Path("/info")
+@LogExecutionTime
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
 

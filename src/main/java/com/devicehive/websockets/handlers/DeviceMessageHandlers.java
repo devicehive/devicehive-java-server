@@ -25,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -39,19 +40,19 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
-    @Inject
+    @EJB
     private SubscriptionManager subscriptionManager;
-    @Inject
+    @EJB
     private DeviceDAO deviceDAO;
-    @Inject
+    @EJB
     private DeviceCommandDAO deviceCommandDAO;
-    @Inject
+    @EJB
     private DeviceService deviceService;
-    @Inject
+    @EJB
     private ConfigurationDAO configurationDAO;
-    @Inject
+    @EJB
     private AsyncMessageDeliverer asyncMessageDeliverer;
-    @Inject
+    @EJB
     private TimestampService timestampService;
 
     /**

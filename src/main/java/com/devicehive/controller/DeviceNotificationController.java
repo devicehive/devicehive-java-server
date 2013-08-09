@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.adapters.TimestampAdapter;
@@ -15,6 +16,7 @@ import com.devicehive.messages.util.Params;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
 import com.devicehive.utils.Timer;
 import com.google.gson.Gson;
@@ -23,7 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
+import javax.ejb.EJB;
 import javax.inject.Inject;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -40,27 +45,28 @@ import java.util.List;
  * @author rroschin
  */
 @Path("/device")
+@LogExecutionTime
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
 
 
-    @Inject
+    @EJB
     private DeviceNotificationService notificationService;
 
-    @Inject
+    @EJB
     private SubscriptionManager subscriptionManager;
 
-    @Inject
+    @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
 
-    @Inject
+    @EJB
     private DeviceService deviceService;
 
     @GET
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response query(@PathParam("deviceGuid") String guid,
+    public Response query(@PathParam("deviceGuid") UUID guid,
                           @QueryParam("start") String start,
                           @QueryParam("end") String end,
                           @QueryParam("notification") String notification,
@@ -69,7 +75,7 @@ public class DeviceNotificationController {
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip,
                           @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Device notification requested");
 
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
@@ -114,24 +120,21 @@ public class DeviceNotificationController {
 
         logger.debug("Device notification proceed successfully");
 
-        t.logMethodExecuted("DeviceNotificationController.query");
-
         return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
+    public Response get(@PathParam("deviceGuid") UUID guid, @PathParam("id") Long notificationId,
                         @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
         logger.debug("Device notification requested");
 
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
             throw new NotFoundException("Device notification with id : " + notificationId + " not found");
         }
-        String deviceGuidFromNotification = deviceNotification.getDevice().getGuid().toString();
+        UUID deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
         if (!deviceGuidFromNotification.equals(guid)) {
             logger.debug("No device notifications found for device with guid : " + guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
@@ -145,7 +148,6 @@ public class DeviceNotificationController {
 
         logger.debug("Device notification proceed successfully");
 
-        t.logMethodExecuted("DeviceNotificationController.get");
 
         return ResponseFactory.response(Response.Status.OK, deviceNotification, Policy.NOTIFICATION_TO_CLIENT);
     }
@@ -154,19 +156,19 @@ public class DeviceNotificationController {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/poll">DeviceHive RESTful API: DeviceNotification: poll</a>
      *
      * @param deviceGuid   Device unique identifier.
-     * @param timestampUTC Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param waitTimeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE})
     @Path("/{deviceGuid}/notification/poll")
     public Response poll(
-            @PathParam("deviceGuid") String deviceGuid,
-            @QueryParam("timestamp") String timestampUTC,
-            @QueryParam("waitTimeout") String waitTimeout,
+            @PathParam("deviceGuid") UUID deviceGuid,
+            @QueryParam("timestamp") Timestamp timestamp,
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam("waitTimeout") long timeout,
             @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Device notification poll requested");
 
         if (deviceGuid == null) {
@@ -177,8 +179,6 @@ public class DeviceNotificationController {
 
         Device device = deviceService.getDevice(deviceGuid, (HivePrincipal) securityContext.getUserPrincipal());
 
-        Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
-        long timeout = Params.parseWaitTimeout(waitTimeout);
 
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
 
@@ -196,7 +196,6 @@ public class DeviceNotificationController {
             }
         }
 
-        t.logMethodExecuted("DeviceNotificationController.poll");
 
         return ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
     }
@@ -205,8 +204,8 @@ public class DeviceNotificationController {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
      *
      * @param deviceGuids  Device unique identifier.
-     * @param timestampUTC Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param waitTimeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
@@ -214,10 +213,9 @@ public class DeviceNotificationController {
     @Path("/notification/poll")
     public Response pollMany(
             @QueryParam("deviceGuids") String deviceGuids,
-            @QueryParam("timestamp") String timestampUTC,
-            @QueryParam("waitTimeout") String waitTimeout,
+            @QueryParam("timestamp") Timestamp timestamp,
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam("waitTimeout") long timeout,
             @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
         logger.debug("Device notification pollMany requested");
 
         List<String> guids =
@@ -241,9 +239,6 @@ public class DeviceNotificationController {
             devices = deviceService.findByUUIDListAndUser(user, uuids);
         }
 
-        Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
-        long timeout = Params.parseWaitTimeout(waitTimeout);
-
 
         List<DeviceNotification> list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
         if (list.isEmpty()) {
@@ -263,8 +258,6 @@ public class DeviceNotificationController {
             }
         }
 
-        t.logMethodExecuted("DeviceNotificationController.pollMany");
-
         return ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
 
     }
@@ -273,9 +266,8 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,
+    public Response insert(@PathParam("deviceGuid") UUID guid, JsonObject jsonObject,
                            @Context SecurityContext securityContext) {
-        Timer t = Timer.newInstance();
         logger.debug("DeviceNotification insertAll requested");
 
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE);
@@ -293,7 +285,6 @@ public class DeviceNotificationController {
         deviceService.submitDeviceNotification(notification, device, null);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
-        t.logMethodExecuted("DeviceNotificationController.insert");
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
     }
 

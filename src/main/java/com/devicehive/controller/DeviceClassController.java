@@ -13,6 +13,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
+import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
 import com.devicehive.utils.Timer;
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import java.util.List;
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive RESTful API: DeviceClass</a> for details.
  */
 @Path("/device")
+@LogExecutionTime
 public class DeviceClassController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
@@ -67,7 +69,6 @@ public class DeviceClassController {
             @QueryParam("sortOrder") String sortOrder,
             @QueryParam("take") Integer take,
             @QueryParam("skip") Integer skip) {
-        Timer t = Timer.newInstance();
 
         logger.debug("DeviceClass list requested");
 
@@ -87,7 +88,7 @@ public class DeviceClassController {
         List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrderAsc, take, skip);
         logger.debug("DeviceClass list proceed result. Result list contains " + result.size() + " elems");
-        t.logMethodExecuted("DeviceClassController.getDeviceClassList");
+
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);
     }
 
@@ -104,7 +105,7 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
     public Response getDeviceClass(@PathParam("id") long id) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Get device class by id requested");
 
         DeviceClass result = deviceClassService.getWithEquipment(id);
@@ -116,7 +117,7 @@ public class DeviceClassController {
         }
 
         logger.debug("Requested device class found");
-        t.logMethodExecuted("DeviceClassController.getDeviceClass");
+
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED);
     }
 
@@ -144,7 +145,7 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertDeviceClass(DeviceClass insert) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Insert device class requested");
         DeviceClass result;
 
@@ -159,7 +160,7 @@ public class DeviceClassController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ex.getMessage()));
         }
         logger.debug("Device class inserted");
-        t.logMethodExecuted("DeviceClassController.insertDeviceClass");
+
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
     }
 
@@ -180,7 +181,7 @@ public class DeviceClassController {
     public Response updateDeviceClass(
             @PathParam("id") long id,
             @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Device class update requested");
         try {
             deviceClassService.update(id, insert);
@@ -191,7 +192,7 @@ public class DeviceClassController {
                     new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
         logger.debug("Device class updated");
-        t.logMethodExecuted("DeviceClassController.updateDeviceClass");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -207,11 +208,11 @@ public class DeviceClassController {
     @Path("/class/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteDeviceClass(@PathParam("id") long id) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Device class delete requested");
         deviceClassService.delete(id);
         logger.debug("Device class deleted");
-        t.logMethodExecuted("DeviceClassController.deleteDeviceClass");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -241,7 +242,7 @@ public class DeviceClassController {
     @Path("/class/{deviceClassId}/equipment/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Device class's equipment get requested");
         Equipment result = equipmentService.getByDeviceClass(classId, eqId);
 
@@ -252,7 +253,7 @@ public class DeviceClassController {
                     new ErrorResponse("Equipment with id = " + eqId + " not found"));
         }
         logger.debug("Device class's equipment get proceed successfully");
-        t.logMethodExecuted("DeviceClassController.getEquipment");
+
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
     }
 
@@ -267,11 +268,11 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment equipmentq) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Insert device class's equipment requested");
         Equipment result = deviceClassService.createEquipment(classId, equipmentq);
         logger.debug("New device class's equipment created");
-        t.logMethodExecuted("DeviceClassController.insertEquipment");
+
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED);
     }
 
@@ -308,7 +309,7 @@ public class DeviceClassController {
             @PathParam("deviceClassId") long classId,
             @PathParam("id") long eqId,
             @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) EquipmentUpdate equipmentUpdate) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Update device class's equipment requested");
 
         if (!equipmentService.update(equipmentUpdate, eqId, classId)) {
@@ -320,7 +321,7 @@ public class DeviceClassController {
         }
 
         logger.debug("Update device class's equipment finished successfully");
-        t.logMethodExecuted("DeviceClassController.updateEquipment");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
@@ -337,11 +338,11 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
-        Timer t = Timer.newInstance();
+
         logger.debug("Delete device class's equipment requested");
         equipmentService.delete(eqId, classId);
         logger.debug("Delete device class's equipment finished");
-        t.logMethodExecuted("DeviceClassController.deleteEquipment");
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }

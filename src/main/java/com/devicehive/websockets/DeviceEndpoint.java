@@ -21,7 +21,7 @@ public class DeviceEndpoint extends Endpoint {
 
     @Inject
     private DeviceMessageHandlers deviceMessageHandlers;
-    @Inject
+    @EJB
     private SubscriptionManager subscriptionManager;
     @EJB
     private SessionMonitor sessionMonitor;

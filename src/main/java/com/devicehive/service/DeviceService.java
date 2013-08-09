@@ -62,14 +62,14 @@ public class DeviceService {
     @EJB
     private TimestampService timestampService;
 
-    @Inject
+    @EJB
     private GlobalMessageBus globalMessageBus;
 
 
-    @Inject
+    @EJB
     private AsyncMessageDeliverer asyncMessageDeliverer;
 
-    @Inject
+    @EJB
     private SubscriptionManager subscriptionManager;
 
     public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
@@ -119,15 +119,7 @@ public class DeviceService {
     }
 
 
-    public Device getDevice(String deviceGuid, HivePrincipal principal) {
-
-        UUID deviceId;
-
-        try {
-            deviceId = UUID.fromString(deviceGuid);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("unparseable guid: '" + deviceGuid + "'");
-        }
+    public Device getDevice(UUID deviceId, HivePrincipal principal) {
 
         Device device = deviceDAO.findByUUID(deviceId);
 

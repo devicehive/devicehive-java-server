@@ -12,4 +12,8 @@ public class Constants {
 
     public final static long MAX_WAIT_TIMEOUT = 60L;
 
+    public static final int MAX_LOGIN_ATTEMPTS = 10;
+
+    public static final long LAST_LOGIN_TIMEOUT = 60000;
+
 }

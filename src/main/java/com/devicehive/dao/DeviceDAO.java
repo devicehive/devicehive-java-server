@@ -24,9 +24,9 @@ public class DeviceDAO {
 
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
-    @Inject
+    @EJB
     private NetworkDAO networkDAO;
-    @Inject
+    @EJB
     private DeviceClassDAO deviceClassDAO;
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
