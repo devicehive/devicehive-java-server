@@ -284,15 +284,19 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
 
             User user = WebsocketSession.getAuthorisedUser(session);
-            List<NotificationSubscription> nsList = new ArrayList<>();
             if (devices != null) {
+                List<NotificationSubscription> nsList = new ArrayList<>();
                 for (Device device : devices) {
                     NotificationSubscription ns = new NotificationSubscription(user, device.getId(), session.getId(),
                             new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK, asyncMessageDeliverer));
                     nsList.add(ns);
                 }
+                subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
+            } else {
+                NotificationSubscription forAll = new NotificationSubscription(user, null, session.getId(),
+                    new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK, asyncMessageDeliverer));
+                subscriptionManager.getNotificationSubscriptionStorage().insert(forAll);
             }
-            subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (!deviceNotifications.isEmpty()) {
                 for (DeviceNotification deviceNotification : deviceNotifications) {
                     WebsocketSession.addMessagesToQueue(session,
