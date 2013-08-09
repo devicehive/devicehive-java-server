@@ -25,7 +25,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
         @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.updateById",
-                query = "update DeviceCommand dc set dc.timestamp = :timestamp, " +
+                query = "update DeviceCommand dc set " +
+                        "dc.timestamp = :timestamp, " +
                         "dc.parameters = :parameters, " +
                         "dc.lifetime = :lifetime, " +
                         "dc.flags = :flags, " +

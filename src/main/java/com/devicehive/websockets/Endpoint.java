@@ -42,8 +42,10 @@ abstract class Endpoint {
             logger.debug("[action] Looking for action " + action);
             response = tryExecute(handler, action, request, session);
         } catch (HiveException ex) {
+            logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (OptimisticLockException ex) {
+            logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);

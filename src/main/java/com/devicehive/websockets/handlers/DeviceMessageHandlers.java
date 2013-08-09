@@ -10,6 +10,7 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -151,8 +152,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) {
         logger.debug("command update action started for session : {{}", session.getId());
-        DeviceCommand update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
-                .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        DeviceCommandUpdate update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
+                .fromJson(message.getAsJsonObject("command"), DeviceCommandUpdate.class);
         if (message.get("commandId") == null) {
             throw new HiveException("Device command identifier cannot be null");
         }

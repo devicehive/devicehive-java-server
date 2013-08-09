@@ -37,27 +37,6 @@ public class DeviceCommandDAO {
         return deviceCommand;
     }
 
-    public DeviceCommand updateCommand(DeviceCommand update, Device expectedDevice) {
-
-        DeviceCommand cmd = em.find(DeviceCommand.class, update.getId());
-        if (cmd == null) {
-            throw new HiveException("Command not found!");
-        }
-
-        if (!cmd.getDevice().getId().equals(expectedDevice.getId())) {
-            throw new HiveException("Device tries to update incorrect command");
-        }
-
-        cmd.setCommand(update.getCommand());
-        cmd.setParameters(update.getParameters());
-        cmd.setLifetime(update.getLifetime());
-        cmd.setFlags(update.getFlags());
-        cmd.setStatus(update.getStatus());
-        cmd.setResult(update.getResult());
-
-        return em.merge(cmd);
-    }
-
     public boolean deleteById(@NotNull Long id) {
         Query query = em.createNamedQuery("DeviceCommand.deleteById");
         query.setParameter("id", id);
@@ -70,13 +49,14 @@ public class DeviceCommandDAO {
         return query.executeUpdate();
     }
 
-    public boolean updateCommand(@NotNull Long id, DeviceCommand command) {
+    public boolean updateCommand(@NotNull Long id, @NotNull DeviceCommand command) {
         Query query = em.createNamedQuery("DeviceCommand.updateById");
         query.setParameter("parameters", command.getParameters());
         query.setParameter("lifetime", command.getLifetime());
         query.setParameter("flags", command.getFlags());
         query.setParameter("status", command.getStatus());
         query.setParameter("result", command.getResult());
+        query.setParameter("timestamp", command.getTimestamp());
         query.setParameter("id", id);
         return query.executeUpdate() != 0;
     }

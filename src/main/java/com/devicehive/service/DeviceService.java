@@ -11,14 +11,13 @@ import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -35,7 +34,6 @@ import java.util.UUID;
 @Stateless
 public class DeviceService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
 
     @EJB
     private DeviceCommandDAO deviceCommandDAO;
@@ -139,9 +137,42 @@ public class DeviceService {
         return device;
     }
 
-    public void submitDeviceCommandUpdate(DeviceCommand update, Device device) {
-        deviceCommandDAO.updateCommand(update, device);
-        globalMessageBus.publishDeviceCommandUpdate(update);
+    public boolean submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+        DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
+        if (cmd == null) {
+            throw new HiveException("Command not found!");
+        }
+
+        if (!cmd.getDevice().getId().equals(device.getId())) {
+            throw new HiveException("Device tries to update incorrect command");
+        }
+        DeviceCommand result = update.convertTo();
+        if (update.getCommand() == null) {
+            result.setCommand(cmd.getCommand());
+        }
+        if (update.getFlags() == null){
+            result.setFlags(cmd.getFlags());
+        }
+        if (update.getLifetime() == null){
+            result.setLifetime(cmd.getLifetime());
+        }
+        if (update.getParameters() == null){
+            result.setParameters(cmd.getParameters());
+        }
+        if (update.getResult() == null){
+            result.setResult(cmd.getResult());
+        }
+        if (update.getStatus() == null){
+            result.setStatus(cmd.getStatus());
+        }
+        if (update.getTimestamp() == null){
+            result.setTimestamp(cmd.getTimestamp());
+        }
+        if (!deviceCommandDAO.updateCommand(result.getId(), result)){
+            return false;
+        }
+        globalMessageBus.publishDeviceCommandUpdate(result);
+        return true;
     }
 
     public void submitDeviceNotification(DeviceNotification notification, Device device, Session session) {

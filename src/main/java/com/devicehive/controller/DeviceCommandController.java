@@ -13,6 +13,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
@@ -439,42 +440,23 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
-                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommand command,
-                           @Context ContainerRequestContext requestContext) {
+                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command,
+                           @Context SecurityContext securityContext) {
         Timer t = Timer.newInstance();
-        HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
 
 
         logger.debug("Device command update requested");
 
-        UUID deviceId;
+        Device device = deviceService.getDevice(guid, principal);
 
-        try {
-            deviceId = UUID.fromString(guid);
-        } catch (IllegalArgumentException e) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, "unparseable guid: " + guid);
-        }
 
-        if (principal.getUser() == null || !principal.getUser().isAdmin()) {
-            if (principal.getDevice().getGuid() == null || !principal.getDevice().getGuid().equals(deviceId)) {
-                return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("access is forbidden for device with  guid: "
-                        + principal.getDevice().getGuid() + " to command with device " + guid));
-            }
-        }
-
-        DeviceCommand commandUpdate = commandService.getByDeviceGuidAndId(deviceId, commandId);
-
-        if (commandUpdate == null) {
+        if (command == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("command with id " + commandId + " for device with " + guid + " is not found"));
         }
+        command.setId(commandId);
 
-        commandUpdate.setFlags(command.getFlags());
-        commandUpdate.setStatus(command.getStatus());
-        commandUpdate.setResult(command.getResult());
-        commandUpdate.setCommand(command.getCommand());
-        commandUpdate.setParameters(command.getParameters());
-
-        deviceService.submitDeviceCommandUpdate(commandUpdate, commandUpdate.getDevice());
+        deviceService.submitDeviceCommandUpdate(command, device);
 
         logger.debug("Device command update proceed successfully");
         t.logMethodExecuted("DeviceCommandController.update");
