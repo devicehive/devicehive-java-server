@@ -133,25 +133,6 @@ public class UserDAO {
 
     }
 
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
-    public User incrementLoginAttempts(User user) {
-        em.refresh(user);
-        user.setLoginAttempts(user.getLoginAttempts() != null ? user.getLoginAttempts() + 1 : 1);
-        if (user.getLoginAttempts() >= maxLoginAttempts) {
-            user.setStatus(UserStatus.LOCKED_OUT);
-        }
-        return em.merge(user);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
-    public User finalizeLogin(User user) {
-        em.refresh(user);
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            return null;
-        }
-        user.setLoginAttempts(0);
-        return em.merge(user);
-    }
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)
     public boolean hasAccessToNetwork(User user, Network network) {
