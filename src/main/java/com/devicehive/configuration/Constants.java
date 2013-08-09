@@ -8,4 +8,8 @@ public class Constants {
 
     public static final String REST_SERVER_URL = "restServerUrl";
 
+    public final static String DEFAULT_WAIT_TIMEOUT = "30";
+
+    public final static long MAX_WAIT_TIMEOUT = 60L;
+
 }

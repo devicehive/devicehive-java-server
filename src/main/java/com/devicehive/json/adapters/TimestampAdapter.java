@@ -97,9 +97,4 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
         return dateFormat;
     }
 
-    public static void main(String[] args) throws ParseException {
-        String dd = "2013-08-04T07:18:40";
-        Timestamp timestamp = parseTimestamp(dd);
-        System.out.println(timestamp);
-    }
 }
