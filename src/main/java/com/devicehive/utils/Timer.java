@@ -54,11 +54,10 @@ public class Timer {
      */
     public void logMethodExecuted(String methodName) {
         long time = click() / 1000;
-        String formatted = new DecimalFormat("###,###").format(time);
         if (time > MAX_METHOD_EXECUTION_TIME) {
-            logger.warn("Execution of {} took {} microseconds", methodName, formatted);
-        }else{
-            logger.debug("Execution of {} took {} microseconds", methodName, formatted);
+            logger.warn("Execution of {} took {} microseconds", methodName, time);
+        } else {
+            logger.debug("Execution of {} took {} microseconds", methodName, time);
         }
 
     }
