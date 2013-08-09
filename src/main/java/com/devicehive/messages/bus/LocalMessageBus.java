@@ -95,31 +95,31 @@ public class LocalMessageBus {
 
                 Set<NotificationSubscription> subs = subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
                         deviceNotification.getDevice().getId());
-
-                Set<NotificationSubscription> subsNull = (subscriptionManager.getNotificationSubscriptionStorage()
-                        .getByDeviceId(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
-                Set<NotificationSubscription> allSubs = new HashSet<>(subs.size() + subsNull.size());
-                allSubs.addAll(subs);
-                allSubs.addAll(subsNull);
-                for (NotificationSubscription subscription : allSubs) {
-                    User subscriptionUser = subscription.getUser();
-                    if (subscriptionUser.getRole().equals(UserRole.CLIENT)) {
-                        //check permissions for client
-                        boolean hasAccessToNetwork = userDAO.hasAccessToNetwork(subscriptionUser,
-                                deviceNotification.getDevice().getNetwork());
-                        if (!hasAccessToNetwork) {
-                            subs.iterator().remove();
-                        }
+                for (NotificationSubscription subscription : subs) {
+                    if (hasAccess(subscription, deviceNotification)){
+                        handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
                 }
 
+                Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
+                        .getByDeviceId(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
 
-                for (NotificationSubscription notificationSubscription : allSubs) {
-                    handlersService.submit(notificationSubscription.getHandlerCreator().getHandler(jsonObject));
+                for (NotificationSubscription subscription : subsForAll) {
+                    if (hasAccess(subscription, deviceNotification)){
+                        handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
+                    }
                 }
             }
         });
 
 
+    }
+
+
+    private boolean hasAccess(NotificationSubscription subscription, DeviceNotification deviceNotification) {
+        if (subscription.getUser().getRole() == UserRole.ADMIN) {
+            return true;
+        }
+        return userDAO.hasAccessToNetwork(subscription.getUser(), deviceNotification.getDevice().getNetwork());
     }
 }
