@@ -13,89 +13,113 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.ConcurrencyManagement;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
-import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static javax.ejb.ConcurrencyManagementType.BEAN;
+
 
 @Singleton
+@ConcurrencyManagement(BEAN)
 public class LocalMessageBus {
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
-    @Inject
+
+    @EJB
     private SubscriptionManager subscriptionManager;
-    private ExecutorService executorService;
+
+    private ExecutorService primaryProcessingService;
+
+    private ExecutorService handlersService;
+
     @EJB
     private UserDAO userDAO;
 
     @PostConstruct
     protected void postConstruct() {
-        executorService = Executors.newCachedThreadPool();
+        primaryProcessingService = Executors.newCachedThreadPool();
+        handlersService = Executors.newCachedThreadPool();
     }
 
     @PreDestroy
     protected void preDestroy() {
-        executorService.shutdown();
+        primaryProcessingService.shutdown();
+        handlersService.shutdown();
     }
 
-    public void submitDeviceCommand(DeviceCommand deviceCommand) {
+    public void submitDeviceCommand(final DeviceCommand deviceCommand) {
+        primaryProcessingService.submit(new Runnable() {
+            @Override
+            public void run() {
+                logger.debug("Device command was submitted: {}", deviceCommand.getId());
 
-        logger.debug("Device command was submitted: {}", deviceCommand.getId());
+                JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
 
-        JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
-
-        Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
-                .getByDeviceId(deviceCommand.getDevice().getId());
-        for (CommandSubscription commandSubscription : subs) {
-            executorService.submit(commandSubscription.getHandlerCreator().getHandler(jsonObject));
-        }
-    }
-
-    public void submitDeviceCommandUpdate(DeviceCommand deviceCommand) {
-
-        logger.debug("Device command update was submitted: {}", deviceCommand.getId());
-
-        JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
-
-        Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()
-                .getByCommandId(deviceCommand.getId());
-        for (CommandUpdateSubscription commandUpdateSubscription : subs) {
-            executorService.submit(commandUpdateSubscription.getHandlerCreator().getHandler(jsonObject));
-        }
-    }
-
-    public void submitDeviceNotification(DeviceNotification deviceNotification) {
-
-        logger.debug("Device notification was submitted: {}", deviceNotification.getId());
-
-        JsonObject jsonObject = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
-
-        Set<NotificationSubscription> subs = subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
-                deviceNotification.getDevice().getId());
-
-        Set<NotificationSubscription> subsNull = (subscriptionManager.getNotificationSubscriptionStorage()
-                .getByDeviceId(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
-        Set<NotificationSubscription> allSubs = new HashSet<>(subs.size() + subsNull.size());
-        allSubs.addAll(subs);
-        allSubs.addAll(subsNull);
-        for (NotificationSubscription subscription : allSubs) {
-            User subscriptionUser = subscription.getUser();
-            if (subscriptionUser.getRole().equals(UserRole.CLIENT)) {
-                //check permissions for client
-                boolean hasAccessToNetwork = userDAO.hasAccessToNetwork(subscriptionUser,
-                        deviceNotification.getDevice().getNetwork());
-                if (!hasAccessToNetwork) {
-                    subs.iterator().remove();
+                Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
+                        .getByDeviceId(deviceCommand.getDevice().getId());
+                for (CommandSubscription commandSubscription : subs) {
+                    handlersService.submit(commandSubscription.getHandlerCreator().getHandler(jsonObject));
                 }
             }
-        }
+        });
+    }
+
+    public void submitDeviceCommandUpdate(final DeviceCommand deviceCommand) {
+        primaryProcessingService.submit(new Runnable() {
+            @Override
+            public void run() {
+                logger.debug("Device command update was submitted: {}", deviceCommand.getId());
+
+                JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
+
+                Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()
+                        .getByCommandId(deviceCommand.getId());
+                for (CommandUpdateSubscription commandUpdateSubscription : subs) {
+                    handlersService.submit(commandUpdateSubscription.getHandlerCreator().getHandler(jsonObject));
+                }
+            }
+        });
+    }
+
+    public void submitDeviceNotification(final DeviceNotification deviceNotification) {
+        primaryProcessingService.submit(new Runnable() {
+            @Override
+            public void run() {
+                logger.debug("Device notification was submitted: {}", deviceNotification.getId());
+
+                JsonObject jsonObject = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
+
+                Set<NotificationSubscription> subs = subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
+                        deviceNotification.getDevice().getId());
+
+                Set<NotificationSubscription> subsNull = (subscriptionManager.getNotificationSubscriptionStorage()
+                        .getByDeviceId(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
+                Set<NotificationSubscription> allSubs = new HashSet<>(subs.size() + subsNull.size());
+                allSubs.addAll(subs);
+                allSubs.addAll(subsNull);
+                for (NotificationSubscription subscription : allSubs) {
+                    User subscriptionUser = subscription.getUser();
+                    if (subscriptionUser.getRole().equals(UserRole.CLIENT)) {
+                        //check permissions for client
+                        boolean hasAccessToNetwork = userDAO.hasAccessToNetwork(subscriptionUser,
+                                deviceNotification.getDevice().getNetwork());
+                        if (!hasAccessToNetwork) {
+                            subs.iterator().remove();
+                        }
+                    }
+                }
 
 
-        for (NotificationSubscription notificationSubscription : allSubs) {
-            executorService.submit(notificationSubscription.getHandlerCreator().getHandler(jsonObject));
-        }
+                for (NotificationSubscription notificationSubscription : allSubs) {
+                    handlersService.submit(notificationSubscription.getHandlerCreator().getHandler(jsonObject));
+                }
+            }
+        });
+
+
     }
 }

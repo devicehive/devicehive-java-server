@@ -1,8 +1,13 @@
 package com.devicehive.messages.subscriptions;
 
-import javax.inject.Singleton;
+
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.Singleton;
+
+import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
+@ConcurrencyManagement(BEAN)
 public class SubscriptionManager {
 
     private final CommandSubscriptionStorage commandSubscriptionStorage = new CommandSubscriptionStorage();

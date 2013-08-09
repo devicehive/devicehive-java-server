@@ -8,10 +8,17 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+
+import static javax.ejb.ConcurrencyManagementType.BEAN;
+
 
 @Singleton
+@ConcurrencyManagement(BEAN)
+@Startup
 public class GlobalMessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalMessageBus.class);
@@ -22,7 +29,7 @@ public class GlobalMessageBus {
 
     private HazelcastInstance hazelcast;
 
-    @Inject
+    @EJB
     private LocalMessageBus localMessageBus;
 
 
@@ -46,7 +53,6 @@ public class GlobalMessageBus {
         ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
         deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
         logger.debug("Done");
-
     }
 
     @PreDestroy
