@@ -12,10 +12,7 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.messages.util.Params;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.utils.RestParametersConverter;
@@ -33,9 +30,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -221,7 +217,7 @@ public class DeviceNotificationController {
             @QueryParam("timestamp") String timestampUTC,
             @QueryParam("waitTimeout") String waitTimeout,
             @Context SecurityContext securityContext) {
-        /*
+        Timer t = Timer.newInstance();
         logger.debug("Device notification pollMany requested");
 
         List<String> guids =
@@ -238,28 +234,39 @@ public class DeviceNotificationController {
 
         User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         List<Device> devices;
+
         if (user.getRole().equals(UserRole.ADMIN)) {
             devices = deviceService.findByUUID(uuids);
         } else {
             devices = deviceService.findByUUIDListAndUser(user, uuids);
         }
 
-        List<Long> ids = new ArrayList<>(devices.size());
-        for (Device device : devices) {
-            ids.add(device.getId());
-        }
-
         Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
 
 
-        DeferredResponse result = messageBus.subscribe(MessageType.DEVICE_TO_CLIENT_NOTIFICATION,
-                MessageDetails.create().ids(ids).timestamp(timestamp).user(user));
-        List<DeviceNotification> notifications =
-                MessageBus.expandDeferredResponse(result, timeout, DeviceNotification.class);
-        List<NotificationPollManyResponse> response = NotificationPollManyResponse.getList(notifications);
-        logger.debug("Device notification pollMany proceed successfully");    */
-        return ResponseFactory.response(Response.Status.OK, Collections.EMPTY_LIST, Policy.NOTIFICATION_TO_CLIENT);
+        List<DeviceNotification> list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
+        if (list.isEmpty()) {
+            logger.debug("Waiting for command");
+            NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            Set<NotificationSubscription> subscriptionSet = new HashSet<>();
+
+            for (Device device : devices) {
+                subscriptionSet.add(new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator));
+            }
+
+
+            if (SimpleWaiter.subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
+                list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
+            }
+        }
+
+        t.logMethodExecuted("DeviceNotificationController.pollMany");
+
+        return ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
+
     }
 
     @POST
