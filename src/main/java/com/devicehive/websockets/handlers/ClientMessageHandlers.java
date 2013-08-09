@@ -64,13 +64,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json Object with the following message representation
      *                <pre>
-     *                               {
-     *                                 "action": {string},
-     *                                 "requestId": {object},
-     *                                 "login": {string},
-     *                                 "password": {string}
-     *                               }
-     *                               </pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "login": {string},
+     *                  "password": {string}
+     *                }
+     *                </pre>
      *                Where:
      *                action (required) - Action name: authenticate
      *                requestId (is not required) - Request unique identifier, will be passed back in the response
@@ -79,13 +79,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *                password (required) - User password.
      * @param session Current session
      * @return JsonObject with structure
-     *         <pre>
-     *                         {
-     *                           "action": {string},
-     *                           "status": {string},
-     *                           "requestId": {object}
-     *                         }
-     *                         </pre>
+     *                 <pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object}
+     *                 }
+     *                 </pre>
      *         Where:
      *         action - Action name: authenticate
      *         status - Operation execution status (success or error).
@@ -123,32 +123,32 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json Object with the following message representation
      *                <pre>
-     *                               {
-     *                                 "action": {string},
-     *                                 "requestId": {object},
-     *                                 "deviceGuid": {guid},
-     *                                 "command": {
-     *                                   "command": {string},
-     *                                   "parameters": {object},
-     *                                   "lifetime": {integer},
-     *                                   "flags": {integer},
-     *                                   "status": {string},
-     *                                   "result": {object}
-     *                                 }
-     *                               }
-     *                               </pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceGuid": {guid},
+     *                  "command": {
+     *                    "command": {string},
+     *                    "parameters": {object},
+     *                    "lifetime": {integer},
+     *                    "flags": {integer},
+     *                    "status": {string},
+     *                    "result": {object}
+     *                  }
+     *                }
+     *                </pre>
      * @param session Current session
      * @return JsonObject with structure:
      *         <pre></pre>
      *         {
-     *         "action": {string},
-     *         "status": {string},
-     *         "requestId": {object},
-     *         "command": {
-     *         "id": {integer},
-     *         "timestamp": {datetime},
-     *         "userId": {integer}
-     *         }
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object},
+     *           "command": {
+     *             "id": {integer},
+     *             "timestamp": {datetime},
+     *             "userId": {integer}
+     *           }
      *         }
      *         </pre>
      */
@@ -157,7 +157,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         Gson gson = GsonFactory.createGson(COMMAND_FROM_CLIENT);
 
         UUID deviceGuid = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUID), UUID.class);
-        logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
+        logger.debug("command/insert action for {}, Session ",  deviceGuid, session.getId());
         if (deviceGuid == null) {
             throw new HiveException("Device ID is empty");
         }
@@ -194,13 +194,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json Object with the following structure:
      *                <pre>
-     *                               {
-     *                                 "action": {string},
-     *                                 "requestId": {object},
-     *                                 "timestamp": {datetime},
-     *                                 "deviceGuids": {guid[]}
-     *                               }
-     *                               </pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "timestamp": {datetime},
+     *                  "deviceGuids": {guid[]}
+     *                }
+     *                </pre>
      * @param session Current session
      * @return Json object with the following structure:
      *         <pre>
@@ -253,7 +253,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private void prepareForNotificationSubscribeNotNullCase(List<UUID> guids, Session session, Timestamp timestamp)
             throws IOException {
-        logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
+        logger.debug("notification/subscribe action - null guid case. Session {}",  session.getId());
         User authorizedUser = WebsocketSession.getAuthorisedUser(session);
         List<Device> devices;
         if (authorizedUser.getRole() == UserRole.ADMIN) {
@@ -279,7 +279,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                                              List<Device> devices)
             throws IOException {
         try {
-            logger.debug("notification/subscribe action - not null guid case. found {} devices. Session {}", deviceNotifications.size(), session.getId());
+            logger.debug("notification/subscribe action - not null guid case. found {} devices. Session {}",
+                    deviceNotifications.size(), session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
 
             User user = WebsocketSession.getAuthorisedUser(session);
@@ -287,13 +288,17 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 List<NotificationSubscription> nsList = new ArrayList<>();
                 for (Device device : devices) {
                     NotificationSubscription ns = new NotificationSubscription(user, device.getId(), session.getId(),
-                            new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK, asyncMessageDeliverer));
+                            new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
+                                    asyncMessageDeliverer));
                     nsList.add(ns);
                 }
                 subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             } else {
-                NotificationSubscription forAll = new NotificationSubscription(user, null, session.getId(),
-                        new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK, asyncMessageDeliverer));
+                NotificationSubscription forAll =
+                        new NotificationSubscription(user, SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
+                                session.getId(),
+                                new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
+                                        asyncMessageDeliverer));
                 subscriptionManager.getNotificationSubscriptionStorage().insert(forAll);
             }
             if (!deviceNotifications.isEmpty()) {
@@ -316,21 +321,21 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with following structure
      *                <pre>
-     *                               {
-     *                                 "action": {string},
-     *                                 "requestId": {object},
-     *                                 "deviceGuids": {guid[]}
-     *                               }
-     *                               </pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "deviceGuids": {guid[]}
+     *                }
+     *                </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *                 {
-     *                   "action": {string},
-     *                   "status": {string},
-     *                   "requestId": {object}
-     *                 }
-     *                 </pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
      */
     @Action(value = "notification/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
@@ -341,20 +346,27 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             List<Device> devices = null;
+            List<Pair<Long, String>> subs;
             if (list != null && !list.isEmpty()) {
                 devices = deviceDAO.findByUUID(list);
                 logger.debug("notification/unsubscribe. found {} devices. ", devices.size());
                 if (devices.isEmpty()) {
                     throw new HiveException("No available devices found");
                 }
-            }
-            logger.debug("notification/unsubscribe. performing unsubscribing action");
 
-            List<Pair<Long, String>> subs = new ArrayList<>(devices.size());
-            for (Device device : devices) {
-                subs.add(ImmutablePair.of(device.getId(), session.getId()));
+                logger.debug("notification/unsubscribe. performing unsubscribing action");
+
+                subs = new ArrayList<>(devices.size());
+                for (Device device : devices) {
+                    subs.add(ImmutablePair.of(device.getId(), session.getId()));
+                }
+            } else {
+                subs = new ArrayList<>(1);
+                subs.add(ImmutablePair.of(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, session.getId()));
+                subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);
             }
             subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);
+
             checkDevicesAndGuidsList(devices, list, false);
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
@@ -402,25 +414,25 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                               {
-     *                                 "action": {string},
-     *                                 "requestId": {object}
-     *                               }
-     *                               </pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object}
+     *                }
+     *                </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *                 {
-     *                   "action": {string},
-     *                   "status": {string},
-     *                   "requestId": {object},
-     *                   "info": {
-     *                     "apiVersion": {string},
-     *                     "serverTimestamp": {datetime},
-     *                     "restServerUrl": {string}
-     *                   }
-     *                 }
-     *                 </pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object},
+     *           "info": {
+     *             "apiVersion": {string},
+     *             "serverTimestamp": {datetime},
+     *             "restServerUrl": {string}
+     *           }
+     *         }
+     *         </pre>
      */
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
@@ -445,22 +457,22 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                               {
-     *                                 "action": {string},
-     *                                 "requestId": {object},
-     *                                 "name": {string},
-     *                                 "value": {string}
-     *                               }
-     *                               </pre>
+     *                {
+     *                  "action": {string},
+     *                  "requestId": {object},
+     *                  "name": {string},
+     *                  "value": {string}
+     *                }
+     *                </pre>
      * @param session Current session
      * @return json object with the following structure
      *         <pre>
-     *                 {
-     *                   "action": {string},
-     *                   "status": {string},
-     *                   "requestId": {object}
-     *                 }
-     *                 </pre>
+     *         {
+     *           "action": {string},
+     *           "status": {string},
+     *           "requestId": {object}
+     *         }
+     *         </pre>
      */
     @Action(value = "configuration/set")
     public JsonObject processConfigurationSet(JsonObject message, Session session) {

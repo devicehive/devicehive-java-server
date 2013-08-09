@@ -94,8 +94,8 @@ public class DeviceService {
                     new CommandUpdateSubscription(command.getId(), session.getId(),
                             new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK, asyncMessageDeliverer));
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
-            globalMessageBus.publishDeviceCommand(command);
         }
+        globalMessageBus.publishDeviceCommand(command);
     }
 
     public Device findByUUID(UUID uuid, User u) {

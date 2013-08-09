@@ -19,6 +19,7 @@ import javax.annotation.PreDestroy;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,8 +78,13 @@ public class LocalMessageBus {
 
         Set<NotificationSubscription> subs = subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
                 deviceNotification.getDevice().getId());
-        //TODO subscribed for all check
-        for (NotificationSubscription subscription : subs) {
+
+        Set<NotificationSubscription> subsNull = (subscriptionManager.getNotificationSubscriptionStorage()
+                .getByDeviceId(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
+        Set<NotificationSubscription> allSubs = new HashSet<>(subs.size() + subsNull.size());
+        allSubs.addAll(subs);
+        allSubs.addAll(subsNull);
+        for (NotificationSubscription subscription : allSubs) {
             User subscriptionUser = subscription.getUser();
             if (subscriptionUser.getRole().equals(UserRole.CLIENT)) {
                 //check permissions for client
@@ -90,7 +96,8 @@ public class LocalMessageBus {
             }
         }
 
-        for (NotificationSubscription notificationSubscription : subs) {
+
+        for (NotificationSubscription notificationSubscription : allSubs) {
             executorService.submit(notificationSubscription.getHandlerCreator().getHandler(jsonObject));
         }
     }
