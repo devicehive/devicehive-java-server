@@ -1,10 +1,8 @@
 package com.devicehive.websockets.util;
 
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -15,9 +13,10 @@ import javax.websocket.CloseReason;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
 @EJB(name = "SessionMonitor", beanInterface = SessionMonitor.class)
@@ -31,7 +30,7 @@ public class SessionMonitor {
     private static final long TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
 
-    public void registerSession(final Session session){
+    public void registerSession(final Session session) {
         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
@@ -50,7 +49,7 @@ public class SessionMonitor {
     }
 
 
-    @Schedule(hour="*", minute = "*", second = "*/30")
+    @Schedule(hour = "*", minute = "*", second = "*/30")
     public void ping() {
         for (Session session : sessionMap.values()) {
             if (session.isOpen()) {
@@ -68,12 +67,12 @@ public class SessionMonitor {
         }
     }
 
-    @Schedule(hour="*", minute = "*", second = "*/30")
+    @Schedule(hour = "*", minute = "*", second = "*/30")
     public void monitor() {
         for (Session session : sessionMap.values()) {
             logger.debug("Checking session " + session.getId());
             if (session.isOpen()) {
-                long timestamp = (Long)session.getUserProperties().get("ping");
+                long timestamp = (Long) session.getUserProperties().get("ping");
                 if (System.currentTimeMillis() - timestamp > TIMEOUT) {
                     closePingPong(session);
                 }

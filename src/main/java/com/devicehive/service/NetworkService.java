@@ -8,7 +8,6 @@ import com.devicehive.model.User;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import java.util.List;
 import java.util.UUID;
 

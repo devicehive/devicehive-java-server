@@ -24,7 +24,7 @@ public class ConfigurationDAO {
         return em.find(Configuration.class, name);
     }
 
-    public void mergeConfiguration(Configuration configuration){
+    public void mergeConfiguration(Configuration configuration) {
         em.merge(configuration);
     }
 }

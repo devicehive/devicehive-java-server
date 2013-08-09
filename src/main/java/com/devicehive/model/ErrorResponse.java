@@ -13,7 +13,6 @@ public class ErrorResponse implements HiveEntity {
     public static final String FORBIDDEN_MESSAGE = "Access Forbidden";
 
 
-
     private Integer error = null;
 
     private String message = null;
@@ -28,7 +27,7 @@ public class ErrorResponse implements HiveEntity {
     }
 
     public ErrorResponse(String messageString) {
-       message = messageString;
+        message = messageString;
     }
 
     public void setError(Integer error) {

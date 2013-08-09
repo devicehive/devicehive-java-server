@@ -1,8 +1,5 @@
 package com.devicehive.messages.subscriptions;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.Collection;
 import java.util.Set;
 
 public class NotificationSubscriptionStorage extends AbstractStorage<Long, NotificationSubscription> {

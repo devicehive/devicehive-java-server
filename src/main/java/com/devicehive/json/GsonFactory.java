@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy;
+
 public class GsonFactory {
 
     public static Gson createGson() {

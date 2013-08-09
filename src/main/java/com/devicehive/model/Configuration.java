@@ -1,8 +1,6 @@
 package com.devicehive.model;
 
-import java.sql.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import javax.persistence.Version;
@@ -10,8 +8,9 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import com.google.gson.annotations.SerializedName;
+import java.sql.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @SuppressWarnings("JpaDataSourceORMInspection")

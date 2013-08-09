@@ -80,7 +80,7 @@ abstract class Endpoint {
         if (e.getTargetException() instanceof OptimisticLockException) {
             throw (OptimisticLockException) e.getTargetException();
         }
-        if (e.getTargetException() instanceof ConstraintViolationException){
+        if (e.getTargetException() instanceof ConstraintViolationException) {
             ConstraintViolationException ex = (ConstraintViolationException) e.getTargetException();
             logger.debug("[processMessage] Validation error, incorrect input");
             Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
@@ -91,11 +91,11 @@ abstract class Endpoint {
             }
             throw new HiveException(builderForResponse.toString());
         }
-        if (e.getTargetException() instanceof JsonSyntaxException){
+        if (e.getTargetException() instanceof JsonSyntaxException) {
             JsonSyntaxException ex = (JsonSyntaxException) e.getTargetException();
             throw new HiveException("Incorrect JSON syntax: " + ex.getCause().getMessage(), ex);
         }
-        if (e.getTargetException() instanceof JsonParseException){
+        if (e.getTargetException() instanceof JsonParseException) {
             JsonParseException ex = (JsonParseException) e.getTargetException();
             throw new HiveException("Error occurred on parsing JSON object: " + ex.getMessage(), ex);
         }

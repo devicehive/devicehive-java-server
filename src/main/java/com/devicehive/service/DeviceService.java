@@ -26,13 +26,11 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
 
 @Stateless
 public class DeviceService {
@@ -93,8 +91,8 @@ public class DeviceService {
         deviceCommandDAO.createCommand(command);
         if (session != null) {
             CommandUpdateSubscription commandUpdateSubscription =
-                new CommandUpdateSubscription(command.getId(),session.getId(),
-                        new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK, asyncMessageDeliverer));
+                    new CommandUpdateSubscription(command.getId(), session.getId(),
+                            new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK, asyncMessageDeliverer));
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
             globalMessageBus.publishDeviceCommand(command);
         }
@@ -109,15 +107,15 @@ public class DeviceService {
     }
 
     public List<Device> findByUUID(List<UUID> list) {
-        if (list.size() == 0){
+        if (list.size() == 0) {
             return new ArrayList<>(0);
         }
         return deviceDAO.findByUUID(list);
     }
 
     public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
-        if (list.size() == 0){
-           return new ArrayList<>(0);
+        if (list.size() == 0) {
+            return new ArrayList<>(0);
         }
         return deviceDAO.findByUUIDListAndUser(user, list);
     }
@@ -136,7 +134,7 @@ public class DeviceService {
         Device device = deviceDAO.findByUUID(deviceId);
 
         if (device == null || !checkPermissions(device, principal)) {
-            throw new HiveException("Device Not found",404);
+            throw new HiveException("Device Not found", 404);
         }
         return device;
     }

@@ -16,7 +16,7 @@ import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-public abstract class  JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
+public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {

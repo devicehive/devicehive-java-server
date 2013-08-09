@@ -3,8 +3,6 @@ package com.devicehive.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Calendar;
 
 /**

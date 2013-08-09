@@ -2,9 +2,6 @@ package com.devicehive.messages.bus;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.JoinConfig;
-import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +10,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.persistence.criteria.Join;
 
 @Singleton
 public class GlobalMessageBus {
@@ -28,7 +24,6 @@ public class GlobalMessageBus {
 
     @Inject
     private LocalMessageBus localMessageBus;
-
 
 
     @PostConstruct
@@ -77,9 +72,6 @@ public class GlobalMessageBus {
         hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
         logger.debug("Sent");
     }
-
-
-
 
 
     private static class DeviceCommandListener implements MessageListener<DeviceCommand> {

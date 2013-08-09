@@ -70,7 +70,7 @@ public class Device implements HiveEntity {
     @Column
     @NotNull(message = "key field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key shouldn't be more than 64 symbols.")
- //   @JsonPolicyDef({DEVICE_SUBMITTED})
+    //   @JsonPolicyDef({DEVICE_SUBMITTED})
     private String key;
 
     @SerializedName("name")

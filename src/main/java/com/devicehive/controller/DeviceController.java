@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
+import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -44,13 +44,18 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISH
 public class DeviceController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
-    @Inject
+
+    @EJB
     private DeviceEquipmentService deviceEquipmentService;
-    @Inject
+
+    @EJB
     private DeviceCommandService deviceCommandService;
-    @Inject
+
+    @EJB
     private DeviceService deviceService;
-    @Inject
+    ;
+
+    @EJB
     private UserService userService;
 
     /**
@@ -324,9 +329,9 @@ public class DeviceController {
         Timer t = Timer.newInstance();
         logger.debug("Device equipment by code requested");
 
-        Device device = deviceService.getDevice(guid,(HivePrincipal) securityContext.getUserPrincipal());
+        Device device = deviceService.getDevice(guid, (HivePrincipal) securityContext.getUserPrincipal());
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
-        if (equipment == null){
+        if (equipment == null) {
             logger.debug("No device equipment found for code : " + code + " and guid : " + guid);
             return ResponseFactory
                     .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
@@ -345,6 +350,6 @@ public class DeviceController {
     @Path("/{id}/equipment/{code}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response updateByCode(@PathParam("id") String guid, @PathParam("code") String code) {
-        return ResponseFactory.response(Response.Status.NOT_FOUND,new ErrorResponse("Not Found"));
+        return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Not Found"));
     }
 }

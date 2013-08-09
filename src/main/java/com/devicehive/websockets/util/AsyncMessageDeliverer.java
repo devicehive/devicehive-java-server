@@ -30,7 +30,7 @@ public class AsyncMessageDeliverer {
         executorService.shutdown();
     }
 
-    public void deliverMessages(final Session session){
+    public void deliverMessages(final Session session) {
 
         executorService.submit(new Runnable() {
             @Override

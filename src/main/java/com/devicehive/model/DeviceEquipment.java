@@ -1,34 +1,20 @@
 package com.devicehive.model;
 
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
 
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.annotations.SerializedName;
-
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 
 
 @Entity

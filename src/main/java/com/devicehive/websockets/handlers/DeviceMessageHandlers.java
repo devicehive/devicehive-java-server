@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -61,22 +60,22 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "deviceId": {guid},
-     *                  "deviceKey": {string}
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object},
+     *                                 "deviceId": {guid},
+     *                                 "deviceKey": {string}
+     *                               }
+     *                               </pre>
      * @param session Current session.
      * @return Json object with the following structure
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object}
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object}
+     *                 }
+     *                 </pre>
      */
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
@@ -122,36 +121,36 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure:
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "deviceId": {guid},
-     *                  "deviceKey": {string},
-     *                  "commandId": {integer},
-     *                  "command": {
-     *                    "command": {string},
-     *                    "parameters": {object},
-     *                    "lifetime": {integer},
-     *                    "flags": {integer},
-     *                    "status": {string},
-     *                    "result": {object}
-     *                  }
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object},
+     *                                 "deviceId": {guid},
+     *                                 "deviceKey": {string},
+     *                                 "commandId": {integer},
+     *                                 "command": {
+     *                                   "command": {string},
+     *                                   "parameters": {object},
+     *                                   "lifetime": {integer},
+     *                                   "flags": {integer},
+     *                                   "status": {string},
+     *                                   "result": {object}
+     *                                 }
+     *                               }
+     *                               </pre>
      * @param session Current session.
      * @return Json object with the following structure:
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object}
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object}
+     *                 }
+     *                 </pre>
      * @throws JMSException
      */
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) {
-        logger.debug("command update action started for session : {{}",  session.getId());
+        logger.debug("command update action started for session : {{}", session.getId());
         DeviceCommand update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
                 .fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
         if (message.get("commandId") == null) {
@@ -179,23 +178,23 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "deviceId": {guid},
-     *                  "deviceKey": {string},
-     *                  "timestamp": {datetime}
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object},
+     *                                 "deviceId": {guid},
+     *                                 "deviceKey": {string},
+     *                                 "timestamp": {datetime}
+     *                               }
+     *                               </pre>
      * @param session Current session
      * @return json object with the following structure:
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object}
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object}
+     *                 }
+     *                 </pre>
      * @throws IOException if unable to deliver message
      */
     @Action(value = "command/subscribe")
@@ -224,7 +223,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             logger.debug("will get commands newer than : {}", timestamp);
             List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
-                logger.debug("will add command to queue : {}",  deviceCommand.getId());
+                logger.debug("will add command to queue : {}", deviceCommand.getId());
                 WebsocketSession
                         .addMessagesToQueue(session, ServerResponsesFactory.createCommandInsertMessage(deviceCommand));
             }
@@ -233,7 +232,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
         logger.debug("deliver messages for session {}", session.getId());
         asyncMessageDeliverer.deliverMessages(session);
-        logger.debug("command subscribe ended for session : {}",  session.getId());
+        logger.debug("command subscribe ended for session : {}", session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -244,22 +243,22 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure:
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "deviceId": {guid},
-     *                  "deviceKey": {string}
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object},
+     *                                 "deviceId": {guid},
+     *                                 "deviceKey": {string}
+     *                               }
+     *                               </pre>
      * @param session Current session
      * @return Json object with the following structure:
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object}
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object}
+     *                 }
+     *                 </pre>
      */
     @Action(value = "command/unsubscribe")
     public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
@@ -276,33 +275,33 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "deviceId": {guid},
-     *                  "deviceKey": {string},
-     *                  "notification": {
-     *                    "notification": {string},
-     *                    "parameters": {object}
-     *                  }
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object},
+     *                                 "deviceId": {guid},
+     *                                 "deviceKey": {string},
+     *                                 "notification": {
+     *                                   "notification": {string},
+     *                                   "parameters": {object}
+     *                                 }
+     *                               }
+     *                               </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object},
-     *           "notification": {
-     *             "id": {integer},
-     *             "timestamp": {datetime}
-     *           }
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object},
+     *                   "notification": {
+     *                     "id": {integer},
+     *                     "timestamp": {datetime}
+     *                   }
+     *                 }
+     *                 </pre>
      */
     @Action(value = "notification/insert")
-    public JsonObject processNotificationInsert(JsonObject message, Session session)  {
+    public JsonObject processNotificationInsert(JsonObject message, Session session) {
         logger.debug("notification/insert started for session {} ", session.getId());
         DeviceNotification deviceNotification = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE)
                 .fromJson(message.get("notification"), DeviceNotification.class);
@@ -327,25 +326,25 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object}
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object}
+     *                               }
+     *                               </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object},
-     *           "info": {
-     *           "apiVersion": {string},
-     *             "serverTimestamp": {datetime},
-     *             "webSocketServerUrl": {string}
-     *         }
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object},
+     *                   "info": {
+     *                   "apiVersion": {string},
+     *                     "serverTimestamp": {datetime},
+     *                     "webSocketServerUrl": {string}
+     *                 }
+     *                 }
+     *                 </pre>
      */
     @Action(value = "server/info", needsAuth = false)
     public JsonObject processServerInfo(JsonObject message, Session session) {
@@ -372,41 +371,41 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "deviceId": {guid},
-     *                  "deviceKey": {string}
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object},
+     *                                 "deviceId": {guid},
+     *                                 "deviceKey": {string}
+     *                               }
+     *                               </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object},
-     *           "device": {
-     *             "id": {guid},
-     *             "name": {string},
-     *             "status": {string},
-     *             "data": {object},
-     *             "network": {
-     *               "id": {integer},
-     *               "name": {string},
-     *               "description": {string}
-     *             },
-     *             "deviceClass": {
-     *               "id": {integer},
-     *               "name": {string},
-     *               "version": {string},
-     *               "isPermanent": {boolean},
-     *               "offlineTimeout": {integer},
-     *               "data": {object}
-     *              }
-     *            }
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object},
+     *                   "device": {
+     *                     "id": {guid},
+     *                     "name": {string},
+     *                     "status": {string},
+     *                     "data": {object},
+     *                     "network": {
+     *                       "id": {integer},
+     *                       "name": {string},
+     *                       "description": {string}
+     *                     },
+     *                     "deviceClass": {
+     *                       "id": {integer},
+     *                       "name": {string},
+     *                       "version": {string},
+     *                       "isPermanent": {boolean},
+     *                       "offlineTimeout": {integer},
+     *                       "data": {object}
+     *                      }
+     *                    }
+     *                 }
+     *                 </pre>
      */
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
@@ -427,38 +426,38 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "deviceId": {guid},
-     *                  "deviceKey": {string},
-     *                  "device": {
-     *                    "key": {string},
-     *                    "name": {string},
-     *                    "status": {string},
-     *                    "data": {object},
-     *                    "network": {integer or object},
-     *                    "deviceClass": {integer or object},
-     *                    "equipment": [
-     *                    {
-     *                     "name": {string},
-     *                     "code": {string},
-     *                     "type": {string},
-     *                     "data": {object}
-     *                    }
-     *                    ]
-     *                  }
-     *                }
-     *                </pre>
+     *                               {
+     *                                 "action": {string},
+     *                                 "requestId": {object},
+     *                                 "deviceId": {guid},
+     *                                 "deviceKey": {string},
+     *                                 "device": {
+     *                                   "key": {string},
+     *                                   "name": {string},
+     *                                   "status": {string},
+     *                                   "data": {object},
+     *                                   "network": {integer or object},
+     *                                   "deviceClass": {integer or object},
+     *                                   "equipment": [
+     *                                   {
+     *                                    "name": {string},
+     *                                    "code": {string},
+     *                                    "type": {string},
+     *                                    "data": {object}
+     *                                   }
+     *                                   ]
+     *                                 }
+     *                               }
+     *                               </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object}
-     *         }
-     *         </pre>
+     *                 {
+     *                   "action": {string},
+     *                   "status": {string},
+     *                   "requestId": {object}
+     *                 }
+     *                 </pre>
      */
     @Action(value = "device/save", needsAuth = false)
     public JsonObject processDeviceSave(JsonObject message, Session session) {
@@ -496,7 +495,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                 .addAction("device/save")
                 .addRequestId(message.get("requestId"))
                 .build();
-        logger.debug("device/save process ended for session  {}",  session.getId());
+        logger.debug("device/save process ended for session  {}", session.getId());
         return jsonResponseObject;
     }
 

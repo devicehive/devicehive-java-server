@@ -15,7 +15,7 @@ public class UserNetworkResponse implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, NETWORKS_LISTED})
     private Network network;
 
-    public static UserNetworkResponse fromNetwork(Network network){
+    public static UserNetworkResponse fromNetwork(Network network) {
         UserNetworkResponse result = new UserNetworkResponse();
         result.setNetwork(network);
         return result;

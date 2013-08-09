@@ -1,14 +1,8 @@
 package com.devicehive.model;
 
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
-
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import javax.persistence.Version;
@@ -16,9 +10,11 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.annotations.SerializedName;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 @Entity(name = "User")
 @Table(name = "\"user\"")
@@ -96,10 +92,9 @@ public class User implements HiveEntity {
     /**
      * @return true, if user is admin
      */
-    public boolean isAdmin(){
+    public boolean isAdmin() {
         return UserRole.ADMIN.equals(role);
     }
-
 
 
     public Long getId() {

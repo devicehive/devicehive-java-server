@@ -11,11 +11,11 @@ public @interface JsonPolicyApply {
     JsonPolicyDef.Policy value();
 
     public static class JsonPolicyApplyLiteral extends AnnotationLiteral<JsonPolicyApply>
-            implements JsonPolicyApply{
+            implements JsonPolicyApply {
 
         private JsonPolicyDef.Policy policy;
 
-        public JsonPolicyApplyLiteral(JsonPolicyDef.Policy policy){
+        public JsonPolicyApplyLiteral(JsonPolicyDef.Policy policy) {
             this.policy = policy;
         }
 

@@ -1,7 +1,6 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.dao.UserDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -15,7 +14,7 @@ import com.devicehive.utils.RestParametersConverter;
 import com.devicehive.utils.Timer;
 
 import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
+import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -29,7 +28,7 @@ import java.util.List;
 @Path("/user")
 public class UserController {
 
-    @Inject
+    @EJB
     private UserService userService;
 
     /**

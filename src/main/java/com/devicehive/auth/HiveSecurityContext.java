@@ -2,7 +2,6 @@ package com.devicehive.auth;
 
 import com.devicehive.model.UserRole;
 
-import javax.annotation.security.DeclareRoles;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
@@ -22,10 +21,10 @@ public class HiveSecurityContext implements SecurityContext {
 
     @Override
     public boolean isUserInRole(String roleString) {
-        if (roleString.equalsIgnoreCase("device")){
+        if (roleString.equalsIgnoreCase("device")) {
             return hivePrincipal != null && hivePrincipal.getDevice() != null;
         }
-        return hivePrincipal!=null
+        return hivePrincipal != null
                 && hivePrincipal.getUser() != null
                 && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
     }

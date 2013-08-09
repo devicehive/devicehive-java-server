@@ -12,7 +12,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
-import java.util.Date;
 import java.util.List;
 
 @Stateless

@@ -67,12 +67,12 @@ public class JsonMessageBuilder {
     }
 
     public JsonMessageBuilder addElement(String name, JsonElement element) {
-        jsonObject.add(name,element);
+        jsonObject.add(name, element);
         return this;
     }
 
     public JsonMessageBuilder include(JsonObject other) {
-        for (Map.Entry<String, JsonElement > entry : other.entrySet()) {
+        for (Map.Entry<String, JsonElement> entry : other.entrySet()) {
             jsonObject.add(entry.getKey(), entry.getValue());
         }
         return this;

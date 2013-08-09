@@ -1,25 +1,25 @@
 package com.devicehive.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.devicehive.configuration.Constants;
+import com.devicehive.model.DeviceClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-
-import com.devicehive.configuration.Constants;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.User;
-import com.devicehive.model.updates.DeviceClassUpdate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 
 /**

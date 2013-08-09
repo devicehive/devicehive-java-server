@@ -2,7 +2,6 @@ package com.devicehive.json.adapters;
 
 
 import com.google.gson.*;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
@@ -19,7 +18,7 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
 
     public JsonElement serialize(Timestamp timestamp, Type type, JsonSerializationContext jsonSerializationContext) {
         if (timestamp == null) {
-            return  null;
+            return null;
         }
         return new JsonPrimitive(formatTimestamp(timestamp));
     }
@@ -71,7 +70,7 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
 
     public static String formatTimestamp(Timestamp timestamp) {
         if (timestamp == null) {
-            return  null;
+            return null;
         }
         StringBuilder res = new StringBuilder(getDateFormat().format(timestamp))
                 .append(".");

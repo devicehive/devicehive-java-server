@@ -1,8 +1,5 @@
 package com.devicehive.auth;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -10,6 +7,8 @@ import javax.ws.rs.container.DynamicFeature;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.Provider;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 @Provider
 public class RolesFeature implements DynamicFeature {

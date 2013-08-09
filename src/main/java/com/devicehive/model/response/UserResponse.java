@@ -4,21 +4,15 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.*;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.persistence.Column;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
 /**
- * @author  Nikolay Loboda
+ * @author Nikolay Loboda
  * @since 30.07.13
  */
 public class UserResponse implements HiveEntity {
@@ -50,7 +44,7 @@ public class UserResponse implements HiveEntity {
     private Timestamp lastLogin = new Timestamp(0);
 
 
-    public static UserResponse createFromUser(User u){
+    public static UserResponse createFromUser(User u) {
         UserResponse response = new UserResponse();
         response.setId(u.getId());
         response.setLogin(u.getLogin());
@@ -58,7 +52,7 @@ public class UserResponse implements HiveEntity {
         response.setRole(u.getRole());
         response.setStatus(u.getStatus());
         response.networks = new HashSet<>();
-        for(Network n:u.getNetworks()){
+        for (Network n : u.getNetworks()) {
             response.networks.add(UserNetworkResponse.fromNetwork(n));
         }
         response.setLastLogin(u.getLastLogin());

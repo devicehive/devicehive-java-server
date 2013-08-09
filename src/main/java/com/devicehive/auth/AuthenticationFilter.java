@@ -35,7 +35,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         boolean secure = requestContext.getSecurityContext().isSecure();
         requestContext.setSecurityContext(
                 new HiveSecurityContext(
-                        new HivePrincipal(authUser(requestContext),authDevice(requestContext)),secure));
+                        new HivePrincipal(authUser(requestContext), authDevice(requestContext)), secure));
     }
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {

@@ -12,7 +12,7 @@ public class HiveDataException extends HiveException {
         super(message, cause);
     }
 
-    public HiveDataException(String message){
+    public HiveDataException(String message) {
         super(message);
     }
 }

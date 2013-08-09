@@ -1,9 +1,9 @@
 package com.devicehive.json.providers;
 
 
-import javax.ws.rs.ext.Provider;
-
 import com.devicehive.model.HiveEntity;
+
+import javax.ws.rs.ext.Provider;
 
 
 @Provider

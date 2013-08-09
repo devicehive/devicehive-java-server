@@ -31,7 +31,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Equipment.deleteByFK", query = "delete from Equipment e where e.deviceClass = " +
                 ":deviceClass"),
         @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from Equipment e where e.id = :id " +
-                "and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)" ),
+                "and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)"),
         @NamedQuery(name = "Equipment.updatePropertiesUsingDeviceClass", query = "update Equipment e set e.name = :name, e.code = :code," +
                 " e.type = :type, e.data = :data where e.id = :equipmentId and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)")
 })
@@ -40,7 +40,7 @@ public class Equipment implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED,EQUIPMENTCLASS_SUBMITTED})
+    @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, EQUIPMENTCLASS_SUBMITTED})
     private Long id;
 
     @SerializedName("name")

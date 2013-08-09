@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
+import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -34,11 +34,11 @@ public class DeviceClassController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
 
-    @Inject
+    @EJB
     private DeviceClassService deviceClassService;
 
 
-    @Inject
+    @EJB
     private EquipmentService equipmentService;
 
     /**

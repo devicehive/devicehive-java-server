@@ -16,6 +16,7 @@ import java.util.Properties;
  */
 @Path("/version")
 public class VersionController {
+
     @Context
     ServletContext context;
 

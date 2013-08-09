@@ -35,26 +35,26 @@ public class Network implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED,NETWORK_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_SUBMITTED})
     private Long id;
 
     @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key shouldn't be more than 64 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String key;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
 
     @SerializedName("description")
     @Column
     @Size(max = 128, message = "The length of description shouldn't be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED,NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -63,7 +63,7 @@ public class Network implements HiveEntity {
             inverseJoinColumns = {@JoinColumn(name = "user_id", nullable = false, updatable = false)})
     private Set<User> users;
 
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "network")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "network")
     @JsonPolicyDef({NETWORK_PUBLISHED})
     private Set<Device> devices;
 

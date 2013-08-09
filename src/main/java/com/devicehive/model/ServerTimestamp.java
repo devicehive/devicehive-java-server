@@ -6,7 +6,7 @@ import java.sql.Timestamp;
 @Entity
 @Table(name = "get_timestamp")
 @NamedQueries({
-        @NamedQuery(name = "ServerTimestamp.get", query="select st from ServerTimestamp st")
+        @NamedQuery(name = "ServerTimestamp.get", query = "select st from ServerTimestamp st")
 })
 @Cacheable(false)
 public class ServerTimestamp {

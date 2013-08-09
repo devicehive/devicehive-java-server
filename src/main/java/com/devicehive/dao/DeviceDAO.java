@@ -5,7 +5,10 @@ import com.devicehive.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -14,7 +17,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import java.util.List;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
@@ -50,6 +52,7 @@ public class DeviceDAO {
         query.setHint("org.hibernate.cacheable", true);
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUID(UUID uuid, Long userId) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDForUser", Device.class);

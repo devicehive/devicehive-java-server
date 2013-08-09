@@ -6,7 +6,6 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
 
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.List;

@@ -6,6 +6,6 @@ import java.lang.annotation.*;
 @Inherited
 @InterceptorBinding
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE,ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface LogExecutionTime {
 }

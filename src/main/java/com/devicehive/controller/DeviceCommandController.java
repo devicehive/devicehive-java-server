@@ -13,7 +13,6 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
-import com.devicehive.model.response.DeviceCommandWithUserId;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
@@ -23,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
+import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -31,7 +31,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,19 +43,19 @@ public class DeviceCommandController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
 
-    @Inject
+    @EJB
     private DeviceCommandService commandService;
 
-    @Inject
+    @EJB
     private DeviceService deviceService;
 
-    @Inject
+    @EJB
     private UserService userService;
 
-    @Inject
+    @EJB
     private DeviceCommandDAO deviceCommandDAO;
 
-    @Inject
+    @EJB
     private DeviceCommandService deviceCommandService;
 
     @Inject
@@ -88,7 +87,7 @@ public class DeviceCommandController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST);
         }
 
-        Device device = deviceService.getDevice(deviceGuid,((HivePrincipal) securityContext.getUserPrincipal()));
+        Device device = deviceService.getDevice(deviceGuid, ((HivePrincipal) securityContext.getUserPrincipal()));
 
         Timestamp timestamp = TimestampAdapter.parseTimestampQuietly(timestampUTC);
         long timeout = Params.parseWaitTimeout(waitTimeout);
@@ -102,7 +101,7 @@ public class DeviceCommandController {
             CommandSubscription commandSubscription = new CommandSubscription(device.getId(), reqId, restHandlerCreator);
 
 
-            if (SimpleWaiter.subscribeAndWait(storage,commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
+            if (SimpleWaiter.subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
                 list = deviceCommandDAO.getNewerThan(device, timestamp);
             }
         }
@@ -167,7 +166,7 @@ public class DeviceCommandController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             CommandUpdateSubscription commandSubscription =
-                new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
+                    new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
 
 
             if (SimpleWaiter.subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
@@ -389,7 +388,7 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid,
-                           @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT)DeviceCommand deviceCommand,
+                           @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                            @Context ContainerRequestContext requestContext) {
 
         Timer t = Timer.newInstance();

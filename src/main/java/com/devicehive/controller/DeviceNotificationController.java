@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.persistence.NoResultException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -133,7 +132,7 @@ public class DeviceNotificationController {
         logger.debug("Device notification requested");
 
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
-        if (deviceNotification == null){
+        if (deviceNotification == null) {
             throw new NotFoundException("Device notification with id : " + notificationId + " not found");
         }
         String deviceGuidFromNotification = deviceNotification.getDevice().getGuid().toString();
@@ -194,7 +193,7 @@ public class DeviceNotificationController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             NotificationSubscription notificationSubscription =
-                new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
+                    new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
 
             if (SimpleWaiter.subscribeAndWait(storage, notificationSubscription, restHandlerCreator.getFutureTask(), timeout)) {
                 list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);

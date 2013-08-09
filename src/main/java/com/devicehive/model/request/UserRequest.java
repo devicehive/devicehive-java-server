@@ -1,7 +1,5 @@
 package com.devicehive.model.request;
 
-import java.io.Serializable;
-
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.UserRole;

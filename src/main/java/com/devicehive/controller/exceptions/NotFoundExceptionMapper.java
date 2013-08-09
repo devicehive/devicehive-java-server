@@ -5,7 +5,6 @@ import com.devicehive.model.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -22,7 +21,7 @@ public class NotFoundExceptionMapper implements ExceptionMapper<NotFoundExceptio
 
     @Override
     public Response toResponse(NotFoundException exception) {
-        logger.error("Error: ",exception);
+        logger.error("Error: ", exception);
         return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(exception.getMessage()));
     }
 }

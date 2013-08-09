@@ -1,15 +1,15 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceCommandDAO;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.*;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author: Nikolay Loboda
@@ -37,8 +37,8 @@ public class DeviceCommandService {
     }
 
     public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
-                                                            String status, String sortField, Boolean sortOrderAsc,
-                                                            Integer take, Integer skip) {
+                                                  String status, String sortField, Boolean sortOrderAsc,
+                                                  Integer take, Integer skip) {
         return commandDAO.queryDeviceCommand(device, start, end, command, status, sortField, sortOrderAsc, take, skip);
     }
 

@@ -60,8 +60,8 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         }
     }
 
-    public synchronized void removePairs(Collection<Pair<E,String>> coll) {
-        for (Pair<E,String> pair : coll) {
+    public synchronized void removePairs(Collection<Pair<E, String>> coll) {
+        for (Pair<E, String> pair : coll) {
             remove(pair.getKey(), pair.getValue());
         }
     }

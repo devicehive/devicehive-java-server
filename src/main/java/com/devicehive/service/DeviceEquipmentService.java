@@ -6,7 +6,6 @@ import com.devicehive.model.DeviceEquipment;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -19,6 +18,7 @@ public class DeviceEquipmentService {
 
     /**
      * find Device equipment by device
+     *
      * @param device Equipment will be fetched for this device
      * @return List of DeviceEquipment for specified device
      */
@@ -26,7 +26,7 @@ public class DeviceEquipmentService {
         return deviceEquipmentDAO.findByFK(device);
     }
 
-    public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device){
+    public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device) {
         return deviceEquipmentDAO.findByCodeAndDevice(code, device);
     }
 }

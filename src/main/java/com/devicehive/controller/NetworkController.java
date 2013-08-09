@@ -1,7 +1,6 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -16,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
+import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -32,10 +31,10 @@ public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
 
-    @Inject
+    @EJB
     private NetworkService networkService;
 
-    @Inject
+    @EJB
     private UserService userService;
 
 

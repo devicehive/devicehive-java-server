@@ -39,7 +39,6 @@ public class NetworkRequest implements HiveEntity {
     private Set<Device> devices;
 
 
-
     public Long getId() {
         return id;
     }
@@ -47,7 +46,6 @@ public class NetworkRequest implements HiveEntity {
     public void setId(Long id) {
         this.id = id;
     }
-
 
 
     public Set<User> getUsers() {

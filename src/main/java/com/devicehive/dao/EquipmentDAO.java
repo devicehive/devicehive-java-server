@@ -9,7 +9,10 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +53,7 @@ public class EquipmentDAO {
 
     }
 
-    public boolean update (@NotNull Equipment equipment, @NotNull long equipmentId){
+    public boolean update(@NotNull Equipment equipment, @NotNull long equipmentId) {
         Query query = em.createNamedQuery("Equipment.updateProperties");
         query.setParameter("id", equipmentId);
         query.setParameter("name", equipment.getName());
@@ -60,7 +63,7 @@ public class EquipmentDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean update (@NotNull Equipment equipment, @NotNull long equipmentId, @NotNull long deviceClassId){
+    public boolean update(@NotNull Equipment equipment, @NotNull long equipmentId, @NotNull long deviceClassId) {
         Query query = em.createNamedQuery("Equipment.updatePropertiesUsingDeviceClass");
         query.setParameter("equipmentId", equipmentId);
         query.setParameter("deviceClassId", deviceClassId);
@@ -71,14 +74,14 @@ public class EquipmentDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean delete(@NotNull long equipmentId){
-        Query query =  em.createNamedQuery("Equipment.deleteById");
+    public boolean delete(@NotNull long equipmentId) {
+        Query query = em.createNamedQuery("Equipment.deleteById");
         query.setParameter("id", equipmentId);
         return query.executeUpdate() != 0;
     }
 
-    public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId){
-        Query query =  em.createNamedQuery("Equipment.deleteByIdAndDeviceClass");
+    public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
+        Query query = em.createNamedQuery("Equipment.deleteByIdAndDeviceClass");
         query.setParameter("id", equipmentId);
         query.setParameter("deviceClassId", deviceClassId);
         return query.executeUpdate() != 0;

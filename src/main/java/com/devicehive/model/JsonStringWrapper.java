@@ -10,7 +10,7 @@ public class JsonStringWrapper implements HiveEntity {
     public JsonStringWrapper() {
     }
 
-    public JsonStringWrapper(String jsonString){
+    public JsonStringWrapper(String jsonString) {
         this.jsonString = jsonString;
     }
 

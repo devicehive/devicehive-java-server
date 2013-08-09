@@ -16,7 +16,7 @@ public class UUIDAdapter implements JsonSerializer<UUID>, JsonDeserializer<UUID>
         try {
             return UUID.fromString(jsonElement.getAsString());
         } catch (IllegalArgumentException ex) {
-            throw new JsonParseException("Error parsing UUID.",ex);
+            throw new JsonParseException("Error parsing UUID.", ex);
         }
     }
 }

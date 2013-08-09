@@ -12,11 +12,11 @@ public class UserRoleAdapter implements JsonSerializer<UserRole>, JsonDeserializ
             throws JsonParseException {
         String roleJson = json.getAsString();
 
-        if (roleJson.equals(UserRole.ADMIN.toString())){
+        if (roleJson.equals(UserRole.ADMIN.toString())) {
             return UserRole.ADMIN;
         }
 
-        if (roleJson.equals(UserRole.CLIENT.toString())){
+        if (roleJson.equals(UserRole.CLIENT.toString())) {
             return UserRole.CLIENT;
         }
 

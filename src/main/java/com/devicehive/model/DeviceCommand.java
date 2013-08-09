@@ -1,8 +1,7 @@
 package com.devicehive.model;
 
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import javax.persistence.Version;
@@ -10,9 +9,9 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.annotations.SerializedName;
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -96,7 +95,7 @@ public class DeviceCommand implements HiveEntity {
     @SerializedName("flags")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-             REST_COMMAND_UPDATE_FROM_DEVICE})
+            REST_COMMAND_UPDATE_FROM_DEVICE})
     private Integer flags;
 
     @SerializedName("status")

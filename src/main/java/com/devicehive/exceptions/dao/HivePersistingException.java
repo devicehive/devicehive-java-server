@@ -10,7 +10,7 @@ public class HivePersistingException extends HiveDataException {
         super(message, cause);
     }
 
-    public HivePersistingException(String message){
+    public HivePersistingException(String message) {
         super(message);
     }
 }

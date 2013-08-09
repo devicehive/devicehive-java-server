@@ -7,9 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.UUID;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceUpdate implements HiveEntity {
     @SerializedName("id")

@@ -9,15 +9,15 @@ import java.util.TimeZone;
 
 /**
  * Util static methods to parse input parameters.
- * 
- * @author rroschin
  *
+ * @author rroschin
  */
 public final class Params {
 
     public final static long DEFAULT_WAIT_TIMEOUT = 30L;
     public final static long MAX_WAIT_TIMEOUT = 60L;
     public final static DateFormat UTC_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
     {
         UTC_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
@@ -36,8 +36,7 @@ public final class Params {
 
         try {
             return UTC_DATE_FORMAT.parse(timestampUTC);
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             return null;
         }
     }

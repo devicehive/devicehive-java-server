@@ -1,13 +1,13 @@
 package com.devicehive.controller.exceptions;
 
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
-
 import com.devicehive.controller.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.JsonParseException;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 
 @Provider
 public class JsonParseExceptionMapper implements ExceptionMapper<JsonParseException> {

@@ -1,8 +1,9 @@
 package com.devicehive.dao;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import com.devicehive.configuration.Constants;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.User;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -16,11 +17,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-
-import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.User;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Stateless
 public class DeviceNotificationDAO {

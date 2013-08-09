@@ -9,7 +9,6 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import java.io.IOException;
 
 
-
 @Priority(Priorities.AUTHORIZATION)
 public class DenyAllFilter implements ContainerRequestFilter {
     @Override

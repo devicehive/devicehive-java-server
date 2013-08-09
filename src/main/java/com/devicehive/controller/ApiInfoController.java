@@ -7,7 +7,6 @@ import com.devicehive.model.ApiInfo;
 import com.devicehive.model.Configuration;
 import com.devicehive.model.Version;
 import com.devicehive.service.TimestampService;
-import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

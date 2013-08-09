@@ -1,11 +1,9 @@
 package com.devicehive.messages.handler;
 
-import com.devicehive.messages.subscriptions.AbstractStorage;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 public class RestHandlerCreator implements HandlerCreator {

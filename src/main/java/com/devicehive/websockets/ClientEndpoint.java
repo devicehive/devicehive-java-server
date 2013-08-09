@@ -1,25 +1,18 @@
 package com.devicehive.websockets;
 
-import java.lang.reflect.InvocationTargetException;
-
-import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.websocket.CloseReason;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devicehive.websockets.handlers.ClientMessageHandlers;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.GsonBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.websocket.*;
+import javax.websocket.server.ServerEndpoint;
+import java.lang.reflect.InvocationTargetException;
 
 @ServerEndpoint(value = "/client")
 public class ClientEndpoint extends Endpoint {

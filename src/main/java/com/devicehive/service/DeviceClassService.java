@@ -11,7 +11,6 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.persistence.NoResultException;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -129,8 +128,9 @@ public class DeviceClassService {
         equipment.setDeviceClass(deviceClass);
         return equipmentDAO.create(equipment);
     }
+
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
-                       Boolean sortOrderAsc, Integer take, Integer skip) {
+                                                Boolean sortOrderAsc, Integer take, Integer skip) {
         return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, sortOrderAsc, take, skip);
     }
 

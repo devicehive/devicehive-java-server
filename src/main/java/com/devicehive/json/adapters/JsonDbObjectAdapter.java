@@ -6,10 +6,10 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 
 
-public class JsonDbObjectAdapter implements JsonSerializer<JsonStringWrapper>, JsonDeserializer<JsonStringWrapper>{
+public class JsonDbObjectAdapter implements JsonSerializer<JsonStringWrapper>, JsonDeserializer<JsonStringWrapper> {
     @Override
     public JsonStringWrapper deserialize(JsonElement jsonElement, Type type,
-                                          JsonDeserializationContext jsonDeserializationContext)
+                                         JsonDeserializationContext jsonDeserializationContext)
             throws JsonParseException {
         JsonStringWrapper jsonStringWrapper = new JsonStringWrapper();
         jsonStringWrapper.setJsonString(jsonElement.toString());
