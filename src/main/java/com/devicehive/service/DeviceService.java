@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -38,31 +39,31 @@ public class DeviceService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
 
-    @Inject
+    @EJB
     private DeviceCommandDAO deviceCommandDAO;
 
-    @Inject
+    @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
 
-    @Inject
+    @EJB
     private DeviceClassDAO deviceClassDAO;
 
-    @Inject
+    @EJB
     private DeviceDAO deviceDAO;
 
-    @Inject
+    @EJB
     private EquipmentDAO equipmentDAO;
 
-    @Inject
+    @EJB
     private NetworkService networkService;
 
-    @Inject
+    @EJB
     private DeviceEquipmentDAO deviceEquipmentDAO;
 
-    @Inject
+    @EJB
     private UserDAO userDAO;
 
-    @Inject
+    @EJB
     private TimestampService timestampService;
 
     @Inject

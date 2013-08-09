@@ -3,6 +3,8 @@ package com.devicehive.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Calendar;
 
 /**
@@ -14,7 +16,7 @@ public class Timer {
 
     private static final Logger logger = LoggerFactory.getLogger(Timer.class);
 
-    private static final int MAX_METHOD_EXECUTION_TIME = 800;
+    private static final int MAX_METHOD_EXECUTION_TIME = 50000000; // 50ms
 
     /**
      * Creates new instance
@@ -24,14 +26,14 @@ public class Timer {
     }
 
     private Timer() {
-        start = Calendar.getInstance().getTimeInMillis();
+        start = System.nanoTime();
     }
 
     /**
      * @return number of milliseconds, passed from creation, or reset call
      */
     public long click() {
-        return Calendar.getInstance().getTimeInMillis() - start;
+        return System.nanoTime() - start;
     }
 
     /**
@@ -51,11 +53,12 @@ public class Timer {
      * @param methodName executed method name
      */
     public void logMethodExecuted(String methodName) {
-        long time = click();
+        long time = click() / 1000;
+        String formatted = new DecimalFormat("###,###").format(time);
         if (time > MAX_METHOD_EXECUTION_TIME) {
-            logger.warn("Execution of " + methodName + " took " + time + " milliseconds");
+            logger.warn("Execution of {} took {} microseconds", methodName, formatted);
         }else{
-            logger.debug("Execution of " + methodName + " took " + time + " milliseconds");
+            logger.debug("Execution of {} took {} microseconds", methodName, formatted);
         }
 
     }
