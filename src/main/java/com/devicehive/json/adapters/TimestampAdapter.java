@@ -47,7 +47,7 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
             microseconds = Integer.parseInt(micro);
         }
 
-        Timestamp timestamp = new Timestamp(Timestamp.parse(date.toGMTString()));
+        Timestamp timestamp = new Timestamp(date.getTime());
 
         timestamp.setNanos(microseconds * 1000);
         return timestamp;
