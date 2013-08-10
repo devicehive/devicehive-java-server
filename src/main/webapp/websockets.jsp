@@ -31,10 +31,7 @@
 </head>
 <body>
 <script>
-    document.write("<p>
-
-    <h2><%=currentPath%>
-    </h2></p>");
+    document.write("<p><h2><%=currentPath%></h2></p>");
 </script>
 
 <table style="width: 100%">
