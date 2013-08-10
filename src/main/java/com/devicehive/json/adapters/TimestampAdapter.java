@@ -44,7 +44,11 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
                 throw new ParseException("Error parsing microseconds", pos);
             }
             micro += "000000".substring(0, 6 - micro.length());
-            microseconds = Integer.parseInt(micro);
+            try {
+                microseconds = Integer.parseInt(micro);
+            } catch (NumberFormatException ex) {
+                throw new ParseException("Error parsing microseconds", pos);
+            }
         }
 
         Timestamp timestamp = new Timestamp(date.getTime());
