@@ -19,12 +19,12 @@
         var client = new WebSocket("<%=wsUrl%>");
 
         client.onmessage = function(event) {
-        document.getElementById("response").value +='\n'+ event.data;
+            document.getElementById("response").value +='\n'+ event.data;
         }
 
         function send() {
 
-        client.send(document.getElementById("request").value);
+            client.send(document.getElementById("request").value);
         }
     </script>
 
@@ -53,6 +53,6 @@
         </td>
     </tr>
 </table>
-<button onclick="send()">Send</button>
+<button onclick="send()" >Send</button>
 </body>
 </html>

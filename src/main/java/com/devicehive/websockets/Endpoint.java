@@ -2,6 +2,7 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.utils.Timer;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -9,6 +10,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,11 +22,15 @@ import javax.websocket.Session;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 abstract class Endpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 10240;
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
+
+    private ConcurrentMap<Pair<Class, String>, Method> methodsCache = new ConcurrentHashMap<>();
 
     protected JsonObject processMessage(HiveMessageHandlers handler, String message, Session session) {
         JsonObject response;
@@ -56,23 +63,31 @@ abstract class Endpoint {
 
     private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request, Session session)
             throws IllegalAccessException, InvocationTargetException {
-        for (final Method method : handler.getClass().getMethods()) {
-            if (method.isAnnotationPresent(Action.class)) {
-
-                Action ann = method.getAnnotation(Action.class);
-                if (ann.value().equals(action)) {
-                    if (ann.needsAuth()) {
-                        handler.ensureAuthorised(request, session);
-                    }
-                    try {
-                        return (JsonObject) method.invoke(handler, request, session);
-                    } catch (InvocationTargetException e) {
-                        invocationTargetExceptionResolve(e);
+        ImmutablePair<Class, String> key = ImmutablePair.of((Class)handler.getClass(), action);
+        Method executedMethod = methodsCache.get(key);
+        if (executedMethod == null) {
+            for (final Method method : handler.getClass().getMethods()) {
+                if (method.isAnnotationPresent(Action.class)) {
+                    if (method.getAnnotation(Action.class).value().equals(action)) {
+                        executedMethod = method;
+                        methodsCache.put(key, method);
+                        break;
                     }
                 }
             }
         }
-        throw new HiveException("Unknown action requested: " + action);
+        if (executedMethod == null) {
+            throw new HiveException("Unknown action requested: " + action);
+        }
+        if (executedMethod.getAnnotation(Action.class).needsAuth()) {
+            handler.ensureAuthorised(request, session);
+        }
+        try {
+            return (JsonObject) executedMethod.invoke(handler, request, session);
+        } catch (InvocationTargetException e) {
+            invocationTargetExceptionResolve(e);
+            throw e;
+        }
     }
 
     private void invocationTargetExceptionResolve(InvocationTargetException e) throws InvocationTargetException {

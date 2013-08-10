@@ -6,10 +6,12 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
 
 import javax.ejb.EJB;
+import javax.ejb.Stateless;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.List;
 
+@Stateless
 public class DeviceNotificationService {
 
     @EJB
