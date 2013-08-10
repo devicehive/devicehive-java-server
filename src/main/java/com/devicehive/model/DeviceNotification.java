@@ -44,6 +44,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 query = "delete from DeviceNotification dn where dn.device = :device")
 
 })
+@Cacheable
 public class DeviceNotification implements HiveEntity {
 
     @SerializedName("parameters")

@@ -30,6 +30,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 "left join fetch n.devices inner join fetch n.users u where u.id = :userId and n.id = :id"),
         @NamedQuery(name = "Network.getByDevice", query = "select d.network from Device d where d.guid = :guid")
 })
+@Cacheable
 public class Network implements HiveEntity {
 
     @SerializedName("id")

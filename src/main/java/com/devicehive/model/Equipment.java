@@ -35,6 +35,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Equipment.updatePropertiesUsingDeviceClass", query = "update Equipment e set e.name = :name, e.code = :code," +
                 " e.type = :type, e.data = :data where e.id = :equipmentId and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)")
 })
+@Cacheable
 public class Equipment implements HiveEntity {
 
     @SerializedName("id")

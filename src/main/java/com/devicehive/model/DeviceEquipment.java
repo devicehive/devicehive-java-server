@@ -33,6 +33,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPME
         @NamedQuery(name = "DeviceEquipment.getByDevice", query = "select de from DeviceEquipment de where de.device = " +
                 ":device")
 })
+@Cacheable
 public class DeviceEquipment implements HiveEntity {
 
     @Id
