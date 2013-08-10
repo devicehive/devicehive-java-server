@@ -2,7 +2,11 @@ package com.devicehive.json.adapters;
 
 
 import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -11,28 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserializer<Timestamp> {
+public class TimestampAdapter extends TypeAdapter<Timestamp>  {
 
     private static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
-
-
-    public JsonElement serialize(Timestamp timestamp, Type type, JsonSerializationContext jsonSerializationContext) {
-        if (timestamp == null) {
-            return null;
-        }
-        return new JsonPrimitive(formatTimestamp(timestamp));
-    }
-
-    public Timestamp deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        if (jsonElement == null) {
-            return null;
-        }
-        try {
-            return parseTimestamp(jsonElement.getAsString());
-        } catch (ParseException e) {
-            throw new JsonParseException("Error parsing date.", e);
-        }
-    }
 
     public static Timestamp parseTimestampQuietly(String input) {
         try {
@@ -97,4 +82,27 @@ public class TimestampAdapter implements JsonSerializer<Timestamp>, JsonDeserial
         return dateFormat;
     }
 
+    @Override
+    public void write(JsonWriter out, Timestamp timestamp) throws IOException {
+        if (timestamp == null) {
+            out.nullValue();
+        } else {
+            out.value(formatTimestamp(timestamp));
+        }
+    }
+
+    @Override
+    public Timestamp read(JsonReader in) throws IOException {
+        JsonToken jsonToken = in.peek();
+        if (jsonToken == JsonToken.NULL) {
+            in.nextNull();
+            return null;
+        } else {
+            try {
+                return parseTimestamp(in.nextString());
+            } catch (ParseException | RuntimeException e ) {
+                throw new IOException("Wrong timestamp format", e);
+            }
+        }
+    }
 }

@@ -1,32 +1,38 @@
 package com.devicehive.json.adapters;
 
+import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 
-public class UserStatusAdapter implements JsonSerializer<UserStatus>, JsonDeserializer<UserStatus> {
+public class UserStatusAdapter extends TypeAdapter<UserStatus>  {
+
     @Override
-    public UserStatus deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
-        String statusJson = json.getAsString();
-        if (statusJson.equals(UserStatus.ACTIVE.toString())) {
-            return UserStatus.ACTIVE;
+    public void write(JsonWriter out, UserStatus value) throws IOException {
+        if (value == null) {
+            out.nullValue();
+        } else {
+            out.value(value.getValue());
         }
-        if (statusJson.equals(UserStatus.DELETED.toString())) {
-            return UserStatus.DELETED;
-        }
-        if (statusJson.equals(UserStatus.DISABLED.toString())) {
-            return UserStatus.DISABLED;
-        }
-        if (statusJson.equals(UserStatus.LOCKED_OUT.toString())) {
-            return UserStatus.LOCKED_OUT;
-        }
-        throw new JsonParseException("Available roles only: ACTIVE, DELETED, DISABLED and LOCKED_OUT");
     }
 
     @Override
-    public JsonElement serialize(UserStatus src, Type typeOfSrc, JsonSerializationContext context) {
-        return new JsonPrimitive(src.getValue());
+    public UserStatus read(JsonReader in) throws IOException {
+        JsonToken jsonToken = in.peek();
+        if (jsonToken == JsonToken.NULL) {
+            in.nextNull();
+            return null;
+        } else {
+            try {
+                return UserStatus.values()[in.nextInt()];
+            } catch (RuntimeException e) {
+                throw new IOException("Wrong user status", e);
+            }
+        }
     }
 }

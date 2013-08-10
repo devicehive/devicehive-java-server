@@ -44,9 +44,9 @@ public class GsonFactory {
                 .setPrettyPrinting()
                 .serializeNulls()
                 .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
-                .registerTypeAdapter(UUID.class, new UUIDAdapter())
+                .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
-                .registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter())
+                //.registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter())
                 .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
                 .registerTypeAdapter(UserStatus.class, new UserStatusAdapter());
     }
