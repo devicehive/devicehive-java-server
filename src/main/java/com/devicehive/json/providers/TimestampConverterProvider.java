@@ -30,7 +30,7 @@ public class TimestampConverterProvider  implements ParamConverterProvider {
         public Timestamp fromString(String value) {
             try {
                 return TimestampAdapter.parseTimestamp(value);
-            } catch (ParseException e) {
+            } catch (RuntimeException e) {
                 throw new BadRequestException(e);
             }
         }

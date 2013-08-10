@@ -1,10 +1,15 @@
 package com.devicehive.json.adapters;
 
 
+import com.devicehive.utils.Timer;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -17,17 +22,18 @@ import java.util.TimeZone;
 
 public class TimestampAdapter extends TypeAdapter<Timestamp>  {
 
-    private static final String FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
 
     public static Timestamp parseTimestampQuietly(String input) {
         try {
             return parseTimestamp(input);
-        } catch (ParseException e) {
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }
 
-    public static Timestamp parseTimestamp(String input) throws ParseException {
+    public static Timestamp parseTimestamp(String input) throws IllegalArgumentException {
         if (input == null) {
             return null;
         }
@@ -35,23 +41,21 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
         int pos = input.indexOf(".");
         String dateSeconds = pos >= 0 ? input.substring(0, pos) : input;
 
-        Date date = getDateFormat().parse(dateSeconds);
+        Timestamp timestamp = new Timestamp(FORMATTER.parseMillis(dateSeconds));
 
         int microseconds = 0;
         if (pos >= 0) {
             String micro = input.substring(pos + 1);
             if (micro.isEmpty() || micro.length() > 6) {
-                throw new ParseException("Error parsing microseconds", pos);
+                throw new IllegalArgumentException("Error parsing microseconds");
             }
             micro += "000000".substring(0, 6 - micro.length());
             try {
                 microseconds = Integer.parseInt(micro);
             } catch (NumberFormatException ex) {
-                throw new ParseException("Error parsing microseconds", pos);
+                throw new IllegalArgumentException("Error parsing microseconds", ex);
             }
         }
-
-        Timestamp timestamp = new Timestamp(date.getTime());
 
         timestamp.setNanos(microseconds * 1000);
         return timestamp;
@@ -61,7 +65,7 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
         if (timestamp == null) {
             return null;
         }
-        StringBuilder res = new StringBuilder(getDateFormat().format(timestamp))
+        StringBuilder res = new StringBuilder(FORMATTER.print(new DateTime(timestamp.getTime())))
                 .append(".");
         int microseconds = timestamp.getNanos() / 1000;
 
@@ -80,11 +84,6 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
         return res.append(micro.substring(0, index + 1)).toString();
     }
 
-    private static DateFormat getDateFormat() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(FORMAT);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return dateFormat;
-    }
 
     @Override
     public void write(JsonWriter out, Timestamp timestamp) throws IOException {
@@ -104,7 +103,7 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
         } else {
             try {
                 return parseTimestamp(in.nextString());
-            } catch (ParseException | RuntimeException e ) {
+            } catch (RuntimeException e ) {
                 throw new IOException("Wrong timestamp format", e);
             }
         }
