@@ -1,6 +1,8 @@
 package com.devicehive.websockets;
 
+import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
@@ -15,6 +17,7 @@ import javax.websocket.server.ServerEndpoint;
 import java.lang.reflect.InvocationTargetException;
 
 @ServerEndpoint(value = "/device")
+@LogExecutionTime
 public class DeviceEndpoint extends Endpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceEndpoint.class);
@@ -37,7 +40,7 @@ public class DeviceEndpoint extends Endpoint {
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public String onMessage(String message, Session session) throws InvocationTargetException, IllegalAccessException {
         logger.debug("[onMessage] session id {}", session.getId());
-        return new GsonBuilder().setPrettyPrinting().create().toJson(processMessage(deviceMessageHandlers, message, session));
+        return GsonFactory.createGson().toJson(processMessage(deviceMessageHandlers, message, session));
     }
 
     @OnClose

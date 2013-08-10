@@ -1,6 +1,7 @@
 package com.devicehive.websockets.util;
 
 
+import com.devicehive.json.GsonFactory;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.google.gson.GsonBuilder;
@@ -100,7 +101,7 @@ public class WebsocketSession {
             JsonElement jsonElement = queue.peek();
             if (session.isOpen()) {
                 try {
-                    String data = new GsonBuilder().setPrettyPrinting().create().toJson(jsonElement);
+                    String data = GsonFactory.createGson().toJson(jsonElement);
                     session.getBasicRemote().sendText(data);
                     queue.poll();
                 } catch (IOException ex) {
