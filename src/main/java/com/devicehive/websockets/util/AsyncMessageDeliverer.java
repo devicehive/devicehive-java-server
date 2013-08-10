@@ -10,8 +10,8 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -22,35 +22,58 @@ public class AsyncMessageDeliverer {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageDeliverer.class);
 
-    private ExecutorService executorService;
+    private static final int RETRY_COUNT = 3;
+    private static final int RETRY_DELAY = 10;
+    private static final int RETRY_CORE_POOL_SIZE = 10;
+
+    private ExecutorService mainExecutorService;
+
+    private ScheduledExecutorService retryExecutorService;
+
+
 
 
     @PostConstruct
     protected void postConstruct() {
-        executorService = Executors.newCachedThreadPool();
+        mainExecutorService = Executors.newCachedThreadPool();
+        retryExecutorService = new ScheduledThreadPoolExecutor(RETRY_CORE_POOL_SIZE);
     }
 
     @PreDestroy
     protected void preDestroy() {
-        executorService.shutdown();
+        mainExecutorService.shutdown();
+        retryExecutorService.shutdown();
     }
 
     public void deliverMessages(final Session session) {
 
-        executorService.submit(new Runnable() {
+        mainExecutorService.submit(new Runnable() {
+
+            private final AtomicInteger retryCount = new AtomicInteger(0);
+
             @Override
             public void run() {
+
                 boolean acquired = false;
                 try {
-                    acquired = WebsocketSession.getQueueLock(session).tryLock();
-                    if (acquired) {
-                        WebsocketSession.deliverMessages(session);
+                    try {
+                        acquired = WebsocketSession.getQueueLock(session).tryLock();
+                        if (acquired) {
+                            WebsocketSession.deliverMessages(session);
+                        }
+                        throw new IOException();
+                    } finally {
+                        if (acquired) {
+                            WebsocketSession.getQueueLock(session).unlock();
+                        }
                     }
-                } catch (IOException e) {
-                    logger.error("Can not deliver websocket message", e);
-                } finally {
-                    if (acquired) {
-                        WebsocketSession.getQueueLock(session).unlock();
+                } catch (IOException ex) {
+                    logger.error("Error message delivery, session id is {} ", session.getId());
+                    if(retryCount.incrementAndGet() <= RETRY_COUNT) {
+                        logger.info("Retry in {} seconds", RETRY_DELAY);
+                        retryExecutorService.schedule(this, RETRY_DELAY, TimeUnit.SECONDS);
+                    } else {
+                        logger.info("No more tries");
                     }
                 }
             }

@@ -100,19 +100,15 @@ public class WebsocketSession {
         while (!queue.isEmpty()) {
             JsonElement jsonElement = queue.peek();
             if (session.isOpen()) {
-                try {
-                    String data = GsonFactory.createGson().toJson(jsonElement);
-                    session.getBasicRemote().sendText(data);
-                    queue.poll();
-                } catch (IOException ex) {
-                    logger.warn("Unable to deliver message. Will try again");
-                    throw ex;
-                }
+                String data = GsonFactory.createGson().toJson(jsonElement);
+                session.getBasicRemote().sendText(data);
+                queue.poll();
             } else {
                 logger.error("Session is closed. Unable to deliver message");
                 queue.clear();
+                return;
             }
-            logger.debug("Session " + session.getId() + ": " + queue.size() + " messages left");
+            logger.debug("Session {}: {} messages left", session.getId(), queue.size());
         }
     }
 
