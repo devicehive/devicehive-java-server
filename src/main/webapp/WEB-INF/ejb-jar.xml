@@ -9,6 +9,9 @@
             <exception-class>javax.persistence.OptimisticLockException</exception-class>
         </application-exception>
         <application-exception>
+            <exception-class>org.hibernate.exception.ConstraintViolationException</exception-class>
+        </application-exception>
+        <application-exception>
             <exception-class>com.google.gson.JsonParseException</exception-class>
         </application-exception>
         <application-exception>
