@@ -2,12 +2,12 @@ package com.devicehive.messages.bus;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.service.HazelcastService;
 import com.hazelcast.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
@@ -27,17 +27,18 @@ public class GlobalMessageBus {
     private static final String DEVICE_COMMAND_UPDATE = "DEVICE_COMMAND_UPDATE";
     private static final String DEVICE_NOTIFICATION = "DEVICE_NOTIFICATION";
 
-    private HazelcastInstance hazelcast;
+    @EJB
+    private HazelcastService hazelcastService;
 
     @EJB
     private LocalMessageBus localMessageBus;
 
+    private HazelcastInstance hazelcast;
+
 
     @PostConstruct
     protected void postConstruct() {
-        logger.debug("Initializing Hazelcast instance...");
-        hazelcast = Hazelcast.newHazelcastInstance();
-        logger.debug("New Hazelcast instance created: " + hazelcast);
+        hazelcast = hazelcastService.getHazelcast();
 
         logger.debug("Initializing topic {}...", DEVICE_COMMAND);
         ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
@@ -54,12 +55,6 @@ public class GlobalMessageBus {
         deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
         logger.debug("Done");
     }
-
-    @PreDestroy
-    protected void preDestroy() {
-        hazelcast.getLifecycleService().shutdown();
-    }
-
 
     public void publishDeviceCommand(DeviceCommand deviceCommand) {
         logger.debug("Sending device command {}", deviceCommand.getId());

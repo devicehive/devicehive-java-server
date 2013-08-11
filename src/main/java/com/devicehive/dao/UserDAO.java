@@ -46,7 +46,7 @@ public class UserDAO {
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
         query.setParameter("login", login);
-        query.setHint("org.hibernate.cacheable", true);
+        CacheHelper.cacheable(query);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
     }

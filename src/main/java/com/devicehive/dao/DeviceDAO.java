@@ -40,6 +40,7 @@ public class DeviceDAO {
     public Device findByUUID(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
+        CacheHelper.cacheable(query);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);
     }
@@ -49,7 +50,7 @@ public class DeviceDAO {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
         query.setParameter("uuid", uuid);
         query.setParameter("key", key);
-        query.setHint("org.hibernate.cacheable", true);
+        CacheHelper.cacheable(query);
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
 
@@ -84,6 +85,7 @@ public class DeviceDAO {
         }
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);
+        CacheHelper.cacheable(query);
         return query.getResultList();
     }
 

@@ -76,7 +76,7 @@ public class DeviceCommandDAO {
 
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getWithDeviceById", DeviceCommand.class);
         query.setParameter("id", id);
-
+        CacheHelper.cacheable(query);
         List<DeviceCommand> resultList = query.getResultList();
 
         return resultList.isEmpty() ? null : resultList.get(0);
@@ -87,7 +87,7 @@ public class DeviceCommandDAO {
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByDeviceUuidAndId", DeviceCommand.class);
         query.setParameter("id", id);
         query.setParameter("guid", guid);
-
+        CacheHelper.cacheable(query);
         List<DeviceCommand> resultList = query.getResultList();
 
         return resultList.isEmpty() ? null : resultList.get(0);

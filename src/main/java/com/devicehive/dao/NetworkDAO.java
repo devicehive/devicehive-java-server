@@ -59,6 +59,7 @@ public class NetworkDAO {
     public Network findByName(@NotNull String name) {
         TypedQuery<Network> query = em.createNamedQuery("Network.findByName", Network.class);
         query.setParameter("name", name);
+        CacheHelper.cacheable(query);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }

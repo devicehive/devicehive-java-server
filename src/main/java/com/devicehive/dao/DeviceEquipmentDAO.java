@@ -35,6 +35,7 @@ public class DeviceEquipmentDAO {
                 DeviceEquipment.class);
         query.setParameter("code", code);
         query.setParameter("device", device);
+        CacheHelper.cacheable(query);
         List<DeviceEquipment> queryResult = query.getResultList();
         return queryResult.isEmpty() ? null : queryResult.get(0);
     }
