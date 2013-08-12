@@ -6,6 +6,7 @@ import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -34,7 +35,7 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
     }
 
     public static Timestamp parseTimestamp(String input) throws IllegalArgumentException {
-        if (input == null) {
+        if (StringUtils.isEmpty(input)) {
             return null;
         }
         input = input.trim();
