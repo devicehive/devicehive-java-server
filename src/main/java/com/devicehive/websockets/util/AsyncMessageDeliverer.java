@@ -53,20 +53,8 @@ public class AsyncMessageDeliverer {
 
             @Override
             public void run() {
-
-                boolean acquired = false;
                 try {
-                    try {
-                        acquired = WebsocketSession.getQueueLock(session).tryLock();
-                        if (acquired) {
-                            WebsocketSession.deliverMessages(session);
-                        }
-                        throw new IOException();
-                    } finally {
-                        if (acquired) {
-                            WebsocketSession.getQueueLock(session).unlock();
-                        }
-                    }
+                    WebsocketSession.deliverMessages(session);
                 } catch (IOException ex) {
                     logger.error("Error message delivery, session id is {} ", session.getId());
                     if(retryCount.incrementAndGet() <= RETRY_COUNT) {

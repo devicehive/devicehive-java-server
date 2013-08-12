@@ -97,18 +97,31 @@ public class WebsocketSession {
     public static void deliverMessages(Session session) throws IOException {
         @SuppressWarnings("unchecked")
         ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(QUEUE);
-        while (!queue.isEmpty()) {
-            JsonElement jsonElement = queue.peek();
-            if (session.isOpen()) {
-                String data = GsonFactory.createGson().toJson(jsonElement);
-                session.getBasicRemote().sendText(data);
-                queue.poll();
-            } else {
-                logger.error("Session is closed. Unable to deliver message");
-                queue.clear();
-                return;
+        boolean acquired = false;
+        try {
+            acquired = WebsocketSession.getQueueLock(session).tryLock();
+            if (acquired) {
+                while (!queue.isEmpty()) {
+                    JsonElement jsonElement = queue.peek();
+                    if (jsonElement == null) {
+                        continue;
+                    }
+                    if (session.isOpen()) {
+                        String data = GsonFactory.createGson().toJson(jsonElement);
+                        session.getBasicRemote().sendText(data);
+                        queue.poll();
+                    } else {
+                        logger.error("Session is closed. Unable to deliver message");
+                        queue.clear();
+                        return;
+                    }
+                    logger.debug("Session {}: {} messages left", session.getId(), queue.size());
+                }
             }
-            logger.debug("Session {}: {} messages left", session.getId(), queue.size());
+        } finally {
+            if (acquired) {
+                WebsocketSession.getQueueLock(session).unlock();
+            }
         }
     }
 
