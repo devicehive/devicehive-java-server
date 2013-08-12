@@ -3,7 +3,6 @@ package com.devicehive.json;
 
 import com.devicehive.json.adapters.*;
 import com.devicehive.json.strategies.AnnotatedStrategy;
-import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.google.gson.Gson;
@@ -11,7 +10,6 @@ import com.google.gson.GsonBuilder;
 
 import java.sql.Timestamp;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy;

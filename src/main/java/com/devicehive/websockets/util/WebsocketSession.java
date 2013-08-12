@@ -4,7 +4,6 @@ package com.devicehive.websockets.util;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,7 @@ public class WebsocketSession {
     public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
     public static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
     private static final String QUEUE_LOCK = "QUEUE_LOCK";
-    private static final String QUEUE = "QUEUE";
+    public static final String QUEUE = "QUEUE";
 
     public static Lock getQueueLock(Session session) {
         return (Lock) session.getUserProperties().get(QUEUE_LOCK);
@@ -94,36 +93,6 @@ public class WebsocketSession {
         }
     }
 
-    public static void deliverMessages(Session session) throws IOException {
-        @SuppressWarnings("unchecked")
-        ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(QUEUE);
-        boolean acquired = false;
-        try {
-            acquired = WebsocketSession.getQueueLock(session).tryLock();
-            if (acquired) {
-                while (!queue.isEmpty()) {
-                    JsonElement jsonElement = queue.peek();
-                    if (jsonElement == null) {
-                        continue;
-                    }
-                    if (session.isOpen()) {
-                        String data = GsonFactory.createGson().toJson(jsonElement);
-                        session.getBasicRemote().sendText(data);
-                        queue.poll();
-                    } else {
-                        logger.error("Session is closed. Unable to deliver message");
-                        queue.clear();
-                        return;
-                    }
-                    logger.debug("Session {}: {} messages left", session.getId(), queue.size());
-                }
-            }
-        } finally {
-            if (acquired) {
-                WebsocketSession.getQueueLock(session).unlock();
-            }
-        }
-    }
 
     public static void addMessagesToQueue(Session session, JsonElement... jsons) {
         @SuppressWarnings("unchecked")

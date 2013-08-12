@@ -1,7 +1,6 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;

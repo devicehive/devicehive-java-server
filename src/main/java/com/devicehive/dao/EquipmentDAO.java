@@ -45,12 +45,11 @@ public class EquipmentDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        Equipment e = em.find(Equipment.class, equipmentId);
-        if (e == null || !e.getDeviceClass().getId().equals(deviceClassId)) {
-            return null;
-        }
-        return e;
-
+        TypedQuery<Equipment> query =  em.createNamedQuery("Equipment.getByDeviceClassAndId", Equipment.class);
+        query.setParameter("equipmentId", equipmentId);
+        query.setParameter("deviceClassId", deviceClassId);
+        List<Equipment> resultList =  query.getResultList();
+        return resultList.isEmpty() ? null : resultList.get(0);
     }
 
     public boolean update(@NotNull Equipment equipment, @NotNull long equipmentId) {

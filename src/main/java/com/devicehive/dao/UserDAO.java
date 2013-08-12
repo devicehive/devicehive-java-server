@@ -2,13 +2,9 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.*;
 import com.devicehive.service.helpers.PasswordProcessor;
 
-import javax.ejb.Lock;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -139,6 +135,15 @@ public class UserDAO {
         TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToNetwork", Long.class);
         query.setParameter("user", user);
         query.setParameter("network", network);
+        Long count = query.getSingleResult();
+        return count != null && count > 0;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+    public boolean hasAccessToDevice(User user, Device device) {
+        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToDevice", Long.class);
+        query.setParameter("user", user);
+        query.setParameter("device", device);
         Long count = query.getSingleResult();
         return count != null && count > 0;
     }

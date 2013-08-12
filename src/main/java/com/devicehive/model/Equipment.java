@@ -24,6 +24,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @NamedQueries({
         @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
                 ":deviceClass"),
+        @NamedQuery(name = "Equipment.getByDeviceClassAndId", query = "select e from Equipment e join e.deviceClass dc " +
+                "where e.id = :equipmentId and dc.id = :deviceClassId"),
         @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList"),
         @NamedQuery(name = "Equipment.updateProperties", query = "update Equipment e set e.name = :name, e.code = :code," +
                 " e.type = :type, e.data = :data where e.id = :id"),

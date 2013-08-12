@@ -78,7 +78,7 @@ public class DeviceClass implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
-    @OneToMany(mappedBy = "deviceClass")
+    @OneToMany(mappedBy = "deviceClass", fetch = FetchType.LAZY)
     @JsonPolicyDef({DEVICECLASS_PUBLISHED})
     private Set<Equipment> equipment;
 

@@ -27,7 +27,6 @@ import javax.ejb.EJB;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -83,8 +82,8 @@ public class DeviceCommandController {
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam("waitTimeout") long timeout,
             @Context SecurityContext securityContext) {
         logger.debug("DeviceCommand poll requested");
-
-        Device device = deviceService.getDevice(deviceGuid, ((HivePrincipal) securityContext.getUserPrincipal()));
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
 
 
         List<DeviceCommand> list = deviceCommandDAO.getNewerThan(device, timestamp);
@@ -227,7 +226,7 @@ public class DeviceCommandController {
                           @QueryParam("sortOrder") String sortOrder,
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip,
-                          @Context ContainerRequestContext requestContext) {
+                          @Context SecurityContext securityContext) {
 
         logger.debug("Device command query requested");
 
@@ -271,9 +270,9 @@ public class DeviceCommandController {
         }
 
         Device device;
-
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         try {
-            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+            device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
@@ -312,12 +311,13 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{id}")
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
-    public Response get(@PathParam("deviceGuid") UUID guid, @PathParam("id") long id, @Context ContainerRequestContext requestContext) {
+    public Response get(@PathParam("deviceGuid") UUID guid, @PathParam("id") long id, @Context SecurityContext securityContext) {
         logger.debug("Device command get requested");
 
         Device device;
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         try {
-            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+            device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         } catch (BadRequestException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
@@ -377,9 +377,9 @@ public class DeviceCommandController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") UUID guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
-                           @Context ContainerRequestContext requestContext) {
+                           @Context SecurityContext securityContext) {
 
-        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+        String login = securityContext.getUserPrincipal().getName();
 
         if (login == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN);
@@ -388,8 +388,9 @@ public class DeviceCommandController {
         User u = userService.findUserWithNetworksByLogin(login);
 
         Device device;
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         try {
-            device = deviceService.getDevice(guid, (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+            device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         } catch (BadRequestException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
@@ -434,7 +435,7 @@ public class DeviceCommandController {
 
         logger.debug("Device command update requested");
 
-        Device device = deviceService.getDevice(guid, principal);
+        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
 
 
         if (command == null) {

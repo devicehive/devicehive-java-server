@@ -6,7 +6,6 @@ import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
