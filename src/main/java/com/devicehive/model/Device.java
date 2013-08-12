@@ -26,6 +26,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "device")
 @NamedQueries({
         @NamedQuery(name = "Device.findByUUID", query = "select d from Device d where d.guid = :uuid"),
+        @NamedQuery(name = "Device.findByUUIDWithNetworkAndDeviceClass", query = "select d from Device d " +
+                "left join fetch d.network " +
+                "left join fetch d.deviceClass " +
+                "where d.guid = :uuid"),
         @NamedQuery(name = "Device.findByUUIDAndKey",
                 query = "select d from Device d where d.guid = :uuid and d.key = :key"),
         @NamedQuery(name = "Device.findByUUIDForUser",
@@ -97,13 +101,13 @@ public class Device implements HiveEntity {
     private JsonStringWrapper data;
 
     @SerializedName("network")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "network_id", updatable = false)
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
 
     @SerializedName("deviceClass")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "deviceClass field cannot be null.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})

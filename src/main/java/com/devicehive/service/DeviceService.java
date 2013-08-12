@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.*;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
@@ -63,7 +62,6 @@ public class DeviceService {
 
     @EJB
     private GlobalMessageBus globalMessageBus;
-
 
     @EJB
     private AsyncMessageDeliverer asyncMessageDeliverer;
@@ -331,7 +329,7 @@ public class DeviceService {
 
     public Device getDevice(UUID deviceId, User currentUser, Device currentDevice) {
 
-        Device device = deviceDAO.findByUUID(deviceId);
+        Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceId);
 
         if (device == null || !checkPermissions(device, currentUser, currentDevice)) {
             throw new HiveException("Device Not found", 404);

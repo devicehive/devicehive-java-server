@@ -45,6 +45,15 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Device findByUUIDWithNetworkAndDeviceClass(UUID uuid) {
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDWithNetworkAndDeviceClass", Device.class);
+        query.setParameter("uuid", uuid);
+        CacheHelper.cacheable(query);
+        List<Device> res = query.getResultList();
+        return res.isEmpty() ? null : res.get(0);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDAndKey(UUID uuid, String key) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
         query.setParameter("uuid", uuid);
