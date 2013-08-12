@@ -11,39 +11,40 @@ import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE;
 
 public class DeviceCommandUpdate implements HiveEntity {
 
     @SerializedName("id")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({COMMAND_UPDATE_FROM_DEVICE})
     private Long id;
 
     @SerializedName("timestamp")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_UPDATE_FROM_DEVICE})
     private NullableWrapper<Timestamp> timestamp;
 
     @SerializedName("command")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_UPDATE_FROM_DEVICE})
     private NullableWrapper<String> command;
 
     @SerializedName("parameters")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_UPDATE_FROM_DEVICE})
     private NullableWrapper<JsonStringWrapper> parameters;
 
     @SerializedName("lifetime")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_UPDATE_FROM_DEVICE})
     private NullableWrapper<Integer> lifetime;
 
     @SerializedName("flags")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_UPDATE_FROM_DEVICE})
     private NullableWrapper<Integer> flags;
 
     @SerializedName("result")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_UPDATE_FROM_DEVICE})
     private NullableWrapper<JsonStringWrapper> result;
 
     @SerializedName("status")
-    @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+    @JsonPolicyDef({REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_UPDATE_FROM_DEVICE})
     private NullableWrapper<String> status;
 
 

@@ -425,9 +425,8 @@ public class DeviceCommandController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE)
     public Response update(@PathParam("deviceGuid") UUID guid, @PathParam("id") long commandId,
-                           DeviceCommandUpdate command,
+                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command,
                            @Context SecurityContext securityContext) {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
