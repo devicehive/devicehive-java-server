@@ -60,18 +60,21 @@ public class GlobalMessageBus {
 
     public void publishDeviceCommand(DeviceCommand deviceCommand) {
         logger.debug("Sending device command {}", deviceCommand.getId());
+        localMessageBus.submitDeviceCommand(deviceCommand);
         hazelcast.getTopic(DEVICE_COMMAND).publish(deviceCommand);
         logger.debug("Sent");
     }
 
-    public void publishDeviceCommandUpdate(DeviceCommand deviceCommand) {
-        logger.debug("Sending device command update {}", deviceCommand.getId());
-        hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommand);
+    public void publishDeviceCommandUpdate(DeviceCommand deviceCommandUpdate) {
+        logger.debug("Sending device command update {}", deviceCommandUpdate.getId());
+        localMessageBus.submitDeviceCommandUpdate(deviceCommandUpdate);
+        hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommandUpdate);
         logger.debug("Sent");
     }
 
     public void publishDeviceNotification(DeviceNotification deviceNotification) {
         logger.debug("Sending device notification {}", deviceNotification.getId());
+        localMessageBus.submitDeviceNotification(deviceNotification);
         hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
         logger.debug("Sent");
     }
@@ -87,8 +90,10 @@ public class GlobalMessageBus {
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
-            logger.debug("Received device command {}", deviceCommandMessage.getMessageObject().getId());
-            localMessageBus.submitDeviceCommand(deviceCommandMessage.getMessageObject());
+            if (!deviceCommandMessage.getPublishingMember().localMember()) {
+                logger.debug("Received device command {}", deviceCommandMessage.getMessageObject().getId());
+                localMessageBus.submitDeviceCommand(deviceCommandMessage.getMessageObject());
+            }
         }
     }
 
@@ -102,8 +107,10 @@ public class GlobalMessageBus {
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
-            logger.debug("Received device command update {}", deviceCommandMessage.getMessageObject().getId());
-            localMessageBus.submitDeviceCommandUpdate(deviceCommandMessage.getMessageObject());
+            if (!deviceCommandMessage.getPublishingMember().localMember()) {
+                logger.debug("Received device command update {}", deviceCommandMessage.getMessageObject().getId());
+                localMessageBus.submitDeviceCommandUpdate(deviceCommandMessage.getMessageObject());
+            }
         }
     }
 
@@ -118,8 +125,10 @@ public class GlobalMessageBus {
 
         @Override
         public void onMessage(Message<DeviceNotification> deviceNotificationMessage) {
-            logger.debug("Received device notification{}", deviceNotificationMessage.getMessageObject().getId());
-            localMessageBus.submitDeviceNotification(deviceNotificationMessage.getMessageObject());
+            if (!deviceNotificationMessage.getPublishingMember().localMember()) {
+                logger.debug("Received device notification{}", deviceNotificationMessage.getMessageObject().getId());
+                localMessageBus.submitDeviceNotification(deviceNotificationMessage.getMessageObject());
+            }
         }
     }
 
