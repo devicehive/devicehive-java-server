@@ -10,27 +10,34 @@ import java.util.UUID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceUpdate implements HiveEntity {
+
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    NullableWrapper<UUID> guid;
+    private NullableWrapper<UUID> guid;
+
     @SerializedName("key")
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    NullableWrapper<String> key;
+    private NullableWrapper<String> key;
+
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    NullableWrapper<String> name;
+    private NullableWrapper<String> name;
+
     @SerializedName("status")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    NullableWrapper<String> status;
+    private NullableWrapper<String> status;
+
     @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    NullableWrapper<JsonStringWrapper> data;
+    private NullableWrapper<JsonStringWrapper> data;
+
     @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    NullableWrapper<Network> network;
+    private NullableWrapper<Network> network;
+
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    NullableWrapper<DeviceClassUpdate> deviceClass;
+    private NullableWrapper<DeviceClassUpdate> deviceClass;
 
     public NullableWrapper<DeviceClassUpdate> getDeviceClass() {
         return deviceClass;
