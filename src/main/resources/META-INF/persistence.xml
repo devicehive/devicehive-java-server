@@ -30,6 +30,7 @@
                       value="com.hazelcast.hibernate.HazelcastCacheRegionFactory"/>
             <property name="hibernate.cache.use_second_level_cache" value="true"/>
             <property name="hibernate.cache.use_query_cache" value="true"/>
+            <property name="hibernate.cache.hazelcast.configuration_file_path" value="hazelcast-cache.xml"/>
         </properties>
     </persistence-unit>
 

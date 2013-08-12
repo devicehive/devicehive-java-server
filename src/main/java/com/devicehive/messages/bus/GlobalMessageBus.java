@@ -3,6 +3,7 @@ package com.devicehive.messages.bus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.HazelcastService;
+import com.devicehive.utils.LogExecutionTime;
 import com.hazelcast.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @Singleton
 @ConcurrencyManagement(BEAN)
 @Startup
+@LogExecutionTime
 public class GlobalMessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalMessageBus.class);

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast
+        xmlns="http://www.hazelcast.com/schema/config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <group>
+        <name>DeviceHiveCache</name>
+        <password>DeviceHiveCache</password>
+    </group>
+    <properties>
+        <property name="hazelcast.logging.type">slf4j</property>
+    </properties>
+
+    <network>
+        <port auto-increment="true" port-count="100">5711</port>
+        <outbound-ports>
+            <ports>0</ports>
+        </outbound-ports>
+        <join>
+            <multicast enabled="false">
+            </multicast>
+            <tcp-ip enabled="false">
+            </tcp-ip>
+            <aws enabled="false">
+            </aws>
+        </join>
+    </network>
+
+
+</hazelcast>
