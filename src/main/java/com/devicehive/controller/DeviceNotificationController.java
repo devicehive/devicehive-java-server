@@ -21,6 +21,7 @@ import com.devicehive.utils.RestParametersConverter;
 import com.devicehive.utils.Timer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,9 +156,9 @@ public class DeviceNotificationController {
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/poll">DeviceHive RESTful API: DeviceNotification: poll</a>
      *
-     * @param deviceGuid   Device unique identifier.
-     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param deviceGuid Device unique identifier.
+     * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
@@ -203,9 +204,9 @@ public class DeviceNotificationController {
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
      *
-     * @param deviceGuids  Device unique identifier.
-     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param deviceGuids Device unique identifier.
+     * @param timestamp   Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param timeout     Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
@@ -223,7 +224,9 @@ public class DeviceNotificationController {
         List<UUID> uuids = new ArrayList<>(guids.size());
         try {
             for (String guid : guids) {
-                uuids.add(UUID.fromString(guid));
+                if (StringUtils.isNotBlank(guid)) {
+                    uuids.add(UUID.fromString(guid));
+                }
             }
         } catch (IllegalArgumentException e) {
             logger.debug("Device notification pollMany failed. Unparseable guid.");
