@@ -13,8 +13,8 @@ ALTER TABLE network ADD CONSTRAINT network_name_unique UNIQUE (name);
 CREATE TABLE "user" (
   id             BIGSERIAL                NOT NULL,
   login          VARCHAR(64)              NOT NULL,
-  password_hash  VARCHAR(48)              NOT NULL,
-  password_salt  VARCHAR(24)              NOT NULL,
+  password_hash  VARCHAR(128)              NOT NULL,
+  password_salt  VARCHAR(64)              NOT NULL,
   role           INT                      NOT NULL,
   status         INT                      NOT NULL,
   login_attempts INT                      NOT NULL,
