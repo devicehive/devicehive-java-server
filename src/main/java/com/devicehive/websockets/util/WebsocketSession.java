@@ -4,7 +4,6 @@ package com.devicehive.websockets.util;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

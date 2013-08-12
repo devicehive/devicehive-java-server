@@ -1,11 +1,14 @@
 package com.devicehive.messages.bus;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.UserRole;
 import com.devicehive.websockets.handlers.ServerResponsesFactory;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -16,7 +19,6 @@ import javax.annotation.PreDestroy;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -102,7 +104,7 @@ public class LocalMessageBus {
                 }
 
                 Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
-                        .getByDeviceId(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
+                        .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
 
                 for (NotificationSubscription subscription : subsForAll) {
                     if (hasAccess(subscription, deviceNotification)){

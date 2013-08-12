@@ -9,7 +9,6 @@ import javax.ws.rs.ext.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
-import java.text.ParseException;
 
 @Provider
 public class TimestampConverterProvider  implements ParamConverterProvider {

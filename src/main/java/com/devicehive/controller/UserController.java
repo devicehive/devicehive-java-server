@@ -12,7 +12,6 @@ import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
-import com.devicehive.utils.Timer;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
