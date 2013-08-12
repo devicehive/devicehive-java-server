@@ -362,12 +362,11 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 for (Device device : devices) {
                     subs.add(ImmutablePair.of(device.getId(), session.getId()));
                 }
-            } else {
-                subs = new ArrayList<>(1);
-                subs.add(ImmutablePair.of(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, session.getId()));
                 subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);
+            } else {
+                subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
             }
-            subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);
+
 
             checkDevicesAndGuidsList(devices, list, false);
         } finally {
