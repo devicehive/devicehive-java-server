@@ -9,7 +9,6 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
-import com.devicehive.messages.util.Params;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
@@ -20,14 +19,11 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
-import com.devicehive.utils.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -428,8 +424,9 @@ public class DeviceCommandController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
+    @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE)
     public Response update(@PathParam("deviceGuid") UUID guid, @PathParam("id") long commandId,
-                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command,
+                           DeviceCommandUpdate command,
                            @Context SecurityContext securityContext) {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();

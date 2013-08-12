@@ -129,7 +129,9 @@ public class DeviceService {
     }
 
     public boolean submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+
         DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
+
         if (cmd == null) {
             throw new NotFoundException("Command not found!");
         }
@@ -137,32 +139,36 @@ public class DeviceService {
         if (!cmd.getDevice().getId().equals(device.getId())) {
             throw new HiveException("Device tries to update incorrect command");
         }
-        DeviceCommand result = update.convertTo();
-        if (update.getCommand() == null) {
-            result.setCommand(cmd.getCommand());
+
+
+        if (update.getCommand() != null) {
+            cmd.setCommand(update.getCommand().getValue());
         }
-        if (update.getFlags() == null){
-            result.setFlags(cmd.getFlags());
+        if (update.getFlags() != null){
+            cmd.setFlags(update.getFlags().getValue());
         }
-        if (update.getLifetime() == null){
-            result.setLifetime(cmd.getLifetime());
+        if (update.getLifetime() != null){
+            cmd.setLifetime(update.getLifetime().getValue());
         }
-        if (update.getParameters() == null){
-            result.setParameters(cmd.getParameters());
+        if (update.getParameters() != null){
+            cmd.setParameters(update.getParameters().getValue());
         }
-        if (update.getResult() == null){
-            result.setResult(cmd.getResult());
+        if (update.getResult() != null){
+            cmd.setResult(update.getResult().getValue());
         }
-        if (update.getStatus() == null){
-            result.setStatus(cmd.getStatus());
+        if (update.getStatus() != null){
+            cmd.setStatus(update.getStatus().getValue());
         }
-        if (update.getTimestamp() == null){
-            result.setTimestamp(cmd.getTimestamp());
+        if (update.getTimestamp() != null){
+            cmd.setTimestamp(update.getTimestamp().getValue());
         }
-        if (!deviceCommandDAO.updateCommand(result.getId(), result)){
+
+        if (!deviceCommandDAO.updateCommand(cmd.getId(), cmd)){
             return false;
         }
-        globalMessageBus.publishDeviceCommandUpdate(result);
+
+        globalMessageBus.publishDeviceCommandUpdate(cmd);
+
         return true;
     }
 
