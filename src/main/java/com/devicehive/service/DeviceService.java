@@ -118,15 +118,7 @@ public class DeviceService {
     }
 
 
-    public Device getDevice(UUID deviceId, HivePrincipal principal) {
 
-        Device device = deviceDAO.findByUUID(deviceId);
-
-        if (device == null || !checkPermissions(device, principal)) {
-            throw new HiveException("Device Not found", 404);
-        }
-        return device;
-    }
 
     public boolean submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
         DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
@@ -313,7 +305,7 @@ public class DeviceService {
      * if field exists and null - error
      * if field does not exists - use field from database
      *
-     * @param device
+     * @param device device to check
      * @throws HiveException
      */
     public void checkDevice(DeviceUpdate device) throws HiveException {
@@ -331,25 +323,22 @@ public class DeviceService {
         }
     }
 
-    public boolean checkPermissions(Device device, HivePrincipal principal) {
-        if (principal.getDevice() != null) {
-            if (!device.getGuid().equals(principal.getDevice().getGuid())) {
-                return false;
-            }
-            if (device.getNetwork() == null) {
-                return false;
-            }
+    public Device getDevice(UUID deviceId, User currentUser, Device currentDevice) {
+
+        Device device = deviceDAO.findByUUID(deviceId);
+
+        if (device == null || !checkPermissions(device, currentUser, currentDevice)) {
+            throw new HiveException("Device Not found", 404);
+        }
+        return device;
+    }
+
+    public boolean checkPermissions(Device device, User currentUser, Device currentDevice) {
+        if (currentDevice != null) {
+            return device.getGuid().equals(currentDevice.getGuid()) && device.getNetwork() != null;
         } else {
-            User user = principal.getUser();
-            if (user.getRole().equals(UserRole.CLIENT)) {
-                User userWithNetworks = userDAO.findUserWithNetworks(user.getId());
-                Set<Network> networkSet = userWithNetworks.getNetworks();
-                for (Network network : networkSet) {
-                    if (network.getId().equals(device.getNetwork().getId())) {
-                        return true;
-                    }
-                }
-                return false;
+            if (currentUser.getRole().equals(UserRole.CLIENT)) {
+                return userDAO.hasAccessToDevice(currentUser, device);
             }
         }
         return true;

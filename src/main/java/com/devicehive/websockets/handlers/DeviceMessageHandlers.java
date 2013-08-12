@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;

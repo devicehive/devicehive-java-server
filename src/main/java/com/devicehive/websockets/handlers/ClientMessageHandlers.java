@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -298,7 +297,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             } else {
                 NotificationSubscription forAll =
-                        new NotificationSubscription(user, SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
+                        new NotificationSubscription(user, Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
                                 session.getId(),
                                 new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
                                         asyncMessageDeliverer));
@@ -365,7 +364,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 }
             } else {
                 subs = new ArrayList<>(1);
-                subs.add(ImmutablePair.of(SpecialConstants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, session.getId()));
+                subs.add(ImmutablePair.of(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, session.getId()));
                 subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);
             }
             subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);

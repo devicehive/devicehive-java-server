@@ -2,7 +2,6 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.utils.Timer;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;

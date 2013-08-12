@@ -12,13 +12,11 @@ import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.messages.util.Params;
 import com.devicehive.model.*;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
-import com.devicehive.utils.Timer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -37,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.List;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -114,8 +110,8 @@ public class DeviceNotificationController {
                 return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
             }
         }
-
-        Device device = deviceService.getDevice(guid, (HivePrincipal) securityContext.getUserPrincipal());
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, startTimestamp,
                 endTimestamp, notification, sortField, sortOrderAsc, take, skip);
 
@@ -141,8 +137,8 @@ public class DeviceNotificationController {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
         }
-        if (!deviceService.checkPermissions(deviceNotification.getDevice(), (HivePrincipal) securityContext
-                .getUserPrincipal())) {
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        if (!deviceService.checkPermissions(deviceNotification.getDevice(), principal.getUser(), principal.getDevice())) {
             logger.debug("No permissions to get notifications for device with guid : " + guid);
             return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse("Unauthorized"));
         }
@@ -177,11 +173,9 @@ public class DeviceNotificationController {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device with guid = " +
                     deviceGuid + " found"));
         }
-
-        Device device = deviceService.getDevice(deviceGuid, (HivePrincipal) securityContext.getUserPrincipal());
-
-
-        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
+        User user = principal.getUser();
 
         List<DeviceNotification> list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
         if (list.isEmpty()) {
@@ -279,7 +273,8 @@ public class DeviceNotificationController {
             logger.debug("DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-        Device device = deviceService.getDevice(guid, (HivePrincipal) securityContext.getUserPrincipal());
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         if (device.getNetwork() == null) {
             logger.debug("DeviceNotification insertAll proceed with error. No network specified for device with guid = "
                     + guid);

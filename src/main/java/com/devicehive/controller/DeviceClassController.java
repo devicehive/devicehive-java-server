@@ -15,7 +15,6 @@ import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
-import com.devicehive.utils.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,8 +1,7 @@
 package com.devicehive.json.adapters;
 
 
-import com.devicehive.utils.Timer;
-import com.google.gson.*;
+import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
@@ -13,13 +12,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 public class TimestampAdapter extends TypeAdapter<Timestamp>  {
 

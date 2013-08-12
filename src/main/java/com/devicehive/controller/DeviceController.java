@@ -14,7 +14,6 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
-import com.devicehive.utils.Timer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -55,7 +54,6 @@ public class DeviceController {
 
     @EJB
     private DeviceService deviceService;
-    ;
 
     @EJB
     private UserService userService;
@@ -130,7 +128,7 @@ public class DeviceController {
      *
      * @param jsonObject In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                   .com/restful#Reference/Device/register">
-     * @param guid       Device unique identifier.
+     * @param deviceGuid      Device unique identifier.
      * @return response code 201, if successful
      */
     @PUT
@@ -149,7 +147,7 @@ public class DeviceController {
 
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
 
-        device.setGuid(new NullableWrapper<UUID>(deviceGuid));
+        device.setGuid(new NullableWrapper<>(deviceGuid));
 
         try {
             deviceService.checkDevice(device);
@@ -192,14 +190,13 @@ public class DeviceController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    public Response get(@PathParam("id") UUID guid, @Context ContainerRequestContext requestContext) {
-
+    public Response get(@PathParam("id") UUID guid, @Context SecurityContext securityContext) {
         logger.debug("Device get requested");
 
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Device device;
         try {
-            device = deviceService.getDevice(guid,
-                    (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+            device = deviceService.getDevice(guid,principal.getUser(), principal.getDevice());
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST,
@@ -279,10 +276,9 @@ public class DeviceController {
         logger.debug("Device equipment requested");
 
         Device device;
-
+        HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
         try {
-            device = deviceService.getDevice(guid,
-                    (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal());
+            device = deviceService.getDevice(guid,principal.getUser(), principal.getDevice());
         } catch (BadRequestException e) {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST,
@@ -308,8 +304,8 @@ public class DeviceController {
                                     @Context SecurityContext securityContext) {
 
         logger.debug("Device equipment by code requested");
-
-        Device device = deviceService.getDevice(guid, (HivePrincipal) securityContext.getUserPrincipal());
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : " + code + " and guid : " + guid);
