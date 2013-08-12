@@ -2,15 +2,16 @@ package com.devicehive.json.adapters;
 
 
 import com.devicehive.model.JsonStringWrapper;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 public class JsonStringWrapperAdapterFactory implements TypeAdapterFactory {
     @Override
@@ -18,21 +19,11 @@ public class JsonStringWrapperAdapterFactory implements TypeAdapterFactory {
         if (!JsonStringWrapper.class.isAssignableFrom(type.getRawType())) {
             return null;
         }
-        ParameterizedType parameterizedType = (ParameterizedType) type.getType();
-        Type internalType = parameterizedType.getActualTypeArguments()[0];
-
-        return (TypeAdapter<T>) new JsonStringWrapperAdapter(gson, internalType);
+        return (TypeAdapter<T>) new JsonStringWrapperAdapter();
     }
 
     private static class JsonStringWrapperAdapter extends TypeAdapter<JsonStringWrapper> {
 
-        private Type internalType;
-        private Gson gson;
-
-        private JsonStringWrapperAdapter(Gson gson, Type internalType) {
-            this.gson = gson;
-            this.internalType = internalType;
-        }
 
         @Override
         public void write(JsonWriter out, JsonStringWrapper value) throws IOException {
