@@ -21,10 +21,9 @@ import com.google.gson.JsonObject;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
-import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,7 +131,7 @@ public class DeviceService {
     public boolean submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
         DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
         if (cmd == null) {
-            throw new HiveException("Command not found!");
+            throw new NotFoundException("Command not found!");
         }
 
         if (!cmd.getDevice().getId().equals(device.getId())) {
