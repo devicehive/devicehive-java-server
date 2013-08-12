@@ -47,8 +47,7 @@ public class JsonStringWrapperAdapterFactory implements TypeAdapterFactory {
 
         @Override
         public JsonStringWrapper read(JsonReader in) throws IOException {
-            JsonElement jsonElement = Streams.parse(in);
-            return new JsonStringWrapper(jsonElement.toString());
+            return new JsonStringWrapper(Streams.parse(in).toString());
         }
     }
 }

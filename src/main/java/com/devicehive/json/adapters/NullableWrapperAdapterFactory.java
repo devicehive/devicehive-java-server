@@ -49,8 +49,7 @@ public class NullableWrapperAdapterFactory implements TypeAdapterFactory {
 
         @Override
         public NullableWrapper read(JsonReader in) throws IOException {
-            JsonElement jsonElement = Streams.parse(in);
-            return new NullableWrapper(gson.fromJson(jsonElement, internalType));
+            return new NullableWrapper(gson.fromJson(in, internalType));
         }
     }
 }
