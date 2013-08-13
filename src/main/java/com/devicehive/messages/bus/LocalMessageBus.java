@@ -19,6 +19,7 @@ import javax.annotation.PreDestroy;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,14 +31,10 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @ConcurrencyManagement(BEAN)
 public class LocalMessageBus {
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
-
     @EJB
     private SubscriptionManager subscriptionManager;
-
     private ExecutorService primaryProcessingService;
-
     private ExecutorService handlersService;
-
     @EJB
     private UserDAO userDAO;
 
@@ -95,25 +92,28 @@ public class LocalMessageBus {
 
                 JsonObject jsonObject = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
 
-                Set<NotificationSubscription> subs = subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
-                        deviceNotification.getDevice().getId());
+                Set<String> subscribersIds = new HashSet<>();
+                Set<NotificationSubscription> subs =
+                        subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
+                                deviceNotification.getDevice().getId());
                 for (NotificationSubscription subscription : subs) {
-                    if (hasAccess(subscription, deviceNotification)){
+                    if (hasAccess(subscription, deviceNotification)) {
                         handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
+                    subscribersIds.add(subscription.getSessionId());
                 }
 
                 Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
                         .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
                 for (NotificationSubscription subscription : subsForAll) {
-                    if (hasAccess(subscription, deviceNotification)  && !isSent(subscription, subs)){
+                    if (!subscribersIds.contains(subscription.getSessionId()) &&
+                            hasAccess(subscription, deviceNotification)) {
                         handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
                 }
             }
         });
     }
-
 
     private boolean hasAccess(NotificationSubscription subscription, DeviceNotification deviceNotification) {
         if (subscription.getUser().getRole() == UserRole.ADMIN) {
@@ -122,10 +122,10 @@ public class LocalMessageBus {
         return userDAO.hasAccessToNetwork(subscription.getUser(), deviceNotification.getDevice().getNetwork());
     }
 
-    private boolean isSent(NotificationSubscription subscription, Set<NotificationSubscription> subsByKnownId){
+    private boolean isSent(NotificationSubscription subscription, Set<NotificationSubscription> subsByKnownId) {
         String subscriberId = subscription.getSessionId();
-        for (NotificationSubscription sentSubscription : subsByKnownId){
-            if (sentSubscription.getSessionId().equals(subscriberId)){
+        for (NotificationSubscription sentSubscription : subsByKnownId) {
+            if (sentSubscription.getSessionId().equals(subscriberId)) {
                 return true;
             }
         }

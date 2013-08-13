@@ -26,7 +26,10 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         }
     }
 
-    public synchronized void insert(T subscription) {
+    public synchronized boolean insert(T subscription) {
+        if (byPair.containsKey(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriberId()))){
+            return false;
+        }
         Set<T> set = byEventSource.get(subscription.getEventSource());
         if (set == null) {
             set = Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>());
@@ -42,8 +45,8 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         set.add(subscription);
 
         byPair.put(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriberId()), subscription);
+        return true;
     }
-
 
     public Set<T> get(E eventPoint) {
         Set<T> set = byEventSource.get(eventPoint);
