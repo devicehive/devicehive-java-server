@@ -149,7 +149,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                   "requestId": {object}
      *                 }
      *                 </pre>
-     * @throws JMSException
      */
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) {

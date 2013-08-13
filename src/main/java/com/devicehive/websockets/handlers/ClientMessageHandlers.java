@@ -177,6 +177,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
 
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        deviceCommand.setUserId(user.getId());
         if (deviceCommand == null) {
             throw new HiveException("Command is empty");
         }
