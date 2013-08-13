@@ -109,10 +109,9 @@ public class DeviceController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
-        Set<Network> allowedNetworks = userService.findUserWithNetworksByLogin(currentUser.getLogin()).getNetworks();
+
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser.getRole(),
-                allowedNetworks);
+                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser);
 
         logger.debug("Device list proceed result. Result list contains " + result.size() + " elems");
 

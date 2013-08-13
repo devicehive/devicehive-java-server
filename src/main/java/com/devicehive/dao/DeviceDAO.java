@@ -145,8 +145,8 @@ public class DeviceDAO {
                                 Boolean sortOrderAsc,
                                 Integer take,
                                 Integer skip,
-                                UserRole currentUserRole,
-                                Set<Network> allowedNetworks) {
+                                User user) {
+
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
         Root fromDevice = deviceCriteria.from(Device.class);
@@ -163,24 +163,16 @@ public class DeviceDAO {
         }
         if (networkId != null || networkName != null) {
             List<Network> networksResult = networkDAO.getByNameOrId(networkId, networkName);
-            if (currentUserRole.equals(UserRole.CLIENT)) {
-                for (Network network : networksResult) {
-                    if (!allowedNetworks.contains(network)) {
-                        networksResult.remove(network);
-                    }
-                }
-            }
+
             if (networksResult.size() == 0) {
                 return new ArrayList<>();
             }
             Expression<Network> inExpression = fromDevice.get("network");
             devicePredicates.add(inExpression.in(networksResult));
         } else {
-            if (currentUserRole.equals(UserRole.CLIENT)) {
-                if (allowedNetworks.size() == 0)
-                    return new ArrayList<>();
-                Expression<Network> inExpression = fromDevice.get("network");
-                devicePredicates.add(inExpression.in(allowedNetworks));
+            if (user.getRole().equals(UserRole.CLIENT)) {
+                Path<User> path = fromDevice.join("network").join("users");
+                devicePredicates.add(path.in(user));
             }
         }
         if (deviceClassId != null || deviceClassName != null || deviceClassVersion != null) {

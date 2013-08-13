@@ -364,10 +364,10 @@ public class DeviceService {
                                 Boolean sortOrderAsc,
                                 Integer take,
                                 Integer skip,
-                                UserRole currentUserRole,
-                                Set<Network> allowedNetworks) {
+                                User user) {
+
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUserRole, allowedNetworks);
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, user);
     }
 
 }
