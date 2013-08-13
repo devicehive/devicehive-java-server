@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -17,9 +18,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 
@@ -59,7 +60,7 @@ public class NetworkController {
      * </pre>
      *
      * @param name        exact network's name, ignored, when  namePattern is not null
-     * @param namePattern
+     * @param namePattern name pattern
      * @param sortField   Sort Field, can be either "id", "key", "name" or "description"
      * @param sortOrder   ASC - ascending, otherwise descending
      * @param take        limit, default 1000
@@ -73,7 +74,7 @@ public class NetworkController {
                                    @QueryParam("sortOrder") String sortOrder,
                                    @QueryParam("take") Integer take,
                                    @QueryParam("skip") Integer skip,
-                                   @Context ContainerRequestContext requestContext) {
+                                   @Context SecurityContext securityContext) {
 
         logger.debug("Network list requested");
 
@@ -88,8 +89,13 @@ public class NetworkController {
             logger.debug("Unable to proceed network list request. Invalid sortField");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
+        String login = securityContext.getUserPrincipal().getName();
 
-        User u = userService.getCurrent(requestContext);
+        if (login == null) {
+            logger.debug("User is not authorized to run");
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
+        }
+        User u = userService.findUserWithNetworksByLogin(login);
 
         if (u == null) {
             logger.debug("User is not authorized to run");
@@ -122,11 +128,16 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @JsonPolicyApply(JsonPolicyDef.Policy.NETWORK_PUBLISHED)
-    public Response getNetwork(@PathParam("id") long id, @Context ContainerRequestContext requestContext) {
+    public Response getNetwork(@PathParam("id") long id, @Context SecurityContext securityContext) {
 
         logger.debug("Network get requested.");
+        String login = securityContext.getUserPrincipal().getName();
 
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id, userService.getCurrent(requestContext));
+        if (login == null) {
+            logger.debug("Network with id = " + id + "does not exists");
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
+        }
+        Network existing = networkService.getWithDevicesAndDeviceClasses(id, userService.findUserWithNetworksByLogin (login));
 
         if (existing == null) {
             logger.debug("Network with id = " + id + "does not exists");
@@ -188,10 +199,10 @@ public class NetworkController {
 
         try {
             result = networkService.insert(n);
-        } catch (Exception ex) {
-            logger.debug("Unable to proceed network insert.", ex);
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network couldn't be created"));
-        }
+        } catch (HiveException ex) {
+        logger.debug("Unable to proceed network insert.", ex);
+        return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network couldn't be created"));
+    }
         logger.debug("New network has been created");
 
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);

@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -16,12 +17,13 @@ import com.devicehive.utils.RestParametersConverter;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 /**
  * TODO JavaDoc
  */
@@ -78,11 +80,13 @@ public class UserController {
         Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
 
         if (sortOrderAsc == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
 
         if (!"ID".equalsIgnoreCase(sortField) && !"Login".equalsIgnoreCase(sortField) && sortField != null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         //TODO validation for role and status
@@ -166,12 +170,14 @@ public class UserController {
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null
                 || user.getStatus() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         //nor we want these parameters to be null
         if (user.getLogin().getValue() == null || user.getPassword().getValue() == null
                 || user.getRole().getValue() == null || user.getStatus().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (userService.findByLogin(user.getLogin().getValue()) != null) {
@@ -185,7 +191,6 @@ public class UserController {
 
         return ResponseFactory.response(Response.Status.CREATED, created);
     }
-
 
     /**
      * Updates user. One should specify following json to update user (none of parameters are mandatory, bot neither of them can be null):
@@ -215,24 +220,29 @@ public class UserController {
             User u = userService.findByLogin(user.getLogin().getValue());
 
             if (u != null && u.getId() != userId) {
-                return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be updated."));
+                return ResponseFactory
+                        .response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be updated."));
             }
         }
 
         if (user.getLogin() != null && user.getLogin().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (user.getPassword() != null && user.getPassword().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (user.getRole() != null && user.getRole().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (user.getStatus() != null && user.getStatus().getValue() == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         String loginValue = user.getLogin() == null ? null : user.getLogin().getValue();
@@ -242,7 +252,6 @@ public class UserController {
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
-
 
     /**
      * Deletes user by id
@@ -283,7 +292,7 @@ public class UserController {
 
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
-            throw new NotFoundException("User not found.");
+            throw new HiveException("User not found.", NOT_FOUND.getStatusCode());
         }
 
         for (Network network : existingUser.getNetworks()) {
@@ -308,11 +317,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
 
-        try {
-            userService.assignNetwork(id, networkId);
-        } catch (NotFoundException e) {
-            throw new NotFoundException("User network not found.");
-        }
+        userService.assignNetwork(id, networkId);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
@@ -333,7 +338,6 @@ public class UserController {
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
-
 
     /**
      * Returns current user with networks:
@@ -361,9 +365,9 @@ public class UserController {
     @GET
     @Path("/current")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response getCurrent(@Context ContainerRequestContext requestContext) {
-
-        User u = userService.getCurrent(requestContext);
+    public Response getCurrent(@Context SecurityContext securityContext) {
+        String login = securityContext.getUserPrincipal().getName();
+        User u = userService.findUserWithNetworksByLogin(login);
 
         if (u == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Couldn't get current user."));
@@ -395,15 +399,16 @@ public class UserController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response updateCurrent(UserRequest ui, @Context ContainerRequestContext requestContext) {
+    public Response updateCurrent(UserRequest ui, @Context SecurityContext securityContext) {
 
         String password = ui.getPassword().getValue();
 
         if (password == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+        String login = securityContext.getUserPrincipal().getName();
 
         if (login == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be updated"));

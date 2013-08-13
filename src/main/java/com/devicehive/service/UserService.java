@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.UserRole;
@@ -15,10 +16,10 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.container.ContainerRequestContext;
 import java.util.List;
 import java.util.Set;
+
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * This class serves all requests to database from controller.
@@ -103,31 +104,31 @@ public class UserService {
      */
     public User updateUser(@NotNull long id, String login, UserRole role, UserStatus status, String password) {
 
-        User u = userDAO.findById(id);
-        if (u == null) {
-            throw new NotFoundException("User not found.");
+        User existingUser = userDAO.findById(id);
+        if (existingUser == null) {
+            throw new HiveException("User not found.", NOT_FOUND.getStatusCode());
         }
         if (login != null) {
-            u.setLogin(login);
+            existingUser.setLogin(login);
         }
 
         if (role != null) {
-            u.setRole(role);
+            existingUser.setRole(role);
         }
 
         if (status != null) {
-            u.setStatus(status);
+            existingUser.setStatus(status);
         }
 
         if (password != null) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
-            u.setPasswordHash(hash);
-            u.setPasswordSalt(salt);
+            existingUser.setPasswordHash(hash);
+            existingUser.setPasswordSalt(salt);
         }
 
-        if (userDAO.update(id, u)) {
-            return u;
+        if (userDAO.update(id, existingUser)) {
+            return existingUser;
         }
 
         return null;
@@ -142,11 +143,11 @@ public class UserService {
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
-            throw new NotFoundException();
+            throw new HiveException("User with id : " + userId + " not found.", NOT_FOUND.getStatusCode());
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
         if (existingNetwork == null) {
-            throw new NotFoundException();
+            throw new HiveException("Network with id : " + networkId + " not found.", NOT_FOUND.getStatusCode());
         }
         Set<User> usersSet = existingNetwork.getUsers();
         usersSet.add(existingUser);
@@ -163,7 +164,7 @@ public class UserService {
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
-            throw new NotFoundException();
+            throw new HiveException("User with id : " + userId + " not found.", NOT_FOUND.getStatusCode());
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
         if (existingNetwork != null) {
@@ -243,19 +244,19 @@ public class UserService {
         return userDAO.delete(id);
     }
 
-    /**
-     * @param requestContext ContainerRequestContext from calling controller
-     * @return user, currently logged on
-     */
-    public User getCurrent(ContainerRequestContext requestContext) {
-        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
-
-        if (login == null) {
-            return null;
-        }
-
-        return findUserWithNetworksByLogin(login);
-    }
+//    /**
+//     * @param requestContext ContainerRequestContext from calling controller
+//     * @return user, currently logged on
+//     */
+//    public User getCurrent(ContainerRequestContext requestContext) {
+//        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
+//
+//        if (login == null) {
+//            return null;
+//        }
+//
+//        return findUserWithNetworksByLogin(login);
+//    }
 
 
 }

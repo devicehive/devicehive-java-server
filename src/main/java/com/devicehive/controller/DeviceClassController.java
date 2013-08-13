@@ -2,8 +2,6 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.exceptions.dao.DuplicateEntryException;
-import com.devicehive.exceptions.dao.HivePersistingException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceClass;
@@ -34,11 +32,8 @@ import java.util.List;
 public class DeviceClassController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
-
     @EJB
     private DeviceClassService deviceClassService;
-
-
     @EJB
     private EquipmentService equipmentService;
 
@@ -75,13 +70,15 @@ public class DeviceClassController {
 
         if (sortOrderAsc == null) {
             logger.debug("DeviceClass list request failed. Bad request for sortOrder");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    .response(Response.Status.BAD_REQUEST,
+                            new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
@@ -148,16 +145,8 @@ public class DeviceClassController {
         logger.debug("Insert device class requested");
         DeviceClass result;
 
-        try {
-            result = deviceClassService.addDeviceClass(insert);
-        } catch (DuplicateEntryException ex) {
-            logger.debug("Unable to insert device class. This device class is already exists");
-            return ResponseFactory
-                    .response(Response.Status.FORBIDDEN, new ErrorResponse("DeviceClass couldn't be created"));
-        } catch (HivePersistingException ex) {
-            logger.debug("Unable to insert device class. This device class is already exists");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ex.getMessage()));
-        }
+        result = deviceClassService.addDeviceClass(insert);
+
         logger.debug("Device class inserted");
 
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
@@ -235,7 +224,6 @@ public class DeviceClassController {
      *
      * @param classId device class id
      * @param eqId    equipment id
-     * @return
      */
     @GET
     @Path("/class/{deviceClassId}/equipment/{id}")
@@ -260,7 +248,6 @@ public class DeviceClassController {
      * Adds new equipment type to device class
      *
      * @param classId device class id
-     * @return
      */
     @POST
     @Path("/class/{deviceClassId}/equipment")
