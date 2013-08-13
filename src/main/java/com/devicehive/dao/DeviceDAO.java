@@ -48,7 +48,6 @@ public class DeviceDAO {
     public Device findByUUIDWithNetworkAndDeviceClass(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDWithNetworkAndDeviceClass", Device.class);
         query.setParameter("uuid", uuid);
-        CacheHelper.cacheable(query);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);
     }
