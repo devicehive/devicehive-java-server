@@ -331,6 +331,8 @@ public class DeviceService {
     public Device getDevice(UUID deviceId, User currentUser, Device currentDevice) {
 
         Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceId);
+        device.getDeviceClass();//initializing properties
+        device.getNetwork();
 
         if (device == null || !checkPermissions(device, currentUser, currentDevice)) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
