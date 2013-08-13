@@ -45,16 +45,12 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISH
 public class DeviceController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
-
     @EJB
     private DeviceEquipmentService deviceEquipmentService;
-
     @EJB
     private DeviceCommandService deviceCommandService;
-
     @EJB
     private DeviceService deviceService;
-
     @EJB
     private UserService userService;
 
@@ -128,7 +124,7 @@ public class DeviceController {
      *
      * @param jsonObject In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                   .com/restful#Reference/Device/register">
-     * @param deviceGuid      Device unique identifier.
+     * @param deviceGuid Device unique identifier.
      * @return response code 201, if successful
      */
     @PUT
@@ -195,16 +191,8 @@ public class DeviceController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Device device;
-        try {
-            device = deviceService.getDevice(guid,principal.getUser(), principal.getDevice());
-        } catch (BadRequestException e) {
-            return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST,
-                            new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-        } catch (NotFoundException e) {
-            return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
-        }
+
+        device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
 
         logger.debug("Device get proceed successfully");
 
@@ -277,16 +265,9 @@ public class DeviceController {
 
         Device device;
         HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
-        try {
-            device = deviceService.getDevice(guid,principal.getUser(), principal.getDevice());
-        } catch (BadRequestException e) {
-            return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST,
-                            new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-        } catch (NotFoundException e) {
-            return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
-        }
+
+        device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+
 
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 

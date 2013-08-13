@@ -22,12 +22,13 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
-import javax.ws.rs.NotFoundException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Stateless
 public class DeviceService {
@@ -123,7 +124,7 @@ public class DeviceService {
         DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
 
         if (cmd == null) {
-            throw new NotFoundException("Command not found!");
+            throw new HiveException("Command not found!", NOT_FOUND.getStatusCode());
         }
 
         if (!cmd.getDevice().getId().equals(device.getId())) {
@@ -332,7 +333,7 @@ public class DeviceService {
         Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceId);
 
         if (device == null || !checkPermissions(device, currentUser, currentDevice)) {
-            throw new HiveException("Device Not found", 404);
+            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
         return device;
     }

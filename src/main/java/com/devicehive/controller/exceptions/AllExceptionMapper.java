@@ -27,13 +27,12 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
 
         Response.Status responseCode = Response.Status.INTERNAL_SERVER_ERROR;
         String message = exception.getMessage();
-
-        if (exception.getCause() instanceof NotFoundException) {
+        if (exception instanceof NotFoundException) {
             responseCode = Response.Status.NOT_FOUND;
-            message = exception.getCause().getMessage();
-        } else if (exception.getCause() instanceof BadRequestException) {
+            message = exception.getMessage();
+        } else if (exception instanceof BadRequestException) {
             responseCode = Response.Status.BAD_REQUEST;
-            message = exception.getCause().getMessage();
+            message = exception.getMessage();
         } else if (exception instanceof NotAllowedException) {
             responseCode = Response.Status.METHOD_NOT_ALLOWED;
         }

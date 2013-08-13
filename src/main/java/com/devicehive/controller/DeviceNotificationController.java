@@ -4,6 +4,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceNotificationDAO;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -34,6 +35,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
 import java.util.*;
+
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -129,12 +132,13 @@ public class DeviceNotificationController {
 
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
-            throw new NotFoundException("Device notification with id : " + notificationId + " not found");
+            throw new HiveException("Device notification with id : " + notificationId + " not found",
+                    NOT_FOUND.getStatusCode());
         }
         UUID deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
         if (!deviceGuidFromNotification.equals(guid)) {
             logger.debug("No device notifications found for device with guid : " + guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
@@ -170,7 +174,7 @@ public class DeviceNotificationController {
 
         if (deviceGuid == null) {
             logger.debug("Device notification poll finished with error. No device guid specified");
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device with guid = " +
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device with guid = " +
                     deviceGuid + " found"));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
