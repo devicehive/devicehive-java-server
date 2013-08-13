@@ -105,16 +105,13 @@ public class LocalMessageBus {
 
                 Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
                         .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
-
                 for (NotificationSubscription subscription : subsForAll) {
-                    if (hasAccess(subscription, deviceNotification)){
+                    if (hasAccess(subscription, deviceNotification)  && !isSent(subscription, subs)){
                         handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
                 }
             }
         });
-
-
     }
 
 
@@ -123,5 +120,15 @@ public class LocalMessageBus {
             return true;
         }
         return userDAO.hasAccessToNetwork(subscription.getUser(), deviceNotification.getDevice().getNetwork());
+    }
+
+    private boolean isSent(NotificationSubscription subscription, Set<NotificationSubscription> subsByKnownId){
+        String subscriberId = subscription.getSessionId();
+        for (NotificationSubscription sentSubscription : subsByKnownId){
+            if (sentSubscription.getSessionId().equals(subscriberId)){
+                return true;
+            }
+        }
+        return false;
     }
 }
