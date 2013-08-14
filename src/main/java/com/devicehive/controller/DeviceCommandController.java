@@ -77,6 +77,16 @@ public class DeviceCommandController {
             @Context SecurityContext securityContext) {
         logger.debug("DeviceCommand poll requested deviceId = " + deviceGuid + " timestamp = " + timestamp);
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        if (principal.getUser() != null) {
+            logger.debug("DeviceCommand poll was requested by User = "
+                    + principal.getUser().getLogin()
+                    + " deviceId = " + deviceGuid + " timestamp = " + timestamp);
+        } else if (principal.getDevice() != null) {
+            logger.debug("DeviceCommand poll was requested by Device = "
+                    + principal.getDevice().getGuid()
+                    + " deviceId = " + deviceGuid + " timestamp = " + timestamp);
+        }
+
         Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
 
 
