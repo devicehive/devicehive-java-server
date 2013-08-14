@@ -339,7 +339,6 @@ public class DeviceNotificationController {
                 resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
             }
 
-            logger.debug("Device notification pollMany proceed successfully for devices : " + deviceGuids);
             asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
         }
     }

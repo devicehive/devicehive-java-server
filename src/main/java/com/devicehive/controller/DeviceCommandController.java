@@ -22,11 +22,17 @@ import com.devicehive.utils.RestParametersConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -34,6 +40,8 @@ import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -41,6 +49,7 @@ import java.util.UUID;
  */
 @Path("/device/{deviceGuid}/command")
 @LogExecutionTime
+@Singleton
 public class DeviceCommandController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
@@ -57,6 +66,8 @@ public class DeviceCommandController {
     @EJB
     private SubscriptionManager subscriptionManager;
 
+    private ExecutorService asyncPool;
+
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
      *
@@ -69,14 +80,33 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     @Path("/poll")
-    public Response poll(
-            @PathParam("deviceGuid") UUID deviceGuid,
-            @QueryParam("timestamp") Timestamp timestamp,
+    public void poll(
+            @PathParam("deviceGuid") final UUID deviceGuid,
+            @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") long timeout,
-            @Context SecurityContext securityContext) {
+            @QueryParam("waitTimeout") final long timeout,
+            @Context SecurityContext securityContext,
+            @Suspended final AsyncResponse asyncResponse) {
+
+        final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug("DeviceCommand poll proceed successfully. deviceid = " + deviceGuid);
+            }
+        });
+        asyncPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                pollAction(deviceGuid, timestamp, timeout, principal, asyncResponse);
+            }
+        });
+    }
+
+    private void pollAction(UUID deviceGuid, Timestamp timestamp, long timeout, HivePrincipal principal,
+                            AsyncResponse asyncResponse){
         logger.debug("DeviceCommand poll requested deviceId = " + deviceGuid + " timestamp = " + timestamp);
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+
         if (principal.getUser() != null) {
             logger.debug("DeviceCommand poll was requested by User = "
                     + principal.getUser().getLogin()
@@ -89,7 +119,6 @@ public class DeviceCommandController {
 
         Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
 
-
         List<DeviceCommand> list = deviceCommandDAO.getNewerThan(device, timestamp);
 
         if (list.isEmpty()) {
@@ -99,18 +128,13 @@ public class DeviceCommandController {
             CommandSubscription commandSubscription =
                     new CommandSubscription(device.getId(), reqId, restHandlerCreator);
 
-
             if (SimpleWaiter
                     .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
                 list = deviceCommandDAO.getNewerThan(device, timestamp);
             }
         }
-        String commandIds = "";
-        for(DeviceCommand c : list) {
-            commandIds += c.getId() + ", ";
-        }
-        logger.debug("DeviceCommand poll proceed successfully. deviceid = " + deviceGuid + "commanIds = " + commandIds);
-        return ResponseFactory.response(Response.Status.OK, list);
+        Response response = ResponseFactory.response(Response.Status.OK, list);
+        asyncResponse.resume(response);
     }
 
     /**
@@ -122,27 +146,49 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/{commandId}/poll")
-    public Response wait(
-            @PathParam("deviceGuid") UUID deviceGuid,
-            @PathParam("commandId") Long commandId,
+    public void wait(
+            @PathParam("deviceGuid") final UUID deviceGuid,
+            @PathParam("commandId") final Long commandId,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") long timeout,
-            @Context SecurityContext securityContext) {
+            @QueryParam("waitTimeout") final long timeout,
+            @Context SecurityContext securityContext,
+            @Suspended final AsyncResponse asyncResponse) {
 
+        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug("DeviceCommand poll proceed successfully. deviceid = " + deviceGuid + ". CommandId = "
+                        +commandId);
+            }
+        });
+
+        asyncPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                waitAction(deviceGuid, commandId, timeout, asyncResponse, user);
+            }
+        });
+    }
+
+    private void waitAction(UUID deviceGuid, Long commandId, long timeout, AsyncResponse asyncResponse, User user){
         logger.debug("DeviceCommand wait requested, deviceId = " + deviceGuid + " commandId = " + commandId);
 
-        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
 
         if (deviceGuid == null || commandId == null) {
             logger.debug("DeviceCommand wait request failed. Bad request for sortOrder.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST);
+            Response response= ResponseFactory.response(Response.Status.BAD_REQUEST);
+            asyncResponse.resume(response);
+            return;
         }
 
         Device device = deviceService.findByUUID(deviceGuid, user);
 
         if (device == null) {
             logger.debug("DeviceCommand wait request failed. No device found with guid = " + deviceGuid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND);
+            Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
+            asyncResponse.resume(response);
+            return;
         }
         /*    No need to check user permissions on command.
          *    We'll fail request, if this command is not sent for device user has access to.
@@ -152,16 +198,19 @@ public class DeviceCommandController {
 
         if (command == null) {
             logger.debug("DeviceCommand wait request failed. No command found with id = " + commandId + " for deviceId = " + deviceGuid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND);
+            Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
+            asyncResponse.resume(response);
+            return;
         }
 
         //command is not for requested device
         if (!command.getDevice().getId().equals(device.getId())) {
             logger.debug("DeviceCommand wait request failed. Command with id = " + commandId + " was not sent for " +
                     "device with guid = " + deviceGuid);
-            ResponseFactory.response(Response.Status.BAD_REQUEST);
+            Response response= ResponseFactory.response(Response.Status.BAD_REQUEST);
+            asyncResponse.resume(response);
+            return;
         }
-
 
         if (command.getEntityVersion() == 0) {
             CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
@@ -177,12 +226,9 @@ public class DeviceCommandController {
             }
         }
 
-
         DeviceCommand response = command.getEntityVersion() > 0 ? command : null;
-
-        logger.debug("DeviceCommand wait proceed successfully. deviceId = " + deviceGuid + " commandId = " + command.getId());
-
-        return ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
+        Response result = ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
+        asyncResponse.resume(result) ;
     }
 
     /**
@@ -429,12 +475,8 @@ public class DeviceCommandController {
                            @Context SecurityContext securityContext) {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-
-
         logger.debug("Device command update requested. deviceId = " + guid + " commandId = " + commandId);
-
         Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
-
 
         if (command == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND,
@@ -443,10 +485,19 @@ public class DeviceCommandController {
         command.setId(commandId);
 
         deviceService.submitDeviceCommandUpdate(command, device);
-
         logger.debug("Device command update proceed successfully deviceId = " + guid + " commandId = " + commandId);
-
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
+    @PreDestroy
+    public void shutdownThreads() {
+        logger.debug("Try to shutdown device commands' pool");
+        asyncPool.shutdown();
+        logger.debug("Device commands' pool has been shut down");
+    }
+
+    @PostConstruct
+    public void initPool() {
+        asyncPool = Executors.newCachedThreadPool();
+    }
 }
