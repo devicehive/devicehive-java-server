@@ -30,6 +30,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -56,6 +57,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  */
 @Path("/device")
 @LogExecutionTime
+@Singleton
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
@@ -76,10 +78,7 @@ public class DeviceNotificationController {
 
     private ExecutorService asyncPool;
 
-    @PostConstruct
-    public void initPool() {
-        asyncPool = Executors.newCachedThreadPool();
-    }
+
 
     @GET
     @Path("/{deviceGuid}/notification")
@@ -380,6 +379,11 @@ public class DeviceNotificationController {
         logger.debug("Try to shutdown device notifications' pool");
         asyncPool.shutdown();
         logger.debug("Device notifications' pool has been shut down");
+    }
+
+    @PostConstruct
+    public void initPool() {
+        asyncPool = Executors.newCachedThreadPool();
     }
 
 }
