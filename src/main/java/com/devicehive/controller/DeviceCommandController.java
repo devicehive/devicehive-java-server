@@ -311,7 +311,7 @@ public class DeviceCommandController {
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     public Response get(@PathParam("deviceGuid") UUID guid, @PathParam("id") long id,
                         @Context SecurityContext securityContext) {
-        logger.debug("Device command get requested");
+        logger.debug("Device command get requested. deviceId = " + guid + " commandId = " + id);
 
         Device device;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
@@ -329,7 +329,7 @@ public class DeviceCommandController {
 
         result.setUserId(result.getUser().getId());
 
-        logger.debug("Device command get proceed successfully");
+        logger.debug("Device command get proceed successfully deviceId = " + guid + " commandId = " + id);
         return ResponseFactory.response(Response.Status.OK, result);
     }
 
@@ -372,6 +372,7 @@ public class DeviceCommandController {
     public Response insert(@PathParam("deviceGuid") UUID guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                            @Context SecurityContext securityContext) {
+        logger.debug("Device command insert requested. deviceId = " + guid + " command = " + deviceCommand.getCommand());
 
         String login = securityContext.getUserPrincipal().getName();
 
@@ -389,7 +390,7 @@ public class DeviceCommandController {
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
         deviceCommand.setUserId(u.getId());
 
-        logger.debug("Device command insertAll proceed successfully");
+        logger.debug("Device command insertAll proceed successfully. deviceId = " + guid + " commandId = " + deviceCommand.getId());
         return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
     }
 
@@ -420,7 +421,7 @@ public class DeviceCommandController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
 
 
-        logger.debug("Device command update requested");
+        logger.debug("Device command update requested. deviceId = " + guid + " commandId = " + commandId);
 
         Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
 
@@ -433,7 +434,7 @@ public class DeviceCommandController {
 
         deviceService.submitDeviceCommandUpdate(command, device);
 
-        logger.debug("Device command update proceed successfully");
+        logger.debug("Device command update proceed successfully deviceId = " + guid + " commandId = " + commandId);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }

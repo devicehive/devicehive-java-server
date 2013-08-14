@@ -22,7 +22,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "device_command")
 @NamedQueries({
         @NamedQuery(name = "DeviceCommand.getNewerThan",
-                query = "select dc from DeviceCommand dc where dc.timestamp >= :timestamp and dc.device = :device"),
+                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
         @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.updateById",
                 query = "update DeviceCommand dc set " +
