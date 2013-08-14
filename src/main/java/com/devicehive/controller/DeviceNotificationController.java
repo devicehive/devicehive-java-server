@@ -14,8 +14,10 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
+import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
 import com.google.gson.Gson;
@@ -28,11 +30,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -40,7 +43,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -52,11 +56,9 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  */
 @Path("/device")
 @LogExecutionTime
-@Singleton
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
-    private static final int STOP_TIMEOUT = 5;
 
     @EJB
     private DeviceNotificationService notificationService;
@@ -66,9 +68,12 @@ public class DeviceNotificationController {
 
     @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
-
     @EJB
     private DeviceService deviceService;
+
+    @EJB
+    private TimestampService timestampService;
+
     private ExecutorService asyncPool;
 
     @PostConstruct
@@ -98,7 +103,6 @@ public class DeviceNotificationController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
         }
-
 
         if (!"Timestamp".equals(sortField) && !"Notification".equals(sortField) && sortField != null) {
             logger.debug("Device notification request failed. Bad request for sortField.");
@@ -183,66 +187,64 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE})
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
-            @PathParam("deviceGuid") UUID deviceGuid,
-            @QueryParam("timestamp") Timestamp timestamp,
+            @PathParam("deviceGuid") final UUID deviceGuid,
+            @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam
-                    ("waitTimeout") long timeout,
-            @Context SecurityContext securityContext,
-            @Suspended AsyncResponse asyncResponse) {
+                    ("waitTimeout") final long timeout,
+            @Context final ContainerRequestContext requestContext,
+            @Suspended final AsyncResponse asyncResponse) {
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        final HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
+
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug("Device notification poll proceed successfully for device with guid = " + deviceGuid);
+            }
+        });
+        asyncPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                asyncResponsePollProcess(timestamp, deviceGuid, timeout, principal, asyncResponse);
+            }
+        });
+    }
+
+    private void asyncResponsePollProcess(Timestamp timestamp, UUID deviceGuid, long timeout,
+                                          HivePrincipal principal, AsyncResponse asyncResponse) {
         logger.debug("Device notification poll requested for device with guid = " + deviceGuid + ". " +
                 "Timestamp = " + timestamp + ". Timeout = " + timeout);
 
         if (deviceGuid == null) {
             logger.debug("Device notification poll finished with error. No device guid specified");
+
             asyncResponse.resume(
                     ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device with guid = " +
                             deviceGuid + " found")));
+            return;
         }
-
         Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
         User user = principal.getUser();
 
         List<DeviceNotification> list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
         if (list.isEmpty()) {
             logger.debug("Waiting for command for device = " + deviceGuid);
-            if (pollAction(timeout, user, device)) {
+            NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            NotificationSubscription notificationSubscription =
+                    new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
+
+            if (SimpleWaiter
+                    .subscribeAndWait(storage, notificationSubscription, restHandlerCreator.getFutureTask(),
+                            timeout)) {
                 list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
             }
         }
-        logger.debug("Device notification poll proceed successfully for device with guid = " + deviceGuid);
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, list,
-                Policy.NOTIFICATION_TO_CLIENT));
-        logger.debug("Device notification poll proceed successfully for device with guid = " + deviceGuid);
+        Response response = ResponseFactory.response(Response.Status.OK, list,
+                Policy.NOTIFICATION_TO_CLIENT);
 
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, list,
-                Policy.NOTIFICATION_TO_CLIENT));
-    }
-
-    private boolean pollAction(final long timeout, final User user, final Device device) {
-        Future<Boolean> result = asyncPool.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
-                String reqId = UUID.randomUUID().toString();
-                RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-                NotificationSubscription notificationSubscription =
-                        new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
-
-                if (SimpleWaiter
-                        .subscribeAndWait(storage, notificationSubscription, restHandlerCreator.getFutureTask(),
-                                timeout)) {
-                    return true;
-                }
-                return false;
-            }
-        });
-        try {
-            return result.get();
-        } catch (ExecutionException | InterruptedException e) {
-            throw new HiveException("Unable to poll");
-        }
+        asyncResponse.resume(response);
     }
 
     /**
@@ -257,14 +259,32 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/notification/poll")
     public void pollMany(
-            @QueryParam("deviceGuids") String deviceGuids,
-            @QueryParam("timestamp") Timestamp timestamp,
+            @QueryParam("deviceGuids") final String deviceGuids,
+            @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") long timeout,
+            @QueryParam("waitTimeout") final long timeout,
             @Context SecurityContext securityContext,
-            @Suspended AsyncResponse asyncResponse) {
+            @Suspended final AsyncResponse asyncResponse) {
 
+        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug("Device notification poll many proceed successfully for devices :" +
+                        deviceGuids);
+            }
+        });
 
+        asyncPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                asyncResponsePollManyProcess(deviceGuids, timestamp, timeout, user, asyncResponse);
+            }
+        });
+    }
+
+    private void asyncResponsePollManyProcess(String deviceGuids, Timestamp timestamp, long timeout,
+                                              User user, AsyncResponse asyncResponse) {
         logger.debug("Device notification pollMany requested for devices : " + deviceGuids + ". Timestamp : "
                 + timestamp + ". Timeout = " + timeout);
 
@@ -281,59 +301,47 @@ public class DeviceNotificationController {
             logger.debug("Device notification pollMany failed. Unparseable guid : " + deviceGuids);
             asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE)));
+            return;
         }
 
         List<Device> devices;
 
-        User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         if (user.getRole().equals(UserRole.ADMIN)) {
             devices = deviceService.findByUUID(uuids);
         } else {
             devices = deviceService.findByUUIDListAndUser(user, uuids);
         }
-
-        List<DeviceNotification> list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
-        if (list.isEmpty()) {
-            logger.debug("Waiting for command");
-
-
-            if (pollManyAction(devices, timeout, user)) {
-                list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
-            }
-
+        if (timestamp == null){
+           timestamp = timestampService.getTimestamp();
         }
-        logger.debug("Device notification pollMany proceed successfully for devices : " + deviceGuids);
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT));
-    }
+        List<DeviceNotification> list = user.getRole().equals(UserRole.CLIENT)?
+                deviceNotificationDAO.getByUserNewerThan(user, timestamp):
+                deviceNotificationDAO.findNewerThan(timestamp);
+        if (list.isEmpty()) {
 
-    private boolean pollManyAction(final List<Device> devices, final long timeout, final User user) {
-        Future<Boolean> result = asyncPool.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
+            NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            Set<NotificationSubscription> subscriptionSet = new HashSet<>();
 
-                NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
-                String reqId = UUID.randomUUID().toString();
-                RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-                Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-
-                for (Device device : devices) {
-                    subscriptionSet
-                            .add(new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator));
-                }
-
-
-                if (SimpleWaiter
-                        .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                    return true;
-                }
-                return false;
+            for (Device device : devices) {
+                subscriptionSet
+                        .add(new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator));
             }
 
-        });
-        try {
-            return result.get();
-        } catch (ExecutionException | InterruptedException e) {
-            throw new HiveException("Unable to poll");
+            if (SimpleWaiter
+                    .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
+                list =  user.getRole().equals(UserRole.CLIENT)?
+                        deviceNotificationDAO.getByUserNewerThan(user, timestamp):
+                        deviceNotificationDAO.findNewerThan(timestamp);
+            }
+            List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
+            for (DeviceNotification notification : list) {
+                resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+            }
+
+            logger.debug("Device notification pollMany proceed successfully for devices : " + deviceGuids);
+            asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
         }
     }
 
@@ -356,8 +364,9 @@ public class DeviceNotificationController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         if (device.getNetwork() == null) {
-            logger.debug("DeviceNotification insertAll proceed with error. No network specified for device with guid = "
-                    + guid);
+            logger.debug(
+                    "DeviceNotification insertAll proceed with error. No network specified for device with guid = "
+                            + guid);
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
         deviceService.submitDeviceNotification(notification, device, null);
@@ -370,21 +379,6 @@ public class DeviceNotificationController {
     public void shutdownThreads() {
         logger.debug("Try to shutdown device notifications' pool");
         asyncPool.shutdown();
-        try {
-            // Wait a while for existing tasks to terminate
-            if (!asyncPool.awaitTermination(STOP_TIMEOUT, TimeUnit.SECONDS)) {
-                asyncPool.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
-                if (!asyncPool.awaitTermination(STOP_TIMEOUT, TimeUnit.SECONDS))
-                    logger.error("device notifications pool did not terminate");
-            }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            asyncPool.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
-            logger.warn("device notification pool has been terminated");
-        }
         logger.debug("Device notifications' pool has been shut down");
     }
 
