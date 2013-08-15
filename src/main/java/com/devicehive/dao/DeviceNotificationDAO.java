@@ -30,6 +30,7 @@ public class DeviceNotificationDAO {
 
     public DeviceNotification createNotification(DeviceNotification deviceNotification) {
         em.persist(deviceNotification);
+        em.refresh(deviceNotification);
         return deviceNotification;
     }
 

@@ -9,6 +9,7 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
+import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
@@ -67,6 +68,9 @@ public class DeviceNotificationController {
 
     @EJB
     private SubscriptionManager subscriptionManager;
+
+    @EJB
+    private GlobalMessageBus globalMessageBus;
 
     @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
@@ -399,6 +403,7 @@ public class DeviceNotificationController {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
         deviceService.submitDeviceNotification(notification, device, null);
+        globalMessageBus.publishDeviceNotification(notification);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
