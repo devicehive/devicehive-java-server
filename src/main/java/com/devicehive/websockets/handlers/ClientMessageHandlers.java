@@ -1,7 +1,6 @@
 package com.devicehive.websockets.handlers;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
@@ -10,10 +9,7 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
-import com.devicehive.service.DeviceNotificationService;
-import com.devicehive.service.DeviceService;
-import com.devicehive.service.TimestampService;
-import com.devicehive.service.UserService;
+import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
@@ -51,7 +47,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
-    private ConfigurationDAO configurationDAO;
+    private ConfigurationService configurationService;
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
@@ -444,9 +440,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        Configuration url = configurationDAO.findByName(Constants.REST_SERVER_URL);
+        String url = configurationService.getProperty(Constants.REST_SERVER_URL);
         if (url != null) {
-            apiInfo.setRestServerUrl(url.getValue());
+            apiInfo.setRestServerUrl(url);
         }
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("info", gson.toJsonTree(apiInfo))
@@ -488,9 +484,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (message.get("name") == null || message.get("value") == null) {
             throw new HiveException("Name and value fields cannot be empty!");
         }
-        Configuration configuration =
-                new Configuration(message.get("name").getAsString(), message.get("value").getAsString());
-        configurationDAO.mergeConfiguration(configuration);
+        Configuration configuration = new Configuration(message.get("name").getAsString(),
+                message.get("value").getAsString());
+        configurationService.setProperty(configuration);
+        globalMessageBus.publishServerConfigurationNotification(configuration);
         JsonObject response = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("requestId", message.get("requestId"))
                 .build();

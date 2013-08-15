@@ -122,13 +122,4 @@ public class LocalMessageBus {
         return userDAO.hasAccessToNetwork(subscription.getUser(), deviceNotification.getDevice().getNetwork());
     }
 
-    private boolean isSent(NotificationSubscription subscription, Set<NotificationSubscription> subsByKnownId) {
-        String subscriberId = subscription.getSessionId();
-        for (NotificationSubscription sentSubscription : subsByKnownId) {
-            if (sentSubscription.getSessionId().equals(subscriberId)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

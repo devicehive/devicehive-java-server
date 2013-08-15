@@ -13,9 +13,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "configuration")
+@NamedQueries({
+   @NamedQuery(name = "Configuration.getAll", query = "select c from Configuration c"),
+   @NamedQuery(name = "Configuration.update", query = "update Configuration c set c.value = :value where c.name = :name ")
+})
 @Cacheable
 public class Configuration implements HiveEntity {
 

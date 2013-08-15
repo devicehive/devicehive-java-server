@@ -10,6 +10,10 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 
 @Stateless
@@ -20,11 +24,26 @@ public class ConfigurationDAO {
     private EntityManager em;
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Configuration findByName(String name) {
+    public Configuration findByName(@NotNull String name) {
         return em.find(Configuration.class, name);
     }
 
-    public void mergeConfiguration(Configuration configuration) {
-        em.merge(configuration);
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<Configuration> findAll(){
+        TypedQuery<Configuration> query = em.createNamedQuery("Configuration.getAll", Configuration.class);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+      public boolean updateConfiguration(String name, String value) {
+        Query query = em.createNamedQuery("Configuration.update");
+        query.setParameter("name", name);
+        query.setParameter("value", value);
+        return query.executeUpdate() != 0;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+    public void insertConfiguration(Configuration configuration){
+        em.persist(configuration);
     }
 }

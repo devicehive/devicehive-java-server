@@ -15,12 +15,12 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @Singleton
 @ConcurrencyManagement(BEAN)
 @Startup
+@DependsOn("ConfigurationService")
 public class HazelcastService {
 
     private static final Logger logger = LoggerFactory.getLogger(HazelcastService.class);
 
     private HazelcastInstance hazelcast;
-
 
     @PostConstruct
     protected void postConstruct() {
