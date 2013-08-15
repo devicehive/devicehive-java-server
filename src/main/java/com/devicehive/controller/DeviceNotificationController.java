@@ -324,15 +324,14 @@ public class DeviceNotificationController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
+            if (!uuids.isEmpty()) {
+                List<Device> devices;
 
-            List<Device> devices;
-
-            if (user.getRole().equals(UserRole.ADMIN)) {
-                devices = deviceService.findByUUID(uuids);
-            } else {
-                devices = deviceService.findByUUIDListAndUser(user, uuids);
-            }
-            if (!devices.isEmpty()) {
+                if (user.getRole().equals(UserRole.ADMIN)) {
+                    devices = deviceService.findByUUID(uuids);
+                } else {
+                    devices = deviceService.findByUUIDListAndUser(user, uuids);
+                }
                 for (Device device : devices) {
                     subscriptionSet
                             .add(new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator));
