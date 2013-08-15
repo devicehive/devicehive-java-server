@@ -10,7 +10,7 @@
                 .append(":")
                 .append(request.getServerPort())
                 .append(request.getContextPath())
-                .append("/")
+                .append("/websocket/")
                 .append(request.getParameter("path"));
 
         String currentPath = request.getParameter("path");

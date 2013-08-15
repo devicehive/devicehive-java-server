@@ -15,7 +15,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.lang.reflect.InvocationTargetException;
 
-@ServerEndpoint(value = "/client")
+@ServerEndpoint(value = "/websocket/client")
 @LogExecutionTime
 public class ClientEndpoint extends Endpoint {
 
