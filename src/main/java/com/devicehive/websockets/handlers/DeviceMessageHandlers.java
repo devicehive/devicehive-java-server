@@ -6,6 +6,7 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
@@ -55,6 +56,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     private AsyncMessageDeliverer asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
+    @EJB
+    private GlobalMessageBus globalMessageBus;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/authenticate">WebSocket API:
@@ -168,7 +171,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
-
+        DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
+        globalMessageBus.publishDeviceCommandUpdate(cmd);
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 

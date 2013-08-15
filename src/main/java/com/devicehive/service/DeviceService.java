@@ -158,8 +158,6 @@ public class DeviceService {
             return false;
         }
 
-        globalMessageBus.publishDeviceCommandUpdate(cmd);
-
         return true;
     }
 

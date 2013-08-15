@@ -7,6 +7,7 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
+import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.Device;
@@ -65,6 +66,8 @@ public class DeviceCommandController {
     private DeviceCommandService deviceCommandService;
     @EJB
     private SubscriptionManager subscriptionManager;
+    @EJB
+    private GlobalMessageBus globalMessageBus;
 
     private ExecutorService asyncPool;
 
@@ -486,6 +489,9 @@ public class DeviceCommandController {
 
         deviceService.submitDeviceCommandUpdate(command, device);
         logger.debug("Device command update proceed successfully deviceId = " + guid + " commandId = " + commandId);
+
+        DeviceCommand cmd = deviceCommandDAO.findById(command.getId());
+        globalMessageBus.publishDeviceCommandUpdate(cmd);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
