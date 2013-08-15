@@ -20,6 +20,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Stateless
 public class DeviceNotificationDAO {
@@ -47,6 +48,15 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceNotification> findByDevicesIdsNewerThan(List<UUID> deviceIds, Timestamp timestamp) {
+        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceGuidsNewerThan",
+                DeviceNotification.class);
+        query.setParameter("guidList", deviceIds);
+        query.setParameter("timestamp", timestamp);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> findNewerThan(Timestamp timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByNewerThan",
                 DeviceNotification.class);
@@ -59,6 +69,17 @@ public class DeviceNotificationDAO {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserNewerThan",
                 DeviceNotification.class);
         query.setParameter("user", user);
+        query.setParameter("timestamp", timestamp);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceNotification> getByUserAndDevicesNewerThan(@NotNull User user, @NotNull List<UUID> deviceIds,
+                                                                 @NotNull Timestamp timestamp) {
+        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserAndDevicesNewerThan",
+                DeviceNotification.class);
+        query.setParameter("user", user);
+        query.setParameter("guidList", deviceIds);
         query.setParameter("timestamp", timestamp);
         return query.getResultList();
     }

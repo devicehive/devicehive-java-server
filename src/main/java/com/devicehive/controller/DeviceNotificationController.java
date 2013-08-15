@@ -222,28 +222,39 @@ public class DeviceNotificationController {
                             deviceGuid + " found")));
             return;
         }
-        Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
-        User user = principal.getUser();
 
-        List<DeviceNotification> list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
+        User user = principal.getUser();
+        List<DeviceNotification> list = getDeviceNotificationsList(user, deviceGuid, timestamp);
         if (list.isEmpty()) {
             logger.debug("Waiting for command for device = " + deviceGuid);
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+
+            Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
+
             NotificationSubscription notificationSubscription =
                     new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, notificationSubscription, restHandlerCreator.getFutureTask(),
                             timeout)) {
-                list = deviceNotificationDAO.getByUserNewerThan(user, timestamp);
+                list = getDeviceNotificationsList(user, deviceGuid, timestamp);
             }
         }
         Response response = ResponseFactory.response(Response.Status.OK, list,
                 Policy.NOTIFICATION_TO_CLIENT);
 
         asyncResponse.resume(response);
+    }
+
+    private List<DeviceNotification> getDeviceNotificationsList(User user, UUID uuid, Timestamp timestamp){
+        List<UUID> uuidList = new ArrayList<>(1);
+        uuidList.add(uuid);
+        if (user.getRole().equals(UserRole.CLIENT)){
+            return deviceNotificationDAO.getByUserAndDevicesNewerThan(user, uuidList, timestamp);
+        }
+        return deviceNotificationDAO.findByDevicesIdsNewerThan(uuidList, timestamp);
     }
 
     /**
@@ -303,25 +314,24 @@ public class DeviceNotificationController {
             return;
         }
 
-        List<Device> devices;
-
-        if (user.getRole().equals(UserRole.ADMIN)) {
-            devices = deviceService.findByUUID(uuids);
-        } else {
-            devices = deviceService.findByUUIDListAndUser(user, uuids);
-        }
         if (timestamp == null){
            timestamp = timestampService.getTimestamp();
         }
-        List<DeviceNotification> list = user.getRole().equals(UserRole.CLIENT)?
-                deviceNotificationDAO.getByUserNewerThan(user, timestamp):
-                deviceNotificationDAO.findNewerThan(timestamp);
-        if (list.isEmpty()) {
+        List<DeviceNotification> list = getDeviceNotificationsList(user, uuids, timestamp);
 
+        if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
+
+            List<Device> devices;
+
+            if (user.getRole().equals(UserRole.ADMIN)) {
+                devices = deviceService.findByUUID(uuids);
+            } else {
+                devices = deviceService.findByUUIDListAndUser(user, uuids);
+            }
 
             for (Device device : devices) {
                 subscriptionSet
@@ -330,9 +340,7 @@ public class DeviceNotificationController {
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list =  user.getRole().equals(UserRole.CLIENT)?
-                        deviceNotificationDAO.getByUserNewerThan(user, timestamp):
-                        deviceNotificationDAO.findNewerThan(timestamp);
+                 list = getDeviceNotificationsList(user, uuids, timestamp);
             }
             List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
             for (DeviceNotification notification : list) {
@@ -340,6 +348,25 @@ public class DeviceNotificationController {
             }
 
             asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+            return;
+        }
+        List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
+        for (DeviceNotification notification : list) {
+            resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+        }
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+    }
+
+    private List<DeviceNotification> getDeviceNotificationsList(User user, List<UUID> uuids, Timestamp timestamp){
+        if (!uuids.isEmpty()){
+            return  user.getRole().equals(UserRole.CLIENT)?
+                    deviceNotificationDAO.getByUserAndDevicesNewerThan(user, uuids, timestamp):
+                    deviceNotificationDAO.findByDevicesIdsNewerThan(uuids, timestamp);
+        }
+        else{
+            return user.getRole().equals(UserRole.CLIENT)?
+                    deviceNotificationDAO.getByUserNewerThan(user, timestamp):
+                    deviceNotificationDAO.findNewerThan(timestamp);
         }
     }
 
