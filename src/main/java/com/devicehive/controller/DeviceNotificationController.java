@@ -165,7 +165,8 @@ public class DeviceNotificationController {
         if (!deviceService
                 .checkPermissions(deviceNotification.getDevice(), principal.getUser(), principal.getDevice())) {
             logger.debug("No permissions to get notifications for device with guid : " + guid);
-            return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse("Unauthorized"));
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
+                    "found for device with guid : " + guid));
         }
 
         logger.debug("Device notification proceed successfully");
@@ -222,7 +223,9 @@ public class DeviceNotificationController {
                             deviceGuid + " found")));
             return;
         }
-
+        if (timestamp == null){
+            timestamp = timestampService.getTimestamp();
+        }
         User user = principal.getUser();
         List<DeviceNotification> list = getDeviceNotificationsList(user, deviceGuid, timestamp);
         if (list.isEmpty()) {
@@ -230,9 +233,7 @@ public class DeviceNotificationController {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-
             Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
-
             NotificationSubscription notificationSubscription =
                     new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
 
