@@ -442,7 +442,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug("server/info action started. Session " + session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
-        apiInfo.setApiVersion(Version.VERSION);
+        apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         String url = configurationService.get(Constants.REST_SERVER_URL);
         if (url != null) {

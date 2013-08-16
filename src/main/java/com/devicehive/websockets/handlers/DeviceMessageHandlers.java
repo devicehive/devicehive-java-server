@@ -2,7 +2,6 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
@@ -359,7 +358,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("server/info action started. Session {} ", session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
-        apiInfo.setApiVersion(Version.VERSION);
+        apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         String url = configurationService.get(Constants.REST_SERVER_URL);
         if (url != null) {
