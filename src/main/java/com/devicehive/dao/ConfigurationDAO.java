@@ -35,15 +35,12 @@ public class ConfigurationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.MANDATORY)
-      public boolean updateConfiguration(String name, String value) {
+    public void save(String name, String value){
         Query query = em.createNamedQuery("Configuration.update");
         query.setParameter("name", name);
         query.setParameter("value", value);
-        return query.executeUpdate() != 0;
-    }
-
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
-    public void insertConfiguration(Configuration configuration){
-        em.persist(configuration);
+        if (query.executeUpdate() == 0){
+            em.persist(new Configuration(name, value));
+        }
     }
 }

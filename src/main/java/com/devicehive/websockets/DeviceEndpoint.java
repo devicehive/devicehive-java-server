@@ -15,7 +15,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.lang.reflect.InvocationTargetException;
 
-@ServerEndpoint(value = "/device")
+@ServerEndpoint(value = "/websocket/device")
 @LogExecutionTime
 public class DeviceEndpoint extends Endpoint {
 

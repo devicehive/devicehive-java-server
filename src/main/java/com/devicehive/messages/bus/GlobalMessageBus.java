@@ -1,9 +1,7 @@
 package com.devicehive.messages.bus;
 
-import com.devicehive.model.Configuration;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.service.ConfigurationService;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.utils.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
@@ -33,16 +31,12 @@ public class GlobalMessageBus {
     private static final String DEVICE_COMMAND = "DEVICE_COMMAND";
     private static final String DEVICE_COMMAND_UPDATE = "DEVICE_COMMAND_UPDATE";
     private static final String DEVICE_NOTIFICATION = "DEVICE_NOTIFICATION";
-    private static final String SERVER_CONFIGURATION_NOTIFICATION = "SERVER_CONFIGURATION_NOTIFICATION";
 
     @EJB
     private HazelcastService hazelcastService;
 
     @EJB
     private LocalMessageBus localMessageBus;
-
-    @EJB
-    private ConfigurationService configurationService;
 
     private HazelcastInstance hazelcast;
 
@@ -54,23 +48,17 @@ public class GlobalMessageBus {
         logger.debug("Initializing topic {}...", DEVICE_COMMAND);
         ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
         deviceCommandTopic.addMessageListener(new DeviceCommandListener(localMessageBus));
-        logger.debug("Done");
+        logger.debug("Done {}", DEVICE_COMMAND);
 
         logger.debug("Initializing topic {}...", DEVICE_COMMAND_UPDATE);
         ITopic<DeviceCommand> deviceCommandUpdateTopic = hazelcast.getTopic(DEVICE_COMMAND_UPDATE);
         deviceCommandUpdateTopic.addMessageListener(new DeviceCommandUpdateListener(localMessageBus));
-        logger.debug("Done");
+        logger.debug("Done {}", DEVICE_COMMAND_UPDATE);
 
         logger.debug("Initializing topic {}...", DEVICE_NOTIFICATION);
         ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
         deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
-        logger.debug("Done");
-
-        logger.debug("Initializing topic {}...", SERVER_CONFIGURATION_NOTIFICATION);
-        ITopic<Configuration> serverConfigurationNotificationTopic = hazelcast.getTopic
-                (SERVER_CONFIGURATION_NOTIFICATION);
-        serverConfigurationNotificationTopic.addMessageListener(new ConfigurationListener(configurationService));
-        logger.debug("Done");
+        logger.debug("Done {}", DEVICE_NOTIFICATION);
     }
 
     public void publishDeviceCommand(DeviceCommand deviceCommand) {
@@ -93,13 +81,6 @@ public class GlobalMessageBus {
         hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
         logger.debug("Sent");
     }
-
-    public void publishServerConfigurationNotification(Configuration configuration){
-        logger.debug("Sending server configuration notification {}", configuration.getName());
-        hazelcast.getTopic(SERVER_CONFIGURATION_NOTIFICATION).publish(configuration);
-        logger.debug("Sent");
-    }
-
 
     private static class DeviceCommandListener implements MessageListener<DeviceCommand> {
 
@@ -153,21 +134,6 @@ public class GlobalMessageBus {
         }
     }
 
-    private static class ConfigurationListener implements MessageListener<Configuration>{
 
-        private final ConfigurationService configurationService;
-
-        private ConfigurationListener(ConfigurationService configurationService){
-            this.configurationService = configurationService;
-        }
-
-        @Override
-        public void onMessage(Message<Configuration> configurationMessage) {
-            if (!configurationMessage.getPublishingMember().localMember()){
-                logger.debug("Received configuration{}", configurationMessage.getMessageObject().getName());
-                configurationService.setProperty(configurationMessage.getMessageObject());
-            }
-        }
-    }
 
 }

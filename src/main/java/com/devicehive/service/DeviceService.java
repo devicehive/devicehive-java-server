@@ -161,7 +161,7 @@ public class DeviceService {
         return true;
     }
 
-    public void submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
+    public DeviceNotification submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
         DeviceEquipment deviceEquipment = null;
         Timestamp ts = timestampService.getTimestamp();
         if (notification.getNotification().equals("equipment")) {
@@ -177,7 +177,7 @@ public class DeviceService {
         notification.setTimestamp(ts);
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
-        globalMessageBus.publishDeviceNotification(notification);
+        return (notification);
     }
 
     private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {
@@ -300,7 +300,9 @@ public class DeviceService {
         JsonElement deviceAsJson = gson.toJsonTree(existingDevice);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);
-        submitDeviceNotification(notification, existingDevice, null);
+        notification = submitDeviceNotification(notification, existingDevice, null);
+        globalMessageBus.publishDeviceNotification(notification);
+
     }
 
     /**
