@@ -20,6 +20,8 @@ import com.google.gson.JsonObject;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
 import java.sql.Timestamp;
@@ -70,6 +72,11 @@ public class DeviceService {
     @EJB
     private SubscriptionManager subscriptionManager;
 
+    @EJB
+    private DeviceService self;
+
+
+
     public DeviceNotification deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                            boolean isAllowedToUpdate) {
         Device deviceToUpdate = device.convertTo();
@@ -116,10 +123,16 @@ public class DeviceService {
         return deviceDAO.findByUUIDListAndUser(user, list);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+        DeviceCommand saved = self.saveDeviceCommandUpdate(update, device);
+        if (saved != null) {
+            globalMessageBus.publishDeviceCommandUpdate(saved);
+        }
+    }
 
-
-
-    public boolean submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
 
         DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
 
@@ -153,12 +166,7 @@ public class DeviceService {
         if (update.getTimestamp() != null){
             cmd.setTimestamp(update.getTimestamp().getValue());
         }
-
-        if (!deviceCommandDAO.updateCommand(cmd.getId(), cmd)){
-            return false;
-        }
-
-        return true;
+        return cmd;
     }
 
     public DeviceNotification submitDeviceNotification(DeviceNotification notification, Device device, Session session) {

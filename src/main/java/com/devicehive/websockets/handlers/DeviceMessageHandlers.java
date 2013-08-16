@@ -171,8 +171,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
-        DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
-        globalMessageBus.publishDeviceCommandUpdate(cmd);
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 

@@ -490,8 +490,6 @@ public class DeviceCommandController {
         deviceService.submitDeviceCommandUpdate(command, device);
         logger.debug("Device command update proceed successfully deviceId = " + guid + " commandId = " + commandId);
 
-        DeviceCommand cmd = deviceCommandDAO.findById(command.getId());
-        globalMessageBus.publishDeviceCommandUpdate(cmd);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
