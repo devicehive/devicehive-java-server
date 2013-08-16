@@ -70,14 +70,14 @@ public class DeviceService {
     @EJB
     private SubscriptionManager subscriptionManager;
 
-    public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+    public DeviceNotification deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                            boolean isAllowedToUpdate) {
         Device deviceToUpdate = device.convertTo();
 
         deviceToUpdate.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
         deviceToUpdate.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet,
                 device.getGuid().getValue(), useExistingEquipment));
-        createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
+        return createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
     }
 
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
@@ -260,7 +260,7 @@ public class DeviceService {
         }
     }
 
-    public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate, boolean isAllowedToUpdate) {
+    public DeviceNotification createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate, boolean isAllowedToUpdate) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         DeviceNotification notification = new DeviceNotification();
         if (existingDevice == null) {
@@ -300,8 +300,8 @@ public class DeviceService {
         JsonElement deviceAsJson = gson.toJsonTree(existingDevice);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);
-        notification = submitDeviceNotification(notification, existingDevice, null);
-        globalMessageBus.publishDeviceNotification(notification);
+        return submitDeviceNotification(notification, existingDevice, null);
+
 
     }
 

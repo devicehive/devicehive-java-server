@@ -5,6 +5,7 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceCommandService;
@@ -52,6 +53,8 @@ public class DeviceController {
     private DeviceService deviceService;
     @EJB
     private UserService userService;
+    @EJB
+    private GlobalMessageBus globalMessageBus;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -163,8 +166,9 @@ public class DeviceController {
         Device currentDevice = ((HivePrincipal) securityContext.getUserPrincipal()).getDevice();
         boolean isAllowedToUpdate = ((currentUser != null && currentUser.isAdmin()) || (currentDevice != null &&
                 currentDevice.getGuid().equals(deviceGuid)));
-        deviceService.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
-
+        DeviceNotification notification = deviceService.deviceSave(device, equipmentSet, useExistingEquipment,
+                isAllowedToUpdate);
+        globalMessageBus.publishDeviceNotification(notification);
         logger.debug("Device register finished successfully");
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
