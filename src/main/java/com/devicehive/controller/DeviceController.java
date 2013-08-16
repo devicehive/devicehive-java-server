@@ -4,7 +4,6 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -130,10 +129,8 @@ public class DeviceController {
     @Path("/{id}")
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
-    @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
     public Response register(JsonObject jsonObject, @PathParam("id") UUID deviceGuid,
                              @Context SecurityContext securityContext) {
-
         logger.debug("Device register method requested");
 
 
