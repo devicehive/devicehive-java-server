@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.configuration.ConfigurationStorage;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
@@ -9,7 +10,10 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
-import com.devicehive.service.*;
+import com.devicehive.service.DeviceNotificationService;
+import com.devicehive.service.DeviceService;
+import com.devicehive.service.TimestampService;
+import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.util.AsyncMessageDeliverer;
@@ -47,7 +51,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
-    private ConfigurationService configurationService;
+    private ConfigurationStorage configurationStorage;
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
@@ -440,7 +444,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        String url = configurationService.getProperty(Constants.REST_SERVER_URL);
+        String url = configurationStorage.get(Constants.REST_SERVER_URL);
         if (url != null) {
             apiInfo.setRestServerUrl(url);
         }
@@ -451,48 +455,5 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         return jsonObject;
     }
 
-    /**
-     * Adds required information, for example, web socket server url
-     *
-     * @param message Json object with the following structure
-     *                <pre>
-     *                {
-     *                  "action": {string},
-     *                  "requestId": {object},
-     *                  "name": {string},
-     *                  "value": {string}
-     *                }
-     *                </pre>
-     * @param session Current session
-     * @return json object with the following structure
-     *         <pre>
-     *         {
-     *           "action": {string},
-     *           "status": {string},
-     *           "requestId": {object}
-     *         }
-     *         </pre>
-     */
-    @Action(value = "configuration/set")
-    public JsonObject processConfigurationSet(JsonObject message, Session session) {
-        logger.debug("configuration/set action started. Session " + session.getId());
-        User user = WebsocketSession.getAuthorisedUser(session);
-
-        if (user.getRole() == null || !user.getRole().equals(UserRole.ADMIN)) {
-            throw new HiveException("No permissions");
-        }
-        if (message.get("name") == null || message.get("value") == null) {
-            throw new HiveException("Name and value fields cannot be empty!");
-        }
-        Configuration configuration = new Configuration(message.get("name").getAsString(),
-                message.get("value").getAsString());
-        configurationService.setProperty(configuration);
-        globalMessageBus.publishServerConfigurationNotification(configuration);
-        JsonObject response = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("requestId", message.get("requestId"))
-                .build();
-        logger.debug("configuration/set action completed. Session " + session.getId());
-        return response;
-    }
 
 }
