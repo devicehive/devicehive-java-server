@@ -15,7 +15,6 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @Singleton
 @ConcurrencyManagement(BEAN)
 @Startup
-@DependsOn("ConfigurationStorage")
 public class HazelcastService {
 
     private static final Logger logger = LoggerFactory.getLogger(HazelcastService.class);

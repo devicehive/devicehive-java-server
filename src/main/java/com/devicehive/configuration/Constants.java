@@ -4,9 +4,9 @@ public class Constants {
 
     public static final String PERSISTENCE_UNIT = "devicehive";
 
-    public static final String WEBSOCKET_SERVER_URL = "websocketServerUrl";
+    public static final String WEBSOCKET_SERVER_URL = "websocket.url";
 
-    public static final String REST_SERVER_URL = "restServerUrl";
+    public static final String REST_SERVER_URL = "rest.url";
 
     public static final long DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE = -1L;
 
@@ -14,8 +14,18 @@ public class Constants {
 
     public static final long MAX_WAIT_TIMEOUT = 60L;
 
-    public static final int MAX_LOGIN_ATTEMPTS = 10;
+    public static final String MAX_LOGIN_ATTEMPTS = "user.login.maxAttempts";
 
-    public static final long LAST_LOGIN_TIMEOUT = 60000;
+    public static final int MAX_LOGIN_ATTEMPTS_DEFALUT = 10;
+
+    public static final String LAST_LOGIN_TIMEOUT = "user.login.lastTimeout"; // 1 hour
+
+    public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 60 * 60 * 1000; // 1 hour
+
+    public static final String WEBSOCKET_SESSION_PING_TIMEOUT = "websocket.ping.timeout";
+
+    public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
+
+
 
 }

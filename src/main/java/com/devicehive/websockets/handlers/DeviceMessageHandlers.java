@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceCommandDAO;
@@ -51,13 +52,13 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceService deviceService;
     @EJB
-    private ConfigurationDAO configurationDAO;
-    @EJB
     private AsyncMessageDeliverer asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
     @EJB
     private GlobalMessageBus globalMessageBus;
+    @EJB
+    private ConfigurationService configurationService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/authenticate">WebSocket API:
@@ -360,9 +361,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        Configuration url = configurationDAO.findByName(Constants.REST_SERVER_URL);
+        String url = configurationService.get(Constants.REST_SERVER_URL);
         if (url != null) {
-            apiInfo.setRestServerUrl(url.getValue());
+            apiInfo.setRestServerUrl(url);
         }
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("info", gson.toJsonTree(apiInfo))

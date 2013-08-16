@@ -1,6 +1,6 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.configuration.ConfigurationStorage;
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
@@ -51,7 +51,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
-    private ConfigurationStorage configurationStorage;
+    private ConfigurationService configurationService;
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
@@ -444,7 +444,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Version.VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        String url = configurationStorage.get(Constants.REST_SERVER_URL);
+        String url = configurationService.get(Constants.REST_SERVER_URL);
         if (url != null) {
             apiInfo.setRestServerUrl(url);
         }
