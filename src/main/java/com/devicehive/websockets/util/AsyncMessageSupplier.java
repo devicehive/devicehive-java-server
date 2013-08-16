@@ -19,9 +19,9 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
 @ConcurrencyManagement(BEAN)
-public class AsyncMessageDeliverer {
+public class AsyncMessageSupplier {
 
-    private static final Logger logger = LoggerFactory.getLogger(AsyncMessageDeliverer.class);
+    private static final Logger logger = LoggerFactory.getLogger(AsyncMessageSupplier.class);
 
     private static final int RETRY_COUNT = 3;
     private static final int RETRY_DELAY = 10;

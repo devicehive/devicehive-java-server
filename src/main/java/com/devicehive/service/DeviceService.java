@@ -12,7 +12,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.websockets.util.AsyncMessageDeliverer;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -65,7 +65,7 @@ public class DeviceService {
     private GlobalMessageBus globalMessageBus;
 
     @EJB
-    private AsyncMessageDeliverer asyncMessageDeliverer;
+    private AsyncMessageSupplier asyncMessageDeliverer;
 
     @EJB
     private SubscriptionManager subscriptionManager;

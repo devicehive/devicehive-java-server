@@ -16,7 +16,7 @@ import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.util.AsyncMessageDeliverer;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -55,7 +55,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
-    private AsyncMessageDeliverer asyncMessageDeliverer;
+    private AsyncMessageSupplier asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
 
