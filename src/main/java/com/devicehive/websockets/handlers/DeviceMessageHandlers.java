@@ -55,8 +55,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @EJB
     private TimestampService timestampService;
     @EJB
-    private GlobalMessageBus globalMessageBus;
-    @EJB
     private ConfigurationService configurationService;
 
     /**
@@ -315,8 +313,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = getDevice(session, message);
         logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
-        deviceService.submitDeviceNotification(deviceNotification, device, session);
-        globalMessageBus.publishDeviceNotification(deviceNotification);
+        deviceService.submitDeviceNotification(deviceNotification, device);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
         logger.debug("notification/insert ended for session {} ", session.getId());

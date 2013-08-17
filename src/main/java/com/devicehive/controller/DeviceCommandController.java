@@ -66,8 +66,6 @@ public class DeviceCommandController {
     private DeviceCommandService deviceCommandService;
     @EJB
     private SubscriptionManager subscriptionManager;
-    @EJB
-    private GlobalMessageBus globalMessageBus;
 
     private ExecutorService asyncPool;
 

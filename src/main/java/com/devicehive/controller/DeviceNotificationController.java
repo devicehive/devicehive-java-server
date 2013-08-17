@@ -402,8 +402,7 @@ public class DeviceNotificationController {
                             + guid);
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
-        deviceService.submitDeviceNotification(notification, device, null);
-        globalMessageBus.publishDeviceNotification(notification);
+        deviceService.submitDeviceNotification(notification, device);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);

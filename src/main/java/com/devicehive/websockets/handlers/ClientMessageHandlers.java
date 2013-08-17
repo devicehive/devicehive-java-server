@@ -41,8 +41,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
     @EJB
-    private GlobalMessageBus globalMessageBus;
-    @EJB
     private SubscriptionManager subscriptionManager;
     @EJB
     private UserService userService;

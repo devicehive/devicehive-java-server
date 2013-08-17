@@ -75,8 +75,16 @@ public class DeviceService {
     @EJB
     private DeviceService self;
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+                                         boolean isAllowedToUpdate) {
+        DeviceNotification dn = self.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
+        if (dn != null) {
+            globalMessageBus.publishDeviceNotification(dn);
+        }
+    }
 
-
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public DeviceNotification deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                            boolean isAllowedToUpdate) {
         Device deviceToUpdate = device.convertTo();
@@ -87,7 +95,14 @@ public class DeviceService {
         return createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
+        self.saveDeviceCommand(command, device, user, session);
+        globalMessageBus.publishDeviceCommand(command);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void saveDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
         command.setTimestamp(timestampService.getTimestamp());
@@ -98,7 +113,6 @@ public class DeviceService {
                             new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK, asyncMessageDeliverer));
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
         }
-        globalMessageBus.publishDeviceCommand(command);
     }
 
     public Device findByUUID(UUID uuid, User u) {
@@ -169,7 +183,16 @@ public class DeviceService {
         return cmd;
     }
 
-    public DeviceNotification submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void submitDeviceNotification(DeviceNotification notification, Device device) {
+        DeviceNotification dn = saveDeviceNotification(notification, device);
+        if (dn != null) {
+            globalMessageBus.publishDeviceNotification(dn);
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DeviceNotification saveDeviceNotification(DeviceNotification notification, Device device) {
         DeviceEquipment deviceEquipment = null;
         Timestamp ts = timestampService.getTimestamp();
         if (notification.getNotification().equals("equipment")) {
@@ -308,9 +331,7 @@ public class DeviceService {
         JsonElement deviceAsJson = gson.toJsonTree(existingDevice);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);
-        return submitDeviceNotification(notification, existingDevice, null);
-
-
+        return saveDeviceNotification(notification, existingDevice);
     }
 
     /**

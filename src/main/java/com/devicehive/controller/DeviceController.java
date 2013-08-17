@@ -53,8 +53,6 @@ public class DeviceController {
     private DeviceService deviceService;
     @EJB
     private UserService userService;
-    @EJB
-    private GlobalMessageBus globalMessageBus;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -166,9 +164,7 @@ public class DeviceController {
         Device currentDevice = ((HivePrincipal) securityContext.getUserPrincipal()).getDevice();
         boolean isAllowedToUpdate = ((currentUser != null && currentUser.isAdmin()) || (currentDevice != null &&
                 currentDevice.getGuid().equals(deviceGuid)));
-        DeviceNotification notification = deviceService.deviceSave(device, equipmentSet, useExistingEquipment,
-                isAllowedToUpdate);
-        globalMessageBus.publishDeviceNotification(notification);
+        deviceService.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
         logger.debug("Device register finished successfully");
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
