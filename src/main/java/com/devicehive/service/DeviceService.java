@@ -12,6 +12,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
@@ -33,6 +34,7 @@ import java.util.UUID;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Stateless
+@LogExecutionTime
 public class DeviceService {
 
 
