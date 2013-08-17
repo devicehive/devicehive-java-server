@@ -160,14 +160,14 @@ public class DeviceNotificationController {
         }
         UUID deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
         if (!deviceGuidFromNotification.equals(guid)) {
-            logger.debug("No device notifications found for device with guid : " + guid);
+            logger.debug("No device notifications found for device with guid : {}", guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         if (!deviceService
                 .checkPermissions(deviceNotification.getDevice(), principal.getUser(), principal.getDevice())) {
-            logger.debug("No permissions to get notifications for device with guid : " + guid);
+            logger.debug("No permissions to get notifications for device with guid : {}", guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
         }
@@ -202,7 +202,7 @@ public class DeviceNotificationController {
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("Device notification poll proceed successfully for device with guid = " + deviceGuid);
+                logger.debug("Device notification poll proceed successfully for device with guid = {}", deviceGuid);
             }
         });
         asyncPool.submit(new Runnable() {
@@ -215,8 +215,8 @@ public class DeviceNotificationController {
 
     private void asyncResponsePollProcess(Timestamp timestamp, UUID deviceGuid, long timeout,
                                           HivePrincipal principal, AsyncResponse asyncResponse) {
-        logger.debug("Device notification poll requested for device with guid = " + deviceGuid + ". " +
-                "Timestamp = " + timestamp + ". Timeout = " + timeout);
+        logger.debug("Device notification poll requested for device with guid = {}. Timestamp = {}. Timeout = {}",
+                deviceGuid, timestamp, timeout);
 
         if (deviceGuid == null) {
             logger.debug("Device notification poll finished with error. No device guid specified");
@@ -232,7 +232,7 @@ public class DeviceNotificationController {
         User user = principal.getUser();
         List<DeviceNotification> list = getDeviceNotificationsList(user, deviceGuid, timestamp);
         if (list.isEmpty()) {
-            logger.debug("Waiting for command for device = " + deviceGuid);
+            logger.debug("Waiting for command for device = {}", deviceGuid);
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
@@ -284,8 +284,7 @@ public class DeviceNotificationController {
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("Device notification poll many proceed successfully for devices :" +
-                        deviceGuids);
+                logger.debug("Device notification poll many proceed successfully for devices: {}", deviceGuids);
             }
         });
 
@@ -299,8 +298,8 @@ public class DeviceNotificationController {
 
     private void asyncResponsePollManyProcess(String deviceGuids, Timestamp timestamp, long timeout,
                                               User user, AsyncResponse asyncResponse) {
-        logger.debug("Device notification pollMany requested for devices : " + deviceGuids + ". Timestamp : "
-                + timestamp + ". Timeout = " + timeout);
+        logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
+                deviceGuids, timestamp, timeout);
 
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
@@ -312,7 +311,7 @@ public class DeviceNotificationController {
                 }
             }
         } catch (IllegalArgumentException e) {
-            logger.debug("Device notification pollMany failed. Unparseable guid : " + deviceGuids);
+            logger.debug("Device notification pollMany failed. Unparseable guid : {} ", deviceGuids);
             asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE)));
             return;
@@ -398,8 +397,7 @@ public class DeviceNotificationController {
         Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         if (device.getNetwork() == null) {
             logger.debug(
-                    "DeviceNotification insertAll proceed with error. No network specified for device with guid = "
-                            + guid);
+                    "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}", guid);
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
         deviceService.submitDeviceNotification(notification, device);

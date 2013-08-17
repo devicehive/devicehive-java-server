@@ -134,13 +134,13 @@ public class NetworkController {
         String login = securityContext.getUserPrincipal().getName();
 
         if (login == null) {
-            logger.debug("Network with id = " + id + "does not exists");
+            logger.debug("Network with id = {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
         Network existing = networkService.getWithDevicesAndDeviceClasses(id, userService.findUserWithNetworksByLogin (login));
 
         if (existing == null) {
-            logger.debug("Network with id = " + id + "does not exists");
+            logger.debug("Network with id =  {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
         logger.debug("Network get proceed successfully.");
@@ -244,7 +244,7 @@ public class NetworkController {
         Network n = networkService.getById(id);
 
         if (n == null) {
-            logger.debug("Unable to update network. Network with id = " + id + " does not exists");
+            logger.debug("Unable to update network. Network with id = {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
 
@@ -283,7 +283,7 @@ public class NetworkController {
 
         logger.debug("Network delete requested");
         networkService.delete(id);
-        logger.debug("Network with id = " + id + " does not exists any more.");
+        logger.debug("Network with id = {} does not exists any more.", id);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }

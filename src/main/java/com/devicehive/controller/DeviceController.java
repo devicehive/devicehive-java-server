@@ -109,7 +109,7 @@ public class DeviceController {
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                 deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser);
 
-        logger.debug("Device list proceed result. Result list contains " + result.size() + " elems");
+        logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
@@ -212,7 +212,7 @@ public class DeviceController {
 
         deviceService.deleteDevice(guid);
 
-        logger.debug("Device with id = " + guid + " deleted");
+        logger.debug("Device with id = {} is deleted", guid);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
@@ -285,7 +285,7 @@ public class DeviceController {
         Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
-            logger.debug("No device equipment found for code : " + code + " and guid : " + guid);
+            logger.debug("No device equipment found for code : {} and guid : {}",code, guid);
             return ResponseFactory
                     .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }

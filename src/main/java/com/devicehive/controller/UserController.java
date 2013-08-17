@@ -89,7 +89,6 @@ public class UserController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        //TODO validation for role and status
         List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USERS_LISTED);
