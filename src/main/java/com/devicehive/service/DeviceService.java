@@ -107,7 +107,6 @@ public class DeviceService {
     public void saveDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
-        command.setTimestamp(timestampService.getTimestamp());
         deviceCommandDAO.createCommand(command);
         if (session != null) {
             CommandUpdateSubscription commandUpdateSubscription =
@@ -196,18 +195,16 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public DeviceNotification saveDeviceNotification(DeviceNotification notification, Device device) {
         DeviceEquipment deviceEquipment = null;
-        Timestamp ts = timestampService.getTimestamp();
         if (notification.getNotification().equals("equipment")) {
             deviceEquipment = parseNotification(notification, device);
             if (deviceEquipment.getTimestamp() == null) {
-                deviceEquipment.setTimestamp(ts);
+                deviceEquipment.setTimestamp(timestampService.getTimestamp());
             }
         }
         if (deviceEquipment != null && !deviceEquipmentDAO.update(deviceEquipment)) {
-            deviceEquipment.setTimestamp(ts);
+            deviceEquipment.setTimestamp(timestampService.getTimestamp());
             deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
         }
-        notification.setTimestamp(ts);
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
         return (notification);
