@@ -12,19 +12,29 @@
     </properties>
 
     <network>
-        <port auto-increment="true" port-count="100">5711</port>
+        <port auto-increment="false" port-count="1">54801</port>
         <outbound-ports>
             <ports>0</ports>
         </outbound-ports>
         <join>
             <multicast enabled="false">
+                <multicast-group>224.2.2.3</multicast-group>
+                <multicast-port>54327</multicast-port>
             </multicast>
             <tcp-ip enabled="false">
+                <interface>127.0.0.1</interface>
             </tcp-ip>
             <aws enabled="false">
             </aws>
         </join>
+        <interfaces enabled="false">
+            <interface>10.10.1.*</interface>
+        </interfaces>
     </network>
 
+    <serialization>
+        <portable-version>0</portable-version>
+    </serialization>
 
+    <services enable-defaults="true" />
 </hazelcast>
