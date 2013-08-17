@@ -83,7 +83,7 @@ public class DeviceClassController {
 
         List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrderAsc, take, skip);
-        logger.debug("DeviceClass list proceed result. Result list contains " + result.size() + " elems");
+        logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);
     }
@@ -107,7 +107,7 @@ public class DeviceClassController {
         DeviceClass result = deviceClassService.getWithEquipment(id);
 
         if (result == null) {
-            logger.info("No device class with id = " + id + "found");
+            logger.info("No device class with id = {} found", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND,
                     new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
@@ -234,7 +234,7 @@ public class DeviceClassController {
         Equipment result = equipmentService.getByDeviceClass(classId, eqId);
 
         if (result == null) {
-            logger.debug("No equipment with id = " + eqId + " for device class with id = " + classId + " found");
+            logger.debug("No equipment with id = {} for device class with id = {} found", eqId, classId);
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
                     new ErrorResponse("Equipment with id = " + eqId + " not found"));
@@ -299,8 +299,7 @@ public class DeviceClassController {
         logger.debug("Update device class's equipment requested");
 
         if (!equipmentService.update(equipmentUpdate, eqId, classId)) {
-            logger.debug("Unable to update equipment. Equipment with id = " + eqId + " for device class with id = " +
-                    classId + " not found");
+            logger.debug("Unable to update equipment. Equipment with id = {} for device class with id = {} not found", eqId, classId);
             return ResponseFactory.response(Response.Status.NOT_FOUND,
                     new ErrorResponse(
                             "Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
