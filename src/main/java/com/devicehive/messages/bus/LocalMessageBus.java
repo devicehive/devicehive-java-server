@@ -109,11 +109,13 @@ public class LocalMessageBus {
                         .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
 
                     for (NotificationSubscription subscription : subsForAll) {
-                        boolean hasAccess =
-                                subscription.getUser().getRole() == UserRole.ADMIN ||
-                                        userDAO.hasAccessToDevice(subscription.getUser(), deviceNotification.getDevice());
-                        if (!subscribersIds.contains(subscription.getSessionId()) && hasAccess) {
-                            handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
+                        if (!subscribersIds.contains(subscription.getSessionId())) {
+                            boolean hasAccess =
+                                    subscription.getUser().getRole() == UserRole.ADMIN ||
+                                            userDAO.hasAccessToDevice(subscription.getUser(), deviceNotification.getDevice());
+                            if (hasAccess) {
+                                handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
+                            }
                         }
                     }
 
