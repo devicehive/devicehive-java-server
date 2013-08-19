@@ -356,9 +356,6 @@ public class DeviceService {
         if (device == null) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
-
-        device.getDeviceClass();//initializing properties
-        device.getNetwork();
         return device;
     }
 
@@ -373,9 +370,6 @@ public class DeviceService {
         if (device == null) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
-
-        device.getDeviceClass();//initializing properties
-        device.getNetwork();
         return device;
     }
 
