@@ -12,7 +12,8 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.websockets.util.AsyncMessageDeliverer;
+import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -20,6 +21,8 @@ import com.google.gson.JsonObject;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
 import java.sql.Timestamp;
@@ -31,6 +34,7 @@ import java.util.UUID;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Stateless
+@LogExecutionTime
 public class DeviceService {
 
 
@@ -65,25 +69,44 @@ public class DeviceService {
     private GlobalMessageBus globalMessageBus;
 
     @EJB
-    private AsyncMessageDeliverer asyncMessageDeliverer;
+    private AsyncMessageSupplier asyncMessageDeliverer;
 
     @EJB
     private SubscriptionManager subscriptionManager;
 
-    public void deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+    @EJB
+    private DeviceService self;
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+                                         boolean isAllowedToUpdate) {
+        DeviceNotification dn = self.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
+        if (dn != null) {
+            globalMessageBus.publishDeviceNotification(dn);
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DeviceNotification deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                            boolean isAllowedToUpdate) {
         Device deviceToUpdate = device.convertTo();
 
         deviceToUpdate.setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
         deviceToUpdate.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet,
                 device.getGuid().getValue(), useExistingEquipment));
-        createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
+        return createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
+        self.saveDeviceCommand(command, device, user, session);
+        globalMessageBus.publishDeviceCommand(command);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void saveDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
-        command.setTimestamp(timestampService.getTimestamp());
         deviceCommandDAO.createCommand(command);
         if (session != null) {
             CommandUpdateSubscription commandUpdateSubscription =
@@ -91,7 +114,6 @@ public class DeviceService {
                             new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK, asyncMessageDeliverer));
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
         }
-        globalMessageBus.publishDeviceCommand(command);
     }
 
     public Device findByUUID(UUID uuid, User u) {
@@ -116,10 +138,16 @@ public class DeviceService {
         return deviceDAO.findByUUIDListAndUser(user, list);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+        DeviceCommand saved = self.saveDeviceCommandUpdate(update, device);
+        if (saved != null) {
+            globalMessageBus.publishDeviceCommandUpdate(saved);
+        }
+    }
 
-
-
-    public boolean submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
 
         DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
 
@@ -153,28 +181,30 @@ public class DeviceService {
         if (update.getTimestamp() != null){
             cmd.setTimestamp(update.getTimestamp().getValue());
         }
-
-        if (!deviceCommandDAO.updateCommand(cmd.getId(), cmd)){
-            return false;
-        }
-
-        return true;
+        return cmd;
     }
 
-    public DeviceNotification submitDeviceNotification(DeviceNotification notification, Device device, Session session) {
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void submitDeviceNotification(DeviceNotification notification, Device device) {
+        DeviceNotification dn = saveDeviceNotification(notification, device);
+        if (dn != null) {
+            globalMessageBus.publishDeviceNotification(dn);
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DeviceNotification saveDeviceNotification(DeviceNotification notification, Device device) {
         DeviceEquipment deviceEquipment = null;
-        Timestamp ts = timestampService.getTimestamp();
         if (notification.getNotification().equals("equipment")) {
             deviceEquipment = parseNotification(notification, device);
             if (deviceEquipment.getTimestamp() == null) {
-                deviceEquipment.setTimestamp(ts);
+                deviceEquipment.setTimestamp(timestampService.getTimestamp());
             }
         }
         if (deviceEquipment != null && !deviceEquipmentDAO.update(deviceEquipment)) {
-            deviceEquipment.setTimestamp(ts);
+            deviceEquipment.setTimestamp(timestampService.getTimestamp());
             deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
         }
-        notification.setTimestamp(ts);
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
         return (notification);
@@ -260,7 +290,7 @@ public class DeviceService {
         }
     }
 
-    public void createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate, boolean isAllowedToUpdate) {
+    public DeviceNotification createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate, boolean isAllowedToUpdate) {
         Device existingDevice = deviceDAO.findByUUID(device.getGuid());
         DeviceNotification notification = new DeviceNotification();
         if (existingDevice == null) {
@@ -300,9 +330,7 @@ public class DeviceService {
         JsonElement deviceAsJson = gson.toJsonTree(existingDevice);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);
-        notification = submitDeviceNotification(notification, existingDevice, null);
-        globalMessageBus.publishDeviceNotification(notification);
-
+        return saveDeviceNotification(notification, existingDevice);
     }
 
     /**

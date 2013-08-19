@@ -32,6 +32,10 @@
         <appender-ref ref="FILE"/>
     </appender>
 
+    <logger name="org.hibernate.engine.transaction.internal" level="INFO">
+        <appender-ref ref="ASYNC" />
+    </logger>
+
     <root level="DEBUG">
         <appender-ref ref="ASYNC"/>
     </root>

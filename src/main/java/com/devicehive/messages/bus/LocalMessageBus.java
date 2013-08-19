@@ -16,9 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
+import javax.ejb.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -85,6 +83,7 @@ public class LocalMessageBus {
     }
 
     public void submitDeviceNotification(final DeviceNotification deviceNotification) {
+        boolean a = userDAO != null;
         primaryProcessingService.submit(new Runnable() {
             @Override
             public void run() {
@@ -97,7 +96,10 @@ public class LocalMessageBus {
                         subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
                                 deviceNotification.getDevice().getId());
                 for (NotificationSubscription subscription : subs) {
-                    if (hasAccess(subscription, deviceNotification)) {
+                    boolean hasAccess =
+                            subscription.getUser().getRole() == UserRole.ADMIN ||
+                                    userDAO.hasAccessToDevice(subscription.getUser(), deviceNotification.getDevice());
+                    if (hasAccess) {
                         handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
                     subscribersIds.add(subscription.getSessionId());
@@ -105,21 +107,20 @@ public class LocalMessageBus {
 
                 Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
                         .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
-                for (NotificationSubscription subscription : subsForAll) {
-                    if (!subscribersIds.contains(subscription.getSessionId()) &&
-                            hasAccess(subscription, deviceNotification)) {
-                        handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
+
+                    for (NotificationSubscription subscription : subsForAll) {
+                        if (!subscribersIds.contains(subscription.getSessionId())) {
+                            boolean hasAccess =
+                                    subscription.getUser().getRole() == UserRole.ADMIN ||
+                                            userDAO.hasAccessToDevice(subscription.getUser(), deviceNotification.getDevice());
+                            if (hasAccess) {
+                                handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
+                            }
+                        }
                     }
-                }
+
             }
         });
-    }
-
-    private boolean hasAccess(NotificationSubscription subscription, DeviceNotification deviceNotification) {
-        if (subscription.getUser().getRole() == UserRole.ADMIN) {
-            return true;
-        }
-        return userDAO.hasAccessToNetwork(subscription.getUser(), deviceNotification.getDevice().getNetwork());
     }
 
 }

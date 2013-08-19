@@ -1,6 +1,6 @@
 package com.devicehive.messages.handler;
 
-import com.devicehive.websockets.util.AsyncMessageDeliverer;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
@@ -14,10 +14,10 @@ public class WebsocketHandlerCreator implements HandlerCreator {
     private static final Logger logger = LoggerFactory.getLogger(WebsocketHandlerCreator.class);
 
     private final Session session;
-    private final AsyncMessageDeliverer deliverer;
+    private final AsyncMessageSupplier deliverer;
     private final Lock lock;
 
-    public WebsocketHandlerCreator(Session session, String lockAttribute, AsyncMessageDeliverer deliverer) {
+    public WebsocketHandlerCreator(Session session, String lockAttribute, AsyncMessageSupplier deliverer) {
         this.session = session;
         this.deliverer = deliverer;
         this.lock = (Lock) session.getUserProperties().get(lockAttribute);

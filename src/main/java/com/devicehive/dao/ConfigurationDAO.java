@@ -34,7 +34,7 @@ public class ConfigurationDAO {
         return query.getResultList();
     }
 
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void save(String name, String value){
         Query query = em.createNamedQuery("Configuration.update");
         query.setParameter("name", name);

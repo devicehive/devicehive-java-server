@@ -92,7 +92,6 @@ public class DeviceDAO {
         }
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);
-        CacheHelper.cacheable(query);
         return query.getResultList();
     }
 

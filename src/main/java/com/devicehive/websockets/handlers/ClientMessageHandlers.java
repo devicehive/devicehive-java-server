@@ -1,6 +1,6 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.configuration.ConfigurationStorage;
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
@@ -16,7 +16,7 @@ import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.util.AsyncMessageDeliverer;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -41,8 +41,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
     @EJB
-    private GlobalMessageBus globalMessageBus;
-    @EJB
     private SubscriptionManager subscriptionManager;
     @EJB
     private UserService userService;
@@ -51,11 +49,11 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
-    private ConfigurationStorage configurationStorage;
+    private ConfigurationService configurationService;
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
-    private AsyncMessageDeliverer asyncMessageDeliverer;
+    private AsyncMessageSupplier asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
 
@@ -442,9 +440,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug("server/info action started. Session " + session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
-        apiInfo.setApiVersion(Version.VERSION);
+        apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        String url = configurationStorage.get(Constants.REST_SERVER_URL);
+        String url = configurationService.get(Constants.REST_SERVER_URL);
         if (url != null) {
             apiInfo.setRestServerUrl(url);
         }

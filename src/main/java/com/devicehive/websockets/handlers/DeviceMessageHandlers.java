@@ -1,7 +1,7 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
@@ -17,7 +17,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.util.AsyncMessageDeliverer;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -51,13 +51,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceService deviceService;
     @EJB
-    private ConfigurationDAO configurationDAO;
-    @EJB
-    private AsyncMessageDeliverer asyncMessageDeliverer;
+    private AsyncMessageSupplier asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
     @EJB
-    private GlobalMessageBus globalMessageBus;
+    private ConfigurationService configurationService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/authenticate">WebSocket API:
@@ -171,8 +169,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         deviceService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
-        DeviceCommand cmd = deviceCommandDAO.findById(update.getId());
-        globalMessageBus.publishDeviceCommandUpdate(cmd);
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
     }
 
@@ -317,8 +313,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = getDevice(session, message);
         logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
-        deviceService.submitDeviceNotification(deviceNotification, device, session);
-        globalMessageBus.publishDeviceNotification(deviceNotification);
+        deviceService.submitDeviceNotification(deviceNotification, device);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
         logger.debug("notification/insert ended for session {} ", session.getId());
@@ -358,11 +353,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("server/info action started. Session {} ", session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
-        apiInfo.setApiVersion(Version.VERSION);
+        apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        Configuration url = configurationDAO.findByName(Constants.REST_SERVER_URL);
+        String url = configurationService.get(Constants.REST_SERVER_URL);
         if (url != null) {
-            apiInfo.setRestServerUrl(url.getValue());
+            apiInfo.setRestServerUrl(url);
         }
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("info", gson.toJsonTree(apiInfo))

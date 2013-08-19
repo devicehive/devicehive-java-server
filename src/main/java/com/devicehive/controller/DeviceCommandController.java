@@ -66,8 +66,6 @@ public class DeviceCommandController {
     private DeviceCommandService deviceCommandService;
     @EJB
     private SubscriptionManager subscriptionManager;
-    @EJB
-    private GlobalMessageBus globalMessageBus;
 
     private ExecutorService asyncPool;
 
@@ -95,7 +93,7 @@ public class DeviceCommandController {
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("DeviceCommand poll proceed successfully. deviceid = " + deviceGuid);
+                logger.debug("DeviceCommand poll proceed successfully. deviceid = {}", deviceGuid);
             }
         });
         asyncPool.submit(new Runnable() {
@@ -108,16 +106,14 @@ public class DeviceCommandController {
 
     private void pollAction(UUID deviceGuid, Timestamp timestamp, long timeout, HivePrincipal principal,
                             AsyncResponse asyncResponse){
-        logger.debug("DeviceCommand poll requested deviceId = " + deviceGuid + " timestamp = " + timestamp);
+        logger.debug("DeviceCommand poll requested deviceId = {} timestamp = {} ", deviceGuid, timestamp);
 
         if (principal.getUser() != null) {
-            logger.debug("DeviceCommand poll was requested by User = "
-                    + principal.getUser().getLogin()
-                    + " deviceId = " + deviceGuid + " timestamp = " + timestamp);
+            logger.debug("DeviceCommand poll was requested by User = {}, deviceId = {}, timestamp = ",
+                    principal.getUser().getLogin(), deviceGuid, timestamp);
         } else if (principal.getDevice() != null) {
-            logger.debug("DeviceCommand poll was requested by Device = "
-                    + principal.getDevice().getGuid()
-                    + " deviceId = " + deviceGuid + " timestamp = " + timestamp);
+            logger.debug("DeviceCommand poll was requested by Device = {}, deviceId = {}, timestamp = ",
+                    principal.getDevice().getGuid(), deviceGuid, timestamp);
         }
 
         Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
@@ -161,8 +157,7 @@ public class DeviceCommandController {
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("DeviceCommand poll proceed successfully. deviceid = " + deviceGuid + ". CommandId = "
-                        +commandId);
+                logger.debug("DeviceCommand poll proceed successfully. deviceid = {}. CommandId = {}", deviceGuid, commandId);
             }
         });
 
@@ -175,7 +170,7 @@ public class DeviceCommandController {
     }
 
     private void waitAction(UUID deviceGuid, Long commandId, long timeout, AsyncResponse asyncResponse, User user){
-        logger.debug("DeviceCommand wait requested, deviceId = " + deviceGuid + " commandId = " + commandId);
+        logger.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
 
 
         if (deviceGuid == null || commandId == null) {
@@ -188,7 +183,7 @@ public class DeviceCommandController {
         Device device = deviceService.findByUUID(deviceGuid, user);
 
         if (device == null) {
-            logger.debug("DeviceCommand wait request failed. No device found with guid = " + deviceGuid);
+            logger.debug("DeviceCommand wait request failed. No device found with guid = {} ", deviceGuid);
             Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
             asyncResponse.resume(response);
             return;
@@ -200,7 +195,7 @@ public class DeviceCommandController {
         DeviceCommand command = commandService.findById(commandId);
 
         if (command == null) {
-            logger.debug("DeviceCommand wait request failed. No command found with id = " + commandId + " for deviceId = " + deviceGuid);
+            logger.debug("DeviceCommand wait request failed. No command found with id = {} for deviceId = {} ", commandId, deviceGuid);
             Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
             asyncResponse.resume(response);
             return;
@@ -208,8 +203,7 @@ public class DeviceCommandController {
 
         //command is not for requested device
         if (!command.getDevice().getId().equals(device.getId())) {
-            logger.debug("DeviceCommand wait request failed. Command with id = " + commandId + " was not sent for " +
-                    "device with guid = " + deviceGuid);
+            logger.debug("DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}", commandId, deviceGuid);
             Response response= ResponseFactory.response(Response.Status.BAD_REQUEST);
             asyncResponse.resume(response);
             return;
@@ -370,7 +364,7 @@ public class DeviceCommandController {
     @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     public Response get(@PathParam("deviceGuid") UUID guid, @PathParam("id") long id,
                         @Context SecurityContext securityContext) {
-        logger.debug("Device command get requested. deviceId = " + guid + " commandId = " + id);
+        logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid,id);
 
         Device device;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
@@ -381,14 +375,13 @@ public class DeviceCommandController {
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
         if (result == null) {
-            logger.debug("Device command get failed. No command with id = " + id + " found for device with guid = " +
-                    guid);
+            logger.debug("Device command get failed. No command with id = {} found for device with guid = {}",id, guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Command Not Found"));
         }
 
         result.setUserId(result.getUser().getId());
 
-        logger.debug("Device command get proceed successfully deviceId = " + guid + " commandId = " + id);
+        logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, id);
         return ResponseFactory.response(Response.Status.OK, result);
     }
 
@@ -431,7 +424,7 @@ public class DeviceCommandController {
     public Response insert(@PathParam("deviceGuid") UUID guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                            @Context SecurityContext securityContext) {
-        logger.debug("Device command insert requested. deviceId = " + guid + " command = " + deviceCommand.getCommand());
+        logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
 
         String login = securityContext.getUserPrincipal().getName();
 
@@ -449,7 +442,7 @@ public class DeviceCommandController {
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
         deviceCommand.setUserId(u.getId());
 
-        logger.debug("Device command insertAll proceed successfully. deviceId = " + guid + " commandId = " + deviceCommand.getId());
+        logger.debug("Device command insertAll proceed successfully. deviceId = {} commandId = {}", guid, deviceCommand.getId());
         return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
     }
 
@@ -478,7 +471,7 @@ public class DeviceCommandController {
                            @Context SecurityContext securityContext) {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        logger.debug("Device command update requested. deviceId = " + guid + " commandId = " + commandId);
+        logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
         Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
 
         if (command == null) {
@@ -488,10 +481,8 @@ public class DeviceCommandController {
         command.setId(commandId);
 
         deviceService.submitDeviceCommandUpdate(command, device);
-        logger.debug("Device command update proceed successfully deviceId = " + guid + " commandId = " + commandId);
+        logger.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
-        DeviceCommand cmd = deviceCommandDAO.findById(command.getId());
-        globalMessageBus.publishDeviceCommandUpdate(cmd);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 

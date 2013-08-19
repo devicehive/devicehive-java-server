@@ -139,7 +139,7 @@ public class UserDAO {
         return count != null && count > 0;
     }
 
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToDevice(User user, Device device) {
         TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToDevice", Long.class);
         query.setParameter("user", user);

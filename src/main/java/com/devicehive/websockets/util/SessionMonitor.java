@@ -1,6 +1,9 @@
 package com.devicehive.websockets.util;
 
 
+import com.devicehive.configuration.ConfigurationService;
+import com.devicehive.configuration.Constants;
+import com.devicehive.model.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +20,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Singleton
 @EJB(name = "SessionMonitor", beanInterface = SessionMonitor.class)
@@ -27,7 +31,12 @@ public class SessionMonitor {
 
     private Map<String, Session> sessionMap;
 
-    private static final long TIMEOUT = 2 * 60 * 1000; // 2 minutes
+    @EJB
+    private ConfigurationService configurationService;
+
+
+
+    private static final String PING = "ping";
 
 
     public void registerSession(final Session session) {
@@ -35,10 +44,11 @@ public class SessionMonitor {
             @Override
             public void onMessage(PongMessage message) {
                 logger.debug("Pong received for session " + session.getId());
-                session.getUserProperties().put("ping", System.currentTimeMillis());
+                AtomicLong atomicLong = (AtomicLong) session.getUserProperties().get(PING);
+                atomicLong.set(System.currentTimeMillis());
             }
         });
-        session.getUserProperties().put("ping", System.currentTimeMillis());
+        session.getUserProperties().put(PING, new AtomicLong(System.currentTimeMillis()));
         sessionMap.put(session.getId(), session);
     }
 
@@ -69,11 +79,12 @@ public class SessionMonitor {
 
     @Schedule(hour = "*", minute = "*", second = "*/30")
     public void monitor() {
+        Long timeout = configurationService.getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);
         for (Session session : sessionMap.values()) {
             logger.debug("Checking session " + session.getId());
             if (session.isOpen()) {
-                long timestamp = (Long) session.getUserProperties().get("ping");
-                if (System.currentTimeMillis() - timestamp > TIMEOUT) {
+                AtomicLong atomicLong = (AtomicLong) session.getUserProperties().get(PING);
+                if (System.currentTimeMillis() - atomicLong.get() > timeout) {
                     closePingPong(session);
                 }
             } else {
