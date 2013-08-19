@@ -14,7 +14,10 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.UUID;
+
+import static com.devicehive.configuration.Constants.UTF8;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
@@ -60,7 +63,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return null;
         }
 
-        String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()));
+        String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), Charset.forName(UTF8));
         int pos = decodedAuth.indexOf(":");
         if (pos <= 0) {
             return null;

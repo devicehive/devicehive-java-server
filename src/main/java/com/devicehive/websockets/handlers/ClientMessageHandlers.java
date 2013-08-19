@@ -5,7 +5,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
@@ -175,16 +174,15 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
 
         DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
-        deviceCommand.setUserId(user.getId());
         if (deviceCommand == null) {
             throw new HiveException("Command is empty");
         }
+        deviceCommand.setUserId(user.getId());
 
         deviceService.submitDeviceCommand(deviceCommand, device, user, session);
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
+        return JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(deviceCommand))
                 .build();
-        return jsonObject;
     }
 
     /**

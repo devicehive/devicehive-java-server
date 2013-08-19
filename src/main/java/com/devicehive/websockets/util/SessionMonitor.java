@@ -3,7 +3,6 @@ package com.devicehive.websockets.util;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +17,12 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.devicehive.configuration.Constants.UTF8;
 
 @Singleton
 @EJB(name = "SessionMonitor", beanInterface = SessionMonitor.class)
@@ -65,7 +67,7 @@ public class SessionMonitor {
             if (session.isOpen()) {
                 logger.debug("Pinging session " + session.getId());
                 try {
-                    session.getAsyncRemote().sendPing(ByteBuffer.wrap("devicehive-ping".getBytes()));
+                    session.getAsyncRemote().sendPing(ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8))));
                 } catch (IOException ex) {
                     logger.error("Error sending ping, closing the session", ex);
                     closePingPong(session);

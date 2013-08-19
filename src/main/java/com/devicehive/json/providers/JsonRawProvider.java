@@ -16,6 +16,9 @@ import javax.ws.rs.ext.Provider;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+
+import static com.devicehive.configuration.Constants.UTF8;
 
 
 @Provider
@@ -30,7 +33,7 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
 
     @Override
     public JsonObject readFrom(Class<JsonObject> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
-        JsonElement element = new JsonParser().parse(new InputStreamReader(entityStream));
+        JsonElement element = new JsonParser().parse(new InputStreamReader(entityStream, Charset.forName(UTF8)));
         if (element.isJsonObject()) {
             return element.getAsJsonObject();
         }
@@ -53,7 +56,7 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
         Gson gson = GsonFactory.createGson();
         Writer writer = null;
         try {
-            writer = new OutputStreamWriter(entityStream);
+            writer = new OutputStreamWriter(entityStream, Charset.forName(UTF8));
             gson.toJson(jsonObject, writer);
         } finally {
             if (writer != null) {

@@ -15,6 +15,9 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+
+import static com.devicehive.configuration.Constants.UTF8;
 
 public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
 
@@ -35,7 +38,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
         JsonElement jsonElement = gson.toJsonTree(entity);
         Writer writer = null;
         try {
-            writer = new OutputStreamWriter(entityStream);
+            writer = new OutputStreamWriter(entityStream, Charset.forName(UTF8));
             gson.toJson(jsonElement, writer);
         } finally {
             if (writer != null) {
@@ -53,7 +56,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
     @Override
     public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
-        Reader reader = new InputStreamReader(entityStream);
+        Reader reader = new InputStreamReader(entityStream,Charset.forName(UTF8));
         return gson.fromJson(reader, genericType);
     }
 

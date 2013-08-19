@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.*;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -83,7 +85,6 @@ public class LocalMessageBus {
     }
 
     public void submitDeviceNotification(final DeviceNotification deviceNotification) {
-        boolean a = userDAO != null;
         primaryProcessingService.submit(new Runnable() {
             @Override
             public void run() {

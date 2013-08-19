@@ -2,6 +2,8 @@ package com.devicehive.configuration;
 
 public class Constants {
 
+    public static final String UTF8 = "UTF-8";
+
     public static final String PERSISTENCE_UNIT = "devicehive";
 
     public static final String API_VERSION = "1.2.0";

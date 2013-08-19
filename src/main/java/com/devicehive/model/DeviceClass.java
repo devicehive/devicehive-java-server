@@ -4,7 +4,6 @@ package com.devicehive.model;
 import com.devicehive.json.strategies.JsonPolicyDef;
 
 import javax.persistence.*;
-import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;

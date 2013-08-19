@@ -1,9 +1,9 @@
 package com.devicehive.controller;
 
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiInfo;
-import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
 import org.slf4j.Logger;

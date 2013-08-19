@@ -1,7 +1,6 @@
 package com.devicehive.websockets.util;
 
 
-import com.devicehive.json.GsonFactory;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.google.gson.JsonElement;
@@ -9,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
-import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

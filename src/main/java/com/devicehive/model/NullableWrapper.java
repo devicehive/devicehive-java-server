@@ -1,7 +1,9 @@
 package com.devicehive.model;
 
 
-public class NullableWrapper<K> {
+import java.io.Serializable;
+
+public class NullableWrapper<K> implements Serializable {
 
     private K value;
 

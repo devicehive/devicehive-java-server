@@ -223,8 +223,7 @@ public class DeviceNotificationController {
             logger.debug("Device notification poll finished with error. No device guid specified");
 
             asyncResponse.resume(
-                    ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device with guid = " +
-                            deviceGuid + " found")));
+                    ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device guid specified")));
             return;
         }
         if (timestamp == null) {

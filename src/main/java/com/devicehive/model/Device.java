@@ -5,7 +5,6 @@ import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
