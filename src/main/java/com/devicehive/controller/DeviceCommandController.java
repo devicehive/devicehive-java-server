@@ -125,7 +125,8 @@ public class DeviceCommandController {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-            Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
+            Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
+                    principal.getDevice());
             CommandSubscription commandSubscription =
                     new CommandSubscription(device.getId(), reqId, restHandlerCreator);
 
@@ -378,11 +379,10 @@ public class DeviceCommandController {
                         @Context SecurityContext securityContext) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid,id);
 
-        Device device;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
 
-        device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
-
+        Device device = deviceService.getDevice(guid, principal.getUser(),
+                principal.getDevice());
 
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
@@ -446,10 +446,10 @@ public class DeviceCommandController {
 
         User u = userService.findUserWithNetworksByLogin(login);
 
-        Device device;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
 
-        device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        Device device = deviceService.getDevice(guid, principal.getUser(),
+                principal.getDevice());
 
         deviceService.submitDeviceCommand(deviceCommand, device, u, null);
         deviceCommand.setUserId(u.getId());
@@ -484,7 +484,8 @@ public class DeviceCommandController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
-        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        Device device = deviceService.getDevice(guid, principal.getUser(),
+                principal.getDevice());
 
         if (command == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND,

@@ -137,7 +137,8 @@ public class DeviceNotificationController {
             }
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        Device device = deviceService.getDevice(guid, principal.getUser(),
+                principal.getDevice());
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, startTimestamp,
                 endTimestamp, notification, sortField, sortOrderAsc, take, skip);
 
@@ -236,7 +237,8 @@ public class DeviceNotificationController {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-            Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
+            Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
+                    principal.getDevice());
             NotificationSubscription notificationSubscription =
                     new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
 
@@ -394,7 +396,8 @@ public class DeviceNotificationController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        Device device = deviceService.getDevice(guid, principal.getUser(),
+                principal.getDevice());
         if (device.getNetwork() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}", guid);

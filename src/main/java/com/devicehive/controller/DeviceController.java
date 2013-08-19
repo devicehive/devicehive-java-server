@@ -185,7 +185,7 @@ public class DeviceController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Device device;
 
-        device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal.getUser(), principal.getDevice());
 
         logger.debug("Device get proceed successfully");
 
@@ -255,7 +255,8 @@ public class DeviceController {
         logger.debug("Device equipment requested");
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal.getUser(),
+                principal.getDevice());
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully");
@@ -273,7 +274,8 @@ public class DeviceController {
 
         logger.debug("Device equipment by code requested");
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal.getUser(),
+                principal.getDevice());
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}",code, guid);

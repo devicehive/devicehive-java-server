@@ -345,11 +345,32 @@ public class DeviceService {
         }
     }
 
-    public Device getDevice(UUID deviceId, User currentUser, Device currentDevice) {
+    public Device getDeviceWithNetworkAndDeviceClass(UUID deviceId, User currentUser, Device currentDevice) {
+
+        if (!checkPermissions(deviceId, currentUser, currentDevice)){
+            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
+        }
 
         Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceId);
 
-        if (device == null || !checkPermissions(device, currentUser, currentDevice)) {
+        if (device == null) {
+            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
+        }
+
+        device.getDeviceClass();//initializing properties
+        device.getNetwork();
+        return device;
+    }
+
+    public Device getDevice(UUID deviceId, User currentUser, Device currentDevice) {
+
+        if (!checkPermissions(deviceId, currentUser, currentDevice)){
+            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
+        }
+
+        Device device = deviceDAO.findByUUID(deviceId);
+
+        if (device == null) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
 
@@ -360,7 +381,7 @@ public class DeviceService {
 
     public boolean checkPermissions(Device device, User currentUser, Device currentDevice) {
         if (currentDevice != null) {
-            return device.getGuid().equals(currentDevice.getGuid()) && device.getNetwork() != null;
+            return device.getGuid().equals(currentDevice.getGuid());
         } else {
             if (currentUser.getRole().equals(UserRole.CLIENT)) {
                 return userDAO.hasAccessToDevice(currentUser, device);
@@ -368,6 +389,18 @@ public class DeviceService {
         }
         return true;
     }
+
+    public boolean checkPermissions(UUID deviceId, User currentUser, Device currentDevice) {
+        if (currentDevice != null) {
+            return deviceId.equals(currentDevice.getGuid());
+        } else {
+            if (currentUser.getRole().equals(UserRole.CLIENT)) {
+                return userDAO.hasAccessToDevice(currentUser, deviceId);
+            }
+        }
+        return true;
+    }
+
 
     public boolean deleteDevice(@NotNull UUID guid) {
         return deviceDAO.deleteDevice(guid);

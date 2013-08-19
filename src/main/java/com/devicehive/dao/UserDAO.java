@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 
 @Stateless
@@ -144,6 +145,15 @@ public class UserDAO {
         TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToDevice", Long.class);
         query.setParameter("user", user);
         query.setParameter("device", device);
+        Long count = query.getSingleResult();
+        return count != null && count > 0;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public boolean hasAccessToDevice(User user, UUID deviceId) {
+        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToDeviceByGuid", Long.class);
+        query.setParameter("user", user);
+        query.setParameter("guid", deviceId);
         Long count = query.getSingleResult();
         return count != null && count > 0;
     }
