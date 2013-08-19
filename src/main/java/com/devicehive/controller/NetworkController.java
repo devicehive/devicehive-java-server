@@ -2,7 +2,6 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
@@ -127,7 +126,6 @@ public class NetworkController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    @JsonPolicyApply(JsonPolicyDef.Policy.NETWORK_PUBLISHED)
     public Response getNetwork(@PathParam("id") long id, @Context SecurityContext securityContext) {
 
         logger.debug("Network get requested.");
@@ -145,7 +143,7 @@ public class NetworkController {
         }
         logger.debug("Network get proceed successfully.");
 
-        return ResponseFactory.response(Response.Status.OK, existing);
+        return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }
 
 

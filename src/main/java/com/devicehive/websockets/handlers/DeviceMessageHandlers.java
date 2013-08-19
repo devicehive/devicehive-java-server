@@ -470,7 +470,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (message.get("deviceKey") == null) {
             throw new HiveException("Device key is undefined!");
         }
-        Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
+        Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
         DeviceUpdate device = mainGson.fromJson(message.get("device"), DeviceUpdate.class);
         logger.debug("check required fields in device ");
         deviceService.checkDevice(device);

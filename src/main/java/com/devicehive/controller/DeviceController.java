@@ -5,7 +5,6 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceCommandService;
@@ -24,7 +23,6 @@ import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -133,7 +131,6 @@ public class DeviceController {
     public Response register(JsonObject jsonObject, @PathParam("id") UUID deviceGuid,
                              @Context SecurityContext securityContext) {
         logger.debug("Device register method requested");
-
 
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
         DeviceUpdate device;
@@ -254,17 +251,11 @@ public class DeviceController {
     @GET
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response equipment(@PathParam("id") UUID guid, @Context ContainerRequestContext requestContext) {
-
-
+    public Response equipment(@PathParam("id") UUID guid, @Context SecurityContext securityContext) {
         logger.debug("Device equipment requested");
 
-        Device device;
-        HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
-
-        device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
-
-
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        Device device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully");
