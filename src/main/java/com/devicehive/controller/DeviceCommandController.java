@@ -7,16 +7,13 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
-import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.RestParametersConverter;
@@ -39,6 +36,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -66,6 +64,8 @@ public class DeviceCommandController {
     private DeviceCommandService deviceCommandService;
     @EJB
     private SubscriptionManager subscriptionManager;
+    @EJB
+    private TimestampService timestampService;
 
     private ExecutorService asyncPool;
 
@@ -79,7 +79,6 @@ public class DeviceCommandController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     @Path("/poll")
     public void poll(
             @PathParam("deviceGuid") final UUID deviceGuid,
@@ -116,24 +115,37 @@ public class DeviceCommandController {
                     principal.getDevice().getGuid(), deviceGuid, timestamp);
         }
 
-        Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
-
-        List<DeviceCommand> list = deviceCommandDAO.getNewerThan(device, timestamp);
+        if (timestamp == null){
+            timestamp = timestampService.getTimestamp();
+        }
+        List<DeviceCommand> list = getDeviceCommandsList(principal, deviceGuid, timestamp);
 
         if (list.isEmpty()) {
+            logger.debug("Waiting for command for device = {}", deviceGuid);
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            Device device = deviceService.getDevice(deviceGuid, principal.getUser(), principal.getDevice());
             CommandSubscription commandSubscription =
                     new CommandSubscription(device.getId(), reqId, restHandlerCreator);
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
-                list = deviceCommandDAO.getNewerThan(device, timestamp);
+                list = getDeviceCommandsList(principal, deviceGuid, timestamp);
             }
         }
-        Response response = ResponseFactory.response(Response.Status.OK, list);
+        Response response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
         asyncResponse.resume(response);
+    }
+
+    private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal, UUID uuid, Timestamp timestamp) {
+        List<UUID> uuidList = new ArrayList<>(1);
+        uuidList.add(uuid);
+        User authUser = principal.getUser();
+        if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
+            return deviceCommandDAO.getByUserAndDeviceNewerThan(uuid, timestamp, authUser);
+        }
+        return deviceCommandDAO.getNewerThan(uuid, timestamp);
     }
 
     /**
@@ -335,7 +347,7 @@ public class DeviceCommandController {
                         status, sortField, sortOrderAsc, take, skip);
 
         logger.debug("Device command query request proceed successfully");
-        return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_TO_DEVICE);
+        return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);
     }
 
     /**
@@ -420,7 +432,7 @@ public class DeviceCommandController {
      */
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-   // @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") UUID guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                            @Context SecurityContext securityContext) {

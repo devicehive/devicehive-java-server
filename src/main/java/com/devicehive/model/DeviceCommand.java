@@ -22,7 +22,13 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "device_command")
 @NamedQueries({
         @NamedQuery(name = "DeviceCommand.getNewerThan",
-                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device = :device"),
+                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device.guid = :guid"),
+        @NamedQuery(name = "DeviceCommand.getByUserAndDeviceNewerThan", query = "select dc from DeviceCommand dc " +
+                "where dc.timestamp > :timestamp and " +
+                "dc.device.id in " +
+                   "(select distinct d.id from Device d " +
+                   "join d.network n " +
+                   "join n.users u where u = :user and d.guid = :deviceId)"),
         @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.updateById",
                 query = "update DeviceCommand dc set " +
@@ -46,12 +52,13 @@ public class DeviceCommand implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
+            COMMAND_LISTED})
     private Long id;
 
     @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
 
     @SerializedName("user")
@@ -62,7 +69,7 @@ public class DeviceCommand implements HiveEntity {
 
     @SerializedName("userId")
     @Transient
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
     private Long userId;
 
     @SerializedName("device")
@@ -77,7 +84,7 @@ public class DeviceCommand implements HiveEntity {
     @Size(min = 1, max = 128,
             message = "Field cannot be empty. The length of command shouldn't be more than 128 symbols.")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE})
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String command;
 
     @SerializedName("parameters")
@@ -86,24 +93,24 @@ public class DeviceCommand implements HiveEntity {
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE})
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer lifetime;
 
     @SerializedName("flags")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            REST_COMMAND_UPDATE_FROM_DEVICE})
+            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer flags;
 
     @SerializedName("status")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE,
-            REST_COMMAND_UPDATE_FROM_DEVICE})
+            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private String status;
 
     @SerializedName("result")
@@ -112,7 +119,7 @@ public class DeviceCommand implements HiveEntity {
             @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
     })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE,
-            REST_COMMAND_UPDATE_FROM_DEVICE})
+            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
 
     @Version

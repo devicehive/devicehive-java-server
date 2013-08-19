@@ -6,7 +6,6 @@ import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
@@ -223,7 +222,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
             logger.debug("will get commands newer than : {}", timestamp);
-            List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device, timestamp);
+            List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device.getGuid(), timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
                 logger.debug("will add command to queue : {}", deviceCommand.getId());
                 WebsocketSession

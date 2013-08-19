@@ -103,10 +103,19 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(Device device, Timestamp timestamp) {
+    public List<DeviceCommand> getNewerThan(UUID deviceId, Timestamp timestamp) {
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
-        query.setParameter("device", device);
+        query.setParameter("guid", deviceId);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceCommand> getByUserAndDeviceNewerThan(UUID deviceId, Timestamp timestamp, User user) {
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByUserAndDeviceNewerThan", DeviceCommand.class);
+        query.setParameter("timestamp", timestamp);
+        query.setParameter("guid", deviceId);
+        query.setParameter("user", user);
         return query.getResultList();
     }
 

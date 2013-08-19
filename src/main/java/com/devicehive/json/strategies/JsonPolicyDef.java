@@ -16,6 +16,7 @@ public @interface JsonPolicyDef {
         DEVICE_SUBMITTED,
         COMMAND_TO_CLIENT,
         COMMAND_TO_DEVICE,
+        COMMAND_LISTED,
         POST_COMMAND_TO_DEVICE,
         COMMAND_FROM_CLIENT,
         COMMAND_UPDATE_FROM_DEVICE,

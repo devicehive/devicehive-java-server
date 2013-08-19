@@ -232,7 +232,7 @@ public class DeviceNotificationController {
         User user = principal.getUser();
         List<DeviceNotification> list = getDeviceNotificationsList(user, deviceGuid, timestamp);
         if (list.isEmpty()) {
-            logger.debug("Waiting for command for device = {}", deviceGuid);
+            logger.debug("Waiting for notification from device = {}", deviceGuid);
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
