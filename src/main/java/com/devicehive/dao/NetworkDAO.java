@@ -88,7 +88,8 @@ public class NetworkDAO {
         return query.executeUpdate() != 0;
     }
 
-    public List<Network> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip, Long userId) {
+    public List<Network> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take,
+                              Integer skip, Long userId) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
 

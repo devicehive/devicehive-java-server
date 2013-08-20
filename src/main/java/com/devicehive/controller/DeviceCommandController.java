@@ -16,7 +16,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -290,21 +290,15 @@ public class DeviceCommandController {
                           @QueryParam("command") String command,
                           @QueryParam("status") String status,
                           @QueryParam("sortField") String sortField,
-                          @QueryParam("sortOrder") String sortOrder,
+                          @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip,
                           @Context SecurityContext securityContext) {
 
         logger.debug("Device command query requested");
-
-        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
-
-        if (sortOrderAsc == null) {
-            logger.debug("Device command query failed. Bad request for sortOrder.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+        if (sortOrder == null){
+            sortOrder = true;
         }
-
 
         if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) &&
                 sortField != null) {
@@ -345,7 +339,7 @@ public class DeviceCommandController {
 
         List<DeviceCommand> commandList =
                 commandService.queryDeviceCommand(device, startTimestamp, endTimestamp, command,
-                        status, sortField, sortOrderAsc, take, skip);
+                        status, sortField, sortOrder, take, skip);
 
         logger.debug("Device command query request proceed successfully");
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);

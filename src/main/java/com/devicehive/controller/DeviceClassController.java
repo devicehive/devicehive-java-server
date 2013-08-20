@@ -12,7 +12,7 @@ import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,20 +60,14 @@ public class DeviceClassController {
             @QueryParam("namePattern") String namePattern,
             @QueryParam("version") String version,
             @QueryParam("sortField") String sortField,
-            @QueryParam("sortOrder") String sortOrder,
+            @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
             @QueryParam("take") Integer take,
             @QueryParam("skip") Integer skip) {
 
         logger.debug("DeviceClass list requested");
-
-        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
-
-        if (sortOrderAsc == null) {
-            logger.debug("DeviceClass list request failed. Bad request for sortOrder");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+        if (sortOrder == null){
+            sortOrder = true;
         }
-
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
             return ResponseFactory
@@ -82,7 +76,7 @@ public class DeviceClassController {
         }
 
         List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
-                sortOrderAsc, take, skip);
+                sortOrder, take, skip);
         logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);

@@ -20,7 +20,7 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.SortOrder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -91,19 +91,15 @@ public class DeviceNotificationController {
                           @QueryParam("end") String end,
                           @QueryParam("notification") String notification,
                           @QueryParam("sortField") String sortField,
-                          @QueryParam("sortOrder") String sortOrder,
+                          @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip,
                           @Context SecurityContext securityContext) {
 
         logger.debug("Device notification requested");
 
-        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
-
-        if (sortOrderAsc == null) {
-            logger.debug("Device notification request failed. Bad request for sortOrder.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+        if (sortOrder == null){
+            sortOrder = true;
         }
 
         if (!"Timestamp".equals(sortField) && !"Notification".equals(sortField) && sortField != null) {
@@ -140,7 +136,7 @@ public class DeviceNotificationController {
         Device device = deviceService.getDevice(guid, principal.getUser(),
                 principal.getDevice());
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, startTimestamp,
-                endTimestamp, notification, sortField, sortOrderAsc, take, skip);
+                endTimestamp, notification, sortField, sortOrder, take, skip);
 
         logger.debug("Device notification proceed successfully");
 

@@ -12,7 +12,7 @@ import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.SortOrder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -81,22 +81,16 @@ public class DeviceController {
                          @QueryParam("deviceClassName") String deviceClassName,
                          @QueryParam("deviceClassVersion") String deviceClassVersion,
                          @QueryParam("sortField") String sortField,
-                         @QueryParam("sortOrder") String sortOrder,
+                         @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                          @QueryParam("take") Integer take,
                          @QueryParam("skip") Integer skip,
                          @Context SecurityContext securityContext) {
 
-
         logger.debug("Device list requested");
 
-        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
-
-        if (sortOrderAsc == null) {
-            logger.debug("Device list request failed. ");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+        if (sortOrder == null){
+            sortOrder = true;
         }
-
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
@@ -105,7 +99,7 @@ public class DeviceController {
         User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
 
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, deviceClassVersion, sortField, sortOrderAsc, take, skip, currentUser);
+                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser);
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 

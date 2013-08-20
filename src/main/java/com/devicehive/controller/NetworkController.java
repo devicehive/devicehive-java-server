@@ -10,7 +10,7 @@ import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,18 +70,15 @@ public class NetworkController {
     public Response getNetworkList(@QueryParam("name") String name,
                                    @QueryParam("namePattern") String namePattern,
                                    @QueryParam("sortField") String sortField,
-                                   @QueryParam("sortOrder") String sortOrder,
+                                   @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                                    @QueryParam("take") Integer take,
                                    @QueryParam("skip") Integer skip,
                                    @Context SecurityContext securityContext) {
 
         logger.debug("Network list requested");
 
-        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
-
-        if (sortOrderAsc == null) {
-            logger.debug("Unable to proceed network list request. Invalid sortOrder");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+        if (sortOrder == null){
+            sortOrder = true;
         }
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
@@ -101,7 +98,7 @@ public class NetworkController {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
         }
 
-        List<Network> result = networkService.list(name, namePattern, sortField, sortOrderAsc, take, skip, u.isAdmin() ? null : u.getId());
+        List<Network> result = networkService.list(name, namePattern, sortField, sortOrder, take, skip, u.isAdmin() ? null : u.getId());
 
         logger.debug("Network list request proceed successfully.");
 

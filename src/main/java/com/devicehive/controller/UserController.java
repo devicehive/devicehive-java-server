@@ -12,7 +12,9 @@ import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.RestParametersConverter;
+import com.devicehive.utils.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
@@ -30,6 +32,8 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Path("/user")
 @LogExecutionTime
 public class UserController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @EJB
     private UserService userService;
@@ -73,15 +77,15 @@ public class UserController {
                                  @QueryParam("role") Integer role,
                                  @QueryParam("status") Integer status,
                                  @QueryParam("sortField") String sortField,
-                                 @QueryParam("sortOrder") String sortOrder,
+                                 @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                                  @QueryParam("take") Integer take,
                                  @QueryParam("skip") Integer skip) {
+        logger.debug("User list requested. Login = {}, loginPattern = {}, role = {}, status = {}, sortField = {}, " +
+                "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
+                take, skip);
 
-        Boolean sortOrderAsc = RestParametersConverter.isSortAsc(sortOrder);
-
-        if (sortOrderAsc == null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.WRONG_SORT_ORDER_PARAM_MESSAGE));
+        if (sortOrder == null){
+            sortOrder = true;
         }
 
         if (!"ID".equalsIgnoreCase(sortField) && !"Login".equalsIgnoreCase(sortField) && sortField != null) {
@@ -89,7 +93,12 @@ public class UserController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
+        List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
+
+        logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
+                "sortField = {}, " +
+                "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
+                take, skip);
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
