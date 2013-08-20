@@ -66,9 +66,8 @@ public class DeviceService {
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                                     boolean isAllowedToUpdate) {
         DeviceNotification dn = self.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
-        if (dn != null) {
-            globalMessageBus.publishDeviceNotification(dn);
-        }
+        globalMessageBus.publishDeviceNotification(dn);
+
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -128,9 +127,7 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
         DeviceCommand saved = self.saveDeviceCommandUpdate(update, device);
-        if (saved != null) {
-            globalMessageBus.publishDeviceCommandUpdate(saved);
-        }
+        globalMessageBus.publishDeviceCommandUpdate(saved);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -174,9 +171,7 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
         DeviceNotification dn = saveDeviceNotification(notification, device);
-        if (dn != null) {
             globalMessageBus.publishDeviceNotification(dn);
-        }
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -194,7 +189,7 @@ public class DeviceService {
         }
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
-        return (notification);
+        return notification;
     }
 
     private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {
@@ -347,7 +342,7 @@ public class DeviceService {
 
     public Device getDeviceWithNetworkAndDeviceClass(UUID deviceId, User currentUser, Device currentDevice) {
 
-        if (!checkPermissions(deviceId, currentUser, currentDevice)){
+        if (!checkPermissions(deviceId, currentUser, currentDevice)) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
 
@@ -361,7 +356,7 @@ public class DeviceService {
 
     public Device getDevice(UUID deviceId, User currentUser, Device currentDevice) {
 
-        if (!checkPermissions(deviceId, currentUser, currentDevice)){
+        if (!checkPermissions(deviceId, currentUser, currentDevice)) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
 
@@ -394,7 +389,6 @@ public class DeviceService {
         }
         return true;
     }
-
 
     public boolean deleteDevice(@NotNull UUID guid) {
         return deviceDAO.deleteDevice(guid);
