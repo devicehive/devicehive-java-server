@@ -34,6 +34,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Stateless
 @LogExecutionTime
+@EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
     @EJB
     private DeviceCommandDAO deviceCommandDAO;
@@ -379,6 +380,15 @@ public class DeviceService {
             }
         }
         return true;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Device authenticate(UUID uuid, String key) {
+        Device device = deviceDAO.findByUUIDAndKey(uuid, key);
+        if (device != null) {
+            deviceActivityService.update(device.getId());
+        }
+        return device;
     }
 
     public boolean checkPermissions(UUID deviceId, User currentUser, Device currentDevice) {

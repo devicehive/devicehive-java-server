@@ -91,7 +91,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
         String deviceKey = message.get("deviceKey").getAsString();
         logger.debug("authenticate action for " + deviceId);
-        Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
+        Device device = deviceService.authenticate(deviceId, deviceKey);
 
         if (device != null) {
             WebsocketSession.setAuthorisedDevice(session, device);
@@ -114,11 +114,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
         String deviceKey = request.get("deviceKey").getAsString();
 
-        Device device = deviceDAO.findByUUIDAndKey(deviceId, deviceKey);
+        Device device = deviceService.authenticate(deviceId, deviceKey);
         if (device == null) {
             throw new HiveException("Not authorised");
         }
-        deviceActivityService.update(device.getId());
     }
 
     /**

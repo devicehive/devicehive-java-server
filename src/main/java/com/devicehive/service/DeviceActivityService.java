@@ -4,6 +4,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
+import com.devicehive.utils.LogExecutionTime;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
@@ -23,6 +24,7 @@ import java.util.List;
 @Startup
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 @EJB(beanInterface = DeviceActivityService.class, name = "DeviceActivityService")
+@LogExecutionTime
 public class DeviceActivityService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceActivityService.class);
@@ -54,7 +56,7 @@ public class DeviceActivityService {
 
 
 
-    @Schedule(hour = "*", minute = "*/5")
+    @Schedule(hour = "*", minute = "*/1")
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processOfflineDevices() {
         long now = hazelcast.getCluster().getClusterTime();
