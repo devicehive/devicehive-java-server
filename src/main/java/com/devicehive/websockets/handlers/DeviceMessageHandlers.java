@@ -12,6 +12,7 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.DeviceActivityService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
@@ -55,6 +56,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     private TimestampService timestampService;
     @EJB
     private ConfigurationService configurationService;
+    @EJB
+    private DeviceActivityService deviceActivityService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/authenticate">WebSocket API:
@@ -115,6 +118,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (device == null) {
             throw new HiveException("Not authorised");
         }
+        deviceActivityService.update(device.getId());
     }
 
     /**

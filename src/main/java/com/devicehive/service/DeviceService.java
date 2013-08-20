@@ -61,13 +61,15 @@ public class DeviceService {
     private SubscriptionManager subscriptionManager;
     @EJB
     private DeviceService self;
+    @EJB
+    private DeviceActivityService deviceActivityService;
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                                     boolean isAllowedToUpdate) {
         DeviceNotification dn = self.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
         globalMessageBus.publishDeviceNotification(dn);
-
+        deviceActivityService.update(dn.getDevice().getId());
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)

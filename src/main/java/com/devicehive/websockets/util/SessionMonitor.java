@@ -3,6 +3,8 @@ package com.devicehive.websockets.util;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.model.Device;
+import com.devicehive.service.DeviceActivityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,9 @@ public class SessionMonitor {
     @EJB
     private ConfigurationService configurationService;
 
+    @EJB
+    private DeviceActivityService deviceActivityService;
+
 
 
     private static final String PING = "ping";
@@ -48,6 +53,7 @@ public class SessionMonitor {
                 logger.debug("Pong received for session " + session.getId());
                 AtomicLong atomicLong = (AtomicLong) session.getUserProperties().get(PING);
                 atomicLong.set(System.currentTimeMillis());
+                updateDeviceSession(session);
             }
         });
         session.getUserProperties().put(PING, new AtomicLong(System.currentTimeMillis()));
@@ -58,6 +64,14 @@ public class SessionMonitor {
     public Session getSession(String sessionId) {
         Session session = sessionMap.get(sessionId);
         return session != null && session.isOpen() ? session : null;
+    }
+
+    private void updateDeviceSession(Session session) {
+        Device authorizedDevice = WebsocketSession.getAuthorisedDevice(session);
+        if (authorizedDevice != null) {
+            deviceActivityService.update(authorizedDevice.getId());
+        }
+        //TODO it is needed to update devices subscribed for commands too
     }
 
 

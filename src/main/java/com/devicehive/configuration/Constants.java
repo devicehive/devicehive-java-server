@@ -30,6 +30,6 @@ public class Constants {
 
     public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
 
-
+    public static final String DEVICE_ACTIVITY_MAP = "DEVICE_ACTIVITY_MAP";
 
 }

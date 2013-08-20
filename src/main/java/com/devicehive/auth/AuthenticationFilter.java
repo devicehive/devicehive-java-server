@@ -3,6 +3,7 @@ package com.devicehive.auth;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import com.devicehive.service.DeviceActivityService;
 import com.devicehive.service.UserService;
 import org.apache.commons.codec.binary.Base64;
 
@@ -27,10 +28,13 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     private UserService userService;
 
+    private DeviceActivityService deviceActivityService;
+
     public AuthenticationFilter() throws NamingException {
         InitialContext initialContext = new InitialContext();
         this.userService = (UserService) initialContext.lookup("java:comp/env/UserService");
         this.deviceDAO = (DeviceDAO) initialContext.lookup("java:comp/env/DeviceDAO");
+        this.deviceActivityService = (DeviceActivityService) initialContext.lookup("java:comp/env/DeviceActivityService");
     }
 
     @Override
@@ -51,7 +55,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         UUID uuid;
         try {
             uuid = UUID.fromString(deviceId);
-            return deviceDAO.findByUUIDAndKey(uuid, deviceKey);
+            Device device = deviceDAO.findByUUIDAndKey(uuid, deviceKey);
+            if (device != null) {
+                deviceActivityService.update(device.getId());
+            }
+            return device;
         } catch (IllegalArgumentException ex) {
             return null;
         }

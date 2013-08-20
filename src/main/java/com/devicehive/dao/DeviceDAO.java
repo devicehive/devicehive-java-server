@@ -103,6 +103,12 @@ public class DeviceDAO {
         return device;
     }
 
+    public Device setOffline(long id) {
+        Device device = findById(id);
+        device.setStatus("Offline");
+        return device;
+    }
+
     public boolean updateDevice(@NotNull Long id, Device device) {
         Query query = em.createNamedQuery("Device.updateById");
         query.setParameter("name", device.getName());
