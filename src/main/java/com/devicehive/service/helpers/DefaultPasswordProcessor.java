@@ -1,5 +1,6 @@
 package com.devicehive.service.helpers;
 
+import com.devicehive.configuration.Constants;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.UnsupportedEncodingException;
@@ -47,7 +48,7 @@ public class DefaultPasswordProcessor implements PasswordProcessor {
     public String hashPassword(String password, String salt) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = md.digest((salt + password).getBytes("UTF-8"));
+            byte[] hashBytes = md.digest((salt + password).getBytes(Constants.UTF8));
             return Base64.encodeBase64String(hashBytes);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
