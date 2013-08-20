@@ -10,6 +10,7 @@ import com.google.gson.annotations.SerializedName;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED;
 
 public class EquipmentUpdate implements HiveEntity {
+    private static final long serialVersionUID = -1048095377970919818L;
     @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
     Long id;
 

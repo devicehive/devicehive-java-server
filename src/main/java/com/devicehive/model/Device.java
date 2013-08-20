@@ -59,6 +59,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Cacheable
 public class Device implements HiveEntity {
 
+
+    private static final long serialVersionUID = 2959997451631843298L;
     @Id
     @SerializedName("sid")//overwork for  "declares multiple JSON fields" exception
     @GeneratedValue(strategy = GenerationType.IDENTITY)

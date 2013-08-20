@@ -11,6 +11,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED
 //TODO: javadoc
 public class UserNetworkResponse implements HiveEntity {
 
+    private static final long serialVersionUID = 4328574005902197119L;
     @SerializedName("network")
     @JsonPolicyDef({USER_PUBLISHED, NETWORKS_LISTED})
     private Network network;

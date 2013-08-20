@@ -32,6 +32,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Cacheable
 public class Network implements HiveEntity {
 
+    private static final long serialVersionUID = -4824259625517565076L;
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -142,9 +143,18 @@ public class Network implements HiveEntity {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Network)) {
-            return false;
-        }
-        return this.id == ((Network) o).getId();
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Network network = (Network) o;
+
+        if (id != null ? !id.equals(network.id) : network.id != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

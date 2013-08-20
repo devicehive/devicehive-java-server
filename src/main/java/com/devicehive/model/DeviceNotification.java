@@ -57,6 +57,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Cacheable
 public class DeviceNotification implements HiveEntity {
 
+    private static final long serialVersionUID = 8704321978956225955L;
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({

@@ -5,6 +5,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class JsonStringWrapper implements HiveEntity {
 
+    private static final long serialVersionUID = -152849186108390497L;
     private String jsonString;
 
     public JsonStringWrapper() {

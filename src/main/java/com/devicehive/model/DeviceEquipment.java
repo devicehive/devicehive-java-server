@@ -36,6 +36,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPME
 @Cacheable
 public class DeviceEquipment implements HiveEntity {
 
+    private static final long serialVersionUID = 479737367629574073L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SerializedName("sid")//TODO: dirty hack, remove it

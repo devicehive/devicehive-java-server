@@ -1,8 +1,7 @@
 package com.devicehive.service.helpers;
 
-import java.io.Serializable;
 
-public interface PasswordProcessor extends Serializable {
+public interface PasswordProcessor {
 
     String generateSalt();
 

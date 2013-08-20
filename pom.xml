@@ -168,7 +168,7 @@
                 <configuration>
                     <xmlOutput>true</xmlOutput>
                     <xmlOutputDirectory>target/site</xmlOutputDirectory>
-                    <effort>max</effort>
+                    <effort>Max</effort>
                     <sourceEncoding>UTF-8</sourceEncoding>
                     <threshold>Default</threshold>
                 </configuration>

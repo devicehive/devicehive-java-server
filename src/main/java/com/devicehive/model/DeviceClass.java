@@ -40,6 +40,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Cacheable
 public class DeviceClass implements HiveEntity {
 
+
+    private static final long serialVersionUID = 8091624406245592117L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
@@ -166,12 +168,19 @@ public class DeviceClass implements HiveEntity {
     }
 
     @Override
-    public boolean equals(Object dc) {
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        if (dc instanceof DeviceClass) {
-            return getId() == ((DeviceClass) dc).getId();
-        }
+        DeviceClass that = (DeviceClass) o;
 
-        return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

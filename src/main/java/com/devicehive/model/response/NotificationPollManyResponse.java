@@ -13,6 +13,8 @@ import java.util.UUID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 
 public class NotificationPollManyResponse implements HiveEntity {
+
+    private static final long serialVersionUID = -4390548037685312874L;
     @SerializedName("notification")
     @JsonPolicyDef(NOTIFICATION_TO_CLIENT)
     private DeviceNotification notification;

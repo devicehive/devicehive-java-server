@@ -15,6 +15,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_U
 
 public class DeviceCommandUpdate implements HiveEntity {
 
+    private static final long serialVersionUID = -5147107009697358635L;
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_UPDATE_FROM_DEVICE})
     private Long id;

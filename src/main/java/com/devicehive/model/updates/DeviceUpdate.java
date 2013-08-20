@@ -11,6 +11,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceUpdate implements HiveEntity {
 
+    private static final long serialVersionUID = -7498444232044147881L;
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private NullableWrapper<UUID> guid;

@@ -12,6 +12,7 @@ import java.util.Set;
 //TODO: javadoc
 public class NetworkRequest implements HiveEntity {
 
+    private static final long serialVersionUID = -4134073649300446791L;
     @SerializedName("id")
     @JsonPolicyDef({JsonPolicyDef.Policy.DEVICE_PUBLISHED, JsonPolicyDef.Policy.USER_PUBLISHED,
             JsonPolicyDef.Policy.NETWORKS_LISTED, JsonPolicyDef.Policy.NETWORK_PUBLISHED})

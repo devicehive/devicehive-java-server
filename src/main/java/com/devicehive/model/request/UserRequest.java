@@ -12,6 +12,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class UserRequest implements HiveEntity {
 
+    private static final long serialVersionUID = -8353201743020153250L;
     @SerializedName("login")
     private NullableWrapper<String> login;
 

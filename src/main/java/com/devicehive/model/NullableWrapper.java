@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 public class NullableWrapper<K> implements Serializable {
 
+    private static final long serialVersionUID = 5760788287985397290L;
     private K value;
 
     public NullableWrapper(K value) {

@@ -45,6 +45,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Cacheable
 public class User implements HiveEntity {
 
+    private static final long serialVersionUID = -8980491502416082011L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SerializedName("id")

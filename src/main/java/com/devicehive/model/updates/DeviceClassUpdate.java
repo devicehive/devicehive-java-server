@@ -9,6 +9,7 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceClassUpdate implements HiveEntity {
+    private static final long serialVersionUID = 967472386318199376L;
     @JsonPolicyDef(DEVICE_PUBLISHED)
     Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})

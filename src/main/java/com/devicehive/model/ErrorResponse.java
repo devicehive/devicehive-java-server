@@ -11,6 +11,7 @@ public class ErrorResponse implements HiveEntity {
     public static final String DEVICE_NOT_FOUND_MESSAGE = "Device not found.";
     public static final String NETWORK_NOT_FOUND_MESSAGE = "Network not found.";
     public static final String FORBIDDEN_MESSAGE = "Access Forbidden";
+    private static final long serialVersionUID = 286844689037405279L;
 
 
     private Integer error = null;

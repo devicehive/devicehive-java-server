@@ -21,6 +21,8 @@ import java.util.Set;
 @Cacheable(false)
 public class Configuration implements HiveEntity {
 
+
+    private static final long serialVersionUID = 7957264089438389993L;
     @Id
     @SerializedName("name")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name shouldn't be more than " +

@@ -13,6 +13,8 @@ public @interface JsonPolicyApply {
     public static class JsonPolicyApplyLiteral extends AnnotationLiteral<JsonPolicyApply>
             implements JsonPolicyApply {
 
+
+        private static final long serialVersionUID = 7838737655418173629L;
         private JsonPolicyDef.Policy policy;
 
         public JsonPolicyApplyLiteral(JsonPolicyDef.Policy policy) {

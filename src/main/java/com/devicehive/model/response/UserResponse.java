@@ -18,6 +18,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
  */
 public class UserResponse implements HiveEntity {
 
+    private static final long serialVersionUID = 7947516851877980861L;
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED})
     private Long id;
