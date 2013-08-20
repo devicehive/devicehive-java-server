@@ -3,6 +3,7 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
@@ -136,11 +137,11 @@ public class User implements HiveEntity {
     }
 
     public Timestamp getLastLogin() {
-        return lastLogin;
+        return ObjectUtils.cloneIfPossible(lastLogin);
     }
 
     public void setLastLogin(Timestamp lastLogin) {
-        this.lastLogin = lastLogin;
+        this.lastLogin = ObjectUtils.cloneIfPossible(lastLogin);
     }
 
     public String getPasswordSalt() {

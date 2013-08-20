@@ -1,5 +1,7 @@
 package com.devicehive.model;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -17,10 +19,10 @@ public class ServerTimestamp {
 
 
     public Timestamp getTimestamp() {
-        return timestamp;
+        return ObjectUtils.cloneIfPossible(timestamp);
     }
 
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 }

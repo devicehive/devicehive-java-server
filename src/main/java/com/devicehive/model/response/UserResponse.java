@@ -3,6 +3,7 @@ package com.devicehive.model.response;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Column;
 import java.sql.Timestamp;
@@ -92,11 +93,11 @@ public class UserResponse implements HiveEntity {
     }
 
     public Timestamp getLastLogin() {
-        return lastLogin;
+        return ObjectUtils.cloneIfPossible(lastLogin);
     }
 
     public void setLastLogin(Timestamp lastLogin) {
-        this.lastLogin = lastLogin;
+        this.lastLogin = ObjectUtils.cloneIfPossible(lastLogin);
     }
 
     public Set<UserNetworkResponse> getNetworks() {

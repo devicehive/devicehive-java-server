@@ -3,6 +3,7 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
@@ -133,11 +134,11 @@ public class DeviceNotification implements HiveEntity {
     }
 
     public Timestamp getTimestamp() {
-        return timestamp;
+        return ObjectUtils.cloneIfPossible(timestamp);
     }
 
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 
     public String getNotification() {
