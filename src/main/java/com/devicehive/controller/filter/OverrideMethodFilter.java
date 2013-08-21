@@ -26,8 +26,8 @@ public class OverrideMethodFilter implements ContainerRequestFilter {
             String method = requestContext.getHeaderString(overrideHeader);
             for (String allowed : allowedMethods) {
                 if (allowed.equalsIgnoreCase(method)) {
-                    logger.debug("Overriding POST with " + method);
-                    requestContext.setMethod(method);
+                    logger.debug("Overriding POST with " + allowed);
+                    requestContext.setMethod(allowed);
                     break;
                 }
             }
