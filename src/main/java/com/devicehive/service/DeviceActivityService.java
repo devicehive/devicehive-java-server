@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Singleton
@@ -60,13 +61,15 @@ public class DeviceActivityService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processOfflineDevices() {
         long now = hazelcast.getCluster().getClusterTime();
-        for (Long deviceId : deviceTimestampMap.localKeySet()) {
+        for (Iterator<Long> iter = deviceTimestampMap.localKeySet().iterator(); iter.hasNext();) {
+            Long deviceId = iter.next();
             Device device = deviceDAO.findById(deviceId);
             logger.debug("Checking device {} ", device.getGuid());
             DeviceClass deviceClass = device.getDeviceClass();
             if (deviceClass.getOfflineTimeout() != null) {
                 if (now - deviceTimestampMap.get(deviceId) > deviceClass.getOfflineTimeout() * 1000) {
                     deviceDAO.setOffline(deviceId);
+                    iter.remove();
                     logger.warn("Device {} is now offline", device.getGuid());
                 }
             }
