@@ -57,7 +57,7 @@ public class DeviceActivityService {
 
 
 
-    @Schedule(hour = "*", minute = "*/1")
+    @Schedule(hour = "*", minute = "*/5")
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processOfflineDevices() {
         logger.debug("Checking lost offline devices");
