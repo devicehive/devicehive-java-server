@@ -53,6 +53,11 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         return set != null ? set : Collections.EMPTY_SET;
     }
 
+    public Set<T> get(String subscriberId) {
+        Set<T> set = bySubscriber.get(subscriberId);
+        return set != null ? set : Collections.EMPTY_SET;
+    }
+
     public synchronized void remove(T subscription) {
         remove(subscription.getEventSource(), subscription.getSubscriberId());
     }
@@ -85,7 +90,7 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         subs = bySubscriber.get(sub.getSubscriberId());
         subs.remove(sub);
         if (subs.isEmpty()) {
-            bySubscriber.remove(sub.getEventSource());
+            bySubscriber.remove(sub.getSubscriberId());
         }
     }
 

@@ -13,6 +13,10 @@ public class CommandSubscriptionStorage extends AbstractStorage<Long, CommandSub
         removeBySubscriber(sessionId);
     }
 
+    public Set<CommandSubscription> getBySession(String sessionId) {
+        return get(sessionId);
+    }
+
     public synchronized void removeByDevice(Long deviceId) {
         removeByEventSource(deviceId);
     }

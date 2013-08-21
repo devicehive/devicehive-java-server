@@ -3,6 +3,8 @@ package com.devicehive.websockets.util;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.subscriptions.CommandSubscription;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceActivityService;
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -31,7 +34,7 @@ import static com.devicehive.configuration.Constants.UTF8;
 public class SessionMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
-
+    private static final String PING = "ping";
 
     private Map<String, Session> sessionMap;
 
@@ -41,10 +44,8 @@ public class SessionMonitor {
     @EJB
     private DeviceActivityService deviceActivityService;
 
-
-
-    private static final String PING = "ping";
-
+    @EJB
+    private SubscriptionManager subscriptionManager;
 
     public void registerSession(final Session session) {
         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
@@ -60,7 +61,6 @@ public class SessionMonitor {
         sessionMap.put(session.getId(), session);
     }
 
-
     public Session getSession(String sessionId) {
         Session session = sessionMap.get(sessionId);
         return session != null && session.isOpen() ? session : null;
@@ -71,9 +71,13 @@ public class SessionMonitor {
         if (authorizedDevice != null) {
             deviceActivityService.update(authorizedDevice.getId());
         }
-        //TODO it is needed to update devices subscribed for commands too
+        String sessionId = session.getId();
+        Set<CommandSubscription> commandSubscriptions =
+                subscriptionManager.getCommandSubscriptionStorage().getBySession(sessionId);
+        for (CommandSubscription subscription : commandSubscriptions) {
+            deviceActivityService.update(subscription.getDeviceId());
+        }
     }
-
 
     @Schedule(hour = "*", minute = "*", second = "*/30")
     public void ping() {
@@ -81,7 +85,8 @@ public class SessionMonitor {
             if (session.isOpen()) {
                 logger.debug("Pinging session " + session.getId());
                 try {
-                    session.getAsyncRemote().sendPing(ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8))));
+                    session.getAsyncRemote()
+                            .sendPing(ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8))));
                 } catch (IOException ex) {
                     logger.error("Error sending ping, closing the session", ex);
                     closePingPong(session);
@@ -95,7 +100,8 @@ public class SessionMonitor {
 
     @Schedule(hour = "*", minute = "*", second = "*/30")
     public void monitor() {
-        Long timeout = configurationService.getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);
+        Long timeout = configurationService
+                .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);
         for (Session session : sessionMap.values()) {
             logger.debug("Checking session " + session.getId());
             if (session.isOpen()) {
@@ -109,7 +115,6 @@ public class SessionMonitor {
             }
         }
     }
-
 
     private void closePingPong(Session session) {
         try {
