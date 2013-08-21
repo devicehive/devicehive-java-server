@@ -60,6 +60,7 @@ public class DeviceActivityService {
     @Schedule(hour = "*", minute = "*/1")
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processOfflineDevices() {
+        logger.debug("Checking lost offline devices");
         long now = hazelcast.getCluster().getClusterTime();
         for (Iterator<Long> iter = deviceTimestampMap.localKeySet().iterator(); iter.hasNext();) {
             Long deviceId = iter.next();
@@ -74,6 +75,7 @@ public class DeviceActivityService {
                 }
             }
         }
+        logger.debug("Checking lost offline devices complete");
     }
 
 }
