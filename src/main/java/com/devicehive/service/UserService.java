@@ -91,10 +91,7 @@ public class UserService {
             u.setPasswordHash(hash);
             u.setPasswordSalt(salt);
         }
-        if (userDAO.update(id, u)) {
-            return u;
-        }
-        return null;
+        return u;
     }
 
     /**
@@ -132,11 +129,7 @@ public class UserService {
             existingUser.setPasswordSalt(salt);
         }
 
-        if (userDAO.update(id, existingUser)) {
-            return existingUser;
-        }
-
-        return null;
+        return existingUser;
     }
 
     /**

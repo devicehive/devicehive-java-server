@@ -127,14 +127,6 @@ public class DeviceNotificationDAO {
         return resultQuery.getResultList();
     }
 
-    public boolean updateNotification(@NotNull long id, DeviceNotification notification) {
-        Query query = em.createNamedQuery("DeviceNotification.updateById");
-        query.setParameter("parameters", notification.getParameters());
-        query.setParameter("timestamp", notification.getTimestamp());
-        query.setParameter("notification", notification.getNotification());
-        query.setParameter("id", id);
-        return query.executeUpdate() != 0;
-    }
 
     public boolean deleteNotification(@NotNull long id) {
         Query query = em.createNamedQuery("DeviceNotification.deleteById");

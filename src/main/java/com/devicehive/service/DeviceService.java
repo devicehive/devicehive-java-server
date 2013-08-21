@@ -232,7 +232,6 @@ public class DeviceService {
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(device.getKey());
             }
-            deviceDAO.updateDevice(existingDevice.getId(), existingDevice);
             notification.setNotification(SpecialNotifications.DEVICE_UPDATE);
         }
         notification.setDevice(existingDevice);

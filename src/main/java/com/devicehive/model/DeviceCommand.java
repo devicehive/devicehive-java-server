@@ -30,15 +30,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                    "join d.network n " +
                    "join n.users u where u = :user and d.guid = :deviceId)"),
         @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
-        @NamedQuery(name = "DeviceCommand.updateById",
-                query = "update DeviceCommand dc set " +
-                        "dc.timestamp = :timestamp, " +
-                        "dc.parameters = :parameters, " +
-                        "dc.lifetime = :lifetime, " +
-                        "dc.flags = :flags, " +
-                        "dc.status = :status, " +
-                        "dc.result = :result " +
-                        "where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
                 " = :user and dc.device = :device"),
         @NamedQuery(name = "DeviceCommand.deleteByFK",

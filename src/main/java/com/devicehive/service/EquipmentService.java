@@ -73,6 +73,6 @@ public class EquipmentService {
         if (equipmentUpdate.getData() == null) {
             toUpdate.setData(stored.getData());
         }
-        return equipmentDAO.update(toUpdate, equipmentId, deviceClassId);
+        return true;
     }
 }

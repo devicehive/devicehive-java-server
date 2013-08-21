@@ -52,26 +52,6 @@ public class EquipmentDAO {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
-    public boolean update(@NotNull Equipment equipment, @NotNull long equipmentId) {
-        Query query = em.createNamedQuery("Equipment.updateProperties");
-        query.setParameter("id", equipmentId);
-        query.setParameter("name", equipment.getName());
-        query.setParameter("code", equipment.getCode());
-        query.setParameter("type", equipment.getType());
-        query.setParameter("data", equipment.getData());
-        return query.executeUpdate() != 0;
-    }
-
-    public boolean update(@NotNull Equipment equipment, @NotNull long equipmentId, @NotNull long deviceClassId) {
-        Query query = em.createNamedQuery("Equipment.updatePropertiesUsingDeviceClass");
-        query.setParameter("equipmentId", equipmentId);
-        query.setParameter("deviceClassId", deviceClassId);
-        query.setParameter("name", equipment.getName());
-        query.setParameter("code", equipment.getCode());
-        query.setParameter("type", equipment.getType());
-        query.setParameter("data", equipment.getData());
-        return query.executeUpdate() != 0;
-    }
 
     public boolean delete(@NotNull long equipmentId) {
         Query query = em.createNamedQuery("Equipment.deleteById");

@@ -43,11 +43,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 "and dn.timestamp > :timestamp"),
         @NamedQuery(name = "DeviceNotification.getByNewerThan", query = "select dn from DeviceNotification dn " +
                 "where dn.timestamp > :timestamp order by dn.timestamp"),
-        @NamedQuery(name = "DeviceNotification.updateById", query = "update DeviceNotification dn set " +
-                "dn.parameters = :parameters, " +
-                "dn.timestamp = :timestamp, " +
-                "dn.notification = :notification " +
-                "where id = :id"),
         @NamedQuery(name = "DeviceNotification.deleteById",
                 query = "delete from DeviceNotification dn where dn.id = :id"),
         @NamedQuery(name = "DeviceNotification.deleteByFK",

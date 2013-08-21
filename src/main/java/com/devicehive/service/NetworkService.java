@@ -64,15 +64,7 @@ public class NetworkService {
         if (n.getName() != null) {
             updated.setName(n.getName());
         }
-        try {
-            if (networkDAO.update(n.getId(), n)) {
-                return n;
-            }
-        } catch (Exception e) {
-            throw new HiveException("Unable to save network");
-        }
-        return null;
-
+        return updated;
     }
 
     public List<Network> list(String name, String namePattern,

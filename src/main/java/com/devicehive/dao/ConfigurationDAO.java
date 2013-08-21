@@ -35,12 +35,10 @@ public class ConfigurationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void save(String name, String value){
-        Query query = em.createNamedQuery("Configuration.update");
-        query.setParameter("name", name);
-        query.setParameter("value", value);
-        if (query.executeUpdate() == 0){
-            em.persist(new Configuration(name, value));
-        }
+    public void save(@NotNull String name, String value){
+        Configuration configuration = new Configuration();
+        configuration.setName(name);
+        configuration.setValue(value);
+        em.merge(configuration);
     }
 }

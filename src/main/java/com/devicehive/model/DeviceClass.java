@@ -26,14 +26,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 query = "select d from DeviceClass d where d.name = :name and d.version = :version"),
         @NamedQuery(name = "DeviceClass.getWithEquipment",
                 query = "select d from DeviceClass d left join fetch d.equipment where d.id = :id"),
-        @NamedQuery(name = "DeviceClass.updateDeviceClassById",
-                query = "update DeviceClass d set " +
-                        "d.isPermanent = :isPermanent, " +
-                        "d.offlineTimeout = :offlineTimeout, " +
-                        "d.data = :data, " +
-                        "d.name = :name, " +
-                        "d.version = :version " +
-                        "where d.id = :id"),
         @NamedQuery(name = "DeviceClass.deleteById", query = "delete from DeviceClass d where d.id = :id"),
         @NamedQuery(name = "DeviceClass.getByDevice", query = "select d.deviceClass from Device d where d.guid = :guid")
 })

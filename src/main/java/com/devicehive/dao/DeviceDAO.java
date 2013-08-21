@@ -109,16 +109,6 @@ public class DeviceDAO {
         return device;
     }
 
-    public boolean updateDevice(@NotNull Long id, Device device) {
-        Query query = em.createNamedQuery("Device.updateById");
-        query.setParameter("name", device.getName());
-        query.setParameter("status", device.getStatus());
-        query.setParameter("network", device.getNetwork());
-        query.setParameter("deviceClass", device.getDeviceClass());
-        query.setParameter("data", device.getData());
-        query.setParameter("id", device.getId());
-        return query.executeUpdate() != 0;
-    }
 
     public boolean deleteDevice(@NotNull Long id) {
         Query query = em.createNamedQuery("Device.deleteById");

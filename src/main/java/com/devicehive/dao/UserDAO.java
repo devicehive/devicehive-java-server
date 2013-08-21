@@ -158,16 +158,6 @@ public class UserDAO {
         return count != null && count > 0;
     }
 
-    public boolean update(@NotNull long id, @NotNull User user) {
-        Query query = em.createNamedQuery("User.updateById");
-        query.setParameter("passwordHash", user.getPasswordHash());
-        query.setParameter("passwordSalt", user.getPasswordSalt());
-        query.setParameter("loginAttempts", user.getLoginAttempts());
-        query.setParameter("role", user.getRole());
-        query.setParameter("lastLogin", user.getLastLogin());
-        query.setParameter("id", id);
-        return query.executeUpdate() != 0;
-    }
 
     public boolean delete(@NotNull long id) {
         Query query = em.createNamedQuery("User.deleteById");
@@ -198,9 +188,8 @@ public class UserDAO {
         return user;
     }
 
-    public boolean deleteUser(@NotNull long id) {
-        Query q = em.createNamedQuery("User.delete");
-        q.setParameter("id", id);
-        return q.executeUpdate() > 0;
+    public void deleteUser(@NotNull long id) {
+        User user = this.findById(id);
+        user.setStatus(UserStatus.DELETED);
     }
 }

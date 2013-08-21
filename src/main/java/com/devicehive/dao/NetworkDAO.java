@@ -71,12 +71,6 @@ public class NetworkDAO {
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
 
-    public boolean update(@NotNull Long id, @NotNull Network network) {
-        Query query = em.createNamedQuery("Network.updateById");
-        query.setParameter("description", network.getDescription());
-        query.setParameter("id", id);
-        return query.executeUpdate() != 0;
-    }
 
     public Network merge(@NotNull Network n) {
         return em.merge(n);

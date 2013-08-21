@@ -94,21 +94,6 @@ public class DeviceClassDAO {
 
     }
 
-    /**
-     * @param id
-     * @param deviceClass
-     * @return true if update was executed, false otherwise
-     */
-    public boolean update(@NotNull Long id, DeviceClass deviceClass) {
-        Query query = em.createNamedQuery("DeviceClass.updateDeviceClassById");
-        query.setParameter("isPermanent", deviceClass.getPermanent());
-        query.setParameter("name", deviceClass.getName());
-        query.setParameter("version", deviceClass.getVersion());
-        query.setParameter("offlineTimeout", deviceClass.getOfflineTimeout());
-        query.setParameter("data", deviceClass.getData());
-        query.setParameter("id", id);
-        return query.executeUpdate() != 0;
-    }
 
     public DeviceClass getWithEquipment(@NotNull long id) {
         TypedQuery<DeviceClass> tq = em.createNamedQuery("DeviceClass.getWithEquipment", DeviceClass.class);

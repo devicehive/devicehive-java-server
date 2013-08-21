@@ -22,8 +22,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Network.findByName", query = "select n from Network n where name = :name"),
         @NamedQuery(name = "Network.findWithUsers",
                 query = "select n from Network n left join fetch n.users where n.id = :id"),
-        @NamedQuery(name = "Network.updateById",
-                query = "update Network n set n.description = :description where n.id = :id"),
         @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id"),
         @NamedQuery(name = "Network.getWithDevicesAndDeviceClasses", query = "select n from Network n " +
                 "left join fetch n.devices where n.id = :id"),

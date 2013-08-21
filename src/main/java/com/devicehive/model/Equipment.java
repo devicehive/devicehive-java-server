@@ -26,15 +26,11 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Equipment.getByDeviceClassAndId", query = "select e from Equipment e join e.deviceClass dc " +
                 "where e.id = :equipmentId and dc.id = :deviceClassId"),
         @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList"),
-        @NamedQuery(name = "Equipment.updateProperties", query = "update Equipment e set e.name = :name, e.code = :code," +
-                " e.type = :type, e.data = :data where e.id = :id"),
         @NamedQuery(name = "Equipment.deleteById", query = "delete from Equipment e where e.id = :id"),
         @NamedQuery(name = "Equipment.deleteByFK", query = "delete from Equipment e where e.deviceClass = " +
                 ":deviceClass"),
         @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from Equipment e where e.id = :id " +
-                "and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)"),
-        @NamedQuery(name = "Equipment.updatePropertiesUsingDeviceClass", query = "update Equipment e set e.name = :name, e.code = :code," +
-                " e.type = :type, e.data = :data where e.id = :equipmentId and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)")
+                "and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)")
 })
 @Cacheable
 public class Equipment implements HiveEntity {

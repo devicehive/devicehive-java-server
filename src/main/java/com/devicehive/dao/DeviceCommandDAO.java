@@ -48,17 +48,6 @@ public class DeviceCommandDAO {
         return query.executeUpdate();
     }
 
-    public boolean updateCommand(@NotNull Long id, @NotNull DeviceCommand command) {
-        Query query = em.createNamedQuery("DeviceCommand.updateById");
-        query.setParameter("parameters", command.getParameters());
-        query.setParameter("lifetime", command.getLifetime());
-        query.setParameter("flags", command.getFlags());
-        query.setParameter("status", command.getStatus());
-        query.setParameter("result", command.getResult());
-        query.setParameter("timestamp", command.getTimestamp());
-        query.setParameter("id", id);
-        return query.executeUpdate() != 0;
-    }
 
     public int deleteCommand(@NotNull Device device, @NotNull User user) {
         Query query = em.createNamedQuery("DeviceCommand.deleteByDeviceAndUser");
