@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.*;
+import javax.persistence.OptimisticLockException;
 import java.util.Iterator;
 
 @Singleton
@@ -39,25 +40,26 @@ public class DeviceActivityService {
         deviceTimestampMap.putAsync(deviceId, hazelcast.getCluster().getClusterTime());
     }
 
-    @Schedule(hour = "*", minute = "*/5")
+    @Schedule(hour = "*", minute = "*/1")
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processOfflineDevices() {
         logger.debug("Checking lost offline devices");
         long now = hazelcast.getCluster().getClusterTime();
-        for (Iterator<Long> iter = deviceTimestampMap.localKeySet().iterator(); iter.hasNext(); ) {
-            Long deviceId = iter.next();
+        for (Long deviceId : deviceTimestampMap.localKeySet()) {
             Device device = deviceDAO.findById(deviceId);
             if (device == null) {
                 logger.warn("Device with id {} does not exists", deviceId);
-                iter.remove();
+                deviceTimestampMap.remove(deviceId);
             } else {
                 logger.debug("Checking device {} ", device.getGuid());
                 DeviceClass deviceClass = device.getDeviceClass();
                 if (deviceClass.getOfflineTimeout() != null) {
-                    if (now - deviceTimestampMap.get(deviceId) > deviceClass.getOfflineTimeout() * 1000) {
-                        deviceDAO.setOffline(deviceId);
-                        iter.remove();
-                        logger.warn("Device {} is now offline", device.getGuid());
+                    long time = deviceTimestampMap.get(deviceId);
+                    if (now - time > deviceClass.getOfflineTimeout() * 1000) {
+                        if (deviceTimestampMap.remove(deviceId, time)) {
+                            deviceDAO.setOffline(deviceId);
+                            logger.warn("Device {} is now offline", device.getGuid());
+                        }
                     }
                 }
             }
