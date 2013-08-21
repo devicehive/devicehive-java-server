@@ -174,13 +174,23 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
         DeviceNotification dn = saveDeviceNotification(notification, device);
-            globalMessageBus.publishDeviceNotification(dn);
+        globalMessageBus.publishDeviceNotification(dn);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public DeviceNotification saveDeviceNotification(DeviceNotification notification, Device device) {
+        if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
+            return self.saveDeviceNotificationEquipmentCase(notification, device);
+        } else if (notification.getNotification().equals(SpecialNotifications.DEVICE_STATUS)) {
+            return self.saveDeviceNotificationStatusCase(notification, device);
+        }
+        return self.saveDeviceNotificationOtherCase(notification, device);
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification saveDeviceNotification(DeviceNotification notification, Device device) {
+    public DeviceNotification saveDeviceNotificationEquipmentCase(DeviceNotification notification, Device device) {
         DeviceEquipment deviceEquipment = null;
-        if (notification.getNotification().equals("equipment")) {
+        if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
             deviceEquipment = parseNotification(notification, device);
             if (deviceEquipment.getTimestamp() == null) {
                 deviceEquipment.setTimestamp(timestampService.getTimestamp());
@@ -190,6 +200,26 @@ public class DeviceService {
             deviceEquipment.setTimestamp(timestampService.getTimestamp());
             deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
         }
+        notification.setDevice(device);
+        deviceNotificationDAO.createNotification(notification);
+        return notification;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public DeviceNotification saveDeviceNotificationStatusCase(DeviceNotification notification, Device device) {
+        DeviceUpdate deviceUpdate = new DeviceUpdate();
+        String status = parseNotificationStatus(notification);
+        deviceUpdate.setStatus(new NullableWrapper<>(status));
+        device.setStatus(status);
+        DeviceNotification updateDeviceNotification = self.createOrUpdateDevice(device, deviceUpdate, true);
+        globalMessageBus.publishDeviceNotification(updateDeviceNotification);
+        notification.setDevice(device);
+        deviceNotificationDAO.createNotification(notification);
+        return notification;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DeviceNotification saveDeviceNotificationOtherCase(DeviceNotification notification, Device device) {
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
         return notification;
@@ -206,6 +236,19 @@ public class DeviceService {
             throw new HiveException("\"parameters\" must be JSON Object!");
         }
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
+    }
+
+    private String parseNotificationStatus(DeviceNotification notification) {
+        String jsonParametersString = notification.getParameters().getJsonString();
+        Gson gson = GsonFactory.createGson();
+        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
+        JsonObject statusJsonObject;
+        if (parametersJsonElement instanceof JsonObject) {
+            statusJsonObject = (JsonObject) parametersJsonElement;
+        } else {
+            throw new HiveException("\"parameters\" must be JSON Object!");
+        }
+        return statusJsonObject.get("status").getAsString();
     }
 
     private DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
@@ -293,7 +336,9 @@ public class DeviceService {
             if (!isAllowedToUpdate) {
                 throw new HiveException("Unauthorized. No permissions to update device", 401);
             }
-            existingDevice.setDeviceClass(device.getDeviceClass());
+            if (deviceUpdate.getDeviceClass() != null) {
+                existingDevice.setDeviceClass(device.getDeviceClass());
+            }
             if (deviceUpdate.getStatus() != null) {
                 existingDevice.setStatus(device.getStatus());
             }
