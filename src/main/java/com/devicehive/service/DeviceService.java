@@ -1,6 +1,8 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.*;
+import com.devicehive.dao.DeviceCommandDAO;
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -9,7 +11,6 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.utils.LogExecutionTime;
@@ -17,7 +18,6 @@ import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -39,19 +39,15 @@ public class DeviceService {
     @EJB
     private DeviceCommandDAO deviceCommandDAO;
     @EJB
-    private DeviceNotificationDAO deviceNotificationDAO;
-    @EJB
-    private DeviceClassDAO deviceClassDAO;
+    private DeviceNotificationService deviceNotificationService;
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
-    private EquipmentDAO equipmentDAO;
-    @EJB
     private NetworkService networkService;
     @EJB
-    private DeviceEquipmentDAO deviceEquipmentDAO;
-    @EJB
     private UserDAO userDAO;
+    @EJB
+    private DeviceClassService deviceClassService;
     @EJB
     private TimestampService timestampService;
     @EJB
@@ -80,8 +76,9 @@ public class DeviceService {
 
         deviceToUpdate
                 .setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
-        deviceToUpdate.setDeviceClass(createOrUpdateDeviceClass(device.getDeviceClass(), equipmentSet,
-                device.getGuid().getValue(), useExistingEquipment));
+        DeviceClass deviceClassUpdate = deviceClassService.createOrUpdateDeviceClass(device.getDeviceClass(),
+                equipmentSet, device.getGuid().getValue(), useExistingEquipment);
+        deviceToUpdate.setDeviceClass(deviceClassUpdate);
         return createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
     }
 
@@ -180,143 +177,24 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public DeviceNotification saveDeviceNotification(DeviceNotification notification, Device device) {
         if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
-            return self.saveDeviceNotificationEquipmentCase(notification, device);
+            deviceNotificationService.saveDeviceNotificationEquipmentCase(notification, device);
         } else if (notification.getNotification().equals(SpecialNotifications.DEVICE_STATUS)) {
-            return self.saveDeviceNotificationStatusCase(notification, device);
+            self.saveDeviceNotificationStatusCase(notification, device);
         }
-        return self.saveDeviceNotificationOtherCase(notification, device);
+        return deviceNotificationService.saveDeviceNotificationOtherCase(notification, device);
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification saveDeviceNotificationEquipmentCase(DeviceNotification notification, Device device) {
-        DeviceEquipment deviceEquipment = null;
-        if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
-            deviceEquipment = parseNotification(notification, device);
-            if (deviceEquipment.getTimestamp() == null) {
-                deviceEquipment.setTimestamp(timestampService.getTimestamp());
-            }
-        }
-        if (deviceEquipment != null && !deviceEquipmentDAO.update(deviceEquipment)) {
-            deviceEquipment.setTimestamp(timestampService.getTimestamp());
-            deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
-        }
-        notification.setDevice(device);
-        deviceNotificationDAO.createNotification(notification);
-        return notification;
-    }
+
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public DeviceNotification saveDeviceNotificationStatusCase(DeviceNotification notification, Device device) {
         DeviceUpdate deviceUpdate = new DeviceUpdate();
-        String status = parseNotificationStatus(notification);
+        String status = deviceNotificationService.parseNotificationStatus(notification);
         deviceUpdate.setStatus(new NullableWrapper<>(status));
         device.setStatus(status);
         DeviceNotification updateDeviceNotification = self.createOrUpdateDevice(device, deviceUpdate, true);
         globalMessageBus.publishDeviceNotification(updateDeviceNotification);
-        notification.setDevice(device);
-        deviceNotificationDAO.createNotification(notification);
         return notification;
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification saveDeviceNotificationOtherCase(DeviceNotification notification, Device device) {
-        notification.setDevice(device);
-        deviceNotificationDAO.createNotification(notification);
-        return notification;
-    }
-
-    private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {
-        String jsonParametersString = notification.getParameters().getJsonString();
-        Gson gson = GsonFactory.createGson();
-        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
-        JsonObject jsonEquipmentObject;
-        if (parametersJsonElement instanceof JsonObject) {
-            jsonEquipmentObject = (JsonObject) parametersJsonElement;
-        } else {
-            throw new HiveException("\"parameters\" must be JSON Object!");
-        }
-        return constructDeviceEquipmentObject(jsonEquipmentObject, device);
-    }
-
-    private String parseNotificationStatus(DeviceNotification notification) {
-        String jsonParametersString = notification.getParameters().getJsonString();
-        Gson gson = GsonFactory.createGson();
-        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
-        JsonObject statusJsonObject;
-        if (parametersJsonElement instanceof JsonObject) {
-            statusJsonObject = (JsonObject) parametersJsonElement;
-        } else {
-            throw new HiveException("\"parameters\" must be JSON Object!");
-        }
-        return statusJsonObject.get("status").getAsString();
-    }
-
-    private DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
-        DeviceEquipment result = new DeviceEquipment();
-        String deviceEquipmentCode = jsonEquipmentObject.get("equipment").getAsString();
-        result.setCode(deviceEquipmentCode);
-        jsonEquipmentObject.remove("equipment");
-        result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));
-        result.setDevice(device);
-        return result;
-    }
-
-    public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-                                                 Set<Equipment> newEquipmentSet, UUID guid,
-                                                 boolean useExistingEquipment) {
-        DeviceClass stored;
-        //use existing
-        if (deviceClass == null) {
-            return deviceClassDAO.getByDevice(guid);
-        }
-        //check is already done
-        DeviceClass deviceClassFromMessage = deviceClass.getValue().convertTo();
-        if (deviceClassFromMessage.getId() != null) {
-            stored = deviceClassDAO.getDeviceClass(deviceClassFromMessage.getId());
-        } else {
-            stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClassFromMessage.getName(),
-                    deviceClassFromMessage.getVersion());
-        }
-        if (stored != null) {
-            //update
-            if (!stored.getPermanent()) {
-                if (deviceClass.getValue().getData() != null) {
-                    stored.setData(deviceClassFromMessage.getData());
-                }
-                if (deviceClass.getValue().getOfflineTimeout() != null) {
-                    stored.setOfflineTimeout(deviceClassFromMessage.getOfflineTimeout());
-                }
-                if (deviceClass.getValue().getPermanent() != null) {
-                    stored.setPermanent(deviceClassFromMessage.getPermanent());
-                }
-                if (!useExistingEquipment) {
-                    updateEquipment(newEquipmentSet, stored);
-                }
-            }
-            return stored;
-        } else {
-            //create
-            if (deviceClassFromMessage.getId() != null) {
-                throw new HiveException("Invalid request");
-            }
-            deviceClassDAO.createDeviceClass(deviceClassFromMessage);
-            if (!useExistingEquipment) {
-                updateEquipment(newEquipmentSet, deviceClassFromMessage);
-            }
-            return deviceClassFromMessage;
-        }
-
-    }
-
-    public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
-        List<Equipment> existingEquipments = equipmentDAO.getByDeviceClass(deviceClass);
-        if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
-            equipmentDAO.delete(existingEquipments);
-        }
-        for (Equipment equipment : newEquipmentSet) {
-            equipment.setDeviceClass(deviceClass);
-            equipmentDAO.create(equipment);
-        }
     }
 
     public DeviceNotification createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate,

@@ -15,6 +15,8 @@ public class DeviceEquipmentService {
 
     @EJB
     private DeviceEquipmentDAO deviceEquipmentDAO;
+    @EJB
+    private TimestampService timestampService;
 
     /**
      * find Device equipment by device
@@ -28,5 +30,12 @@ public class DeviceEquipmentService {
 
     public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device) {
         return deviceEquipmentDAO.findByCodeAndDevice(code, device);
+    }
+
+    public void createDeviceEquipment(DeviceEquipment deviceEquipment) {
+        if (deviceEquipment != null && !deviceEquipmentDAO.update(deviceEquipment)) {
+            deviceEquipment.setTimestamp(timestampService.getTimestamp());
+            deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
+        }
     }
 }
