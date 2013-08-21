@@ -35,15 +35,11 @@ public class SessionMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
     private static final String PING = "ping";
-
     private Map<String, Session> sessionMap;
-
     @EJB
     private ConfigurationService configurationService;
-
     @EJB
     private DeviceActivityService deviceActivityService;
-
     @EJB
     private SubscriptionManager subscriptionManager;
 
@@ -75,7 +71,9 @@ public class SessionMonitor {
         Set<CommandSubscription> commandSubscriptions =
                 subscriptionManager.getCommandSubscriptionStorage().getBySession(sessionId);
         for (CommandSubscription subscription : commandSubscriptions) {
-            deviceActivityService.update(subscription.getDeviceId());
+            if (subscription.getDeviceId() != Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE) {
+                deviceActivityService.update(subscription.getDeviceId());
+            }
         }
     }
 
