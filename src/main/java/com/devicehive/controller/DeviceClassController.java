@@ -137,9 +137,7 @@ public class DeviceClassController {
     public Response insertDeviceClass(DeviceClass insert) {
 
         logger.debug("Insert device class requested");
-        DeviceClass result;
-
-        result = deviceClassService.addDeviceClass(insert);
+        DeviceClass result = deviceClassService.addDeviceClass(insert);
 
         logger.debug("Device class inserted");
 
