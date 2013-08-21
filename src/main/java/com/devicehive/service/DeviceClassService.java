@@ -10,7 +10,6 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.persistence.NoResultException;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +17,7 @@ import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * @author Nikolay Loboda
@@ -89,8 +89,8 @@ public class DeviceClassService {
         }
     }
 
-    public DeviceClass addDeviceClass(DeviceClass deviceClass){
-        if (deviceClass.getId() != null){
+    public DeviceClass addDeviceClass(DeviceClass deviceClass) {
+        if (deviceClass.getId() != null) {
             throw new HiveException("Invalid request. Id cannot be specified.", BAD_REQUEST.getStatusCode());
         }
         if (deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
@@ -140,20 +140,24 @@ public class DeviceClassService {
         }
     }
 
-
     public Equipment createEquipment(Long classId, Equipment equipment) {
         DeviceClass deviceClass = deviceClassDAO.get(classId);
 
         if (deviceClass == null) {
-            throw new NoResultException("No device class with id = " + classId + "found");
+            throw new HiveException("No device class with id = " + classId + " found", NOT_FOUND.getStatusCode());
         }
-
+        if (deviceClass.getPermanent()) {
+            throw new HiveException("Unable to update equipment on permanent device class.",
+                    NOT_FOUND.getStatusCode());
+        }
         List<Equipment> equipments = equipmentDAO.getByDeviceClass(deviceClass);
         String newCode = equipment.getCode();
-        for (Equipment e : equipments) {
-            if (newCode.equals(e.getCode())) {
-                throw new HiveException("Equipment with code = " + newCode + " and device class id = " + classId +
-                        " already exists");
+        if (equipments != null) {
+            for (Equipment e : equipments) {
+                if (newCode.equals(e.getCode())) {
+                    throw new HiveException("Equipment with code = " + newCode + " and device class id = " + classId +
+                            " already exists");
+                }
             }
         }
         equipment.setDeviceClass(deviceClass);
