@@ -4,8 +4,4 @@ target/
 .settings/
 .classpath
 .project
-<<<<<<< HEAD
-src/main/resources/rebel.xml
-=======
-src/main/resources/rebel.xml
->>>>>>> e621f5b6f76e10f7e0b2e57fc8589437709bdd35
+
