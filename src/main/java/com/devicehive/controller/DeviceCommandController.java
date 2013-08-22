@@ -445,7 +445,7 @@ public class DeviceCommandController {
         Device device = deviceService.getDevice(guid, principal.getUser(),
                 principal.getDevice());
 
-        deviceService.submitDeviceCommand(deviceCommand, device, u, null);
+        commandService.submitDeviceCommand(deviceCommand, device, u, null);
         deviceCommand.setUserId(u.getId());
 
         logger.debug("Device command insertAll proceed successfully. deviceId = {} commandId = {}", guid, deviceCommand.getId());
@@ -487,7 +487,7 @@ public class DeviceCommandController {
         }
         command.setId(commandId);
 
-        deviceService.submitDeviceCommandUpdate(command, device);
+        commandService.submitDeviceCommandUpdate(command, device);
         logger.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);

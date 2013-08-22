@@ -3,9 +3,13 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceEquipmentDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.SpecialNotifications;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -17,6 +21,8 @@ public class DeviceEquipmentService {
     private DeviceEquipmentDAO deviceEquipmentDAO;
     @EJB
     private TimestampService timestampService;
+    @EJB
+    private DeviceNotificationService notificationService;
 
     /**
      * find Device equipment by device
@@ -37,5 +43,19 @@ public class DeviceEquipmentService {
             deviceEquipment.setTimestamp(timestampService.getTimestamp());
             deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
         }
+    }
+
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public DeviceNotification refreshDeviceEquipment(DeviceNotification notification, Device device) {
+        DeviceEquipment deviceEquipment = null;
+        if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
+            deviceEquipment = notificationService.parseDeviceEquipmentNotification(notification, device);
+            if (deviceEquipment.getTimestamp() == null) {
+                deviceEquipment.setTimestamp(timestampService.getTimestamp());
+            }
+        }
+        createDeviceEquipment(deviceEquipment);
+        return notification;
     }
 }

@@ -9,10 +9,7 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
-import com.devicehive.service.DeviceNotificationService;
-import com.devicehive.service.DeviceService;
-import com.devicehive.service.TimestampService;
-import com.devicehive.service.UserService;
+import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
@@ -45,6 +42,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private UserService userService;
     @EJB
     private DeviceService deviceService;
+    @EJB
+    private DeviceCommandService commandService;
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
@@ -179,7 +178,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         deviceCommand.setUserId(user.getId());
 
-        deviceService.submitDeviceCommand(deviceCommand, device, user, session);
+        commandService.submitDeviceCommand(deviceCommand, device, user, session);
         return JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(deviceCommand))
                 .build();

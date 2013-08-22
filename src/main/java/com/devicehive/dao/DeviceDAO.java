@@ -25,7 +25,6 @@ import java.util.UUID;
 public class DeviceDAO {
 
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
-    private static Logger logger = LoggerFactory.getLogger(DeviceDAO.class);
     @EJB
     private NetworkDAO networkDAO;
     @EJB
@@ -203,4 +202,10 @@ public class DeviceDAO {
     }
 
 
+    public boolean updateStatus(@NotNull Long id, @NotNull String newStatus) {
+        Query query = em.createNamedQuery("Device.updateStatus");
+        query.setParameter("id", id);
+        query.setParameter("status", newStatus);
+        return query.executeUpdate() != 0;
+    }
 }

@@ -13,11 +13,8 @@ import javax.ejb.Stateless;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * @author Nikolay Loboda
@@ -44,12 +41,11 @@ public class DeviceClassService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-                                                 Set<Equipment> newEquipmentSet, UUID guid,
-                                                 boolean useExistingEquipment) {
+                                                 Set<Equipment> newEquipmentSet,boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
-            return deviceClassDAO.getByDevice(guid);
+            return null;
         }
         //check is already done
         DeviceClass deviceClassFromMessage = deviceClass.getValue().convertTo();

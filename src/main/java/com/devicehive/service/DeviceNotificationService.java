@@ -1,8 +1,11 @@
 package com.devicehive.service;
 
+import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -27,6 +30,12 @@ public class DeviceNotificationService {
 
     @EJB
     private DeviceEquipmentService deviceEquipmentService;
+
+    @EJB
+    private GlobalMessageBus globalMessageBus;
+
+    @EJB
+    private DeviceDAO deviceDAO;
 
     public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList, User user, Timestamp timestamp,
                                                               Boolean isAdmin) {
@@ -54,20 +63,8 @@ public class DeviceNotificationService {
         return deviceNotificationDAO.queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip);
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification saveDeviceNotificationEquipmentCase(DeviceNotification notification, Device device) {
-        DeviceEquipment deviceEquipment = null;
-        if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
-            deviceEquipment = parseNotification(notification, device);
-            if (deviceEquipment.getTimestamp() == null) {
-                deviceEquipment.setTimestamp(timestampService.getTimestamp());
-            }
-        }
-        deviceEquipmentService.createDeviceEquipment(deviceEquipment);
-        return notification;
-    }
 
-    private DeviceEquipment parseNotification(DeviceNotification notification, Device device) {
+    public DeviceEquipment parseDeviceEquipmentNotification(DeviceNotification notification, Device device) {
         String jsonParametersString = notification.getParameters().getJsonString();
         Gson gson = GsonFactory.createGson();
         JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
@@ -92,7 +89,7 @@ public class DeviceNotificationService {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification saveDeviceNotificationOtherCase(DeviceNotification notification, Device device) {
+    public DeviceNotification saveDeviceNotification(DeviceNotification notification, Device device) {
         notification.setDevice(device);
         deviceNotificationDAO.createNotification(notification);
         return notification;
@@ -109,6 +106,17 @@ public class DeviceNotificationService {
             throw new HiveException("\"parameters\" must be JSON Object!");
         }
         return statusJsonObject.get("status").getAsString();
+    }
+
+    public DeviceNotification createNotification(Device device, String notificationName){
+        DeviceNotification notification = new DeviceNotification();
+        notification.setNotification(notificationName);
+        notification.setDevice(device);
+        Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        JsonElement deviceAsJson = gson.toJsonTree(device);
+        JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
+        notification.setParameters(wrapperOverDevice);
+        return saveDeviceNotification(notification, device);
     }
 
 

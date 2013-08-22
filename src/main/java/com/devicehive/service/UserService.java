@@ -5,10 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.*;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.EJB;
@@ -19,6 +16,7 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -28,8 +26,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
-
-
 
     @Inject
     private PasswordProcessor passwordService;
@@ -242,19 +238,19 @@ public class UserService {
         return userDAO.delete(id);
     }
 
-//    /**
-//     * @param requestContext ContainerRequestContext from calling controller
-//     * @return user, currently logged on
-//     */
-//    public User getCurrent(ContainerRequestContext requestContext) {
-//        String login = requestContext.getSecurityContext().getUserPrincipal().getName();
-//
-//        if (login == null) {
-//            return null;
-//        }
-//
-//        return findUserWithNetworksByLogin(login);
-//    }
+    public boolean checkPermissions(UUID deviceId, User currentUser, Device currentDevice) {
+        if (currentDevice != null) {
+            return deviceId.equals(currentDevice.getGuid());
+        } else {
+            if (currentUser.getRole().equals(UserRole.CLIENT)) {
+                return userDAO.hasAccessToDevice(currentUser, deviceId);
+            }
+        }
+        return true;
+    }
 
+    public boolean hasAccessToDevice(User user, Device device){
+        return userDAO.hasAccessToDevice(user, device);
+    }
 
 }

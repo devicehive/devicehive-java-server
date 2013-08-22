@@ -2,7 +2,6 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
@@ -13,6 +12,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceActivityService;
+import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
@@ -47,7 +47,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
-    private DeviceCommandDAO deviceCommandDAO;
+    private DeviceCommandService commandService;
     @EJB
     private DeviceService deviceService;
     @EJB
@@ -168,7 +168,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = getDevice(session, message);
 
         logger.debug("submit device command update for device : " + device.getId());
-        deviceService.submitDeviceCommandUpdate(update, device);
+        commandService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
@@ -225,7 +225,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
             logger.debug("will get commands newer than : {}", timestamp);
-            List<DeviceCommand> commandsFromDatabase = deviceCommandDAO.getNewerThan(device.getGuid(), timestamp);
+            List<DeviceCommand> commandsFromDatabase = commandService.getNewerThan(device.getGuid(), timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
                 logger.debug("will add command to queue : {}", deviceCommand.getId());
                 WebsocketSession

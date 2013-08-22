@@ -104,27 +104,8 @@ public class DeviceUpdate implements HiveEntity {
             device.setData(data.getValue());
         }
         if (deviceClass != null) {
-            DeviceClass deviceClassToConvert = new DeviceClass();
-            DeviceClassUpdate deviceClassUpdate = deviceClass.getValue();
-            if (deviceClassUpdate.getVersion() != null) {
-                deviceClassToConvert.setVersion(deviceClassUpdate.getVersion().getValue());
-            }
-            if (deviceClassUpdate.getData() != null) {
-                deviceClassToConvert.setData(deviceClassUpdate.getData().getValue());
-            }
-            if (deviceClassUpdate.getOfflineTimeout() != null) {
-                deviceClassToConvert.setOfflineTimeout(deviceClassUpdate.getOfflineTimeout().getValue());
-            }
-            if (deviceClassUpdate.getEquipment() != null) {
-                deviceClassToConvert.setEquipment(deviceClassUpdate.getEquipment().getValue());
-            }
-            if (deviceClassUpdate.getPermanent() != null) {
-                deviceClassToConvert.setPermanent(deviceClassUpdate.getPermanent().getValue());
-            }
-            if (deviceClassUpdate.getName() != null) {
-                deviceClassToConvert.setName(deviceClassUpdate.getName().getValue());
-            }
-            device.setDeviceClass(deviceClassToConvert);
+            DeviceClass convertedDeviceClass = deviceClass.getValue().convertTo();
+            device.setDeviceClass(convertedDeviceClass);
         }
         if (key != null) {
             device.setKey(key.getValue());
