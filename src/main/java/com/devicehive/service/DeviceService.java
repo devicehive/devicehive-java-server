@@ -58,7 +58,7 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public DeviceNotification deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                                          boolean isAllowedToUpdate) {
-        Network network = networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue());
+        Network network = networkService.createOrVeriryNetwork(device.getNetwork());
         DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(device.getDeviceClass(),equipmentSet, useExistingEquipment);
         return createOrUpdateDevice(device, network, deviceClass, isAllowedToUpdate);
     }

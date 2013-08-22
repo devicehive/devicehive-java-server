@@ -9,7 +9,6 @@ import com.devicehive.model.User;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.util.List;
-import java.util.UUID;
 
 @Stateless
 public class NetworkService {
@@ -73,14 +72,10 @@ public class NetworkService {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId);
     }
 
-    public Network createOrVeriryNetwork(NullableWrapper<Network> network, UUID deviceGuid) {
+    public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
         Network stored;
         //case network is not defined
-        if (network == null) {
-            return networkDAO.findByDevice(deviceGuid);
-        }
-
-        if (network.getValue() == null) {
+        if (network == null || network.getValue() == null) {
             return null;
         }
 
