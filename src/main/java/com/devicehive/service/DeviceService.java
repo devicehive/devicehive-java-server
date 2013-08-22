@@ -72,14 +72,10 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public DeviceNotification deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                                          boolean isAllowedToUpdate) {
-        Device deviceToUpdate = device.convertTo();
-
-        deviceToUpdate
-                .setNetwork(networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue()));
-        DeviceClass deviceClassUpdate = deviceClassService.createOrUpdateDeviceClass(device.getDeviceClass(),
+        Network network = networkService.createOrVeriryNetwork(device.getNetwork(), device.getGuid().getValue());
+        DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(device.getDeviceClass(),
                 equipmentSet, device.getGuid().getValue(), useExistingEquipment);
-        deviceToUpdate.setDeviceClass(deviceClassUpdate);
-        return createOrUpdateDevice(deviceToUpdate, device, isAllowedToUpdate);
+        return createOrUpdateDevice(device, network, deviceClass, isAllowedToUpdate);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -192,22 +188,19 @@ public class DeviceService {
         String status = deviceNotificationService.parseNotificationStatus(notification);
         deviceUpdate.setStatus(new NullableWrapper<>(status));
         device.setStatus(status);
-        DeviceNotification updateDeviceNotification = self.createOrUpdateDevice(device, deviceUpdate, true);
+        DeviceNotification updateDeviceNotification = self.createOrUpdateDevice(deviceUpdate, null, null, true);
         globalMessageBus.publishDeviceNotification(updateDeviceNotification);
         return notification;
     }
 
-    public DeviceNotification createOrUpdateDevice(Device device, DeviceUpdate deviceUpdate,
+    public DeviceNotification createOrUpdateDevice(DeviceUpdate deviceUpdate, Network network, DeviceClass deviceClass,
                                                    boolean isAllowedToUpdate) {
-        Device existingDevice = deviceDAO.findByUUID(device.getGuid());
+        Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         DeviceNotification notification = new DeviceNotification();
         if (existingDevice == null) {
-            if (device.getName() == null || device.getName().equals("")) {
-                throw new HiveException("Invalid request parameters.");
-            }
-            if (device.getDeviceClass() == null) {
-                throw new HiveException("Invalid request parameters.");
-            }
+            Device device = deviceUpdate.convertTo();
+            device.setNetwork(network);
+            device.setDeviceClass(deviceClass);
             existingDevice = deviceDAO.createDevice(device);
             notification.setNotification(SpecialNotifications.DEVICE_ADD);
         } else {
@@ -215,22 +208,22 @@ public class DeviceService {
                 throw new HiveException("Unauthorized. No permissions to update device", 401);
             }
             if (deviceUpdate.getDeviceClass() != null) {
-                existingDevice.setDeviceClass(device.getDeviceClass());
+                existingDevice.setDeviceClass(deviceClass);
             }
             if (deviceUpdate.getStatus() != null) {
-                existingDevice.setStatus(device.getStatus());
+                existingDevice.setStatus(deviceUpdate.getStatus().getValue());
             }
             if (deviceUpdate.getData() != null) {
-                existingDevice.setData(device.getData());
+                existingDevice.setData(deviceUpdate.getData().getValue());
             }
             if (deviceUpdate.getNetwork() != null) {
-                existingDevice.setNetwork(device.getNetwork());
+                existingDevice.setNetwork(network);
             }
             if (deviceUpdate.getName() != null) {
-                existingDevice.setName(device.getName());
+                existingDevice.setName(deviceUpdate.getName().getValue());
             }
             if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(device.getKey());
+                existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
             notification.setNotification(SpecialNotifications.DEVICE_UPDATE);
         }

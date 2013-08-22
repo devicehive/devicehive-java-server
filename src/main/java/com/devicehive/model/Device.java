@@ -96,13 +96,13 @@ public class Device implements HiveEntity {
 
     @SerializedName("network")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "network_id", updatable = false)
+    @JoinColumn(name = "network_id")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
 
     @SerializedName("deviceClass")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "device_class_id", updatable = false)
+    @JoinColumn(name = "device_class_id")
     @NotNull(message = "deviceClass field cannot be null.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private DeviceClass deviceClass;

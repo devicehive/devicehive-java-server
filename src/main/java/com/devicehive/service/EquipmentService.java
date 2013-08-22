@@ -57,21 +57,20 @@ public class EquipmentService {
             return true;
         }
         Equipment stored = equipmentDAO.get(equipmentId);
-        if (stored == null) {
+        if (stored == null || stored.getDeviceClass().getId() != deviceClassId) {
             return false; // equipment with id = equipmentId does not exists
         }
-        Equipment toUpdate = equipmentUpdate.convertTo();
-        if (equipmentUpdate.getCode() == null) {
-            toUpdate.setCode(stored.getCode());
+        if (equipmentUpdate.getCode() != null) {
+            stored.setCode(equipmentUpdate.getCode().getValue());
         }
-        if (equipmentUpdate.getName() == null) {
-            toUpdate.setName(stored.getName());
+        if (equipmentUpdate.getName() != null) {
+            stored.setName(equipmentUpdate.getName().getValue());
         }
-        if (equipmentUpdate.getType() == null) {
-            toUpdate.setType(stored.getType());
+        if (equipmentUpdate.getType() != null) {
+            stored.setType(equipmentUpdate.getType().getValue());
         }
-        if (equipmentUpdate.getData() == null) {
-            toUpdate.setData(stored.getData());
+        if (equipmentUpdate.getData() != null) {
+            stored.setData(equipmentUpdate.getData().getValue());
         }
         return true;
     }
