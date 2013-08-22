@@ -56,11 +56,43 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification deviceSave(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                                          boolean isAllowedToUpdate) {
-        Network network = networkService.createOrVeriryNetwork(device.getNetwork());
-        DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(device.getDeviceClass(),equipmentSet, useExistingEquipment);
-        return createOrUpdateDevice(device, network, deviceClass, isAllowedToUpdate);
+        Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
+        DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(),equipmentSet, useExistingEquipment);
+
+        Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
+
+        if (existingDevice == null) {
+            Device device = deviceUpdate.convertTo();
+            device.setNetwork(network);
+            device.setDeviceClass(deviceClass);
+            existingDevice = deviceDAO.createDevice(device);
+            return deviceNotificationService.createNotification(existingDevice, SpecialNotifications.DEVICE_ADD);
+        } else {
+            if (!isAllowedToUpdate) {
+                throw new HiveException("Unauthorized. No permissions to update device", 401);
+            }
+            if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
+                existingDevice.setDeviceClass(deviceClass);
+            }
+            if (deviceUpdate.getStatus() != null) {
+                existingDevice.setStatus(deviceUpdate.getStatus().getValue());
+            }
+            if (deviceUpdate.getData() != null) {
+                existingDevice.setData(deviceUpdate.getData().getValue());
+            }
+            if (deviceUpdate.getNetwork() != null) {
+                existingDevice.setNetwork(network);
+            }
+            if (deviceUpdate.getName() != null) {
+                existingDevice.setName(deviceUpdate.getName().getValue());
+            }
+            if (deviceUpdate.getKey() != null) {
+                existingDevice.setKey(deviceUpdate.getKey().getValue());
+            }
+            return deviceNotificationService.createNotification(existingDevice, SpecialNotifications.DEVICE_UPDATE);
+        }
     }
 
     public Device findByUUID(UUID uuid, User u) {
@@ -118,43 +150,6 @@ public class DeviceService {
         return deviceNotificationService.createNotification(device, SpecialNotifications.DEVICE_UPDATE);
     }
 
-    public DeviceNotification createOrUpdateDevice(DeviceUpdate deviceUpdate, Network network, DeviceClass deviceClass,
-                                                   boolean isAllowedToUpdate) {
-        Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
-
-        if (existingDevice == null) {
-            Device device = deviceUpdate.convertTo();
-            device.setNetwork(network);
-            device.setDeviceClass(deviceClass);
-            existingDevice = deviceDAO.createDevice(device);
-            return deviceNotificationService.createNotification(existingDevice, SpecialNotifications.DEVICE_ADD);
-        } else {
-            if (!isAllowedToUpdate) {
-                throw new HiveException("Unauthorized. No permissions to update device", 401);
-            }
-            if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
-                existingDevice.setDeviceClass(deviceClass);
-            }
-            if (deviceUpdate.getStatus() != null) {
-                existingDevice.setStatus(deviceUpdate.getStatus().getValue());
-            }
-            if (deviceUpdate.getData() != null) {
-                existingDevice.setData(deviceUpdate.getData().getValue());
-            }
-            if (deviceUpdate.getNetwork() != null) {
-                existingDevice.setNetwork(network);
-            }
-            if (deviceUpdate.getName() != null) {
-                existingDevice.setName(deviceUpdate.getName().getValue());
-            }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().getValue());
-            }
-            return deviceNotificationService.createNotification(existingDevice, SpecialNotifications.DEVICE_UPDATE);
-        }
-
-    }
-
 
     /**
      * Implementation for model:
@@ -164,6 +159,7 @@ public class DeviceService {
      * @param device device to check
      * @throws HiveException
      */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void checkDevice(DeviceUpdate device) throws HiveException {
         if (device == null) {
             throw new HiveException("Device is empty");
