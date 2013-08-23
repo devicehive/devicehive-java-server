@@ -14,7 +14,7 @@ public class Timer {
 
     private static final Logger logger = LoggerFactory.getLogger(Timer.class);
 
-    private static final int MAX_METHOD_EXECUTION_TIME = 50000000; // 50ms
+    private static final int MAX_METHOD_EXECUTION_TIME = 50000; // 50ms
 
     /**
      * Creates new instance
