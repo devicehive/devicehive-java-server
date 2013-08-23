@@ -13,6 +13,7 @@ import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

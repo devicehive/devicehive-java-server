@@ -5,6 +5,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.utils.ServerResponsesFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -45,12 +46,11 @@ public class DeviceEquipmentService {
         }
     }
 
-
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public DeviceNotification refreshDeviceEquipment(DeviceNotification notification, Device device) {
         DeviceEquipment deviceEquipment = null;
         if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
-            deviceEquipment = notificationService.parseDeviceEquipmentNotification(notification, device);
+            deviceEquipment = ServerResponsesFactory.parseDeviceEquipmentNotification(notification, device);
             if (deviceEquipment.getTimestamp() == null) {
                 deviceEquipment.setTimestamp(timestampService.getTimestamp());
             }

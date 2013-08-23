@@ -200,12 +200,4 @@ public class DeviceDAO {
         resultQuery.setMaxResults(take);
         return resultQuery.getResultList();
     }
-
-
-    public boolean updateStatus(@NotNull Long id, @NotNull String newStatus) {
-        Query query = em.createNamedQuery("Device.updateStatus");
-        query.setParameter("id", id);
-        query.setParameter("status", newStatus);
-        return query.executeUpdate() != 0;
-    }
 }

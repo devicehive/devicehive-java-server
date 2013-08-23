@@ -48,6 +48,7 @@ public class DeviceEquipmentDAO {
         return query.getResultList();
     }
 
+    //TODO remove update queries
     public boolean update(DeviceEquipment deviceEquipment) {
         Query query = em.createNamedQuery("DeviceEquipment.updateByCodeAndDevice");
         query.setParameter("timestamp", deviceEquipment.getTimestamp());

@@ -9,7 +9,7 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.UserRole;
-import com.devicehive.websockets.handlers.ServerResponsesFactory;
+import com.devicehive.utils.ServerResponsesFactory;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

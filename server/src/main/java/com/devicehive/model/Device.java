@@ -45,7 +45,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                         "and d.guid in :guidList " +
                         "and u = :user"),
         @NamedQuery(name = "Device.findByListUUID", query = "select d from Device d where d.guid in :guidList"),
-        @NamedQuery(name = "Device.updateStatus", query = "update Device d set d.status = :status, d.entityVersion = (d.entityVersion + 1) where d.id = :id"),
         @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.id = :id"),
         @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid"),
         @NamedQuery(name = "Device.deleteByNetwork", query = "delete from Device d where d.network = :network")
