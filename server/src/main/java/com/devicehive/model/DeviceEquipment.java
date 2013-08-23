@@ -22,9 +22,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPME
 @NamedQueries({
         @NamedQuery(name = "DeviceEquipment.getByCode", query = "select de from  DeviceEquipment de where de.code = " +
                 ":code"),
-        @NamedQuery(name = "DeviceEquipment.updateByCodeAndDevice",
-                query = "update DeviceEquipment de set de.timestamp = :timestamp, de.parameters = :parameters " +
-                        "where de.device = :device and de.code = :code"),
         @NamedQuery(name = "DeviceEquipment.deleteById", query = "delete from DeviceEquipment de where de.id = :id"),
         @NamedQuery(name = "DeviceEquipment.getByDeviceAndCode",
                 query = "select de from DeviceEquipment de where de.device = :device and de.code = :code"),

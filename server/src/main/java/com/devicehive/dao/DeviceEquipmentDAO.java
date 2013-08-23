@@ -48,14 +48,14 @@ public class DeviceEquipmentDAO {
         return query.getResultList();
     }
 
-    //TODO remove update queries
     public boolean update(DeviceEquipment deviceEquipment) {
-        Query query = em.createNamedQuery("DeviceEquipment.updateByCodeAndDevice");
-        query.setParameter("timestamp", deviceEquipment.getTimestamp());
-        query.setParameter("parameters", deviceEquipment.getParameters());
-        query.setParameter("device", deviceEquipment.getDevice());
-        query.setParameter("code", deviceEquipment.getCode());
-        return query.executeUpdate() != 0;
+        DeviceEquipment equipment = findByCodeAndDevice(deviceEquipment.getCode(), deviceEquipment.getDevice());
+        if (equipment == null){
+            return false;
+        }
+        equipment.setTimestamp(deviceEquipment.getTimestamp());
+        equipment.setParameters(deviceEquipment.getParameters());
+        return true;
     }
 
     public boolean deleteDeviceEquipment(@NotNull Long id) {

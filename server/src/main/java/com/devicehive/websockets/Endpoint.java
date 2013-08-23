@@ -52,7 +52,7 @@ abstract class Endpoint {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (OptimisticLockException ex) {
             logger.error("[processMessage] Error processing message ", ex);
-            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
+            response = JsonMessageBuilder.createErrorResponseBuilder("Error occurred. Please, retry again.").build();
         } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
@@ -114,6 +114,12 @@ abstract class Endpoint {
         if (e.getTargetException() instanceof JsonParseException) {
             JsonParseException ex = (JsonParseException) e.getTargetException();
             throw new HiveException("Error occurred on parsing JSON object: " + ex.getMessage(), ex);
+        }
+        if (e.getTargetException() instanceof org.hibernate.exception.ConstraintViolationException){
+            org.hibernate.exception.ConstraintViolationException target = (org.hibernate.exception
+                    .ConstraintViolationException) e.getTargetException();
+            throw new HiveException("Unable to proceed requests, cause unique constraint is broken on unique fields: " +
+                     target.getMessage(), target);
         }
         throw e;
     }

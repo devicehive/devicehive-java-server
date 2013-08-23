@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.*;
-import javax.persistence.OptimisticLockException;
-import java.util.Iterator;
 
 @Singleton
 @Startup
