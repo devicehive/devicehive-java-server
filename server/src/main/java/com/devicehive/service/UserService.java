@@ -189,6 +189,7 @@ public class UserService {
      * @param id user id
      * @return User model without networks, or null if there is no such user
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findById(@NotNull long id) {
         return userDAO.findById(id);
     }
@@ -200,6 +201,7 @@ public class UserService {
      * @param id user id
      * @return User model with networks, or null, if there is no such user
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findUserWithNetworks(@NotNull long id) {
         return userDAO.findUserWithNetworks(id);
     }
@@ -211,6 +213,7 @@ public class UserService {
      * @param login user login
      * @return User model with networks, or null, if there is no such user
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findUserWithNetworksByLogin(@NotNull String login) {
         return userDAO.findUserWithNetworksByLogin(login);
     }

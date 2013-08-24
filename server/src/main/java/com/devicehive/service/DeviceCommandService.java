@@ -48,26 +48,32 @@ public class DeviceCommandService {
     @EJB
     private SubscriptionManager subscriptionManager;
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDevice(@NotNull long id) {
         return commandDAO.getWithDevice(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
         return commandDAO.getWithDeviceAndUser(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getByGuidAndId(@NotNull UUID guid, @NotNull long id) {
         return commandDAO.getByDeviceGuidAndId(guid, id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand findById(Long id) {
         return commandDAO.findById(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> getNewerThan(UUID deviceId, Timestamp timestamp){
         return commandDAO.getNewerThan(deviceId, timestamp);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip) {

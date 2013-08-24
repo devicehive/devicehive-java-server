@@ -82,6 +82,7 @@ public class NetworkDAO {
         return query.executeUpdate() != 0;
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Network> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take,
                               Integer skip, Long userId) {
 
@@ -128,6 +129,7 @@ public class NetworkDAO {
         return resultQuery.getResultList();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getByIdWithUsers(@NotNull long id) {
         TypedQuery<Network> query = em.createNamedQuery("Network.findWithUsers", Network.class);
         query.setParameter("id", id);

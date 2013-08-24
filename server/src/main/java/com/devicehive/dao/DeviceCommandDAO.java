@@ -58,10 +58,12 @@ public class DeviceCommandDAO {
         return query.executeUpdate();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand findById(Long id) {
         return em.find(DeviceCommand.class, id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDevice(@NotNull long id) {
 
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getWithDeviceById", DeviceCommand.class);
@@ -72,6 +74,7 @@ public class DeviceCommandDAO {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getByDeviceGuidAndId(@NotNull UUID guid, @NotNull long id) {
 
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByDeviceUuidAndId", DeviceCommand.class);
@@ -83,6 +86,7 @@ public class DeviceCommandDAO {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
 
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getWithDeviceAndUserById", DeviceCommand.class);
@@ -110,6 +114,7 @@ public class DeviceCommandDAO {
         return query.getResultList();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip) {

@@ -36,7 +36,8 @@ public class DeviceClassDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @SuppressWarnings("unchecked")
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
@@ -77,10 +78,12 @@ public class DeviceClassDAO {
         return resultQuery.getResultList();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass get(@NotNull long id) {
         return em.find(DeviceClass.class, id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getByDevice(@NotNull UUID guid) {
         TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.getByDevice", DeviceClass.class);
         query.setParameter("guid", guid);
@@ -94,7 +97,7 @@ public class DeviceClassDAO {
 
     }
 
-
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getWithEquipment(@NotNull long id) {
         TypedQuery<DeviceClass> tq = em.createNamedQuery("DeviceClass.getWithEquipment", DeviceClass.class);
         tq.setParameter("id", id);
@@ -102,7 +105,7 @@ public class DeviceClassDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
-    @SuppressWarnings("unchecked")
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceClass> getList() {
         return em.createQuery("select dc from DeviceClass dc").getResultList();
     }
@@ -130,6 +133,7 @@ public class DeviceClassDAO {
         return em.merge(deviceClass);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {
         TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.findByNameAndVersion", DeviceClass.class);
         query.setParameter("version", version);

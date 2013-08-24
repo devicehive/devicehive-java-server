@@ -8,6 +8,8 @@ import com.devicehive.model.User;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import java.util.List;
 
 @Stateless
@@ -21,6 +23,7 @@ public class NetworkService {
         return networkDAO.getById(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getWithDevicesAndDeviceClasses(long id, User u) {
         if (u.isAdmin()) {
             return networkDAO.getWithDevicesAndDeviceClasses(id);
@@ -66,6 +69,7 @@ public class NetworkService {
         return updated;
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Network> list(String name, String namePattern,
                               String sortField, boolean sortOrder,
                               Integer take, Integer skip, Long userId) {

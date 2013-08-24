@@ -31,10 +31,12 @@ public class DeviceEquipmentService {
      * @param device Equipment will be fetched for this device
      * @return List of DeviceEquipment for specified device
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceEquipment> findByFK(@NotNull Device device) {
         return deviceEquipmentDAO.findByFK(device);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device) {
         return deviceEquipmentDAO.findByCodeAndDevice(code, device);
     }

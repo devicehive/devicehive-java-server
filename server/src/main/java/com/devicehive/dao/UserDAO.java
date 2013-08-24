@@ -40,6 +40,7 @@ public class UserDAO {
      * @param login user's login
      * @return User or null, if there is no such user
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
         query.setParameter("login", login);
@@ -110,10 +111,12 @@ public class UserDAO {
         return resultQuery.getResultList();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findById(Long id) {
         return em.find(User.class, id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findUserWithNetworks(Long id) {
         TypedQuery<User> query = em.createNamedQuery("User.getWithNetworksById", User.class);
         query.setParameter("id", id);
@@ -122,6 +125,7 @@ public class UserDAO {
 
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findUserWithNetworksByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery("User.getWithNetworks", User.class);
         query.setParameter("login", login);

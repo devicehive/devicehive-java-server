@@ -70,6 +70,7 @@ public class EquipmentDAO {
      * @param id Equipment Id
      * @returns Equipment
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment get(@NotNull long id) {
         return em.find(Equipment.class, id);
     }

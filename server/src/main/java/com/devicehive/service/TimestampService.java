@@ -19,7 +19,7 @@ public class TimestampService {
     private EntityManager em;
 
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public Timestamp getTimestamp() {
         TypedQuery<ServerTimestamp> query = em.createNamedQuery("ServerTimestamp.get", ServerTimestamp.class);
         return query.getSingleResult().getTimestamp();

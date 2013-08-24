@@ -10,6 +10,8 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +30,7 @@ public class DeviceClassService {
     @EJB
     private EquipmentDAO equipmentDAO;
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass get(@NotNull long id) {
         return deviceClassDAO.get(id);
     }
@@ -36,6 +39,7 @@ public class DeviceClassService {
         return deviceClassDAO.delete(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getWithEquipment(@NotNull long id) {
         return deviceClassDAO.getWithEquipment(id);
     }
@@ -160,6 +164,7 @@ public class DeviceClassService {
         return equipmentDAO.create(equipment);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
         return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, sortOrderAsc, take, skip);

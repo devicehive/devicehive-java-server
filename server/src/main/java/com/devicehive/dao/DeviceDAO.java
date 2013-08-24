@@ -125,7 +125,7 @@ public class DeviceDAO {
         return query.executeUpdate();
     }
 
-    @SuppressWarnings("unchecked")
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(String name,
                                 String namePattern,

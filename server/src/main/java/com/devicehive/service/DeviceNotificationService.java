@@ -37,6 +37,7 @@ public class DeviceNotificationService {
     @EJB
     private DeviceDAO deviceDAO;
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList, User user, Timestamp timestamp,
                                                               Boolean isAdmin) {
         if (deviceList == null) {
@@ -52,10 +53,12 @@ public class DeviceNotificationService {
         return deviceNotificationDAO.findByDevicesNewerThan(deviceList, timestamp);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceNotification findById(@NotNull long id) {
         return deviceNotificationDAO.findById(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> queryDeviceNotification(Device device, Timestamp start, Timestamp end,
                                                             String notification,
                                                             String sortField, Boolean sortOrderAsc, Integer take,
@@ -67,6 +70,7 @@ public class DeviceNotificationService {
 
 
     //device should be already set
+
     public List<DeviceNotification> saveDeviceNotification(List<DeviceNotification> notifications) {
         for (DeviceNotification notification : notifications) {
             deviceNotificationDAO.createNotification(notification);

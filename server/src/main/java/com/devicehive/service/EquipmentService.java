@@ -6,6 +6,8 @@ import com.devicehive.model.updates.EquipmentUpdate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -39,6 +41,7 @@ public class EquipmentService {
      * @param equipmentId   id of equipment to get
      * @return
      */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
         return equipmentDAO.getByDeviceClass(deviceClassId, equipmentId);
     }

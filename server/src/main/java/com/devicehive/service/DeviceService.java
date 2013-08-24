@@ -102,7 +102,7 @@ public class DeviceService {
             return resultList.get(0);
         }
     }
-
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUID(UUID uuid, User u) {
         if (u.isAdmin()) {
             return deviceDAO.findByUUID(uuid);
@@ -111,6 +111,7 @@ public class DeviceService {
         }
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> findByUUID(List<UUID> list) {
         if (list.size() == 0) {
             return new ArrayList<>(0);
@@ -118,6 +119,7 @@ public class DeviceService {
         return deviceDAO.findByUUID(list);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
         if (list.size() == 0) {
             return new ArrayList<>(0);
@@ -180,6 +182,7 @@ public class DeviceService {
         return device;
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean checkPermissions(Device device, User currentUser, Device currentDevice) {
         if (currentDevice != null) {
             return device.getGuid().equals(currentDevice.getGuid());
@@ -204,6 +207,7 @@ public class DeviceService {
         return deviceDAO.deleteDevice(guid);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(String name,
                                 String namePattern,
                                 String status,
