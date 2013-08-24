@@ -238,6 +238,7 @@ public class UserService {
         return userDAO.delete(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean checkPermissions(UUID deviceId, User currentUser, Device currentDevice) {
         if (currentDevice != null) {
             return deviceId.equals(currentDevice.getGuid());
@@ -249,6 +250,7 @@ public class UserService {
         return true;
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToDevice(User user, Device device){
         return userDAO.hasAccessToDevice(user, device);
     }

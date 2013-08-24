@@ -150,6 +150,7 @@ public class DeviceService {
         }
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device getDeviceWithNetworkAndDeviceClass(UUID deviceId, User currentUser, Device currentDevice) {
 
         if (!userService.checkPermissions(deviceId, currentUser, currentDevice)) {
@@ -164,6 +165,7 @@ public class DeviceService {
         return device;
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device getDevice(UUID deviceId, User currentUser, Device currentDevice) {
 
         if (!userService.checkPermissions(deviceId, currentUser, currentDevice)) {
