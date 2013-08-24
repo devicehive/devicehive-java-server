@@ -131,7 +131,7 @@ public class UserDAO {
     }
 
 
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToNetwork(User user, Network network) {
         TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToNetwork", Long.class);
         query.setParameter("user", user);
