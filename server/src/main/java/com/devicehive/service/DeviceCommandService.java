@@ -10,6 +10,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
+import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 
@@ -30,6 +31,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  * @since 25.07.13
  */
 @Stateless
+@LogExecutionTime
 public class DeviceCommandService {
     @EJB
     private DeviceCommandDAO commandDAO;
@@ -88,7 +90,7 @@ public class DeviceCommandService {
         globalMessageBus.publishDeviceCommand(command);
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+
     public void saveDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
@@ -104,7 +106,7 @@ public class DeviceCommandService {
 
 
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+
     public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
 
         DeviceCommand cmd = commandDAO.findById(update.getId());

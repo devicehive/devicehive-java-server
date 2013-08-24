@@ -398,7 +398,7 @@ public class DeviceNotificationController {
                     "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}", guid);
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
-        deviceService.submitDeviceNotification(notification, device);
+        notificationService.submitDeviceNotification(notification, device);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
         return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);

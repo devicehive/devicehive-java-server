@@ -14,10 +14,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -25,8 +22,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @LogExecutionTime
 @EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
-    @EJB
-    private DeviceCommandDAO deviceCommandDAO;
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
@@ -56,7 +51,7 @@ public class DeviceService {
         deviceActivityService.update(dn.getDevice().getId());
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate, Set<Equipment> equipmentSet,
                                          boolean useExistingEquipment,
                                          boolean isAllowedToUpdate) {
@@ -75,9 +70,7 @@ public class DeviceService {
                     (existingDevice,
                             SpecialNotifications.DEVICE_ADD);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(new ArrayList<DeviceNotification>(1) {{
-                        add(addDeviceNotification);
-                    }});
+                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         } else {
             if (!isAllowedToUpdate) {
@@ -105,9 +98,7 @@ public class DeviceService {
                     (existingDevice,
                             SpecialNotifications.DEVICE_UPDATE);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(new ArrayList<DeviceNotification>(1) {{
-                        add(addDeviceNotification);
-                    }});
+                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         }
     }
@@ -134,41 +125,6 @@ public class DeviceService {
         return deviceDAO.findByUUIDListAndUser(user, list);
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void submitDeviceNotification(DeviceNotification notification, Device device) {
-        List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
-        for (DeviceNotification currentNotification : proceedNotifications) {
-            globalMessageBus.publishDeviceNotification(currentNotification);
-        }
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public List<DeviceNotification> processDeviceNotification(DeviceNotification notification, Device device) {
-        List<DeviceNotification> notificationsToCreate = new ArrayList<>();
-        switch (notification.getNotification()) {
-            case SpecialNotifications.EQUIPMENT:
-                deviceEquipmentService.refreshDeviceEquipment(notification, device);
-                break;
-            case SpecialNotifications.DEVICE_STATUS:
-                notificationsToCreate.add(refreshDeviceStatusCase(notification, device));
-                break;
-            default:
-                break;
-
-        }
-        notification.setDevice(device);
-        notificationsToCreate.add(notification);
-        return deviceNotificationService.saveDeviceNotification(notificationsToCreate);
-
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification refreshDeviceStatusCase(DeviceNotification notification, Device device) {
-        device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
-        String status = ServerResponsesFactory.parseNotificationStatus(notification);
-        device.setStatus(status);
-        return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_UPDATE);
-    }
 
     /**
      * Implementation for model:

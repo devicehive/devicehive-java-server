@@ -4,6 +4,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
+import com.devicehive.utils.LogExecutionTime;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Stateless
+@LogExecutionTime
 public class DeviceCommandDAO {
 
     private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter

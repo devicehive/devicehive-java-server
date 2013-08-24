@@ -55,7 +55,7 @@ public class Timer {
         if (time > MAX_METHOD_EXECUTION_TIME) {
             logger.warn("Execution of {} took {} microseconds", methodName, time);
         } else {
-            logger.debug("Execution of {} took {} microseconds", methodName, time);
+            logger.info("Execution of {} took {} microseconds", methodName, time);
         }
 
     }

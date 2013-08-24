@@ -11,10 +11,7 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.DeviceActivityService;
-import com.devicehive.service.DeviceCommandService;
-import com.devicehive.service.DeviceService;
-import com.devicehive.service.TimestampService;
+import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -49,6 +46,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     private DeviceDAO deviceDAO;
     @EJB
     private DeviceCommandService commandService;
+    @EJB
+    private DeviceNotificationService deviceNotificationService;
     @EJB
     private DeviceService deviceService;
     @EJB
@@ -316,7 +315,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = getDevice(session, message);
         logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
-        deviceService.submitDeviceNotification(deviceNotification, device);
+        deviceNotificationService.submitDeviceNotification(deviceNotification, device);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
         logger.debug("notification/insert ended for session {} ", session.getId());
