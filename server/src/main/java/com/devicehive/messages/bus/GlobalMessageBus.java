@@ -12,10 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.ejb.*;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -24,6 +21,7 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @ConcurrencyManagement(BEAN)
 @Startup
 @LogExecutionTime
+@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class GlobalMessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalMessageBus.class);

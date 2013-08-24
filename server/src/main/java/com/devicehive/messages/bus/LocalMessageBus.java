@@ -16,9 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
+import javax.ejb.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +27,7 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
 @ConcurrencyManagement(BEAN)
+@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class LocalMessageBus {
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
     @EJB

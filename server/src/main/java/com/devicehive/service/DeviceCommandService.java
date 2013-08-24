@@ -11,6 +11,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.utils.Timer;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 
@@ -86,13 +87,17 @@ public class DeviceCommandService {
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+        Timer timer = Timer.newInstance();
         DeviceCommand saved = self.saveDeviceCommandUpdate(update, device);
+        timer.logMethodExecuted("DeviceCommandService.self.saveDeviceCommandUpdate");
         globalMessageBus.publishDeviceCommandUpdate(saved);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
+        Timer timer = Timer.newInstance();
         self.saveDeviceCommand(command, device, user, session);
+        timer.logMethodExecuted("DeviceCommandService.self.saveDeviceCommand");
         globalMessageBus.publishDeviceCommand(command);
     }
 

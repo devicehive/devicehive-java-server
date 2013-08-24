@@ -9,6 +9,7 @@ import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.User;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
+import com.devicehive.utils.Timer;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -80,7 +81,9 @@ public class DeviceNotificationService {
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
+        Timer timer = Timer.newInstance();
         List<DeviceNotification> proceedNotifications = self.processDeviceNotification(notification, device);
+        timer.logMethodExecuted("DeviceNotificationService.self.processDeviceNotification");
         for (DeviceNotification currentNotification : proceedNotifications) {
             globalMessageBus.publishDeviceNotification(currentNotification);
         }
