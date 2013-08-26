@@ -26,9 +26,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-/**
- * TODO JavaDoc
- */
+
 @Path("/user")
 @LogExecutionTime
 public class UserController {

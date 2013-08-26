@@ -23,9 +23,6 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 
-/**
- * TODO JavaDoc
- */
 @Path("/network")
 @LogExecutionTime
 public class NetworkController {
@@ -177,7 +174,6 @@ public class NetworkController {
         logger.debug("Network insert requested");
         Network n = new Network();
 
-        //TODO: if request if malformed this code will fall with NullPointerException
         if (nr.getName() == null || nr.getName().getValue() == null) {
             logger.debug("Unable to proceed network insert. Name field is required.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
