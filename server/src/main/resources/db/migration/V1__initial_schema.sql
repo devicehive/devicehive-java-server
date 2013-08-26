@@ -83,7 +83,7 @@ CREATE TABLE device_command (
 ALTER TABLE device_command ADD CONSTRAINT device_command_pk PRIMARY KEY (id);
 ALTER TABLE device_command ADD CONSTRAINT device_command_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
 ALTER TABLE device_command ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE;
-CREATE INDEX device_command_timestamp_device_id_idx ON device_command (timestamp, device_id);
+CREATE INDEX device_command_device_id_timestamp_idx ON device_command (device_id, timestamp);
 
 CREATE TABLE device_equipment (
   id             BIGSERIAL                NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE device_equipment (
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_pk PRIMARY KEY (id);
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_id_code_unique UNIQUE (device_id, code);
-CREATE INDEX device_equipment_timestamp_device_id_idx ON device_equipment (timestamp, device_id);
+CREATE INDEX device_equipment_device_id_timestamp_idx ON device_equipment (device_id, timestamp);
 
 CREATE TABLE device_notification (
   id             BIGSERIAL                NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE device_notification (
 
 ALTER TABLE device_notification ADD CONSTRAINT device_notification_pk PRIMARY KEY (id);
 ALTER TABLE device_notification ADD CONSTRAINT device_notification_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
-CREATE INDEX device_notification_timestamp_device_id_idx ON device_notification (timestamp, device_id);
+CREATE INDEX device_notification_device_id_timestamp_idx ON device_notification (device_id, timestamp);
 
 CREATE TABLE equipment (
   id              BIGSERIAL    NOT NULL,
