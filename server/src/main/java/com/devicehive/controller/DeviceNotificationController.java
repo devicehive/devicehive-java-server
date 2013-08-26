@@ -6,7 +6,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.bus.GlobalMessageBus;
@@ -87,8 +86,8 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response query(@PathParam("deviceGuid") UUID guid,
-                          @QueryParam("start") String start,
-                          @QueryParam("end") String end,
+                          @QueryParam("start") Timestamp start,
+                          @QueryParam("end") Timestamp end,
                           @QueryParam("notification") String notification,
                           @QueryParam("sortField") String sortField,
                           @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
@@ -114,29 +113,11 @@ public class DeviceNotificationController {
 
         sortField = sortField.toLowerCase();
 
-        Timestamp startTimestamp = null, endTimestamp = null;
-
-        if (start != null) {
-            startTimestamp = TimestampAdapter.parseTimestampQuietly(start);
-            if (startTimestamp == null) {
-                logger.debug("Device notification request failed. Unparseable timestamp.");
-                return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                        new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-            }
-        }
-        if (end != null) {
-            endTimestamp = TimestampAdapter.parseTimestampQuietly(end);
-            if (endTimestamp == null) {
-                logger.debug("Device notification request failed. Unparseable timestamp.");
-                return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                        new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-            }
-        }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Device device = deviceService.getDevice(guid, principal.getUser(),
                 principal.getDevice());
-        List<DeviceNotification> result = notificationService.queryDeviceNotification(device, startTimestamp,
-                endTimestamp, notification, sortField, sortOrder, take, skip);
+        List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
+                notification, sortField, sortOrder, take, skip);
 
         logger.debug("Device notification proceed successfully");
 

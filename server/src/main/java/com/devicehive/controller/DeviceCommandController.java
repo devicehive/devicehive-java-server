@@ -4,7 +4,6 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceCommandDAO;
-import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
@@ -285,8 +284,8 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
     public Response query(@PathParam("deviceGuid") UUID guid,
-                          @QueryParam("start") String start,
-                          @QueryParam("end") String end,
+                          @QueryParam("start") Timestamp start,
+                          @QueryParam("end") Timestamp end,
                           @QueryParam("command") String command,
                           @QueryParam("status") String status,
                           @QueryParam("sortField") String sortField,
@@ -312,25 +311,6 @@ public class DeviceCommandController {
         }
 
         sortField = sortField.toLowerCase();
-        Timestamp startTimestamp = null, endTimestamp = null;
-
-        if (start != null) {
-            startTimestamp = TimestampAdapter.parseTimestampQuietly(start);
-            if (startTimestamp == null) {
-                logger.debug("Device command query failed. Unparseable timestamp.");
-                return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                        new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-            }
-        }
-
-        if (end != null) {
-            endTimestamp = TimestampAdapter.parseTimestampQuietly(end);
-            if (endTimestamp == null) {
-                logger.debug("Device command query failed. Unparseable timestamp.");
-                return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                        new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-            }
-        }
 
         Device device;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
@@ -338,8 +318,8 @@ public class DeviceCommandController {
         device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
 
         List<DeviceCommand> commandList =
-                commandService.queryDeviceCommand(device, startTimestamp, endTimestamp, command,
-                        status, sortField, sortOrder, take, skip);
+                commandService.queryDeviceCommand(device, start, end, command, status, sortField, sortOrder, take,
+                        skip);
 
         logger.debug("Device command query request proceed successfully");
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);
