@@ -1,0 +1,84 @@
+DEVICEHIVE-JAVA INSTRUCTIONS SET
+
+
+PREREQUISITES
+
+To use DeviceHive framework properly you must have following components installed and configured:
+•	PostgreSQL 9.1 or above ( http://www.postgresql.org/download/) to collect data.
+•	PostgreSQL jdbc driver suitable for your version of PostgreSQL
+•	Glassfish 4 application server (http://glassfish.java.net/download.html) to run DeviceHive.
+•	JDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7) http://www.oracle.com/technetwork/java/javase/downloads/index.html
+•	Dh_dbtool.jar to provide necessary database migrations.
+•	DeviceHiveJava.war to use DeviceHive framework.
+ 
+
+INSTALLATION INSTRUCTIONS
+
+It is absolutely necessary to configure environment properly, so you need to follow the instructions:
+
+
+DATABASE CREATION INSTRUCTIONS
+
+•	After you download and install PostgreSQL you have to create new user. This step is useful to provide database migrations. 
+•	Create database using user that have been created at step 1. This user should be owner of database.
+•	Run Dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command:
+
+java –jar dh_dbtool.jar -m -url <databaseurl> -user <login> [-password <password>]
+
+The parameter <databaseurl> is a jdbc connection URL to your database, user is a database user’s login and password is a user’s password, if required.  To get help use 
+
+java –jar dh_dbtool.jar –h
+
+
+
+GLASSFISH CONFIGURATION INSTRUCTIONS
+
+•	Install glassfish 4 as it described in the glassfish installation instructions.
+•	Open <glassfish installation directory>glassfish/domains/<domain folder>/lib/ext and put  postgresql-jdbc4.jar (or another postgresql jdbc driver suitable for your postgresql version).
+•	Then, run server and open <yourServerName>:4848
+•	Navigate to Resources -> JDBC -> JDBC Connection Pools. You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
+
+Pool Name: DeviceHivePool
+Resource Type: javax.sql.ConnectionPoolDataSource
+Datasource Classname: org.postgresql.ds.PGConnectionPoolDataSource
+
+Specify pool settings as you need it.
+
+Specify transaction settings as follows:
+
+Transaction Isolation: read-committed
+Isolation Level: Guaranteed
+
+ Set additional properties:
+
+In the user filed enter your database user login
+In the DatabaseName enter your database name
+In the Password field enter password for access to your database
+In the ServerName field enter your database server name
+
+•	Open Resources -> JDBC -> JDBC Resources. Create new JDBC resource with properties:
+
+JNDI name: jdbc/DeviceHiveDataSource
+Pool name: DeviceHivePool
+
+•	Execute server ->  General ->  restart
+
+
+DEPLOYMENT INSTRUCTIONS
+
+When server is installed and all required properties configured, you have to deploy application. 
+
+•	Go to <yourServerName>:4848
+•	Open Applications tab.
+•	Click on Deploy button
+•	Click on “Select file” button. In the appeared dialog select DeviceHiveJava.war. Click on “Ok” button
+•	Launch DeviceHiveJava
+•	Set up web socket server URL and rest server URL. To do that you have to use link:
+
+http://<yourServerName>:<port>/DeviceHiveJava/config/set?name={name}&value={value}
+
+The parameter “name” can be either “websocket.url” or “rest.url” 
+The parameter “value” is associated URL for web socket and rest services.
+
+•	Use it.
+
