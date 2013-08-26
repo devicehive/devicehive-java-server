@@ -259,6 +259,17 @@ public class DeviceController {
                 .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
 
+    /**
+     * Gets current state of device equipment.
+     * The equipment state is tracked by framework and it could be updated by sending 'equipment' notification
+     * with the following parameters:
+     * equipment: equipment code
+     * parameters: current equipment state
+     *
+     * @param guid device guid
+     * @param code equipment code
+     * @return If successful return equipment associated with code and device with following guid
+     */
     @GET
     @Path("/{id}/equipment/{code}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})

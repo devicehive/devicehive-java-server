@@ -61,27 +61,63 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
-
     @EJB
     private DeviceNotificationService notificationService;
-
     @EJB
     private SubscriptionManager subscriptionManager;
-
     @EJB
     private GlobalMessageBus globalMessageBus;
-
     @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
-
     @EJB
     private DeviceService deviceService;
-
     @EJB
     private TimestampService timestampService;
-
     private ExecutorService asyncPool;
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive
+     * RESTful API: DeviceNotification: query</a>
+     * Queries device notifications.
+     *
+     * @param guid         Device unique identifier.
+     * @param start        Filter by notification start timestamp (UTC).
+     * @param end          Filter by notification end timestamp (UTC).
+     * @param notification Filter by notification name.
+     * @param sortField    Result list sort field. Available values are Timestamp (default) and Notification.
+     * @param sortOrder    Result list sort order. Available values are ASC and DESC.
+     * @param take         Number of records to take from the result list (default is 1000).
+     * @param skip         Number of records to skip from the result list.
+     * @return If successful, this method returns array of <a href="http://www.devicehive
+     *         .com/restful#Reference/DeviceNotification">DeviceNotification</a> resources in the response body.
+     *         <table>
+     *         <tr>
+     *         <td>Property Name</td>
+     *         <td>Type</td>
+     *         <td>Description</td>
+     *         </tr>
+     *         <tr>
+     *         <td>id</td>
+     *         <td>integer</td>
+     *         <td>Notification identifier</td>
+     *         </tr>
+     *         <tr>
+     *         <td>timestamp</td>
+     *         <td>datetime</td>
+     *         <td>Notification timestamp (UTC)</td>
+     *         </tr>
+     *         <tr>
+     *         <td>notification</td>
+     *         <td>string</td>
+     *         <td>Notification name</td>
+     *         </tr>
+     *         <tr>
+     *         <td>parameters</td>
+     *         <td>object</td>
+     *         <td>Notification parameters, a JSON object with an arbitrary structure</td>
+     *         </tr>
+     *         </table>
+     */
     @GET
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
@@ -97,7 +133,7 @@ public class DeviceNotificationController {
 
         logger.debug("Device notification requested");
 
-        if (sortOrder == null){
+        if (sortOrder == null) {
             sortOrder = true;
         }
 
@@ -124,6 +160,43 @@ public class DeviceNotificationController {
         return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive
+     * RESTful API: DeviceNotification: get</a>
+     * Gets information about device notification.
+     *
+     * @param guid           Device unique identifier.
+     * @param notificationId Notification identifier.
+     * @return If successful, this method returns a <a href="http://www.devicehive
+     *         .com/restful#Reference/DeviceNotification">DeviceNotification</a> resource in the response body.
+     *         <table>
+     *         <tr>
+     *         <td>Property Name</td>
+     *         <td>Type</td>
+     *         <td>Description</td>
+     *         </tr>
+     *         <tr>
+     *         <td>id</td>
+     *         <td>integer</td>
+     *         <td>Notification identifier</td>
+     *         </tr>
+     *         <tr>
+     *         <td>timestamp</td>
+     *         <td>datetime</td>
+     *         <td>Notification timestamp (UTC)</td>
+     *         </tr>
+     *         <tr>
+     *         <td>notification</td>
+     *         <td>string</td>
+     *         <td>Notification name</td>
+     *         </tr>
+     *         <tr>
+     *         <td>parameters</td>
+     *         <td>object</td>
+     *         <td>Notification parameters, a JSON object with an arbitrary structure</td>
+     *         </tr>
+     *         </table>
+     */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
@@ -355,6 +428,52 @@ public class DeviceNotificationController {
         }
     }
 
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/insert">DeviceHive
+     * RESTful API: DeviceNotification: insert</a>
+     * Creates new device notification.
+     *
+     * @param guid       Device unique identifier.
+     * @param jsonObject In the request body, supply a DeviceNotification resource.
+     *                   <table>
+     *                   <tr>
+     *                   <td>Property Name</td>
+     *                   <td>Required</td>
+     *                   <td>Type</td>
+     *                   <td>Description</td>
+     *                   </tr>
+     *                   <tr>
+     *                   <td>notification</td>
+     *                   <td>Yes</td>
+     *                   <td>string</td>
+     *                   <td>Notification name.</td>
+     *                   </tr>
+     *                   <tr>
+     *                   <td>parameters</td>
+     *                   <td>No</td>
+     *                   <td>object</td>
+     *                   <td>Notification parameters, a JSON object with an arbitrary structure.</td>
+     *                   </tr>
+     *                   </table>
+     * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a> resource in the response body.
+     *         <table>
+     *         <tr>
+     *         <tr>Property Name</tr>
+     *         <tr>Type</tr>
+     *         <tr>Description</tr>
+     *         </tr>
+     *         <tr>
+     *         <td>id</td>
+     *         <td>integer</td>
+     *         <td>Notification identifier.</td>
+     *         </tr>
+     *         <tr>
+     *         <td>timestamp</td>
+     *         <td>datetime</td>
+     *         <td>Notification timestamp (UTC).</td>
+     *         </tr>
+     *         </table>
+     */
     @POST
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification")
@@ -376,7 +495,8 @@ public class DeviceNotificationController {
                 principal.getDevice());
         if (device.getNetwork() == null) {
             logger.debug(
-                    "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}", guid);
+                    "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}",
+                    guid);
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
         notificationService.submitDeviceNotification(notification, device);
