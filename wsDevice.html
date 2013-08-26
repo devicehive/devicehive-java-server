@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title></title>
+    <script type="text/javascript">
+        var client = new WebSocket("ws://localhost:8080/hive/websocket/device");
+
+        client.onmessage = function(event) {
+            document.getElementById("response").value +='\n'+ event.data;
+        }
+
+        function send() {
+
+            client.send(document.getElementById("request").value);
+        }
+    </script>
+
+</head>
+<body>
+<script>
+    document.write("<p><h2>Device</h2></p>");
+</script>
+
+<table style="width: 100%">
+    <tr>
+        <td>
+            Request
+        </td>
+        <td>
+            Response
+        </td>
+    </tr>
+    <tr>
+
+        <td>
+            <textarea id="request" rows="40" style="width: 100%"></textarea>
+        </td>
+        <td>
+            <textarea id="response" rows="40" style="width: 100%"></textarea>
+        </td>
+    </tr>
+</table>
+<button onclick="send()" >Send</button>
+</body>
+</html>
