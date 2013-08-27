@@ -51,7 +51,8 @@ public class User implements HiveEntity {
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login shouldn't be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
+            "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
 
@@ -62,7 +63,7 @@ public class User implements HiveEntity {
 
     @Column(name = "password_salt")
     @NotNull(message = "passwordSalt field cannot be null.")
-    @Size(min = 1, max = 24, message = "Field cannot be empty. The length of passwordSalt shouldn't be more than " +
+    @Size(min = 1, max = 24, message = "Field cannot be empty. The length of passwordSalt should not be more than " +
             "24 symbols.")
     private String passwordSalt;
 

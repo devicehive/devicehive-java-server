@@ -169,7 +169,7 @@ public class DeviceClassController {
             logger.debug("Unable to update device class");
             return ResponseFactory.response(
                     Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id = " + id + " not found."));
+                    new ErrorResponse("DeviceClass with id : " + id + " not found."));
         }
         logger.debug("Device class updated");
 

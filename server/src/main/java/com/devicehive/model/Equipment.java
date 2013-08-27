@@ -45,21 +45,24 @@ public class Equipment implements HiveEntity {
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
+            "symbols.")
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private String name;
 
     @SerializedName("code")
     @Column
     @NotNull(message = "code field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code should not be more than 128 " +
+            "symbols.")
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private String code;
 
     @SerializedName("type")
     @Column
     @NotNull(message = "type field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type shouldn't be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type should not be more than 128 " +
+            "symbols.")
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED})
     private String type;
 

@@ -187,7 +187,8 @@ public class UserController {
         }
 
         if (userService.findByLogin(user.getLogin().getValue()) != null) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be created."));
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User could not be created" +
+                    "."));
         }
 
         User created = userService.createUser(user.getLogin().getValue(),
@@ -227,7 +228,7 @@ public class UserController {
 
             if (u != null && u.getId() != userId) {
                 return ResponseFactory
-                        .response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be updated."));
+                        .response(Response.Status.FORBIDDEN, new ErrorResponse("User could not be updated."));
             }
         }
 
@@ -376,7 +377,7 @@ public class UserController {
         User u = userService.findUserWithNetworksByLogin(login);
 
         if (u == null) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Couldn't get current user."));
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Could not get current user."));
         }
 
         return ResponseFactory.response(Response.Status.OK, u, JsonPolicyDef.Policy.USER_PUBLISHED);
@@ -417,7 +418,7 @@ public class UserController {
         String login = securityContext.getUserPrincipal().getName();
 
         if (login == null) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User couldn't be updated"));
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User could not be updated"));
         }
 
         User u = userService.findUserWithNetworksByLogin(login);

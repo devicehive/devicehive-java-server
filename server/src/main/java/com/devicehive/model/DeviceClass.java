@@ -41,13 +41,14 @@ public class DeviceClass implements HiveEntity {
 
     @Column
     @NotNull(message = "name field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
+            "symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private String name;
 
     @Column
     @NotNull(message = "name field cannot be null.")
-    @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version shouldn't be more than 32 " +
+    @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version should not be more than 32 " +
             "symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private String version;

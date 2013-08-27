@@ -75,7 +75,7 @@ public class DeviceNotification implements HiveEntity {
     @SerializedName("notification")
     @Column
     @NotNull(message = "notification field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification shouldn't be more than " +
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification should not be more than " +
             "128 symbols.")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private String notification;

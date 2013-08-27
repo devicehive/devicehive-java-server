@@ -5,12 +5,10 @@ package com.devicehive.model;
  */
 public class ErrorResponse implements HiveEntity {
 
-    public static final String WRONG_SORT_ORDER_PARAM_MESSAGE = "Invalid request parameters, sort order can be 'ASC' or 'DESC' only";
     public static final String INVALID_REQUEST_PARAMETERS_MESSAGE = "Invalid request parameters";
     public static final String JSON_SYNTAX_ERROR_MESSAGE = "JSON syntax error";
     public static final String DEVICE_NOT_FOUND_MESSAGE = "Device not found.";
     public static final String NETWORK_NOT_FOUND_MESSAGE = "Network not found.";
-    public static final String FORBIDDEN_MESSAGE = "Access Forbidden";
     public static final String CONFLICT_MESSAGE = "Error occurred. Please, retry again.";
     private static final long serialVersionUID = 286844689037405279L;
 

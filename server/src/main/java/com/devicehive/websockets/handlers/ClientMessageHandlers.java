@@ -93,7 +93,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "authenticate", needsAuth = false)
     public JsonObject processAuthenticate(JsonObject message, Session session) {
         if (message.get("login") == null || message.get("password") == null) {
-            throw new HiveException("login and password cannot be emty!");
+            throw new HiveException("login and password cannot be empty!");
         }
         String login = message.get("login").getAsString();
         String password = message.get("password").getAsString();
@@ -403,7 +403,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             }
 
             responseBuilder
-                    .append(". Device(s) with such guids doesn't exist(s) or you haven't permissions to get notifications from this device.");
+                    .append(". Device(s) with such guids does not exist(s) or you have not permissions to get " +
+                            "notifications from this device.");
             throw new HiveException(responseBuilder.toString());
         }
 

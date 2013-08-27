@@ -74,7 +74,7 @@ public class DeviceCommand implements HiveEntity {
     @Column
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128,
-            message = "Field cannot be empty. The length of command shouldn't be more than 128 symbols.")
+            message = "Field cannot be empty. The length of command should not be more than 128 symbols.")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String command;

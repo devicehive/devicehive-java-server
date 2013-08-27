@@ -192,7 +192,7 @@ public class NetworkController {
             result = networkService.insert(n);
         } catch (HiveException ex) {
         logger.debug("Unable to proceed network insert.", ex);
-        return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network couldn't be created"));
+        return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network could not be created"));
     }
         logger.debug("New network has been created");
 

@@ -31,9 +31,6 @@ public class AsyncMessageSupplier {
 
     private ScheduledExecutorService retryExecutorService;
 
-
-
-
     @PostConstruct
     protected void postConstruct() {
         mainExecutorService = Executors.newCachedThreadPool();

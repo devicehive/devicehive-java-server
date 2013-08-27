@@ -41,7 +41,8 @@ public class DeviceEquipment implements HiveEntity {
 
     @Column
     @NotNull(message = "code field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code shouldn't be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code should not be more than 128 " +
+            "symbols.")
     @SerializedName("id")
     @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
     private String code;

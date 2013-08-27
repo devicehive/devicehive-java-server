@@ -41,20 +41,21 @@ public class Network implements HiveEntity {
 
     @SerializedName("key")
     @Column
-    @Size(max = 64, message = "The length of key shouldn't be more than 64 symbols.")
+    @Size(max = 64, message = "The length of key should not be more than 64 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String key;
 
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name shouldn't be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
+            "symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
 
     @SerializedName("description")
     @Column
-    @Size(max = 128, message = "The length of description shouldn't be more than 128 symbols.")
+    @Size(max = 128, message = "The length of description should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
 

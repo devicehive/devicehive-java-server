@@ -24,13 +24,13 @@ public class Configuration implements HiveEntity {
     private static final long serialVersionUID = 7957264089438389993L;
     @Id
     @SerializedName("name")
-    @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name shouldn't be more than " +
+    @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name should not be more than " +
             "32 symbols.")
     private String name;
 
     @Column
     @NotNull(message = "value field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of value shouldn't be more than " +
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of value should not be more than " +
             "128 symbols.")
     private String value;
 
