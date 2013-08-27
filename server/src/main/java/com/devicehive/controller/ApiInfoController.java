@@ -23,8 +23,6 @@ import javax.ws.rs.core.Response;
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
 
-
-
     @EJB
     private TimestampService timestampService;
 
