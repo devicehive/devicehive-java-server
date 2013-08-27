@@ -82,7 +82,8 @@ CREATE TABLE device_command (
 
 ALTER TABLE device_command ADD CONSTRAINT device_command_pk PRIMARY KEY (id);
 ALTER TABLE device_command ADD CONSTRAINT device_command_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
-ALTER TABLE device_command ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE;
+ALTER TABLE device_command ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE SET
+NULL;
 CREATE INDEX device_command_device_id_timestamp_idx ON device_command (device_id, timestamp);
 
 CREATE TABLE device_equipment (
