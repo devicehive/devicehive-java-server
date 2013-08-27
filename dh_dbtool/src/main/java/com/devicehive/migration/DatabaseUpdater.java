@@ -1,6 +1,7 @@
 package com.devicehive.migration;
 
 import com.googlecode.flyway.core.Flyway;
+import com.googlecode.flyway.core.api.FlywayException;
 import com.googlecode.flyway.core.api.MigrationInfo;
 import com.googlecode.flyway.core.api.MigrationVersion;
 import org.apache.commons.cli.*;
@@ -8,53 +9,68 @@ import org.apache.commons.cli.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Properties;
 import java.util.Set;
 
 public class DatabaseUpdater {
     private static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
+    private static final String SELECT_NUMBER_OF_TABLES_IN_SCHEMA = "select count(table_name) as number " +
+            "from information_schema.tables " +
+            "where table_schema = ? and has_table_privilege(? ,quote_ident(table_schema) || '.' || quote_ident" +
+            "(table_name), 'INSERT');";
     private Options options = new Options();
     private Flyway flyway = new Flyway();
 
-    public void execute(PrintStream out, PrintStream err, String ... args){
-        DatabaseUpdater updater = new DatabaseUpdater();
-        updater.initOptions(err);
-        CommandLine command = updater.parse(err, args);
+    public void execute(PrintStream out, PrintStream err, String... args) {
+        initOptions(err);
+        CommandLine command = parse(err, args);
         if (command == null) {
             return;
         }
 
         if (command.hasOption(Constants.HELP_OPTION)) {
-            updater.help();
+            help();
             return;
         }
 
-        if (command.hasOption(Constants.PRINT_VERSION_OPTION)){
-            try{
-                updater.printCurrentVersion(out, command.getOptionValue(Constants.DATABASE_JDBC_URL),
-                        command.getOptionValue(Constants
-                                .DATABASE_LOGIN), command.getOptionValue(Constants.USER_PASSWORD));
-            }
-            catch(IllegalArgumentException e){
-                out.print(e.getMessage());
-            }
-            return;
-        }
-
-        if (command.hasOption(Constants.MIGRATE_OPTION)){
-            try{
-                updater.migrate(command.getOptionValue(Constants.DATABASE_JDBC_URL), command.getOptionValue(Constants
-                        .DATABASE_LOGIN), command.getOptionValue(Constants.USER_PASSWORD));
-            }
-            catch(IllegalArgumentException e){
-                out.print(e.getMessage());
+        if (command.hasOption(Constants.PRINT_VERSION_OPTION)) {
+            try {
+                printCurrentVersion(out,
+                        command.getOptionValue(Constants.DATABASE_JDBC_URL),
+                        command.getOptionValue(Constants.DATABASE_LOGIN),
+                        command.getOptionValue(Constants.USER_PASSWORD),
+                        command.getOptionValue(Constants.DATABASE_SCHEMA));
+            } catch (FlywayException e) {
+                out.println(e.getMessage());
+                if (e.getCause() != null) {
+                    out.println(e.getCause().getMessage());
+                }
             }
             return;
         }
 
-        updater.help();
+        if (command.hasOption(Constants.MIGRATE_OPTION)) {
+            try {
+                migrate(out,
+                        command.getOptionValue(Constants.DATABASE_JDBC_URL),
+                        command.getOptionValue(Constants.DATABASE_LOGIN),
+                        command.getOptionValue(Constants.USER_PASSWORD),
+                        command.getOptionValue(Constants.DATABASE_SCHEMA));
+            } catch (FlywayException e) {
+                out.println(e.getMessage());
+                if (e.getCause() != null) {
+                    out.println(e.getCause().getMessage());
+                }
+            }
+            return;
+        }
+
+        help();
     }
-
 
     private void initOptions(PrintStream err) {
         initFlagsOptions(err);
@@ -108,41 +124,79 @@ public class DatabaseUpdater {
         HELP_FORMATTER.printHelp(Constants.MIGRATION_TOOL_NAME, options);
     }
 
-    private void migrate(String url, String user, String password) {
+    private void migrate(PrintStream out, String url, String user, String password,
+                         String schema) {
         if (url == null || user == null) {
-            throw new IllegalArgumentException(Constants.NO_URL_OR_USER_MESSAGE);
+            out.print(Constants.NO_URL_OR_USER_MESSAGE);
+            return;
         }
         flyway.setDataSource(url, user, password);
+        if (schema != null) {
+            flyway.setSchemas(schema);
+        }
+        if (flyway.info().current() == null) {
+            try {
+                Connection connection = flyway.getDataSource().getConnection();
+                PreparedStatement statement = connection.prepareStatement(SELECT_NUMBER_OF_TABLES_IN_SCHEMA);
+                if (schema == null) {
+                    statement.setString(1, flyway.getSchemas()[0]);
+                } else {
+                    statement.setString(1, schema);
+                }
+                statement.setString(2, user);
+                ResultSet result = statement.executeQuery();
+                result.next();
+                Integer tablesNumber = result.getInt("number");
+                if (tablesNumber != 0) {
+                    out.print(Constants.EMPTY_DATABASE_WARNING_MESSAGE);
+                    return;
+                }
+            } catch (SQLException e) {
+                out.print(Constants.UNEXPECTED_EXCEPTION + e.getMessage());
+                return;
+            }
+        }
+
         flyway.migrate();
     }
 
-
-    private void printCurrentVersion(PrintStream out, String url, String user, String password) {
+    private void printCurrentVersion(PrintStream out, String url, String user, String password, String schema) {
         if (url == null || user == null) {
-            throw new IllegalArgumentException(Constants.NO_URL_OR_USER_MESSAGE);
+            out.print(Constants.NO_URL_OR_USER_MESSAGE);
+            return;
         }
         flyway.setDataSource(url, user, password);
-        out.println("CURRENT VERSION INFO:");
-        MigrationInfo currentVersionInfo = flyway.info().current();
-        out.println("Checksum: " + currentVersionInfo.getChecksum());
-        out.println("Description: " + currentVersionInfo.getDescription());
-        MigrationVersion lastAvailableVersion = currentVersionInfo.getVersion();
-        out.println("Version: " + currentVersionInfo.getVersion());
-        out.println("State: " + currentVersionInfo.getState());
-        out.println("Installed on: " + currentVersionInfo.getInstalledOn());
-        out.println("Type: " + currentVersionInfo.getType());
-        out.println("Script: " + currentVersionInfo.getScript());
-
-        MigrationInfo[] lastVersionInfo = flyway.info().pending();
-        for (MigrationInfo info : lastVersionInfo) {
-            if (!lastAvailableVersion.equals(info.getVersion())) {
-                lastAvailableVersion = info.getVersion();
-            }
+        if (schema != null) {
+            flyway.setSchemas(schema);
         }
-        if (currentVersionInfo.getVersion().equals(lastAvailableVersion)) {
-            out.println(Constants.LATEST_DB_VERSION_USED_MESSAGE);
+        MigrationInfo currentVersionInfo = flyway.info().current();
+        out.println("CURRENT VERSION INFO:");
+        if (currentVersionInfo != null) {
+            out.println("Checksum: " + currentVersionInfo.getChecksum());
+            out.println("Description: " + currentVersionInfo.getDescription());
+            MigrationVersion lastAvailableVersion = currentVersionInfo.getVersion();
+            out.println("Version: " + currentVersionInfo.getVersion());
+            out.println("State: " + currentVersionInfo.getState());
+            out.println("Installed on: " + currentVersionInfo.getInstalledOn());
+            out.println("Type: " + currentVersionInfo.getType());
+            out.println("Script: " + currentVersionInfo.getScript());
+
+            MigrationInfo[] lastVersionInfo = flyway.info().pending();
+            for (MigrationInfo info : lastVersionInfo) {
+                if (!lastAvailableVersion.equals(info.getVersion())) {
+                    lastAvailableVersion = info.getVersion();
+                }
+            }
+            if (currentVersionInfo.getVersion().equals(lastAvailableVersion)) {
+                out.println(Constants.LATEST_DB_VERSION_USED_MESSAGE);
+            } else {
+                out.println(Constants.MIGRATION_REQUIRED_MESSAGE);
+            }
         } else {
-            out.println(Constants.MIGRATION_REQUIRED_MESSAGE);
+            MigrationInfo[] lastVersionInfo = flyway.info().pending();
+            out.print(Constants.EMPTY_DATABASE_MESSAGE + lastVersionInfo[lastVersionInfo.length - 1].getVersion());
+            out.print(Constants.MIGRATION_REQUIRED_MESSAGE);
         }
     }
+
 }
