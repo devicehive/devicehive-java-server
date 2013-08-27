@@ -102,15 +102,21 @@ public class DeviceCommandService {
     }
 
 
-    public void saveDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
+    public void saveDeviceCommand(final DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
         commandDAO.createCommand(command);
         if (session != null) {
+            Runnable removeHandler = new Runnable() {
+                @Override
+                public void run() {
+                    subscriptionManager.getCommandUpdateSubscriptionStorage().remove(command.getId(), session.getId());
+                }
+            };
             CommandUpdateSubscription commandUpdateSubscription =
                     new CommandUpdateSubscription(command.getId(), session.getId(),
                             new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK,
-                                    asyncMessageDeliverer));
+                                    asyncMessageDeliverer, removeHandler));
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
         }
     }
