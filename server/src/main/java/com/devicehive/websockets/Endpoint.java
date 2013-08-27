@@ -18,6 +18,7 @@ import javax.persistence.OptimisticLockException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -26,17 +27,17 @@ import java.util.concurrent.ConcurrentMap;
 
 abstract class Endpoint {
 
-    protected static final long MAX_MESSAGE_SIZE = 10240;
+    protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
 
     private ConcurrentMap<Pair<Class, String>, Method> methodsCache = new ConcurrentHashMap<>();
 
-    protected JsonObject processMessage(HiveMessageHandlers handler, String message, Session session) {
+    protected JsonObject processMessage(HiveMessageHandlers handler, Reader reader, Session session) {
         JsonObject response;
 
         JsonObject request;
         try {
-            request = new JsonParser().parse(message).getAsJsonObject();
+            request = new JsonParser().parse(reader).getAsJsonObject();
         } catch (JsonSyntaxException ex) {
             // Stop processing this request, response with simple error message (status and error fields)
             logger.error("[processMessage] Incorrect message syntax ", ex);
