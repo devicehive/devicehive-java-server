@@ -6,7 +6,7 @@
 
     <groupId>database-main</groupId>
     <artifactId>dh_dbtool</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.2.0.0-SNAPSHOT</version>
     <name>Database Update Tool</name>
     <packaging>jar</packaging>
 
@@ -62,6 +62,8 @@
                             <mainClass>com.devicehive.migration.Main</mainClass>
                         </manifest>
                     </archive>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <finalName>dh_dbtool-1.2.0.0</finalName>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
