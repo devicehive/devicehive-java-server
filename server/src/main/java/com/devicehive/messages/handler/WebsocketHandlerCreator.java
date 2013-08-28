@@ -16,11 +16,18 @@ public class WebsocketHandlerCreator implements HandlerCreator {
     private final Session session;
     private final AsyncMessageSupplier deliverer;
     private final Lock lock;
+    private final Runnable postHandler;
 
-    public WebsocketHandlerCreator(Session session, String lockAttribute, AsyncMessageSupplier deliverer) {
+    public WebsocketHandlerCreator(Session session, String lockAttribute,
+                                   AsyncMessageSupplier deliverer, Runnable postHandler) {
         this.session = session;
         this.deliverer = deliverer;
         this.lock = (Lock) session.getUserProperties().get(lockAttribute);
+        this.postHandler = postHandler;
+    }
+
+    public WebsocketHandlerCreator(Session session, String lockAttribute, AsyncMessageSupplier deliverer) {
+        this(session, lockAttribute, deliverer, null);
     }
 
     @Override
@@ -29,16 +36,22 @@ public class WebsocketHandlerCreator implements HandlerCreator {
         return new Runnable() {
             @Override
             public void run() {
-                if (!session.isOpen()) {
-                    return;
-                }
                 try {
-                    lock.lock();
-                    logger.debug("Add messages to queue process for session " + session.getId());
-                    WebsocketSession.addMessagesToQueue(session, message);
+                    if (!session.isOpen()) {
+                        return;
+                    }
+                    try {
+                        lock.lock();
+                        logger.debug("Add messages to queue process for session " + session.getId());
+                        WebsocketSession.addMessagesToQueue(session, message);
+                    } finally {
+                        lock.unlock();
+                        deliverer.deliverMessages(session);
+                    }
                 } finally {
-                    lock.unlock();
-                    deliverer.deliverMessages(session);
+                    if (postHandler != null) {
+                        postHandler.run();
+                    }
                 }
             }
         };

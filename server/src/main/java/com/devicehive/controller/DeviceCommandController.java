@@ -365,7 +365,9 @@ public class DeviceCommandController {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Command Not Found"));
         }
 
-        result.setUserId(result.getUser().getId());
+        if (result.getUser() != null) {
+            result.setUserId(result.getUser().getId());
+        }
 
         logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, id);
         return ResponseFactory.response(Response.Status.OK, result);
