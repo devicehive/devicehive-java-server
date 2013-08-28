@@ -94,7 +94,7 @@ public class DeviceClassService {
             throw new HiveException("Invalid request. Id cannot be specified.", BAD_REQUEST.getStatusCode());
         }
         if (deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
-            throw new HiveException("DeviceClass cannot be created. Device with such name and version already " +
+            throw new HiveException("DeviceClass cannot be created. Device class with such name and version already " +
                     "exists", FORBIDDEN.getStatusCode());
         }
         return deviceClassDAO.createDeviceClass(deviceClass);
