@@ -114,8 +114,8 @@ public class DeviceClassService {
         if (update.getData() != null)
             stored.setData(update.getData().getValue());
         if (update.getEquipment() != null) {
-            replaceEquipment(update.getEquipment(), stored);
-            stored.setEquipment(update.getEquipment());
+            replaceEquipment(update.getEquipment().getValue(), stored);
+            stored.setEquipment(update.getEquipment().getValue());
         }
         if (update.getName() != null) {
             stored.setName(update.getName().getValue());
@@ -130,9 +130,6 @@ public class DeviceClassService {
             stored.setVersion(update.getVersion().getValue());
         }
         deviceClassDAO.updateDeviceClass(stored);
-        if (update.getEquipmentUpdate() != null){
-            replaceEquipment(update.getEquipment(), stored);
-        }
     }
 
 //    public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {

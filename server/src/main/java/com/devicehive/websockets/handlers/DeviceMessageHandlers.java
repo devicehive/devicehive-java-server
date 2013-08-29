@@ -106,8 +106,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     @Override
     public void ensureAuthorised(JsonObject request, Session session) {
-        Gson gson = GsonFactory.createGson();
-
         if (WebsocketSession.hasAuthorisedDevice(session)) {
             return;
         }
@@ -511,7 +509,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (WebsocketSession.hasAuthorisedDevice(session)) {
             return WebsocketSession.getAuthorisedDevice(session);
         }
-        Gson gson = GsonFactory.createGson();
         String deviceId = request.get("deviceId").getAsString();
         return deviceDAO.findByUUID(deviceId);
     }
