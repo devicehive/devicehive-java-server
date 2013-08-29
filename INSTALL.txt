@@ -4,24 +4,24 @@ DEVICEHIVE-JAVA INSTRUCTIONS SET
 PREREQUISITES
 
 To use DeviceHive framework properly you must have following components installed and configured:
-•	PostgreSQL 9.1 or above ( http://www.postgresql.org/download/) to collect data.
-•	PostgreSQL jdbc driver suitable for your version of PostgreSQL
+•	PostgreSQL 9.1 (9.1 is tested version, but above should work fine too)
+•	PostgreSQL JDBC driver suitable for your version of PostgreSQL
 •	Glassfish 4 application server (http://glassfish.java.net/download.html) to run DeviceHive.
-•	JDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7) http://www.oracle.com/technetwork/java/javase/downloads/index.html
-•	Dh_dbtool.jar to provide necessary database migrations.
+•	Oracle JDK 7 or OpenJDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7).
+•	dh_dbtool.jar to provide necessary database migrations.
 •	DeviceHiveJava.war to use DeviceHive framework.
  
 
 INSTALLATION INSTRUCTIONS
 
-It is absolutely necessary to configure environment properly, so you need to follow the instructions:
+It is necessary to configure environment properly, so you need to follow the instructions:
 
 
 DATABASE CREATION INSTRUCTIONS
 
 •	After you download and install PostgreSQL you have to create new user. This step is useful to provide database migrations. 
 •	Create database using user that have been created at step 1. This user should be owner of database.
-•	Run Dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command:
+•	Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command:
 
 java –jar dh_dbtool.jar -m -url <databaseurl> -user <login> [-password <password>]
 
@@ -34,11 +34,11 @@ java –jar dh_dbtool.jar –h
 GLASSFISH CONFIGURATION INSTRUCTIONS
 
 •	Install glassfish 4 as it described in the glassfish installation instructions.
-•	Open <glassfish installation directory>glassfish/domains/<domain folder>/lib/ext and put  postgresql-jdbc4.jar (or another postgresql jdbc driver suitable for your postgresql version).
+•	Deploy postgresql jdbc driver to glassfish. Just put postgresql-jdbc4.jar (or another postgresql jdbc driver suitable for your postgresql version) to <glassfish installation directory>glassfish/domains/<domain_dir>/lib/ext directory and restart glassfish.
 •	Then, run server and open <yourServerName>:4848
 •	Navigate to Resources -> JDBC -> JDBC Connection Pools. You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
 
-Pool Name: DeviceHivePool
+Pool Name: Specify some pool name, e.g. DeviceHivePool 
 Resource Type: javax.sql.ConnectionPoolDataSource
 Datasource Classname: org.postgresql.ds.PGConnectionPoolDataSource
 
@@ -59,7 +59,7 @@ In the ServerName field enter your database server name
 •	Open Resources -> JDBC -> JDBC Resources. Create new JDBC resource with properties:
 
 JNDI name: jdbc/DeviceHiveDataSource
-Pool name: DeviceHivePool
+Pool name: DeviceHivePool (use recently created pool name)
 
 •	Execute server ->  General ->  restart
 
