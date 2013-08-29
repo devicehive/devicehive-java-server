@@ -39,7 +39,7 @@ public class DatabaseUpdater {
 
         if (command.hasOption(Constants.PRINT_VERSION_OPTION)) {
             try {
-                printCurrentVersion(out,
+                printCurrentVersion(out, err,
                         command.getOptionValue(Constants.DATABASE_JDBC_URL),
                         command.getOptionValue(Constants.DATABASE_LOGIN),
                         command.getOptionValue(Constants.USER_PASSWORD),
@@ -55,7 +55,7 @@ public class DatabaseUpdater {
 
         if (command.hasOption(Constants.MIGRATE_OPTION)) {
             try {
-                migrate(out,
+                migrate(err,
                         command.getOptionValue(Constants.DATABASE_JDBC_URL),
                         command.getOptionValue(Constants.DATABASE_LOGIN),
                         command.getOptionValue(Constants.USER_PASSWORD),
@@ -79,34 +79,55 @@ public class DatabaseUpdater {
 
     private void initFlagsOptions(PrintStream err) {
         Properties props = new Properties();
-        InputStream is = Main.class.getResourceAsStream(Constants.FLAGS_FILE);
+        InputStream is = null;
         try {
+            is = Main.class.getResourceAsStream(Constants.FLAGS_FILE);
             props.load(is);
+            Set<String> propertiesNames = props.stringPropertyNames();
+            for (String propertyName : propertiesNames) {
+                options.addOption(propertyName, false, props.getProperty(propertyName));
+            }
         } catch (IOException e) {
             err.println(Constants.READ_OPTIONS_EXCEPTION);
+
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    err.println(e.getMessage());
+                }
+            }
         }
-        Set<String> propertiesNames = props.stringPropertyNames();
-        for (String propertyName : propertiesNames) {
-            options.addOption(propertyName, false, props.getProperty(propertyName));
-        }
+
     }
 
     private void initArgumentsOptions(PrintStream err) {
         Properties props = new Properties();
-        InputStream is = Main.class.getResourceAsStream(Constants.ARGUMENTS_FILE);
+        InputStream is = null;
         try {
+            is = Main.class.getResourceAsStream(Constants.ARGUMENTS_FILE);
             props.load(is);
+            Set<String> propertiesNames = props.stringPropertyNames();
+            for (String propertyName : propertiesNames) {
+                Option option = OptionBuilder.withArgName(propertyName).
+                        withDescription(props.getProperty(propertyName))
+                        .hasArg()
+                        .create(propertyName);
+                options.addOption(option);
+            }
         } catch (IOException e) {
             err.println(Constants.READ_OPTIONS_EXCEPTION);
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    err.println(e.getMessage());
+                }
+            }
         }
-        Set<String> propertiesNames = props.stringPropertyNames();
-        for (String propertyName : propertiesNames) {
-            Option option = OptionBuilder.withArgName(propertyName).
-                    withDescription(props.getProperty(propertyName))
-                    .hasArg()
-                    .create(propertyName);
-            options.addOption(option);
-        }
+
     }
 
     private CommandLine parse(PrintStream err, String... args) {
@@ -124,10 +145,10 @@ public class DatabaseUpdater {
         HELP_FORMATTER.printHelp(Constants.MIGRATION_TOOL_NAME, options);
     }
 
-    private void migrate(PrintStream out, String url, String user, String password,
+    private void migrate(PrintStream err, String url, String user, String password,
                          String schema) {
         if (url == null || user == null) {
-            out.print(Constants.NO_URL_OR_USER_MESSAGE);
+            err.print(Constants.NO_URL_OR_USER_MESSAGE);
             return;
         }
         flyway.setDataSource(url, user, password);
@@ -135,34 +156,64 @@ public class DatabaseUpdater {
             flyway.setSchemas(schema);
         }
         if (flyway.info().current() == null) {
+            Connection connection = null;
+            PreparedStatement statement = null;
             try {
-                Connection connection = flyway.getDataSource().getConnection();
-                PreparedStatement statement = connection.prepareStatement(SELECT_NUMBER_OF_TABLES_IN_SCHEMA);
+                connection = flyway.getDataSource().getConnection();
+                statement = connection.prepareStatement(SELECT_NUMBER_OF_TABLES_IN_SCHEMA);
                 if (schema == null) {
                     statement.setString(1, flyway.getSchemas()[0]);
                 } else {
                     statement.setString(1, schema);
                 }
                 statement.setString(2, user);
-                ResultSet result = statement.executeQuery();
-                result.next();
-                Integer tablesNumber = result.getInt("number");
-                if (tablesNumber != 0) {
-                    out.print(Constants.EMPTY_DATABASE_WARNING_MESSAGE);
-                    return;
+                ResultSet result = null;
+                try {
+                    result = statement.executeQuery();
+                    result.next();
+                    Integer tablesNumber = result.getInt("number");
+                    if (tablesNumber != 0) {
+                        err.print(Constants.NOT_EMPTY_DATABASE_WARNING_MESSAGE);
+                        return;
+                    }
+                } finally {
+                    if (result != null) {
+                        try {
+                            result.close();
+                        } catch (SQLException e) {
+                            err.print(Constants.DATABASE_ACCESS_ERROR_MESSAGE + e.getMessage());
+                        }
+                    }
                 }
+
             } catch (SQLException e) {
-                out.print(Constants.UNEXPECTED_EXCEPTION + e.getMessage());
+                err.print(Constants.UNEXPECTED_EXCEPTION + e.getMessage());
                 return;
+            } finally {
+                try {
+                    if (statement != null) {
+                        statement.close();
+                    }
+                } catch (SQLException e) {
+                    err.print(Constants.DATABASE_ACCESS_ERROR_MESSAGE + e.getMessage());
+                }
+                try {
+                    if (connection != null) {
+                        connection.close();
+                    }
+                } catch (SQLException e) {
+                    err.print(Constants.DATABASE_ACCESS_ERROR_MESSAGE + e.getMessage());
+                }
+
             }
         }
-
         flyway.migrate();
     }
 
-    private void printCurrentVersion(PrintStream out, String url, String user, String password, String schema) {
+    private void printCurrentVersion(PrintStream out, PrintStream err, String url, String user, String password,
+                                     String schema) {
         if (url == null || user == null) {
-            out.print(Constants.NO_URL_OR_USER_MESSAGE);
+            err.print(Constants.NO_URL_OR_USER_MESSAGE);
             return;
         }
         flyway.setDataSource(url, user, password);

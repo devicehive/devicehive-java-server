@@ -12,6 +12,8 @@ public class Constants {
 
     public static final String UNEXPECTED_EXCEPTION = "Unexpected exception.";
 
+    public static final String DATABASE_ACCESS_ERROR_MESSAGE = "Database access error occurs: ";
+
     public static final String HELP_OPTION = "h";
 
     public static final String MIGRATE_OPTION = "m";
@@ -37,7 +39,7 @@ public class Constants {
     public static final String MIGRATION_REQUIRED_MESSAGE = "\nYour database version is outdated. You need to update your " +
             "database.";
 
-    public static final String EMPTY_DATABASE_WARNING_MESSAGE = "Unable to provide migration while database is not " +
+    public static final String NOT_EMPTY_DATABASE_WARNING_MESSAGE = "Unable to provide migration while database is not " +
             "empty. Please, clear the database";
 
     public static final String PARSE_EXCEPTION_MESSAGE = "Unable to parse command line arguments.";
