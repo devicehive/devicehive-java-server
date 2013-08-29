@@ -31,10 +31,22 @@ public class ConfigurationController {
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/set")
-    public Response setProperty(@QueryParam("name") @NotNull String name, @QueryParam("value") String value) {
-        logger.debug("Congiguration will be set. Property's name : {} value : {} ", name, value);
+    public Response setPropertyPost(@QueryParam("name") @NotNull String name, @QueryParam("value") String value) {
+        return setProperty(name, value);
+    }
+
+    @GET
+    @RolesAllowed(HiveRoles.ADMIN)
+    @Path("/set")
+    public Response setPropertyGet(@QueryParam("name") @NotNull String name, @QueryParam("value") String value) {
+        return setProperty(name, value);
+    }
+
+
+    private Response setProperty(String name, String value){
+        logger.debug("Configuration will be set. Property's name : {} value : {} ", name, value);
         configurationService.save(name, value);
-        logger.debug("Congiguration will has been set. Property's name : {} value : {} ", name, value);
+        logger.debug("Configuration has been set. Property's name : {} value : {} ", name, value);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
