@@ -79,9 +79,7 @@ public class DatabaseUpdater {
 
     private void initFlagsOptions(PrintStream err) {
         Properties props = new Properties();
-        InputStream is = null;
-        try {
-            is = Main.class.getResourceAsStream(Constants.FLAGS_FILE);
+        try (InputStream is = Main.class.getResourceAsStream(Constants.FLAGS_FILE)) {
             props.load(is);
             Set<String> propertiesNames = props.stringPropertyNames();
             for (String propertyName : propertiesNames) {
@@ -89,24 +87,12 @@ public class DatabaseUpdater {
             }
         } catch (IOException e) {
             err.println(Constants.READ_OPTIONS_EXCEPTION);
-
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    err.println(e.getMessage());
-                }
-            }
         }
-
     }
 
     private void initArgumentsOptions(PrintStream err) {
         Properties props = new Properties();
-        InputStream is = null;
-        try {
-            is = Main.class.getResourceAsStream(Constants.ARGUMENTS_FILE);
+        try (InputStream is = Main.class.getResourceAsStream(Constants.ARGUMENTS_FILE)){
             props.load(is);
             Set<String> propertiesNames = props.stringPropertyNames();
             for (String propertyName : propertiesNames) {
@@ -118,16 +104,7 @@ public class DatabaseUpdater {
             }
         } catch (IOException e) {
             err.println(Constants.READ_OPTIONS_EXCEPTION);
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    err.println(e.getMessage());
-                }
-            }
         }
-
     }
 
     private CommandLine parse(PrintStream err, String... args) {
@@ -156,11 +133,8 @@ public class DatabaseUpdater {
             flyway.setSchemas(schema);
         }
         if (flyway.info().current() == null) {
-            Connection connection = null;
-            PreparedStatement statement = null;
-            try {
-                connection = flyway.getDataSource().getConnection();
-                statement = connection.prepareStatement(SELECT_NUMBER_OF_TABLES_IN_SCHEMA);
+            try (Connection connection = flyway.getDataSource().getConnection()) {
+                try (PreparedStatement statement = connection.prepareStatement(SELECT_NUMBER_OF_TABLES_IN_SCHEMA)){
                 if (schema == null) {
                     statement.setString(1, flyway.getSchemas()[0]);
                 } else {
@@ -185,26 +159,10 @@ public class DatabaseUpdater {
                         }
                     }
                 }
-
+                }
             } catch (SQLException e) {
                 err.print(Constants.UNEXPECTED_EXCEPTION + e.getMessage());
                 return;
-            } finally {
-                try {
-                    if (statement != null) {
-                        statement.close();
-                    }
-                } catch (SQLException e) {
-                    err.print(Constants.DATABASE_ACCESS_ERROR_MESSAGE + e.getMessage());
-                }
-                try {
-                    if (connection != null) {
-                        connection.close();
-                    }
-                } catch (SQLException e) {
-                    err.print(Constants.DATABASE_ACCESS_ERROR_MESSAGE + e.getMessage());
-                }
-
             }
         }
         flyway.migrate();
