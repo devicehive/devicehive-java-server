@@ -34,13 +34,14 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "DeviceNotification.getByDeviceGuidsNewerThan",
                 query = "select dn from DeviceNotification dn where dn.device.guid in :guidList and dn.timestamp > " +
                         ":timestamp order by dn.timestamp"),
-        @NamedQuery(name = "DeviceNotification.getByUserAndDevicesNewerThan", query = "select dn from DeviceNotification dn " +
-                "where dn.device.id in " +
-                   "(select distinct d.id from Device d " +
-                      "join d.network n " +
-                      "join n.users u " +
-                   "where u = :user and d.guid in :guidList)" +
-                "and dn.timestamp > :timestamp"),
+        @NamedQuery(name = "DeviceNotification.getByUserAndDevicesNewerThan",
+                query = "select dn from DeviceNotification dn " +
+                        "where dn.device.id in " +
+                        "(select distinct d.id from Device d " +
+                        "join d.network n " +
+                        "join n.users u " +
+                        "where u = :user and d.guid in :guidList)" +
+                        "and dn.timestamp > :timestamp"),
         @NamedQuery(name = "DeviceNotification.getByNewerThan", query = "select dn from DeviceNotification dn " +
                 "where dn.timestamp > :timestamp order by dn.timestamp"),
         @NamedQuery(name = "DeviceNotification.deleteById",

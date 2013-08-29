@@ -82,7 +82,7 @@ public class UserController {
                 "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
                 take, skip);
 
-        if (sortOrder == null){
+        if (sortOrder == null) {
             sortOrder = true;
         }
 
@@ -377,7 +377,8 @@ public class UserController {
         User u = userService.findUserWithNetworksByLogin(login);
 
         if (u == null) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Could not get current user."));
+            return ResponseFactory
+                    .response(Response.Status.FORBIDDEN, new ErrorResponse("Could not get current user."));
         }
 
         return ResponseFactory.response(Response.Status.OK, u, JsonPolicyDef.Policy.USER_PUBLISHED);

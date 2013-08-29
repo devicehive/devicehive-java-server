@@ -3,8 +3,11 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.HiveEntity;
 
-import java.util.Set;
+import java.util.*;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -23,7 +26,7 @@ public class DeviceClassUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     NullableWrapper<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED})
-    NullableWrapper<Set<Equipment>> equipment;
+    NullableWrapper<Set<EquipmentUpdate>> equipment;
 
     public NullableWrapper<String> getName() {
         return name;
@@ -65,12 +68,23 @@ public class DeviceClassUpdate implements HiveEntity {
         this.data = data;
     }
 
-    public NullableWrapper<Set<Equipment>> getEquipment() {
+    public NullableWrapper<Set<EquipmentUpdate>> getEquipmentUpdate() {
         return equipment;
     }
 
-    public void setEquipment(NullableWrapper<Set<Equipment>> equipment) {
+    public void setEquipmentUpdate(NullableWrapper<Set<EquipmentUpdate>> equipment) {
         this.equipment = equipment;
+    }
+
+    public Set<Equipment> getEquipment() {
+        if (equipment == null || equipment.getValue() == null){
+           return Collections.EMPTY_SET;
+        }
+        Set<Equipment> resultSet = new HashSet<>(equipment.getValue().size());
+        for (EquipmentUpdate currentEquipment : equipment.getValue()){
+            resultSet.add(currentEquipment.convertTo());
+        }
+        return resultSet;
     }
 
     public DeviceClass convertTo() {
@@ -92,7 +106,11 @@ public class DeviceClassUpdate implements HiveEntity {
             deviceClass.setVersion(version.getValue());
         }
         if (equipment != null) {
-            deviceClass.setEquipment(equipment.getValue());
+            Set<Equipment> resultEquipmentList = new HashSet<>(equipment.getValue().size());
+            for (EquipmentUpdate currentEquipment : equipment.getValue()){
+                resultEquipmentList.add(currentEquipment.convertTo());
+            }
+            deviceClass.setEquipment(resultEquipmentList);
         }
         return deviceClass;
     }

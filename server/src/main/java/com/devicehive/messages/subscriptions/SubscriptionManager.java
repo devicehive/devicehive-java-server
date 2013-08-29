@@ -12,9 +12,11 @@ public class SubscriptionManager {
 
     private final CommandSubscriptionStorage commandSubscriptionStorage = new CommandSubscriptionStorage();
 
-    private final CommandUpdateSubscriptionStorage commandUpdateSubscriptionStorage = new CommandUpdateSubscriptionStorage();
+    private final CommandUpdateSubscriptionStorage commandUpdateSubscriptionStorage =
+            new CommandUpdateSubscriptionStorage();
 
-    private final NotificationSubscriptionStorage notificationSubscriptionStorage = new NotificationSubscriptionStorage();
+    private final NotificationSubscriptionStorage notificationSubscriptionStorage =
+            new NotificationSubscriptionStorage();
 
 
     public CommandSubscriptionStorage getCommandSubscriptionStorage() {

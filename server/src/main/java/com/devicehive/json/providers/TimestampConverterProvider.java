@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 @Provider
-public class TimestampConverterProvider  implements ParamConverterProvider {
+public class TimestampConverterProvider implements ParamConverterProvider {
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
         if (Timestamp.class.equals(rawType)) {
@@ -22,7 +22,6 @@ public class TimestampConverterProvider  implements ParamConverterProvider {
         }
         return null;
     }
-
 
 
     public static class TimestampConverter implements ParamConverter<Timestamp> {

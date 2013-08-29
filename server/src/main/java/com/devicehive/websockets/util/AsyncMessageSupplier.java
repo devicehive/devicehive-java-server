@@ -55,7 +55,7 @@ public class AsyncMessageSupplier {
                     doDeliverMessages(session);
                 } catch (IOException ex) {
                     logger.error("Error message delivery, session id is {} ", session.getId());
-                    if(retryCount.incrementAndGet() <= RETRY_COUNT) {
+                    if (retryCount.incrementAndGet() <= RETRY_COUNT) {
                         logger.info("Retry in {} seconds", RETRY_DELAY);
                         retryExecutorService.schedule(this, RETRY_DELAY, TimeUnit.SECONDS);
                     } else {
@@ -68,7 +68,8 @@ public class AsyncMessageSupplier {
 
     private void doDeliverMessages(Session session) throws IOException {
         @SuppressWarnings("unchecked")
-        ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(WebsocketSession.QUEUE);
+        ConcurrentLinkedQueue<JsonElement> queue =
+                (ConcurrentLinkedQueue) session.getUserProperties().get(WebsocketSession.QUEUE);
         boolean acquired = false;
         try {
             acquired = WebsocketSession.getQueueLock(session).tryLock();

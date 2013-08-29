@@ -65,7 +65,7 @@ public class DeviceClassController {
             @QueryParam("skip") Integer skip) {
 
         logger.debug("DeviceClass list requested");
-        if (sortOrder == null){
+        if (sortOrder == null) {
             sortOrder = true;
         }
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
@@ -135,12 +135,10 @@ public class DeviceClassController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertDeviceClass(DeviceClass insert) {
-
         logger.debug("Insert device class requested");
         DeviceClass result = deviceClassService.addDeviceClass(insert);
 
         logger.debug("Device class inserted");
-
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
     }
 
@@ -319,7 +317,6 @@ public class DeviceClassController {
         logger.debug("Delete device class's equipment requested");
         equipmentService.delete(eqId, classId);
         logger.debug("Delete device class's equipment finished");
-
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }

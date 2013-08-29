@@ -23,11 +23,13 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @NamedQueries({
         @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = " +
                 ":deviceClass"),
-        @NamedQuery(name = "Equipment.getByDeviceClassAndId", query = "select e from Equipment e join e.deviceClass dc " +
-                "where e.id = :equipmentId and dc.id = :deviceClassId"),
-        @NamedQuery(name = "Equipment.deleteByEquipmentList", query = "delete from Equipment e where e in :equipmentList"),
+        @NamedQuery(name = "Equipment.getByDeviceClassAndId",
+                query = "select e from Equipment e join e.deviceClass dc " +
+                        "where e.id = :equipmentId and dc.id = :deviceClassId"),
+        @NamedQuery(name = "Equipment.deleteByEquipmentList",
+                query = "delete from Equipment e where e in :equipmentList"),
         @NamedQuery(name = "Equipment.deleteById", query = "delete from Equipment e where e.id = :id"),
-        @NamedQuery(name = "Equipment.deleteByFK", query = "delete from Equipment e where e.deviceClass = " +
+        @NamedQuery(name = "Equipment.deleteByDeviceClass", query = "delete from Equipment e where e.deviceClass = " +
                 ":deviceClass"),
         @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from Equipment e where e.id = :id " +
                 "and e.deviceClass in (select dc from DeviceClass dc where dc.id = :deviceClassId)")

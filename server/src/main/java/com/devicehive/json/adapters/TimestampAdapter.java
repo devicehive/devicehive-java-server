@@ -13,7 +13,7 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.IOException;
 import java.sql.Timestamp;
 
-public class TimestampAdapter extends TypeAdapter<Timestamp>  {
+public class TimestampAdapter extends TypeAdapter<Timestamp> {
 
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
@@ -96,7 +96,7 @@ public class TimestampAdapter extends TypeAdapter<Timestamp>  {
         } else {
             try {
                 return parseTimestamp(in.nextString());
-            } catch (RuntimeException e ) {
+            } catch (RuntimeException e) {
                 throw new IOException("Wrong timestamp format", e);
             }
         }

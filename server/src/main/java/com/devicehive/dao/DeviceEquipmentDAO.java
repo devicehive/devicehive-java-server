@@ -50,7 +50,7 @@ public class DeviceEquipmentDAO {
 
     public boolean update(DeviceEquipment deviceEquipment) {
         DeviceEquipment equipment = findByCodeAndDevice(deviceEquipment.getCode(), deviceEquipment.getDevice());
-        if (equipment == null){
+        if (equipment == null) {
             return false;
         }
         equipment.setTimestamp(deviceEquipment.getTimestamp());

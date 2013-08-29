@@ -41,7 +41,7 @@ public class NetworkService {
         if (n.getName() == null) {
             throw new HiveException("Name must be provided");
         }
-        if (!networkDAO.getByNameOrId(null, n.getName()).isEmpty()){
+        if (!networkDAO.getByNameOrId(null, n.getName()).isEmpty()) {
             throw new HiveException("Network with name " + n.getName() + " already exists.");
         }
         return networkDAO.createNetwork(n);

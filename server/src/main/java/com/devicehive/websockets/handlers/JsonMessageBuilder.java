@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.Map;
-import java.util.UUID;
 
 
 public class JsonMessageBuilder {
@@ -61,10 +60,6 @@ public class JsonMessageBuilder {
         return this;
     }
 
-    public JsonMessageBuilder addDeviceGuid(UUID uuid) {
-        jsonObject.addProperty(DEVICE_GUID, uuid.toString());
-        return this;
-    }
 
     public JsonMessageBuilder addElement(String name, JsonElement element) {
         jsonObject.add(name, element);

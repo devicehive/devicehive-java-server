@@ -44,7 +44,6 @@ public class GsonFactory {
                 .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
                 .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
-                //.registerTypeAdapter(JsonStringWrapper.class, new JsonDbObjectAdapter())
                 .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
                 .registerTypeAdapter(UserStatus.class, new UserStatusAdapter());
     }
