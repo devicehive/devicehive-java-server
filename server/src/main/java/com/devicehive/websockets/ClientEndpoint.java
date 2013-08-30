@@ -1,6 +1,5 @@
 package com.devicehive.websockets;
 
-import com.devicehive.json.GsonFactory;
 import com.devicehive.json.providers.JsonEncoder;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.utils.LogExecutionTime;
