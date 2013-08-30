@@ -55,7 +55,7 @@ public class AsyncMessageSupplier {
                     doDeliverMessages(session);
                 } catch (IOException ex) {
                     logger.error("Error message delivery, session id is {} ", session.getId());
-                    if(retryCount.incrementAndGet() <= RETRY_COUNT) {
+                    if (retryCount.incrementAndGet() <= RETRY_COUNT) {
                         logger.info("Retry in {} seconds", RETRY_DELAY);
                         retryExecutorService.schedule(this, RETRY_DELAY, TimeUnit.SECONDS);
                     } else {
@@ -70,31 +70,36 @@ public class AsyncMessageSupplier {
         @SuppressWarnings("unchecked")
         ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(WebsocketSession.QUEUE);
         boolean acquired = false;
-        try {
-            acquired = WebsocketSession.getQueueLock(session).tryLock();
-            if (acquired) {
-                while (!queue.isEmpty()) {
-                    JsonElement jsonElement = queue.peek();
-                    if (jsonElement == null) {
-                        continue;
+        do {
+            try {
+                acquired = WebsocketSession.getQueueLock(session).tryLock();
+                if (acquired) {
+                    while (!queue.isEmpty()) {
+                        JsonElement jsonElement = queue.peek();
+                        if (jsonElement == null) {
+                            queue.poll();
+                            continue;
+                        }
+                        if (session.isOpen()) {
+                            String data = GsonFactory.createGson().toJson(jsonElement);
+                            session.getBasicRemote().sendText(data);
+                            queue.poll();
+                        } else {
+                            logger.error("Session is closed. Unable to deliver message");
+                            queue.clear();
+                            return;
+                        }
+                        logger.debug("Session {}: {} messages left", session.getId(), queue.size());
                     }
-                    if (session.isOpen()) {
-                        String data = GsonFactory.createGson().toJson(jsonElement);
-                        session.getBasicRemote().sendText(data);
-                        queue.poll();
-                    } else {
-                        logger.error("Session is closed. Unable to deliver message");
-                        queue.clear();
-                        return;
-                    }
-                    logger.debug("Session {}: {} messages left", session.getId(), queue.size());
+                } else {
+                    return;
+                }
+            } finally {
+                if (acquired) {
+                    WebsocketSession.getQueueLock(session).unlock();
                 }
             }
-        } finally {
-            if (acquired) {
-                WebsocketSession.getQueueLock(session).unlock();
-            }
-        }
+        } while (!queue.isEmpty());
     }
 }
 
