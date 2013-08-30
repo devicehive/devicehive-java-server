@@ -20,17 +20,20 @@ public class NetworkRequest implements HiveEntity {
 
     @SerializedName("key")
     @JsonPolicyDef({JsonPolicyDef.Policy.DEVICE_PUBLISHED, JsonPolicyDef.Policy.DEVICE_SUBMITTED,
-            JsonPolicyDef.Policy.USER_PUBLISHED, JsonPolicyDef.Policy.NETWORKS_LISTED, JsonPolicyDef.Policy.NETWORK_PUBLISHED})
+            JsonPolicyDef.Policy.USER_PUBLISHED, JsonPolicyDef.Policy.NETWORKS_LISTED,
+            JsonPolicyDef.Policy.NETWORK_PUBLISHED})
     private NullableWrapper<String> key;
 
     @SerializedName("name")
     @JsonPolicyDef({JsonPolicyDef.Policy.DEVICE_PUBLISHED, JsonPolicyDef.Policy.DEVICE_SUBMITTED,
-            JsonPolicyDef.Policy.USER_PUBLISHED, JsonPolicyDef.Policy.NETWORKS_LISTED, JsonPolicyDef.Policy.NETWORK_PUBLISHED})
+            JsonPolicyDef.Policy.USER_PUBLISHED, JsonPolicyDef.Policy.NETWORKS_LISTED,
+            JsonPolicyDef.Policy.NETWORK_PUBLISHED})
     private NullableWrapper<String> name;
 
     @SerializedName("description")
     @JsonPolicyDef({JsonPolicyDef.Policy.DEVICE_PUBLISHED, JsonPolicyDef.Policy.DEVICE_SUBMITTED,
-            JsonPolicyDef.Policy.USER_PUBLISHED, JsonPolicyDef.Policy.NETWORKS_LISTED, JsonPolicyDef.Policy.NETWORK_PUBLISHED})
+            JsonPolicyDef.Policy.USER_PUBLISHED, JsonPolicyDef.Policy.NETWORKS_LISTED,
+            JsonPolicyDef.Policy.NETWORK_PUBLISHED})
     private NullableWrapper<String> description;
 
 

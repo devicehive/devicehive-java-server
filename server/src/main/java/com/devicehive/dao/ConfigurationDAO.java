@@ -28,13 +28,13 @@ public class ConfigurationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Configuration> findAll(){
+    public List<Configuration> findAll() {
         TypedQuery<Configuration> query = em.createNamedQuery("Configuration.getAll", Configuration.class);
         return query.getResultList();
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void save(@NotNull String name, String value){
+    public void save(@NotNull String name, String value) {
         Configuration configuration = new Configuration();
         configuration.setName(name);
         configuration.setValue(value);

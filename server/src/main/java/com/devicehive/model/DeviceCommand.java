@@ -26,9 +26,9 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "DeviceCommand.getByUserAndDeviceNewerThan", query = "select dc from DeviceCommand dc " +
                 "where dc.timestamp > :timestamp and " +
                 "dc.device.id in " +
-                   "(select distinct d.id from Device d " +
-                   "join d.network n " +
-                   "join n.users u where u = :user and d.guid = :deviceId)"),
+                "(select distinct d.id from Device d " +
+                "join d.network n " +
+                "join n.users u where u = :user and d.guid = :deviceId)"),
         @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
                 " = :user and dc.device = :device"),
@@ -50,7 +50,8 @@ public class DeviceCommand implements HiveEntity {
 
     @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+    @JsonPolicyDef(
+            {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
 
     @SerializedName("user")
@@ -101,7 +102,8 @@ public class DeviceCommand implements HiveEntity {
 
     @SerializedName("status")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE,
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private String status;
 
@@ -110,7 +112,8 @@ public class DeviceCommand implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
     })
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE,
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
 

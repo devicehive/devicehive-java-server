@@ -14,6 +14,7 @@ public class JsonSyntaxExceptionMapper implements ExceptionMapper<JsonSyntaxExce
 
     @Override
     public Response toResponse(JsonSyntaxException exception) {
-        return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.JSON_SYNTAX_ERROR_MESSAGE));
+        return ResponseFactory
+                .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.JSON_SYNTAX_ERROR_MESSAGE));
     }
 }

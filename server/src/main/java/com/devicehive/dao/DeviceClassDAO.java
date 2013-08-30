@@ -19,7 +19,6 @@ import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 
 /**
@@ -83,13 +82,6 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceClass getByDevice(@NotNull UUID guid) {
-        TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.getByDevice", DeviceClass.class);
-        query.setParameter("guid", guid);
-        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
-    }
-
     public boolean delete(@NotNull Long id) {
         Query query = em.createNamedQuery("DeviceClass.deleteById");
         query.setParameter("id", id);
@@ -143,7 +135,8 @@ public class DeviceClassDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceClass> getByIdOrNameOrVersion(Long deviceClassId, String deviceClassName, String deviceClassVersion) {
+    public List<DeviceClass> getByIdOrNameOrVersion(Long deviceClassId, String deviceClassName,
+                                                    String deviceClassVersion) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceClass> deviceClassCriteria = criteriaBuilder.createQuery(DeviceClass.class);
         Root fromDeviceClass = deviceClassCriteria.from(DeviceClass.class);

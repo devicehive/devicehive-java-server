@@ -75,7 +75,7 @@ public class ConfigurationService {
     public <T> void updateAll() {
         List<Configuration> existingConfigs = configurationDAO.findAll();
         configurationMap.clear();
-        for (Configuration configuration : existingConfigs){
+        for (Configuration configuration : existingConfigs) {
             configurationMap.put(configuration.getName(), configuration.getValue());
         }
     }
@@ -88,7 +88,7 @@ public class ConfigurationService {
 
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public String get (@NotNull String name) {
+    public String get(@NotNull String name) {
         return configurationMap.get(name);
     }
 
@@ -118,7 +118,8 @@ public class ConfigurationService {
             logger.debug("Received configuration {}", message.getMessageObject());
             if (!message.getPublishingMember().localMember()) {
                 String name = message.getMessageObject();
-                ConfigurationService configurationService = sessionContext.getBusinessObject(ConfigurationService.class);
+                ConfigurationService configurationService =
+                        sessionContext.getBusinessObject(ConfigurationService.class);
                 if (name != null) {
                     configurationService.update(name);
                 } else {

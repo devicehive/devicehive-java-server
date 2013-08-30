@@ -14,6 +14,10 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -22,7 +26,6 @@ import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +124,7 @@ public class DeviceNotificationController {
     @GET
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response query(@PathParam("deviceGuid") UUID guid,
+    public Response query(@PathParam("deviceGuid") String guid,
                           @QueryParam("start") Timestamp start,
                           @QueryParam("end") Timestamp end,
                           @QueryParam("notification") String notification,
@@ -200,7 +203,7 @@ public class DeviceNotificationController {
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response get(@PathParam("deviceGuid") UUID guid, @PathParam("id") Long notificationId,
+    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
                         @Context SecurityContext securityContext) {
         logger.debug("Device notification requested");
 
@@ -209,7 +212,7 @@ public class DeviceNotificationController {
             throw new HiveException("Device notification with id : " + notificationId + " not found",
                     NOT_FOUND.getStatusCode());
         }
-        UUID deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
+        String deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
         if (!deviceGuidFromNotification.equals(guid)) {
             logger.debug("No device notifications found for device with guid : {}", guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device notifications " +
@@ -241,7 +244,7 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE})
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
-            @PathParam("deviceGuid") final UUID deviceGuid,
+            @PathParam("deviceGuid") final String deviceGuid,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam
                     ("waitTimeout") final long timeout,
@@ -264,7 +267,7 @@ public class DeviceNotificationController {
         });
     }
 
-    private void asyncResponsePollProcess(Timestamp timestamp, UUID deviceGuid, long timeout,
+    private void asyncResponsePollProcess(Timestamp timestamp, String deviceGuid, long timeout,
                                           HivePrincipal principal, AsyncResponse asyncResponse) {
         logger.debug("Device notification poll requested for device with guid = {}. Timestamp = {}. Timeout = {}",
                 deviceGuid, timestamp, timeout);
@@ -303,13 +306,13 @@ public class DeviceNotificationController {
         asyncResponse.resume(response);
     }
 
-    private List<DeviceNotification> getDeviceNotificationsList(User user, UUID uuid, Timestamp timestamp) {
-        List<UUID> uuidList = new ArrayList<>(1);
-        uuidList.add(uuid);
+    private List<DeviceNotification> getDeviceNotificationsList(User user, String guid, Timestamp timestamp) {
+        List<String> guidList = new ArrayList<>(1);
+        guidList.add(guid);
         if (user.getRole().equals(UserRole.CLIENT)) {
-            return deviceNotificationDAO.getByUserAndDevicesNewerThan(user, uuidList, timestamp);
+            return deviceNotificationDAO.getByUserAndDevicesNewerThan(user, guidList, timestamp);
         }
-        return deviceNotificationDAO.findByDevicesIdsNewerThan(uuidList, timestamp);
+        return deviceNotificationDAO.findByDevicesIdsNewerThan(guidList, timestamp);
     }
 
     /**
@@ -354,37 +357,24 @@ public class DeviceNotificationController {
 
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
-        List<UUID> uuids = new ArrayList<>(guids.size());
-        try {
-            for (String guid : guids) {
-                if (StringUtils.isNotBlank(guid)) {
-                    uuids.add(UUID.fromString(guid));
-                }
-            }
-        } catch (IllegalArgumentException e) {
-            logger.debug("Device notification pollMany failed. Unparseable guid : {} ", deviceGuids);
-            asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE)));
-            return;
-        }
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        List<DeviceNotification> list = getDeviceNotificationsList(user, uuids, timestamp);
+        List<DeviceNotification> list = getDeviceNotificationsList(user, guids, timestamp);
 
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-            if (!uuids.isEmpty()) {
+            if (!guids.isEmpty()) {
                 List<Device> devices;
 
                 if (user.getRole().equals(UserRole.ADMIN)) {
-                    devices = deviceService.findByUUID(uuids);
+                    devices = deviceService.findByUUID(guids);
                 } else {
-                    devices = deviceService.findByUUIDListAndUser(user, uuids);
+                    devices = deviceService.findByUUIDListAndUser(user, guids);
                 }
                 for (Device device : devices) {
                     subscriptionSet
@@ -398,7 +388,7 @@ public class DeviceNotificationController {
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceNotificationsList(user, uuids, timestamp);
+                list = getDeviceNotificationsList(user, guids, timestamp);
             }
             List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
             for (DeviceNotification notification : list) {
@@ -416,11 +406,11 @@ public class DeviceNotificationController {
         asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
     }
 
-    private List<DeviceNotification> getDeviceNotificationsList(User user, List<UUID> uuids, Timestamp timestamp) {
-        if (!uuids.isEmpty()) {
+    private List<DeviceNotification> getDeviceNotificationsList(User user, List<String> guids, Timestamp timestamp) {
+        if (!guids.isEmpty()) {
             return user.getRole().equals(UserRole.CLIENT) ?
-                    deviceNotificationDAO.getByUserAndDevicesNewerThan(user, uuids, timestamp) :
-                    deviceNotificationDAO.findByDevicesIdsNewerThan(uuids, timestamp);
+                    deviceNotificationDAO.getByUserAndDevicesNewerThan(user, guids, timestamp) :
+                    deviceNotificationDAO.findByDevicesIdsNewerThan(guids, timestamp);
         } else {
             return user.getRole().equals(UserRole.CLIENT) ?
                     deviceNotificationDAO.getByUserNewerThan(user, timestamp) :
@@ -478,7 +468,7 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") UUID guid, JsonObject jsonObject,
+    public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,
                            @Context SecurityContext securityContext) {
         logger.debug("DeviceNotification insertAll requested");
 

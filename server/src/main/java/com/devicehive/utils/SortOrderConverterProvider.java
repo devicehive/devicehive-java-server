@@ -16,8 +16,8 @@ public class SortOrderConverterProvider implements ParamConverterProvider {
 
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
-        for (Annotation annotation : annotations){
-            if (annotation.annotationType().equals(SortOrder.class) && Boolean.class.equals(rawType)){
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().equals(SortOrder.class) && Boolean.class.equals(rawType)) {
                 ParamConverter<T> converter = (ParamConverter<T>) new SortOrderParametersConverter();
                 return converter;
             }

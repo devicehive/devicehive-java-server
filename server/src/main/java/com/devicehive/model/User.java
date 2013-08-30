@@ -20,12 +20,16 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "\"user\"")
 @NamedQueries({
         @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
-        @NamedQuery(name = "User.findByIdWithNetworks", query = "select u from User u left join fetch u.networks where u.id = :id"),
-        @NamedQuery(name = "User.findActiveByName", query = "select u from User u where u.login = :login and u.status = 0"),
-        @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n " +
-                "where u = :user and n = :network"),
-        @NamedQuery(name = "User.hasAccessToDevice", query = "select count(distinct n) from Network n join n.devices d join n.users u " +
-                "where u = :user and d = :device"),
+        @NamedQuery(name = "User.findByIdWithNetworks",
+                query = "select u from User u left join fetch u.networks where u.id = :id"),
+        @NamedQuery(name = "User.findActiveByName",
+                query = "select u from User u where u.login = :login and u.status = 0"),
+        @NamedQuery(name = "User.hasAccessToNetwork",
+                query = "select count(distinct u) from User u join u.networks n " +
+                        "where u = :user and n = :network"),
+        @NamedQuery(name = "User.hasAccessToDevice",
+                query = "select count(distinct n) from Network n join n.devices d join n.users u " +
+                        "where u = :user and d = :device"),
         @NamedQuery(name = "User.hasAccessToDeviceByGuid", query = "select count(distinct n) " +
                 "from Network n " +
                 "join n.devices d " +
