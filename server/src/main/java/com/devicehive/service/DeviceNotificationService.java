@@ -69,6 +69,7 @@ public class DeviceNotificationService {
     }
 
 
+
     //device should be already set
 
     public List<DeviceNotification> saveDeviceNotification(List<DeviceNotification> notifications) {

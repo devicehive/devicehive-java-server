@@ -68,8 +68,7 @@ public class AsyncMessageSupplier {
 
     private void doDeliverMessages(Session session) throws IOException {
         @SuppressWarnings("unchecked")
-        ConcurrentLinkedQueue<JsonElement> queue =
-                (ConcurrentLinkedQueue) session.getUserProperties().get(WebsocketSession.QUEUE);
+        ConcurrentLinkedQueue<JsonElement> queue = (ConcurrentLinkedQueue) session.getUserProperties().get(WebsocketSession.QUEUE);
         boolean acquired = false;
         do {
             try {

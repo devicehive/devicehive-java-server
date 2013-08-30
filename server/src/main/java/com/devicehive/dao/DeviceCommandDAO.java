@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Stateless
 @LogExecutionTime
@@ -74,10 +75,9 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {
+    public DeviceCommand getByDeviceGuidAndId(@NotNull UUID guid, @NotNull long id) {
 
-        TypedQuery<DeviceCommand> query =
-                em.createNamedQuery("DeviceCommand.getByDeviceUuidAndId", DeviceCommand.class);
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByDeviceUuidAndId", DeviceCommand.class);
         query.setParameter("id", id);
         query.setParameter("guid", guid);
         CacheHelper.cacheable(query);
@@ -89,8 +89,7 @@ public class DeviceCommandDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
 
-        TypedQuery<DeviceCommand> query =
-                em.createNamedQuery("DeviceCommand.getWithDeviceAndUserById", DeviceCommand.class);
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getWithDeviceAndUserById", DeviceCommand.class);
         query.setParameter("id", id);
 
         List<DeviceCommand> resultList = query.getResultList();
@@ -99,7 +98,7 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(String deviceId, Timestamp timestamp) {
+    public List<DeviceCommand> getNewerThan(UUID deviceId, Timestamp timestamp) {
         TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
         query.setParameter("guid", deviceId);
@@ -107,9 +106,8 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getByUserAndDeviceNewerThan(String deviceId, Timestamp timestamp, User user) {
-        TypedQuery<DeviceCommand> query =
-                em.createNamedQuery("DeviceCommand.getByUserAndDeviceNewerThan", DeviceCommand.class);
+    public List<DeviceCommand> getByUserAndDeviceNewerThan(UUID deviceId, Timestamp timestamp, User user) {
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByUserAndDeviceNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
         query.setParameter("guid", deviceId);
         query.setParameter("user", user);

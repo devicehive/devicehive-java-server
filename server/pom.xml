@@ -94,13 +94,6 @@
             <version>2.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlets</artifactId>
-            <version>9.0.5.v20130815</version>
-        </dependency>
-
-
     </dependencies>
 
     <build>

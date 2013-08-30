@@ -33,9 +33,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
     }
 
     @Override
-    public void writeTo(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
-                        MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
-            throws IOException, WebApplicationException {
+    public void writeTo(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
         JsonElement jsonElement = gson.toJsonTree(entity);
         Writer writer = null;
@@ -56,11 +54,9 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
     }
 
     @Override
-    public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType,
-                      MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
-            throws IOException, WebApplicationException {
+    public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
-        Reader reader = new InputStreamReader(entityStream, Charset.forName(UTF8));
+        Reader reader = new InputStreamReader(entityStream,Charset.forName(UTF8));
         return gson.fromJson(reader, genericType);
     }
 

@@ -15,6 +15,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.UUID;
 
 import static com.devicehive.configuration.Constants.UTF8;
 
@@ -23,6 +24,7 @@ import static com.devicehive.configuration.Constants.UTF8;
 public class AuthenticationFilter implements ContainerRequestFilter {
 
     private DeviceService deviceService;
+
     private UserService userService;
 
 
@@ -46,8 +48,14 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return null;
         }
         String deviceKey = requestContext.getHeaderString("Auth-DeviceKey");
-        return deviceService.authenticate(deviceId, deviceKey);
 
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(deviceId);
+            return deviceService.authenticate(uuid, deviceKey);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     private User authUser(ContainerRequestContext requestContext) throws IOException {

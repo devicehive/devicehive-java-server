@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceClassDAO;
+import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
@@ -12,7 +13,8 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -26,7 +28,7 @@ public class DeviceClassService {
     @EJB
     private DeviceClassDAO deviceClassDAO;
     @EJB
-    private EquipmentService equipmentService;
+    private EquipmentDAO equipmentDAO;
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass get(@NotNull long id) {
@@ -43,7 +45,7 @@ public class DeviceClassService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-                                                 Set<Equipment> newEquipmentSet, boolean useExistingEquipment) {
+                                                 Set<Equipment> newEquipmentSet,boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
@@ -70,7 +72,7 @@ public class DeviceClassService {
                     stored.setPermanent(deviceClassFromMessage.getPermanent());
                 }
                 if (!useExistingEquipment) {
-                    replaceEquipment(newEquipmentSet, stored);
+                    updateEquipment(newEquipmentSet, stored);
                 }
             }
             return stored;
@@ -81,7 +83,7 @@ public class DeviceClassService {
             }
             deviceClassDAO.createDeviceClass(deviceClassFromMessage);
             if (!useExistingEquipment) {
-                replaceEquipment(newEquipmentSet, deviceClassFromMessage);
+                updateEquipment(newEquipmentSet, deviceClassFromMessage);
             }
             return deviceClassFromMessage;
         }
@@ -95,12 +97,7 @@ public class DeviceClassService {
             throw new HiveException("DeviceClass cannot be created. Device class with such name and version already " +
                     "exists", FORBIDDEN.getStatusCode());
         }
-        DeviceClass createdDeviceClass = deviceClassDAO.createDeviceClass(deviceClass);
-        if (deviceClass.getEquipment() != null) {
-            Set<Equipment> resultEquipment = createEquipment(createdDeviceClass, deviceClass.getEquipment());
-            createdDeviceClass.setEquipment(resultEquipment);
-        }
-        return createdDeviceClass;
+        return deviceClassDAO.createDeviceClass(deviceClass);
     }
 
     public void update(long id, DeviceClassUpdate update) {
@@ -114,7 +111,7 @@ public class DeviceClassService {
         if (update.getData() != null)
             stored.setData(update.getData().getValue());
         if (update.getEquipment() != null) {
-            replaceEquipment(update.getEquipment().getValue(), stored);
+            updateEquipment(update.getEquipment().getValue(), stored);
             stored.setEquipment(update.getEquipment().getValue());
         }
         if (update.getName() != null) {
@@ -132,48 +129,17 @@ public class DeviceClassService {
         deviceClassDAO.updateDeviceClass(stored);
     }
 
-//    public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
-//        List<Equipment> existingEquipments = equipmentService.getByDeviceClass(deviceClass);
-//        if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
-//            equipmentService.delete(existingEquipments);
-//        }
-//        for (Equipment equipment : newEquipmentSet) {
-//            equipment.setDeviceClass(deviceClass);
-//            equipmentService.create(equipment);
-//        }
-//    }
-
-    public void replaceEquipment(@NotNull Collection<Equipment> equipmentsToReplace,
-                                 @NotNull DeviceClass deviceClass) {
-        equipmentService.deleteByDeviceClass(deviceClass);
-        Set<String> codes = new HashSet<>(equipmentsToReplace.size());
-        for (Equipment newEquipment : equipmentsToReplace) {
-            if (codes.contains(newEquipment.getCode())) {
-                throw new HiveException("Duplicate equipment entry with code = " + newEquipment.getCode() + " for " +
-                        "device class with id : " + deviceClass.getId());
-            }
-            codes.add(newEquipment.getCode());
-            newEquipment.setDeviceClass(deviceClass);
-            equipmentService.create(newEquipment);
+    public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
+        List<Equipment> existingEquipments = equipmentDAO.getByDeviceClass(deviceClass);
+        if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
+            equipmentDAO.delete(existingEquipments);
         }
-    }
-
-    public Set<Equipment> createEquipment(@NotNull DeviceClass deviceClass, @NotNull Set<Equipment> equipments) {
-        Set<String> existingCodesSet = new HashSet<>(equipments.size());
-
-        for (Equipment equipment : equipments) {
-            if (existingCodesSet.contains(equipment.getCode())) {
-                throw new HiveException("Duplicate equipment entry with code = " + equipment.getCode() + " for " +
-                        "device class with id : " + deviceClass.getId());
-            }
-            existingCodesSet.add(equipment.getCode());
+        for (Equipment equipment : newEquipmentSet) {
             equipment.setDeviceClass(deviceClass);
-            equipmentService.create(equipment);
+            equipmentDAO.create(equipment);
         }
-        return equipments;
     }
 
-    @Deprecated
     public Equipment createEquipment(Long classId, Equipment equipment) {
         DeviceClass deviceClass = deviceClassDAO.get(classId);
 
@@ -184,7 +150,7 @@ public class DeviceClassService {
             throw new HiveException("Unable to update equipment on permanent device class.",
                     NOT_FOUND.getStatusCode());
         }
-        List<Equipment> equipments = equipmentService.getByDeviceClass(deviceClass);
+        List<Equipment> equipments = equipmentDAO.getByDeviceClass(deviceClass);
         String newCode = equipment.getCode();
         if (equipments != null) {
             for (Equipment e : equipments) {
@@ -195,7 +161,7 @@ public class DeviceClassService {
             }
         }
         equipment.setDeviceClass(deviceClass);
-        return equipmentService.create(equipment);
+        return equipmentDAO.create(equipment);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

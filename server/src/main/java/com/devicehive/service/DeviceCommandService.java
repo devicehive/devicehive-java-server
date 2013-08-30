@@ -23,6 +23,7 @@ import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -59,7 +60,7 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceCommand getByGuidAndId(@NotNull String guid, @NotNull long id) {
+    public DeviceCommand getByGuidAndId(@NotNull UUID guid, @NotNull long id) {
         return commandDAO.getByDeviceGuidAndId(guid, id);
     }
 
@@ -69,7 +70,7 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(String deviceId, Timestamp timestamp) {
+    public List<DeviceCommand> getNewerThan(UUID deviceId, Timestamp timestamp){
         return commandDAO.getNewerThan(deviceId, timestamp);
     }
 
@@ -80,7 +81,7 @@ public class DeviceCommandService {
         return commandDAO.queryDeviceCommand(device, start, end, command, status, sortField, sortOrderAsc, take, skip);
     }
 
-    public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {
+    public DeviceCommand getByDeviceGuidAndId(@NotNull UUID guid, @NotNull long id) {
         return commandDAO.getByDeviceGuidAndId(guid, id);
     }
 
@@ -119,6 +120,8 @@ public class DeviceCommandService {
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
         }
     }
+
+
 
 
     public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {

@@ -1,7 +1,6 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.EquipmentDAO;
-import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
 
@@ -10,8 +9,6 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * This class manages equipment in database. EquipmentDAO shouldn't
@@ -33,19 +30,8 @@ public class EquipmentService {
      * @param deviceClassId id of deviceClass which equipment belongs used to double check
      * @return true if deleted successfully
      */
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
         return equipmentDAO.delete(equipmentId, deviceClassId);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public int delete(Collection<Equipment> equipments) {
-        return equipmentDAO.delete(equipments);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Equipment create(Equipment equipment) {
-        return equipmentDAO.create(equipment);
     }
 
     /**
@@ -60,15 +46,6 @@ public class EquipmentService {
         return equipmentDAO.getByDeviceClass(deviceClassId, equipmentId);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return equipmentDAO.getByDeviceClass(deviceClass);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public int deleteByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return equipmentDAO.deleteByDeviceClass(deviceClass);
-    }
 
     /**
      * updates Equipment attributes

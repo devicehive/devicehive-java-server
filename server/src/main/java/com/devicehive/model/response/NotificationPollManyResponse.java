@@ -8,6 +8,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 
@@ -20,9 +21,9 @@ public class NotificationPollManyResponse implements HiveEntity {
 
     @SerializedName("deviceGuid")
     @JsonPolicyDef(NOTIFICATION_TO_CLIENT)
-    private String guid;
+    private UUID guid;
 
-    public NotificationPollManyResponse(DeviceNotification notification, String guid) {
+    public NotificationPollManyResponse(DeviceNotification notification, UUID guid) {
         this.notification = notification;
         this.guid = guid;
     }
@@ -35,11 +36,11 @@ public class NotificationPollManyResponse implements HiveEntity {
         return result;
     }
 
-    public String getGuid() {
+    public UUID getGuid() {
         return guid;
     }
 
-    public void setGuid(String guid) {
+    public void setGuid(UUID guid) {
         this.guid = guid;
     }
 

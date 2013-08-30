@@ -4,10 +4,6 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotification;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -60,7 +56,7 @@ public class ServerResponsesFactory {
         return statusJsonObject.get("status").getAsString();
     }
 
-    public static DeviceNotification createNotificationForDevice(Device device, String notificationName) {
+    public static DeviceNotification createNotificationForDevice(Device device, String notificationName){
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification(notificationName);
         notification.setDevice(device);

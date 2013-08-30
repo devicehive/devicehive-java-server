@@ -16,6 +16,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
@@ -35,7 +36,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUID(String uuid) {
+    public Device findByUUID(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
         query.setParameter("uuid", uuid);
         CacheHelper.cacheable(query);
@@ -44,7 +45,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUIDWithNetworkAndDeviceClass(String uuid) {
+    public Device findByUUIDWithNetworkAndDeviceClass(UUID uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDWithNetworkAndDeviceClass", Device.class);
         query.setParameter("uuid", uuid);
         List<Device> res = query.getResultList();
@@ -52,7 +53,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUIDAndKey(String uuid, String key) {
+    public Device findByUUIDAndKey(UUID uuid, String key) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndKey", Device.class);
         query.setParameter("uuid", uuid);
         query.setParameter("key", key);
@@ -61,7 +62,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUID(String uuid, Long userId) {
+    public Device findByUUID(UUID uuid, Long userId) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDForUser", Device.class);
         query.setParameter("uuid", uuid);
         query.setParameter("userId", userId);
@@ -69,7 +70,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByUUIDListAndUser(User user, List<String> list) {
+    public List<Device> findByUUIDListAndUser(User user, List<UUID> list) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDListAndUser", Device.class);
         query.setParameter("user", user);
         query.setParameter("guidList", list);
@@ -77,7 +78,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUIDAndUser(User user, String guid) {
+    public Device findByUUIDAndUser(User user, UUID guid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
         query.setParameter("user", user);
         query.setParameter("guid", guid);
@@ -85,7 +86,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByUUID(List<String> list) {
+    public List<Device> findByUUID(List<UUID> list) {
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         }
@@ -112,7 +113,7 @@ public class DeviceDAO {
         return query.executeUpdate() != 0;
     }
 
-    public boolean deleteDevice(@NotNull String guid) {
+    public boolean deleteDevice(@NotNull UUID guid) {
         Query query = em.createNamedQuery("Device.deleteByUUID");
         query.setParameter("guid", guid);
         return query.executeUpdate() != 0;

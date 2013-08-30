@@ -16,6 +16,7 @@ import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Stateless
 public class NetworkDAO {
@@ -62,6 +63,14 @@ public class NetworkDAO {
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Network findByDevice(@NotNull UUID guid) {
+        TypedQuery<Network> query = em.createNamedQuery("Network.getByDevice", Network.class);
+        query.setParameter("guid", guid);
+        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
+    }
+
 
     public Network merge(@NotNull Network n) {
         return em.merge(n);

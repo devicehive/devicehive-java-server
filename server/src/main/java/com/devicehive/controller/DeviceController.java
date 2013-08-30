@@ -6,10 +6,6 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceEquipmentService;
@@ -92,7 +88,7 @@ public class DeviceController {
 
         logger.debug("Device list requested");
 
-        if (sortOrder == null) {
+        if (sortOrder == null){
             sortOrder = true;
         }
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
@@ -126,7 +122,7 @@ public class DeviceController {
     @Path("/{id}")
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response register(JsonObject jsonObject, @PathParam("id") String deviceGuid,
+    public Response register(JsonObject jsonObject, @PathParam("id") UUID deviceGuid,
                              @Context SecurityContext securityContext) {
         logger.debug("Device register method requested");
 
@@ -177,7 +173,7 @@ public class DeviceController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
-    public Response get(@PathParam("id") String guid, @Context SecurityContext securityContext) {
+    public Response get(@PathParam("id") UUID guid, @Context SecurityContext securityContext) {
         logger.debug("Device get requested");
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
@@ -201,7 +197,7 @@ public class DeviceController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response delete(@PathParam("id") String guid) {
+    public Response delete(@PathParam("id") UUID guid) {
 
         logger.debug("Device delete requested");
 
@@ -249,7 +245,7 @@ public class DeviceController {
     @GET
     @Path("/{id}/equipment")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response equipment(@PathParam("id") String guid, @Context SecurityContext securityContext) {
+    public Response equipment(@PathParam("id") UUID guid, @Context SecurityContext securityContext) {
         logger.debug("Device equipment requested");
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
@@ -277,7 +273,7 @@ public class DeviceController {
     @GET
     @Path("/{id}/equipment/{code}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response equipmentByCode(@PathParam("id") String guid,
+    public Response equipmentByCode(@PathParam("id") UUID guid,
                                     @PathParam("code") String code,
                                     @Context SecurityContext securityContext) {
 
@@ -287,7 +283,7 @@ public class DeviceController {
                 principal.getDevice());
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
-            logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
+            logger.debug("No device equipment found for code : {} and guid : {}",code, guid);
             return ResponseFactory
                     .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
