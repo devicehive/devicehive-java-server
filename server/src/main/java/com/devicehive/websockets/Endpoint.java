@@ -63,7 +63,7 @@ abstract class Endpoint {
 
     private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request, Session session)
             throws IllegalAccessException, InvocationTargetException {
-        ImmutablePair<Class, String> key = ImmutablePair.of((Class)handler.getClass(), action);
+        ImmutablePair<Class, String> key = ImmutablePair.of((Class) handler.getClass(), action);
         Method executedMethod = methodsCache.get(key);
         if (executedMethod == null) {
             for (final Method method : handler.getClass().getMethods()) {
@@ -116,11 +116,11 @@ abstract class Endpoint {
             JsonParseException ex = (JsonParseException) e.getTargetException();
             throw new HiveException("Error occurred on parsing JSON object: " + ex.getMessage(), ex);
         }
-        if (e.getTargetException() instanceof org.hibernate.exception.ConstraintViolationException){
+        if (e.getTargetException() instanceof org.hibernate.exception.ConstraintViolationException) {
             org.hibernate.exception.ConstraintViolationException target = (org.hibernate.exception
                     .ConstraintViolationException) e.getTargetException();
             throw new HiveException("Unable to proceed requests, cause unique constraint is broken on unique fields: " +
-                     target.getMessage(), target);
+                    target.getMessage(), target);
         }
         throw e;
     }

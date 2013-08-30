@@ -33,7 +33,8 @@ public class SimpleWaiter {
         }
     }
 
-    public static boolean subscribeAndWait(AbstractStorage storage, Subscription sub, Future<Void> future, long seconds) {
+    public static boolean subscribeAndWait(AbstractStorage storage, Subscription sub, Future<Void> future,
+                                           long seconds) {
         try {
             storage.insert(sub);
             return waitFor(future, seconds);
@@ -42,7 +43,8 @@ public class SimpleWaiter {
         }
     }
 
-    public static boolean subscribeAndWait(AbstractStorage storage, Collection<? extends Subscription> subs, Future<Void> future, long seconds) {
+    public static boolean subscribeAndWait(AbstractStorage storage, Collection<? extends Subscription> subs,
+                                           Future<Void> future, long seconds) {
         try {
             storage.insertAll(subs);
             return waitFor(future, seconds);

@@ -27,7 +27,7 @@ public class AbstractStorage<E, T extends Subscription<E>> {
     }
 
     public synchronized boolean insert(T subscription) {
-        if (byPair.containsKey(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriberId()))){
+        if (byPair.containsKey(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriberId()))) {
             return false;
         }
         Set<T> set = byEventSource.get(subscription.getEventSource());

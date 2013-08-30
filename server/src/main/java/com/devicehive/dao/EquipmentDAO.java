@@ -44,11 +44,18 @@ public class EquipmentDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<Equipment> getByDeviceClassAndCode(DeviceClass deviceClass, String code) {
+        TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClass", Equipment.class);
+        query.setParameter("deviceClass", deviceClass);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        TypedQuery<Equipment> query =  em.createNamedQuery("Equipment.getByDeviceClassAndId", Equipment.class);
+        TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClassAndId", Equipment.class);
         query.setParameter("equipmentId", equipmentId);
         query.setParameter("deviceClassId", deviceClassId);
-        List<Equipment> resultList =  query.getResultList();
+        List<Equipment> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
@@ -82,6 +89,12 @@ public class EquipmentDAO {
     public int delete(Collection<Equipment> equipments) {
         Query query = em.createNamedQuery("Equipment.deleteByEquipmentList");
         query.setParameter("equipmentList", equipments);
+        return query.executeUpdate();
+    }
+
+    public int deleteByDeviceClass(DeviceClass deviceClass) {
+        Query query = em.createNamedQuery("Equipment.deleteByDeviceClass");
+        query.setParameter("deviceClass", deviceClass);
         return query.executeUpdate();
     }
 }

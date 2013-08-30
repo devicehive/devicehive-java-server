@@ -74,31 +74,34 @@ public class NetworkController {
 
         logger.debug("Network list requested");
 
-        if (sortOrder == null){
+        if (sortOrder == null) {
             sortOrder = true;
         }
 
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             logger.debug("Unable to proceed network list request. Invalid sortField");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         String login = securityContext.getUserPrincipal().getName();
 
         if (login == null) {
             logger.debug("User is not authorized to run");
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
+            return ResponseFactory
+                    .response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
         }
         User u = userService.findUserWithNetworksByLogin(login);
 
         if (u == null) {
             logger.debug("User is not authorized to run");
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
+            return ResponseFactory
+                    .response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
         }
 
-        List<Network> result = networkService.list(name, namePattern, sortField, sortOrder, take, skip, u.isAdmin() ? null : u.getId());
+        List<Network> result = networkService
+                .list(name, namePattern, sortField, sortOrder, take, skip, u.isAdmin() ? null : u.getId());
 
         logger.debug("Network list request proceed successfully.");
-
 
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
@@ -127,13 +130,16 @@ public class NetworkController {
 
         if (login == null) {
             logger.debug("Network with id = {} does not exists", id);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id, userService.findUserWithNetworksByLogin (login));
+        Network existing =
+                networkService.getWithDevicesAndDeviceClasses(id, userService.findUserWithNetworksByLogin(login));
 
         if (existing == null) {
             logger.debug("Network with id =  {} does not exists", id);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
         logger.debug("Network get proceed successfully.");
 
@@ -176,7 +182,8 @@ public class NetworkController {
 
         if (nr.getName() == null || nr.getName().getValue() == null) {
             logger.debug("Unable to proceed network insert. Name field is required.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         n.setName(nr.getName().getValue());
         if (nr.getKey() != null) {
@@ -191,9 +198,10 @@ public class NetworkController {
         try {
             result = networkService.insert(n);
         } catch (HiveException ex) {
-        logger.debug("Unable to proceed network insert.", ex);
-        return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("Network could not be created"));
-    }
+            logger.debug("Unable to proceed network insert.", ex);
+            return ResponseFactory
+                    .response(Response.Status.FORBIDDEN, new ErrorResponse("Network could not be created"));
+        }
         logger.debug("New network has been created");
 
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
@@ -236,7 +244,8 @@ public class NetworkController {
 
         if (n == null) {
             logger.debug("Unable to update network. Network with id = {} does not exists", id);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
 
         if (nr.getKey() != null) {

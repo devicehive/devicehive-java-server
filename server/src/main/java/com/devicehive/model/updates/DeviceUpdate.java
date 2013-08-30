@@ -3,9 +3,11 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.Network;
 import com.google.gson.annotations.SerializedName;
-
-import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -14,7 +16,7 @@ public class DeviceUpdate implements HiveEntity {
     private static final long serialVersionUID = -7498444232044147881L;
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private NullableWrapper<UUID> guid;
+    private NullableWrapper<String> guid;
 
     @SerializedName("key")
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
@@ -48,11 +50,11 @@ public class DeviceUpdate implements HiveEntity {
         this.deviceClass = deviceClass;
     }
 
-    public NullableWrapper<UUID> getGuid() {
+    public NullableWrapper<String> getGuid() {
         return guid;
     }
 
-    public void setGuid(NullableWrapper<UUID> guid) {
+    public void setGuid(NullableWrapper<String> guid) {
         this.guid = guid;
     }
 

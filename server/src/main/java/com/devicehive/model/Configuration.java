@@ -15,7 +15,7 @@ import java.util.Set;
 @Entity
 @Table(name = "configuration")
 @NamedQueries({
-   @NamedQuery(name = "Configuration.getAll", query = "select c from Configuration c")
+        @NamedQuery(name = "Configuration.getAll", query = "select c from Configuration c")
 })
 @Cacheable(false)
 public class Configuration implements HiveEntity {

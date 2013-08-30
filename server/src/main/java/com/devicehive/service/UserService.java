@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -56,7 +55,8 @@ public class UserService {
         }
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFALUT)) {
+            if (user.getLoginAttempts() >=
+                    configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFALUT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
             return null;
@@ -227,7 +227,8 @@ public class UserService {
      * @param password password
      * @return User model of newly created user
      */
-    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status, @NotNull String password) {
+    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status,
+                           @NotNull String password) {
         return userDAO.createUser(login, role, status, password);
     }
 
@@ -242,7 +243,7 @@ public class UserService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean checkPermissions(UUID deviceId, User currentUser, Device currentDevice) {
+    public boolean checkPermissions(String deviceId, User currentUser, Device currentDevice) {
         if (currentDevice != null) {
             return deviceId.equals(currentDevice.getGuid());
         } else {
@@ -254,7 +255,7 @@ public class UserService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean hasAccessToDevice(User user, Device device){
+    public boolean hasAccessToDevice(User user, Device device) {
         return userDAO.hasAccessToDevice(user, device);
     }
 

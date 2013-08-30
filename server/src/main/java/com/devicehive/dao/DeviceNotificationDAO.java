@@ -21,7 +21,6 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Stateless
 @LogExecutionTime
@@ -51,7 +50,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findByDevicesIdsNewerThan(List<UUID> deviceIds, Timestamp timestamp) {
+    public List<DeviceNotification> findByDevicesIdsNewerThan(List<String> deviceIds, Timestamp timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceGuidsNewerThan",
                 DeviceNotification.class);
         query.setParameter("guidList", deviceIds);
@@ -77,7 +76,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getByUserAndDevicesNewerThan(@NotNull User user, @NotNull List<UUID> deviceIds,
+    public List<DeviceNotification> getByUserAndDevicesNewerThan(@NotNull User user, @NotNull List<String> deviceIds,
                                                                  @NotNull Timestamp timestamp) {
         TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserAndDevicesNewerThan",
                 DeviceNotification.class);

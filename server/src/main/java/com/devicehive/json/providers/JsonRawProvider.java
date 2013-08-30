@@ -32,7 +32,9 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
     }
 
     @Override
-    public JsonObject readFrom(Class<JsonObject> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+    public JsonObject readFrom(Class<JsonObject> type, Type genericType, Annotation[] annotations, MediaType mediaType,
+                               MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
+            throws IOException, WebApplicationException {
         JsonElement element = new JsonParser().parse(new InputStreamReader(entityStream, Charset.forName(UTF8)));
         if (element.isJsonObject()) {
             return element.getAsJsonObject();
@@ -47,12 +49,15 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
     }
 
     @Override
-    public long getSize(JsonObject jsonObject, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+    public long getSize(JsonObject jsonObject, Class<?> type, Type genericType, Annotation[] annotations,
+                        MediaType mediaType) {
         return 0;
     }
 
     @Override
-    public void writeTo(JsonObject jsonObject, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+    public void writeTo(JsonObject jsonObject, Class<?> type, Type genericType, Annotation[] annotations,
+                        MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
+            throws IOException, WebApplicationException {
         Gson gson = GsonFactory.createGson();
         Writer writer = null;
         try {

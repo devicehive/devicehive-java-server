@@ -32,11 +32,11 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Cacheable
 public class DeviceClass implements HiveEntity {
 
-
     private static final long serialVersionUID = 8091624406245592117L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
+    @JsonPolicyDef(
+            {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
     private Long id;
 
     @Column
@@ -167,9 +167,8 @@ public class DeviceClass implements HiveEntity {
 
         DeviceClass that = (DeviceClass) o;
 
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        return !(id != null ? !id.equals(that.id) : that.id != null);
 
-        return true;
     }
 
     @Override

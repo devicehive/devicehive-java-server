@@ -17,6 +17,7 @@ public class HiveExceptionMapper implements ExceptionMapper<HiveException> {
         Response.Status responseCode = (exception.getCode() != null)
                 ? Response.Status.fromStatusCode(exception.getCode())
                 : Response.Status.BAD_REQUEST;
-        return ResponseFactory.response(responseCode, new ErrorResponse(responseCode.getStatusCode(), exception.getMessage()));
+        return ResponseFactory
+                .response(responseCode, new ErrorResponse(responseCode.getStatusCode(), exception.getMessage()));
     }
 }

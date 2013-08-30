@@ -2,7 +2,6 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
@@ -11,7 +10,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -61,15 +59,16 @@ public class Device implements HiveEntity {
 
     @SerializedName("id")
     @Column
-    @Type(type = "pg-uuid") //That's hibernate-specific and postgres-specific, ugly
+    @NotNull(message = "guid field cannot be null.")
+    @Size(min = 1, max = 48,
+            message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private UUID guid;
+    private String guid;
 
     @SerializedName("key")
     @Column
     @NotNull(message = "key field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key should not be more than 64 symbols.")
-    //   @JsonPolicyDef({DEVICE_SUBMITTED})
     private String key;
 
     @SerializedName("name")
@@ -156,11 +155,11 @@ public class Device implements HiveEntity {
         this.id = id;
     }
 
-    public UUID getGuid() {
+    public String getGuid() {
         return guid;
     }
 
-    public void setGuid(UUID guid) {
+    public void setGuid(String guid) {
         this.guid = guid;
     }
 

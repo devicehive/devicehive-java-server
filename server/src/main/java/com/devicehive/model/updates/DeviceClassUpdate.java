@@ -25,6 +25,14 @@ public class DeviceClassUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICECLASS_PUBLISHED})
     NullableWrapper<Set<Equipment>> equipment;
 
+    public NullableWrapper<Set<Equipment>> getEquipment() {
+        return equipment;
+    }
+
+    public void setEquipment(NullableWrapper<Set<Equipment>> equipment) {
+        this.equipment = equipment;
+    }
+
     public NullableWrapper<String> getName() {
         return name;
     }
@@ -63,14 +71,6 @@ public class DeviceClassUpdate implements HiveEntity {
 
     public void setData(NullableWrapper<JsonStringWrapper> data) {
         this.data = data;
-    }
-
-    public NullableWrapper<Set<Equipment>> getEquipment() {
-        return equipment;
-    }
-
-    public void setEquipment(NullableWrapper<Set<Equipment>> equipment) {
-        this.equipment = equipment;
     }
 
     public DeviceClass convertTo() {
