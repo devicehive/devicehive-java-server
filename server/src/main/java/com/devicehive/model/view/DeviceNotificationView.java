@@ -4,6 +4,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.domain.DeviceNotification;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
@@ -55,11 +56,11 @@ public class DeviceNotificationView implements HiveEntity {
     }
 
     public Timestamp getTimestamp() {
-        return timestamp;
+        return ObjectUtils.cloneIfPossible(timestamp);
     }
 
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 
     public Long getId() {
