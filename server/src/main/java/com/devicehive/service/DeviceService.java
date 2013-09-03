@@ -3,8 +3,11 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
-import com.devicehive.model.*;
-import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.domain.*;
+import com.devicehive.model.view.DeviceNotificationView;
+import com.devicehive.model.view.DeviceView;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
 
@@ -46,25 +49,25 @@ public class DeviceService {
     private DeviceActivityService deviceActivityService;
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+    public void deviceSaveAndNotify(DeviceView device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
                                     boolean isAllowedToUpdate) {
         DeviceNotification dn = self.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
-        globalMessageBus.publishDeviceNotification(dn);
+        globalMessageBus.publishDeviceNotification(new DeviceNotificationView(dn));
         deviceActivityService.update(dn.getDevice().getId());
     }
 
 
-    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate, Set<Equipment> equipmentSet,
+    public DeviceNotification deviceSave(DeviceView deviceView, Set<Equipment> equipmentSet,
                                          boolean useExistingEquipment,
                                          boolean isAllowedToUpdate) {
-        Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
+        Network network = networkService.createOrVeriryNetwork(deviceView.getNetwork());
         DeviceClass deviceClass = deviceClassService
-                .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+                .createOrUpdateDeviceClass(deviceView.getDeviceClass(), equipmentSet, useExistingEquipment);
 
-        Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
+        Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceView.getId());
 
         if (existingDevice == null) {
-            Device device = deviceUpdate.convertTo();
+            Device device = deviceView.convertTo();
             device.setNetwork(network);
             device.setDeviceClass(deviceClass);
             existingDevice = deviceDAO.createDevice(device);
@@ -78,23 +81,23 @@ public class DeviceService {
             if (!isAllowedToUpdate) {
                 throw new HiveException("Unauthorized. No permissions to update device", 401);
             }
-            if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
+            if (deviceView.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
                 existingDevice.setDeviceClass(deviceClass);
             }
-            if (deviceUpdate.getStatus() != null) {
-                existingDevice.setStatus(deviceUpdate.getStatus().getValue());
+            if (deviceView.getStatus() != null) {
+                existingDevice.setStatus(deviceView.getStatus().getValue());
             }
-            if (deviceUpdate.getData() != null) {
-                existingDevice.setData(deviceUpdate.getData().getValue());
+            if (deviceView.getData() != null) {
+                existingDevice.setData(deviceView.getData().getValue());
             }
-            if (deviceUpdate.getNetwork() != null) {
+            if (deviceView.getNetwork() != null) {
                 existingDevice.setNetwork(network);
             }
-            if (deviceUpdate.getName() != null) {
-                existingDevice.setName(deviceUpdate.getName().getValue());
+            if (deviceView.getName() != null) {
+                existingDevice.setName(deviceView.getName().getValue());
             }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().getValue());
+            if (deviceView.getKey() != null) {
+                existingDevice.setKey(deviceView.getKey().getValue());
             }
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                     (existingDevice,
@@ -140,7 +143,7 @@ public class DeviceService {
      * @throws HiveException
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void checkDevice(DeviceUpdate device) throws HiveException {
+    public void checkDevice(DeviceView device) throws HiveException {
         if (device == null) {
             throw new HiveException("Device is empty");
         }

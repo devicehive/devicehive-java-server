@@ -6,6 +6,9 @@ import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.Network;
+import com.devicehive.model.domain.User;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.EJB;

@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.Configuration;
+import com.devicehive.model.domain.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

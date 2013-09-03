@@ -12,10 +12,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-/**
- * @author Nikolay Loboda
- * @since 30.07.13
- */
 @Provider
 public class AllExceptionMapper implements ExceptionMapper<Exception> {
 

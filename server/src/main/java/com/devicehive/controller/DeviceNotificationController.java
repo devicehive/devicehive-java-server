@@ -5,27 +5,25 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.User;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.UserRole;
-import com.devicehive.model.response.NotificationPollManyResponse;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.DeviceNotification;
+import com.devicehive.model.domain.User;
+import com.devicehive.model.view.DeviceNotificationView;
+import com.devicehive.model.view.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,13 +48,13 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceHive RESTful API: DeviceNotification</a> for details.
  *
- * @author rroschin
  */
 @Path("/device")
 @LogExecutionTime
@@ -134,7 +132,9 @@ public class DeviceNotificationController {
                           @QueryParam("skip") Integer skip,
                           @Context SecurityContext securityContext) {
 
-        logger.debug("Device notification requested");
+        logger.debug("Device notification requested for device guid {} with parameters start {}, end {}, " +
+                "notification {}, sortField{}, sortOrder {},  take {}, skip {}", guid, start, end, notification,
+                sortField, sortOrder, take, skip);
 
         if (sortOrder == null) {
             sortOrder = true;
@@ -155,9 +155,12 @@ public class DeviceNotificationController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Device device = deviceService.getDevice(guid, principal.getUser(),
                 principal.getDevice());
-        List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
+        List<DeviceNotification> list = notificationService.queryDeviceNotification(device, start, end,
                 notification, sortField, sortOrder, take, skip);
-
+        List<DeviceNotificationView> result = new ArrayList<>(list.size());
+        for (DeviceNotification current : list) {
+            result.add(new DeviceNotificationView(current));
+        }
         logger.debug("Device notification proceed successfully");
 
         return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
@@ -205,7 +208,7 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
                         @Context SecurityContext securityContext) {
-        logger.debug("Device notification requested");
+        logger.debug("Device notification with id {} requested for device with guid {}", notificationId, guid);
 
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
@@ -226,10 +229,10 @@ public class DeviceNotificationController {
                     "found for device with guid : " + guid));
         }
 
-        logger.debug("Device notification proceed successfully");
+        logger.debug("Device notification proceed successfully. Guid : {}, notificationId : {}", guid, notificationId);
+        DeviceNotificationView response = new DeviceNotificationView(deviceNotification);
 
-
-        return ResponseFactory.response(Response.Status.OK, deviceNotification, Policy.NOTIFICATION_TO_CLIENT);
+        return ResponseFactory.response(Response.Status.OK, response, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**
@@ -300,8 +303,11 @@ public class DeviceNotificationController {
                 list = getDeviceNotificationsList(user, deviceGuid, timestamp);
             }
         }
-        Response response = ResponseFactory.response(Response.Status.OK, list,
-                Policy.NOTIFICATION_TO_CLIENT);
+        List<DeviceNotificationView> result = new ArrayList<>(list.size());
+        for (DeviceNotification current : list) {
+            result.add(new DeviceNotificationView(current));
+        }
+        Response response = ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
 
         asyncResponse.resume(response);
     }
@@ -392,7 +398,9 @@ public class DeviceNotificationController {
             }
             List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
             for (DeviceNotification notification : list) {
-                resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+                resultList.add(new NotificationPollManyResponse(new DeviceNotificationView(notification),
+                        notification.getDevice().getGuid()
+                ));
             }
 
             asyncResponse
@@ -401,7 +409,7 @@ public class DeviceNotificationController {
         }
         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
         for (DeviceNotification notification : list) {
-            resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+            resultList.add(new NotificationPollManyResponse(new DeviceNotificationView(notification), notification.getDevice().getGuid()));
         }
         asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
     }
@@ -423,28 +431,28 @@ public class DeviceNotificationController {
      * RESTful API: DeviceNotification: insert</a>
      * Creates new device notification.
      *
-     * @param guid       Device unique identifier.
-     * @param jsonObject In the request body, supply a DeviceNotification resource.
-     *                   <table>
-     *                   <tr>
-     *                   <td>Property Name</td>
-     *                   <td>Required</td>
-     *                   <td>Type</td>
-     *                   <td>Description</td>
-     *                   </tr>
-     *                   <tr>
-     *                   <td>notification</td>
-     *                   <td>Yes</td>
-     *                   <td>string</td>
-     *                   <td>Notification name.</td>
-     *                   </tr>
-     *                   <tr>
-     *                   <td>parameters</td>
-     *                   <td>No</td>
-     *                   <td>object</td>
-     *                   <td>Notification parameters, a JSON object with an arbitrary structure.</td>
-     *                   </tr>
-     *                   </table>
+     * @param guid             Device unique identifier.
+     * @param notificationView In the request body, supply a DeviceNotification resource.
+     *                         <table>
+     *                         <tr>
+     *                         <td>Property Name</td>
+     *                         <td>Required</td>
+     *                         <td>Type</td>
+     *                         <td>Description</td>
+     *                         </tr>
+     *                         <tr>
+     *                         <td>notification</td>
+     *                         <td>Yes</td>
+     *                         <td>string</td>
+     *                         <td>Notification name.</td>
+     *                         </tr>
+     *                         <tr>
+     *                         <td>parameters</td>
+     *                         <td>No</td>
+     *                         <td>object</td>
+     *                         <td>Notification parameters, a JSON object with an arbitrary structure.</td>
+     *                         </tr>
+     *                         </table>
      * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a> resource in the response body.
      *         <table>
      *         <tr>
@@ -468,12 +476,12 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,
+    public Response insert(@PathParam("deviceGuid") String guid, @JsonPolicyApply(NOTIFICATION_FROM_DEVICE)
+    DeviceNotificationView notificationView,
                            @Context SecurityContext securityContext) {
-        logger.debug("DeviceNotification insertAll requested");
+        logger.debug("DeviceNotification insert requested for device with guid {}", guid);
 
-        Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE);
-        DeviceNotification notification = gson.fromJson(jsonObject, DeviceNotification.class);
+        DeviceNotification notification = notificationView.convertTo();
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
@@ -490,9 +498,9 @@ public class DeviceNotificationController {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
         }
         notificationService.submitDeviceNotification(notification, device);
-
-        logger.debug("DeviceNotification insertAll proceed successfully");
-        return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
+        DeviceNotificationView result = new DeviceNotificationView(notification);
+        logger.debug("DeviceNotification insertAll proceed successfully for guid {}", guid);
+        return ResponseFactory.response(Response.Status.CREATED, result, Policy.NOTIFICATION_TO_DEVICE);
     }
 
     @PreDestroy

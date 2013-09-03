@@ -6,16 +6,16 @@
 
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>jdbc/DeviceHiveDataSource</jta-data-source>
-        <class>com.devicehive.model.User</class>
-        <class>com.devicehive.model.Device</class>
-        <class>com.devicehive.model.DeviceClass</class>
-        <class>com.devicehive.model.DeviceCommand</class>
-        <class>com.devicehive.model.DeviceEquipment</class>
-        <class>com.devicehive.model.DeviceNotification</class>
-        <class>com.devicehive.model.Configuration</class>
-        <class>com.devicehive.model.Equipment</class>
-        <class>com.devicehive.model.Network</class>
-        <class>com.devicehive.model.ServerTimestamp</class>
+        <class>com.devicehive.model.domain.User</class>
+        <class>com.devicehive.model.domain.Device</class>
+        <class>com.devicehive.model.domain.DeviceClass</class>
+        <class>com.devicehive.model.domain.DeviceCommand</class>
+        <class>com.devicehive.model.domain.DeviceEquipment</class>
+        <class>com.devicehive.model.domain.DeviceNotification</class>
+        <class>com.devicehive.model.domain.Configuration</class>
+        <class>com.devicehive.model.domain.Equipment</class>
+        <class>com.devicehive.model.domain.Network</class>
+        <class>com.devicehive.model.domain.ServerTimestamp</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
         <validation-mode>AUTO</validation-mode>

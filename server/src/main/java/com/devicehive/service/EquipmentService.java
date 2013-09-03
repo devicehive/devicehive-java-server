@@ -1,9 +1,9 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.EquipmentDAO;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.updates.EquipmentUpdate;
+import com.devicehive.model.domain.DeviceClass;
+import com.devicehive.model.domain.Equipment;
+import com.devicehive.model.view.EquipmentView;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -17,8 +17,6 @@ import java.util.List;
  * This class manages equipment in database. EquipmentDAO shouldn't
  * be used directly from controller, please use this class instead
  *
- * @author Nikolay Loboda
- * @since 06.08.2013
  */
 @Stateless
 public class EquipmentService {
@@ -78,7 +76,7 @@ public class EquipmentService {
      * @param deviceClassId   class of equipment to update
      * @return true, if update successful, false otherwise
      */
-    public boolean update(EquipmentUpdate equipmentUpdate, @NotNull long equipmentId, @NotNull long deviceClassId) {
+    public boolean update(EquipmentView equipmentUpdate, @NotNull long equipmentId, @NotNull long deviceClassId) {
         if (equipmentUpdate == null) {
             return true;
         }

@@ -1,17 +1,15 @@
-package com.devicehive.model;
+package com.devicehive.model.domain;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.annotations.SerializedName;
+import com.devicehive.model.JsonStringWrapper;
 
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 
 /**
@@ -26,6 +24,12 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Device.findByUUIDWithNetworkAndDeviceClass", query = "select d from Device d " +
                 "left join fetch d.network " +
                 "left join fetch d.deviceClass " +
+                "where d.guid = :uuid"),
+        @NamedQuery(name = "Device.findByUUIDWithNetworkAndDeviceClassAndEquipment",
+                query = "select d from Device d " +
+                "left join fetch d.network " +
+                "left join fetch d.deviceClass dc " +
+                "left join fetch dc.equipment " +
                 "where d.guid = :uuid"),
         @NamedQuery(name = "Device.findByUUIDAndKey",
                 query = "select d from Device d where d.guid = :uuid and d.key = :key"),
@@ -48,63 +52,49 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Device.deleteByNetwork", query = "delete from Device d where d.network = :network")
 })
 @Cacheable
-public class Device implements HiveEntity {
+public class Device implements Serializable {
 
 
     private static final long serialVersionUID = 2959997451631843298L;
     @Id
-    @SerializedName("sid")//overwork for  "declares multiple JSON fields" exception
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @SerializedName("id")
     @Column
     @NotNull(message = "guid field cannot be null.")
     @Size(min = 1, max = 48,
             message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private String guid;
 
-    @SerializedName("key")
     @Column
     @NotNull(message = "key field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key should not be more than 64 symbols.")
     private String key;
 
-    @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
             "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String name;
 
-    @SerializedName("status")
     @Column
     @Size(min = 1, max = 128,
             message = "Field cannot be empty. The length of status should not be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String status;
 
-    @SerializedName("data")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
 
-    @SerializedName("network")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "network_id")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
 
-    @SerializedName("deviceClass")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_class_id")
     @NotNull(message = "deviceClass field cannot be null.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private DeviceClass deviceClass;
 
     @Version

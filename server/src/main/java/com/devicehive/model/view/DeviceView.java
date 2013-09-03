@@ -1,61 +1,65 @@
-package com.devicehive.model.updates;
-
+package com.devicehive.model.view;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.Network;
-import com.google.gson.annotations.SerializedName;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.DeviceClass;
+
+import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-public class DeviceUpdate implements HiveEntity {
+public class DeviceView implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
-    @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private NullableWrapper<String> guid;
-
-    @SerializedName("key")
+    private String id;
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     private NullableWrapper<String> key;
-
-    @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private NullableWrapper<String> name;
-
-    @SerializedName("status")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private NullableWrapper<String> status;
-
-    @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private NullableWrapper<JsonStringWrapper> data;
-
-    @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private NullableWrapper<Network> network;
-
-    @SerializedName("deviceClass")
+    private NullableWrapper<NetworkView> network;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private NullableWrapper<DeviceClassUpdate> deviceClass;
+    private NullableWrapper<DeviceClassView> deviceClass;
+    @JsonPolicyDef(DEVICE_PUBLISHED)
+    private NullableWrapper<Set<EquipmentView>> equipment;
 
-    public NullableWrapper<DeviceClassUpdate> getDeviceClass() {
+    public DeviceView() {
+    }
+
+    public DeviceView(Device device){
+        convertFrom(device);
+    }
+
+    public NullableWrapper<Set<EquipmentView>> getEquipment() {
+        return equipment;
+    }
+
+    public void setEquipment(NullableWrapper<Set<EquipmentView>> equipment) {
+        this.equipment = equipment;
+    }
+
+    public NullableWrapper<DeviceClassView> getDeviceClass() {
         return deviceClass;
     }
 
-    public void setDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass) {
+    public void setDeviceClass(NullableWrapper<DeviceClassView> deviceClass) {
         this.deviceClass = deviceClass;
     }
 
-    public NullableWrapper<String> getGuid() {
-        return guid;
+    public String getId() {
+        return id;
     }
 
-    public void setGuid(NullableWrapper<String> guid) {
-        this.guid = guid;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public NullableWrapper<String> getKey() {
@@ -90,18 +94,17 @@ public class DeviceUpdate implements HiveEntity {
         this.data = data;
     }
 
-    public NullableWrapper<Network> getNetwork() {
+    public NullableWrapper<NetworkView> getNetwork() {
         return network;
     }
 
-    public void setNetwork(NullableWrapper<Network> network) {
+    public void setNetwork(NullableWrapper<NetworkView> network) {
         this.network = network;
     }
 
     public Device convertTo() {
         Device device = new Device();
-        if (guid != null)
-            device.setGuid(guid.getValue());
+        device.setGuid(id);
         if (data != null) {
             device.setData(data.getValue());
         }
@@ -116,7 +119,7 @@ public class DeviceUpdate implements HiveEntity {
             device.setName(name.getValue());
         }
         if (network != null) {
-            device.setNetwork(network.getValue());
+            device.setNetwork(network.getValue().convertTo());
         }
         if (status != null) {
             device.setStatus(status.getValue());
@@ -124,4 +127,20 @@ public class DeviceUpdate implements HiveEntity {
         return device;
     }
 
+    public void convertFrom(Device device) {
+        if (device == null){
+            return;
+        }
+        id = device.getGuid();
+        data = new NullableWrapper<>(device.getData());
+        DeviceClassView deviceClassView = new DeviceClassView();
+        deviceClassView.convertFrom(device.getDeviceClass());
+        deviceClass = new NullableWrapper<>(deviceClassView);
+        key = new NullableWrapper<>(device.getKey());
+        name = new NullableWrapper<>(device.getName());
+        NetworkView networkView = new NetworkView();
+        networkView.convertFrom(device.getNetwork());
+        network = new NullableWrapper<>(networkView);
+        status = new NullableWrapper<>(device.getStatus());
+    }
 }

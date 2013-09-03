@@ -1,4 +1,4 @@
-package com.devicehive.model;
+package com.devicehive.model.domain;
 
 import org.apache.commons.lang3.ObjectUtils;
 

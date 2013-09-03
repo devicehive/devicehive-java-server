@@ -1,17 +1,16 @@
-package com.devicehive.model;
+package com.devicehive.model.domain;
 
 
-import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.JsonStringWrapper;
 
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 
 /**
@@ -30,42 +29,36 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "DeviceClass.getByDevice", query = "select d.deviceClass from Device d where d.guid = :guid")
 })
 @Cacheable
-public class DeviceClass implements HiveEntity {
+public class DeviceClass implements Serializable {
 
     private static final long serialVersionUID = 8091624406245592117L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef(
-            {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
     private Long id;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
             "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private String name;
 
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version should not be more than 32 " +
             "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private String version;
 
     @Column(name = "is_permanent")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private Boolean isPermanent;
 
     @Column(name = "offline_timeout")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private Integer offlineTimeout;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
 
     @Version
@@ -73,7 +66,6 @@ public class DeviceClass implements HiveEntity {
     private long entityVersion;
 
     @OneToMany(mappedBy = "deviceClass", fetch = FetchType.LAZY)
-    @JsonPolicyDef({DEVICECLASS_PUBLISHED})
     private Set<Equipment> equipment;
 
     /**

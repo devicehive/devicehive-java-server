@@ -2,6 +2,10 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.*;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.DeviceClass;
+import com.devicehive.model.domain.Network;
+import com.devicehive.model.domain.User;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -26,6 +30,7 @@ public class DeviceDAO {
     private NetworkDAO networkDAO;
     @EJB
     private DeviceClassDAO deviceClassDAO;
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -46,6 +51,14 @@ public class DeviceDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDWithNetworkAndDeviceClass(String uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDWithNetworkAndDeviceClass", Device.class);
+        query.setParameter("uuid", uuid);
+        List<Device> res = query.getResultList();
+        return res.isEmpty() ? null : res.get(0);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Device findByUUIDWithNetworkAndDeviceClassAndEquipment(String uuid) {
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDWithNetworkAndDeviceClassAndEquipment", Device.class);
         query.setParameter("uuid", uuid);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);

@@ -3,6 +3,9 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.Network;
+import com.devicehive.model.domain.User;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.Stateless;

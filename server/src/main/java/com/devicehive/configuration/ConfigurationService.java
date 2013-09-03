@@ -1,7 +1,7 @@
 package com.devicehive.configuration;
 
 import com.devicehive.dao.ConfigurationDAO;
-import com.devicehive.model.Configuration;
+import com.devicehive.model.domain.Configuration;
 import com.devicehive.service.HazelcastService;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;

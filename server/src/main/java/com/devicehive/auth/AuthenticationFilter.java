@@ -1,7 +1,7 @@
 package com.devicehive.auth;
 
-import com.devicehive.model.Device;
-import com.devicehive.model.User;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.User;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import org.apache.commons.codec.binary.Base64;

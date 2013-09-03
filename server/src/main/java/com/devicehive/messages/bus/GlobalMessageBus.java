@@ -1,7 +1,7 @@
 package com.devicehive.messages.bus;
 
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.view.DeviceCommandView;
+import com.devicehive.model.view.DeviceNotificationView;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.utils.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
@@ -44,43 +44,43 @@ public class GlobalMessageBus {
         hazelcast = hazelcastService.getHazelcast();
 
         logger.debug("Initializing topic {}...", DEVICE_COMMAND);
-        ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
+        ITopic<DeviceCommandView> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
         deviceCommandTopic.addMessageListener(new DeviceCommandListener(localMessageBus));
         logger.debug("Done {}", DEVICE_COMMAND);
 
         logger.debug("Initializing topic {}...", DEVICE_COMMAND_UPDATE);
-        ITopic<DeviceCommand> deviceCommandUpdateTopic = hazelcast.getTopic(DEVICE_COMMAND_UPDATE);
+        ITopic<DeviceCommandView> deviceCommandUpdateTopic = hazelcast.getTopic(DEVICE_COMMAND_UPDATE);
         deviceCommandUpdateTopic.addMessageListener(new DeviceCommandUpdateListener(localMessageBus));
         logger.debug("Done {}", DEVICE_COMMAND_UPDATE);
 
         logger.debug("Initializing topic {}...", DEVICE_NOTIFICATION);
-        ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
+        ITopic<DeviceNotificationView> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
         deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
         logger.debug("Done {}", DEVICE_NOTIFICATION);
     }
 
-    public void publishDeviceCommand(DeviceCommand deviceCommand) {
-        logger.debug("Sending device command {}", deviceCommand.getId());
-        localMessageBus.submitDeviceCommand(deviceCommand);
-        hazelcast.getTopic(DEVICE_COMMAND).publish(deviceCommand);
+    public void publishDeviceCommand(DeviceCommandView deviceCommandView) {
+        logger.debug("Sending device command {}", deviceCommandView.getId());
+        localMessageBus.submitDeviceCommand(deviceCommandView);
+        hazelcast.getTopic(DEVICE_COMMAND).publish(deviceCommandView);
         logger.debug("Sent");
     }
 
-    public void publishDeviceCommandUpdate(DeviceCommand deviceCommandUpdate) {
-        logger.debug("Sending device command update {}", deviceCommandUpdate.getId());
-        localMessageBus.submitDeviceCommandUpdate(deviceCommandUpdate);
-        hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommandUpdate);
+    public void publishDeviceCommandUpdate(DeviceCommandView deviceCommandView) {
+        logger.debug("Sending device command update {}", deviceCommandView.getId());
+        localMessageBus.submitDeviceCommandUpdate(deviceCommandView);
+        hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommandView);
         logger.debug("Sent");
     }
 
-    public void publishDeviceNotification(DeviceNotification deviceNotification) {
-        logger.debug("Sending device notification {}", deviceNotification.getId());
-        localMessageBus.submitDeviceNotification(deviceNotification);
-        hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
+    public void publishDeviceNotification(DeviceNotificationView deviceNotificationView) {
+        logger.debug("Sending device notification {}", deviceNotificationView.getId());
+        localMessageBus.submitDeviceNotification(deviceNotificationView);
+        hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotificationView);
         logger.debug("Sent");
     }
 
-    private static class DeviceCommandListener implements MessageListener<DeviceCommand> {
+    private static class DeviceCommandListener implements MessageListener<DeviceCommandView> {
 
         private final LocalMessageBus localMessageBus;
 
@@ -89,7 +89,7 @@ public class GlobalMessageBus {
         }
 
         @Override
-        public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
+        public void onMessage(Message<DeviceCommandView> deviceCommandMessage) {
             if (!deviceCommandMessage.getPublishingMember().localMember()) {
                 logger.debug("Received device command {}", deviceCommandMessage.getMessageObject().getId());
                 localMessageBus.submitDeviceCommand(deviceCommandMessage.getMessageObject());
@@ -97,7 +97,7 @@ public class GlobalMessageBus {
         }
     }
 
-    private static class DeviceCommandUpdateListener implements MessageListener<DeviceCommand> {
+    private static class DeviceCommandUpdateListener implements MessageListener<DeviceCommandView> {
 
         private final LocalMessageBus localMessageBus;
 
@@ -106,7 +106,7 @@ public class GlobalMessageBus {
         }
 
         @Override
-        public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
+        public void onMessage(Message<DeviceCommandView> deviceCommandMessage) {
             if (!deviceCommandMessage.getPublishingMember().localMember()) {
                 logger.debug("Received device command update {}", deviceCommandMessage.getMessageObject().getId());
                 localMessageBus.submitDeviceCommandUpdate(deviceCommandMessage.getMessageObject());
@@ -115,7 +115,7 @@ public class GlobalMessageBus {
     }
 
 
-    private static class DeviceNotificationListener implements MessageListener<DeviceNotification> {
+    private static class DeviceNotificationListener implements MessageListener<DeviceNotificationView> {
 
         private final LocalMessageBus localMessageBus;
 
@@ -124,7 +124,7 @@ public class GlobalMessageBus {
         }
 
         @Override
-        public void onMessage(Message<DeviceNotification> deviceNotificationMessage) {
+        public void onMessage(Message<DeviceNotificationView> deviceNotificationMessage) {
             if (!deviceNotificationMessage.getPublishingMember().localMember()) {
                 logger.debug("Received device notification{}", deviceNotificationMessage.getMessageObject().getId());
                 localMessageBus.submitDeviceNotification(deviceNotificationMessage.getMessageObject());

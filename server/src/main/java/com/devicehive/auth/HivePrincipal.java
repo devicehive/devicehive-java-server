@@ -1,7 +1,7 @@
 package com.devicehive.auth;
 
-import com.devicehive.model.Device;
-import com.devicehive.model.User;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.User;
 
 import java.security.Principal;
 
@@ -24,6 +24,6 @@ public class HivePrincipal implements Principal {
 
     @Override
     public String getName() {
-        return user != null ? user.getLogin() : device.getGuid().toString();
+        return user != null ? user.getLogin() : device.getGuid();
     }
 }

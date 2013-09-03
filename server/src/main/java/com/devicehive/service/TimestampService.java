@@ -2,7 +2,7 @@ package com.devicehive.service;
 
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.ServerTimestamp;
+import com.devicehive.model.domain.ServerTimestamp;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;

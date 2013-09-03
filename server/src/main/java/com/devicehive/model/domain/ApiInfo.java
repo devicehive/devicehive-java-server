@@ -1,8 +1,9 @@
-package com.devicehive.model;
+package com.devicehive.model.domain;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_INFO;
@@ -11,7 +12,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERV
 /**
  * TODO JavaDoc
  */
-public class ApiInfo implements HiveEntity {
+public class ApiInfo implements Serializable {
 
 
     private static final long serialVersionUID = -4899398629379606180L;

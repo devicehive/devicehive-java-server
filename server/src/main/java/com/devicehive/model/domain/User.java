@@ -1,8 +1,9 @@
-package com.devicehive.model;
+package com.devicehive.model.domain;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.annotations.SerializedName;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.*;
@@ -10,6 +11,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,17 +45,15 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
 })
 @Cacheable
-public class User implements HiveEntity {
+public class User implements Serializable {
 
     private static final long serialVersionUID = -8980491502416082011L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED})
     private Long id;
 
     @Column
-    @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
             "symbols.")
@@ -75,12 +75,10 @@ public class User implements HiveEntity {
     private Integer loginAttempts;
 
     @Column
-    @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserRole role;
 
     @Column
-    @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
 
@@ -90,7 +88,6 @@ public class User implements HiveEntity {
     private Set<Network> networks;
 
     @Column(name = "last_login")
-    @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private Timestamp lastLogin;
 

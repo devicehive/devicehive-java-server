@@ -1,9 +1,9 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceEquipmentDAO;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.domain.Device;
+import com.devicehive.model.domain.DeviceEquipment;
+import com.devicehive.model.domain.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.utils.ServerResponsesFactory;
 
