@@ -153,6 +153,8 @@
                 <version>2.2</version>
                 <configuration>
                     <url>jdbc:postgresql://localhost/devicehive</url>
+                    <user>devicehive</user>
+                    <password>devicehive</password>
                 </configuration>
                 <dependencies>
                     <dependency>
