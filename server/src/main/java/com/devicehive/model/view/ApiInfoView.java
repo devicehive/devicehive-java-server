@@ -2,7 +2,6 @@ package com.devicehive.model.view;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
@@ -38,11 +37,11 @@ public class ApiInfoView implements HiveEntity {
     }
 
     public Timestamp getServerTimestamp() {
-        return ObjectUtils.cloneIfPossible(serverTimestamp);
+        return serverTimestamp;
     }
 
     public void setServerTimestamp(Timestamp serverTimestamp) {
-        this.serverTimestamp = ObjectUtils.cloneIfPossible(serverTimestamp);
+        this.serverTimestamp = serverTimestamp;
     }
 
     public String getWebSocketServerUrl() {

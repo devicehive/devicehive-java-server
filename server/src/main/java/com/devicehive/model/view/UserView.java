@@ -8,7 +8,6 @@ import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.devicehive.model.domain.Network;
 import com.devicehive.model.domain.User;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -83,11 +82,11 @@ public class UserView implements HiveEntity {
     }
 
     public Timestamp getLastLogin() {
-        return ObjectUtils.cloneIfPossible(lastLogin);
+        return lastLogin;
     }
 
     public void setLastLogin(Timestamp lastLogin) {
-        this.lastLogin = ObjectUtils.cloneIfPossible(lastLogin);
+        this.lastLogin = lastLogin;
     }
 
     public Set<UserNetworkView> getNetworks() {
