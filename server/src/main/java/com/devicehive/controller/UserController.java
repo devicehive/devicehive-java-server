@@ -5,10 +5,11 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.domain.Network;
-import com.devicehive.model.domain.User;
-import com.devicehive.model.view.UserNetworkView;
-import com.devicehive.model.view.UserView;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.request.UserRequest;
+import com.devicehive.model.response.UserNetworkResponse;
+import com.devicehive.model.response.UserResponse;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
@@ -18,12 +19,11 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.HashSet;
+import javax.ws.rs.core.SecurityContext;
 import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -91,12 +91,8 @@ public class UserController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        List<User> list = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
-        List<UserView> result = new ArrayList<>(list.size());
-        for (User current : list) {
-            current.setNetworks(null);
-            result.add(new UserView(current));
-        }
+        List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
+
         logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
                 "sortField = {}, " +
                 "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
@@ -143,16 +139,8 @@ public class UserController {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
         }
 
-        UserView result = new UserView(user);
-        if (user.getNetworks() != null) {
-            Set<UserNetworkView> networkViewSet = new HashSet<>(user.getNetworks().size());
-            for (Network current : user.getNetworks()) {
-                networkViewSet.add(new UserNetworkView(current));
-            }
-            result.setNetworks(networkViewSet);
-        }
         return ResponseFactory.response(Response.Status.OK,
-                result,
+                UserResponse.createFromUser(user),
                 JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
@@ -183,7 +171,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response insertUser(@JsonPolicyApply(JsonPolicyDef.Policy.USER_SUBMITTED)UserView user) {
+    public Response insertUser(UserRequest user) {
 
         //neither we want left some params omitted
         if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null
@@ -200,13 +188,15 @@ public class UserController {
 
         if (userService.findByLogin(user.getLogin().getValue()) != null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User could not be created" +
-                    ". User with such login already exists."));
+                    "."));
         }
-        User userFromRequest = user.convertTo();
+
         User created = userService.createUser(user.getLogin().getValue(),
-                userFromRequest.getRole(), userFromRequest.getStatus(), user.getPassword().getValue());
-        UserView result = new UserView(created);
-        return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.USER_SUBMITTED);
+                user.getRoleEnum(),
+                user.getStatusEnum(),
+                user.getPassword().getValue());
+
+        return ResponseFactory.response(Response.Status.CREATED, created);
     }
 
     /**
@@ -231,7 +221,7 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUser(UserView user, @PathParam("id") long userId) {
+    public Response updateUser(UserRequest user, @PathParam("id") long userId) {
 
         if (user.getLogin() != null) {
             User u = userService.findByLogin(user.getLogin().getValue());
@@ -264,9 +254,8 @@ public class UserController {
 
         String loginValue = user.getLogin() == null ? null : user.getLogin().getValue();
         String passwordValue = user.getPassword() == null ? null : user.getPassword().getValue();
-        User userFromRequest = user.convertTo();
-        userService
-                .updateUser(userId, loginValue, userFromRequest.getRole(), userFromRequest.getStatus(), passwordValue);
+
+        userService.updateUser(userId, loginValue, user.getRoleEnum(), user.getStatusEnum(), passwordValue);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
@@ -306,6 +295,8 @@ public class UserController {
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
     public Response getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+
+
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
             throw new HiveException("User not found.", NOT_FOUND.getStatusCode());
@@ -313,9 +304,8 @@ public class UserController {
 
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
-                UserNetworkView result = new UserNetworkView(network);
                 return ResponseFactory.response(Response.Status.OK,
-                        result,
+                        UserNetworkResponse.fromNetwork(network),
                         JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
@@ -355,5 +345,89 @@ public class UserController {
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
+
+    /**
+     * Returns current user with networks:
+     * <code>
+     * {
+     * "id": 2,
+     * "login": "login",
+     * "status": 0,
+     * "networks": [
+     * {
+     * "network": {
+     * "id": 5,
+     * "key": "network key",
+     * "name": "network name",
+     * "description": "short description of network"
+     * }
+     * }
+     * ],
+     * "lastLogin": "1970-01-01 03:00:00.0"
+     * }
+     * </code>
+     * <p/>
+     * Or empty body and 403 status in case of user is not logged on
+     */
+    @GET
+    @Path("/current")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    public Response getCurrent(@Context SecurityContext securityContext) {
+        String login = securityContext.getUserPrincipal().getName();
+        User u = userService.findUserWithNetworksByLogin(login);
+
+        if (u == null) {
+            return ResponseFactory
+                    .response(Response.Status.FORBIDDEN, new ErrorResponse("Could not get current user."));
+        }
+
+        return ResponseFactory.response(Response.Status.OK, u, JsonPolicyDef.Policy.USER_PUBLISHED);
+    }
+
+    /**
+     * Updates user currently logged on.
+     * One should specify following json to update user (none of parameters are mandatory, bot neither of them can be null):
+     * <p/>
+     * <code>
+     * {
+     * "login": "login",
+     * "role": 0,
+     * "status": 0,
+     * "password": "password"
+     * }
+     * </code>
+     * <p/>
+     * role:  Administrator - 0, Client - 1
+     * status: ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
+     *
+     * @return empty response, status 201 if succeeded, 403 if action is forbidden, 400 otherwise
+     */
+    @PUT
+    @Path("/current")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @Consumes(MediaType.APPLICATION_JSON)
+    @JsonPolicyApply(JsonPolicyDef.Policy.USERS_LISTED)
+    public Response updateCurrent(UserRequest ui, @Context SecurityContext securityContext) {
+
+        String password = ui.getPassword().getValue();
+
+        if (password == null) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        }
+
+        String login = securityContext.getUserPrincipal().getName();
+
+        if (login == null) {
+            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User could not be updated"));
+        }
+
+        User u = userService.findUserWithNetworksByLogin(login);
+
+        userService.updatePassword(u.getId(), password);
+
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
+    }
+
 
 }

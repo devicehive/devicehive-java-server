@@ -8,12 +8,13 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.domain.*;
-import com.devicehive.model.view.DeviceCommandView;
-import com.devicehive.model.view.DeviceNotificationView;
-import com.devicehive.model.view.DeviceView;
-import com.devicehive.model.view.EquipmentView;
+import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.updates.DeviceCommandUpdate;
+import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
@@ -156,8 +157,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/update")
     public JsonObject processCommandUpdate(JsonObject message, Session session) {
         logger.debug("command update action started for session : {{}", session.getId());
-        DeviceCommandView update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
-                .fromJson(message.getAsJsonObject("command"), DeviceCommandView.class);
+        DeviceCommandUpdate update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
+                .fromJson(message.getAsJsonObject("command"), DeviceCommandUpdate.class);
         if (message.get("commandId") == null) {
             throw new HiveException("Device command identifier cannot be null");
         }
@@ -230,8 +231,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
                 logger.debug("will add command to queue : {}", deviceCommand.getId());
                 WebsocketSession
-                        .addMessagesToQueue(session, ServerResponsesFactory.createCommandInsertMessage
-                                (new DeviceCommandView(deviceCommand)));
+                        .addMessagesToQueue(session, ServerResponsesFactory.createCommandInsertMessage(deviceCommand));
             }
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
@@ -309,19 +309,17 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "notification/insert")
     public JsonObject processNotificationInsert(JsonObject message, Session session) {
         logger.debug("notification/insert started for session {} ", session.getId());
-        DeviceNotificationView deviceNotificationView = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE)
-                .fromJson(message.get("notification"), DeviceNotificationView.class);
-        if (deviceNotificationView == null || deviceNotificationView.getNotification() == null) {
+        DeviceNotification deviceNotification = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE)
+                .fromJson(message.get("notification"), DeviceNotification.class);
+        if (deviceNotification == null || deviceNotification.getNotification() == null) {
             throw new HiveException("Notification is empty!");
         }
         Device device = getDevice(session, message);
-        logger.debug("process submit device notification started for deviceNotification : {}", deviceNotificationView
+        logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
-        DeviceNotification deviceNotification = deviceNotificationView.convertTo();
         deviceNotificationService.submitDeviceNotification(deviceNotification, device);
-        DeviceNotificationView response = new DeviceNotificationView(deviceNotification);
         JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
-        jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(response));
+        jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
         logger.debug("notification/insert ended for session {} ", session.getId());
 
         return jsonObject;
@@ -418,19 +416,12 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
         Device device = getDevice(session, message);
-        Device deviceToResponse = deviceDAO.findByUUIDWithNetworkAndDeviceClassAndEquipment(device.getGuid());
         Gson gsonResponse = GsonFactory.createGson(DEVICE_PUBLISHED);
-        DeviceView deviceView = new DeviceView(deviceToResponse);
-        Set<Equipment> equipmentSet = deviceToResponse.getDeviceClass().getEquipment();
-        Set<EquipmentView> equipmentViewSet = new HashSet<>(equipmentSet.size());
-        for (Equipment current : equipmentSet){
-            equipmentViewSet.add(new EquipmentView(current));
-        }
-        deviceView.setEquipment(new NullableWrapper<>(equipmentViewSet));
-        JsonElement deviceElem = gsonResponse.toJsonTree(deviceView);
-        return JsonMessageBuilder.createSuccessResponseBuilder()
+        JsonElement deviceElem = gsonResponse.toJsonTree(device);
+        JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("device", deviceElem)
                 .build();
+        return result;
     }
 
     /**
@@ -485,7 +476,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("Device key is undefined!");
         }
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
-        DeviceView device = mainGson.fromJson(message.get("device"), DeviceView.class);
+        DeviceUpdate device = mainGson.fromJson(message.get("device"), DeviceUpdate.class);
         logger.debug("check required fields in device ");
         deviceService.checkDevice(device);
         Gson gsonForEquipment = GsonFactory.createGson();
@@ -498,9 +489,13 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         }
         logger.debug("device/save started");
 
-        device.setId(deviceId);
+        NullableWrapper<String> uuidNullableWrapper = new NullableWrapper<>();
+        uuidNullableWrapper.setValue(deviceId);
+
+        device.setGuid(uuidNullableWrapper);
         Device authorizedDevice = getDevice(session, message);
-        boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getId());
+        boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
+                .getValue());
         deviceService.deviceSaveAndNotify(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
         JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addAction("device/save")

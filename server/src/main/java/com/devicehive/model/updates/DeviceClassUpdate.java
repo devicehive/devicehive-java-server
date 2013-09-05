@@ -1,47 +1,35 @@
-package com.devicehive.model.view;
+package com.devicehive.model.updates;
+
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.HiveEntity;
-import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.domain.DeviceClass;
-import com.devicehive.model.domain.Equipment;
+import com.devicehive.model.*;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-public class DeviceClassView implements HiveEntity {
+public class DeviceClassUpdate implements HiveEntity {
     private static final long serialVersionUID = 967472386318199376L;
-    @JsonPolicyDef(
-            {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
+    @JsonPolicyDef(DEVICE_PUBLISHED)
     Long id;
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    NullableWrapper<String> name;
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    NullableWrapper<String> version;
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    NullableWrapper<Boolean> isPermanent;
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    NullableWrapper<Integer> offlineTimeout;
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    NullableWrapper<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED})
-    NullableWrapper<Set<EquipmentView>> equipment;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private NullableWrapper<String> name;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private NullableWrapper<String> version;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private NullableWrapper<Boolean> isPermanent;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private NullableWrapper<Integer> offlineTimeout;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private NullableWrapper<JsonStringWrapper> data;
+    NullableWrapper<Set<Equipment>> equipment;
 
-    public DeviceClassView() {
-    }
-
-    public DeviceClassView(DeviceClass deviceClass) {
-        convertFrom(deviceClass);
-    }
-
-    public NullableWrapper<Set<EquipmentView>> getEquipment() {
+    public NullableWrapper<Set<Equipment>> getEquipment() {
         return equipment;
     }
 
-    public void setEquipment(NullableWrapper<Set<EquipmentView>> equipment) {
+    public void setEquipment(NullableWrapper<Set<Equipment>> equipment) {
         this.equipment = equipment;
     }
 
@@ -103,32 +91,9 @@ public class DeviceClassView implements HiveEntity {
         if (version != null) {
             deviceClass.setVersion(version.getValue());
         }
-        if (equipment != null && equipment.getValue() != null) {
-            Set<Equipment> result = new HashSet<>(equipment.getValue().size());
-            for (EquipmentView current : equipment.getValue()) {
-                result.add(current.convertTo());
-            }
-            deviceClass.setEquipment(result);
+        if (equipment != null) {
+            deviceClass.setEquipment(equipment.getValue());
         }
         return deviceClass;
-    }
-
-    public void convertFrom(DeviceClass deviceClass) {
-        if (deviceClass == null) {
-            return;
-        }
-        id = deviceClass.getId();
-        data = new NullableWrapper<>(deviceClass.getData());
-        name = new NullableWrapper<>(deviceClass.getName());
-        version = new NullableWrapper<>(deviceClass.getVersion());
-        isPermanent = new NullableWrapper<>(deviceClass.getPermanent());
-        offlineTimeout = new NullableWrapper<>(deviceClass.getOfflineTimeout());
-        if (deviceClass.getEquipment() != null) {
-            Set<EquipmentView> res = new HashSet<>(deviceClass.getEquipment().size());
-            for (Equipment current : deviceClass.getEquipment()) {
-                res.add(new EquipmentView(current));
-            }
-            equipment = new NullableWrapper<>(res);
-        }
     }
 }

@@ -6,10 +6,10 @@ import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceCommand;
-import com.devicehive.model.domain.User;
-import com.devicehive.model.view.DeviceCommandView;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.User;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.Timer;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
@@ -26,17 +26,25 @@ import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
+/**
+ * @author: Nikolay Loboda
+ * @since 25.07.13
+ */
 @Stateless
 @LogExecutionTime
 public class DeviceCommandService {
     @EJB
     private DeviceCommandDAO commandDAO;
+
     @EJB
     private DeviceCommandService self;
+
     @EJB
     private GlobalMessageBus globalMessageBus;
+
     @EJB
     private AsyncMessageSupplier asyncMessageDeliverer;
+
     @EJB
     private SubscriptionManager subscriptionManager;
 
@@ -77,11 +85,11 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void submitDeviceCommandUpdate(DeviceCommandView update, Device device) {
+    public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
         Timer timer = Timer.newInstance();
         DeviceCommand saved = self.saveDeviceCommandUpdate(update, device);
         timer.logMethodExecuted("DeviceCommandService.self.saveDeviceCommandUpdate");
-        globalMessageBus.publishDeviceCommandUpdate(new DeviceCommandView(saved));
+        globalMessageBus.publishDeviceCommandUpdate(saved);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -89,8 +97,9 @@ public class DeviceCommandService {
         Timer timer = Timer.newInstance();
         self.saveDeviceCommand(command, device, user, session);
         timer.logMethodExecuted("DeviceCommandService.self.saveDeviceCommand");
-        globalMessageBus.publishDeviceCommand(new DeviceCommandView(command));
+        globalMessageBus.publishDeviceCommand(command);
     }
+
 
     public void saveDeviceCommand(final DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
@@ -111,7 +120,8 @@ public class DeviceCommandService {
         }
     }
 
-    public DeviceCommand saveDeviceCommandUpdate(DeviceCommandView update, Device device) {
+
+    public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
 
         DeviceCommand cmd = commandDAO.findById(update.getId());
 
@@ -142,7 +152,9 @@ public class DeviceCommandService {
         if (update.getStatus() != null) {
             cmd.setStatus(update.getStatus().getValue());
         }
-        cmd.setTimestamp(update.getTimestamp());
+        if (update.getTimestamp() != null) {
+            cmd.setTimestamp(update.getTimestamp().getValue());
+        }
         return cmd;
     }
 

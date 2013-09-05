@@ -1,4 +1,4 @@
-package com.devicehive.model.domain;
+package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -7,7 +7,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.sql.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +18,7 @@ import java.util.Set;
         @NamedQuery(name = "Configuration.getAll", query = "select c from Configuration c")
 })
 @Cacheable(false)
-public class Configuration implements Serializable {
+public class Configuration implements HiveEntity {
 
 
     private static final long serialVersionUID = 7957264089438389993L;

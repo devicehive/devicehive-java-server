@@ -2,10 +2,9 @@ package com.devicehive.service;
 
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.Network;
 import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.domain.Network;
-import com.devicehive.model.domain.User;
-import com.devicehive.model.view.NetworkView;
+import com.devicehive.model.User;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -77,14 +76,14 @@ public class NetworkService {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId);
     }
 
-    public Network createOrVeriryNetwork(NullableWrapper<NetworkView> network) {
+    public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
         Network stored;
         //case network is not defined
         if (network == null || network.getValue() == null) {
             return null;
         }
 
-        Network update = network.getValue().convertTo();
+        Network update = network.getValue();
 
         if (update.getId() != null) {
             stored = networkDAO.getById(update.getId());

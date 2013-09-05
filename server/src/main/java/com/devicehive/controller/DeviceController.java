@@ -3,21 +3,23 @@ package com.devicehive.controller;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceEquipment;
-import com.devicehive.model.domain.Equipment;
-import com.devicehive.model.domain.User;
-import com.devicehive.model.view.DeviceView;
-import com.devicehive.model.view.EquipmentView;
+import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.User;
+import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +31,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 
@@ -97,15 +102,11 @@ public class DeviceController {
         }
         User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
 
-        List<Device> deviceList = deviceService.getList(name, namePattern, status, networkId, networkName,
-                deviceClassId, deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser);
+        List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
+                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser);
 
-        List<DeviceView> result = new ArrayList<>(deviceList.size());
-        for (Device current : deviceList) {
-            current.getDeviceClass().setEquipment(null);
-            result.add(new DeviceView(current));
-        }
-        logger.debug("Device list proceed result. Result list contains {} elems", deviceList.size());
+        logger.debug("Device list proceed result. Result list contains {} elems", result.size());
+
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
@@ -116,7 +117,7 @@ public class DeviceController {
      * If device with specified identifier has already been registered,
      * it gets updated in case when valid key is provided in the authorization header.
      *
-     * @param device     In the request body, supply a Device resource. See <a href="http://www.devicehive
+     * @param jsonObject In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                   .com/restful#Reference/Device/register">
      * @param deviceGuid Device unique identifier.
      * @return response code 201, if successful
@@ -125,11 +126,16 @@ public class DeviceController {
     @Path("/{id}")
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response register(@JsonPolicyApply(DEVICE_PUBLISHED) DeviceView device, @PathParam("id") String deviceGuid,
+    public Response register(JsonObject jsonObject, @PathParam("id") String deviceGuid,
                              @Context SecurityContext securityContext) {
         logger.debug("Device register method requested");
 
-        device.setId(deviceGuid);
+        Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
+        DeviceUpdate device;
+
+        device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
+
+        device.setGuid(new NullableWrapper<>(deviceGuid));
 
         try {
             deviceService.checkDevice(device);
@@ -138,15 +144,15 @@ public class DeviceController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        boolean useExistingEquipment = device.getEquipment() == null;
-        Set<EquipmentView> equipmentViewSet = device.getEquipment() == null ? null : device.getEquipment().getValue();
-        Set<Equipment> equipmentSet = null;
-        if (equipmentViewSet != null) {
-            equipmentViewSet.remove(null);
-            equipmentSet =  new HashSet<>(equipmentViewSet.size());
-            for (EquipmentView currentEquipment : equipmentViewSet){
-                equipmentSet.add(currentEquipment.convertTo());
-            }
+        Gson gsonForEquipment = GsonFactory.createGson();
+        boolean useExistingEquipment = jsonObject.get("equipment") == null;
+        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
+                jsonObject.get("equipment"),
+                new TypeToken<HashSet<Equipment>>() {
+                }.getType());
+
+        if (equipmentSet != null) {
+            equipmentSet.remove(null);
         }
 
         User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
@@ -178,11 +184,10 @@ public class DeviceController {
         Device device;
 
         device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal.getUser(), principal.getDevice());
-        device.getDeviceClass().setEquipment(null);
-        DeviceView result = new DeviceView(device);
+
         logger.debug("Device get proceed successfully");
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        return ResponseFactory.response(Response.Status.OK, device, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
     /**

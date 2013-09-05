@@ -1,17 +1,17 @@
-package com.devicehive.model.domain;
+package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
 
 import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -24,31 +24,39 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLIS
                 query = "select n from Network n left join fetch n.users where n.id = :id"),
         @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id"),
         @NamedQuery(name = "Network.getWithDevicesAndDeviceClasses", query = "select n from Network n " +
-                "left join fetch n.devices d left join fetch d.deviceClass where n.id = :id"),
+                "left join fetch n.devices where n.id = :id"),
         @NamedQuery(name = "Network.getWithDevicesAndDeviceClassesForUser", query = "select n from Network n " +
-                "left join fetch n.devices d left join fetch d.deviceClass inner join fetch n.users u where u.id = :userId and n.id = :id"),
+                "left join fetch n.devices inner join fetch n.users u where u.id = :userId and n.id = :id"),
         @NamedQuery(name = "Network.getByDevice", query = "select d.network from Device d where d.guid = :guid")
 })
 @Cacheable
-public class Network implements Serializable {
+public class Network implements HiveEntity {
 
     private static final long serialVersionUID = -4824259625517565076L;
+    @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_SUBMITTED})
     private Long id;
 
+    @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key should not be more than 64 symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String key;
 
+    @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
             "symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
 
+    @SerializedName("description")
     @Column
     @Size(max = 128, message = "The length of description should not be more than 128 symbols.")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -64,33 +72,6 @@ public class Network implements Serializable {
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
-
-    /**
-     * Validates network representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
-     *
-     * @param network   Network that should be validated
-     * @param validator Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(Network network, Validator validator) {
-        Set<ConstraintViolation<Network>> constraintViolations = validator.validate(network);
-        Set<String> result = new HashSet<>();
-        if (!constraintViolations.isEmpty()) {
-            for (ConstraintViolation<Network> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-    }
-
-    public Set<Device> getDevices() {
-        return devices;
-    }
-
-    public void setDevices(Set<Device> devices) {
-        this.devices = devices;
-    }
 
     public Long getId() {
         return id;
@@ -138,6 +119,26 @@ public class Network implements Serializable {
 
     public void setEntityVersion(long entityVersion) {
         this.entityVersion = entityVersion;
+    }
+
+
+    /**
+     * Validates network representation. Returns set of strings which are represent constraint violations. Set will
+     * be empty if no constraint violations found.
+     *
+     * @param network   Network that should be validated
+     * @param validator Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(Network network, Validator validator) {
+        Set<ConstraintViolation<Network>> constraintViolations = validator.validate(network);
+        Set<String> result = new HashSet<>();
+        if (!constraintViolations.isEmpty()) {
+            for (ConstraintViolation<Network> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
     }
 
     @Override

@@ -2,8 +2,8 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceClass;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
 import com.devicehive.utils.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;

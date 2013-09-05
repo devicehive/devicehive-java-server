@@ -1,9 +1,9 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceNotification;
-import com.devicehive.model.domain.User;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.User;
 import com.devicehive.utils.LogExecutionTime;
 
 import javax.ejb.Stateless;

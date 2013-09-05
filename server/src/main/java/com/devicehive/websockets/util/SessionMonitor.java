@@ -5,7 +5,7 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.domain.Device;
+import com.devicehive.model.Device;
 import com.devicehive.service.DeviceActivityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

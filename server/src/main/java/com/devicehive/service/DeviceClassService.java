@@ -2,20 +2,17 @@ package com.devicehive.service;
 
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.Equipment;
 import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.domain.DeviceClass;
-import com.devicehive.model.domain.Equipment;
-import com.devicehive.model.view.DeviceClassView;
+import com.devicehive.model.updates.DeviceClassUpdate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -45,7 +42,7 @@ public class DeviceClassService {
         return deviceClassDAO.getWithEquipment(id);
     }
 
-    public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassView> deviceClass,
+    public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
                                                  Set<Equipment> newEquipmentSet, boolean useExistingEquipment) {
         DeviceClass stored;
         //use existing
@@ -86,7 +83,6 @@ public class DeviceClassService {
             if (!useExistingEquipment) {
                 replaceEquipment(newEquipmentSet, deviceClassFromMessage);
             }
-            deviceClassFromMessage.setEquipment(newEquipmentSet); //todo remove that line
             return deviceClassFromMessage;
         }
     }
@@ -107,7 +103,7 @@ public class DeviceClassService {
         return createdDeviceClass;
     }
 
-    public void update(long id, DeviceClassView update) {
+    public void update(long id, DeviceClassUpdate update) {
         if (update == null) {
             return;
         }
@@ -118,9 +114,8 @@ public class DeviceClassService {
         if (update.getData() != null)
             stored.setData(update.getData().getValue());
         if (update.getEquipment() != null) {
-            DeviceClass deviceClass = update.convertTo();
-            replaceEquipment(deviceClass.getEquipment(), stored);
-            stored.setEquipment(deviceClass.getEquipment());
+            replaceEquipment(update.getEquipment().getValue(), stored);
+            stored.setEquipment(update.getEquipment().getValue());
         }
         if (update.getName() != null) {
             stored.setName(update.getName().getValue());
@@ -136,6 +131,17 @@ public class DeviceClassService {
         }
         deviceClassDAO.updateDeviceClass(stored);
     }
+
+//    public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
+//        List<Equipment> existingEquipments = equipmentService.getByDeviceClass(deviceClass);
+//        if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
+//            equipmentService.delete(existingEquipments);
+//        }
+//        for (Equipment equipment : newEquipmentSet) {
+//            equipment.setDeviceClass(deviceClass);
+//            equipmentService.create(equipment);
+//        }
+//    }
 
     public void replaceEquipment(@NotNull Collection<Equipment> equipmentsToReplace,
                                  @NotNull DeviceClass deviceClass) {

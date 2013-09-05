@@ -1,7 +1,8 @@
-package com.devicehive.model.domain;
+package com.devicehive.model;
 
 
-import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.*;
@@ -9,10 +10,11 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -49,27 +51,34 @@ import java.util.Set;
 
 })
 @Cacheable
-public class DeviceNotification implements Serializable {
+public class DeviceNotification implements HiveEntity {
 
     private static final long serialVersionUID = 8704321978956225955L;
-
+    @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private JsonStringWrapper parameters;
 
+    @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Long id;
 
+    @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Timestamp timestamp;
 
+    @SerializedName("notification")
     @Column
     @NotNull(message = "notification field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification should not be more than " +
             "128 symbols.")
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private String notification;
 
     @ManyToOne(fetch = FetchType.EAGER)

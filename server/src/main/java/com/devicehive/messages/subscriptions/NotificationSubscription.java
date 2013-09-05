@@ -2,7 +2,7 @@ package com.devicehive.messages.subscriptions;
 
 
 import com.devicehive.messages.handler.HandlerCreator;
-import com.devicehive.model.domain.User;
+import com.devicehive.model.User;
 
 public class NotificationSubscription extends Subscription<Long> {
 

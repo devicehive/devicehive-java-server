@@ -4,11 +4,9 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.Network;
-import com.devicehive.model.domain.User;
-import com.devicehive.model.view.DeviceView;
-import com.devicehive.model.view.NetworkView;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.request.NetworkRequest;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
@@ -22,10 +20,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 @Path("/network")
@@ -33,10 +28,13 @@ import java.util.Set;
 public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
+
     @EJB
     private NetworkService networkService;
+
     @EJB
     private UserService userService;
+
 
     /**
      * Produces following output:
@@ -100,13 +98,11 @@ public class NetworkController {
                     .response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
         }
 
-        List<Network> list = networkService
+        List<Network> result = networkService
                 .list(name, namePattern, sortField, sortOrder, take, skip, u.isAdmin() ? null : u.getId());
-        List<NetworkView> result = new ArrayList<>(list.size());
-        for (Network current : list) {
-            result.add(new NetworkView(current));
-        }
+
         logger.debug("Network list request proceed successfully.");
+
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
@@ -145,20 +141,11 @@ public class NetworkController {
             return ResponseFactory
                     .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
-
-        NetworkView result = new NetworkView(existing);
-        if (existing.getDevices() != null) {
-            Set<DeviceView> resultDeviceSet = new HashSet<>(existing.getDevices().size());
-            for (Device current : existing.getDevices()) {
-                resultDeviceSet.add(new DeviceView(current));
-            }
-            result.setDevices(resultDeviceSet);
-        }
-
         logger.debug("Network get proceed successfully.");
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
+        return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }
+
 
     /**
      * Inserts new Network into database. Consumes next input:
@@ -188,7 +175,7 @@ public class NetworkController {
      */
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response insert(NetworkView nr) {
+    public Response insert(NetworkRequest nr) {
 
         logger.debug("Network insert requested");
         Network n = new Network();
@@ -206,21 +193,20 @@ public class NetworkController {
             n.setDescription(nr.getDescription().getValue());
         }
 
-        Network inserted;
+        Network result;
 
         try {
-            inserted = networkService.insert(n);
+            result = networkService.insert(n);
         } catch (HiveException ex) {
             logger.debug("Unable to proceed network insert.", ex);
             return ResponseFactory
                     .response(Response.Status.FORBIDDEN, new ErrorResponse("Network could not be created"));
         }
-
-        NetworkView result = new NetworkView(inserted);
         logger.debug("New network has been created");
 
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
+
 
     /**
      * This method updates network with given Id. Consumes following input:
@@ -249,7 +235,7 @@ public class NetworkController {
     @PUT
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response update(NetworkView nr, @PathParam("id") long id) {
+    public Response update(NetworkRequest nr, @PathParam("id") long id) {
 
         logger.debug("Network update requested");
         nr.setId(id);

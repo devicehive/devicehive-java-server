@@ -8,14 +8,7 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceCommand;
-import com.devicehive.model.domain.DeviceNotification;
-import com.devicehive.model.domain.User;
-import com.devicehive.model.view.ApiInfoView;
-import com.devicehive.model.view.DeviceCommandView;
-import com.devicehive.model.view.DeviceNotificationView;
+import com.devicehive.model.*;
 import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
@@ -178,18 +171,15 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("Unknown Device ID");
         }
 
-        DeviceCommandView deviceCommandView = gson.fromJson(message.getAsJsonObject("command"),
-                DeviceCommandView.class);
-        if (deviceCommandView == null) {
+        DeviceCommand deviceCommand = gson.fromJson(message.getAsJsonObject("command"), DeviceCommand.class);
+        if (deviceCommand == null) {
             throw new HiveException("Command is empty");
         }
+        deviceCommand.setUserId(user.getId());
 
-        DeviceCommand deviceCommand = deviceCommandView.convertTo();
         commandService.submitDeviceCommand(deviceCommand, device, user, session);
-        DeviceCommandView result = new DeviceCommandView(deviceCommand);
-        result.setUserId(user.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(result))
+                .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(deviceCommand))
                 .build();
     }
 
@@ -227,6 +217,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
+        //TODO set notification's limit (do not try to get notifications for last year :))
         List<String> list = gson.fromJson(message.get(JsonMessageBuilder.DEVICE_GUIDS), new TypeToken<List<String>>() {
         }.getType());
 
@@ -311,8 +302,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             if (!deviceNotifications.isEmpty()) {
                 for (DeviceNotification deviceNotification : deviceNotifications) {
                     WebsocketSession.addMessagesToQueue(session,
-                            ServerResponsesFactory.createNotificationInsertMessage(new DeviceNotificationView
-                                    (deviceNotification)));
+                            ServerResponsesFactory.createNotificationInsertMessage(deviceNotification));
                 }
             }
         } finally {
@@ -449,7 +439,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     public JsonObject processServerInfo(JsonObject message, Session session) {
         logger.debug("server/info action started. Session " + session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
-        ApiInfoView apiInfo = new ApiInfoView();
+        ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         String url = configurationService.get(Constants.REST_SERVER_URL);

@@ -3,11 +3,10 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.messages.bus.GlobalMessageBus;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceNotification;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.domain.User;
-import com.devicehive.model.view.DeviceNotificationView;
+import com.devicehive.model.User;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.utils.Timer;
@@ -85,7 +84,7 @@ public class DeviceNotificationService {
         List<DeviceNotification> proceedNotifications = self.processDeviceNotification(notification, device);
         timer.logMethodExecuted("DeviceNotificationService.self.processDeviceNotification");
         for (DeviceNotification currentNotification : proceedNotifications) {
-            globalMessageBus.publishDeviceNotification(new DeviceNotificationView(currentNotification));
+            globalMessageBus.publishDeviceNotification(currentNotification);
         }
     }
 

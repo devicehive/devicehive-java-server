@@ -1,37 +1,34 @@
-package com.devicehive.model.view;
+package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.domain.Equipment;
+import com.devicehive.model.Equipment;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.NullableWrapper;
+import com.google.gson.annotations.SerializedName;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED;
 
-public class EquipmentView implements HiveEntity {
+public class EquipmentUpdate implements HiveEntity {
     private static final long serialVersionUID = -1048095377970919818L;
+    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
+    Long id;
 
-    @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, EQUIPMENTCLASS_SUBMITTED})
-    private Long id;
-
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
+    @SerializedName("name")
+    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
     private NullableWrapper<String> name;
 
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
+    @SerializedName("code")
+    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
     private NullableWrapper<String> code;
 
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
+    @SerializedName("type")
+    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
     private NullableWrapper<String> type;
 
-    @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
+    @SerializedName("data")
+    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
     private NullableWrapper<JsonStringWrapper> data;
-
-    public EquipmentView() {
-    }
-
-    public EquipmentView(Equipment equipment) {
-        convertFrom(equipment);
-    }
 
     public Long getId() {
         return id;
@@ -73,7 +70,6 @@ public class EquipmentView implements HiveEntity {
         this.data = data;
     }
 
-
     public Equipment convertTo() {
         Equipment equipment = new Equipment();
         equipment.setId(id);
@@ -90,16 +86,5 @@ public class EquipmentView implements HiveEntity {
             equipment.setName(name.getValue());
         }
         return equipment;
-    }
-
-    public void convertFrom(Equipment equipment){
-        if (equipment == null){
-            return;
-        }
-        id = equipment.getId();
-        data = new NullableWrapper<>(equipment.getData());
-        code = new NullableWrapper<>(equipment.getCode());
-        type = new NullableWrapper<>(equipment.getType());
-        name = new NullableWrapper<>(equipment.getName());
     }
 }

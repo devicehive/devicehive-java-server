@@ -1,8 +1,8 @@
-package com.devicehive.model.view;
+package com.devicehive.model.response;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.domain.DeviceNotification;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 
@@ -16,13 +16,13 @@ public class NotificationPollManyResponse implements HiveEntity {
     private static final long serialVersionUID = -4390548037685312874L;
     @SerializedName("notification")
     @JsonPolicyDef(NOTIFICATION_TO_CLIENT)
-    private DeviceNotificationView notification;
+    private DeviceNotification notification;
 
     @SerializedName("deviceGuid")
     @JsonPolicyDef(NOTIFICATION_TO_CLIENT)
     private String guid;
 
-    public NotificationPollManyResponse(DeviceNotificationView notification, String guid) {
+    public NotificationPollManyResponse(DeviceNotification notification, String guid) {
         this.notification = notification;
         this.guid = guid;
     }
@@ -30,8 +30,7 @@ public class NotificationPollManyResponse implements HiveEntity {
     public static List<NotificationPollManyResponse> getList(List<DeviceNotification> notifications) {
         List<NotificationPollManyResponse> result = new ArrayList<>(notifications.size());
         for (DeviceNotification notification : notifications) {
-            result.add(new NotificationPollManyResponse(new DeviceNotificationView(notification),
-                    notification.getDevice().getGuid()));
+            result.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
         }
         return result;
     }
@@ -44,11 +43,11 @@ public class NotificationPollManyResponse implements HiveEntity {
         this.guid = guid;
     }
 
-    public DeviceNotificationView getNotification() {
+    public DeviceNotification getNotification() {
         return notification;
     }
 
-    public void setNotification(DeviceNotificationView notification) {
+    public void setNotification(DeviceNotification notification) {
         this.notification = notification;
     }
 }

@@ -6,9 +6,9 @@ import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.UserRole;
-import com.devicehive.model.view.DeviceCommandView;
-import com.devicehive.model.view.DeviceNotificationView;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class LocalMessageBus {
         handlersService.shutdown();
     }
 
-    public void submitDeviceCommand(final DeviceCommandView deviceCommand) {
+    public void submitDeviceCommand(final DeviceCommand deviceCommand) {
         primaryProcessingService.submit(new Runnable() {
             @Override
             public void run() {
@@ -66,7 +66,7 @@ public class LocalMessageBus {
         });
     }
 
-    public void submitDeviceCommandUpdate(final DeviceCommandView deviceCommand) {
+    public void submitDeviceCommandUpdate(final DeviceCommand deviceCommand) {
         primaryProcessingService.submit(new Runnable() {
             @Override
             public void run() {
@@ -83,7 +83,7 @@ public class LocalMessageBus {
         });
     }
 
-    public void submitDeviceNotification(final DeviceNotificationView deviceNotification) {
+    public void submitDeviceNotification(final DeviceNotification deviceNotification) {
         primaryProcessingService.submit(new Runnable() {
             @Override
             public void run() {
@@ -98,7 +98,7 @@ public class LocalMessageBus {
                 for (NotificationSubscription subscription : subs) {
                     boolean hasAccess =
                             subscription.getUser().getRole() == UserRole.ADMIN ||
-                                    userDAO.hasAccessToDevice(subscription.getUser(), deviceNotification.getDevice().getGuid());
+                                    userDAO.hasAccessToDevice(subscription.getUser(), deviceNotification.getDevice());
                     if (hasAccess) {
                         handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
@@ -113,7 +113,7 @@ public class LocalMessageBus {
                         boolean hasAccess =
                                 subscription.getUser().getRole() == UserRole.ADMIN ||
                                         userDAO.hasAccessToDevice(subscription.getUser(),
-                                                deviceNotification.getDevice().getGuid());
+                                                deviceNotification.getDevice());
                         if (hasAccess) {
                             handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                         }

@@ -1,7 +1,7 @@
-package com.devicehive.model.domain;
+package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.JsonStringWrapper;
+import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.*;
@@ -9,12 +9,11 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * TODO JavaDoc
@@ -39,52 +38,83 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE
                 query = "select dc from DeviceCommand dc where dc.id = :id and dc.device.guid = :guid")
 })
 @Cacheable
-public class DeviceCommand implements Serializable {
+public class DeviceCommand implements HiveEntity {
     private static final long serialVersionUID = -1062670903456135249L;
 
+    @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
+            COMMAND_LISTED})
     private Long id;
 
+    @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
+    @JsonPolicyDef(
+            {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
 
+    @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
-    //todo remove policy
     @JsonPolicyDef({COMMAND_UPDATE_TO_CLIENT})
     private User user;
 
+    @SerializedName("userId")
+    @Transient
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
+    private Long userId;
+
+    @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
 
+    @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128,
             message = "Field cannot be empty. The length of command should not be more than 128 symbols.")
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String command;
 
+    @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
 
+    @SerializedName("lifetime")
     @Column
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer lifetime;
 
+    @SerializedName("flags")
     @Column
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer flags;
 
+    @SerializedName("status")
     @Column
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE,
+            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private String status;
 
+    @SerializedName("result")
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
     })
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE,
+            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
 
     @Version
@@ -194,6 +224,14 @@ public class DeviceCommand implements Serializable {
 
     public long getEntityVersion() {
         return entityVersion;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public void setEntityVersion(long entityVersion) {

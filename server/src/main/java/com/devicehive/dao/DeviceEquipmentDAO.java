@@ -1,8 +1,8 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceEquipment;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceEquipment;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;

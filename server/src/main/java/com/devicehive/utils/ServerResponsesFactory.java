@@ -3,13 +3,11 @@ package com.devicehive.utils;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.domain.Device;
-import com.devicehive.model.domain.DeviceEquipment;
-import com.devicehive.model.domain.DeviceNotification;
-import com.devicehive.model.view.DeviceCommandView;
-import com.devicehive.model.view.DeviceNotificationView;
-import com.devicehive.model.view.DeviceView;
+import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.DeviceNotification;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -18,28 +16,29 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ServerResponsesFactory {
 
-    public static JsonObject createNotificationInsertMessage(DeviceNotificationView deviceNotification) {
+    public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification) {
         JsonElement deviceNotificationJson =
                 GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
-        resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid());
+        resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
         resultMessage.add("notification", deviceNotificationJson);
         return resultMessage;
     }
 
-    public static JsonObject createCommandInsertMessage(DeviceCommandView deviceCommand) {
+    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand) {
 
-        JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand);
+        JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
+                DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
-        resultJsonObject.addProperty("deviceGuid", deviceCommand.getDevice().getGuid());
+        resultJsonObject.addProperty("deviceGuid", deviceCommand.getDevice().getGuid().toString());
         resultJsonObject.add("command", deviceCommandJson);
         return resultJsonObject;
     }
 
-    public static JsonObject createCommandUpdateMessage(DeviceCommandView deviceCommand) {
+    public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
         JsonElement deviceCommandJson =
                 GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
@@ -63,11 +62,10 @@ public class ServerResponsesFactory {
 
     public static DeviceNotification createNotificationForDevice(Device device, String notificationName) {
         DeviceNotification notification = new DeviceNotification();
-        DeviceView deviceView = new DeviceView(device);
         notification.setNotification(notificationName);
         notification.setDevice(device);
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
-        JsonElement deviceAsJson = gson.toJsonTree(deviceView);
+        JsonElement deviceAsJson = gson.toJsonTree(device);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);
         return notification;

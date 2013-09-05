@@ -4,9 +4,9 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.DeviceClass;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.domain.DeviceClass;
-import com.devicehive.model.view.DeviceClassView;
+import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 import com.devicehive.utils.LogExecutionTime;
@@ -19,7 +19,6 @@ import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -74,14 +73,9 @@ public class DeviceClassController {
                             new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        List<DeviceClass> existing = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
+        List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrder, take, skip);
-        List<DeviceClassView> result = new ArrayList<>(existing.size());
-        for (DeviceClass current : existing){
-            current.setEquipment(null);
-            result.add(new DeviceClassView(current));
-        }
-        logger.debug("DeviceClass list proceed result. Result list contains {} elements", existing.size());
+        logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);
     }
@@ -102,14 +96,14 @@ public class DeviceClassController {
 
         logger.debug("Get device class by id requested");
 
-        DeviceClass existing = deviceClassService.getWithEquipment(id);
+        DeviceClass result = deviceClassService.getWithEquipment(id);
 
-        if (existing == null) {
+        if (result == null) {
             logger.info("No device class with id = {} found", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND,
                     new ErrorResponse("DeviceClass with id = " + id + " not found."));
         }
-        DeviceClassView result = new DeviceClassView(existing);
+
         logger.debug("Requested device class found");
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED);
@@ -120,7 +114,7 @@ public class DeviceClassController {
      * API: DeviceClass: insert</a>
      * Creates new device class.
      *
-     * @param fromRequest In the request body, supply a DeviceClass resource.
+     * @param insert In the request body, supply a DeviceClass resource.
      *               {
      *               "name" : "Device class display name. String."
      *               "version" : "Device class version. String."
@@ -138,11 +132,10 @@ public class DeviceClassController {
     @Path("/class")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertDeviceClass(DeviceClassView fromRequest) {
+    public Response insertDeviceClass(DeviceClass insert) {
         logger.debug("Insert device class requested");
-        DeviceClass insert = fromRequest.convertTo();
-        deviceClassService.addDeviceClass(insert);
-        DeviceClassView result = new DeviceClassView(insert);
+        DeviceClass result = deviceClassService.addDeviceClass(insert);
+
         logger.debug("Device class inserted");
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
     }
@@ -163,7 +156,7 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateDeviceClass(
             @PathParam("id") long id,
-            @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassView insert) {
+            @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
 
         logger.debug("Device class update requested");
         try {
