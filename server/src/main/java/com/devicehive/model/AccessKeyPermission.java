@@ -1,5 +1,7 @@
 package com.devicehive.model;
 
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -28,30 +30,35 @@ public class AccessKeyPermission implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
     })
+    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
     private JsonStringWrapper domains;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
     })
+    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
     private JsonStringWrapper subnets;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
     })
+    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
     private JsonStringWrapper actions;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
     })
+    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
     private JsonStringWrapper networkIds;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
     })
+    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
     private JsonStringWrapper deviceGuids;
 
     @Version

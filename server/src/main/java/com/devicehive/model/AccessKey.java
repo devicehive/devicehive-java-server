@@ -12,12 +12,11 @@ import java.util.Set;
 
 @Entity
 @NamedQueries({
-//        @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak join User u where u.id = " +
-//                ":userId"),
-//        @NamedQuery(name = "AccessKey.getById", query = "select ak from AccessKey ak join User u " +
-//                "where u.id = :userId and ak.id = :accessKeyId"),
-//        @NamedQuery(name = "AccessKey.deleteById", query = "delete from AccessKey ak " +
-//                "where ak.user.id = :userId and ak.id = :accessKeyId")
+        @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak join ak.user u where u.id = :userId"),
+        @NamedQuery(name = "AccessKey.getById", query = "select ak from AccessKey ak join ak.user u " +
+                "where u.id = :userId and ak.id = :accessKeyId"),
+        @NamedQuery(name = "AccessKey.deleteById", query = "delete from AccessKey ak " +
+                "where ak.user.id = :userId and ak.id = :accessKeyId")
 })
 @Table(name = "access_key")
 @Cacheable
@@ -44,7 +43,7 @@ public class AccessKey implements HiveEntity {
     private String key;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", updatable = false)
     @NotNull(message = "User column cannot be null")
     private User user;
 
@@ -52,7 +51,7 @@ public class AccessKey implements HiveEntity {
     @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
     private Timestamp expirationDate;
 
-    @OneToMany(mappedBy = "accessKey", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "accessKey")
     @JsonPolicyDef(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
     private Set<AccessKeyPermission> permissions;
 
