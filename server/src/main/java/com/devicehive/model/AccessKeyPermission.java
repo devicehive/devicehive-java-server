@@ -13,29 +13,45 @@ import java.util.Set;
 @Table(name = "access_key_permission")
 public class AccessKeyPermission implements HiveEntity {
 
-    private static final long serialVersionUID = -3668618217286831037L;
+    private static final long serialVersionUID = 728578066176830685L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "access_key_id")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "access_key_id")
     @NotNull
     private AccessKey accessKey;
 
-    @Column
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
+    })
     private JsonStringWrapper domains;
 
-    @Column
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
+    })
     private JsonStringWrapper subnets;
 
-    @Column
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
+    })
     private JsonStringWrapper actions;
 
-    @Column(name = "network_ids")
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
+    })
     private JsonStringWrapper networkIds;
 
-    @Column(name = "device_guids")
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
+    })
     private JsonStringWrapper deviceGuids;
 
     @Version
