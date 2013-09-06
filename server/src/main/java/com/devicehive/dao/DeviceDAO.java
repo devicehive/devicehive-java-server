@@ -21,7 +21,6 @@ import java.util.List;
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
 public class DeviceDAO {
 
-    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     @EJB
     private NetworkDAO networkDAO;
     @EJB
@@ -192,7 +191,7 @@ public class DeviceDAO {
             resultQuery.setFirstResult(skip);
         }
         if (take == null) {
-            take = DEFAULT_TAKE;
+            take = Constants.DEFAULT_TAKE;
         }
         resultQuery.setMaxResults(take);
         return resultQuery.getResultList();

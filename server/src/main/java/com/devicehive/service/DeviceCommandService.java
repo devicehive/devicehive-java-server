@@ -26,10 +26,7 @@ import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
-/**
- * @author: Nikolay Loboda
- * @since 25.07.13
- */
+
 @Stateless
 @LogExecutionTime
 public class DeviceCommandService {

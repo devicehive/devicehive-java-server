@@ -28,10 +28,6 @@ import java.util.List;
 @Stateless
 public class DeviceClassDAO {
 
-    private static int DEFAULT_TAKE = 1000;
-
-    private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -71,7 +67,7 @@ public class DeviceClassDAO {
             resultQuery.setFirstResult(skip);
         }
         if (take == null) {
-            take = DEFAULT_TAKE;
+            take = Constants.DEFAULT_TAKE;
         }
         resultQuery.setMaxResults(take);
         return resultQuery.getResultList();

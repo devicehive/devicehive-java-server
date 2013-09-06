@@ -14,6 +14,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 
@@ -229,6 +230,9 @@ public class UserService {
      */
     public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status,
                            @NotNull String password) {
+        if (userDAO.findByLogin(login) != null){
+            throw new HiveException("User with such login already exists", Response.Status.FORBIDDEN.getStatusCode());
+        }
         return userDAO.createUser(login, role, status, password);
     }
 

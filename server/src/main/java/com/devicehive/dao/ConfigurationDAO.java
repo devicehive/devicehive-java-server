@@ -17,7 +17,6 @@ import java.util.List;
 
 @Stateless
 public class ConfigurationDAO {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceClassDAO.class);
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;

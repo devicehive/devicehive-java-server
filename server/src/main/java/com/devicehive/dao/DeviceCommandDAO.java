@@ -26,8 +26,6 @@ import java.util.List;
 @LogExecutionTime
 public class DeviceCommandDAO {
 
-    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
-
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -152,7 +150,7 @@ public class DeviceCommandDAO {
             resultQuery.setFirstResult(skip);
         }
         if (take == null) {
-            take = DEFAULT_TAKE;
+            take = Constants.DEFAULT_TAKE;
             resultQuery.setMaxResults(take);
         }
         return resultQuery.getResultList();

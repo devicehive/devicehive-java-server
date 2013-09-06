@@ -32,4 +32,8 @@ public class Constants {
 
     public static final String DEVICE_ACTIVITY_MAP = "DEVICE_ACTIVITY_MAP";
 
+    public static final Integer DEFAULT_TAKE = 1000;
+
+    public static final String CURRENT_USER = "current";
+
 }

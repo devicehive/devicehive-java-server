@@ -26,8 +26,6 @@ import java.util.List;
 @Stateless
 public class UserDAO {
 
-    private static final int maxLoginAttempts = 10;
-    private static final Integer DEFAULT_TAKE = 1000; //TODO set parameter
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
     @Inject
@@ -103,7 +101,7 @@ public class UserDAO {
         }
 
         if (take == null) {
-            take = DEFAULT_TAKE;
+            take = Constants.DEFAULT_TAKE;
             resultQuery.setMaxResults(take);
         }
 
@@ -171,12 +169,7 @@ public class UserDAO {
 
     public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status,
                            @NotNull String password) {
-        TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
-        query.setParameter("login", login);
-        List<User> list = query.getResultList();
-        if (!list.isEmpty()) {
-            throw new HiveException("User " + login + " exists");
-        }
+
         User user = new User();
         user.setLogin(login);
         user.setRole(role);

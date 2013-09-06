@@ -25,7 +25,6 @@ import java.util.List;
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationDAO {
-    private static final Integer DEFAULT_TAKE = 1000;
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -122,7 +121,7 @@ public class DeviceNotificationDAO {
             resultQuery.setFirstResult(skip);
         }
         if (take == null) {
-            take = DEFAULT_TAKE;
+            take = Constants.DEFAULT_TAKE;
             resultQuery.setMaxResults(take);
         }
         return resultQuery.getResultList();
