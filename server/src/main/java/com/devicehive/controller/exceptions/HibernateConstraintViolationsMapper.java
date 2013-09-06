@@ -14,6 +14,6 @@ public class HibernateConstraintViolationsMapper implements ExceptionMapper<Cons
 
     @Override
     public Response toResponse(ConstraintViolationException exception) {
-        return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(exception.getMessage()));
+        return ResponseFactory.response(Response.Status.CONFLICT, new ErrorResponse(exception.getMessage()));
     }
 }
