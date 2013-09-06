@@ -22,7 +22,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.List;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED;
 
@@ -53,8 +55,48 @@ public class AccessKeyController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response list(@PathParam("userId") String userId) {
-        return null;
+    public Response list(@PathParam("userId") String userId, @Context SecurityContext securityContext) {
+
+        logger.debug("Access key : list requested for userId : {}", userId);
+
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User currentUser = principal.getUser();
+        Long id;
+        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)){
+            id = currentUser.getId();
+        }
+        else{
+            try{
+            id = Long.parseLong(userId);
+            }
+            catch (NumberFormatException e){
+                logger.debug("Access key : list failed for userId : {}. Reason: Bad user identifier", userId);
+
+                throw new HiveException("Bad user identifier :" + userId, Response.Status.BAD_REQUEST.getStatusCode());
+            }
+        }
+        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)){
+            User existing = userService.findById(id);
+            if (existing == null){
+                logger.debug("Access key : list failed for userId : {}. Reason: User with such id has not been " +
+                        "found", userId);
+
+                return ResponseFactory
+                        .response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
+            }
+
+        }
+        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)){
+            logger.debug("Access key : list failed for userId : {}. Reason: No permissions", userId);
+
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse("No permissions"));
+        }
+        List<AccessKey> keyList = accessKeyDAO.list(id);
+
+        logger.debug("Access key : insert proceed successfully for userId : {}", userId);
+
+        return ResponseFactory.response(Response.Status.OK, keyList, ACCESS_KEY_LISTED);
     }
 
     /**
@@ -89,6 +131,8 @@ public class AccessKeyController {
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKey key,
                            @Context SecurityContext securityContext) {
 
+        logger.debug("Access key : insert requested for userId : {}", userId);
+
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User currentUser = principal.getUser();
         User user;
@@ -99,6 +143,9 @@ public class AccessKeyController {
             try {
                 id = Long.parseLong(userId);
             } catch (NumberFormatException e) {
+
+                logger.debug("Access key : insert failed for userId : {}. Reason: Bad user identifier", userId);
+
                 throw new HiveException("Bad user identifier :" + userId, Response.Status.BAD_REQUEST.getStatusCode());
             }
             if (currentUser.getId().equals(id)) {
@@ -106,16 +153,25 @@ public class AccessKeyController {
             } else if (currentUser.getRole().equals(UserRole.ADMIN)) {
                 user = userService.findById(id);
                 if (user == null) {
+
+                    logger.debug("Access key : insert failed for userId : {}. Reason: User with such id has not been " +
+                            "found", userId);
+
                     return ResponseFactory
                             .response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
                 }
             } else {
+
+                logger.debug("Access key : insert failed for userId : {}. Reason: No permissions to insert access " +
+                        "key for user with id : {}", userId, userId);
+
                 return ResponseFactory
                         .response(Response.Status.FORBIDDEN, new ErrorResponse("No permissions to insert access " +
                                 "key for user with id :" + userId));
             }
         }
         AccessKey generatedKey = accessKeyService.create(user, key);
+        logger.debug("Access key : insert proceed successfully for userId : {}", userId);
         return ResponseFactory.response(Response.Status.OK, generatedKey, ACCESS_KEY_SUBMITTED);
     }
 

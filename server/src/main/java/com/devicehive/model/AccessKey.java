@@ -13,7 +13,7 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak join ak.user u where u.id = :userId"),
+        @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak left join fetch ak.permissions join ak.user u where u.id = :userId"),
         @NamedQuery(name = "AccessKey.getById", query = "select ak from AccessKey ak join ak.user u " +
                 "where u.id = :userId and ak.id = :accessKeyId"),
         @NamedQuery(name = "AccessKey.deleteById", query = "delete from AccessKey ak " +
@@ -53,6 +53,7 @@ public class AccessKey implements HiveEntity {
     private Timestamp expirationDate;
 
     @OneToMany(mappedBy = "accessKey")
+    @NotNull
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private Set<AccessKeyPermission> permissions;
 
