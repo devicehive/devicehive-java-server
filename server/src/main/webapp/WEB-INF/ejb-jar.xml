@@ -12,6 +12,9 @@
             <exception-class>org.hibernate.exception.ConstraintViolationException</exception-class>
         </application-exception>
         <application-exception>
+            <exception-class>javax.persistence.PersistenceException</exception-class>
+        </application-exception>
+        <application-exception>
             <exception-class>com.google.gson.JsonParseException</exception-class>
         </application-exception>
         <application-exception>
