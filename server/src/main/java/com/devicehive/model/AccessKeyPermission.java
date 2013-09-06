@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -10,6 +9,9 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
 
 @Entity
 @Table(name = "access_key_permission")
@@ -30,35 +32,35 @@ public class AccessKeyPermission implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
     })
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper domains;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
     })
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper subnets;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
     })
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper actions;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
     })
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper networkIds;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
     })
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper deviceGuids;
 
     @Version

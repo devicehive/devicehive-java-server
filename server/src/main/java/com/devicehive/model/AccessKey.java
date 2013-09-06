@@ -10,6 +10,7 @@ import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.util.Set;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @NamedQueries({
         @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak join ak.user u where u.id = :userId"),
@@ -25,21 +26,21 @@ public class AccessKey implements HiveEntity {
     private static final long serialVersionUID = 7609754275823483733L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_SUBMITTED})
     private Long id;
 
     @Column
     @NotNull(message = "Label column cannot be null")
     @Size(min = 1, max = 64,
             message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private String label;
 
     @Column
     @NotNull(message = "Key column cannot be null")
     @Size(min = 1, max = 48,
             message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_SUBMITTED})
     private String key;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -48,11 +49,11 @@ public class AccessKey implements HiveEntity {
     private User user;
 
     @Column(name = "expiration_date")
-    @JsonPolicyApply(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private Timestamp expirationDate;
 
     @OneToMany(mappedBy = "accessKey")
-    @JsonPolicyDef(JsonPolicyDef.Policy.ACCESS_KEY_LISTED)
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private Set<AccessKeyPermission> permissions;
 
     @Version

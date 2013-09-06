@@ -13,6 +13,8 @@ public @interface JsonPolicyDef {
         WEBSOCKET_SERVER_INFO,
         REST_SERVER_INFO,
         ACCESS_KEY_LISTED,
+        ACCESS_KEY_PUBLISHED,
+        ACCESS_KEY_SUBMITTED,
         DEVICE_PUBLISHED,
         DEVICE_SUBMITTED,
         COMMAND_TO_CLIENT,
