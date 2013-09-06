@@ -59,39 +59,7 @@ public class AccessKeyController {
 
         logger.debug("Access key : list requested for userId : {}", userId);
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User currentUser = principal.getUser();
-        Long id;
-        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)){
-            id = currentUser.getId();
-        }
-        else{
-            try{
-            id = Long.parseLong(userId);
-            }
-            catch (NumberFormatException e){
-                logger.debug("Access key : list failed for userId : {}. Reason: Bad user identifier", userId);
-
-                throw new HiveException("Bad user identifier :" + userId, Response.Status.BAD_REQUEST.getStatusCode());
-            }
-        }
-        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)){
-            User existing = userService.findById(id);
-            if (existing == null){
-                logger.debug("Access key : list failed for userId : {}. Reason: User with such id has not been " +
-                        "found", userId);
-
-                return ResponseFactory
-                        .response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
-            }
-
-        }
-        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)){
-            logger.debug("Access key : list failed for userId : {}. Reason: No permissions", userId);
-
-            return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse("No permissions"));
-        }
+        Long id = getUser(securityContext, userId).getId();
         List<AccessKey> keyList = accessKeyDAO.list(id);
 
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
@@ -112,8 +80,23 @@ public class AccessKeyController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response get(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId) {
-        return null;
+    public Response get(@PathParam("userId") String userId, @PathParam("id") long accessKeyId,
+                        @Context SecurityContext securityContext) {
+
+        logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
+
+        Long id = getUser(securityContext, userId).getId();
+        AccessKey result = accessKeyDAO.get(id, accessKeyId);
+        if (result == null) {
+            logger.debug("Access key : list failed for userId : {} and accessKeyId : {}. Reason: No access key found" +
+                    ".", userId, accessKeyId);
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse("Access key not found."));
+        }
+
+        logger.debug("Access key : insert proceed successfully for userId : {} and accessKeyId : {}", userId, accessKeyId);
+
+        return ResponseFactory.response(Response.Status.OK, result, ACCESS_KEY_LISTED);
     }
 
     /**
@@ -133,43 +116,7 @@ public class AccessKeyController {
 
         logger.debug("Access key : insert requested for userId : {}", userId);
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User currentUser = principal.getUser();
-        User user;
-        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
-            user = currentUser;
-        } else {
-            Long id;
-            try {
-                id = Long.parseLong(userId);
-            } catch (NumberFormatException e) {
-
-                logger.debug("Access key : insert failed for userId : {}. Reason: Bad user identifier", userId);
-
-                throw new HiveException("Bad user identifier :" + userId, Response.Status.BAD_REQUEST.getStatusCode());
-            }
-            if (currentUser.getId().equals(id)) {
-                user = currentUser;
-            } else if (currentUser.getRole().equals(UserRole.ADMIN)) {
-                user = userService.findById(id);
-                if (user == null) {
-
-                    logger.debug("Access key : insert failed for userId : {}. Reason: User with such id has not been " +
-                            "found", userId);
-
-                    return ResponseFactory
-                            .response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
-                }
-            } else {
-
-                logger.debug("Access key : insert failed for userId : {}. Reason: No permissions to insert access " +
-                        "key for user with id : {}", userId, userId);
-
-                return ResponseFactory
-                        .response(Response.Status.FORBIDDEN, new ErrorResponse("No permissions to insert access " +
-                                "key for user with id :" + userId));
-            }
-        }
+        User user = getUser(securityContext, userId);
         AccessKey generatedKey = accessKeyService.create(user, key);
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
         return ResponseFactory.response(Response.Status.OK, generatedKey, ACCESS_KEY_SUBMITTED);
@@ -206,5 +153,37 @@ public class AccessKeyController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response delete(@PathParam("userId") Long userId, @PathParam("id") Long accessKeyId) {
         return null;
+    }
+
+    private User getUser(SecurityContext securityContext, String userId){
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User currentUser = principal.getUser();
+
+        Long id;
+        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)){
+            return currentUser;
+        }
+        else{
+            try{
+                id = Long.parseLong(userId);
+            }
+            catch (NumberFormatException e){
+                throw new HiveException("Bad user identifier :" + userId, e,
+                        Response.Status.BAD_REQUEST.getStatusCode());
+            }
+        }
+
+        User result = null;
+        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)){
+            result = userService.findById(id);
+            if (result == null){
+                throw new HiveException("User not found", Response.Status.NOT_FOUND.getStatusCode());
+            }
+
+        }
+        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)){
+            throw new HiveException("User not found", Response.Status.NOT_FOUND.getStatusCode());
+        }
+        return result;
     }
 }

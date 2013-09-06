@@ -14,7 +14,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @NamedQueries({
         @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak left join fetch ak.permissions join ak.user u where u.id = :userId"),
-        @NamedQuery(name = "AccessKey.getById", query = "select ak from AccessKey ak join ak.user u " +
+        @NamedQuery(name = "AccessKey.getById", query = "select ak from AccessKey ak left join fetch ak.permissions join ak.user u " +
                 "where u.id = :userId and ak.id = :accessKeyId"),
         @NamedQuery(name = "AccessKey.deleteById", query = "delete from AccessKey ak " +
                 "where ak.user.id = :userId and ak.id = :accessKeyId")
