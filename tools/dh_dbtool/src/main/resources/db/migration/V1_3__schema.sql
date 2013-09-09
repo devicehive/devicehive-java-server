@@ -26,8 +26,8 @@ CREATE TABLE access_key_permission (
 ALTER TABLE access_key_permission ADD CONSTRAINT access_key_permission_pk PRIMARY KEY (id);
 ALTER TABLE access_key_permission ADD CONSTRAINT access_key_permission_access_key_fk FOREIGN KEY (access_key_id) REFERENCES
 access_key (id) ON DELETE CASCADE;
---
--- INSERT INTO "user"
--- (login, password_hash, password_salt, role, status, login_attempts)
---   VALUES
---   ('admin', 'vQVa9R/bVfN1Nlsn4ZmUZRD9sEA150Ebu0QO7ZUPXVw=', '2Pe08AbthUFQZRnskTcEvpGD', 0, 0, 0);
+
+INSERT INTO "user"
+(login, password_hash, password_salt, role, status, login_attempts)
+  VALUES
+  ('admin', 'vQVa9R/bVfN1Nlsn4ZmUZRD9sEA150Ebu0QO7ZUPXVw=', '2Pe08AbthUFQZRnskTcEvpGD', 0, 0, 0);

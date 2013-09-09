@@ -4,12 +4,13 @@ DEVICEHIVE-JAVA INSTRUCTIONS SET
 PREREQUISITES
 
 To use DeviceHive framework properly you must have following components installed and configured:
-•	PostgreSQL 9.1 (9.1 is tested version, but above should work fine too)
-•	PostgreSQL JDBC driver suitable for your version of PostgreSQL
+•	PostgreSQL 9.1 (9.1 is tested version, but above should work fine too). It can be downloaded using http://www.postgresql.org/download/
+•	PostgreSQL JDBC driver suitable for your version of PostgreSQL (http://jdbc.postgresql.org/download.html#others)
 •	Glassfish 4 application server (http://glassfish.java.net/download.html) to run DeviceHive.
-•	Oracle JDK 7 or OpenJDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7).
-•	dh_dbtool.jar to provide necessary database migrations.
-•	DeviceHiveJava.war to use DeviceHive framework.
+•	Oracle JDK 7 or OpenJDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7). Oracle JDK 7 can be downloaded using http://www.oracle.com/technetwork/java/javase/downloads/index.html. If you would like to use Open JDK 7 you have to use this link: http://openjdk.java.net/install/
+•	Maven (http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava 
+•	dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2).
+•	DeviceHiveJava source files. This id the main part of the DeviceHive framework (https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2). 
  
 
 INSTALLATION INSTRUCTIONS
@@ -17,9 +18,22 @@ INSTALLATION INSTRUCTIONS
 It is necessary to configure environment properly, so you need to follow the instructions:
 
 
+COMPILING SOURCE FILES INSTRUCTIONS
+
+•	Download source files from https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2. It can be done using one of Git revision control client (http://git-scm.com/downloads/guis). 
+	For example, if you prefer git, clone project using command: 
+	git clone https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2
+•	Execute the following command from <devicehive-java-directory>/tools/dh_dbtools
+	mvn clean compile package
+•	Execute the same command from <devicehive-java-directory>/server
+
+If this steps are done correctly you will find DeviceHiveJava.war at <devicehive-java-directory>/server/target and dh_dbtool-1.2.0.0.jar at <devicehive-java-directory>/tools/dh_dbtools/target. 
+After succeed compiling and packaging source files go to the next step.
+
+
 DATABASE CREATION INSTRUCTIONS
 
-•	After you download and install PostgreSQL you have to create new user. This step is useful to provide database migrations. 
+•	After you download and install PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) you have to create new user. This step is useful to provide database migrations. 
 •	Create database using user that have been created at step 1. This user should be owner of database.
 •	Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command:
 
@@ -30,10 +44,9 @@ The parameter <databaseurl> is a jdbc connection URL to your database, user is a
 java –jar dh_dbtool.jar –h
 
 
-
 GLASSFISH CONFIGURATION INSTRUCTIONS
 
-•	Install glassfish 4 as it described in the glassfish installation instructions.
+•	Install glassfish 4 as it described in the glassfish installation instructions (see https://glassfish.java.net/docs/4.0/installation-guide.pdf).
 •	Deploy postgresql jdbc driver to glassfish. Just put postgresql-jdbc4.jar (or another postgresql jdbc driver suitable for your postgresql version) to <glassfish installation directory>glassfish/domains/<domain_dir>/lib/ext directory and restart glassfish.
 •	Then, run server and open <yourServerName>:4848
 •	Navigate to Resources -> JDBC -> JDBC Connection Pools. You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:

@@ -151,8 +151,16 @@ public class AccessKeyController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response delete(@PathParam("userId") Long userId, @PathParam("id") Long accessKeyId) {
-        return null;
+    public Response delete(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId,
+                           @Context SecurityContext securityContext) {
+        logger.debug("Access key : delete requested for userId : {}", userId);
+
+        Long id = getUser(securityContext, userId).getId();
+        accessKeyDAO.delete(id, accessKeyId);
+
+        logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId, accessKeyId);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
+
     }
 
     private User getUser(SecurityContext securityContext, String userId){
