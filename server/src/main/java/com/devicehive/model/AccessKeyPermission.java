@@ -14,6 +14,9 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LIS
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
 
 @Entity
+@NamedQueries({
+        @NamedQuery(name = "AccessKeyPermission.deleteByAccessKey", query = "delete from AccessKeyPermission akp where akp.accessKey = :accessKey")
+})
 @Table(name = "access_key_permission")
 public class AccessKeyPermission implements HiveEntity {
 

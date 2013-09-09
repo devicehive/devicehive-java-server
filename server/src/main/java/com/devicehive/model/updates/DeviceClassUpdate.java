@@ -11,19 +11,19 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class DeviceClassUpdate implements HiveEntity {
     private static final long serialVersionUID = 967472386318199376L;
     @JsonPolicyDef(DEVICE_PUBLISHED)
-    Long id;
+    private Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    NullableWrapper<String> name;
+    private NullableWrapper<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    NullableWrapper<String> version;
+    private NullableWrapper<String> version;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    NullableWrapper<Boolean> isPermanent;
+    private NullableWrapper<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    NullableWrapper<Integer> offlineTimeout;
+    private NullableWrapper<Integer> offlineTimeout;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    NullableWrapper<JsonStringWrapper> data;
+    private NullableWrapper<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED})
-    NullableWrapper<Set<Equipment>> equipment;
+    private NullableWrapper<Set<Equipment>> equipment;
 
     public NullableWrapper<Set<Equipment>> getEquipment() {
         return equipment;

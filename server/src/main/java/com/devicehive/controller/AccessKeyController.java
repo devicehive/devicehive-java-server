@@ -10,6 +10,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
 import com.devicehive.model.UserRole;
+import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
@@ -135,8 +136,23 @@ public class AccessKeyController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response update(@PathParam("userId") Long userId, @PathParam("id") Long accessKeyId) {
-        return null;
+    public Response update(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId,
+                           @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate,
+                           @Context SecurityContext securityContext) {
+        logger.debug("Access key : update requested for userId : {}, access key id : {}, access key : {} ", userId,
+                accessKeyId, accessKeyUpdate);
+
+        Long id = getUser(securityContext, userId).getId();
+        if (!accessKeyService.update(id, accessKeyId, accessKeyUpdate)){
+            logger.debug("Access key : update failed for userId : {} and accessKeyId : {}. Reason: No access key " +
+                    "found.", userId, accessKeyId);
+            return ResponseFactory
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse("Access key not found."));
+        }
+
+        logger.debug("Access key : update proceed successfully for userId : {}, access key id : {}, access key : {} ",
+                userId, accessKeyId, accessKeyUpdate);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**

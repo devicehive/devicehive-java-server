@@ -4,6 +4,7 @@ import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.AccessKeyPermissionDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.utils.LogExecutionTime;
 
@@ -45,6 +46,36 @@ public class AccessKeyService {
             permissionDAO.insert(permission);
         }
         return accessKey;
+    }
+
+    public boolean update(@NotNull Long userId, @NotNull Long keyId, AccessKeyUpdate toUpdate){
+        AccessKey existing = accessKeyDAO.get(userId, keyId);
+        if (existing == null){
+            return false;
+        }
+        if (toUpdate == null){
+            return true;
+        }
+        if (toUpdate.getLabel() != null){
+            existing.setLabel(toUpdate.getLabel().getValue());
+        }
+        if (toUpdate.getExpirationDate()!= null){
+            existing.setExpirationDate(toUpdate.getExpirationDate().getValue());
+        }
+        if (toUpdate.getPermissions() != null){
+            Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().getValue();
+            if (permissionsToReplace == null){
+                throw new HiveException(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE, Response.Status.BAD_REQUEST.getStatusCode());
+            }
+            AccessKey toValidate = toUpdate.convertTo();
+            validateActions(toValidate);
+            permissionDAO.deleteByAccessKey(existing);
+            for (AccessKeyPermission current : permissionsToReplace){
+                current.setAccessKey(existing);
+                permissionDAO.insert(current);
+            }
+        }
+        return true;
     }
 
     private void validateActions(AccessKey accessKey){
