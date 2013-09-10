@@ -5,26 +5,23 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.websockets.handlers.annotations.Action;
+import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,15 +64,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * Device: authenticate</a>
      * Authenticates a device. After successful authentication, all subsequent messages may exclude deviceId and deviceKey parameters.
      *
-     * @param message Json object with the following structure
-     *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object},
-     *                                                               "deviceId": {guid},
-     *                                                               "deviceKey": {string}
-     *                                                             }
-     *                                                             </pre>
      * @param session Current session.
      * @return Json object with the following structure
      *         <pre>
@@ -87,12 +75,13 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "authenticate", needsAuth = false)
-    public JsonObject processAuthenticate(JsonObject message, Session session) {
-        String deviceId = message.get("deviceId").getAsString();
-        if (deviceId == null || message.get("deviceKey") == null) {
+    public JsonObject processAuthenticate(@WsParam("deviceId") String deviceId,
+                                          @WsParam("deviceKey") String deviceKey,
+                                          Session session) {
+
+        if (deviceId == null || deviceKey == null) {
             throw new HiveException("Device authentication error: credentials are incorrect");
         }
-        String deviceKey = message.get("deviceKey").getAsString();
         logger.debug("authenticate action for " + deviceId);
         Device device = deviceService.authenticate(deviceId, deviceKey);
 
@@ -126,24 +115,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * Device: command/update</a>
      * Updates an existing device command.
      *
-     * @param message Json object with the following structure:
-     *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object},
-     *                                                               "deviceId": {guid},
-     *                                                               "deviceKey": {string},
-     *                                                               "commandId": {integer},
-     *                                                               "command": {
-     *                                                                 "command": {string},
-     *                                                                 "parameters": {object},
-     *                                                                 "lifetime": {integer},
-     *                                                                 "flags": {integer},
-     *                                                                 "status": {string},
-     *                                                                 "result": {object}
-     *                                                               }
-     *                                                             }
-     *                                                             </pre>
      * @param session Current session.
      * @return Json object with the following structure:
      *         <pre>
@@ -155,18 +126,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "command/update")
-    public JsonObject processCommandUpdate(JsonObject message, Session session) {
+    public JsonObject processCommandUpdate(@WsParam("commandId") Long commandId,
+                                           @WsParam("command") @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)DeviceCommandUpdate update,
+                                           @WsParam("deviceId") String deviceId,
+                                           Session session) {
         logger.debug("command update action started for session : {{}", session.getId());
-        DeviceCommandUpdate update = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE)
-                .fromJson(message.getAsJsonObject("command"), DeviceCommandUpdate.class);
-        if (message.get("commandId") == null) {
+        if (commandId == null) {
             throw new HiveException("Device command identifier cannot be null");
         }
         if (update == null) {
             throw new HiveException("DeviceCommand resource cannot be null");
         }
-        update.setId(GsonFactory.createGson().fromJson(message.get("commandId"), Long.class));
-        Device device = getDevice(session, message);
+        update.setId(commandId);
+        Device device = getDevice(session, deviceId);
 
         logger.debug("submit device command update for device : " + device.getId());
         commandService.submitDeviceCommandUpdate(update, device);
@@ -181,16 +153,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * Subscribes the device to commands. After subscription is completed, the server will start to send
      * command/insert messages to the connected device.
      *
-     * @param message Json object with the following structure
-     *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object},
-     *                                                               "deviceId": {guid},
-     *                                                               "deviceKey": {string},
-     *                                                               "timestamp": {datetime}
-     *                                                             }
-     *                                                             </pre>
      * @param session Current session
      * @return json object with the following structure:
      *         <pre>
@@ -203,16 +165,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @throws IOException if unable to deliver message
      */
     @Action(value = "command/subscribe")
-    public JsonObject processCommandSubscribe(JsonObject message, Session session) throws IOException {
+    public JsonObject processCommandSubscribe(@WsParam("deviceId") String deviceId,
+                                              @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
+                                              Session session) throws IOException {
         logger.debug("command subscribe action started for session : " + session.getId());
-        Gson gson = GsonFactory.createGson();
-        Device device = getDevice(session, message);
-        Timestamp timestamp;
-        try {
-            timestamp = gson.fromJson(message.get(JsonMessageBuilder.TIMESTAMP), Timestamp.class);
-        } catch (JsonParseException e) {
-            throw new HiveException(e.getCause().getMessage() + " Incorrect timestamp format", e);
-        }
+        Device device = getDevice(session, deviceId);
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
@@ -247,15 +204,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * Device: command/unsubscribe</a>
      * Unsubscribes the device from commands.
      *
-     * @param message Json object with the following structure:
-     *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object},
-     *                                                               "deviceId": {guid},
-     *                                                               "deviceKey": {string}
-     *                                                             }
-     *                                                             </pre>
      * @param session Current session
      * @return Json object with the following structure:
      *         <pre>
@@ -267,8 +215,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "command/unsubscribe")
-    public JsonObject processNotificationUnsubscribe(JsonObject message, Session session) {
-        Device device = getDevice(session, message);
+    public JsonObject processNotificationUnsubscribe(@WsParam("deviceId") String deviceId, Session session) {
+        Device device = getDevice(session, deviceId);
         logger.debug("command/unsubscribe for device {}", device.getGuid());
         subscriptionManager.getCommandSubscriptionStorage().remove(device.getId(), session.getId());
         return JsonMessageBuilder.createSuccessResponseBuilder().build();
@@ -279,19 +227,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * API: Device: notification/insert</a>
      * Creates new device notification.
      *
-     * @param message Json object with the following structure
-     *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object},
-     *                                                               "deviceId": {guid},
-     *                                                               "deviceKey": {string},
-     *                                                               "notification": {
-     *                                                                 "notification": {string},
-     *                                                                 "parameters": {object}
-     *                                                               }
-     *                                                             }
-     *                                                             </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
@@ -307,14 +242,15 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "notification/insert")
-    public JsonObject processNotificationInsert(JsonObject message, Session session) {
+    public JsonObject processNotificationInsert(@WsParam("notification") @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification deviceNotification,
+                                                @WsParam("deviceId") String deviceId,
+                                                Session session) {
         logger.debug("notification/insert started for session {} ", session.getId());
-        DeviceNotification deviceNotification = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE)
-                .fromJson(message.get("notification"), DeviceNotification.class);
+
         if (deviceNotification == null || deviceNotification.getNotification() == null) {
             throw new HiveException("Notification is empty!");
         }
-        Device device = getDevice(session, message);
+        Device device = getDevice(session, deviceId);
         logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
         deviceNotificationService.submitDeviceNotification(deviceNotification, device);
@@ -330,13 +266,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * Device: server/info</a>
      * Gets meta-information of the current API.
      *
-     * @param message Json object with the following structure
-     *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object}
-     *                                                             }
-     *                                                             </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
@@ -353,7 +282,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "server/info", needsAuth = false)
-    public JsonObject processServerInfo(JsonObject message, Session session) {
+    public JsonObject processServerInfo(Session session) {
         logger.debug("server/info action started. Session {} ", session.getId());
         Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
@@ -375,15 +304,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * Device: device/get</a>
      * Gets information about the current device.
      *
-     * @param message Json object with the following structure
-     *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object},
-     *                                                               "deviceId": {guid},
-     *                                                               "deviceKey": {string}
-     *                                                             }
-     *                                                             </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
@@ -414,14 +334,14 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "device/get")
-    public JsonObject processDeviceGet(JsonObject message, Session session) {
-        Device device = getDevice(session, message);
+    public JsonObject processDeviceGet(@WsParam("deviceId") String deviceId, Session session) {
+        Device device = getDevice(session, deviceId);
+        Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
         Gson gsonResponse = GsonFactory.createGson(DEVICE_PUBLISHED);
-        JsonElement deviceElem = gsonResponse.toJsonTree(device);
-        JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()
+        JsonElement deviceElem = gsonResponse.toJsonTree(toResponse);
+        return JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("device", deviceElem)
                 .build();
-        return result;
     }
 
     /**
@@ -466,17 +386,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "device/save", needsAuth = false)
-    public JsonObject processDeviceSave(JsonObject message, Session session) {
+    public JsonObject processDeviceSave(@WsParam("deviceId") String deviceId,
+                                        @WsParam("deviceKey") String deviceKey,
+                                        @WsParam("device") @JsonPolicyDef(DEVICE_PUBLISHED) DeviceUpdate device,
+                                        JsonObject message,
+                                        Session session) {
         logger.debug("device/save process started for session {}", session.getId());
-        String deviceId = message.get("deviceId").getAsString();
         if (deviceId == null) {
             throw new HiveException("Device ID is undefined!");
         }
-        if (message.get("deviceKey") == null) {
+        if (deviceKey == null) {
             throw new HiveException("Device key is undefined!");
         }
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
-        DeviceUpdate device = mainGson.fromJson(message.get("device"), DeviceUpdate.class);
         logger.debug("check required fields in device ");
         deviceService.checkDevice(device);
         Gson gsonForEquipment = GsonFactory.createGson();
@@ -493,7 +415,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         uuidNullableWrapper.setValue(deviceId);
 
         device.setGuid(uuidNullableWrapper);
-        Device authorizedDevice = getDevice(session, message);
+        Device authorizedDevice = getDevice(session, deviceId);
         boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
                 .getValue());
         deviceService.deviceSaveAndNotify(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
@@ -505,11 +427,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         return jsonResponseObject;
     }
 
-    private Device getDevice(Session session, JsonObject request) {
+    private Device getDevice(Session session, String deviceId) {
         if (WebsocketSession.hasAuthorisedDevice(session)) {
             return WebsocketSession.getAuthorisedDevice(session);
         }
-        String deviceId = request.get("deviceId").getAsString();
         return deviceDAO.findByUUID(deviceId);
     }
 

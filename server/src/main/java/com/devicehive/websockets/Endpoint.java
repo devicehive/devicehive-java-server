@@ -2,13 +2,15 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.websockets.handlers.ClientMessageHandlers;
+import com.devicehive.websockets.handlers.DeviceMessageHandlers;
 import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.devicehive.websockets.handlers.annotations.WsParam;
+import com.google.gson.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -19,9 +21,11 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
 import java.io.Reader;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Set;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -29,7 +33,14 @@ abstract class Endpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
+    private static final Set<Class> HANDLERS_SET = new HashSet<Class>() {
+        {
+            add(ClientMessageHandlers.class);
+            add(DeviceMessageHandlers.class);
+        }
 
+        private static final long serialVersionUID = -7417770184838061839L;
+    };
     private ConcurrentMap<Pair<Class, String>, Method> methodsCache = new ConcurrentHashMap<>();
 
     protected JsonObject processMessage(HiveMessageHandlers handler, Reader reader, Session session) {
@@ -54,7 +65,11 @@ abstract class Endpoint {
         } catch (OptimisticLockException ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Error occurred. Please, retry again.").build();
-        } catch (Exception ex) {
+        } catch (JsonSyntaxException ex){
+            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
+        } catch (JsonParseException ex){
+            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
+        }catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
         }
@@ -66,7 +81,17 @@ abstract class Endpoint {
         ImmutablePair<Class, String> key = ImmutablePair.of((Class) handler.getClass(), action);
         Method executedMethod = methodsCache.get(key);
         if (executedMethod == null) {
-            for (final Method method : handler.getClass().getMethods()) {
+            Class currentClass = null;
+            for (Class clazz : HANDLERS_SET) {
+                if (clazz.isInstance(handler)) {
+                    currentClass = clazz;
+                    break;
+                }
+            }
+            if (currentClass == null) {
+                throw new IllegalAccessException("No handler available for " + handler.getClass().getCanonicalName());
+            }
+            for (final Method method : currentClass.getMethods()) {
                 if (method.isAnnotationPresent(Action.class)) {
                     if (method.getAnnotation(Action.class).value().equals(action)) {
                         executedMethod = method;
@@ -83,7 +108,43 @@ abstract class Endpoint {
             handler.ensureAuthorised(request, session);
         }
         try {
-            return (JsonObject) executedMethod.invoke(handler, request, session);
+            Type[] parameterTypes = executedMethod.getGenericParameterTypes();
+            List<Type> parametersTypesList = Arrays.asList(parameterTypes);
+            List<Object> realArguments = new LinkedList<>();
+            List<Annotation[]> allAnnotations = Arrays.asList(executedMethod.getParameterAnnotations());
+            Iterator<Annotation[]> iteratorForAnnotations = allAnnotations.iterator();
+            for (Type currentType : parametersTypesList) {
+                if (Session.class.equals(currentType)) {
+                    realArguments.add(session);
+                } else {
+                    if (JsonObject.class.equals(currentType)) {
+                        realArguments.add(request);
+                    } else {
+                        String jsonFieldName = null;
+                        JsonPolicyDef.Policy jsonPolicy = null;
+                        if (iteratorForAnnotations.hasNext()) {
+                            List<Annotation> parameterAnnotations = Arrays.asList(iteratorForAnnotations.next());
+                            for (Annotation currentParamAnnotation : parameterAnnotations) {
+                                if (currentParamAnnotation instanceof WsParam) {
+                                    jsonFieldName = ((WsParam) currentParamAnnotation).value();
+                                }
+                                if (currentParamAnnotation instanceof JsonPolicyDef) {
+                                    jsonPolicy = ((JsonPolicyDef) currentParamAnnotation).value()[0];
+                                }
+                            }
+                            if (jsonFieldName == null) {
+                                throw new IllegalAccessException("No name specified for param with type : " +
+                                        currentType);
+                            }
+
+                        }
+                        Gson gson = jsonPolicy == null ? GsonFactory.createGson() : GsonFactory.createGson
+                                (jsonPolicy);
+                        realArguments.add(gson.fromJson(request.get(jsonFieldName), currentType));
+                    }
+                }
+            }
+            return (JsonObject) executedMethod.invoke(handler, realArguments.toArray());
         } catch (InvocationTargetException e) {
             invocationTargetExceptionResolve(e);
             throw e;
