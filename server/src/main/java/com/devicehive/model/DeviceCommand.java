@@ -56,7 +56,6 @@ public class DeviceCommand implements HiveEntity {
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
-    @JsonPolicyDef({COMMAND_UPDATE_TO_CLIENT})
     private User user;
 
     @SerializedName("userId")
