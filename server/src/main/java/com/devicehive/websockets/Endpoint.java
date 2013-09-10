@@ -10,7 +10,9 @@ import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
+import com.devicehive.websockets.util.WebSocketResponse;
 import com.google.gson.*;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -33,10 +35,10 @@ abstract class Endpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
     private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
-    private static final Set<Class> HANDLERS_SET = new HashSet<Class>() {
+    private static Set<Class> HANDLERS_SET = new HashSet<Class>(){
         {
-            add(ClientMessageHandlers.class);
             add(DeviceMessageHandlers.class);
+            add(ClientMessageHandlers.class);
         }
 
         private static final long serialVersionUID = -7417770184838061839L;
@@ -76,7 +78,8 @@ abstract class Endpoint {
         return constructFinalResponse(request, response);
     }
 
-    private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request, Session session)
+    private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request,
+                                  Session session)
             throws IllegalAccessException, InvocationTargetException {
         ImmutablePair<Class, String> key = ImmutablePair.of((Class) handler.getClass(), action);
         Method executedMethod = methodsCache.get(key);
@@ -144,7 +147,9 @@ abstract class Endpoint {
                     }
                 }
             }
-            return (JsonObject) executedMethod.invoke(handler, realArguments.toArray());
+            WebSocketResponse webSocketResponse = ((WebSocketResponse) executedMethod.invoke(handler,
+                    realArguments.toArray()));
+            return webSocketResponse.getResponseAsJson();
         } catch (InvocationTargetException e) {
             invocationTargetExceptionResolve(e);
             throw e;

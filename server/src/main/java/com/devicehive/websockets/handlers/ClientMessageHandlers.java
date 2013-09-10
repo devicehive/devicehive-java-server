@@ -4,7 +4,6 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
@@ -16,8 +15,8 @@ import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -76,7 +75,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *         requestId - Request unique identifier as specified in the request message.
      */
     @Action(value = "authenticate", needsAuth = false)
-    public JsonObject processAuthenticate(@WsParam("login")String login, @WsParam("password")String password,
+    public WebSocketResponse processAuthenticate(@WsParam("login")String login, @WsParam("password")String password,
                                           Session session) {
         if (login == null || password == null) {
             throw new HiveException("login and password cannot be empty!");
@@ -86,7 +85,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         if (user != null) {
             WebsocketSession.setAuthorisedUser(session, user);
-            return JsonMessageBuilder.createSuccessResponseBuilder().build();
+            return new WebSocketResponse();
         } else {
             throw new HiveException("Client authentication error: credentials are incorrect");
         }
@@ -120,7 +119,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *         </pre>
      */
     @Action(value = "command/insert")
-    public JsonObject processCommandInsert(@WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceGuid,
+    public WebSocketResponse processCommandInsert(@WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceGuid,
                                            @WsParam("command") @JsonPolicyDef(COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                                            Session session) {
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
@@ -145,9 +144,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         deviceCommand.setUserId(user.getId());
 
         commandService.submitDeviceCommand(deviceCommand, device, user, session);
-        return JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("command", GsonFactory.createGson(COMMAND_TO_CLIENT).toJsonTree(deviceCommand))
-                .build();
+        WebSocketResponse response =  new WebSocketResponse();
+        response.addValue("command", deviceCommand, COMMAND_TO_CLIENT);
+        return response;
     }
 
     /**
@@ -168,7 +167,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      * @throws IOException if unable to deliver message
      */
     @Action(value = "notification/subscribe")
-    public JsonObject processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
+    public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                    @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                                    Session session) throws IOException {
         logger.debug("notification/subscribe action. Session {} ", session.getId());
@@ -181,9 +180,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         } else {
             prepareForNotificationSubscribeNotNullCase(list, session, timestamp);
         }
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
         logger.debug("notification/subscribe action  finished");
-        return jsonObject;
+        return new WebSocketResponse();
 
     }
 
@@ -283,7 +281,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "notification/unsubscribe")
-    public JsonObject processNotificationUnsubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
+    public WebSocketResponse processNotificationUnsubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                      Session session) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         try {
@@ -314,9 +312,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
         }
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
+
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
-        return jsonObject;
+        return new WebSocketResponse();
     }
 
     private void checkDevicesAndGuidsList(List<Device> devices, List<String> guids, boolean isSubscribe) {
@@ -375,9 +373,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      */
 
     @Action(value = "server/info", needsAuth = false)
-    public JsonObject processServerInfo(Session session) {
+    public WebSocketResponse processServerInfo(Session session) {
         logger.debug("server/info action started. Session " + session.getId());
-        Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
@@ -385,11 +382,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (url != null) {
             apiInfo.setRestServerUrl(url);
         }
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("info", gson.toJsonTree(apiInfo))
-                .build();
+        WebSocketResponse response =  new WebSocketResponse();
+        response.addValue("info",apiInfo, WEBSOCKET_SERVER_INFO);
         logger.debug("server/info action completed. Session {}", session.getId());
-        return jsonObject;
+        return response;
     }
 
 

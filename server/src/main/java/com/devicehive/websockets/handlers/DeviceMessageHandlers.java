@@ -18,9 +18,9 @@ import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
@@ -75,7 +75,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "authenticate", needsAuth = false)
-    public JsonObject processAuthenticate(@WsParam("deviceId") String deviceId,
+    public WebSocketResponse processAuthenticate(@WsParam("deviceId") String deviceId,
                                           @WsParam("deviceKey") String deviceKey,
                                           Session session) {
 
@@ -87,7 +87,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
         if (device != null) {
             WebsocketSession.setAuthorisedDevice(session, device);
-            return JsonMessageBuilder.createSuccessResponseBuilder().build();
+            return new WebSocketResponse();
         } else {
             throw new HiveException("Device authentication error: credentials are incorrect");
         }
@@ -126,7 +126,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "command/update")
-    public JsonObject processCommandUpdate(@WsParam("commandId") Long commandId,
+    public WebSocketResponse processCommandUpdate(@WsParam("commandId") Long commandId,
                                            @WsParam("command") @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)DeviceCommandUpdate update,
                                            @WsParam("deviceId") String deviceId,
                                            Session session) {
@@ -144,7 +144,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         commandService.submitDeviceCommandUpdate(update, device);
 
         logger.debug("command update action finished for session : " + session.getId());
-        return JsonMessageBuilder.createSuccessResponseBuilder().build();
+        return new WebSocketResponse();
     }
 
     /**
@@ -165,7 +165,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @throws IOException if unable to deliver message
      */
     @Action(value = "command/subscribe")
-    public JsonObject processCommandSubscribe(@WsParam("deviceId") String deviceId,
+    public WebSocketResponse processCommandSubscribe(@WsParam("deviceId") String deviceId,
                                               @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                               Session session) throws IOException {
         logger.debug("command subscribe action started for session : " + session.getId());
@@ -196,7 +196,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("deliver messages for session {}", session.getId());
         asyncMessageDeliverer.deliverMessages(session);
         logger.debug("command subscribe ended for session : {}", session.getId());
-        return JsonMessageBuilder.createSuccessResponseBuilder().build();
+        return new WebSocketResponse();
     }
 
     /**
@@ -215,11 +215,11 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "command/unsubscribe")
-    public JsonObject processNotificationUnsubscribe(@WsParam("deviceId") String deviceId, Session session) {
+    public WebSocketResponse processNotificationUnsubscribe(@WsParam("deviceId") String deviceId, Session session) {
         Device device = getDevice(session, deviceId);
         logger.debug("command/unsubscribe for device {}", device.getGuid());
         subscriptionManager.getCommandSubscriptionStorage().remove(device.getId(), session.getId());
-        return JsonMessageBuilder.createSuccessResponseBuilder().build();
+        return new WebSocketResponse();
     }
 
     /**
@@ -242,7 +242,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "notification/insert")
-    public JsonObject processNotificationInsert(@WsParam("notification") @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification deviceNotification,
+    public WebSocketResponse processNotificationInsert(@WsParam("notification") @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
+                                           DeviceNotification deviceNotification,
                                                 @WsParam("deviceId") String deviceId,
                                                 Session session) {
         logger.debug("notification/insert started for session {} ", session.getId());
@@ -254,11 +255,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
         deviceNotificationService.submitDeviceNotification(deviceNotification, device);
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder().build();
-        jsonObject.add("notification", GsonFactory.createGson(NOTIFICATION_TO_DEVICE).toJsonTree(deviceNotification));
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue("notification", deviceNotification,NOTIFICATION_TO_DEVICE);
         logger.debug("notification/insert ended for session {} ", session.getId());
-
-        return jsonObject;
+        return response;
     }
 
     /**
@@ -282,9 +282,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "server/info", needsAuth = false)
-    public JsonObject processServerInfo(Session session) {
+    public WebSocketResponse processServerInfo(Session session) {
         logger.debug("server/info action started. Session {} ", session.getId());
-        Gson gson = GsonFactory.createGson(WEBSOCKET_SERVER_INFO);
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
@@ -292,11 +291,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (url != null) {
             apiInfo.setRestServerUrl(url);
         }
-        JsonObject jsonObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("info", gson.toJsonTree(apiInfo))
-                .build();
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue("info", apiInfo, WEBSOCKET_SERVER_INFO);
         logger.debug("server/info action completed. Session {} ", session.getId());
-        return jsonObject;
+        return response;
     }
 
     /**
@@ -334,14 +332,12 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "device/get")
-    public JsonObject processDeviceGet(@WsParam("deviceId") String deviceId, Session session) {
+    public WebSocketResponse processDeviceGet(@WsParam("deviceId") String deviceId, Session session) {
         Device device = getDevice(session, deviceId);
         Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
-        Gson gsonResponse = GsonFactory.createGson(DEVICE_PUBLISHED);
-        JsonElement deviceElem = gsonResponse.toJsonTree(toResponse);
-        return JsonMessageBuilder.createSuccessResponseBuilder()
-                .addElement("device", deviceElem)
-                .build();
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue("device", toResponse, DEVICE_PUBLISHED);
+        return response;
     }
 
     /**
@@ -386,7 +382,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "device/save", needsAuth = false)
-    public JsonObject processDeviceSave(@WsParam("deviceId") String deviceId,
+    public WebSocketResponse processDeviceSave(@WsParam("deviceId") String deviceId,
                                         @WsParam("deviceKey") String deviceKey,
                                         @WsParam("device") @JsonPolicyDef(DEVICE_PUBLISHED) DeviceUpdate device,
                                         JsonObject message,
@@ -398,7 +394,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (deviceKey == null) {
             throw new HiveException("Device key is undefined!");
         }
-        Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
         logger.debug("check required fields in device ");
         deviceService.checkDevice(device);
         Gson gsonForEquipment = GsonFactory.createGson();
@@ -419,12 +414,8 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
                 .getValue());
         deviceService.deviceSaveAndNotify(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
-        JsonObject jsonResponseObject = JsonMessageBuilder.createSuccessResponseBuilder()
-                .addAction("device/save")
-                .addRequestId(message.get("requestId"))
-                .build();
         logger.debug("device/save process ended for session  {}", session.getId());
-        return jsonResponseObject;
+        return new WebSocketResponse();
     }
 
     private Device getDevice(Session session, String deviceId) {

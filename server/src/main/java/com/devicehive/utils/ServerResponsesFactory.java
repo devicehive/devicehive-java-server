@@ -4,10 +4,6 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotification;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -39,6 +35,9 @@ public class ServerResponsesFactory {
     }
 
     public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
+        if (deviceCommand.getUserId() == null){
+            deviceCommand.setUserId(deviceCommand.getUser().getId());
+        }
         JsonElement deviceCommandJson =
                 GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
