@@ -9,8 +9,8 @@ In order to use DeviceHive framework you must have the following components inst
 * Glassfish 4 application server (http://glassfish.java.net/download.html)
 * Oracle JDK 7 or OpenJDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7). Oracle JDK 7 can be downloaded from http://www.oracle.com/technetwork/java/javase/downloads/index.html. If you would like to use Open JDK 7 you have to use this link http://openjdk.java.net/install/ or install it from the distribution repository of your choice
 * Maven (http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava 
-* dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2)
-* DeviceHiveJava source files. This is the main part of the DeviceHive framework (https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2)
+* dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java)
+* DeviceHiveJava source files. This is the main part of the DeviceHive framework (https://github.com/devicehive/devicehive-java)
  
 
 INSTALLATION INSTRUCTIONS
@@ -20,13 +20,15 @@ It is necessary to configure environment properly, so you need to follow these i
 
 COMPILING SOURCE FILES INSTRUCTIONS
 -----------------------------------
-* Download source files from https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2. It can be done using one of Git version control client (http://git-scm.com/downloads/guis). For example, if you prefer git, clone project using command: 
-    git clone https://github.com/devicehive/devicehive-java/tree/BRANCH-1-2
+* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. 
+   It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command: 
+    git clone https://github.com/devicehive/devicehive-java.git
+	And then checkout the tag or branch you need.
 * Execute the following command from <devicehive-java-directory>/tools/dh_dbtools
     mvn clean compile package
 * Execute the same command from <devicehive-java-directory>/server
 
-If this steps are done correctly you will find DeviceHiveJava.war at <devicehive-java-directory>/server/target and dh_dbtool-1.2.0.0.jar at <devicehive-java-directory>/tools/dh_dbtools/target. 
+If this steps are done correctly you will find DeviceHiveJava.war at <devicehive-java-directory>/server/target and dh_dbtool.jar at <devicehive-java-directory>/tools/dh_dbtools/target. 
 After successful compilation and packaging go to the next step.
 
 
