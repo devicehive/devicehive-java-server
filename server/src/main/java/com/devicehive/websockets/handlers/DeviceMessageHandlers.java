@@ -414,8 +414,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
     @Action(value = "device/get")
     public JsonObject processDeviceGet(JsonObject message, Session session) {
         Device device = getDevice(session, message);
+        Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
         Gson gsonResponse = GsonFactory.createGson(DEVICE_PUBLISHED);
-        JsonElement deviceElem = gsonResponse.toJsonTree(device);
+        JsonElement deviceElem = gsonResponse.toJsonTree(toResponse);
         JsonObject result = JsonMessageBuilder.createSuccessResponseBuilder()
                 .addElement("device", deviceElem)
                 .build();
