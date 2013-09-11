@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
@@ -16,8 +17,10 @@ import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.websockets.handlers.annotations.Action;
+import com.devicehive.websockets.handlers.annotations.Authorize;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.util.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.Gson;
@@ -26,6 +29,8 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -74,7 +79,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 }
      *                                 </pre>
      */
-    @Action(value = "authenticate", needsAuth = false)
+    @Action(value = "authenticate")
+    @PermitAll
+    @Authorize
     public WebSocketResponse processAuthenticate(@WsParam("deviceId") String deviceId,
                                           @WsParam("deviceKey") String deviceKey,
                                           Session session) {
@@ -83,30 +90,13 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("Device authentication error: credentials are incorrect");
         }
         logger.debug("authenticate action for " + deviceId);
-        Device device = deviceService.authenticate(deviceId, deviceKey);
+        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
 
         if (device != null) {
             WebsocketSession.setAuthorisedDevice(session, device);
             return new WebSocketResponse();
         } else {
             throw new HiveException("Device authentication error: credentials are incorrect");
-        }
-    }
-
-    @Override
-    public void ensureAuthorised(JsonObject request, Session session) {
-        if (WebsocketSession.hasAuthorisedDevice(session)) {
-            return;
-        }
-        String deviceId = request.get("deviceId").getAsString();
-        if (request.get("deviceKey") == null) {
-            throw new HiveException("device key cannot be empty");
-        }
-        String deviceKey = request.get("deviceKey").getAsString();
-
-        Device device = deviceService.authenticate(deviceId, deviceKey);
-        if (device == null) {
-            throw new HiveException("Not authorised");
         }
     }
 
@@ -126,9 +116,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "command/update")
+    @RolesAllowed({HiveRoles.DEVICE})
+    @Authorize
     public WebSocketResponse processCommandUpdate(@WsParam("commandId") Long commandId,
                                            @WsParam("command") @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)DeviceCommandUpdate update,
-                                           @WsParam("deviceId") String deviceId,
                                            Session session) {
         logger.debug("command update action started for session : {{}", session.getId());
         if (commandId == null) {
@@ -138,7 +129,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("DeviceCommand resource cannot be null");
         }
         update.setId(commandId);
-        Device device = getDevice(session, deviceId);
+        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
 
         logger.debug("submit device command update for device : " + device.getId());
         commandService.submitDeviceCommandUpdate(update, device);
@@ -165,11 +156,13 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @throws IOException if unable to deliver message
      */
     @Action(value = "command/subscribe")
+    @RolesAllowed({HiveRoles.DEVICE})
+    @Authorize
     public WebSocketResponse processCommandSubscribe(@WsParam("deviceId") String deviceId,
                                               @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                               Session session) throws IOException {
         logger.debug("command subscribe action started for session : " + session.getId());
-        Device device = getDevice(session, deviceId);
+        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
@@ -215,8 +208,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "command/unsubscribe")
-    public WebSocketResponse processNotificationUnsubscribe(@WsParam("deviceId") String deviceId, Session session) {
-        Device device = getDevice(session, deviceId);
+    @RolesAllowed({HiveRoles.DEVICE})
+    @Authorize
+    public WebSocketResponse processNotificationUnsubscribe(Session session) {
+        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         logger.debug("command/unsubscribe for device {}", device.getGuid());
         subscriptionManager.getCommandSubscriptionStorage().remove(device.getId(), session.getId());
         return new WebSocketResponse();
@@ -242,16 +237,16 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "notification/insert")
+    @RolesAllowed({HiveRoles.DEVICE})
+    @Authorize
     public WebSocketResponse processNotificationInsert(@WsParam("notification") @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-                                           DeviceNotification deviceNotification,
-                                                @WsParam("deviceId") String deviceId,
-                                                Session session) {
+                                           DeviceNotification deviceNotification, Session session) {
         logger.debug("notification/insert started for session {} ", session.getId());
 
         if (deviceNotification == null || deviceNotification.getNotification() == null) {
             throw new HiveException("Notification is empty!");
         }
-        Device device = getDevice(session, deviceId);
+        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
                 .getNotification() + " and device : " + device.getGuid());
         deviceNotificationService.submitDeviceNotification(deviceNotification, device);
@@ -281,7 +276,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 }
      *                                 </pre>
      */
-    @Action(value = "server/info", needsAuth = false)
+    @Action(value = "server/info")
+    @PermitAll
+    @Authorize
     public WebSocketResponse processServerInfo(Session session) {
         logger.debug("server/info action started. Session {} ", session.getId());
         ApiInfo apiInfo = new ApiInfo();
@@ -302,7 +299,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * Device: device/get</a>
      * Gets information about the current device.
      *
-     * @param session Current session
      * @return Json object with the following structure
      *         <pre>
      *                                 {
@@ -332,8 +328,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "device/get")
-    public WebSocketResponse processDeviceGet(@WsParam("deviceId") String deviceId, Session session) {
-        Device device = getDevice(session, deviceId);
+    @RolesAllowed({HiveRoles.DEVICE})
+    @Authorize
+    public WebSocketResponse processDeviceGet() {
+        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("device", toResponse, DEVICE_PUBLISHED);
@@ -381,7 +379,9 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *                                 }
      *                                 </pre>
      */
-    @Action(value = "device/save", needsAuth = false)
+    @Action(value = "device/save")
+    @PermitAll
+    @Authorize
     public WebSocketResponse processDeviceSave(@WsParam("deviceId") String deviceId,
                                         @WsParam("deviceKey") String deviceKey,
                                         @WsParam("device") @JsonPolicyDef(DEVICE_PUBLISHED) DeviceUpdate device,
@@ -410,20 +410,12 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         uuidNullableWrapper.setValue(deviceId);
 
         device.setGuid(uuidNullableWrapper);
-        Device authorizedDevice = getDevice(session, deviceId);
+        Device authorizedDevice = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
                 .getValue());
         deviceService.deviceSaveAndNotify(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
     }
-
-    private Device getDevice(Session session, String deviceId) {
-        if (WebsocketSession.hasAuthorisedDevice(session)) {
-            return WebsocketSession.getAuthorisedDevice(session);
-        }
-        return deviceDAO.findByUUID(deviceId);
-    }
-
 
 }

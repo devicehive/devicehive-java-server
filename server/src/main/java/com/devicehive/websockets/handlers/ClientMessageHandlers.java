@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
@@ -13,16 +14,19 @@ import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.websockets.handlers.annotations.Action;
+import com.devicehive.websockets.handlers.annotations.Authorize;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.util.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -74,27 +78,22 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *         status - Operation execution status (success or error).
      *         requestId - Request unique identifier as specified in the request message.
      */
-    @Action(value = "authenticate", needsAuth = false)
+    @Action(value = "authenticate")
+    @PermitAll
+    @Authorize
     public WebSocketResponse processAuthenticate(@WsParam("login")String login, @WsParam("password")String password,
                                           Session session) {
         if (login == null || password == null) {
             throw new HiveException("login and password cannot be empty!");
         }
         logger.debug("authenticate action for {} ", login);
-        User user = userService.authenticate(login, password);
+        User user = ThreadLocalVariablesKeeper.getPrincipal().getUser();
 
         if (user != null) {
             WebsocketSession.setAuthorisedUser(session, user);
             return new WebSocketResponse();
         } else {
             throw new HiveException("Client authentication error: credentials are incorrect");
-        }
-    }
-
-    @Override
-    public void ensureAuthorised(JsonObject request, Session session) {
-        if (!WebsocketSession.hasAuthorisedUser(session)) {
-            throw new HiveException("Not authorised");
         }
     }
 
@@ -119,6 +118,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *         </pre>
      */
     @Action(value = "command/insert")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @Authorize
     public WebSocketResponse processCommandInsert(@WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceGuid,
                                            @WsParam("command") @JsonPolicyDef(COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                                            Session session) {
@@ -167,6 +168,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      * @throws IOException if unable to deliver message
      */
     @Action(value = "notification/subscribe")
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @Authorize
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                    @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                                    Session session) throws IOException {
@@ -281,6 +284,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
     @Action(value = "notification/unsubscribe")
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @Authorize
     public WebSocketResponse processNotificationUnsubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                      Session session) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
@@ -372,7 +377,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *                                 </pre>
      */
 
-    @Action(value = "server/info", needsAuth = false)
+    @Action(value = "server/info")
+    @PermitAll
+    @Authorize
     public WebSocketResponse processServerInfo(Session session) {
         logger.debug("server/info action started. Session " + session.getId());
         ApiInfo apiInfo = new ApiInfo();

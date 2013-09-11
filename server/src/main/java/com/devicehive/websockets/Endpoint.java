@@ -10,6 +10,7 @@ import com.devicehive.websockets.handlers.HiveMessageHandlers;
 import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
+import com.devicehive.websockets.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.util.WebSocketResponse;
 import com.google.gson.*;
 import com.google.gson.JsonObject;
@@ -107,9 +108,6 @@ abstract class Endpoint {
         if (executedMethod == null) {
             throw new HiveException("Unknown action requested: " + action);
         }
-        if (executedMethod.getAnnotation(Action.class).needsAuth()) {
-            handler.ensureAuthorised(request, session);
-        }
         try {
             Type[] parameterTypes = executedMethod.getGenericParameterTypes();
             List<Type> parametersTypesList = Arrays.asList(parameterTypes);
@@ -147,6 +145,8 @@ abstract class Endpoint {
                     }
                 }
             }
+
+            ThreadLocalVariablesKeeper.setJsonAndSession(ImmutablePair.of(request, session));
             WebSocketResponse webSocketResponse = ((WebSocketResponse) executedMethod.invoke(handler,
                     realArguments.toArray()));
             return webSocketResponse.getResponseAsJson();

@@ -11,6 +11,4 @@ public @interface Action {
 
     public String value();
 
-    public boolean needsAuth() default true;
-
 }

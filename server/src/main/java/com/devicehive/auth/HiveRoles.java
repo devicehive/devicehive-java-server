@@ -7,4 +7,5 @@ public class HiveRoles {
     public static final String CLIENT = "CLIENT";
     public static final String ADMIN = "ADMIN";
     public static final String DEVICE = "DEVICE";
+    public static final String KEY = "KEY";
 }
