@@ -14,11 +14,11 @@ public class Constants {
 
     public static final String DATABASE_ACCESS_ERROR_MESSAGE = "Database access error occurs: ";
 
-    public static final String HELP_OPTION = "h";
+    public static final String HELP_OPTION = "help";
 
-    public static final String MIGRATE_OPTION = "m";
+    public static final String MIGRATE_OPTION = "migrate";
 
-    public static final String PRINT_VERSION_OPTION = "pv";
+    public static final String PRINT_VERSION_OPTION = "version";
 
     public static final String DATABASE_JDBC_URL= "url";
 
