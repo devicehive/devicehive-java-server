@@ -32,24 +32,34 @@ public class AuthorizationInterceptor {
             Device authDevice = principal.getDevice();
             String[] roles = rolesAllowed.value();
             boolean allowed = false;
-            for (String role : roles){
-                switch (role){
-                    case HiveRoles.ADMIN :
+            for (String role : roles) {
+                switch (role) {
+                    case HiveRoles.ADMIN:
                         allowed = allowed || authUser.isAdmin();
                         break;
-                    case HiveRoles.CLIENT :
+                    case HiveRoles.CLIENT:
                         allowed = allowed || !authUser.isAdmin();
                         break;
-                    case HiveRoles.DEVICE :
+                    case HiveRoles.DEVICE:
                         allowed = allowed || authDevice != null;
+                        break;
+                    default:
                 }
             }
-            if (!allowed){
+            if (!allowed) {
                 throw new HiveException("Not authorised", Response.Status.UNAUTHORIZED.getStatusCode());
             }
-            return context.proceed();
+            try {
+                return context.proceed();
+            } finally {
+                ThreadLocalVariablesKeeper.clean();
+            }
         } else if (method.isAnnotationPresent(PermitAll.class)) {
-            return context.proceed();
+            try {
+                return context.proceed();
+            } finally {
+                ThreadLocalVariablesKeeper.clean();
+            }
         }
         throw new HiveException("Forbidden", Response.Status.FORBIDDEN.getStatusCode());
     }

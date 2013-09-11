@@ -34,14 +34,14 @@ public class AuthenticationInterceptor {
     @AroundInvoke
     public Object authenticate(InvocationContext ctx) throws Exception {
         ImmutablePair<JsonObject, Session> pair = ThreadLocalVariablesKeeper.getJsonAndSession();
-        Device authDevice =  getDevice(pair.left, pair.right);
-        User authUser = getUser(pair.left, pair.right);
+        Device authDevice =  getDeviceAndSetToSession(pair.left, pair.right);
+        User authUser = getUserAndSetToSession(pair.left, pair.right);
         HivePrincipal principal = new HivePrincipal(authUser, authDevice);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
         return ctx.proceed();
     }
 
-    private Device getDevice(JsonObject request, Session session){
+    private Device getDeviceAndSetToSession(JsonObject request, Session session){
         Device device = WebsocketSession.getAuthorisedDevice(session);
 
         String deviceId = null, deviceKey = null;
@@ -54,10 +54,11 @@ public class AuthenticationInterceptor {
         if (deviceId != null && deviceKey != null) {
             device = deviceService.authenticate(deviceId, deviceKey);
         }
+        WebsocketSession.setAuthorisedDevice(session, device);
         return device;
     }
 
-    private User getUser(JsonObject request, Session session){
+    private User getUserAndSetToSession(JsonObject request, Session session){
         User user = WebsocketSession.getAuthorisedUser(session);
         String login = null, password = null;
         if (request.get("login") != null) {
@@ -69,6 +70,7 @@ public class AuthenticationInterceptor {
         if (login != null && password != null) {
             user = userService.authenticate(login, password);
         }
+        WebsocketSession.setAuthorisedUser(session, user);
         return user;
     }
 }

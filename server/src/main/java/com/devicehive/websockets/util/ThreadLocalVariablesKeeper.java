@@ -9,8 +9,8 @@ import javax.websocket.Session;
 
 public final class ThreadLocalVariablesKeeper {
 
-    private static final ThreadLocal<ImmutablePair<JsonObject, Session>> JSON_AND_SESSION_KEEPER = new ThreadLocal<>();
-    private static final ThreadLocal<HivePrincipal> PRINCIPAL_KEEPER = new ThreadLocal<>();
+    private static ThreadLocal<ImmutablePair<JsonObject, Session>> JSON_AND_SESSION_KEEPER = new ThreadLocal<>();
+    private static ThreadLocal<HivePrincipal> PRINCIPAL_KEEPER = new ThreadLocal<>();
 
     public static ImmutablePair<JsonObject, Session> getJsonAndSession(){
         return JSON_AND_SESSION_KEEPER.get();
@@ -26,6 +26,11 @@ public final class ThreadLocalVariablesKeeper {
 
     public static void setPrincipal(HivePrincipal principal){
         PRINCIPAL_KEEPER.set(principal);
+    }
+
+    public static void clean(){
+        JSON_AND_SESSION_KEEPER = null;
+        PRINCIPAL_KEEPER = null;
     }
 
 }
