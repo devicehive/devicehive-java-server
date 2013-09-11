@@ -7,7 +7,6 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.websockets.handlers.annotations.Authorize;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import javax.annotation.Priority;
 import javax.interceptor.AroundInvoke;
@@ -33,9 +32,10 @@ public class AuthenticationInterceptor {
 
     @AroundInvoke
     public Object authenticate(InvocationContext ctx) throws Exception {
-        ImmutablePair<JsonObject, Session> pair = ThreadLocalVariablesKeeper.getJsonAndSession();
-        Device authDevice =  getDeviceAndSetToSession(pair.left, pair.right);
-        User authUser = getUserAndSetToSession(pair.left, pair.right);
+        Session session = ThreadLocalVariablesKeeper.getSession();
+        JsonObject request = ThreadLocalVariablesKeeper.getRequest();
+        Device authDevice =  getDeviceAndSetToSession(request, session);
+        User authUser = getUserAndSetToSession(request, session);
         HivePrincipal principal = new HivePrincipal(authUser, authDevice);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
         return ctx.proceed();

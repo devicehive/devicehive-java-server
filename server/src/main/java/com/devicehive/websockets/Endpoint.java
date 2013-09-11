@@ -146,7 +146,8 @@ abstract class Endpoint {
                 }
             }
 
-            ThreadLocalVariablesKeeper.setJsonAndSession(ImmutablePair.of(request, session));
+            ThreadLocalVariablesKeeper.setRequest(request);
+            ThreadLocalVariablesKeeper.setSession(session);
             WebSocketResponse webSocketResponse = ((WebSocketResponse) executedMethod.invoke(handler,
                     realArguments.toArray()));
             return webSocketResponse.getResponseAsJson();
