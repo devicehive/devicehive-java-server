@@ -58,13 +58,8 @@ Database setup
 --------------
 * After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) you have to create new user. This step is required for database migrations to work properly. 
 * Create database using user that have been created at step 1. This user should be owner of database.
-* Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command:
-
-    java –jar dh_dbtool.jar -m -url <databaseurl> -user <login> [-password <password>]
-
-The parameter <databaseurl> is a jdbc connection URL to your database (like jdbc://, user is a database user’s login and password is a user’s password, if required.  To get help use 
-
-    java –jar dh_dbtool.jar –h
+* Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command `java –jar dh_dbtool.jar -migrate -url <databaseurl> -user <login> [-password <password>]`
+* The parameter <databaseurl> is a jdbc connection URL to your database (like jdbc://, user is a database user’s login and password is a user’s password, if required.  To get help use `java –jar dh_dbtool.jar –help`
 
 Glassfish configuration
 -----------------------
