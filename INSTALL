@@ -11,7 +11,7 @@ In order to use DeviceHive framework you must have the following components inst
 * Maven (http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava 
 * dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java)
 * DeviceHiveJava source files. This is the main part of the DeviceHive framework (https://github.com/devicehive/devicehive-java)
- 
+
 
 INSTALLATION INSTRUCTIONS
 -------------------------
@@ -20,12 +20,11 @@ It is necessary to configure environment properly, so you need to follow these i
 
 COMPILING SOURCE FILES INSTRUCTIONS
 -----------------------------------
-* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. 
-   It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command: 
+* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command: 
     git clone https://github.com/devicehive/devicehive-java.git
-	And then checkout the tag or branch you need.
+Then switch to the tag or branch you need.
 * Execute the following command from <devicehive-java-directory>/tools/dh_dbtools
-    mvn clean compile package
+    mvn clean package
 * Execute the same command from <devicehive-java-directory>/server
 
 If this steps are done correctly you will find DeviceHiveJava.war at <devicehive-java-directory>/server/target and dh_dbtool.jar at <devicehive-java-directory>/tools/dh_dbtools/target. 
@@ -38,11 +37,11 @@ DATABASE CREATION INSTRUCTIONS
 * Create database using user that have been created at step 1. This user should be owner of database.
 * Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command:
 
-    java ñjar dh_dbtool.jar -m -url <databaseurl> -user <login> [-password <password>]
+    java ‚Äìjar dh_dbtool.jar -m -url <databaseurl> -user <login> [-password <password>]
 
-The parameter <databaseurl> is a jdbc connection URL to your database, user is a database userís login and password is a userís password, if required.  To get help use 
+The parameter <databaseurl> is a jdbc connection URL to your database (like jdbc://, user is a database user‚Äôs login and password is a user‚Äôs password, if required.  To get help use 
 
-    java ñjar dh_dbtool.jar ñh
+    java ‚Äìjar dh_dbtool.jar ‚Äìh
 
 
 GLASSFISH CONFIGURATION INSTRUCTIONS
@@ -85,13 +84,13 @@ When server is installed and all the required properties are configured, you hav
 * Go to <yourServerName>:4848
 * Open Applications tab.
 * Click on Deploy button
-* Click on ìSelect fileî button. In the dialog box select DeviceHiveJava.war. Click on ìOkî button
+* Click on ‚ÄúSelect file‚Äù button. In the dialog box select DeviceHiveJava.war. Click on ‚ÄúOk‚Äù button
 * Launch DeviceHiveJava
 * Set up web socket server URL and rest server URL. To do that you have to use link:
 
 http://<yourServerName>:<port>/DeviceHiveJava/config/set?name={name}&value={value}
 
-The parameter ìnameî can be either ìwebsocket.urlî or ìrest.urlî 
-The parameter ìvalueî is associated URL for web socket and rest services.
+The parameter ‚Äúname‚Äù can be either ‚Äúwebsocket.url‚Äù or ‚Äúrest.url‚Äù 
+The parameter ‚Äúvalue‚Äù is associated URL for web socket and rest services.
 
 * Use it.
