@@ -45,10 +45,9 @@ In order to use DeviceHive framework you must have the following components inst
 
 Build packages
 --------------
-* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command `git clone https://github.com/devicehive/devicehive-java.git`
-Then switch to the tag or branch you need.
+* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command `git clone https://github.com/devicehive/devicehive-java.git`. After that you can switch to the tag or branch you need.
 * Execute the following command from ${devicehive-java-directory}/tools/dh_dbtools: `mvn clean package`
-* Execute the same command from ${devicehive-java-directory}/server
+* Execute the same command from ${devicehive-java-directory}/server.
 
 If this steps are done correctly you will find DeviceHiveJava.war at ${devicehive-java-directory}/server/target and dh_dbtool.jar at ${devicehive-java-directory}/tools/dh_dbtools/target. 
 After successful compilation and packaging go to the next step.
