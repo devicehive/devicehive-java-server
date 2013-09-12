@@ -75,7 +75,7 @@ public class DeviceController {
      * @return list of <a href="http://www.devicehive.com/restful#Reference/Device">Devices</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response list(@QueryParam("name") String name,
                          @QueryParam("namePattern") String namePattern,
                          @QueryParam("status") String status,
@@ -100,7 +100,8 @@ public class DeviceController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-        User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                 deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser);
@@ -176,14 +177,16 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam("id") String guid, @Context SecurityContext securityContext) {
         logger.debug("Device get requested");
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device;
-
-        device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal.getUser(), principal.getDevice());
+        User user = principal.getUser();
+        if (user == null && principal.getKey()!=null){
+            user = principal.getKey().getUser();
+        }
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
 
         logger.debug("Device get proceed successfully");
 
@@ -248,12 +251,13 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipment(@PathParam("id") String guid, @Context SecurityContext securityContext) {
         logger.debug("Device equipment requested");
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal.getUser(),
+        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,
                 principal.getDevice());
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
@@ -276,15 +280,15 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment/{code}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipmentByCode(@PathParam("id") String guid,
                                     @PathParam("code") String code,
                                     @Context SecurityContext securityContext) {
 
         logger.debug("Device equipment by code requested");
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal.getUser(),
-                principal.getDevice());
+        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,principal.getDevice());
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
@@ -303,7 +307,7 @@ public class DeviceController {
      */
     @PUT
     @Path("/{id}/equipment/{code}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response updateByCode(@PathParam("id") UUID guid, @PathParam("code") String code) {
         return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Not Found"));
     }

@@ -31,6 +31,13 @@ public class AccessKeyDAO {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
+    public AccessKey get (String accessKey){
+        TypedQuery<AccessKey> query = em.createNamedQuery("AccessKey.getByKey", AccessKey.class);
+        query.setParameter("someKey", accessKey);
+        List<AccessKey> resultList = query.getResultList();
+        return resultList.isEmpty() ? null : resultList.get(0);
+    }
+
     public AccessKey insert (AccessKey newAccessKey){
         em.persist(newAccessKey);
         return newAccessKey;

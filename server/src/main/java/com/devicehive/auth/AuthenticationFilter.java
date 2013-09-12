@@ -1,7 +1,9 @@
 package com.devicehive.auth;
 
+import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import org.apache.commons.codec.binary.Base64;
@@ -24,12 +26,14 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     private DeviceService deviceService;
     private UserService userService;
+    private AccessKeyService accessKeyService;
 
 
     public AuthenticationFilter() throws NamingException {
         InitialContext initialContext = new InitialContext();
         this.userService = (UserService) initialContext.lookup("java:comp/env/UserService");
         this.deviceService = (DeviceService) initialContext.lookup("java:comp/env/DeviceService");
+        this.accessKeyService = (AccessKeyService) initialContext.lookup("java:comp/env/AccessKeyService");
     }
 
     @Override
@@ -37,7 +41,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         boolean secure = requestContext.getSecurityContext().isSecure();
         requestContext.setSecurityContext(
                 new HiveSecurityContext(
-                        new HivePrincipal(authUser(requestContext), authDevice(requestContext)), secure));
+                        new HivePrincipal(authUser(requestContext), authDevice(requestContext), authKey(requestContext)), secure));
     }
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {
@@ -55,21 +59,35 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (auth == null) {
             return null;
         }
+        if (auth.substring(0, 5).equalsIgnoreCase("Basic")) {
+            String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), Charset.forName(UTF8));
+            int pos = decodedAuth.indexOf(":");
+            if (pos <= 0) {
+                return null;
+            }
 
-        String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), Charset.forName(UTF8));
-        int pos = decodedAuth.indexOf(":");
-        if (pos <= 0) {
+            String login = decodedAuth.substring(0, pos);
+            String password = decodedAuth.substring(pos + 1);
+
+            try {
+                return userService.authenticate(login, password);
+            } catch (IllegalArgumentException ex) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private AccessKey authKey(ContainerRequestContext requestContext){
+        String auth = requestContext.getHeaders().getFirst("authorization");
+        if (auth == null) {
             return null;
         }
-
-        String login = decodedAuth.substring(0, pos);
-        String password = decodedAuth.substring(pos + 1);
-
-        try {
-            return userService.authenticate(login, password);
-        } catch (IllegalArgumentException ex) {
-            return null;
+        if (auth.substring(0, 6).equalsIgnoreCase("Bearer")) {
+            String key = auth.substring(6).trim();
+            return accessKeyService.authenticate(key);
         }
+        return null;
     }
 }
 

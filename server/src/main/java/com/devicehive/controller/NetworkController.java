@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -63,7 +64,7 @@ public class NetworkController {
      * @param skip        offset, default 0
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response getNetworkList(@QueryParam("name") String name,
                                    @QueryParam("namePattern") String namePattern,
                                    @QueryParam("sortField") String sortField,
@@ -83,7 +84,9 @@ public class NetworkController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-        String login = securityContext.getUserPrincipal().getName();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        String login = user.getLogin();
 
         if (login == null) {
             logger.debug("User is not authorized to run");
@@ -122,11 +125,13 @@ public class NetworkController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response getNetwork(@PathParam("id") long id, @Context SecurityContext securityContext) {
 
         logger.debug("Network get requested.");
-        String login = securityContext.getUserPrincipal().getName();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        String login = user.getLogin();
 
         if (login == null) {
             logger.debug("Network with id = {} does not exists", id);

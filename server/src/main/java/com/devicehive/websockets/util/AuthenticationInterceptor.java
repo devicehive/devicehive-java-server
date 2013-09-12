@@ -1,6 +1,7 @@
 package com.devicehive.websockets.util;
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.service.DeviceService;
@@ -36,7 +37,9 @@ public class AuthenticationInterceptor {
         JsonObject request = ThreadLocalVariablesKeeper.getRequest();
         Device authDevice =  getDeviceAndSetToSession(request, session);
         User authUser = getUserAndSetToSession(request, session);
-        HivePrincipal principal = new HivePrincipal(authUser, authDevice);
+        //TODO support for access key authentication
+        AccessKey accessKey = null;
+        HivePrincipal principal = new HivePrincipal(authUser, authDevice, accessKey);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
         return ctx.proceed();
     }

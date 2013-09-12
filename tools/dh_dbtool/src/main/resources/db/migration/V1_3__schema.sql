@@ -12,6 +12,8 @@ CREATE TABLE access_key (
 ALTER TABLE access_key ADD CONSTRAINT access_key_pk PRIMARY KEY (id);
 ALTER TABLE access_key ADD CONSTRAINT access_key_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE
 CASCADE;
+ALTER TABLE access_key ADD CONSTRAINT access_key_key_unique UNIQUE (key);
+CREATE UNIQUE INDEX access_key_key_idx ON access_key (key);
 
 CREATE TABLE access_key_permission (
   id BIGSERIAL NOT NULL,

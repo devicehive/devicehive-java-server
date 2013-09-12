@@ -123,7 +123,7 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response query(@PathParam("deviceGuid") String guid,
                           @QueryParam("start") Timestamp start,
                           @QueryParam("end") Timestamp end,
@@ -153,8 +153,8 @@ public class DeviceNotificationController {
         sortField = sortField.toLowerCase();
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDevice(guid, principal.getUser(),
-                principal.getDevice());
+        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        Device device = deviceService.getDevice(guid, user, principal.getDevice());
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
                 notification, sortField, sortOrder, take, skip);
 
@@ -202,7 +202,7 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
                         @Context SecurityContext securityContext) {
         logger.debug("Device notification requested");
@@ -219,8 +219,9 @@ public class DeviceNotificationController {
                     "found for device with guid : " + guid));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         if (!deviceService
-                .checkPermissions(deviceNotification.getDevice(), principal.getUser(), principal.getDevice())) {
+                .checkPermissions(deviceNotification.getDevice(), user, principal.getDevice())) {
             logger.debug("No permissions to get notifications for device with guid : {}", guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
@@ -241,7 +242,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
@@ -283,6 +284,9 @@ public class DeviceNotificationController {
             timestamp = timestampService.getTimestamp();
         }
         User user = principal.getUser();
+        if (user == null && principal.getKey() != null){
+            user = principal.getKey().getUser();
+        }
         List<DeviceNotification> list = getDeviceNotificationsList(user, deviceGuid, timestamp);
         if (list.isEmpty()) {
             logger.debug("Waiting for notification from device = {}", deviceGuid);
@@ -309,7 +313,7 @@ public class DeviceNotificationController {
     private List<DeviceNotification> getDeviceNotificationsList(User user, String guid, Timestamp timestamp) {
         List<String> guidList = new ArrayList<>(1);
         guidList.add(guid);
-        if (user.getRole().equals(UserRole.CLIENT)) {
+        if (user != null && user.getRole().equals(UserRole.CLIENT)) {
             return deviceNotificationDAO.getByUserAndDevicesNewerThan(user, guidList, timestamp);
         }
         return deviceNotificationDAO.findByDevicesIdsNewerThan(guidList, timestamp);
@@ -324,7 +328,7 @@ public class DeviceNotificationController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
@@ -334,7 +338,8 @@ public class DeviceNotificationController {
             @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        HivePrincipal principal= (HivePrincipal) securityContext.getUserPrincipal();
+        final User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -465,7 +470,7 @@ public class DeviceNotificationController {
      *         </table>
      */
     @POST
-    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,
@@ -481,8 +486,11 @@ public class DeviceNotificationController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        Device device = deviceService.getDevice(guid, principal.getUser(),
-                principal.getDevice());
+        User user = principal.getUser();
+        if (user == null && principal.getKey() != null){
+            user = principal.getKey().getUser();
+        }
+        Device device = deviceService.getDevice(guid, user, principal.getDevice());
         if (device.getNetwork() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}",

@@ -9,10 +9,6 @@ import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
@@ -39,7 +35,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -81,7 +76,7 @@ public class DeviceCommandController {
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
@@ -116,6 +111,9 @@ public class DeviceCommandController {
         } else if (principal.getDevice() != null) {
             logger.debug("DeviceCommand poll was requested by Device = {}, deviceId = {}, timestamp = ",
                     principal.getDevice().getGuid(), deviceGuid, timestamp);
+        } else if (principal.getKey() != null)  {
+            logger.debug("DeviceCommand poll was requested by Key = {}, deviceId = {}, timestamp = ",
+                    principal.getKey().getId(), deviceGuid, timestamp);
         }
 
         if (timestamp == null) {
@@ -143,9 +141,11 @@ public class DeviceCommandController {
     }
 
     private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal, String guid, Timestamp timestamp) {
-        List<String> guidList = new ArrayList<>(1);
-        guidList.add(guid);
+
         User authUser = principal.getUser();
+        if (authUser == null && principal.getKey()!=null){
+            authUser = principal.getKey().getUser();
+        }
         if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
             return deviceCommandDAO.getByUserAndDeviceNewerThan(guid, timestamp, authUser);
         }
@@ -159,7 +159,7 @@ public class DeviceCommandController {
      * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/{commandId}/poll")
     public void wait(
             @PathParam("deviceGuid") final String deviceGuid,
@@ -169,7 +169,8 @@ public class DeviceCommandController {
             @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -188,7 +189,6 @@ public class DeviceCommandController {
 
     private void waitAction(String deviceGuid, Long commandId, long timeout, AsyncResponse asyncResponse, User user) {
         logger.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
-
 
         if (deviceGuid == null || commandId == null) {
             logger.debug("DeviceCommand wait request failed. Bad request for sortOrder.");
@@ -290,7 +290,7 @@ public class DeviceCommandController {
      * @return list of device command with status 200, otherwise empty response with status 400
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response query(@PathParam("deviceGuid") String guid,
                           @QueryParam("start") Timestamp start,
                           @QueryParam("end") Timestamp end,
@@ -322,8 +322,11 @@ public class DeviceCommandController {
 
         Device device;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-
-        device = deviceService.getDevice(guid, principal.getUser(), principal.getDevice());
+        User user = principal.getUser();
+        if (user == null && principal.getKey() != null){
+            user = principal.getKey().getUser();
+        }
+        device = deviceService.getDevice(guid, user, principal.getDevice());
 
         List<DeviceCommand> commandList =
                 commandService.queryDeviceCommand(device, start, end, command, status, sortField, sortOrder, take,
@@ -354,17 +357,18 @@ public class DeviceCommandController {
      * @param id   command id
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/{id}")
-    @JsonPolicyApply(Policy.COMMAND_TO_DEVICE)
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id,
                         @Context SecurityContext securityContext) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-
-        Device device = deviceService.getDevice(guid, principal.getUser(),
-                principal.getDevice());
+        User user = principal.getUser();
+        if (user == null && principal.getKey() != null){
+            user= principal.getKey().getUser();
+        }
+        Device device = deviceService.getDevice(guid, user, principal.getDevice());
 
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
@@ -379,7 +383,7 @@ public class DeviceCommandController {
         }
 
         logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, id);
-        return ResponseFactory.response(Response.Status.OK, result);
+        return ResponseFactory.response(Response.Status.OK, result, Policy.COMMAND_TO_DEVICE);
     }
 
     /**
@@ -416,14 +420,15 @@ public class DeviceCommandController {
      * @param deviceCommand
      */
     @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                            @Context SecurityContext securityContext) {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
-
-        String login = securityContext.getUserPrincipal().getName();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        String login = user.getLogin();
 
         if (login == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN);
@@ -431,10 +436,7 @@ public class DeviceCommandController {
 
         User u = userService.findUserWithNetworksByLogin(login);
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-
-        Device device = deviceService.getDevice(guid, principal.getUser(),
-                principal.getDevice());
+        Device device = deviceService.getDevice(guid, user,principal.getDevice());
 
         commandService.submitDeviceCommand(deviceCommand, device, u, null);
         deviceCommand.setUserId(u.getId());
@@ -462,7 +464,7 @@ public class DeviceCommandController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command,
@@ -470,9 +472,11 @@ public class DeviceCommandController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
-        Device device = deviceService.getDevice(guid, principal.getUser(),
-                principal.getDevice());
-
+        User user = principal.getUser();
+        if (user == null && principal.getKey() != null){
+            user = principal.getKey().getUser();
+        }
+        Device device = deviceService.getDevice(guid, user, principal.getDevice());
         if (command == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND,
                     new ErrorResponse("command with id " + commandId + " for device with " + guid + " is not found"));

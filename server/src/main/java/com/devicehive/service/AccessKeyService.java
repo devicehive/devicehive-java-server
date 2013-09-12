@@ -17,6 +17,7 @@ import java.util.Set;
 
 @Stateless
 @LogExecutionTime
+@EJB(beanInterface = AccessKeyService.class, name = "AccessKeyService")
 public class AccessKeyService {
 
     @EJB
@@ -76,6 +77,10 @@ public class AccessKeyService {
             }
         }
         return true;
+    }
+
+    public AccessKey authenticate(@NotNull String key){
+        return accessKeyDAO.get(key);
     }
 
     private void validateActions(AccessKey accessKey){

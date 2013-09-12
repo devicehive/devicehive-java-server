@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
@@ -151,7 +152,8 @@ public class UserController {
     }
 
     private Response getCurrent(SecurityContext securityContext) {
-        String login = securityContext.getUserPrincipal().getName();
+        HivePrincipal principal = (HivePrincipal)securityContext.getUserPrincipal();
+        String login = principal.getUser().getLogin();
         User u = userService.findUserWithNetworksByLogin(login);
 
         if (u == null) {
@@ -288,8 +290,8 @@ public class UserController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-
-        String login = securityContext.getUserPrincipal().getName();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        String login = principal.getUser().getLogin();
 
         if (login == null) {
             return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("User could not be updated"));

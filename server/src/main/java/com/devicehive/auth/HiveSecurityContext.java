@@ -1,5 +1,6 @@
 package com.devicehive.auth;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.UserRole;
 
 import javax.ws.rs.core.SecurityContext;
@@ -21,12 +22,16 @@ public class HiveSecurityContext implements SecurityContext {
 
     @Override
     public boolean isUserInRole(String roleString) {
-        if (roleString.equalsIgnoreCase("device")) {
-            return hivePrincipal != null && hivePrincipal.getDevice() != null;
+        switch (roleString) {
+            case HiveRoles.DEVICE:
+                return hivePrincipal != null && hivePrincipal.getDevice() != null;
+            case HiveRoles.KEY:
+                return hivePrincipal != null && hivePrincipal.getKey() != null;
+            default:
+                return hivePrincipal != null
+                        && hivePrincipal.getUser() != null
+                        && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
         }
-        return hivePrincipal != null
-                && hivePrincipal.getUser() != null
-                && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
     }
 
     @Override
@@ -36,6 +41,9 @@ public class HiveSecurityContext implements SecurityContext {
 
     @Override
     public String getAuthenticationScheme() {
+        if (hivePrincipal.getKey() != null){
+            return Constants.KEY_AUTH;
+        }
         return BASIC_AUTH;
     }
 }

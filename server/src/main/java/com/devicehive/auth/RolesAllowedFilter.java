@@ -1,5 +1,7 @@
 package com.devicehive.auth;
 
+import com.devicehive.configuration.Constants;
+
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -28,10 +30,18 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
                 return;
             }
         }
-        requestContext.abortWith(Response
-                .status(Response.Status.UNAUTHORIZED)
-                .header("WWW-Authenticate", "Basic realm=\"devicehive\"")
-                .entity("{message:\"Not authorized\"}")
-                .build());
+        if (securityContext.getAuthenticationScheme().equals(Constants.KEY_AUTH)) {
+            requestContext.abortWith(Response
+                    .status(Response.Status.UNAUTHORIZED)
+                    .header("WWW-Authenticate", "Bearer realm=\"devicehive\"")
+                    .entity("{message:\"Not authorized\"}")
+                    .build());
+        } else {
+            requestContext.abortWith(Response
+                    .status(Response.Status.UNAUTHORIZED)
+                    .header("WWW-Authenticate", "Basic realm=\"devicehive\"")
+                    .entity("{message:\"Not authorized\"}")
+                    .build());
+        }
     }
 }
