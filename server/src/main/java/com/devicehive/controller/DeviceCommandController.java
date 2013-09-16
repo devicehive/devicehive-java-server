@@ -35,7 +35,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -64,7 +66,6 @@ public class DeviceCommandController {
     private SubscriptionManager subscriptionManager;
     @EJB
     private TimestampService timestampService;
-
     private ExecutorService asyncPool;
 
     /**
@@ -111,7 +112,7 @@ public class DeviceCommandController {
         } else if (principal.getDevice() != null) {
             logger.debug("DeviceCommand poll was requested by Device = {}, deviceId = {}, timestamp = ",
                     principal.getDevice().getGuid(), deviceGuid, timestamp);
-        } else if (principal.getKey() != null)  {
+        } else if (principal.getKey() != null) {
             logger.debug("DeviceCommand poll was requested by Key = {}, deviceId = {}, timestamp = ",
                     principal.getKey().getId(), deviceGuid, timestamp);
         }
@@ -143,7 +144,7 @@ public class DeviceCommandController {
     private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal, String guid, Timestamp timestamp) {
 
         User authUser = principal.getUser();
-        if (authUser == null && principal.getKey()!=null){
+        if (authUser == null && principal.getKey() != null) {
             authUser = principal.getKey().getUser();
         }
         if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
@@ -321,12 +322,43 @@ public class DeviceCommandController {
         sortField = sortField.toLowerCase();
 
         Device device;
+        Set<Long> allowedNetworkIds = null;
+        Set<String> allowedDeviceGuids = null;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser();
-        if (user == null && principal.getKey() != null){
+        if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
+            allowedNetworkIds = new HashSet<>();
+            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
+            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
+                if (currentPermission.getNetworkIdsAsSet() == null) {
+                    allowedNetworkIds.add(null);
+                } else {
+                    allowedNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
+                }
+            }
+            allowedDeviceGuids = new HashSet<>();
+            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
+                if (currentPermission.getDeviceGuidsAsSet() == null) {
+                    allowedDeviceGuids.add(null);
+                } else {
+                    allowedDeviceGuids.addAll(currentPermission.getDeviceGuidsAsSet());
+                }
+            }
         }
-        device = deviceService.getDevice(guid, user, principal.getDevice());
+        device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
+        if (allowedDeviceGuids!= null && !allowedDeviceGuids.contains(null) && !allowedDeviceGuids.contains(device.getGuid())) {
+            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse("Device not found"));
+        }
+
+        if (allowedNetworkIds!= null && !allowedNetworkIds.contains(null) && !allowedNetworkIds.contains(device
+                .getNetwork().getId())){
+            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse("Device not found"));
+        }
 
         List<DeviceCommand> commandList =
                 commandService.queryDeviceCommand(device, start, end, command, status, sortField, sortOrder, take,
@@ -365,8 +397,8 @@ public class DeviceCommandController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser();
-        if (user == null && principal.getKey() != null){
-            user= principal.getKey().getUser();
+        if (user == null && principal.getKey() != null) {
+            user = principal.getKey().getUser();
         }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
 
@@ -436,7 +468,7 @@ public class DeviceCommandController {
 
         User u = userService.findUserWithNetworksByLogin(login);
 
-        Device device = deviceService.getDevice(guid, user,principal.getDevice());
+        Device device = deviceService.getDevice(guid, user, principal.getDevice());
 
         commandService.submitDeviceCommand(deviceCommand, device, u, null);
         deviceCommand.setUserId(u.getId());
@@ -473,7 +505,7 @@ public class DeviceCommandController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
         User user = principal.getUser();
-        if (user == null && principal.getKey() != null){
+        if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
         }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
