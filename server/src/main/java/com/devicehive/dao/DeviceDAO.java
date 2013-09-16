@@ -16,6 +16,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
@@ -104,7 +105,6 @@ public class DeviceDAO {
         return device;
     }
 
-
     public boolean deleteDevice(@NotNull Long id) {
         Query query = em.createNamedQuery("Device.deleteById");
         query.setParameter("id", id);
@@ -123,7 +123,6 @@ public class DeviceDAO {
         return query.executeUpdate();
     }
 
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(String name,
                                 String namePattern,
@@ -137,7 +136,9 @@ public class DeviceDAO {
                                 Boolean sortOrderAsc,
                                 Integer take,
                                 Integer skip,
-                                User user) {
+                                User user,
+                                Set<Long> allowedNetworkIds,
+                                Set<String> allowedDeviceGuids) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
@@ -145,6 +146,8 @@ public class DeviceDAO {
         fromDevice.fetch("network", JoinType.LEFT);
         fromDevice.fetch("deviceClass");
         List<Predicate> devicePredicates = new ArrayList<>();
+
+        //device fields filters
         if (namePattern != null) {
             devicePredicates.add(criteriaBuilder.like(fromDevice.get("name"), namePattern));
         } else {
@@ -155,20 +158,50 @@ public class DeviceDAO {
         if (status != null) {
             devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
         }
-        if (networkId != null || networkName != null) {
+        if (allowedDeviceGuids !=null && !allowedDeviceGuids.contains(null)){
+            devicePredicates.add((fromDevice.get("status").in(allowedDeviceGuids)));
+        }
+
+        //network subcriteria building
+        if (allowedNetworkIds == null && (networkId != null || networkName != null)) {
             List<Network> networksResult = networkDAO.getByNameOrId(networkId, networkName);
 
             if (networksResult.size() == 0) {
                 return new ArrayList<>();
             }
+
             Expression<Network> inExpression = fromDevice.get("network");
             devicePredicates.add(inExpression.in(networksResult));
+        } else if (allowedNetworkIds != null && !allowedNetworkIds.contains(null)) {
+            List<Network> networkResult;
+            if (networkId != null || networkName != null) {
+                networkResult = networkDAO.getByNameOrId(networkId, networkName);
+
+                if (networkResult.size() == 0) {
+                    return new ArrayList<>();
+                }
+                if (!allowedNetworkIds.contains(networkResult.get(0).getId())) {
+                    return new ArrayList<>();            //found network is not in allowed list
+                }
+            } else {
+                networkResult = new ArrayList<>();
+                for (Long allowedNetworkId : allowedNetworkIds) {
+                    networkResult.add(networkDAO.getById(allowedNetworkId));
+                }
+                if (networkResult.isEmpty()) {
+                    return new ArrayList<>();
+                }
+            }
+            Expression<Network> inExpression = fromDevice.get("network");
+            devicePredicates.add(inExpression.in(networkResult));
         } else {
             if (user.getRole().equals(UserRole.CLIENT)) {
                 Path<User> path = fromDevice.join("network").join("users");
                 devicePredicates.add(path.in(user));
             }
         }
+
+        //deviceclass subcriteria building
         if (deviceClassId != null || deviceClassName != null || deviceClassVersion != null) {
             List<DeviceClass> deviceClassResult = deviceClassDAO.getByIdOrNameOrVersion(deviceClassId,
                     deviceClassName, deviceClassVersion);
@@ -178,6 +211,7 @@ public class DeviceDAO {
             Expression<DeviceClass> inExpression = fromDevice.get("deviceClass");
             devicePredicates.add(inExpression.in(deviceClassResult));
         }
+
         deviceCriteria.where(devicePredicates.toArray(new Predicate[devicePredicates.size()]));
         if (sortField != null) {
             if (sortOrderAsc == null || sortOrderAsc) {

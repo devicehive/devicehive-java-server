@@ -17,7 +17,7 @@ import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.Authorize;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
-import com.devicehive.websockets.util.ThreadLocalVariablesKeeper;
+import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.util.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
 import org.apache.commons.lang3.tuple.ImmutablePair;

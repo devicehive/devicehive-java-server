@@ -107,8 +107,17 @@ public class AccessKeyPermission implements HiveEntity {
         return getJsonAsSet(domains);
     }
 
-    public Set<String> getSubnetsAsSet(){
-        return getJsonAsSet(subnets);
+    public Set<Subnet> getSubnetsAsSet(){
+        if (subnets == null){
+            return null;
+        }
+        JsonParser parser = new JsonParser();
+        JsonArray json = (JsonArray) parser.parse(subnets.getJsonString());
+        Set<Subnet> result = new HashSet<>(json.size());
+        for (JsonElement current : json){
+            result.add(new Subnet(current.getAsString()));
+        }
+        return result;
     }
 
     public Set<String> getActionsAsSet(){
@@ -120,6 +129,9 @@ public class AccessKeyPermission implements HiveEntity {
     }
 
     public Set<Long> getNetworkIdsAsSet(){
+        if (networkIds == null){
+            return null;
+        }
         JsonParser parser = new JsonParser();
         JsonArray json = (JsonArray) parser.parse(networkIds.getJsonString());
         Set<Long> result = new HashSet<>(json.size());
@@ -130,6 +142,9 @@ public class AccessKeyPermission implements HiveEntity {
     }
 
     private Set<String> getJsonAsSet(JsonStringWrapper wrapper){
+        if (wrapper == null){
+            return null;
+        }
         JsonParser parser = new JsonParser();
         JsonArray json = (JsonArray) parser.parse(wrapper.getJsonString());
         Set<String> result = new HashSet<>(json.size());

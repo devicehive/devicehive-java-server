@@ -6,6 +6,7 @@ import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
+import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.annotation.Priority;
@@ -39,9 +40,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         boolean secure = requestContext.getSecurityContext().isSecure();
+        HivePrincipal principal = new HivePrincipal(authUser(requestContext), authDevice(requestContext),
+                authKey(requestContext));
+        ThreadLocalVariablesKeeper.setPrincipal(principal);
         requestContext.setSecurityContext(
-                new HiveSecurityContext(
-                        new HivePrincipal(authUser(requestContext), authDevice(requestContext), authKey(requestContext)), secure));
+                new HiveSecurityContext(principal, secure));
     }
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {

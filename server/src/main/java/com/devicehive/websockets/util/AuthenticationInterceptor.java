@@ -6,6 +6,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
+import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.handlers.annotations.Authorize;
 import com.google.gson.JsonObject;
 

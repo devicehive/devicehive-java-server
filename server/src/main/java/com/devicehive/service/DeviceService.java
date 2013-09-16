@@ -223,10 +223,12 @@ public class DeviceService {
                                 Boolean sortOrderAsc,
                                 Integer take,
                                 Integer skip,
-                                User user) {
+                                User user,
+                                Set<Long> networkIds,
+                                Set<String> deviceGuids) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                deviceClassVersion, sortField, sortOrderAsc, take, skip, user);
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, user,networkIds, deviceGuids);
     }
 
 }

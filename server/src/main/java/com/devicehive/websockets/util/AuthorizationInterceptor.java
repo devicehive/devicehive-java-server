@@ -5,6 +5,7 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.handlers.annotations.Authorize;
 
 import javax.annotation.Priority;

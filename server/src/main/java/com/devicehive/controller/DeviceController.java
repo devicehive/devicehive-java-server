@@ -1,15 +1,12 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.AllowedAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceEquipmentService;
@@ -36,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.devicehive.auth.AllowedAction.Action.GET_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 
 /**
@@ -76,6 +74,7 @@ public class DeviceController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedAction(action = {GET_DEVICE})
     public Response list(@QueryParam("name") String name,
                          @QueryParam("namePattern") String namePattern,
                          @QueryParam("status") String status,
@@ -103,8 +102,35 @@ public class DeviceController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
+        Set<Long> resultRequestNetworkIds = null;   //unuseful permissions has been already removed
+        if (principal.getKey() != null) {
+            resultRequestNetworkIds = new HashSet<>();
+            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
+            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
+                if (currentPermission.getNetworkIdsAsSet() == null) {
+                    resultRequestNetworkIds.add(null);
+                } else {
+                    resultRequestNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
+                }
+            }
+        }
+
+        Set<String> resultRequestGuidsSet = null;
+        if (principal.getKey() != null) {
+            resultRequestGuidsSet = new HashSet<>();
+            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
+            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
+                if (currentPermission.getDeviceGuidsAsSet() == null) {
+                    resultRequestGuidsSet.add(null);
+                } else {
+                    resultRequestGuidsSet.addAll(currentPermission.getDeviceGuidsAsSet());
+                }
+            }
+        }
+
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser);
+                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser,
+                resultRequestNetworkIds, resultRequestGuidsSet);
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 
@@ -183,7 +209,7 @@ public class DeviceController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser();
-        if (user == null && principal.getKey()!=null){
+        if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
         }
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
@@ -256,7 +282,7 @@ public class DeviceController {
         logger.debug("Device equipment requested");
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,
                 principal.getDevice());
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
@@ -287,8 +313,8 @@ public class DeviceController {
 
         logger.debug("Device equipment by code requested");
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,principal.getDevice());
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
