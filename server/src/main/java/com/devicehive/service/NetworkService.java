@@ -11,6 +11,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import java.util.List;
+import java.util.Set;
 
 @Stateless
 public class NetworkService {
@@ -72,8 +73,8 @@ public class NetworkService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Network> list(String name, String namePattern,
                               String sortField, boolean sortOrder,
-                              Integer take, Integer skip, Long userId) {
-        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId);
+                              Integer take, Integer skip, Long userId, Set<Long> allowedIds) {
+        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId, allowedIds);
     }
 
     public Network createOrVeriryNetwork(NullableWrapper<Network> network) {

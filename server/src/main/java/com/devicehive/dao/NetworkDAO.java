@@ -2,8 +2,6 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -16,6 +14,7 @@ import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Stateless
 public class NetworkDAO {
@@ -72,14 +71,11 @@ public class NetworkDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Network> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take,
-                              Integer skip, Long userId) {
+                              Integer skip, Long userId, Set<Long> allowedNetworkIds) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-
         CriteriaQuery<Network> criteria = criteriaBuilder.createQuery(Network.class);
-
         Root from = criteria.from(Network.class);
-
 
         List<Predicate> predicates = new ArrayList<>();
         if (namePattern != null) {
@@ -88,6 +84,10 @@ public class NetworkDAO {
             if (name != null) {
                 predicates.add(criteriaBuilder.equal(from.get("name"), name));
             }
+        }
+
+        if (allowedNetworkIds != null && !allowedNetworkIds.contains(null)){
+            predicates.add(from.get("id").in(allowedNetworkIds));
         }
 
         if (userId != null) {

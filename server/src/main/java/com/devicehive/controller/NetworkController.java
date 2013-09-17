@@ -4,6 +4,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
@@ -21,7 +22,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Path("/network")
@@ -29,13 +32,10 @@ import java.util.List;
 public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
-
     @EJB
     private NetworkService networkService;
-
     @EJB
     private UserService userService;
-
 
     /**
      * Produces following output:
@@ -85,7 +85,7 @@ public class NetworkController {
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         String login = user.getLogin();
 
         if (login == null) {
@@ -100,12 +100,23 @@ public class NetworkController {
             return ResponseFactory
                     .response(Response.Status.FORBIDDEN, new ErrorResponse("User is not authorized to run."));
         }
-
+        Set<Long> allowedNetworkIds = null;
+        if (principal.getKey() != null) {
+            allowedNetworkIds = new HashSet<>();
+            Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
+            for (AccessKeyPermission currentPermission : permissions) {
+                if (currentPermission.getNetworkIdsAsSet() == null) {
+                   allowedNetworkIds.add(null);
+                } else {
+                    allowedNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
+                }
+            }
+        }
         List<Network> result = networkService
-                .list(name, namePattern, sortField, sortOrder, take, skip, u.isAdmin() ? null : u.getId());
+                .list(name, namePattern, sortField, sortOrder, take, skip, u.isAdmin() ? null : u.getId(), allowedNetworkIds);
+
 
         logger.debug("Network list request proceed successfully.");
-
 
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
@@ -130,7 +141,7 @@ public class NetworkController {
 
         logger.debug("Network get requested.");
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         String login = user.getLogin();
 
         if (login == null) {
@@ -150,7 +161,6 @@ public class NetworkController {
 
         return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }
-
 
     /**
      * Inserts new Network into database. Consumes next input:
@@ -211,7 +221,6 @@ public class NetworkController {
 
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
-
 
     /**
      * This method updates network with given Id. Consumes following input:

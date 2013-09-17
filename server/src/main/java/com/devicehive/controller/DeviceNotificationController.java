@@ -176,7 +176,7 @@ public class DeviceNotificationController {
                 }
             }
         }
-        Device device = deviceService.getDevice(guid, user, principal.getDevice());
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
         if (allowedDeviceGuids!= null && !allowedDeviceGuids.contains(null) && !allowedDeviceGuids.contains(device.getGuid())) {
             logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND,
