@@ -15,47 +15,62 @@ public final class ThreadLocalVariablesKeeper {
     private static ThreadLocal<InetAddress> IP = new ThreadLocal<>();
     private static ThreadLocal<String> HOST_NAME = new ThreadLocal<>();
 
-    public static JsonObject getRequest(){
+    public static JsonObject getRequest() {
         return REQUEST.get();
     }
 
-    public static void setRequest(JsonObject request){
+    public static void setRequest(JsonObject request) {
+        if (REQUEST == null) {
+            REQUEST = new ThreadLocal<>();
+        }
         REQUEST.set(request);
     }
 
-    public static void setSession(Session session){
-        SESSION.set(session);
-    }
-
-    public static Session getSession(){
+    public static Session getSession() {
         return SESSION.get();
     }
 
-    public static HivePrincipal getPrincipal(){
+    public static void setSession(Session session) {
+        if (SESSION == null) {
+            SESSION = new ThreadLocal<>();
+        }
+        SESSION.set(session);
+    }
+
+    public static HivePrincipal getPrincipal() {
         return PRINCIPAL_KEEPER.get();
     }
 
-    public static void setPrincipal(HivePrincipal principal){
+    public static void setPrincipal(HivePrincipal principal) {
+        if (PRINCIPAL_KEEPER == null) {
+            PRINCIPAL_KEEPER = new ThreadLocal<>();
+        }
         PRINCIPAL_KEEPER.set(principal);
     }
 
-    public static InetAddress getClientIP(){
-         return IP.get();
+    public static InetAddress getClientIP() {
+        return IP.get();
     }
 
-    public static void setClientIP(InetAddress ip){
-       IP.set(ip);
+    public static void setClientIP(InetAddress ip) {
+        if (IP == null) {
+            IP = new ThreadLocal<>();
+        }
+        IP.set(ip);
     }
 
-    public static void setHostName(String hostName){
-        HOST_NAME.set(hostName);
-    }
-
-    public static String getHostName(){
+    public static String getHostName() {
         return HOST_NAME.get();
     }
 
-    public static void clean(){
+    public static void setHostName(String hostName) {
+        if (HOST_NAME == null) {
+            HOST_NAME = new ThreadLocal<>();
+        }
+        HOST_NAME.set(hostName);
+    }
+
+    public static void clean() {
         REQUEST = null;
         PRINCIPAL_KEEPER = null;
         SESSION = null;

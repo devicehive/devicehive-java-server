@@ -19,9 +19,6 @@ public @interface AllowedAction {
     @Nonbinding
     public Action[] action() default Action.NONE;
 
-    @Nonbinding
-    public String guid() default "";
-
     public static enum Action{
         GET_NETWORK,
         GET_DEVICE,

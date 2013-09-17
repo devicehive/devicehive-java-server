@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.devicehive.auth.AllowedAction.Action.GET_DEVICE;
+import static com.devicehive.auth.AllowedAction.Action.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 
 /**
@@ -151,6 +151,7 @@ public class DeviceController {
      */
     @PUT
     @Path("/{id}")
+    @AllowedAction(action = {REGISTER_DEVICE})
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(JsonObject jsonObject, @PathParam("id") String deviceGuid,
@@ -203,6 +204,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}")
+    @AllowedAction(action = {GET_DEVICE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam("id") String guid, @Context SecurityContext securityContext) {
         logger.debug("Device get requested");
@@ -277,6 +279,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment")
+    @AllowedAction(action = {GET_DEVICE_STATE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipment(@PathParam("id") String guid, @Context SecurityContext securityContext) {
         logger.debug("Device equipment requested");
@@ -306,6 +309,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment/{code}")
+    @AllowedAction(action = {GET_DEVICE_STATE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipmentByCode(@PathParam("id") String guid,
                                     @PathParam("code") String code,

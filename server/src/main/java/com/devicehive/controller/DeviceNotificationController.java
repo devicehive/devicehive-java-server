@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.AllowedAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
@@ -14,10 +15,6 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -50,6 +47,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.devicehive.auth.AllowedAction.Action.CREATE_DEVICE_NOTIFICATION;
+import static com.devicehive.auth.AllowedAction.Action.GET_DEVICE_NOTIFICATION;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
@@ -124,6 +123,7 @@ public class DeviceNotificationController {
     @GET
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedAction(action = {GET_DEVICE_NOTIFICATION})
     public Response query(@PathParam("deviceGuid") String guid,
                           @QueryParam("start") Timestamp start,
                           @QueryParam("end") Timestamp end,
@@ -237,6 +237,7 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
+    @AllowedAction(action = {GET_DEVICE_NOTIFICATION})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
                         @Context SecurityContext securityContext) {
@@ -278,6 +279,7 @@ public class DeviceNotificationController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
+    @AllowedAction(action = {GET_DEVICE_NOTIFICATION})
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
@@ -364,6 +366,7 @@ public class DeviceNotificationController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedAction(action = {GET_DEVICE_NOTIFICATION})
     @Path("/notification/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
@@ -506,6 +509,7 @@ public class DeviceNotificationController {
      */
     @POST
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedAction(action = {CREATE_DEVICE_NOTIFICATION})
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,

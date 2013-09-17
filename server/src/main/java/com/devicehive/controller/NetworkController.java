@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.AllowedAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
@@ -26,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.devicehive.auth.AllowedAction.Action.GET_NETWORK;
 
 @Path("/network")
 @LogExecutionTime
@@ -65,6 +67,7 @@ public class NetworkController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedAction(action = {GET_NETWORK})
     public Response getNetworkList(@QueryParam("name") String name,
                                    @QueryParam("namePattern") String namePattern,
                                    @QueryParam("sortField") String sortField,
@@ -137,6 +140,7 @@ public class NetworkController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedAction(action = {GET_NETWORK})
     public Response getNetwork(@PathParam("id") long id, @Context SecurityContext securityContext) {
 
         logger.debug("Network get requested.");
