@@ -2,16 +2,23 @@ package com.devicehive.service;
 
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
+import com.devicehive.model.updates.NetworkUpdate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 @Stateless
 public class NetworkService {
@@ -25,11 +32,11 @@ public class NetworkService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Network getWithDevicesAndDeviceClasses(long id, User u) {
-        if (u.isAdmin()) {
+    public Network getWithDevicesAndDeviceClasses(long id, User user) {
+        if (user.isAdmin()) {
             return networkDAO.getWithDevicesAndDeviceClasses(id);
         } else {
-            return networkDAO.getWithDevicesAndDeviceClasses(id, u.getId());
+            return networkDAO.getWithDevicesAndDeviceClasses(id, user.getId());
         }
 
     }
@@ -38,36 +45,34 @@ public class NetworkService {
         return networkDAO.delete(id);
     }
 
-    public Network insert(Network n) {
-        if (n.getName() == null) {
-            throw new HiveException("Name must be provided");
+    public Network create(Network newNetwork) {
+        if (newNetwork.getId() != null) {
+            throw new HiveException("Invalid request. Id cannot be specified.", BAD_REQUEST.getStatusCode());
         }
-        if (!networkDAO.getByNameOrId(null, n.getName()).isEmpty()) {
-            throw new HiveException("Network with name " + n.getName() + " already exists.");
+        Network existing = networkDAO.findByName(newNetwork.getName());
+        if (existing != null) {
+            throw new HiveException("Network cannot be created. Network with such name already exists",
+                    FORBIDDEN.getStatusCode());
         }
-        return networkDAO.createNetwork(n);
+        return networkDAO.createNetwork(newNetwork);
     }
 
-    public Network update(Network n) {
-
-        if (n.getId() == null) {
-            throw new HiveException("Id must pe provided");
+    public Network update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
+        Network existing = getById(networkId);
+        if (existing == null) {
+            throw new HiveException(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE,
+                    Response.Status.NOT_FOUND.getStatusCode());
         }
-
-        Network updated = networkDAO.getById(n.getId());
-
-        if (n.getKey() != null) {
-            updated.setKey(n.getKey());
+        if (networkUpdate.getKey() != null) {
+            existing.setKey(networkUpdate.getKey().getValue());
         }
-
-        if (n.getDescription() != null) {
-            updated.setDescription(n.getDescription());
+        if (networkUpdate.getName() != null) {
+            existing.setName(networkUpdate.getName().getValue());
         }
-
-        if (n.getName() != null) {
-            updated.setName(n.getName());
+        if (networkUpdate.getDescription() != null) {
+            existing.setDescription(networkUpdate.getDescription().getValue());
         }
-        return updated;
+        return existing;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
