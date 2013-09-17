@@ -291,15 +291,23 @@ public class DeviceController {
     @AllowedAction(action = {GET_DEVICE_STATE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipment(@PathParam("id") String guid, @Context SecurityContext securityContext) {
-        logger.debug("Device equipment requested");
+        logger.debug("Device equipment requested for device {}", guid);
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,
                 principal.getDevice());
+        if (principal.getKey() != null){
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(),device)
+                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())){
+                logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
+                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
+                        .NOT_FOUND.getStatusCode(), "No device found with such guid"));
+            }
+        }
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
-        logger.debug("Device equipment request proceed successfully");
+        logger.debug("Device equipment request proceed successfully for device {}", guid);
 
         return ResponseFactory
                 .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
@@ -328,6 +336,14 @@ public class DeviceController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
+        if (principal.getKey() != null){
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(),device)
+                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())){
+                logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
+                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
+                        .NOT_FOUND.getStatusCode(), "No device found with such guid"));
+            }
+        }
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
