@@ -8,10 +8,7 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.DeviceCommandService;
-import com.devicehive.service.DeviceEquipmentService;
-import com.devicehive.service.DeviceService;
-import com.devicehive.service.UserService;
+import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
 import com.google.gson.Gson;
@@ -53,6 +50,8 @@ public class DeviceController {
     private DeviceService deviceService;
     @EJB
     private UserService userService;
+    @EJB
+    private AccessKeyService accessKeyService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -207,7 +206,7 @@ public class DeviceController {
     @AllowedAction(action = {GET_DEVICE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam("id") String guid, @Context SecurityContext securityContext) {
-        logger.debug("Device get requested");
+        logger.debug("Device get requested. Guid {}", guid);
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser();
@@ -215,9 +214,15 @@ public class DeviceController {
             user = principal.getKey().getUser();
         }
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-
-        logger.debug("Device get proceed successfully");
-
+        if (principal.getKey() != null){
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(),
+                    device) || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())){
+                logger.debug("Access denied. No permissions. Device get for device {}", guid);
+                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
+                        .NOT_FOUND.getStatusCode(), "No device found with such guid"));
+            }
+        }
+        logger.debug("Device get proceed successfully. Guid {}", guid);
         return ResponseFactory.response(Response.Status.OK, device, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 

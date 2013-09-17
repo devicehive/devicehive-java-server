@@ -260,6 +260,9 @@ public class UserService {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToDevice(User user, Device device) {
+        if (user.isAdmin()){
+            return true;
+        }
         return userDAO.hasAccessToDevice(user, device);
     }
 

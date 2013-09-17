@@ -106,7 +106,9 @@ public class AccessKeyService {
         if (allowedNetworks.contains(null)){
             return user.getNetworks().contains(targetNetwork);
         }
-        return user.getNetworks().contains(targetNetwork) && allowedNetworks.contains(targetNetwork.getId());
+        user = userService.findUserWithNetworks(user.getId());
+        return (user.getNetworks().contains(targetNetwork) || user.isAdmin()) && allowedNetworks.contains
+                (targetNetwork.getId());
     }
 
     public boolean hasAccessToDevice(AccessKey accessKey, Device device){
