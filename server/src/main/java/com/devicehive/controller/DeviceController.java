@@ -184,8 +184,12 @@ public class DeviceController {
 
         User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         Device currentDevice = ((HivePrincipal) securityContext.getUserPrincipal()).getDevice();
+        AccessKey currentKey = ((HivePrincipal) securityContext.getUserPrincipal()).getKey();
+
         boolean isAllowedToUpdate = ((currentUser != null && currentUser.isAdmin()) || (currentDevice != null &&
-                currentDevice.getGuid().equals(deviceGuid)));
+                currentDevice.getGuid().equals(deviceGuid)) || (currentKey != null && accessKeyService
+                .hasAccessToDevice(currentKey, deviceGuid)));
+
         deviceService.deviceSaveAndNotify(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
         logger.debug("Device register finished successfully");
 
