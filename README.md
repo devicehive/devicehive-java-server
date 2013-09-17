@@ -45,7 +45,7 @@ In order to use DeviceHive framework you must have the following components inst
 
 Build packages
 --------------
-* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command `git clone https://github.com/devicehive/devicehive-java.git`. After that you can switch to the tag or branch you need.
+* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command `git clone https://github.com/devicehive/devicehive-java.git`. After that you can switch to the tag or branch you need. The list of all available releases can be found at https://github.com/devicehive/devicehive-java/releases
 * Execute the following command from ${devicehive-java-directory}/tools/dh_dbtools: `mvn clean package`
 * Execute the same command from ${devicehive-java-directory}/server.
 
@@ -57,8 +57,8 @@ Database setup
 --------------
 * After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) you have to create new user. This step is required for database migrations to work properly. 
 * Create database using user that have been created at step 1. This user should be owner of database.
-* Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command `java -jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
-* The parameter ${databaseurl} is a jdbc connection URL to your database (like jdbc://, user is a database user’s login and password is a user’s password, if required.  To get help use `java -jar dh_dbtool.jar -help`
+* Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command `java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
+* The parameter ${databaseurl} is a jdbc connection URL to your database (like jdbc://, user is a database user’s login and password is a user’s password, if required.  To get help use `java –jar dh_dbtool.jar –help`
 
 Glassfish configuration
 -----------------------
@@ -90,7 +90,7 @@ In the ServerName field enter your database server name
 JNDI name: jdbc/DeviceHiveDataSource
 Pool name: DeviceHivePool (use recently created pool name)
 
-* Execute server -> General -> Restart
+* Execute server ->  General ->  restart
 
 Deploying application
 ---------------------
@@ -103,9 +103,16 @@ When server is installed and all the required properties are configured, you hav
 * Launch DeviceHiveJava
 * Set up web socket server URL and rest server URL. To do that you have to use link:
 
-http://${yourServerName}:${port}/DeviceHiveJava/config/set?name=${name}&value=${value}
+http://${yourServerName}:${port}/DeviceHiveJava/rest/config/set?name=${name}&value=${value}
 
 The parameter “name” can be either “websocket.url” or “rest.url” 
 The parameter “value” is associated URL for web socket and rest services.
+
+Example:
+For rest server URL:
+http://localhost:8080/hive/rest/config/set?name=rest.url&value=http://localhost:8080/hive/rest
+For web socket server URL:
+http://localhost:8080/hive/rest/config/set?name=websocket.url&value=ws://localhost:8080/hive/websocket
+
 
 * Use it.
