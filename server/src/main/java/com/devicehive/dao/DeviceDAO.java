@@ -159,7 +159,7 @@ public class DeviceDAO {
             devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
         }
         if (allowedDeviceGuids !=null && !allowedDeviceGuids.contains(null)){
-            devicePredicates.add((fromDevice.get("status").in(allowedDeviceGuids)));
+            devicePredicates.add((fromDevice.get("guid").in(allowedDeviceGuids)));
         }
 
         //network subcriteria building

@@ -4,6 +4,7 @@ import com.devicehive.utils.ThreadLocalVariablesKeeper;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.InetAddress;
 
@@ -19,8 +20,11 @@ public class IpDomainFilter implements Filter {
         String address = request.getRemoteAddr();
         InetAddress inetAddress = InetAddress.getByName(address);
         ThreadLocalVariablesKeeper.setClientIP(inetAddress);
-        String canonicalHostName = inetAddress.getHostName();
-        ThreadLocalVariablesKeeper.setHostName(canonicalHostName);
+        if (request instanceof HttpServletRequest){
+            HttpServletRequest httpServletRequest = HttpServletRequest.class.cast(request);
+            String canonicalHostName = httpServletRequest.getHeader("Origin");
+            ThreadLocalVariablesKeeper.setHostName(canonicalHostName);
+        }
         chain.doFilter(request, response);
     }
 

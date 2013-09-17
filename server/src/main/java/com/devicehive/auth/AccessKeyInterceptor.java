@@ -38,7 +38,8 @@ public class AccessKeyInterceptor {
 
         Set<AccessKeyPermission> permissions = key.getPermissions();
         boolean isAllowed = checkActions(actions, permissions) && checkIP(clientIP,
-                permissions) && checkDeviceGuids(permissions) && checkNetworks(permissions);
+                permissions) && checkDeviceGuids(permissions) && checkNetworks(permissions) &&
+                checkDomains(permissions);
         if (!isAllowed) {
             throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
         }
@@ -155,13 +156,22 @@ public class AccessKeyInterceptor {
         return isIpAllowed;
     }
 
-    private boolean checkDomains(InetAddress clientIp, Set<AccessKeyPermission> permissions) {
+    private boolean checkDomains(Set<AccessKeyPermission> permissions) {
         boolean isDomainAllowed = false;
+        String clientDomain = ThreadLocalVariablesKeeper.getHostName();
+        if (clientDomain == null) {    //???  cors only?
+            return true;
+        }
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
             if (currentPermission.getDomainsAsSet() != null) {
                 for (String currentDomain : currentPermission.getDomainsAsSet()) {
-                    //todo it (CORS)
+                    if (clientDomain.endsWith(currentDomain)) {
+                        isDomainAllowed = true;
+                        permissionsToRemove.remove(currentPermission);
+                        break;
+                    }
+                    permissionsToRemove.add(currentPermission);
                 }
             } else {
                 isDomainAllowed = true;
