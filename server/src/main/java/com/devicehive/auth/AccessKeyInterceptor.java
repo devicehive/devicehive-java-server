@@ -38,7 +38,7 @@ public class AccessKeyInterceptor {
 
         Set<AccessKeyPermission> permissions = key.getPermissions();
         boolean isAllowed = checkActions(actions, permissions) && checkIP(clientIP,
-                permissions);// && checkDomains(clientIP, permissions);
+                permissions) && checkDeviceGuids(permissions) && checkNetworks(permissions);
         if (!isAllowed) {
             throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
         }
@@ -159,12 +159,11 @@ public class AccessKeyInterceptor {
         boolean isDomainAllowed = false;
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
-            if (currentPermission.getDomainsAsSet() != null){
-               for (String currentDomain : currentPermission.getDomainsAsSet()){
-                   //todo it (CORS)
-               }
-            }
-            else{
+            if (currentPermission.getDomainsAsSet() != null) {
+                for (String currentDomain : currentPermission.getDomainsAsSet()) {
+                    //todo it (CORS)
+                }
+            } else {
                 isDomainAllowed = true;
             }
         }
@@ -172,14 +171,14 @@ public class AccessKeyInterceptor {
         return isDomainAllowed;
     }
 
-    private boolean checkNetworks(Set<AccessKeyPermission> permissions){
-        if (permissions.isEmpty()){
+    private boolean checkNetworks(Set<AccessKeyPermission> permissions) {
+        if (permissions.isEmpty()) {
             return false;
         }
         Set<AccessKeyPermission> permissionToRemove = new HashSet<>();
-        for (AccessKeyPermission currentPermission : permissions){
+        for (AccessKeyPermission currentPermission : permissions) {
             Set<Long> currentNetworkIds = currentPermission.getNetworkIdsAsSet();
-            if (currentNetworkIds != null && currentNetworkIds.isEmpty()){
+            if (currentNetworkIds != null && currentNetworkIds.isEmpty()) {
                 permissionToRemove.add(currentPermission);
             }
         }
@@ -187,14 +186,14 @@ public class AccessKeyInterceptor {
         return !permissions.isEmpty();
     }
 
-    private boolean checkDeviceGuids(Set<AccessKeyPermission> permissions){
-        if (permissions.isEmpty()){
+    private boolean checkDeviceGuids(Set<AccessKeyPermission> permissions) {
+        if (permissions.isEmpty()) {
             return false;
         }
         Set<AccessKeyPermission> permissionToRemove = new HashSet<>();
-        for (AccessKeyPermission currentPermission : permissions){
+        for (AccessKeyPermission currentPermission : permissions) {
             Set<String> currentDeviceGuids = currentPermission.getDeviceGuidsAsSet();
-            if (currentDeviceGuids != null && currentDeviceGuids.isEmpty()){
+            if (currentDeviceGuids != null && currentDeviceGuids.isEmpty()) {
                 permissionToRemove.add(currentPermission);
             }
         }

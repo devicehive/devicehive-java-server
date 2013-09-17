@@ -154,7 +154,42 @@ public class DeviceNotificationController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        Set<Long> allowedNetworkIds = null;
+        Set<String> allowedDeviceGuids = null;
+        if (user == null && principal.getKey() != null) {
+            user = principal.getKey().getUser();
+            allowedNetworkIds = new HashSet<>();
+            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
+            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
+                if (currentPermission.getNetworkIdsAsSet() == null) {
+                    allowedNetworkIds.add(null);
+                } else {
+                    allowedNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
+                }
+            }
+            allowedDeviceGuids = new HashSet<>();
+            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
+                if (currentPermission.getDeviceGuidsAsSet() == null) {
+                    allowedDeviceGuids.add(null);
+                } else {
+                    allowedDeviceGuids.addAll(currentPermission.getDeviceGuidsAsSet());
+                }
+            }
+        }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
+        if (allowedDeviceGuids!= null && !allowedDeviceGuids.contains(null) && !allowedDeviceGuids.contains(device.getGuid())) {
+            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse("Device not found"));
+        }
+
+        if (allowedNetworkIds!= null && !allowedNetworkIds.contains(null) && !allowedNetworkIds.contains(device
+                .getNetwork().getId())){
+            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse("Device not found"));
+        }
+
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
                 notification, sortField, sortOrder, take, skip);
 

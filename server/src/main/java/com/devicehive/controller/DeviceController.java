@@ -102,7 +102,7 @@ public class DeviceController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
-        Set<Long> resultRequestNetworkIds = null;   //unuseful permissions has been already removed
+        Set<Long> resultRequestNetworkIds = null;   //unuseful permissions have been already removed
         if (principal.getKey() != null) {
             resultRequestNetworkIds = new HashSet<>();
             Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();

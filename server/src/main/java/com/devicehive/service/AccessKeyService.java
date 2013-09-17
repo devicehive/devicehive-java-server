@@ -95,4 +95,30 @@ public class AccessKeyService {
             throw new HiveException("Unknown action!", Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
+
+    public boolean hasAcccessToNetwork(AccessKey accessKey, Network targetNetwork){
+        Set<AccessKeyPermission> permissions = accessKey.getPermissions();
+        Set<Long> allowedNetworks = new HashSet<>();
+        User user = accessKey.getUser();
+        for (AccessKeyPermission currentPermission : permissions){
+            allowedNetworks.addAll(currentPermission.getNetworkIdsAsSet());
+        }
+        if (allowedNetworks.contains(null)){
+            return user.getNetworks().contains(targetNetwork);
+        }
+        return user.getNetworks().contains(targetNetwork) && allowedNetworks.contains(targetNetwork.getId());
+    }
+
+    public boolean hasAccessToDevice(AccessKey accessKey, Device device){
+        Set<AccessKeyPermission> permissions = accessKey.getPermissions();
+        Set<String> allowedDevices = new HashSet<>();
+        User user = accessKey.getUser();
+        for (AccessKeyPermission currentPermission : permissions){
+            allowedDevices.addAll(currentPermission.getDeviceGuidsAsSet());
+        }
+        if (allowedDevices.contains(null)){
+            return userService.hasAccessToDevice(user, device);
+        }
+        return userService.hasAccessToDevice(user, device) && allowedDevices.contains(device.getGuid());
+    }
 }
