@@ -12,6 +12,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.*;
@@ -103,13 +104,13 @@ public class DeviceClassService {
         return createdDeviceClass;
     }
 
-    public void update(long id, DeviceClassUpdate update) {
-        if (update == null) {
-            return;
-        }
+    public void update(@NotNull Long id, DeviceClassUpdate update) {
         DeviceClass stored = deviceClassDAO.getDeviceClass(id);
         if (stored == null) {
-            throw new HiveException("device with id : " + id + " does not exists");
+            throw new HiveException("device with id : " + id + " does not exists", Response.Status.NOT_FOUND.getStatusCode());
+        }
+        if (update == null) {
+            return;
         }
         if (update.getData() != null)
             stored.setData(update.getData().getValue());
@@ -131,17 +132,6 @@ public class DeviceClassService {
         }
         deviceClassDAO.updateDeviceClass(stored);
     }
-
-//    public void updateEquipment(Set<Equipment> newEquipmentSet, DeviceClass deviceClass) {
-//        List<Equipment> existingEquipments = equipmentService.getByDeviceClass(deviceClass);
-//        if (!newEquipmentSet.isEmpty() && !existingEquipments.isEmpty()) {
-//            equipmentService.delete(existingEquipments);
-//        }
-//        for (Equipment equipment : newEquipmentSet) {
-//            equipment.setDeviceClass(deviceClass);
-//            equipmentService.create(equipment);
-//        }
-//    }
 
     public void replaceEquipment(@NotNull Collection<Equipment> equipmentsToReplace,
                                  @NotNull DeviceClass deviceClass) {

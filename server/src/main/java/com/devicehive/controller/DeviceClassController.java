@@ -1,7 +1,6 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceClass;
@@ -157,18 +156,9 @@ public class DeviceClassController {
     public Response updateDeviceClass(
             @PathParam("id") long id,
             @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
-
-        logger.debug("Device class update requested");
-        try {
-            deviceClassService.update(id, insert);
-        } catch (HiveException e) {
-            logger.debug("Unable to update device class");
-            return ResponseFactory.response(
-                    Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id : " + id + " not found."));
-        }
-        logger.debug("Device class updated");
-
+        logger.debug("Device class update requested for id {}", id);
+        deviceClassService.update(id, insert);
+        logger.debug("Device class updated. Id {}", id);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
