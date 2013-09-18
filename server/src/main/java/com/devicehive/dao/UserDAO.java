@@ -166,20 +166,8 @@ public class UserDAO {
         return query.executeUpdate() != 0;
     }
 
-
-    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status,
-                           @NotNull String password) {
-
-        User user = new User();
-        user.setLogin(login);
-        user.setRole(role);
-        user.setStatus(status);
-        user.setPasswordSalt(passwordService.generateSalt());
-        user.setPasswordHash(passwordService.hashPassword(password, user.getPasswordSalt()));
-        user.setLoginAttempts(0);
-        user.setEntityVersion(1);
-        user.setNetworks(new HashSet<Network>());
-        user.setLastLogin(null);
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User create(User user){
         em.persist(user);
         return user;
     }

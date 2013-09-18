@@ -6,6 +6,7 @@ import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.EJB;
@@ -29,16 +30,12 @@ public class UserService {
 
     @Inject
     private PasswordProcessor passwordService;
-
     @EJB
     private UserDAO userDAO;
-
     @EJB
     private NetworkDAO networkDAO;
-
     @EJB
     private TimestampService timestampService;
-
     @EJB
     private ConfigurationService configurationService;
 
@@ -91,42 +88,39 @@ public class UserService {
         return u;
     }
 
-    /**
-     * updates user, returns null in case of error (for example there is no such user)
-     *
-     * @param id       user id to update if null field is left unchanged
-     * @param login    new login if null field is left unchanged
-     * @param role     new role if null field is left unchanged
-     * @param status   new status if null field is left unchanged
-     * @param password new password if null field is left unchanged
-     * @return updated user model
-     */
-    public User updateUser(@NotNull long id, String login, UserRole role, UserStatus status, String password) {
+    public User updateUser(@NotNull Long id, UserUpdate userToUpdate) {
+        User existing = userDAO.findById(id);
 
-        User existingUser = userDAO.findById(id);
-        if (existingUser == null) {
-            throw new HiveException("User not found.", NOT_FOUND.getStatusCode());
+        if (existing == null) {
+            throw new HiveException("User with such id cannot be found", Response.Status.NOT_FOUND.getStatusCode());
         }
-        if (login != null) {
-            existingUser.setLogin(login);
+        if (userToUpdate == null) {
+            return existing;
         }
-
-        if (role != null) {
-            existingUser.setRole(role);
+        if (userToUpdate.getLogin() != null) {
+            User existingLogin = userDAO.findByLogin(userToUpdate.getLogin().getValue());
+            if (existingLogin != null && !existingLogin.getId().equals(id)) {
+                throw new HiveException("User with such login already exists. Please, select another one",
+                        Response.Status.FORBIDDEN.getStatusCode());
+            }
+            existing.setLogin(userToUpdate.getLogin().getValue());
         }
-
-        if (status != null) {
-            existingUser.setStatus(status);
-        }
-
-        if (password != null) {
+        if (userToUpdate.getPassword() != null) {
+            if (userToUpdate.getPassword().getValue() == null || userToUpdate.getPassword().getValue().isEmpty()) {
+                throw new HiveException("Password is required!", Response.Status.BAD_REQUEST.getStatusCode());
+            }
             String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(password, salt);
-            existingUser.setPasswordHash(hash);
-            existingUser.setPasswordSalt(salt);
+            String hash = passwordService.hashPassword(userToUpdate.getPassword().getValue(), salt);
+            existing.setPasswordSalt(salt);
+            existing.setPasswordHash(hash);
         }
-
-        return existingUser;
+        if (userToUpdate.getRole() != null) {
+            existing.setRole(userToUpdate.getRoleEnum());
+        }
+        if (userToUpdate.getStatus() != null) {
+            existing.setStatus(userToUpdate.getStatusEnum());
+        }
+        return existing;
     }
 
     /**
@@ -219,21 +213,25 @@ public class UserService {
         return userDAO.findUserWithNetworksByLogin(login);
     }
 
-    /**
-     * creates new user
-     *
-     * @param login    user login
-     * @param role     user role
-     * @param status   user status
-     * @param password password
-     * @return User model of newly created user
-     */
-    public User createUser(@NotNull String login, @NotNull UserRole role, @NotNull UserStatus status,
-                           @NotNull String password) {
-        if (userDAO.findByLogin(login) != null){
-            throw new HiveException("User with such login already exists", Response.Status.FORBIDDEN.getStatusCode());
+    public User createUser(@NotNull User user, String password) {
+        if (user.getId() != null) {
+            throw new HiveException("Id cannot be specified for new user",
+                    Response.Status.BAD_REQUEST.getStatusCode());
         }
-        return userDAO.createUser(login, role, status, password);
+        User existing = userDAO.findByLogin(user.getLogin());
+        if (existing != null) {
+            throw new HiveException("User with such login already exists. Please, select another one",
+                    Response.Status.FORBIDDEN.getStatusCode());
+        }
+        if (password == null || password.isEmpty()) {
+            throw new HiveException("Password is required!", Response.Status.BAD_REQUEST.getStatusCode());
+        }
+        String salt = passwordService.generateSalt();
+        String hash = passwordService.hashPassword(password, salt);
+        user.setPasswordSalt(salt);
+        user.setPasswordHash(hash);
+        user.setLoginAttempts(Constants.MAX_LOGIN_ATTEMPTS_DEFALUT);
+        return userDAO.create(user);
     }
 
     /**
@@ -260,7 +258,7 @@ public class UserService {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToDevice(User user, Device device) {
-        if (user.isAdmin()){
+        if (user.isAdmin()) {
             return true;
         }
         return userDAO.hasAccessToDevice(user, device);

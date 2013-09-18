@@ -31,6 +31,7 @@ public @interface JsonPolicyDef {
         DEVICE_EQUIPMENT_SUBMITTED,
         EQUIPMENT_SUBMITTED,
         USER_PUBLISHED,
+        USER_SUBMITTED,
         USERS_LISTED,
         NETWORK_PUBLISHED,
         NETWORKS_LISTED,

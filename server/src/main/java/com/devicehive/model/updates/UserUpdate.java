@@ -1,28 +1,13 @@
-package com.devicehive.model.request;
+package com.devicehive.model.updates;
 
-import com.devicehive.model.HiveEntity;
-import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
-import com.google.gson.annotations.SerializedName;
+import com.devicehive.model.*;
 
-/**
- * @author Nikolay Loboda
- * @since 17.07.13
- */
-public class UserRequest implements HiveEntity {
+public class UserUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -8353201743020153250L;
-    @SerializedName("login")
     private NullableWrapper<String> login;
-
-    @SerializedName("role")
     private NullableWrapper<Integer> role;
-
-    @SerializedName("status")
     private NullableWrapper<Integer> status;
-
-    @SerializedName("password")
     private NullableWrapper<String> password;
 
     public NullableWrapper<String> getLogin() {
@@ -61,21 +46,31 @@ public class UserRequest implements HiveEntity {
         if (role == null) {
             return null;
         }
-        Integer r = role.getValue();
-        if (r == null) {
+        Integer roleValue = role.getValue();
+        if (roleValue == null) {
             return null;
         }
-        return UserRole.values()[r];
+        return UserRole.values()[roleValue];
     }
 
     public UserStatus getStatusEnum() {
         if (status == null) {
             return null;
         }
-        Integer s = status.getValue();
-        if (s == null) {
+        Integer statusValue = status.getValue();
+        if (statusValue == null) {
             return null;
         }
-        return UserStatus.values()[s];
+        return UserStatus.values()[statusValue];
+    }
+
+    public User convertTo() {
+        User result = new User();
+        if (login != null) {
+            result.setLogin(login.getValue());
+        }
+        result.setStatus(getStatusEnum());
+        result.setRole(getRoleEnum());
+        return result;
     }
 }

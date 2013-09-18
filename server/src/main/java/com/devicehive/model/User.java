@@ -49,7 +49,7 @@ public class User implements HiveEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SerializedName("id")
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Long id;
 
     @Column
@@ -91,7 +91,7 @@ public class User implements HiveEntity {
 
     @Column(name = "last_login")
     @SerializedName("lastLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
 
     @Version

@@ -50,9 +50,7 @@ public class DefaultPasswordProcessor implements PasswordProcessor {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = md.digest((salt + password).getBytes(Constants.UTF8));
             return Base64.encodeBase64String(hashBytes);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
