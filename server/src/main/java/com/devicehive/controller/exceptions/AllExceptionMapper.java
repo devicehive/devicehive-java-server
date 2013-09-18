@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
@@ -35,8 +36,12 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
             message = exception.getMessage();
         } else if (exception instanceof NotAllowedException) {
             responseCode = Response.Status.METHOD_NOT_ALLOWED;
+        } else if (exception instanceof WebApplicationException){
+            WebApplicationException realException = (WebApplicationException) exception;
+            int response = realException.getResponse().getStatus();
+            responseCode = Response.Status.fromStatusCode(response);
         }
 
-        return ResponseFactory.response(responseCode, new ErrorResponse(message));
+        return ResponseFactory.response(responseCode, new ErrorResponse(responseCode.getStatusCode(), message));
     }
 }
