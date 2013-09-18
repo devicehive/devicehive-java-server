@@ -107,12 +107,19 @@ http://${yourServerName}:${port}/DeviceHiveJava/rest/config/set?name=${name}&val
 
 The parameter “name” can be either “websocket.url” or “rest.url” 
 The parameter “value” is associated URL for web socket and rest services.
+DeviceHive system specifies default login and password. These values can be used to get access for required services.
+
+login: dhadmin
+
+password: dhadmin_#911
 
 Example:
-For rest server URL:
-http://localhost:8080/hive/rest/config/set?name=rest.url&value=http://localhost:8080/hive/rest
-For web socket server URL:
-http://localhost:8080/hive/rest/config/set?name=websocket.url&value=ws://localhost:8080/hive/websocket
+* For rest server URL:
 
+http://localhost:8080/hive/rest/config/set?name=rest.url&value=http://localhost:8080/hive/rest
+
+* For web socket server URL:
+
+http://localhost:8080/hive/rest/config/set?name=websocket.url&value=ws://localhost:8080/hive/websocket
 
 * Use it.
