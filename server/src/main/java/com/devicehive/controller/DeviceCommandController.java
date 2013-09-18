@@ -11,10 +11,7 @@ import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceCommandUpdate;
-import com.devicehive.service.DeviceCommandService;
-import com.devicehive.service.DeviceService;
-import com.devicehive.service.TimestampService;
-import com.devicehive.service.UserService;
+import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
 import org.slf4j.Logger;
@@ -36,16 +33,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.devicehive.auth.AllowedAction.Action.CREATE_DEVICE_COMMAND;
-import static com.devicehive.auth.AllowedAction.Action.GET_DEVICE_COMMAND;
-import static com.devicehive.auth.AllowedAction.Action.UPDATE_DEVICE_COMMAND;
+import static com.devicehive.auth.AllowedAction.Action.*;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -71,6 +65,8 @@ public class DeviceCommandController {
     private SubscriptionManager subscriptionManager;
     @EJB
     private TimestampService timestampService;
+    @EJB
+    private AccessKeyService accessKeyService;
     private ExecutorService asyncPool;
 
     /**
@@ -121,6 +117,16 @@ public class DeviceCommandController {
         } else if (principal.getKey() != null) {
             logger.debug("DeviceCommand poll was requested by Key = {}, deviceId = {}, timestamp = ",
                     principal.getKey().getId(), deviceGuid, timestamp);
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
+                logger.debug("DeviceCommand poll requested by Key = {}, deviceId = {}, " +
+                        "timestamp = cannot be proceed. No permissions to access device",
+                        principal.getKey().getId(), deviceGuid, timestamp);
+                Response response = ResponseFactory.response(Response.Status.NOT_FOUND,
+                        new ErrorResponse(Response.Status
+                                .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
+                asyncResponse.resume(response);
+            }
+
         }
 
         if (timestamp == null) {
@@ -179,6 +185,12 @@ public class DeviceCommandController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        if (principal.getKey() != null && !accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
+            Response response = ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse(Response.Status
+                            .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
+            asyncResponse.resume(response);
+        }
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -334,38 +346,17 @@ public class DeviceCommandController {
         Set<String> allowedDeviceGuids = null;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
+        if (user == null && principal.getKey() != null){
             user = principal.getKey().getUser();
-            allowedNetworkIds = new HashSet<>();
-            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
-            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
-                if (currentPermission.getNetworkIdsAsSet() == null) {
-                    allowedNetworkIds.add(null);
-                } else {
-                    allowedNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
-                }
-            }
-            allowedDeviceGuids = new HashSet<>();
-            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
-                if (currentPermission.getDeviceGuidsAsSet() == null) {
-                    allowedDeviceGuids.add(null);
-                } else {
-                    allowedDeviceGuids.addAll(currentPermission.getDeviceGuidsAsSet());
-                }
-            }
         }
         device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-        if (allowedDeviceGuids!= null && !allowedDeviceGuids.contains(null) && !allowedDeviceGuids.contains(device.getGuid())) {
-            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse("Device not found"));
-        }
-
-        if (allowedNetworkIds!= null && !allowedNetworkIds.contains(null) && !allowedNetworkIds.contains(device
-                .getNetwork().getId())){
-            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse("Device not found"));
+        if (user == null && principal.getKey() != null) {
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(),
+                    device) || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
+                logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
+                return ResponseFactory.response(Response.Status.NOT_FOUND,
+                        new ErrorResponse("Device not found"));
+            }
         }
 
         List<DeviceCommand> commandList =
@@ -408,9 +399,14 @@ public class DeviceCommandController {
         User user = principal.getUser();
         if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
+                logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
+                        principal.getKey().getId());
+                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
+                        .NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+            }
         }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
-
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
         if (result == null) {
@@ -470,6 +466,12 @@ public class DeviceCommandController {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        if (principal.getKey() != null && !accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
+            logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
+                    principal.getKey().getId());
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
+                    .NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+        }
         String login = user.getLogin();
 
         if (login == null) {
@@ -518,6 +520,12 @@ public class DeviceCommandController {
         User user = principal.getUser();
         if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)){
+                logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
+                        principal.getKey().getId());
+                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
+                        .NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+            }
         }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
         if (command == null) {
