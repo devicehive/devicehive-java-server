@@ -6,7 +6,6 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.bus.GlobalMessageBus;
@@ -16,13 +15,12 @@ import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.response.NotificationPollManyResponse;
+import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +47,7 @@ import java.util.concurrent.Executors;
 
 import static com.devicehive.auth.AllowedAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedAction.Action.GET_DEVICE_NOTIFICATION;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
@@ -75,6 +74,8 @@ public class DeviceNotificationController {
     private DeviceService deviceService;
     @EJB
     private TimestampService timestampService;
+    @EJB
+    private AccessKeyService accessKeyService;
     private ExecutorService asyncPool;
 
     /**
@@ -134,14 +135,17 @@ public class DeviceNotificationController {
                           @QueryParam("skip") Integer skip,
                           @Context SecurityContext securityContext) {
 
-        logger.debug("Device notification requested");
+        logger.debug("Device notification query requested. Guid {}, start {}, end {}, notification {}, sort field {}," +
+                "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
 
         if (sortOrder == null) {
             sortOrder = true;
         }
 
         if (!"Timestamp".equals(sortField) && !"Notification".equals(sortField) && sortField != null) {
-            logger.debug("Device notification request failed. Bad request for sortField.");
+            logger.debug("Device notification query request failed Bad request sort field. Guid {}, start {}, end {}," +
+                    " notification {}, sort field {}, sort order {}, take {}, skip {}", guid, start, end,
+                    notification, sortField, sortOrder, take, skip);
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
@@ -153,47 +157,24 @@ public class DeviceNotificationController {
         sortField = sortField.toLowerCase();
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Set<Long> allowedNetworkIds = null;
-        Set<String> allowedDeviceGuids = null;
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-            allowedNetworkIds = new HashSet<>();
-            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
-            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
-                if (currentPermission.getNetworkIdsAsSet() == null) {
-                    allowedNetworkIds.add(null);
-                } else {
-                    allowedNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
-                }
-            }
-            allowedDeviceGuids = new HashSet<>();
-            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
-                if (currentPermission.getDeviceGuidsAsSet() == null) {
-                    allowedDeviceGuids.add(null);
-                } else {
-                    allowedDeviceGuids.addAll(currentPermission.getDeviceGuidsAsSet());
-                }
-            }
-        }
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-        if (allowedDeviceGuids!= null && !allowedDeviceGuids.contains(null) && !allowedDeviceGuids.contains(device.getGuid())) {
-            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse("Device not found"));
-        }
 
-        if (allowedNetworkIds!= null && !allowedNetworkIds.contains(null) && !allowedNetworkIds.contains(device
-                .getNetwork().getId())){
-            logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
+        if (principal.getKey() != null && (!accessKeyService.hasAcccessToNetwork(principal.getKey(),
+                device.getNetwork()) || !accessKeyService.hasAccessToDevice(principal.getKey(), device))) {
+            logger.debug("Device notification query failed. No permissions to access device for key with id {}. Guid " +
+                    "{}, start {}, end {}, notification {}, sort field {}, sort order {}, take {}, skip {}",
+                    principal.getKey().getId(), guid, start, end, notification, sortField, sortOrder, take, skip);
             return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse("Device not found"));
+                    new ErrorResponse(Response.Status
+                            .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
         }
 
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
                 notification, sortField, sortOrder, take, skip);
 
-        logger.debug("Device notification proceed successfully");
+        logger.debug("Device notification query succeed. Guid {}, start {}, end {}, notification {}, sort field {}," +
+                "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
 
         return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
     }
@@ -241,7 +222,17 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
                         @Context SecurityContext securityContext) {
-        logger.debug("Device notification requested");
+        logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+
+        if (principal.getKey() != null && !accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
+            logger.debug("Device notification request failed. No permissions for access key with id {}. Guid {}, " +
+                    "notification id {}", principal.getKey().getId(), guid, notificationId);
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse(Response.Status
+                            .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
+        }
 
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
@@ -254,8 +245,7 @@ public class DeviceNotificationController {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
         }
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+
         if (!deviceService
                 .checkPermissions(deviceNotification.getDevice(), user, principal.getDevice())) {
             logger.debug("No permissions to get notifications for device with guid : {}", guid);
@@ -264,7 +254,6 @@ public class DeviceNotificationController {
         }
 
         logger.debug("Device notification proceed successfully");
-
 
         return ResponseFactory.response(Response.Status.OK, deviceNotification, Policy.NOTIFICATION_TO_CLIENT);
     }
@@ -321,8 +310,17 @@ public class DeviceNotificationController {
             timestamp = timestampService.getTimestamp();
         }
         User user = principal.getUser();
-        if (user == null && principal.getKey() != null){
+        if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
+                logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
+                        "timestamp = cannot be proceed. No permissions to access device",
+                        principal.getKey().getId(), deviceGuid, timestamp);
+                Response response = ResponseFactory.response(Response.Status.NOT_FOUND,
+                        new ErrorResponse(Response.Status
+                                .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
+                asyncResponse.resume(response);
+            }
         }
         List<DeviceNotification> list = getDeviceNotificationsList(user, deviceGuid, timestamp);
         if (list.isEmpty()) {
@@ -376,8 +374,9 @@ public class DeviceNotificationController {
             @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        HivePrincipal principal= (HivePrincipal) securityContext.getUserPrincipal();
-        final User user =  principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        final AccessKey key = principal.getKey();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -388,13 +387,13 @@ public class DeviceNotificationController {
         asyncPool.submit(new Runnable() {
             @Override
             public void run() {
-                asyncResponsePollManyProcess(deviceGuids, timestamp, timeout, user, asyncResponse);
+                asyncResponsePollManyProcess(deviceGuids, timestamp, timeout, user, asyncResponse, key);
             }
         });
     }
 
     private void asyncResponsePollManyProcess(String deviceGuids, Timestamp timestamp, long timeout,
-                                              User user, AsyncResponse asyncResponse) {
+                                              User user, AsyncResponse asyncResponse, AccessKey key) {
         logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
                 deviceGuids, timestamp, timeout);
 
@@ -433,6 +432,14 @@ public class DeviceNotificationController {
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = getDeviceNotificationsList(user, guids, timestamp);
             }
+            if (key != null) {
+                Iterator<DeviceNotification> notificationsIterator = list.iterator();
+                while (notificationsIterator.hasNext()) {
+                    if (!accessKeyService.hasAccessToDevice(key, notificationsIterator.next().getDevice().getGuid())) {
+                        notificationsIterator.remove();
+                    }
+                }
+            }
             List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
             for (DeviceNotification notification : list) {
                 resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
@@ -443,6 +450,14 @@ public class DeviceNotificationController {
             return;
         }
         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
+        if (key != null) {
+            Iterator<DeviceNotification> notificationsIterator = list.iterator();
+            while (notificationsIterator.hasNext()) {
+                if (!accessKeyService.hasAccessToDevice(key, notificationsIterator.next().getDevice().getGuid())) {
+                    notificationsIterator.remove();
+                }
+            }
+        }
         for (DeviceNotification notification : list) {
             resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
         }
@@ -466,28 +481,28 @@ public class DeviceNotificationController {
      * RESTful API: DeviceNotification: insert</a>
      * Creates new device notification.
      *
-     * @param guid       Device unique identifier.
-     * @param jsonObject In the request body, supply a DeviceNotification resource.
-     *                   <table>
-     *                   <tr>
-     *                   <td>Property Name</td>
-     *                   <td>Required</td>
-     *                   <td>Type</td>
-     *                   <td>Description</td>
-     *                   </tr>
-     *                   <tr>
-     *                   <td>notification</td>
-     *                   <td>Yes</td>
-     *                   <td>string</td>
-     *                   <td>Notification name.</td>
-     *                   </tr>
-     *                   <tr>
-     *                   <td>parameters</td>
-     *                   <td>No</td>
-     *                   <td>object</td>
-     *                   <td>Notification parameters, a JSON object with an arbitrary structure.</td>
-     *                   </tr>
-     *                   </table>
+     * @param guid         Device unique identifier.
+     * @param notification In the request body, supply a DeviceNotification resource.
+     *                     <table>
+     *                     <tr>
+     *                     <td>Property Name</td>
+     *                     <td>Required</td>
+     *                     <td>Type</td>
+     *                     <td>Description</td>
+     *                     </tr>
+     *                     <tr>
+     *                     <td>notification</td>
+     *                     <td>Yes</td>
+     *                     <td>string</td>
+     *                     <td>Notification name.</td>
+     *                     </tr>
+     *                     <tr>
+     *                     <td>parameters</td>
+     *                     <td>No</td>
+     *                     <td>object</td>
+     *                     <td>Notification parameters, a JSON object with an arbitrary structure.</td>
+     *                     </tr>
+     *                     </table>
      * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a> resource in the response body.
      *         <table>
      *         <tr>
@@ -512,23 +527,27 @@ public class DeviceNotificationController {
     @AllowedAction(action = {CREATE_DEVICE_NOTIFICATION})
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") String guid, JsonObject jsonObject,
+    public Response insert(@PathParam("deviceGuid") String guid,
+                           @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification notification,
                            @Context SecurityContext securityContext) {
         logger.debug("DeviceNotification insertAll requested");
-
-        Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE);
-        DeviceNotification notification = gson.fromJson(jsonObject, DeviceNotification.class);
+        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        User user = principal.getUser();
+        if (user == null && principal.getKey() != null) {
+            user = principal.getKey().getUser();
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
+                logger.debug("No device found with guid : {} for access key {}", guid, principal.getKey().getId());
+                return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device  " +
+                        "found with guid : " + guid));
+            }
+        }
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null){
-            user = principal.getKey().getUser();
-        }
+
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
         if (device.getNetwork() == null) {
             logger.debug(
