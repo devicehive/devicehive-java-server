@@ -27,6 +27,9 @@ public final class ThreadLocalVariablesKeeper {
     }
 
     public static Session getSession() {
+        if (SESSION == null){
+            return null;
+        }
         return SESSION.get();
     }
 
@@ -38,6 +41,9 @@ public final class ThreadLocalVariablesKeeper {
     }
 
     public static HivePrincipal getPrincipal() {
+        if (PRINCIPAL_KEEPER == null){
+            return null;
+        }
         return PRINCIPAL_KEEPER.get();
     }
 
@@ -49,6 +55,9 @@ public final class ThreadLocalVariablesKeeper {
     }
 
     public static InetAddress getClientIP() {
+        if (IP == null){
+            return null;
+        }
         return IP.get();
     }
 
@@ -60,6 +69,9 @@ public final class ThreadLocalVariablesKeeper {
     }
 
     public static String getHostName() {
+        if (HOST_NAME == null){
+            return null;
+        }
         return HOST_NAME.get();
     }
 

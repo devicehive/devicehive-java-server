@@ -13,7 +13,10 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -23,11 +26,18 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Stateless
 public class DeviceClassService {
+    private DeviceClassDAO deviceClassDAO;
+    private EquipmentService equipmentService;
 
     @EJB
-    private DeviceClassDAO deviceClassDAO;
+    public void setDeviceClassDAO(DeviceClassDAO deviceClassDAO) {
+        this.deviceClassDAO = deviceClassDAO;
+    }
+
     @EJB
-    private EquipmentService equipmentService;
+    public void setEquipmentService(EquipmentService equipmentService) {
+        this.equipmentService = equipmentService;
+    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass get(@NotNull long id) {
@@ -107,7 +117,8 @@ public class DeviceClassService {
     public void update(@NotNull Long id, DeviceClassUpdate update) {
         DeviceClass stored = deviceClassDAO.getDeviceClass(id);
         if (stored == null) {
-            throw new HiveException("device with id : " + id + " does not exists", Response.Status.NOT_FOUND.getStatusCode());
+            throw new HiveException("device with id : " + id + " does not exists",
+                    Response.Status.NOT_FOUND.getStatusCode());
         }
         if (update == null) {
             return;

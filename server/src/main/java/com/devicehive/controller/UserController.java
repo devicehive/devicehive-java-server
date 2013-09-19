@@ -33,8 +33,12 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    @EJB
     private UserService userService;
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     /**
      * This method will generate following output
@@ -236,7 +240,8 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUser(UserUpdate user, @PathParam("id") String userId,@Context SecurityContext securityContext) {
+    public Response updateUser(UserUpdate user, @PathParam("id") String userId,
+                               @Context SecurityContext securityContext) {
         Long id;
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();

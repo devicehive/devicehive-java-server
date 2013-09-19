@@ -23,20 +23,42 @@ import java.util.List;
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationService {
-
-    @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
-    @EJB
     private TimestampService timestampService;
-    @EJB
     private DeviceEquipmentService deviceEquipmentService;
-    @EJB
     private GlobalMessageBus globalMessageBus;
-    @EJB
     private DeviceNotificationService self;
+    private DeviceDAO deviceDAO;
 
     @EJB
-    private DeviceDAO deviceDAO;
+    public void setDeviceNotificationDAO(DeviceNotificationDAO deviceNotificationDAO) {
+        this.deviceNotificationDAO = deviceNotificationDAO;
+    }
+
+    @EJB
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
+    }
+
+    @EJB
+    public void setDeviceEquipmentService(DeviceEquipmentService deviceEquipmentService) {
+        this.deviceEquipmentService = deviceEquipmentService;
+    }
+
+    @EJB
+    public void setGlobalMessageBus(GlobalMessageBus globalMessageBus) {
+        this.globalMessageBus = globalMessageBus;
+    }
+
+    @EJB
+    public void setSelf(DeviceNotificationService self) {
+        this.self = self;
+    }
+
+    @EJB
+    public void setDeviceDAO(DeviceDAO deviceDAO) {
+        this.deviceDAO = deviceDAO;
+    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList, User user, Timestamp timestamp,
@@ -106,7 +128,6 @@ public class DeviceNotificationService {
         return saveDeviceNotification(notificationsToCreate);
 
     }
-
 
     public DeviceNotification refreshDeviceStatusCase(DeviceNotification notification, Device device) {
         device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());

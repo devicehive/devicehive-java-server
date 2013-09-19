@@ -30,20 +30,37 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Stateless
 @LogExecutionTime
 public class DeviceCommandService {
-    @EJB
+
     private DeviceCommandDAO commandDAO;
-
-    @EJB
     private DeviceCommandService self;
-
-    @EJB
     private GlobalMessageBus globalMessageBus;
-
-    @EJB
     private AsyncMessageSupplier asyncMessageDeliverer;
+    private SubscriptionManager subscriptionManager;
 
     @EJB
-    private SubscriptionManager subscriptionManager;
+    public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
+        this.subscriptionManager = subscriptionManager;
+    }
+
+    @EJB
+    public void setAsyncMessageDeliverer(AsyncMessageSupplier asyncMessageDeliverer) {
+        this.asyncMessageDeliverer = asyncMessageDeliverer;
+    }
+
+    @EJB
+    public void setGlobalMessageBus(GlobalMessageBus globalMessageBus) {
+        this.globalMessageBus = globalMessageBus;
+    }
+
+    @EJB
+    public void setSelf(DeviceCommandService self) {
+        this.self = self;
+    }
+
+    @EJB
+    public void setCommandDAO(DeviceCommandDAO commandDAO) {
+        this.commandDAO = commandDAO;
+    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDevice(@NotNull long id) {
@@ -97,7 +114,6 @@ public class DeviceCommandService {
         globalMessageBus.publishDeviceCommand(command);
     }
 
-
     public void saveDeviceCommand(final DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
@@ -116,7 +132,6 @@ public class DeviceCommandService {
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
         }
     }
-
 
     public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
 

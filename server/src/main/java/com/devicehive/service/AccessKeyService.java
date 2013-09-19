@@ -21,14 +21,31 @@ import java.util.Set;
 @EJB(beanInterface = AccessKeyService.class, name = "AccessKeyService")
 public class AccessKeyService {
 
-    @EJB
+
     private AccessKeyDAO accessKeyDAO;
-    @EJB
     private AccessKeyPermissionDAO permissionDAO;
-    @EJB
     private UserService userService;
-    @EJB
     private DeviceDAO deviceDAO;
+
+    @EJB
+    public void setAccessKeyDAO(AccessKeyDAO accessKeyDAO) {
+        this.accessKeyDAO = accessKeyDAO;
+    }
+
+    @EJB
+    public void setPermissionDAO(AccessKeyPermissionDAO permissionDAO) {
+        this.permissionDAO = permissionDAO;
+    }
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @EJB
+    public void setDeviceDAO(DeviceDAO deviceDAO) {
+        this.deviceDAO = deviceDAO;
+    }
 
     public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
         if (accessKey.getLabel() == null) {
@@ -115,7 +132,7 @@ public class AccessKeyService {
         }
         user = userService.findUserWithNetworks(user.getId());
         return allowedNetworks.contains(targetNetwork.getId()) &&
-                (user.isAdmin() || user.getNetworks().contains(targetNetwork) );
+                (user.isAdmin() || user.getNetworks().contains(targetNetwork));
     }
 
     public boolean hasAccessToDevice(AccessKey accessKey, Device device) {
@@ -132,7 +149,7 @@ public class AccessKeyService {
         if (allowedDevices.contains(null)) {
             return userService.hasAccessToDevice(user, device);
         }
-        return allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(user, device) ;
+        return allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(user, device);
     }
 
     public boolean hasAccessToDevice(AccessKey accessKey, String deviceGuid) {

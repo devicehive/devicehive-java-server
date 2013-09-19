@@ -24,26 +24,66 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @LogExecutionTime
 @EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
-    @EJB
     private DeviceNotificationService deviceNotificationService;
-    @EJB
     private DeviceEquipmentService deviceEquipmentService;
-    @EJB
     private DeviceDAO deviceDAO;
-    @EJB
     private NetworkService networkService;
-    @EJB
     private UserService userService;
-    @EJB
     private DeviceClassService deviceClassService;
-    @EJB
     private TimestampService timestampService;
-    @EJB
     private GlobalMessageBus globalMessageBus;
-    @EJB
     private DeviceService self;
-    @EJB
     private DeviceActivityService deviceActivityService;
+
+    @EJB
+    public void setDeviceNotificationService(DeviceNotificationService deviceNotificationService) {
+        this.deviceNotificationService = deviceNotificationService;
+    }
+
+    @EJB
+    public void setDeviceEquipmentService(DeviceEquipmentService deviceEquipmentService) {
+        this.deviceEquipmentService = deviceEquipmentService;
+    }
+
+    @EJB
+    public void setDeviceDAO(DeviceDAO deviceDAO) {
+        this.deviceDAO = deviceDAO;
+    }
+
+    @EJB
+    public void setNetworkService(NetworkService networkService) {
+        this.networkService = networkService;
+    }
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @EJB
+    public void setDeviceClassService(DeviceClassService deviceClassService) {
+        this.deviceClassService = deviceClassService;
+    }
+
+    @EJB
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
+    }
+
+    @EJB
+    public void setGlobalMessageBus(GlobalMessageBus globalMessageBus) {
+        this.globalMessageBus = globalMessageBus;
+    }
+
+    @EJB
+    public void setSelf(DeviceService self) {
+        this.self = self;
+    }
+
+    @EJB
+    public void setDeviceActivityService(DeviceActivityService deviceActivityService) {
+        this.deviceActivityService = deviceActivityService;
+    }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
@@ -52,7 +92,6 @@ public class DeviceService {
         globalMessageBus.publishDeviceNotification(dn);
         deviceActivityService.update(dn.getDevice().getId());
     }
-
 
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate, Set<Equipment> equipmentSet,
                                          boolean useExistingEquipment,
@@ -129,7 +168,6 @@ public class DeviceService {
         }
         return deviceDAO.findByUUIDListAndUser(user, list);
     }
-
 
     /**
      * Implementation for model:
@@ -228,7 +266,7 @@ public class DeviceService {
                                 Set<String> deviceGuids) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                deviceClassVersion, sortField, sortOrderAsc, take, skip, user,networkIds, deviceGuids);
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, user, networkIds, deviceGuids);
     }
 
 }

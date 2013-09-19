@@ -8,7 +8,6 @@ import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
-import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
@@ -62,21 +61,43 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
-    @EJB
     private DeviceNotificationService notificationService;
-    @EJB
     private SubscriptionManager subscriptionManager;
-    @EJB
-    private GlobalMessageBus globalMessageBus;
-    @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
-    @EJB
     private DeviceService deviceService;
-    @EJB
     private TimestampService timestampService;
-    @EJB
     private AccessKeyService accessKeyService;
     private ExecutorService asyncPool;
+
+    @EJB
+    public void setNotificationService(DeviceNotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    @EJB
+    public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
+        this.subscriptionManager = subscriptionManager;
+    }
+
+    @EJB
+    public void setDeviceNotificationDAO(DeviceNotificationDAO deviceNotificationDAO) {
+        this.deviceNotificationDAO = deviceNotificationDAO;
+    }
+
+    @EJB
+    public void setDeviceService(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
+
+    @EJB
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
+    }
+
+    @EJB
+    public void setAccessKeyService(AccessKeyService accessKeyService) {
+        this.accessKeyService = accessKeyService;
+    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive

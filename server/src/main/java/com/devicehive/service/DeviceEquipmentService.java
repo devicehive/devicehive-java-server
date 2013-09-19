@@ -17,13 +17,24 @@ import java.util.List;
 //TODO:javadoc
 @Stateless
 public class DeviceEquipmentService {
+    private DeviceEquipmentDAO deviceEquipmentDAO;
+    private TimestampService timestampService;
+    private DeviceNotificationService notificationService;
 
     @EJB
-    private DeviceEquipmentDAO deviceEquipmentDAO;
+    public void setDeviceEquipmentDAO(DeviceEquipmentDAO deviceEquipmentDAO) {
+        this.deviceEquipmentDAO = deviceEquipmentDAO;
+    }
+
     @EJB
-    private TimestampService timestampService;
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
+    }
+
     @EJB
-    private DeviceNotificationService notificationService;
+    public void setNotificationService(DeviceNotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     /**
      * find Device equipment by device

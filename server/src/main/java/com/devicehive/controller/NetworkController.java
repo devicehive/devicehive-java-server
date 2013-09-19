@@ -33,10 +33,18 @@ import static com.devicehive.auth.AllowedAction.Action.GET_NETWORK;
 public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
-    @EJB
     private NetworkService networkService;
-    @EJB
     private UserService userService;
+
+    @EJB
+    public void setNetworkService(NetworkService networkService) {
+        this.networkService = networkService;
+    }
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     /**
      * Produces following output:

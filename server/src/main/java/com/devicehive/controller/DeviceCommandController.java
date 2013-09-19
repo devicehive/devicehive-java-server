@@ -51,23 +51,49 @@ import static com.devicehive.auth.AllowedAction.Action.*;
 public class DeviceCommandController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
-    @EJB
     private DeviceCommandService commandService;
-    @EJB
     private DeviceService deviceService;
-    @EJB
     private UserService userService;
-    @EJB
     private DeviceCommandDAO deviceCommandDAO;
-    @EJB
-    private DeviceCommandService deviceCommandService;
-    @EJB
     private SubscriptionManager subscriptionManager;
-    @EJB
     private TimestampService timestampService;
-    @EJB
     private AccessKeyService accessKeyService;
     private ExecutorService asyncPool;
+
+    @EJB
+    public void setCommandService(DeviceCommandService commandService) {
+        this.commandService = commandService;
+    }
+
+    @EJB
+    public void setDeviceService(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @EJB
+    public void setDeviceCommandDAO(DeviceCommandDAO deviceCommandDAO) {
+        this.deviceCommandDAO = deviceCommandDAO;
+    }
+
+    @EJB
+    public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
+        this.subscriptionManager = subscriptionManager;
+    }
+
+    @EJB
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
+    }
+
+    @EJB
+    public void setAccessKeyService(AccessKeyService accessKeyService) {
+        this.accessKeyService = accessKeyService;
+    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
@@ -346,7 +372,7 @@ public class DeviceCommandController {
         Set<String> allowedDeviceGuids = null;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser();
-        if (user == null && principal.getKey() != null){
+        if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
         }
         device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
@@ -520,7 +546,7 @@ public class DeviceCommandController {
         User user = principal.getUser();
         if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)){
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
                 logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
                         principal.getKey().getId());
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status

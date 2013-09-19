@@ -27,17 +27,36 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
+    private PasswordProcessor passwordService;
+    private UserDAO userDAO;
+    private NetworkDAO networkDAO;
+    private TimestampService timestampService;
+    private ConfigurationService configurationService;
 
     @Inject
-    private PasswordProcessor passwordService;
+    public void setPasswordService(PasswordProcessor passwordService) {
+        this.passwordService = passwordService;
+    }
+
     @EJB
-    private UserDAO userDAO;
+    public void setUserDAO(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+
     @EJB
-    private NetworkDAO networkDAO;
+    public void setNetworkDAO(NetworkDAO networkDAO) {
+        this.networkDAO = networkDAO;
+    }
+
     @EJB
-    private TimestampService timestampService;
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
+    }
+
     @EJB
-    private ConfigurationService configurationService;
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 
     /**
      * Tries to authenticate with given credentials

@@ -23,27 +23,31 @@ public class AccessKeyInterceptor {
 
     @AroundInvoke
     public Object checkPermissions(InvocationContext context) throws Exception {
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        AccessKey key = principal.getKey();
-        if (key == null) {
-            return context.proceed();
-        }
-        if (key.getUser() == null || !key.getUser().getStatus().equals(UserStatus.ACTIVE)) {
-            throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
-        }
-        Method method = context.getMethod();
-        AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-        List<AllowedAction.Action> actions = Arrays.asList(allowedActionAnnotation.action());
-        InetAddress clientIP = ThreadLocalVariablesKeeper.getClientIP();
+        try {
+            HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+            AccessKey key = principal.getKey();
+            if (key == null) {
+                return context.proceed();
+            }
+            if (key.getUser() == null || !key.getUser().getStatus().equals(UserStatus.ACTIVE)) {
+                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+            }
+            Method method = context.getMethod();
+            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
+            List<AllowedAction.Action> actions = Arrays.asList(allowedActionAnnotation.action());
+            InetAddress clientIP = ThreadLocalVariablesKeeper.getClientIP();
 
-        Set<AccessKeyPermission> permissions = key.getPermissions();
-        boolean isAllowed = checkActions(actions, permissions) && checkIP(clientIP,
-                permissions) && checkDeviceGuids(permissions) && checkNetworks(permissions) &&
-                checkDomains(permissions);
-        if (!isAllowed) {
-            throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+            Set<AccessKeyPermission> permissions = key.getPermissions();
+            boolean isAllowed = checkActions(actions, permissions) && checkIP(clientIP,
+                    permissions) && checkDeviceGuids(permissions) && checkNetworks(permissions) &&
+                    checkDomains(permissions);
+            if (!isAllowed) {
+                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+            }
+            return context.proceed();
+        } finally {
+            ThreadLocalVariablesKeeper.clean();
         }
-        return context.proceed();
     }
 
     private boolean checkActions(List<AllowedAction.Action> allowedActions, Set<AccessKeyPermission> permissions) {
@@ -52,6 +56,9 @@ public class AccessKeyInterceptor {
         for (AllowedAction.Action currentAllowedAction : allowedActions) {
             for (AccessKeyPermission currentPermission : permissions) {
                 boolean isCurrentPermissionAllowed = false;
+                if (currentPermission.getActions() == null){
+                    return false;
+                }
                 for (String accessKeyAction : currentPermission.getActionsAsSet()) {
                     switch (currentAllowedAction) {
                         case CREATE_DEVICE_COMMAND:

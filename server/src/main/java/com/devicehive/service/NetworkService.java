@@ -22,10 +22,12 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 @Stateless
 public class NetworkService {
-
+    private NetworkDAO networkDAO;
 
     @EJB
-    private NetworkDAO networkDAO;
+    public void setNetworkDAO(NetworkDAO networkDAO) {
+        this.networkDAO = networkDAO;
+    }
 
     public Network getById(long id) {
         return networkDAO.getById(id);

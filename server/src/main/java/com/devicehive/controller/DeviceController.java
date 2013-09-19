@@ -8,7 +8,9 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.*;
+import com.devicehive.service.AccessKeyService;
+import com.devicehive.service.DeviceEquipmentService;
+import com.devicehive.service.DeviceService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
 import com.google.gson.Gson;
@@ -41,16 +43,24 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISH
 public class DeviceController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
-    @EJB
     private DeviceEquipmentService deviceEquipmentService;
-    @EJB
-    private DeviceCommandService deviceCommandService;
-    @EJB
     private DeviceService deviceService;
-    @EJB
-    private UserService userService;
-    @EJB
     private AccessKeyService accessKeyService;
+
+    @EJB
+    public void setDeviceEquipmentService(DeviceEquipmentService deviceEquipmentService) {
+        this.deviceEquipmentService = deviceEquipmentService;
+    }
+
+    @EJB
+    public void setDeviceService(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
+
+    @EJB
+    public void setAccessKeyService(AccessKeyService accessKeyService) {
+        this.accessKeyService = accessKeyService;
+    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -217,9 +227,9 @@ public class DeviceController {
             user = principal.getKey().getUser();
         }
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-        if (principal.getKey() != null){
+        if (principal.getKey() != null) {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(),
-                    device) || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())){
+                    device) || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("Access denied. No permissions. Device get for device {}", guid);
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));
@@ -296,9 +306,9 @@ public class DeviceController {
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,
                 principal.getDevice());
-        if (principal.getKey() != null){
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(),device)
-                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())){
+        if (principal.getKey() != null) {
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
+                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));
@@ -335,9 +345,9 @@ public class DeviceController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-        if (principal.getKey() != null){
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(),device)
-                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())){
+        if (principal.getKey() != null) {
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
+                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));
@@ -354,5 +364,6 @@ public class DeviceController {
         return ResponseFactory
                 .response(Response.Status.OK, equipment, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
     }
+
 
 }

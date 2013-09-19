@@ -22,9 +22,12 @@ import java.util.List;
  */
 @Stateless
 public class EquipmentService {
+    private EquipmentDAO equipmentDAO;
 
     @EJB
-    private EquipmentDAO equipmentDAO;
+    public void setEquipmentDAO(EquipmentDAO equipmentDAO) {
+        this.equipmentDAO = equipmentDAO;
+    }
 
     /**
      * Delete Equipment (not DeviceEquipment, but whole equipment with appropriate device Equipments)

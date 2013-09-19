@@ -22,14 +22,21 @@ import javax.ws.rs.core.Response;
 @Path("/info")
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
-
-    @EJB
     private TimestampService timestampService;
-
-    @EJB
     private ConfigurationService configurationService;
 
+    @EJB
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
+    }
+
+    @EJB
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
     @GET
+
     @PermitAll
     public Response getApiInfo() {
         logger.debug("ApiInfo requested");

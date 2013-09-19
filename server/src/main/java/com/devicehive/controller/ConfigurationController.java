@@ -22,11 +22,12 @@ import javax.ws.rs.core.Response;
 @Path("/config")
 public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
-
-
-    @EJB
     private ConfigurationService configurationService;
 
+    @EJB
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
@@ -42,8 +43,7 @@ public class ConfigurationController {
         return setProperty(name, value);
     }
 
-
-    private Response setProperty(String name, String value){
+    private Response setProperty(String name, String value) {
         logger.debug("Configuration will be set. Property's name : {} value : {} ", name, value);
         configurationService.save(name, value);
         logger.debug("Configuration has been set. Property's name : {} value : {} ", name, value);

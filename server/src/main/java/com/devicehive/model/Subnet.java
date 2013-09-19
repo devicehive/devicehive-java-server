@@ -23,9 +23,15 @@ public class Subnet {
     public Subnet(String subnet) {
         String[] parts = subnet.split("/");
         try {
-            this.subnet = subnet;
+
             this.inetAddress = InetAddress.getByName(parts[0]);
-            this.mask = Integer.parseInt(parts[1]);
+            if (parts.length == 1){
+              mask = IPv4_MASK_MAX_VALUE;
+                this.subnet = subnet + "/32";
+            } else{
+                this.mask = Integer.parseInt(parts[1]);
+                this.subnet = subnet;
+            }
             if (inetAddress instanceof Inet4Address && mask > IPv4_MASK_MAX_VALUE) {
                 throw new IllegalArgumentException("Invalid mask value : " + mask);
             }

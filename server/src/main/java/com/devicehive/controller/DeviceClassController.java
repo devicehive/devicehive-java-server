@@ -29,10 +29,19 @@ import java.util.List;
 public class DeviceClassController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
-    @EJB
     private DeviceClassService deviceClassService;
-    @EJB
     private EquipmentService equipmentService;
+
+    @EJB
+    public void setDeviceClassService(DeviceClassService deviceClassService) {
+        this.deviceClassService = deviceClassService;
+    }
+
+    @EJB
+    public void setEquipmentService(EquipmentService equipmentService) {
+
+        this.equipmentService = equipmentService;
+    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/list"> DeviceHive RESTful API:

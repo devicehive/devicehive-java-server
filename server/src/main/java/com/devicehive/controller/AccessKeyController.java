@@ -25,9 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * REST Controller for access keys: <i>/user/{userId}/accesskey</i>
@@ -38,12 +36,24 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUB
 @LogExecutionTime
 public class AccessKeyController {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
-    @EJB
     private UserService userService;
-    @EJB
     private AccessKeyService accessKeyService;
-    @EJB
     private AccessKeyDAO accessKeyDAO;
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @EJB
+    public void setAccessKeyService(AccessKeyService accessKeyService) {
+        this.accessKeyService = accessKeyService;
+    }
+
+    @EJB
+    public void setAccessKeyDAO(AccessKeyDAO accessKeyDAO) {
+        this.accessKeyDAO = accessKeyDAO;
+    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:
@@ -95,7 +105,8 @@ public class AccessKeyController {
                     .response(Response.Status.NOT_FOUND, new ErrorResponse("Access key not found."));
         }
 
-        logger.debug("Access key : insert proceed successfully for userId : {} and accessKeyId : {}", userId, accessKeyId);
+        logger.debug("Access key : insert proceed successfully for userId : {} and accessKeyId : {}", userId,
+                accessKeyId);
 
         return ResponseFactory.response(Response.Status.OK, result, ACCESS_KEY_LISTED);
     }
@@ -143,7 +154,7 @@ public class AccessKeyController {
                 accessKeyId, accessKeyUpdate);
 
         Long id = getUser(securityContext, userId).getId();
-        if (!accessKeyService.update(id, accessKeyId, accessKeyUpdate)){
+        if (!accessKeyService.update(id, accessKeyId, accessKeyUpdate)) {
             logger.debug("Access key : update failed for userId : {} and accessKeyId : {}. Reason: No access key " +
                     "found.", userId, accessKeyId);
             return ResponseFactory
@@ -174,38 +185,37 @@ public class AccessKeyController {
         Long id = getUser(securityContext, userId).getId();
         accessKeyDAO.delete(id, accessKeyId);
 
-        logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId, accessKeyId);
+        logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId,
+                accessKeyId);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
 
     }
 
-    private User getUser(SecurityContext securityContext, String userId){
+    private User getUser(SecurityContext securityContext, String userId) {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User currentUser = principal.getUser();
 
         Long id;
-        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)){
+        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             return currentUser;
-        }
-        else{
-            try{
+        } else {
+            try {
                 id = Long.parseLong(userId);
-            }
-            catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 throw new HiveException("Bad user identifier :" + userId, e,
                         Response.Status.BAD_REQUEST.getStatusCode());
             }
         }
 
         User result = null;
-        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)){
+        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)) {
             result = userService.findById(id);
-            if (result == null){
+            if (result == null) {
                 throw new HiveException("User not found", Response.Status.NOT_FOUND.getStatusCode());
             }
 
         }
-        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)){
+        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)) {
             throw new HiveException("User not found", Response.Status.NOT_FOUND.getStatusCode());
         }
         return result;
