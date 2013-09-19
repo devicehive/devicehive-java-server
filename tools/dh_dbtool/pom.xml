@@ -6,7 +6,7 @@
 
     <groupId>database-main</groupId>
     <artifactId>dh_dbtool</artifactId>
-    <version>1.2.0.0-beta</version>
+    <version>1.2.0.1-SNAPSHOT</version>
     <name>DeviceHive Database Update Tool</name>
     <packaging>jar</packaging>
 
