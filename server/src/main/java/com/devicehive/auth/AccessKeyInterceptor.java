@@ -1,7 +1,10 @@
 package com.devicehive.auth;
 
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.Subnet;
+import com.devicehive.model.UserStatus;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
 
 import javax.annotation.Priority;
@@ -56,75 +59,14 @@ public class AccessKeyInterceptor {
         for (AllowedAction.Action currentAllowedAction : allowedActions) {
             for (AccessKeyPermission currentPermission : permissions) {
                 boolean isCurrentPermissionAllowed = false;
-                if (currentPermission.getActions() == null){
+                if (currentPermission.getActions() == null) {
                     return false;
                 }
                 for (String accessKeyAction : currentPermission.getActionsAsSet()) {
-                    switch (currentAllowedAction) {
-                        case CREATE_DEVICE_COMMAND:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.CREATE_DEVICE_COMMAND)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case CREATE_DEVICE_NOTIFICATION:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.CREATE_DEVICE_NOTIFICATION)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case GET_NETWORK:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.GET_NETWORK)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case GET_DEVICE:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.GET_DEVICE)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case GET_DEVICE_STATE:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.GET_DEVICE_STATE)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case GET_DEVICE_NOTIFICATION:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.GET_DEVICE_NOTIFICATION)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case GET_DEVICE_COMMAND:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.GET_DEVICE_COMMAND)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case REGISTER_DEVICE:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.REGISTER_DEVICE)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        case UPDATE_DEVICE_COMMAND:
-                            if (accessKeyAction.equalsIgnoreCase(AvailableActions.UPDATE_DEVICE_COMMAND)) {
-                                isAllowed = true;
-                                isCurrentPermissionAllowed = true;
-                                permissionsToRemove.remove(currentPermission);
-                            }
-                            break;
-                        default:
+                    if (accessKeyAction.equalsIgnoreCase(currentAllowedAction.getValue())) {
+                        isCurrentPermissionAllowed = true;
+                        isAllowed = true;
+                        permissionsToRemove.remove(currentPermission);
                     }
                     if (isCurrentPermissionAllowed) {
                         break;

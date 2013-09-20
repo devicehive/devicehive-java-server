@@ -24,7 +24,6 @@ import java.util.List;
 @LogExecutionTime
 public class DeviceNotificationService {
     private DeviceNotificationDAO deviceNotificationDAO;
-    private TimestampService timestampService;
     private DeviceEquipmentService deviceEquipmentService;
     private GlobalMessageBus globalMessageBus;
     private DeviceNotificationService self;
@@ -33,11 +32,6 @@ public class DeviceNotificationService {
     @EJB
     public void setDeviceNotificationDAO(DeviceNotificationDAO deviceNotificationDAO) {
         this.deviceNotificationDAO = deviceNotificationDAO;
-    }
-
-    @EJB
-    public void setTimestampService(TimestampService timestampService) {
-        this.timestampService = timestampService;
     }
 
     @EJB

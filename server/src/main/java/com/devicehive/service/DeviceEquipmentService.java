@@ -19,7 +19,6 @@ import java.util.List;
 public class DeviceEquipmentService {
     private DeviceEquipmentDAO deviceEquipmentDAO;
     private TimestampService timestampService;
-    private DeviceNotificationService notificationService;
 
     @EJB
     public void setDeviceEquipmentDAO(DeviceEquipmentDAO deviceEquipmentDAO) {
@@ -29,11 +28,6 @@ public class DeviceEquipmentService {
     @EJB
     public void setTimestampService(TimestampService timestampService) {
         this.timestampService = timestampService;
-    }
-
-    @EJB
-    public void setNotificationService(DeviceNotificationService notificationService) {
-        this.notificationService = notificationService;
     }
 
     /**

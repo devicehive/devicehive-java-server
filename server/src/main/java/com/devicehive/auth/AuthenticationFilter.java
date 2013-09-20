@@ -15,6 +15,7 @@ import javax.naming.NamingException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -58,7 +59,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private User authUser(ContainerRequestContext requestContext) throws IOException {
-        String auth = requestContext.getHeaders().getFirst("authorization");
+        String auth = requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;
         }
@@ -82,7 +83,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private AccessKey authKey(ContainerRequestContext requestContext){
-        String auth = requestContext.getHeaders().getFirst("authorization");
+        String auth = requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;
         }

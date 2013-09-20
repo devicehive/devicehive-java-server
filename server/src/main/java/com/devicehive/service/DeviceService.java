@@ -25,12 +25,10 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
     private DeviceNotificationService deviceNotificationService;
-    private DeviceEquipmentService deviceEquipmentService;
     private DeviceDAO deviceDAO;
     private NetworkService networkService;
     private UserService userService;
     private DeviceClassService deviceClassService;
-    private TimestampService timestampService;
     private GlobalMessageBus globalMessageBus;
     private DeviceService self;
     private DeviceActivityService deviceActivityService;
@@ -38,11 +36,6 @@ public class DeviceService {
     @EJB
     public void setDeviceNotificationService(DeviceNotificationService deviceNotificationService) {
         this.deviceNotificationService = deviceNotificationService;
-    }
-
-    @EJB
-    public void setDeviceEquipmentService(DeviceEquipmentService deviceEquipmentService) {
-        this.deviceEquipmentService = deviceEquipmentService;
     }
 
     @EJB
@@ -63,11 +56,6 @@ public class DeviceService {
     @EJB
     public void setDeviceClassService(DeviceClassService deviceClassService) {
         this.deviceClassService = deviceClassService;
-    }
-
-    @EJB
-    public void setTimestampService(TimestampService timestampService) {
-        this.timestampService = timestampService;
     }
 
     @EJB
