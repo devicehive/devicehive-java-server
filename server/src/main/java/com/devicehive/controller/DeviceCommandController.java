@@ -1,6 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedAction;
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
@@ -39,7 +39,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.devicehive.auth.AllowedAction.Action.*;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -105,7 +105,7 @@ public class DeviceCommandController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedAction(action = {GET_DEVICE_COMMAND})
+    @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     @Path("/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
@@ -199,7 +199,7 @@ public class DeviceCommandController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedAction(action = {GET_DEVICE_COMMAND})
+    @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     @Path("/{commandId}/poll")
     public void wait(
             @PathParam("deviceGuid") final String deviceGuid,
@@ -337,7 +337,7 @@ public class DeviceCommandController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedAction(action = {GET_DEVICE_COMMAND})
+    @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     public Response query(@PathParam("deviceGuid") String guid,
                           @QueryParam("start") Timestamp start,
                           @QueryParam("end") Timestamp end,
@@ -378,7 +378,7 @@ public class DeviceCommandController {
         device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
         if (user == null && principal.getKey() != null) {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(),
-                    device) || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
+                    device) || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
                 return ResponseFactory.response(Response.Status.NOT_FOUND,
                         new ErrorResponse("Device not found"));
@@ -415,7 +415,7 @@ public class DeviceCommandController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedAction(action = {GET_DEVICE_COMMAND})
+    @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     @Path("/{id}")
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id,
                         @Context SecurityContext securityContext) {
@@ -484,7 +484,7 @@ public class DeviceCommandController {
      */
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedAction(action = {CREATE_DEVICE_COMMAND})
+    @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
@@ -535,7 +535,7 @@ public class DeviceCommandController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedAction(action = {UPDATE_DEVICE_COMMAND})
+    @AllowedKeyAction(action = {UPDATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command,

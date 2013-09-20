@@ -116,17 +116,23 @@ public class AccessKeyService {
         }
     }
 
-    public boolean hasAcccessToNetwork(AccessKey accessKey, Network targetNetwork) {
+    public boolean hasAccessToNetwork(AccessKey accessKey, Network targetNetwork) {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
         Set<Long> allowedNetworks = new HashSet<>();
         User user = accessKey.getUser();
+        Set<AccessKeyPermission> toRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
             if (currentPermission.getNetworkIdsAsSet() == null) {
                 allowedNetworks.add(null);
             } else {
-                allowedNetworks.addAll(currentPermission.getNetworkIdsAsSet());
+                if (currentPermission.getNetworkIdsAsSet().contains(targetNetwork.getId())) {
+                    allowedNetworks.addAll(currentPermission.getNetworkIdsAsSet());
+                } else {
+                    toRemove.add(currentPermission);
+                }
             }
         }
+        permissions.removeAll(toRemove);
         if (allowedNetworks.contains(null)) {
             return user.isAdmin() || user.getNetworks().contains(targetNetwork);
         }
@@ -139,13 +145,19 @@ public class AccessKeyService {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
         Set<String> allowedDevices = new HashSet<>();
         User user = accessKey.getUser();
+        Set<AccessKeyPermission> toRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
             if (currentPermission.getDeviceGuidsAsSet() == null) {
                 allowedDevices.add(null);
             } else {
-                allowedDevices.addAll(currentPermission.getDeviceGuidsAsSet());
+                if (currentPermission.getDeviceGuidsAsSet().contains(device.getGuid())) {
+                    allowedDevices.addAll(currentPermission.getDeviceGuidsAsSet());
+                } else {
+                    toRemove.add(currentPermission);
+                }
             }
         }
+        permissions.removeAll(toRemove);
         if (allowedDevices.contains(null)) {
             return userService.hasAccessToDevice(user, device);
         }
@@ -158,20 +170,31 @@ public class AccessKeyService {
         Set<Long> allowedNetworks = new HashSet<>();
 
         User accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
+        Set<AccessKeyPermission> toRemove = new HashSet<>();
+
+        Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceGuid);      //not good way
 
         for (AccessKeyPermission currentPermission : permissions) {
             if (currentPermission.getDeviceGuidsAsSet() == null) {
                 allowedDevices.add(null);
             } else {
-                allowedDevices.addAll(currentPermission.getDeviceGuidsAsSet());
+                if (!currentPermission.getDeviceGuidsAsSet().contains(deviceGuid)) {
+                    toRemove.add(currentPermission);
+                } else {
+                    allowedDevices.addAll(currentPermission.getDeviceGuidsAsSet());
+                }
             }
             if (currentPermission.getNetworkIdsAsSet() == null) {
                 allowedNetworks.add(null);
             } else {
-                allowedNetworks.addAll(currentPermission.getNetworkIdsAsSet());
+                if (!currentPermission.getNetworkIdsAsSet().contains(device.getNetwork().getId())) {
+                    toRemove.add(currentPermission);
+                } else {
+                    allowedNetworks.addAll(currentPermission.getNetworkIdsAsSet());
+                }
             }
         }
-        Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceGuid);      //not good way
+        permissions.removeAll(toRemove);
         boolean hasAccess;
         hasAccess = allowedDevices.contains(null) ?
                 userService.hasAccessToDevice(accessKeyUser, device) :

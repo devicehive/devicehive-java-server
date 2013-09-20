@@ -16,7 +16,7 @@ import static java.lang.annotation.ElementType.TYPE;
 @Inherited
 @InterceptorBinding
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AllowedAction {
+public @interface AllowedKeyAction {
 
     @Nonbinding
     public Action[] action() default Action.NONE;

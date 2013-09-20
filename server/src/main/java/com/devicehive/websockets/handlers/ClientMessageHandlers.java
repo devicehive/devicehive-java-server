@@ -1,6 +1,6 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.auth.AllowedAction;
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.auth.AllowedAction.Action.*;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
 
 @LogExecutionTime
 public class ClientMessageHandlers implements HiveMessageHandlers {
@@ -121,7 +121,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "command/insert")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedAction(action = {CREATE_DEVICE_COMMAND})
+    @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
     @Authorize
     public WebSocketResponse processCommandInsert(@WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceGuid,
                                            @WsParam("command") @JsonPolicyDef(COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
@@ -172,7 +172,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedAction(action = {GET_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     @Authorize
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                    @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
@@ -289,7 +289,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedAction(action = {GET_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     @Authorize
     public WebSocketResponse processNotificationUnsubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                      Session session) {

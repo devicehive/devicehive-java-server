@@ -1,6 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedAction;
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.devicehive.auth.AllowedAction.Action.*;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 
 /**
@@ -82,7 +82,7 @@ public class DeviceController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedAction(action = {GET_DEVICE})
+    @AllowedKeyAction(action = {GET_DEVICE})
     public Response list(@QueryParam("name") String name,
                          @QueryParam("namePattern") String namePattern,
                          @QueryParam("status") String status,
@@ -159,7 +159,7 @@ public class DeviceController {
      */
     @PUT
     @Path("/{id}")
-    @AllowedAction(action = {REGISTER_DEVICE})
+    @AllowedKeyAction(action = {REGISTER_DEVICE})
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(JsonObject jsonObject, @PathParam("id") String deviceGuid,
@@ -216,7 +216,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}")
-    @AllowedAction(action = {GET_DEVICE})
+    @AllowedKeyAction(action = {GET_DEVICE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam("id") String guid, @Context SecurityContext securityContext) {
         logger.debug("Device get requested. Guid {}", guid);
@@ -229,7 +229,7 @@ public class DeviceController {
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
         if (principal.getKey() != null) {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(),
-                    device) || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
+                    device) || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("Access denied. No permissions. Device get for device {}", guid);
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));
@@ -297,7 +297,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment")
-    @AllowedAction(action = {GET_DEVICE_STATE})
+    @AllowedKeyAction(action = {GET_DEVICE_STATE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipment(@PathParam("id") String guid, @Context SecurityContext securityContext) {
         logger.debug("Device equipment requested for device {}", guid);
@@ -308,7 +308,7 @@ public class DeviceController {
                 principal.getDevice());
         if (principal.getKey() != null) {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
-                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
+                    || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));
@@ -335,7 +335,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment/{code}")
-    @AllowedAction(action = {GET_DEVICE_STATE})
+    @AllowedKeyAction(action = {GET_DEVICE_STATE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipmentByCode(@PathParam("id") String guid,
                                     @PathParam("code") String code,
@@ -347,7 +347,7 @@ public class DeviceController {
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
         if (principal.getKey() != null) {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
-                    || !accessKeyService.hasAcccessToNetwork(principal.getKey(), device.getNetwork())) {
+                    || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));

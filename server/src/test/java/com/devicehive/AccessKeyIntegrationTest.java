@@ -1,7 +1,7 @@
 package com.devicehive;
 
 import com.devicehive.auth.AccessKeyInterceptor;
-import com.devicehive.auth.AllowedAction;
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.controller.DeviceCommandController;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
-public class AccessKeyOneFieldTest {
+public class AccessKeyIntegrationTest {
 
     private static final User ADMIN = new User() {{
         setId(Constants.ACTIVE_ADMIN_ID);
@@ -87,7 +87,7 @@ public class AccessKeyOneFieldTest {
         Iterator<Method> iterator = allAvailableMethods.iterator();
         while (iterator.hasNext()) {
             Method currentMethod = iterator.next();
-            if (!currentMethod.isAnnotationPresent(AllowedAction.class)) {
+            if (!currentMethod.isAnnotationPresent(AllowedKeyAction.class)) {
                 iterator.remove();
             } else {
                 methodCalls++;
@@ -106,8 +106,8 @@ public class AccessKeyOneFieldTest {
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             try {
-                AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-                List<AllowedAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
+                AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
+                List<AllowedKeyAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
                 try {
@@ -115,35 +115,35 @@ public class AccessKeyOneFieldTest {
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE)) {
                     actionTestProcess(accessKey, "[GetDevice,GetNetwork,GetDeviceNotification]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.REGISTER_DEVICE)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.REGISTER_DEVICE)) {
                     actionTestProcess(accessKey, "[CreateDeviceNotification,RegisterDevice]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_COMMAND)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.CREATE_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey, "[CreateDeviceCommand,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_NOTIFICATION)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION)) {
                     actionTestProcess(accessKey,
                             "[CreateDeviceNotification,CreateDeviceCommand,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_COMMAND)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey, "[CreateDeviceNotification,GetDeviceCommand,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_NOTIFICATION)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION)) {
                     actionTestProcess(accessKey,
                             "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.UPDATE_DEVICE_COMMAND)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey,
                             "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_NETWORK)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
                     actionTestProcess(accessKey,
                             "[CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_STATE)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_STATE)) {
                     actionTestProcess(accessKey, "[GetDeviceState]");
                 }
             } catch (Exception e) {
@@ -168,8 +168,8 @@ public class AccessKeyOneFieldTest {
         int exceptionsCounter = 0;
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
-            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-            List<AllowedAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
+            AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
+            List<AllowedKeyAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
             ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
             ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
             try {
@@ -179,31 +179,31 @@ public class AccessKeyOneFieldTest {
             }
             try {
                 //if some controllers will contain more than 1 action per method, should be changed
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE)) {
                     actionTestProcess(accessKey, "[RegisterDevice]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.REGISTER_DEVICE)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.REGISTER_DEVICE)) {
                     actionTestProcess(accessKey, "[GetDevice]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_STATE)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_STATE)) {
                     actionTestProcess(accessKey, "[GetDevice]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_COMMAND)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.CREATE_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey, "[CreateDeviceNotification]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_NOTIFICATION)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION)) {
                     actionTestProcess(accessKey, "[GetDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_COMMAND)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey, "[CreateDeviceNotification]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_NOTIFICATION)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION)) {
                     actionTestProcess(accessKey, "[CreateDeviceNotification]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.UPDATE_DEVICE_COMMAND)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey, "[GetNetwork]");
                 }
-                if (allowedActions.contains(AllowedAction.Action.GET_NETWORK)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
                     actionTestProcess(accessKey,
                             "[CreateDeviceNotification]");
                 }
@@ -243,8 +243,8 @@ public class AccessKeyOneFieldTest {
         accessKey.setUser(CLIENT);
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
-            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
+            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
@@ -253,35 +253,7 @@ public class AccessKeyOneFieldTest {
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
-                switch (action) {
-                    case GET_NETWORK:
-                        subnetsTestProcess(accessKey, "[GetNetwork]");
-                        break;
-                    case GET_DEVICE:
-                        subnetsTestProcess(accessKey, "[GetDevice]");
-                        break;
-                    case GET_DEVICE_STATE:
-                        subnetsTestProcess(accessKey, "[GetDeviceState]");
-                        break;
-                    case GET_DEVICE_NOTIFICATION:
-                        subnetsTestProcess(accessKey, "[GetDeviceNotification]");
-                        break;
-                    case GET_DEVICE_COMMAND:
-                        subnetsTestProcess(accessKey, "[GetDeviceCommand]");
-                        break;
-                    case REGISTER_DEVICE:
-                        subnetsTestProcess(accessKey, "[RegisterDevice]");
-                        break;
-                    case CREATE_DEVICE_NOTIFICATION:
-                        subnetsTestProcess(accessKey, "[CreateDeviceNotification]");
-                        break;
-                    case CREATE_DEVICE_COMMAND:
-                        subnetsTestProcess(accessKey, "[CreateDeviceCommand]");
-                        break;
-                    case UPDATE_DEVICE_COMMAND:
-                        subnetsTestProcess(accessKey, "[UpdateDeviceCommand]");
-                        break;
-                }
+                subnetsTestProcess(accessKey, "[" + action.getValue() + "]");
             } catch (Exception e) {
                 fail("No exceptions expected from interceptor");
             } finally {
@@ -303,8 +275,8 @@ public class AccessKeyOneFieldTest {
         int exceptionsCounter = 0;
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
-            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
+            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
@@ -314,35 +286,7 @@ public class AccessKeyOneFieldTest {
                     fail("Unexpected exception");
                 }
                 try {
-                    switch (action) {
-                        case GET_NETWORK:
-                            subnetsTestProcess(accessKey, "[GetNetwork]");
-                            break;
-                        case GET_DEVICE:
-                            subnetsTestProcess(accessKey, "[GetDevice]");
-                            break;
-                        case GET_DEVICE_STATE:
-                            subnetsTestProcess(accessKey, "[GetDeviceState]");
-                            break;
-                        case GET_DEVICE_NOTIFICATION:
-                            subnetsTestProcess(accessKey, "[GetDeviceNotification]");
-                            break;
-                        case GET_DEVICE_COMMAND:
-                            subnetsTestProcess(accessKey, "[GetDeviceCommand]");
-                            break;
-                        case REGISTER_DEVICE:
-                            subnetsTestProcess(accessKey, "[RegisterDevice]");
-                            break;
-                        case CREATE_DEVICE_NOTIFICATION:
-                            subnetsTestProcess(accessKey, "[CreateDeviceNotification]");
-                            break;
-                        case CREATE_DEVICE_COMMAND:
-                            subnetsTestProcess(accessKey, "[CreateDeviceCommand]");
-                            break;
-                        case UPDATE_DEVICE_COMMAND:
-                            subnetsTestProcess(accessKey, "[UpdateDeviceCommand]");
-                            break;
-                    }
+                    subnetsTestProcess(accessKey, "[" + action.getValue() + "]");
                 } catch (HiveException e) {
                     if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
                         fail("Unauthorizd code expected");
@@ -382,8 +326,8 @@ public class AccessKeyOneFieldTest {
         accessKey.setUser(CLIENT);
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
-            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
+            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
@@ -392,35 +336,7 @@ public class AccessKeyOneFieldTest {
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
-                switch (action) {
-                    case GET_NETWORK:
-                        domainsTestProcess(accessKey, "[GetNetwork]");
-                        break;
-                    case GET_DEVICE:
-                        domainsTestProcess(accessKey, "[GetDevice]");
-                        break;
-                    case GET_DEVICE_STATE:
-                        domainsTestProcess(accessKey, "[GetDeviceState]");
-                        break;
-                    case GET_DEVICE_NOTIFICATION:
-                        domainsTestProcess(accessKey, "[GetDeviceNotification]");
-                        break;
-                    case GET_DEVICE_COMMAND:
-                        domainsTestProcess(accessKey, "[GetDeviceCommand]");
-                        break;
-                    case REGISTER_DEVICE:
-                        domainsTestProcess(accessKey, "[RegisterDevice]");
-                        break;
-                    case CREATE_DEVICE_NOTIFICATION:
-                        domainsTestProcess(accessKey, "[CreateDeviceNotification]");
-                        break;
-                    case CREATE_DEVICE_COMMAND:
-                        domainsTestProcess(accessKey, "[CreateDeviceCommand]");
-                        break;
-                    case UPDATE_DEVICE_COMMAND:
-                        domainsTestProcess(accessKey, "[UpdateDeviceCommand]");
-                        break;
-                }
+                domainsTestProcess(accessKey, "[" + action.getValue() + "]");
             } catch (Exception e) {
                 fail("No exceptions expected from interceptor");
             } finally {
@@ -442,8 +358,8 @@ public class AccessKeyOneFieldTest {
         int exceptionsCounter = 0;
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
-            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
+            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com.dataart.com");
@@ -453,35 +369,7 @@ public class AccessKeyOneFieldTest {
                     fail("Unexpected exception");
                 }
                 try {
-                    switch (action) {
-                        case GET_NETWORK:
-                            domainsTestProcess(accessKey, "[GetNetwork]");
-                            break;
-                        case GET_DEVICE:
-                            domainsTestProcess(accessKey, "[GetDevice]");
-                            break;
-                        case GET_DEVICE_STATE:
-                            domainsTestProcess(accessKey, "[GetDeviceState]");
-                            break;
-                        case GET_DEVICE_NOTIFICATION:
-                            domainsTestProcess(accessKey, "[GetDeviceNotification]");
-                            break;
-                        case GET_DEVICE_COMMAND:
-                            domainsTestProcess(accessKey, "[GetDeviceCommand]");
-                            break;
-                        case REGISTER_DEVICE:
-                            domainsTestProcess(accessKey, "[RegisterDevice]");
-                            break;
-                        case CREATE_DEVICE_NOTIFICATION:
-                            domainsTestProcess(accessKey, "[CreateDeviceNotification]");
-                            break;
-                        case CREATE_DEVICE_COMMAND:
-                            domainsTestProcess(accessKey, "[CreateDeviceCommand]");
-                            break;
-                        case UPDATE_DEVICE_COMMAND:
-                            domainsTestProcess(accessKey, "[UpdateDeviceCommand]");
-                            break;
-                    }
+                    domainsTestProcess(accessKey, "[" + action.getValue() + "]");
                 } catch (HiveException e) {
                     if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
                         fail("Unauthorizd code expected");
@@ -510,7 +398,6 @@ public class AccessKeyOneFieldTest {
         permissions.add(permission);
         accessKey.setPermissions(permissions);
         interceptor.checkPermissions(context);
-
     }
 }
 
