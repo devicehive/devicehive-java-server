@@ -55,6 +55,7 @@ public class AccessKeyOneFieldTest {
     private UserDAO userDAO;
     private AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
     private InvocationContext context;
+    private int methodCalls;
 
     @Before
     public void initializeDependencies() {
@@ -83,6 +84,15 @@ public class AccessKeyOneFieldTest {
         allAvailableMethods.addAll(Arrays.asList(notificationControllerMethods));
         allAvailableMethods.addAll(Arrays.asList(commandControllerMethods));
         allAvailableMethods.addAll(Arrays.asList(networkControllerMethods));
+        Iterator<Method> iterator = allAvailableMethods.iterator();
+        while (iterator.hasNext()) {
+            Method currentMethod = iterator.next();
+            if (!currentMethod.isAnnotationPresent(AllowedAction.class)) {
+                iterator.remove();
+            } else {
+                methodCalls++;
+            }
+        }
     }
 
     @Test
@@ -94,52 +104,55 @@ public class AccessKeyOneFieldTest {
         accessKey.setUser(CLIENT);
 
         for (Method method : allAvailableMethods) {
-            if (method.isAnnotationPresent(AllowedAction.class)) {
-                when(context.getMethod()).thenReturn(method);
+            when(context.getMethod()).thenReturn(method);
+            try {
+                AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
+                List<AllowedAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
+                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
+                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
                 try {
-                    AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-                    List<AllowedAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
-                    ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                    ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
-                    try {
-                        ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
-                    } catch (UnknownHostException e) {
-                        fail("Unexpected exception");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE)) {
-                        actionTestProcess(accessKey, "[GetDevice,GetNetwork,GetDeviceNotification]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.REGISTER_DEVICE)) {
-                        actionTestProcess(accessKey, "[CreateDeviceNotification,RegisterDevice]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_COMMAND)) {
-                        actionTestProcess(accessKey, "[CreateDeviceCommand,UpdateDeviceCommand]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_NOTIFICATION)) {
-                        actionTestProcess(accessKey,
-                                "[CreateDeviceNotification,CreateDeviceCommand,UpdateDeviceCommand]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_COMMAND)) {
-                        actionTestProcess(accessKey, "[CreateDeviceNotification,GetDeviceCommand,UpdateDeviceCommand]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_NOTIFICATION)) {
-                        actionTestProcess(accessKey,
-                                "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.UPDATE_DEVICE_COMMAND)) {
-                        actionTestProcess(accessKey,
-                                "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_NETWORK)) {
-                        actionTestProcess(accessKey,
-                                "[CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_STATE)) {
-                        actionTestProcess(accessKey, "[GetDeviceState]");
-                    }
-                } catch (Exception e) {
-                    fail("No exceptions expected from interceptor");
+                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+                } catch (UnknownHostException e) {
+                    fail("Unexpected exception");
                 }
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE)) {
+                    actionTestProcess(accessKey, "[GetDevice,GetNetwork,GetDeviceNotification]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.REGISTER_DEVICE)) {
+                    actionTestProcess(accessKey, "[CreateDeviceNotification,RegisterDevice]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_COMMAND)) {
+                    actionTestProcess(accessKey, "[CreateDeviceCommand,UpdateDeviceCommand]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_NOTIFICATION)) {
+                    actionTestProcess(accessKey,
+                            "[CreateDeviceNotification,CreateDeviceCommand,UpdateDeviceCommand]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_COMMAND)) {
+                    actionTestProcess(accessKey, "[CreateDeviceNotification,GetDeviceCommand,UpdateDeviceCommand]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_NOTIFICATION)) {
+                    actionTestProcess(accessKey,
+                            "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.UPDATE_DEVICE_COMMAND)) {
+                    actionTestProcess(accessKey,
+                            "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_NETWORK)) {
+                    actionTestProcess(accessKey,
+                            "[CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_STATE)) {
+                    actionTestProcess(accessKey, "[GetDeviceState]");
+                }
+            } catch (Exception e) {
+                fail("No exceptions expected from interceptor");
+            } finally {
+                assertNull(ThreadLocalVariablesKeeper.getClientIP());
+                assertNull(ThreadLocalVariablesKeeper.getHostName());
+                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
+                accessKey.getPermissions().clear();
             }
         }
 
@@ -153,60 +166,62 @@ public class AccessKeyOneFieldTest {
         AccessKey accessKey = new AccessKey();
         accessKey.setUser(ADMIN);
         int exceptionsCounter = 0;
-        int methodCallsCounter = 0;
         for (Method method : allAvailableMethods) {
-            if (method.isAnnotationPresent(AllowedAction.class)) {
-                methodCallsCounter++;
-                when(context.getMethod()).thenReturn(method);
-                AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-                List<AllowedAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
-                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
-                try {
-                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
-                } catch (UnknownHostException e) {
-                    fail("Unexpected exception");
-                }
-                try {
-                    //if some controllers will contain more than 1 action per method, should be changed
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE)) {
-                        actionTestProcess(accessKey, "[RegisterDevice]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.REGISTER_DEVICE)) {
-                        actionTestProcess(accessKey, "[GetDevice]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_STATE)) {
-                        actionTestProcess(accessKey, "[GetDevice]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_COMMAND)) {
-                        actionTestProcess(accessKey, "[CreateDeviceNotification]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_NOTIFICATION)) {
-                        actionTestProcess(accessKey, "[GetDeviceCommand]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_COMMAND)) {
-                        actionTestProcess(accessKey, "[CreateDeviceNotification]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_NOTIFICATION)) {
-                        actionTestProcess(accessKey, "[CreateDeviceNotification]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.UPDATE_DEVICE_COMMAND)) {
-                        actionTestProcess(accessKey, "[GetNetwork]");
-                    }
-                    if (allowedActions.contains(AllowedAction.Action.GET_NETWORK)) {
-                        actionTestProcess(accessKey,
-                                "[CreateDeviceNotification]");
-                    }
-                } catch (HiveException e) {
-                    if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
-                        fail("Unauthorizd code expected");
-                    }
-                    exceptionsCounter++;
-                }
-
+            when(context.getMethod()).thenReturn(method);
+            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
+            List<AllowedAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
+            ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
+            ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
+            try {
+                ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+            } catch (UnknownHostException e) {
+                fail("Unexpected exception");
             }
+            try {
+                //if some controllers will contain more than 1 action per method, should be changed
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE)) {
+                    actionTestProcess(accessKey, "[RegisterDevice]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.REGISTER_DEVICE)) {
+                    actionTestProcess(accessKey, "[GetDevice]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_STATE)) {
+                    actionTestProcess(accessKey, "[GetDevice]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_COMMAND)) {
+                    actionTestProcess(accessKey, "[CreateDeviceNotification]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.CREATE_DEVICE_NOTIFICATION)) {
+                    actionTestProcess(accessKey, "[GetDeviceCommand]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_COMMAND)) {
+                    actionTestProcess(accessKey, "[CreateDeviceNotification]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_DEVICE_NOTIFICATION)) {
+                    actionTestProcess(accessKey, "[CreateDeviceNotification]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.UPDATE_DEVICE_COMMAND)) {
+                    actionTestProcess(accessKey, "[GetNetwork]");
+                }
+                if (allowedActions.contains(AllowedAction.Action.GET_NETWORK)) {
+                    actionTestProcess(accessKey,
+                            "[CreateDeviceNotification]");
+                }
+            } catch (HiveException e) {
+                if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
+                    fail("Unauthorizd code expected");
+                }
+                exceptionsCounter++;
+            } finally {
+                assertNull(ThreadLocalVariablesKeeper.getClientIP());
+                assertNull(ThreadLocalVariablesKeeper.getHostName());
+                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
+                accessKey.getPermissions().clear();
+            }
+
+
         }
-        assertEquals(methodCallsCounter, exceptionsCounter);
+        assertEquals(methodCalls, exceptionsCounter);
     }
 
     private void actionTestProcess(AccessKey accessKey, String actions) throws Exception {
@@ -217,64 +232,63 @@ public class AccessKeyOneFieldTest {
         permissions.add(permission);
         accessKey.setPermissions(permissions);
         interceptor.checkPermissions(context);
-        assertNull(ThreadLocalVariablesKeeper.getClientIP());
-        assertNull(ThreadLocalVariablesKeeper.getHostName());
-        assertNull(ThreadLocalVariablesKeeper.getPrincipal());
-        permissions.clear();
     }
 
     @Test
     public void subnetsCaseAllowed() {
         /**
-         * Only subnets field is not null
+         * Only subnets field and actions field are not null
          */
         AccessKey accessKey = new AccessKey();
         accessKey.setUser(CLIENT);
         for (Method method : allAvailableMethods) {
-            if (method.isAnnotationPresent(AllowedAction.class)) {
-                when(context.getMethod()).thenReturn(method);
-                AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-                AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            when(context.getMethod()).thenReturn(method);
+            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
+            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            try {
+                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
+                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
                 try {
-                    ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                    ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
-                    try {
-                        ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
-                    } catch (UnknownHostException e) {
-                        fail("Unexpected exception");
-                    }
-                    switch (action) {
-                        case GET_NETWORK:
-                            subnetsTestProcess(accessKey, "[GetNetwork]");
-                            break;
-                        case GET_DEVICE:
-                            subnetsTestProcess(accessKey, "[GetDevice]");
-                            break;
-                        case GET_DEVICE_STATE:
-                            subnetsTestProcess(accessKey, "[GetDeviceState]");
-                            break;
-                        case GET_DEVICE_NOTIFICATION:
-                            subnetsTestProcess(accessKey, "[GetDeviceNotification]");
-                            break;
-                        case GET_DEVICE_COMMAND:
-                            subnetsTestProcess(accessKey, "[GetDeviceCommand]");
-                            break;
-                        case REGISTER_DEVICE:
-                            subnetsTestProcess(accessKey, "[RegisterDevice]");
-                            break;
-                        case CREATE_DEVICE_NOTIFICATION:
-                            subnetsTestProcess(accessKey, "[CreateDeviceNotification]");
-                            break;
-                        case CREATE_DEVICE_COMMAND:
-                            subnetsTestProcess(accessKey, "[CreateDeviceCommand]");
-                            break;
-                        case UPDATE_DEVICE_COMMAND:
-                            subnetsTestProcess(accessKey, "[UpdateDeviceCommand]");
-                            break;
-                    }
-                } catch (Exception e) {
-                    fail("No exceptions expected from interceptor");
+                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+                } catch (UnknownHostException e) {
+                    fail("Unexpected exception");
                 }
+                switch (action) {
+                    case GET_NETWORK:
+                        subnetsTestProcess(accessKey, "[GetNetwork]");
+                        break;
+                    case GET_DEVICE:
+                        subnetsTestProcess(accessKey, "[GetDevice]");
+                        break;
+                    case GET_DEVICE_STATE:
+                        subnetsTestProcess(accessKey, "[GetDeviceState]");
+                        break;
+                    case GET_DEVICE_NOTIFICATION:
+                        subnetsTestProcess(accessKey, "[GetDeviceNotification]");
+                        break;
+                    case GET_DEVICE_COMMAND:
+                        subnetsTestProcess(accessKey, "[GetDeviceCommand]");
+                        break;
+                    case REGISTER_DEVICE:
+                        subnetsTestProcess(accessKey, "[RegisterDevice]");
+                        break;
+                    case CREATE_DEVICE_NOTIFICATION:
+                        subnetsTestProcess(accessKey, "[CreateDeviceNotification]");
+                        break;
+                    case CREATE_DEVICE_COMMAND:
+                        subnetsTestProcess(accessKey, "[CreateDeviceCommand]");
+                        break;
+                    case UPDATE_DEVICE_COMMAND:
+                        subnetsTestProcess(accessKey, "[UpdateDeviceCommand]");
+                        break;
+                }
+            } catch (Exception e) {
+                fail("No exceptions expected from interceptor");
+            } finally {
+                assertNull(ThreadLocalVariablesKeeper.getClientIP());
+                assertNull(ThreadLocalVariablesKeeper.getHostName());
+                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
+                accessKey.getPermissions().clear();
             }
         }
     }
@@ -282,27 +296,24 @@ public class AccessKeyOneFieldTest {
     @Test
     public void subnetsCaseNotAllowed() {
         /**
-         * Only subnets field is not null
+         * Only subnets field and actions field are not null
          */
         AccessKey accessKey = new AccessKey();
-        accessKey.setUser(CLIENT);
+        accessKey.setUser(ADMIN);
         int exceptionsCounter = 0;
-        int methodCallsCounter = 0;
         for (Method method : allAvailableMethods) {
-            if (method.isAnnotationPresent(AllowedAction.class)) {
-                methodCallsCounter++;
-                when(context.getMethod()).thenReturn(method);
-                AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
-                AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            when(context.getMethod()).thenReturn(method);
+            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
+            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            try {
+                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
+                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
                 try {
-                    ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                    ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
-                    try {
-                        ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("192.150.1.1"));
-                    } catch (UnknownHostException e) {
-                        fail("Unexpected exception");
-                    }
-                    try{
+                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("192.150.1.1"));
+                } catch (UnknownHostException e) {
+                    fail("Unexpected exception");
+                }
+                try {
                     switch (action) {
                         case GET_NETWORK:
                             subnetsTestProcess(accessKey, "[GetNetwork]");
@@ -332,20 +343,23 @@ public class AccessKeyOneFieldTest {
                             subnetsTestProcess(accessKey, "[UpdateDeviceCommand]");
                             break;
                     }
-                    }catch (HiveException e) {
-                        if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
-                            fail("Unauthorizd code expected");
-                        }
-                        exceptionsCounter++;
+                } catch (HiveException e) {
+                    if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
+                        fail("Unauthorizd code expected");
                     }
-                } catch (Exception e) {
-                    fail("No exceptions expected from interceptor");
+                    exceptionsCounter++;
+                } finally {
+                    assertNull(ThreadLocalVariablesKeeper.getClientIP());
+                    assertNull(ThreadLocalVariablesKeeper.getHostName());
+                    assertNull(ThreadLocalVariablesKeeper.getPrincipal());
+                    accessKey.getPermissions().clear();
                 }
+            } catch (Exception e) {
+                fail("No exceptions expected from interceptor");
             }
         }
-        assertEquals(exceptionsCounter, methodCallsCounter);
+        assertEquals(exceptionsCounter, methodCalls);
     }
-
 
     private void subnetsTestProcess(AccessKey accessKey, String action) throws Exception {
         Set<AccessKeyPermission> permissions = new HashSet<>();
@@ -357,10 +371,146 @@ public class AccessKeyOneFieldTest {
         permissions.add(permission);
         accessKey.setPermissions(permissions);
         interceptor.checkPermissions(context);
-        assertNull(ThreadLocalVariablesKeeper.getClientIP());
-        assertNull(ThreadLocalVariablesKeeper.getHostName());
-        assertNull(ThreadLocalVariablesKeeper.getPrincipal());
-        permissions.clear();
+    }
+
+    @Test
+    public void domainsCaseAllowed() {
+        /**
+         * Only subnets field and actions field are not null
+         */
+        AccessKey accessKey = new AccessKey();
+        accessKey.setUser(CLIENT);
+        for (Method method : allAvailableMethods) {
+            when(context.getMethod()).thenReturn(method);
+            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
+            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            try {
+                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
+                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
+                try {
+                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+                } catch (UnknownHostException e) {
+                    fail("Unexpected exception");
+                }
+                switch (action) {
+                    case GET_NETWORK:
+                        domainsTestProcess(accessKey, "[GetNetwork]");
+                        break;
+                    case GET_DEVICE:
+                        domainsTestProcess(accessKey, "[GetDevice]");
+                        break;
+                    case GET_DEVICE_STATE:
+                        domainsTestProcess(accessKey, "[GetDeviceState]");
+                        break;
+                    case GET_DEVICE_NOTIFICATION:
+                        domainsTestProcess(accessKey, "[GetDeviceNotification]");
+                        break;
+                    case GET_DEVICE_COMMAND:
+                        domainsTestProcess(accessKey, "[GetDeviceCommand]");
+                        break;
+                    case REGISTER_DEVICE:
+                        domainsTestProcess(accessKey, "[RegisterDevice]");
+                        break;
+                    case CREATE_DEVICE_NOTIFICATION:
+                        domainsTestProcess(accessKey, "[CreateDeviceNotification]");
+                        break;
+                    case CREATE_DEVICE_COMMAND:
+                        domainsTestProcess(accessKey, "[CreateDeviceCommand]");
+                        break;
+                    case UPDATE_DEVICE_COMMAND:
+                        domainsTestProcess(accessKey, "[UpdateDeviceCommand]");
+                        break;
+                }
+            } catch (Exception e) {
+                fail("No exceptions expected from interceptor");
+            } finally {
+                assertNull(ThreadLocalVariablesKeeper.getClientIP());
+                assertNull(ThreadLocalVariablesKeeper.getHostName());
+                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
+                accessKey.getPermissions().clear();
+            }
+        }
+    }
+
+    @Test
+    public void domainsCaseNotAllowed() {
+        /**
+         * Only domains field and actions field are not null
+         */
+        AccessKey accessKey = new AccessKey();
+        accessKey.setUser(ADMIN);
+        int exceptionsCounter = 0;
+        for (Method method : allAvailableMethods) {
+            when(context.getMethod()).thenReturn(method);
+            AllowedAction allowedActionAnnotation = method.getAnnotation(AllowedAction.class);
+            AllowedAction.Action action = allowedActionAnnotation.action()[0];
+            try {
+                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
+                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com.dataart.com");
+                try {
+                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("192.150.1.1"));
+                } catch (UnknownHostException e) {
+                    fail("Unexpected exception");
+                }
+                try {
+                    switch (action) {
+                        case GET_NETWORK:
+                            domainsTestProcess(accessKey, "[GetNetwork]");
+                            break;
+                        case GET_DEVICE:
+                            domainsTestProcess(accessKey, "[GetDevice]");
+                            break;
+                        case GET_DEVICE_STATE:
+                            domainsTestProcess(accessKey, "[GetDeviceState]");
+                            break;
+                        case GET_DEVICE_NOTIFICATION:
+                            domainsTestProcess(accessKey, "[GetDeviceNotification]");
+                            break;
+                        case GET_DEVICE_COMMAND:
+                            domainsTestProcess(accessKey, "[GetDeviceCommand]");
+                            break;
+                        case REGISTER_DEVICE:
+                            domainsTestProcess(accessKey, "[RegisterDevice]");
+                            break;
+                        case CREATE_DEVICE_NOTIFICATION:
+                            domainsTestProcess(accessKey, "[CreateDeviceNotification]");
+                            break;
+                        case CREATE_DEVICE_COMMAND:
+                            domainsTestProcess(accessKey, "[CreateDeviceCommand]");
+                            break;
+                        case UPDATE_DEVICE_COMMAND:
+                            domainsTestProcess(accessKey, "[UpdateDeviceCommand]");
+                            break;
+                    }
+                } catch (HiveException e) {
+                    if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
+                        fail("Unauthorizd code expected");
+                    }
+                    exceptionsCounter++;
+                } finally {
+                    assertNull(ThreadLocalVariablesKeeper.getClientIP());
+                    assertNull(ThreadLocalVariablesKeeper.getHostName());
+                    assertNull(ThreadLocalVariablesKeeper.getPrincipal());
+                    accessKey.getPermissions().clear();
+                }
+            } catch (Exception e) {
+                fail("No exceptions expected from interceptor");
+            }
+        }
+        assertEquals(exceptionsCounter, methodCalls);
+    }
+
+    private void domainsTestProcess(AccessKey accessKey, String action) throws Exception {
+        Set<AccessKeyPermission> permissions = new HashSet<>();
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setAccessKey(accessKey);
+        String domains = "[\".net\", \"devicehive.com\"]";
+        permission.setDomains(new JsonStringWrapper(domains));
+        permission.setActions(new JsonStringWrapper(action));
+        permissions.add(permission);
+        accessKey.setPermissions(permissions);
+        interceptor.checkPermissions(context);
+
     }
 }
 
