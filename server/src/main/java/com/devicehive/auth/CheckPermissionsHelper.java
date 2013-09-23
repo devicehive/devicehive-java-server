@@ -72,8 +72,9 @@ public class CheckPermissionsHelper {
         }
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
-            if (currentPermission.getDomainsAsSet() != null) {
-                for (String currentDomain : currentPermission.getDomainsAsSet()) {
+            Set<String> domainsAsSet =  currentPermission.getDomainsAsSet();
+            if (domainsAsSet != null && !domainsAsSet.isEmpty()) {
+                for (String currentDomain : domainsAsSet) {
                     if (clientDomain.endsWith(currentDomain)) {
                         isDomainAllowed = true;
                         permissionsToRemove.remove(currentPermission);
@@ -81,6 +82,8 @@ public class CheckPermissionsHelper {
                     }
                     permissionsToRemove.add(currentPermission);
                 }
+            } else if (domainsAsSet != null && domainsAsSet.isEmpty()){
+                permissionsToRemove.add(currentPermission);
             } else {
                 isDomainAllowed = true;
             }
