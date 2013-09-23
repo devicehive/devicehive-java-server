@@ -14,11 +14,8 @@ import java.util.concurrent.ConcurrentMap;
 public class AbstractStorage<E, T extends Subscription<E>> {
 
     private ConcurrentMap<E, Set<T>> byEventSource = new ConcurrentHashMap<>();
-
     private ConcurrentMap<String, Set<T>> bySubscriber = new ConcurrentHashMap<>();
-
     private ConcurrentMap<Pair<E, String>, T> byPair = new ConcurrentHashMap<>();
-
 
     public synchronized void insertAll(Collection<T> coll) {
         for (T t : coll) {
@@ -73,7 +70,6 @@ public class AbstractStorage<E, T extends Subscription<E>> {
             remove(pair.getKey(), pair.getValue());
         }
     }
-
 
     public synchronized void remove(E eventSource, String subscriberId) {
         T sub = byPair.remove(ImmutablePair.of(eventSource, subscriberId));
