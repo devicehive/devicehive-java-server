@@ -23,13 +23,6 @@ public class AccessKeyPermissionsNetworkTest {
     private AccessKeyService accessKeyService = new AccessKeyService();
     private UserService userService;
 
-    private static final User ADMIN = new User() {{
-        setId(Constants.ACTIVE_ADMIN_ID);
-        setLogin("admin");
-        setRole(UserRole.ADMIN);
-        setStatus(UserStatus.ACTIVE);
-    }};
-
     private static final User CLIENT = new User() {{
         setId(Constants.ACTIVE_CLIENT_ID);
         setLogin("client");
@@ -90,11 +83,11 @@ public class AccessKeyPermissionsNetworkTest {
         networks.add(network2);
         networks.add(network3);
 
-        ADMIN.setNetworks(networks);
-        key.setUser(ADMIN);
+        CLIENT.setNetworks(networks);
+        key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.findUserWithNetworks(Constants.ACTIVE_ADMIN_ID)).thenReturn(ADMIN);
+        when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertTrue(result);
@@ -119,11 +112,11 @@ public class AccessKeyPermissionsNetworkTest {
         networks.add(network2);
         networks.add(network3);
 
-        ADMIN.setNetworks(networks);
-        key.setUser(ADMIN);
+        CLIENT.setNetworks(networks);
+        key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.findUserWithNetworks(Constants.ACTIVE_ADMIN_ID)).thenReturn(ADMIN);
+        when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertFalse(result);
@@ -161,11 +154,11 @@ public class AccessKeyPermissionsNetworkTest {
         networks.add(network2);
         networks.add(network3);
 
-        ADMIN.setNetworks(networks);
-        key.setUser(ADMIN);
+        CLIENT.setNetworks(networks);
+        key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.findUserWithNetworks(Constants.ACTIVE_ADMIN_ID)).thenReturn(ADMIN);
+        when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertTrue(result);
@@ -173,7 +166,7 @@ public class AccessKeyPermissionsNetworkTest {
     }
 
     @Test
-    public void hasNotAccessToNetworkSeveralPermissionsTest(){
+    public void hasNoAccessToNetworkSeveralPermissionsTest(){
         Set<AccessKeyPermission> permissions = new HashSet<>();
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
@@ -203,11 +196,11 @@ public class AccessKeyPermissionsNetworkTest {
         networks.add(network2);
         networks.add(network3);
 
-        ADMIN.setNetworks(networks);
-        key.setUser(ADMIN);
+        CLIENT.setNetworks(networks);
+        key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.findUserWithNetworks(Constants.ACTIVE_ADMIN_ID)).thenReturn(ADMIN);
+        when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertFalse(result);
