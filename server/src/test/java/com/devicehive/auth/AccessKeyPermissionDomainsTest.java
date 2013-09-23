@@ -1,4 +1,4 @@
-package com.devicehive;
+package com.devicehive.auth;
 
 
 import com.devicehive.auth.CheckPermissionsHelper;

@@ -1,5 +1,6 @@
-package com.devicehive;
+package com.devicehive.auth;
 
+import com.devicehive.Constants;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.model.*;
 import com.devicehive.service.AccessKeyService;

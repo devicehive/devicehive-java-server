@@ -35,7 +35,7 @@ public class AccessKeyInterceptor {
                 throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
             }
             Timestamp expirationDate = key.getExpirationDate();
-            if (expirationDate.before(new Timestamp(System.currentTimeMillis()))){
+            if (expirationDate != null && expirationDate.before(new Timestamp(System.currentTimeMillis()))){
                 throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
             }
             Method method = context.getMethod();

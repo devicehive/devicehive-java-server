@@ -1,7 +1,6 @@
-package com.devicehive;
+package com.devicehive.auth;
 
-import com.devicehive.auth.AccessKeyInterceptor;
-import com.devicehive.auth.HivePrincipal;
+import com.devicehive.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
