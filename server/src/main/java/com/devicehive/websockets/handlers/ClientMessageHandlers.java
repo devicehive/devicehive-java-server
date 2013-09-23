@@ -39,6 +39,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.auth.AllowedKeyAction.Action.*;
 
 @LogExecutionTime
+@Authorize
 public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientMessageHandlers.class);
@@ -82,7 +83,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "authenticate")
     @PermitAll
-    @Authorize
     public WebSocketResponse processAuthenticate(@WsParam("login")String login, @WsParam("password")String password,
                                           Session session) {
         if (login == null || password == null) {
@@ -122,7 +122,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "command/insert")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
-    @Authorize
     public WebSocketResponse processCommandInsert(@WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceGuid,
                                            @WsParam("command") @JsonPolicyDef(COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
                                            Session session) {
@@ -173,7 +172,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
-    @Authorize
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                    @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                                    Session session) throws IOException {
@@ -290,7 +288,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
-    @Authorize
     public WebSocketResponse processNotificationUnsubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
                                                      Session session) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
@@ -384,7 +381,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     @Action(value = "server/info")
     @PermitAll
-    @Authorize
     public WebSocketResponse processServerInfo(Session session) {
         logger.debug("server/info action started. Session " + session.getId());
         ApiInfo apiInfo = new ApiInfo();

@@ -42,6 +42,7 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 @LogExecutionTime
+@Authorize
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
@@ -81,7 +82,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "authenticate")
     @PermitAll
-    @Authorize
     public WebSocketResponse processAuthenticate(@WsParam("deviceId") String deviceId,
                                           @WsParam("deviceKey") String deviceKey,
                                           Session session) {
@@ -117,7 +117,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "command/update")
     @RolesAllowed({HiveRoles.DEVICE})
-    @Authorize
     public WebSocketResponse processCommandUpdate(@WsParam("commandId") Long commandId,
                                            @WsParam("command") @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)DeviceCommandUpdate update,
                                            Session session) {
@@ -157,7 +156,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "command/subscribe")
     @RolesAllowed({HiveRoles.DEVICE})
-    @Authorize
     public WebSocketResponse processCommandSubscribe(@WsParam("deviceId") String deviceId,
                                               @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                               Session session) throws IOException {
@@ -209,7 +207,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "command/unsubscribe")
     @RolesAllowed({HiveRoles.DEVICE})
-    @Authorize
     public WebSocketResponse processNotificationUnsubscribe(Session session) {
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         logger.debug("command/unsubscribe for device {}", device.getGuid());
@@ -238,7 +235,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "notification/insert")
     @RolesAllowed({HiveRoles.DEVICE})
-    @Authorize
     public WebSocketResponse processNotificationInsert(@WsParam("notification") @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
                                            DeviceNotification deviceNotification, Session session) {
         logger.debug("notification/insert started for session {} ", session.getId());
@@ -278,7 +274,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "server/info")
     @PermitAll
-    @Authorize
     public WebSocketResponse processServerInfo(Session session) {
         logger.debug("server/info action started. Session {} ", session.getId());
         ApiInfo apiInfo = new ApiInfo();
@@ -329,7 +324,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "device/get")
     @RolesAllowed({HiveRoles.DEVICE})
-    @Authorize
     public WebSocketResponse processDeviceGet() {
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
@@ -381,7 +375,6 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "device/save")
     @PermitAll
-    @Authorize
     public WebSocketResponse processDeviceSave(@WsParam("deviceId") String deviceId,
                                         @WsParam("deviceKey") String deviceKey,
                                         @WsParam("device") @JsonPolicyDef(DEVICE_PUBLISHED) DeviceUpdate device,
