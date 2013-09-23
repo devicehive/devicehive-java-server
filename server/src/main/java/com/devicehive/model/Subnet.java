@@ -45,6 +45,9 @@ public class Subnet {
             //TODO support for IPv6
             return false;
         }
+        if (inetAddress.getHostAddress().equalsIgnoreCase(ip.getHostAddress()) && mask == 32){
+            return true;
+        }
         SubnetUtils utils = new SubnetUtils(subnet);
         return utils.getInfo().isInRange(ip.getHostAddress());
     }

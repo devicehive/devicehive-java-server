@@ -119,7 +119,4 @@ public class AccessKeyPermissionDomainsTest {
         assertEquals(0, permissions.size());
         ThreadLocalVariablesKeeper.clean();
     }
-
-
-
 }

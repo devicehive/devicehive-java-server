@@ -12,7 +12,7 @@ import java.util.Set;
 public class CheckPermissionsHelper {
 
     public static boolean checkActions(List<AllowedKeyAction.Action> allowedActions,
-                                   Set<AccessKeyPermission> permissions) {
+                                       Set<AccessKeyPermission> permissions) {
         boolean isAllowed = false;
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AllowedKeyAction.Action currentAllowedAction : allowedActions) {
@@ -46,7 +46,8 @@ public class CheckPermissionsHelper {
         boolean isIpAllowed = false;
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
-            if (currentPermission.getSubnetsAsSet() != null) {
+            Set<Subnet> subnetsAsSet = currentPermission.getSubnetsAsSet();
+            if (subnetsAsSet != null && !subnetsAsSet.isEmpty()) {
                 for (Subnet subnet : currentPermission.getSubnetsAsSet()) {
                     if (subnet.isAddressFromSubnet(clientIp)) {
                         isIpAllowed = true;
@@ -56,6 +57,8 @@ public class CheckPermissionsHelper {
                     permissionsToRemove.add(currentPermission);
 
                 }
+            } else if (subnetsAsSet != null && subnetsAsSet.isEmpty()) {
+                permissionsToRemove.add(currentPermission);
             } else {
                 isIpAllowed = true;
             }
@@ -72,7 +75,7 @@ public class CheckPermissionsHelper {
         }
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
-            Set<String> domainsAsSet =  currentPermission.getDomainsAsSet();
+            Set<String> domainsAsSet = currentPermission.getDomainsAsSet();
             if (domainsAsSet != null && !domainsAsSet.isEmpty()) {
                 for (String currentDomain : domainsAsSet) {
                     if (clientDomain.endsWith(currentDomain)) {
@@ -82,7 +85,7 @@ public class CheckPermissionsHelper {
                     }
                     permissionsToRemove.add(currentPermission);
                 }
-            } else if (domainsAsSet != null && domainsAsSet.isEmpty()){
+            } else if (domainsAsSet != null && domainsAsSet.isEmpty()) {
                 permissionsToRemove.add(currentPermission);
             } else {
                 isDomainAllowed = true;
