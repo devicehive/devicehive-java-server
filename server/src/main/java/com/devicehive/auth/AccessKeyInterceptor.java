@@ -13,6 +13,7 @@ import javax.interceptor.InvocationContext;
 import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,10 @@ public class AccessKeyInterceptor {
                 return context.proceed();
             }
             if (key.getUser() == null || !key.getUser().getStatus().equals(UserStatus.ACTIVE)) {
+                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+            }
+            Timestamp expirationDate = key.getExpirationDate();
+            if (expirationDate.before(new Timestamp(System.currentTimeMillis()))){
                 throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
             }
             Method method = context.getMethod();
