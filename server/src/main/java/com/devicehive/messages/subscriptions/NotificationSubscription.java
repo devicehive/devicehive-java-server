@@ -1,16 +1,17 @@
 package com.devicehive.messages.subscriptions;
 
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.messages.handler.HandlerCreator;
-import com.devicehive.model.User;
 
 public class NotificationSubscription extends Subscription<Long> {
 
-    private final User user;
+    private final HivePrincipal principal;
 
-    public NotificationSubscription(User user, Long deviceId, String subscriberId, HandlerCreator handlerCreator) {
+    public NotificationSubscription(HivePrincipal principal, Long deviceId, String subscriberId,
+                                    HandlerCreator handlerCreator) {
         super(deviceId, subscriberId, handlerCreator);
-        this.user = user;
+        this.principal = principal;
     }
 
     public Long getDeviceId() {
@@ -21,7 +22,7 @@ public class NotificationSubscription extends Subscription<Long> {
         return getSubscriberId();
     }
 
-    public User getUser() {
-        return user;
+    public HivePrincipal getPrincipal(){
+        return principal;
     }
 }

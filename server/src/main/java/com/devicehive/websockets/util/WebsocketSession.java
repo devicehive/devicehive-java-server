@@ -1,6 +1,7 @@
 package com.devicehive.websockets.util;
 
 
+import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.google.gson.JsonElement;
@@ -15,8 +16,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class WebsocketSession {
 
     private static final Logger logger = LoggerFactory.getLogger(WebsocketSession.class);
-    private static final String AUTHORISED_USER = "AUTHORISED_USER";
-    private static final String AUTHORISED_DEVICE = "AUTHORISED_DEVICE";
+    private static final String AUTHORIZED_USER = "AUTHORIZED_USER";
+    private static final String AUTHORIZED_DEVICE = "AUTHORIZED_DEVICE";
+    private static final String AUTHORIZED_KEY = "AUTHORIZED_KEY";
     public static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
     public static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
@@ -28,8 +30,7 @@ public class WebsocketSession {
     }
 
     public static User getAuthorisedUser(Session session) {
-        return (User) session.getUserProperties().get(AUTHORISED_USER);
-
+        return (User) session.getUserProperties().get(AUTHORIZED_USER);
     }
 
     public static boolean hasAuthorisedUser(Session session) {
@@ -37,19 +38,32 @@ public class WebsocketSession {
     }
 
     public static void setAuthorisedUser(Session session, User user) {
-        session.getUserProperties().put(AUTHORISED_USER, user);
+        session.getUserProperties().put(AUTHORIZED_USER, user);
     }
 
     public static Device getAuthorisedDevice(Session session) {
-        return (Device) session.getUserProperties().get(AUTHORISED_DEVICE);
+        return (Device) session.getUserProperties().get(AUTHORIZED_DEVICE);
     }
 
     public static void setAuthorisedDevice(Session session, Device device) {
-        session.getUserProperties().put(AUTHORISED_DEVICE, device);
+        session.getUserProperties().put(AUTHORIZED_DEVICE, device);
     }
 
     public static boolean hasAuthorisedDevice(Session session) {
         return getAuthorisedDevice(session) != null;
+    }
+
+
+    public static AccessKey getAuthorizedAccessKey(Session session){
+        return (AccessKey) session.getUserProperties().get(AUTHORIZED_KEY);
+    }
+
+    public static void setAuthorizedKey(Session session, AccessKey key){
+        session.getUserProperties().put(AUTHORIZED_KEY, key);
+    }
+
+    public static boolean hasAuthorizedKey(Session session){
+        return getAuthorizedAccessKey(session) != null;
     }
 
     public static Lock getCommandsSubscriptionsLock(Session session) {

@@ -20,6 +20,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
+import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -352,7 +353,8 @@ public class DeviceNotificationController {
             Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
                     principal.getDevice());
             NotificationSubscription notificationSubscription =
-                    new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator);
+                    new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(), reqId,
+                            restHandlerCreator);
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, notificationSubscription, restHandlerCreator.getFutureTask(),
@@ -441,11 +443,15 @@ public class DeviceNotificationController {
                 }
                 for (Device device : devices) {
                     subscriptionSet
-                            .add(new NotificationSubscription(user, device.getId(), reqId, restHandlerCreator));
+                            .add(new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(),
+                                    reqId,
+                                    restHandlerCreator));
                 }
             } else {
                 subscriptionSet
-                        .add(new NotificationSubscription(user, Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, reqId,
+                        .add(new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(),
+                                Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
+                                reqId,
                                 restHandlerCreator));
             }
 

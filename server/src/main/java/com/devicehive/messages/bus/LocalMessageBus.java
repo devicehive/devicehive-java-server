@@ -6,9 +6,8 @@ import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.UserRole;
+import com.devicehive.model.*;
+import com.devicehive.service.AccessKeyService;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -36,6 +35,8 @@ public class LocalMessageBus {
     private ExecutorService handlersService;
     @EJB
     private UserDAO userDAO;
+    @EJB
+    private AccessKeyService accessKeyService;
 
     @PostConstruct
     protected void postConstruct() {
@@ -96,9 +97,16 @@ public class LocalMessageBus {
                         subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
                                 deviceNotification.getDevice().getId());
                 for (NotificationSubscription subscription : subs) {
-                    boolean hasAccess =
-                            subscription.getUser().getRole() == UserRole.ADMIN ||
-                                    userDAO.hasAccessToDevice(subscription.getUser(), deviceNotification.getDevice());
+                    User authUser = subscription.getPrincipal().getUser();
+                    AccessKey authKey = subscription.getPrincipal().getKey();
+                    boolean hasAccess;
+                    if (authUser != null) {
+                        hasAccess = authUser.isAdmin() || userDAO.hasAccessToDevice(authUser,
+                                deviceNotification.getDevice());
+                    } else {
+                        hasAccess = accessKeyService.hasAccessToDevice(authKey,
+                                deviceNotification.getDevice().getGuid());
+                    }
                     if (hasAccess) {
                         handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
@@ -110,10 +118,16 @@ public class LocalMessageBus {
 
                 for (NotificationSubscription subscription : subsForAll) {
                     if (!subscribersIds.contains(subscription.getSessionId())) {
-                        boolean hasAccess =
-                                subscription.getUser().getRole() == UserRole.ADMIN ||
-                                        userDAO.hasAccessToDevice(subscription.getUser(),
-                                                deviceNotification.getDevice());
+                        User authUser = subscription.getPrincipal().getUser();
+                        AccessKey authKey = subscription.getPrincipal().getKey();
+                        boolean hasAccess;
+                        if (authUser != null) {
+                            hasAccess = authUser.isAdmin() || userDAO.hasAccessToDevice(authUser,
+                                    deviceNotification.getDevice());
+                        } else {
+                            hasAccess = accessKeyService.hasAccessToDevice(authKey,
+                                    deviceNotification.getDevice().getGuid());
+                        }
                         if (hasAccess) {
                             handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                         }

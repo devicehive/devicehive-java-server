@@ -4,6 +4,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
@@ -25,11 +26,13 @@ public class AuthenticationInterceptor {
 
     private DeviceService deviceService;
     private UserService userService;
+    private AccessKeyService accessKeyService;
 
     public AuthenticationInterceptor() throws NamingException {
         InitialContext initialContext = new InitialContext();
         this.userService = (UserService) initialContext.lookup("java:comp/env/UserService");
         this.deviceService = (DeviceService) initialContext.lookup("java:comp/env/DeviceService");
+        this.accessKeyService = (AccessKeyService) initialContext.lookup("java:comp/env/AccessKeyService");
     }
 
     @AroundInvoke
@@ -38,9 +41,8 @@ public class AuthenticationInterceptor {
         JsonObject request = ThreadLocalVariablesKeeper.getRequest();
         Device authDevice =  getDeviceAndSetToSession(request, session);
         User authUser = getUserAndSetToSession(request, session);
-        //TODO support for access key authentication
-        AccessKey accessKey = null;
-        HivePrincipal principal = new HivePrincipal(authUser, authDevice, accessKey);
+        AccessKey authAccessKey = getAccessKeyAndSetToSession(request, session);
+        HivePrincipal principal = new HivePrincipal(authUser, authDevice, authAccessKey);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
         return ctx.proceed();
     }
@@ -76,5 +78,18 @@ public class AuthenticationInterceptor {
         }
         WebsocketSession.setAuthorisedUser(session, user);
         return user;
+    }
+
+    private AccessKey getAccessKeyAndSetToSession(JsonObject request, Session session){
+        AccessKey key = WebsocketSession.getAuthorizedAccessKey(session);
+        String keyString = null;
+        if (request.get("accessKey") != null){
+            keyString = request.get("accessKey").getAsString();
+        }
+        if (keyString != null){
+            key = accessKeyService.authenticate(keyString);
+        }
+        WebsocketSession.setAuthorizedKey(session, key);
+        return key;
     }
 }
