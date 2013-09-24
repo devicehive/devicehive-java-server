@@ -23,12 +23,26 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @NamedQueries({
         @NamedQuery(name = "DeviceCommand.getNewerThan",
                 query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device.guid = :guid"),
+        @NamedQuery(name = "DeviceCommand.getNewerThanByDevices",
+                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device in :devicesList"),
+        @NamedQuery(name = "DeviceCommand.getAllNewerThan",
+                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp"),
+        @NamedQuery(name = "DeviceCommand.getByUserNewerThan",
+                query = "select dc from DeviceCommand dc where dc.device.id in (" +
+                        " select distinct d.id from Device d join d.network n join n.users u where u = :user" +
+                        ") and dc.timestamp > :timestamp"),
         @NamedQuery(name = "DeviceCommand.getByUserAndDeviceNewerThan", query = "select dc from DeviceCommand dc " +
                 "where dc.timestamp > :timestamp and " +
                 "dc.device.id in " +
                 "(select distinct d.id from Device d " +
                 "join d.network n " +
                 "join n.users u where u = :user and d.guid = :deviceId)"),
+        @NamedQuery(name = "DeviceCommand.getByUserAndDevicesNewerThan", query = "select dc from DeviceCommand dc " +
+                "where dc.timestamp > :timestamp and " +
+                "dc.device.id in " +
+                "(select distinct d.id from Device d " +
+                "join d.network n " +
+                "join n.users u where u = :user and d.guid in :guidList)"),
         @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
                 " = :user and dc.device = :device"),
@@ -40,36 +54,30 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Cacheable
 public class DeviceCommand implements HiveEntity {
     private static final long serialVersionUID = -1062670903456135249L;
-
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
             COMMAND_LISTED})
     private Long id;
-
     @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
     @JsonPolicyDef(
             {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
-
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
     private User user;
-
     @SerializedName("userId")
     @Transient
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
     private Long userId;
-
     @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
-
     @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
@@ -78,7 +86,6 @@ public class DeviceCommand implements HiveEntity {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String command;
-
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
@@ -87,25 +94,21 @@ public class DeviceCommand implements HiveEntity {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
-
     @SerializedName("lifetime")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer lifetime;
-
     @SerializedName("flags")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer flags;
-
     @SerializedName("status")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private String status;
-
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
@@ -115,7 +118,6 @@ public class DeviceCommand implements HiveEntity {
             POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -225,15 +227,15 @@ public class DeviceCommand implements HiveEntity {
         return entityVersion;
     }
 
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
+    }
+
     public Long getUserId() {
         return userId;
     }
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
     }
 }

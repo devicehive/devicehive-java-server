@@ -73,18 +73,18 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @param session Current session.
      * @return Json object with the following structure
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object}
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object}
+     *                                                 }
+     *                                                 </pre>
      */
     @Action(value = "authenticate")
     @PermitAll
     public WebSocketResponse processAuthenticate(@WsParam("deviceId") String deviceId,
-                                          @WsParam("deviceKey") String deviceKey,
-                                          Session session) {
+                                                 @WsParam("deviceKey") String deviceKey,
+                                                 Session session) {
 
         if (deviceId == null || deviceKey == null) {
             throw new HiveException("Device authentication error: credentials are incorrect");
@@ -108,18 +108,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @param session Current session.
      * @return Json object with the following structure:
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object}
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object}
+     *                                                 }
+     *                                                 </pre>
      */
     @Action(value = "command/update")
     @RolesAllowed({HiveRoles.DEVICE})
     public WebSocketResponse processCommandUpdate(@WsParam("commandId") Long commandId,
-                                           @WsParam("command") @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)DeviceCommandUpdate update,
-                                           Session session) {
+                                                  @WsParam("command") @JsonPolicyDef(COMMAND_UPDATE_FROM_DEVICE)
+                                                  DeviceCommandUpdate update,
+                                                  Session session) {
         logger.debug("command update action started for session : {{}", session.getId());
         if (commandId == null) {
             throw new HiveException("Device command identifier cannot be null");
@@ -146,19 +147,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @param session Current session
      * @return json object with the following structure:
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object}
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object}
+     *                                                 }
+     *                                                 </pre>
      * @throws IOException if unable to deliver message
      */
     @Action(value = "command/subscribe")
     @RolesAllowed({HiveRoles.DEVICE})
     public WebSocketResponse processCommandSubscribe(@WsParam("deviceId") String deviceId,
-                                              @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
-                                              Session session) throws IOException {
+                                                     @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
+                                                     Session session) throws IOException {
         logger.debug("command subscribe action started for session : " + session.getId());
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         if (timestamp == null) {
@@ -168,14 +169,17 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             logger.debug("will subscribe device for commands : " + device.getGuid());
 
-            CommandSubscription commandSubscription = new CommandSubscription(device.getId(), session.getId(),
+            CommandSubscription commandSubscription = new CommandSubscription(
+                    ThreadLocalVariablesKeeper.getPrincipal(),
+                    device.getId(),
+                    session.getId(),
                     new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK,
                             asyncMessageDeliverer));
             subscriptionManager.getCommandSubscriptionStorage().insert(commandSubscription);
 
 
             logger.debug("will get commands newer than : {}", timestamp);
-            List<DeviceCommand> commandsFromDatabase = commandService.getNewerThan(device.getGuid(), timestamp);
+            List<DeviceCommand> commandsFromDatabase = commandService.getNewerThan(device.getGuid(), null, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
                 logger.debug("will add command to queue : {}", deviceCommand.getId());
                 WebsocketSession
@@ -198,12 +202,12 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @param session Current session
      * @return Json object with the following structure:
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object}
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object}
+     *                                                 }
+     *                                                 </pre>
      */
     @Action(value = "command/unsubscribe")
     @RolesAllowed({HiveRoles.DEVICE})
@@ -222,21 +226,21 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object},
-     *                                   "notification": {
-     *                                     "id": {integer},
-     *                                     "timestamp": {datetime}
-     *                                   }
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object},
+     *                                                   "notification": {
+     *                                                     "id": {integer},
+     *                                                     "timestamp": {datetime}
+     *                                                   }
+     *                                                 }
+     *                                                 </pre>
      */
     @Action(value = "notification/insert")
     @RolesAllowed({HiveRoles.DEVICE})
     public WebSocketResponse processNotificationInsert(@WsParam("notification") @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-                                           DeviceNotification deviceNotification, Session session) {
+                                                       DeviceNotification deviceNotification, Session session) {
         logger.debug("notification/insert started for session {} ", session.getId());
 
         if (deviceNotification == null || deviceNotification.getNotification() == null) {
@@ -247,7 +251,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                 .getNotification() + " and device : " + device.getGuid());
         deviceNotificationService.submitDeviceNotification(deviceNotification, device);
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue("notification", deviceNotification,NOTIFICATION_TO_DEVICE);
+        response.addValue("notification", deviceNotification, NOTIFICATION_TO_DEVICE);
         logger.debug("notification/insert ended for session {} ", session.getId());
         return response;
     }
@@ -260,17 +264,17 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object},
-     *                                   "info": {
-     *                                   "apiVersion": {string},
-     *                                     "serverTimestamp": {datetime},
-     *                                     "webSocketServerUrl": {string}
-     *                                 }
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object},
+     *                                                   "info": {
+     *                                                   "apiVersion": {string},
+     *                                                     "serverTimestamp": {datetime},
+     *                                                     "webSocketServerUrl": {string}
+     *                                                 }
+     *                                                 }
+     *                                                 </pre>
      */
     @Action(value = "server/info")
     @PermitAll
@@ -296,31 +300,31 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @return Json object with the following structure
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object},
-     *                                   "device": {
-     *                                     "id": {guid},
-     *                                     "name": {string},
-     *                                     "status": {string},
-     *                                     "data": {object},
-     *                                     "network": {
-     *                                       "id": {integer},
-     *                                       "name": {string},
-     *                                       "description": {string}
-     *                                     },
-     *                                     "deviceClass": {
-     *                                       "id": {integer},
-     *                                       "name": {string},
-     *                                       "version": {string},
-     *                                       "isPermanent": {boolean},
-     *                                       "offlineTimeout": {integer},
-     *                                       "data": {object}
-     *                                      }
-     *                                    }
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object},
+     *                                                   "device": {
+     *                                                     "id": {guid},
+     *                                                     "name": {string},
+     *                                                     "status": {string},
+     *                                                     "data": {object},
+     *                                                     "network": {
+     *                                                       "id": {integer},
+     *                                                       "name": {string},
+     *                                                       "description": {string}
+     *                                                     },
+     *                                                     "deviceClass": {
+     *                                                       "id": {integer},
+     *                                                       "name": {string},
+     *                                                       "version": {string},
+     *                                                       "isPermanent": {boolean},
+     *                                                       "offlineTimeout": {integer},
+     *                                                       "data": {object}
+     *                                                      }
+     *                                                    }
+     *                                                 }
+     *                                                 </pre>
      */
     @Action(value = "device/get")
     @RolesAllowed({HiveRoles.DEVICE})
@@ -340,46 +344,46 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                                                             {
-     *                                                               "action": {string},
-     *                                                               "requestId": {object},
-     *                                                               "deviceId": {guid},
-     *                                                               "deviceKey": {string},
-     *                                                               "device": {
-     *                                                                 "key": {string},
-     *                                                                 "name": {string},
-     *                                                                 "status": {string},
-     *                                                                 "data": {object},
-     *                                                                 "network": {integer or object},
-     *                                                                 "deviceClass": {integer or object},
-     *                                                                 "equipment": [
-     *                                                                 {
-     *                                                                  "name": {string},
-     *                                                                  "code": {string},
-     *                                                                  "type": {string},
-     *                                                                  "data": {object}
-     *                                                                 }
-     *                                                                 ]
-     *                                                               }
-     *                                                             }
-     *                                                             </pre>
+     *                                                                                           {
+     *                                                                                             "action": {string},
+     *                                                                                             "requestId": {object},
+     *                                                                                             "deviceId": {guid},
+     *                                                                                             "deviceKey": {string},
+     *                                                                                             "device": {
+     *                                                                                               "key": {string},
+     *                                                                                               "name": {string},
+     *                                                                                               "status": {string},
+     *                                                                                               "data": {object},
+     *                                                                                               "network": {integer or object},
+     *                                                                                               "deviceClass": {integer or object},
+     *                                                                                               "equipment": [
+     *                                                                                               {
+     *                                                                                                "name": {string},
+     *                                                                                                "code": {string},
+     *                                                                                                "type": {string},
+     *                                                                                                "data": {object}
+     *                                                                                               }
+     *                                                                                               ]
+     *                                                                                             }
+     *                                                                                           }
+     *                                                                                           </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *                                 {
-     *                                   "action": {string},
-     *                                   "status": {string},
-     *                                   "requestId": {object}
-     *                                 }
-     *                                 </pre>
+     *                                                 {
+     *                                                   "action": {string},
+     *                                                   "status": {string},
+     *                                                   "requestId": {object}
+     *                                                 }
+     *                                                 </pre>
      */
     @Action(value = "device/save")
     @PermitAll
     public WebSocketResponse processDeviceSave(@WsParam("deviceId") String deviceId,
-                                        @WsParam("deviceKey") String deviceKey,
-                                        @WsParam("device") @JsonPolicyDef(DEVICE_PUBLISHED) DeviceUpdate device,
-                                        JsonObject message,
-                                        Session session) {
+                                               @WsParam("deviceKey") String deviceKey,
+                                               @WsParam("device") @JsonPolicyDef(DEVICE_PUBLISHED) DeviceUpdate device,
+                                               JsonObject message,
+                                               Session session) {
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
             throw new HiveException("Device ID is undefined!");

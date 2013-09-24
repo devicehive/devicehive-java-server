@@ -105,11 +105,44 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceCommand> getNewerThanByDevices(List<Device> devices, Timestamp timestamp) {
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThanByDevices", DeviceCommand.class);
+        query.setParameter("timestamp", timestamp);
+        query.setParameter("devicesList", devices);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceCommand> getNewerThan(Timestamp timestamp) {
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getAllNewerThan", DeviceCommand.class);
+        query.setParameter("timestamp", timestamp);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceCommand> getNewerThan(Timestamp timestamp, User user){
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByUserNewerThan", DeviceCommand.class);
+        query.setParameter("timestamp", timestamp);
+        query.setParameter("user", user);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> getByUserAndDeviceNewerThan(String deviceId, Timestamp timestamp, User user) {
         TypedQuery<DeviceCommand> query =
                 em.createNamedQuery("DeviceCommand.getByUserAndDeviceNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
         query.setParameter("guid", deviceId);
+        query.setParameter("user", user);
+        return query.getResultList();
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceCommand> getByUserAndDevicesNewerThan(List<String> guids, Timestamp timestamp, User user) {
+        TypedQuery<DeviceCommand> query =
+                em.createNamedQuery("DeviceCommand.getByUserAndDevicesNewerThan", DeviceCommand.class);
+        query.setParameter("timestamp", timestamp);
+        query.setParameter("guidList", guids);
         query.setParameter("user", user);
         return query.getResultList();
     }

@@ -14,6 +14,7 @@ import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
+import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,7 +169,8 @@ public class DeviceCommandController {
             Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
                     principal.getDevice());
             CommandSubscription commandSubscription =
-                    new CommandSubscription(device.getId(), reqId, restHandlerCreator);
+                    new CommandSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(), reqId,
+                            restHandlerCreator);
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {

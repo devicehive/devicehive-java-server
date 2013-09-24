@@ -1,12 +1,17 @@
 package com.devicehive.messages.subscriptions;
 
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.messages.handler.HandlerCreator;
 
 public class CommandSubscription extends Subscription<Long> {
 
-    public CommandSubscription(Long deviceId, String subscriberId, HandlerCreator handlerCreator) {
+    private final HivePrincipal principal;
+
+    public CommandSubscription(HivePrincipal principal, Long deviceId, String subscriberId,
+                               HandlerCreator handlerCreator) {
         super(deviceId, subscriberId, handlerCreator);
+        this.principal = principal;
     }
 
     public Long getDeviceId() {
@@ -15,6 +20,10 @@ public class CommandSubscription extends Subscription<Long> {
 
     public String getSessionId() {
         return getSubscriberId();
+    }
+
+    public HivePrincipal getPrincipal(){
+        return  principal;
     }
 
 }

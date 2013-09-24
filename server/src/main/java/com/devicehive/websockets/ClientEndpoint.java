@@ -36,6 +36,7 @@ public class ClientEndpoint extends Endpoint {
         logger.debug("[onOpen] session id {} ", session.getId());
         WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
         WebsocketSession.createNotificationSubscriptionsLock(session);
+        WebsocketSession.createCommandsSubscriptionsLock(session);
         WebsocketSession.createQueueLock(session);
         sessionMonitor.registerSession(session);
     }
@@ -50,6 +51,7 @@ public class ClientEndpoint extends Endpoint {
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id {}, close reason is {} ", session.getId(), closeReason);
         subscriptionManager.getCommandUpdateSubscriptionStorage().removeBySession(session.getId());
+        subscriptionManager.getCommandSubscriptionStorage().removeBySession(session.getId());
         subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
     }
 

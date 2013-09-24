@@ -83,8 +83,24 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(String deviceId, Timestamp timestamp) {
-        return commandDAO.getNewerThan(deviceId, timestamp);
+    public List<DeviceCommand> getNewerThan(String deviceId, User user, Timestamp timestamp) {
+        if (deviceId == null && user != null) {
+            if (user.isAdmin()) {
+                return commandDAO.getNewerThan(timestamp);
+            } else {
+                return commandDAO.getNewerThan(timestamp, user);
+            }
+        }
+        if (deviceId != null && (user == null || user.isAdmin())) {
+            return commandDAO.getNewerThan(deviceId, timestamp);
+        }
+        return commandDAO.getByUserAndDeviceNewerThan(deviceId, timestamp, user);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceCommand> getNewerThan(List<Device> devices, Timestamp timestamp) {
+        return commandDAO.getNewerThanByDevices(devices, timestamp);
+
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

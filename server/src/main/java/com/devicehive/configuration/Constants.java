@@ -14,6 +14,8 @@ public class Constants {
 
     public static final long DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE = -1L;
 
+    public static final long DEVICE_COMMAND_NULL_ID_SUBSTITUTE = -1L;
+
     public static final String DEFAULT_WAIT_TIMEOUT = "30";
 
     public static final long MAX_WAIT_TIMEOUT = 60L;
