@@ -61,10 +61,43 @@ public class LocalMessageBus {
 
                 JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
 
+                Set<String> subscribersIds = new HashSet<>();
                 Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
                         .getByDeviceId(deviceCommand.getDevice().getId());
-                for (CommandSubscription commandSubscription : subs) {
-                    handlersService.submit(commandSubscription.getHandlerCreator().getHandler(jsonObject));
+                for (CommandSubscription subscription : subs) {
+                    User authUser = subscription.getPrincipal().getUser();
+                    AccessKey authKey = subscription.getPrincipal().getKey();
+                    boolean hasAccess;
+                    if (authUser != null) {
+                        hasAccess = authUser.isAdmin() || userDAO.hasAccessToDevice(authUser,deviceCommand.getDevice());
+                    } else {
+                        hasAccess = accessKeyService.hasAccessToDevice(authKey,deviceCommand.getDevice().getGuid());
+                    }
+                    if (hasAccess) {
+                        handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
+                    }
+                    subscribersIds.add(subscription.getSessionId());
+                }
+
+                Set<CommandSubscription> subsForAll = (subscriptionManager.getCommandSubscriptionStorage()
+                        .getByDeviceId(Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE));
+
+                for (CommandSubscription subscription : subsForAll) {
+                    if (!subscribersIds.contains(subscription.getSessionId())) {
+                        User authUser = subscription.getPrincipal().getUser();
+                        AccessKey authKey = subscription.getPrincipal().getKey();
+                        boolean hasAccess;
+                        if (authUser != null) {
+                            hasAccess = authUser.isAdmin() || userDAO.hasAccessToDevice(authUser,
+                                    deviceCommand.getDevice());
+                        } else {
+                            hasAccess = accessKeyService.hasAccessToDevice(authKey,
+                                    deviceCommand.getDevice().getGuid());
+                        }
+                        if (hasAccess) {
+                            handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
+                        }
+                    }
                 }
             }
         });
