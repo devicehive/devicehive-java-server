@@ -19,6 +19,8 @@ public class JsonMessageBuilder {
     public static final String SUBNETS = "subnets";
     public static final String NETWORK_IDS = "networkIds";
     public static final String TIMESTAMP = "timestamp";
+    public static final String COMMAND_ID = "commandId";
+    public static final String COMMAND ="command";
 
     private JsonObject jsonObject = new JsonObject();
 
