@@ -43,6 +43,7 @@ import java.util.Set;
 import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @LogExecutionTime
@@ -638,6 +639,44 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                 guid, id);
         return new WebSocketResponse();
+    }
+
+    @Action("notification/insert")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = {CREATE_DEVICE_NOTIFICATION})
+    public WebSocketResponse processNotificationInsert(@WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceGuid,
+                                                       @WsParam(JsonMessageBuilder.NOTIFICATION)
+                                                       @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
+                                                       DeviceNotification notification,
+                                                       Session session){
+        logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        User user = principal.getUser();
+        if (user == null && principal.getKey() != null) {
+            user = principal.getKey().getUser();
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
+                logger.debug("No device found with guid : {} for access key {}", deviceGuid, principal.getKey().getId());
+                throw new HiveException("No device found with guid : " + deviceGuid, SC_NOT_FOUND);
+            }
+        }
+        if (notification == null || notification.getNotification() == null) {
+            logger.debug(
+                    "notification/insert proceed with error. Bad notification: notification is required.");
+            throw new HiveException("Notification is required!", SC_BAD_REQUEST);
+        }
+
+        Device device = deviceService.getDevice(deviceGuid, user, principal.getDevice());
+        if (device.getNetwork() == null) {
+            logger.debug(
+                    "notification/insert. No network specified for device with guid = {}", deviceGuid);
+            throw new HiveException("No access to device!", SC_FORBIDDEN);
+        }
+        deviceNotificationService.submitDeviceNotification(notification, device);
+        logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
+
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue(JsonMessageBuilder.NOTIFICATION, notification,NOTIFICATION_TO_DEVICE);
+        return response;
     }
 
 }

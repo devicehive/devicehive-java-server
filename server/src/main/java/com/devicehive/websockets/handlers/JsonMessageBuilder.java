@@ -14,12 +14,9 @@ public class JsonMessageBuilder {
     public static final String REQUEST_ID = "requestId";
     public static final String DEVICE_GUID = "deviceGuid";
     public static final String DEVICE_GUIDS = "deviceGuids";
-    public static final String DOMAINS = "domains";
-    public static final String ACTIONS = "actions";
-    public static final String SUBNETS = "subnets";
-    public static final String NETWORK_IDS = "networkIds";
     public static final String TIMESTAMP = "timestamp";
     public static final String COMMAND_ID = "commandId";
+    public static final String NOTIFICATION = "notification";
     public static final String COMMAND ="command";
 
     private JsonObject jsonObject = new JsonObject();
