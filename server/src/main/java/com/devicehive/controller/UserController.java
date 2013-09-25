@@ -2,7 +2,6 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -134,17 +133,9 @@ public class UserController {
     @GET
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response getUser(@PathParam("id") String userId, @Context SecurityContext securityContext) {
-        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
-            return getCurrent(securityContext);
-        }
-        Long id;
-        try {
-            id = Long.parseLong(userId);
-        } catch (NumberFormatException e) {
-            throw new HiveException("Bad user identifier :" + userId, Response.Status.BAD_REQUEST.getStatusCode());
-        }
-        User user = userService.findUserWithNetworks(id);
+    public Response getUser(@PathParam("id") Long userId, @Context SecurityContext securityContext) {
+
+        User user = userService.findUserWithNetworks(userId);
 
         if (user == null) {
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
@@ -155,7 +146,10 @@ public class UserController {
                 JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
-    private Response getCurrent(SecurityContext securityContext) {
+    @GET
+    @Path("/current")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    public Response getCurrent(@Context SecurityContext securityContext) {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Long id = principal.getUser().getId();
         User currentUser = userService.findUserWithNetworks(id);
@@ -196,23 +190,6 @@ public class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserUpdate userToCreate) {
-//
-//        //neither we want left some params omitted
-//        if (user.getLogin() == null || user.getPassword() == null || user.getRole() == null
-//                || user.getStatus() == null) {
-//            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-//                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-//        }
-//        //nor we want these parameters to be null
-//        if (user.getLogin().getValue() == null || user.getPassword().getValue() == null
-//                || user.getRole().getValue() == null || user.getStatus().getValue() == null) {
-//            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-//                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-//        }
-//        User created = userService.createUser(user.getLogin().getValue(),
-//                user.getRoleEnum(),
-//                user.getStatusEnum(),
-//                user.getPassword().getValue());
         String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
         User created = userService.createUser(userToCreate.convertTo(), password);
         return ResponseFactory.response(Response.Status.CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
@@ -240,22 +217,21 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUser(UserUpdate user, @PathParam("id") String userId,
-                               @Context SecurityContext securityContext) {
-        Long id;
-        if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
-            HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-            id = principal.getUser().getId();
-        } else {
-            try {
-                id = Long.parseLong(userId);
-            } catch (NumberFormatException e) {
-                throw new HiveException("Bad user identifier :" + userId, Response.Status.BAD_REQUEST.getStatusCode());
-            }
-        }
+    public Response updateUser(UserUpdate user, @PathParam("id") Long userId) {
+        userService.updateUser(userId, user);
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
+    }
+
+    @PUT
+    @Path("/current")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateCurrentUser(UserUpdate user, @Context SecurityContext securityContext) {
+        Long id = ((HivePrincipal) securityContext.getUserPrincipal()).getUser().getId();
         userService.updateUser(id, user);
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
+
 
     /**
      * Deletes user by id

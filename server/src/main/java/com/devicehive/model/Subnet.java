@@ -48,6 +48,9 @@ public class Subnet {
         if (inetAddress.getHostAddress().equalsIgnoreCase(ip.getHostAddress()) && mask == 32){
             return true;
         }
+        if (mask == 0){
+            return true;
+        }
         SubnetUtils utils = new SubnetUtils(subnet);
         return utils.getInfo().isInRange(ip.getHostAddress());
     }

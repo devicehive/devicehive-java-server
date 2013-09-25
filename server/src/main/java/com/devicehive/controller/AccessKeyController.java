@@ -131,7 +131,7 @@ public class AccessKeyController {
         User user = getUser(securityContext, userId);
         AccessKey generatedKey = accessKeyService.create(user, key);
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
-        return ResponseFactory.response(Response.Status.OK, generatedKey, ACCESS_KEY_SUBMITTED);
+        return ResponseFactory.response(Response.Status.CREATED, generatedKey, ACCESS_KEY_SUBMITTED);
     }
 
     /**
