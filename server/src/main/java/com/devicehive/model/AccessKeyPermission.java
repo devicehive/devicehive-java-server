@@ -1,11 +1,14 @@
 package com.devicehive.model;
 
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
 
 import javax.persistence.*;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,57 +18,50 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUB
 
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "AccessKeyPermission.deleteByAccessKey", query = "delete from AccessKeyPermission akp where akp.accessKey = :accessKey")
+        @NamedQuery(name = "AccessKeyPermission.deleteByAccessKey",
+                query = "delete from AccessKeyPermission akp where akp.accessKey = :accessKey")
 })
 @Table(name = "access_key_permission")
 public class AccessKeyPermission implements HiveEntity {
 
     private static final long serialVersionUID = 728578066176830685L;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "access_key_id")
     @NotNull
     private AccessKey accessKey;
-
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
     })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper domains;
-
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
     })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper subnets;
-
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
     })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper actions;
-
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
     })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper networkIds;
-
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
     })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
     private JsonStringWrapper deviceGuids;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -107,51 +103,73 @@ public class AccessKeyPermission implements HiveEntity {
         return getJsonAsSet(domains);
     }
 
-    public Set<Subnet> getSubnetsAsSet(){
-        if (subnets == null){
+    public Set<Subnet> getSubnetsAsSet() {
+        if (subnets == null) {
             return null;
         }
         JsonParser parser = new JsonParser();
-        JsonArray json = (JsonArray) parser.parse(subnets.getJsonString());
-        Set<Subnet> result = new HashSet<>(json.size());
-        for (JsonElement current : json){
-            result.add(new Subnet(current.getAsString()));
+        JsonElement elem = parser.parse(subnets.getJsonString());
+        if (elem instanceof JsonNull) {
+            return null;
         }
-        return result;
+        if (elem instanceof JsonArray) {
+            JsonArray json = (JsonArray) elem;
+            Set<Subnet> result = new HashSet<>(json.size());
+            for (JsonElement current : json) {
+                result.add(new Subnet(current.getAsString()));
+            }
+            return result;
+        }
+        throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
     }
 
-    public Set<String> getActionsAsSet(){
+    public Set<String> getActionsAsSet() {
         return getJsonAsSet(actions);
     }
 
-    public Set<String> getDeviceGuidsAsSet(){
+    public Set<String> getDeviceGuidsAsSet() {
         return getJsonAsSet(deviceGuids);
     }
 
-    public Set<Long> getNetworkIdsAsSet(){
-        if (networkIds == null){
+    public Set<Long> getNetworkIdsAsSet() {
+        if (networkIds == null) {
             return null;
         }
         JsonParser parser = new JsonParser();
-        JsonArray json = (JsonArray) parser.parse(networkIds.getJsonString());
-        Set<Long> result = new HashSet<>(json.size());
-        for (JsonElement current : json){
-            result.add(current.getAsLong());
+        JsonElement elem = parser.parse(networkIds.getJsonString());
+        if (elem instanceof JsonNull) {
+            return null;
         }
-        return result;
+        if (elem instanceof JsonArray) {
+            JsonArray json = (JsonArray) elem;
+            Set<Long> result = new HashSet<>(json.size());
+            for (JsonElement current : json) {
+                result.add(current.getAsLong());
+            }
+            return result;
+        }
+        throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
     }
 
-    private Set<String> getJsonAsSet(JsonStringWrapper wrapper){
-        if (wrapper == null){
+    private Set<String> getJsonAsSet(JsonStringWrapper wrapper) {
+        if (wrapper == null) {
             return null;
         }
         JsonParser parser = new JsonParser();
-        JsonArray json = (JsonArray) parser.parse(wrapper.getJsonString());
-        Set<String> result = new HashSet<>(json.size());
-        for (JsonElement current : json){
-            result.add(current.getAsString());
+        JsonElement elem = parser.parse(wrapper.getJsonString());
+        if (elem instanceof JsonNull) {
+            return null;
         }
-        return result;
+
+        if (elem instanceof JsonArray) {
+            JsonArray json = (JsonArray) elem;
+            Set<String> result = new HashSet<>(json.size());
+            for (JsonElement current : json) {
+                result.add(current.getAsString());
+            }
+            return result;
+        }
+        throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
     }
 
     public JsonStringWrapper getSubnets() {
