@@ -277,10 +277,12 @@ public class UserService {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToDevice(User user, Device device) {
-        if (user.isAdmin()) {
-            return true;
-        }
-        return userDAO.hasAccessToDevice(user, device);
+        return user.isAdmin() || userDAO.hasAccessToDevice(user, device);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public boolean hasAccessToNetwork(User user, Network network) {
+        return user.isAdmin() || userDAO.hasAccessToNetwork(user, network);
     }
 
 }

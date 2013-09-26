@@ -9,6 +9,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
@@ -35,6 +36,7 @@ public class NetworkController {
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
     private NetworkService networkService;
     private UserService userService;
+    private AccessKeyService accessKeyService;
 
     @EJB
     public void setNetworkService(NetworkService networkService) {
@@ -44,6 +46,11 @@ public class NetworkController {
     @EJB
     public void setUserService(UserService userService) {
         this.userService = userService;
+    }
+
+    @EJB
+    public void setAccessKeyService(AccessKeyService accessKeyService) {
+        this.accessKeyService = accessKeyService;
     }
 
     /**
@@ -141,26 +148,17 @@ public class NetworkController {
         logger.debug("Network get requested.");
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        Network existing =
+                networkService.getWithDevicesAndDeviceClasses(id, userService.findUserWithNetworks(user.getId()));
+
         if (principal.getKey() != null) {
-            Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
-            Set<Long> allowedNetworksIds = new HashSet<>();
-            for (AccessKeyPermission currentPermission : permissions) {
-                if (currentPermission.getNetworkIdsAsSet() == null) {
-                    allowedNetworksIds.add(null);
-                } else {
-                    allowedNetworksIds.addAll(currentPermission.getNetworkIdsAsSet());
-                }
-            }
-            if (!allowedNetworksIds.contains(null) && !allowedNetworksIds.contains(id)) {
+            if (!accessKeyService.hasAccessToNetwork(principal.getKey(), existing)){
                 logger.debug("Access key have no permissions for network with id {}", id);
                 return ResponseFactory
                         .response(Response.Status.NOT_FOUND,
                                 new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
             }
         }
-
-        Network existing =
-                networkService.getWithDevicesAndDeviceClasses(id, userService.findUserWithNetworks(user.getId()));
 
         if (existing == null) {
             logger.debug("Network with id =  {} does not exists", id);

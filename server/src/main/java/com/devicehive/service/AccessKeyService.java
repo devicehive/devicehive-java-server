@@ -134,7 +134,7 @@ public class AccessKeyService {
         }
         permissions.removeAll(toRemove);
         if (allowedNetworks.contains(null)) {
-            return user.isAdmin() || user.getNetworks().contains(targetNetwork);
+            return userService.hasAccessToNetwork(user, targetNetwork);
         }
         user = userService.findUserWithNetworks(user.getId());
         return allowedNetworks.contains(targetNetwork.getId()) &&

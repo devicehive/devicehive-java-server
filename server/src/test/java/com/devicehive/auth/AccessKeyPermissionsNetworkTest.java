@@ -1,7 +1,6 @@
 package com.devicehive.auth;
 
 import com.devicehive.Constants;
-import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.model.*;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
@@ -14,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -89,6 +89,7 @@ public class AccessKeyPermissionsNetworkTest {
         key.setPermissions(permissions);
 
         when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
+        when(userService.hasAccessToNetwork(any(User.class), any(Network.class))).thenReturn(true);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertTrue(result);
@@ -118,6 +119,7 @@ public class AccessKeyPermissionsNetworkTest {
         key.setPermissions(permissions);
 
         when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
+        when(userService.hasAccessToNetwork(any(User.class), any(Network.class))).thenReturn(true);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertFalse(result);
@@ -160,6 +162,7 @@ public class AccessKeyPermissionsNetworkTest {
         key.setPermissions(permissions);
 
         when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
+        when(userService.hasAccessToNetwork(any(User.class), any(Network.class))).thenReturn(true);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertTrue(result);
@@ -202,6 +205,7 @@ public class AccessKeyPermissionsNetworkTest {
         key.setPermissions(permissions);
 
         when(userService.findUserWithNetworks(Constants.ACTIVE_CLIENT_ID)).thenReturn(CLIENT);
+        when(userService.hasAccessToNetwork(any(User.class), any(Network.class))).thenReturn(true);
 
         boolean result = accessKeyService.hasAccessToNetwork(key, network3);
         assertFalse(result);
