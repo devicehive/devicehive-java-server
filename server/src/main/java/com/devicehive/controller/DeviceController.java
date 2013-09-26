@@ -228,8 +228,7 @@ public class DeviceController {
         }
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
         if (principal.getKey() != null) {
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(),
-                    device) || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
+            if (!accessKeyService.hasAccessToDevice(principal.getKey(), device.getGuid())) {
                 logger.debug("Access denied. No permissions. Device get for device {}", guid);
                 return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));

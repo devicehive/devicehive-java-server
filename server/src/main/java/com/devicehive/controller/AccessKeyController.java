@@ -211,12 +211,12 @@ public class AccessKeyController {
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)) {
             result = userService.findById(id);
             if (result == null) {
-                throw new HiveException("User not found", Response.Status.NOT_FOUND.getStatusCode());
+                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
             }
 
         }
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)) {
-            throw new HiveException("User not found", Response.Status.NOT_FOUND.getStatusCode());
+            throw new HiveException("User not found", Response.Status.UNAUTHORIZED.getStatusCode());
         }
         return result;
     }
