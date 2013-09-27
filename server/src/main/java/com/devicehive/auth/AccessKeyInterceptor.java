@@ -2,7 +2,6 @@ package com.devicehive.auth;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.UserStatus;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
 
@@ -12,11 +11,9 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 @Interceptor
 @AllowedKeyAction
@@ -41,14 +38,7 @@ public class AccessKeyInterceptor {
             Method method = context.getMethod();
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
             List<AllowedKeyAction.Action> actions = Arrays.asList(allowedActionAnnotation.action());
-            InetAddress clientIP = ThreadLocalVariablesKeeper.getClientIP();
-
-            Set<AccessKeyPermission> permissions = key.getPermissions();
-            boolean isAllowed = CheckPermissionsHelper.checkActions(actions, permissions)
-                    && CheckPermissionsHelper.checkIP(clientIP, permissions)
-                    && CheckPermissionsHelper.checkDeviceGuids(permissions)
-                    && CheckPermissionsHelper.checkNetworks(permissions)
-                    && CheckPermissionsHelper.checkDomains(permissions);
+            boolean isAllowed = CheckPermissionsHelper.checkAllPermissions(key, actions);
             if (!isAllowed) {
                 throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
             }

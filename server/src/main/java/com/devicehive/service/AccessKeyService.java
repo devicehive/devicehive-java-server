@@ -103,6 +103,10 @@ public class AccessKeyService {
         return accessKeyDAO.get(key);
     }
 
+    public AccessKey find(@NotNull Long keyId, @NotNull Long userId){
+        return accessKeyDAO.get(userId, keyId);
+    }
+
     private void validateActions(AccessKey accessKey) {
         Set<String> actions = new HashSet<>();
         for (AccessKeyPermission permission : accessKey.getPermissions()) {

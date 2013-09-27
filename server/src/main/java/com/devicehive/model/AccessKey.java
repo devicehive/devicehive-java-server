@@ -13,8 +13,8 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak left join fetch ak.permissions join ak.user u where u.id = :userId"),
-        @NamedQuery(name = "AccessKey.getById", query = "select ak from AccessKey ak left join fetch ak.permissions join ak.user u " +
+        @NamedQuery(name = "AccessKey.getByUserId", query = "select ak from AccessKey ak left join fetch ak.permissions join fetch ak.user u where u.id = :userId"),
+        @NamedQuery(name = "AccessKey.getById", query = "select ak from AccessKey ak left join fetch ak.permissions join fetch ak.user u " +
                 "where u.id = :userId and ak.id = :accessKeyId"),
         @NamedQuery(name = "AccessKey.getByKey", query = "select ak from AccessKey ak left join fetch ak.permissions join fetch ak.user where" +
                 " ak.key = :someKey"),

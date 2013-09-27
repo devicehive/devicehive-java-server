@@ -13,10 +13,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
@@ -91,6 +88,22 @@ public class DeviceDAO {
         }
         TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
         query.setParameter("guidList", list);
+        return query.getResultList();
+    }
+
+    public List<Device> findByUUIDListAndNetwork(Collection<String> list, Network network){
+        if (list == null || list.isEmpty()){
+            return Collections.emptyList();
+        }
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDListAndNetwork", Device.class);
+        query.setParameter("network", network);
+        query.setParameter("guidList", list);
+        return query.getResultList();
+    }
+
+    public List<Device> findByNetwork(Network network){
+        TypedQuery<Device> query = em.createNamedQuery("Device.findByNetwork", Device.class);
+        query.setParameter("network", network);
         return query.getResultList();
     }
 

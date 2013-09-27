@@ -1,15 +1,14 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.AccessKeyService;
+import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
@@ -23,6 +22,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +37,7 @@ public class NetworkController {
     private NetworkService networkService;
     private UserService userService;
     private AccessKeyService accessKeyService;
+    private DeviceService deviceService;
 
     @EJB
     public void setNetworkService(NetworkService networkService) {
@@ -53,6 +54,10 @@ public class NetworkController {
         this.accessKeyService = accessKeyService;
     }
 
+    @EJB
+    public void setDeviceService(DeviceService deviceService){
+        this.deviceService = deviceService;
+    }
     /**
      * Produces following output:
      * <pre>
@@ -147,27 +152,43 @@ public class NetworkController {
 
         logger.debug("Network get requested.");
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Network existing =
-                networkService.getWithDevicesAndDeviceClasses(id, userService.findUserWithNetworks(user.getId()));
+        User user = principal.getUser() == null ? principal.getKey().getUser() : principal.getUser();
 
-        if (principal.getKey() != null) {
-            if (!accessKeyService.hasAccessToNetwork(principal.getKey(), existing)){
-                logger.debug("Access key have no permissions for network with id {}", id);
-                return ResponseFactory
-                        .response(Response.Status.NOT_FOUND,
-                                new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
-            }
-        }
-
+        Network existing = networkService.getWithDevicesAndDeviceClasses(id, user);
         if (existing == null) {
             logger.debug("Network with id =  {} does not exists", id);
             return ResponseFactory
                     .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
         }
-        logger.debug("Network get proceed successfully.");
 
-        return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
+        //if user specified, return network
+        if (principal.getUser() != null){
+            logger.debug("Network get proceed successfully.");
+            return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
+        }
+
+        //otherwise, try to perform the same for access key
+        else{
+            AccessKey key = principal.getKey();
+            if (!accessKeyService.hasAccessToNetwork(key, existing)) {
+                logger.debug("Access key have no permissions for network with id {}", id);
+                return ResponseFactory
+                        .response(Response.Status.NOT_FOUND,
+                                new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
+            }
+            //to get proper devices 1) get access key with all permissions 2) get devices for required network
+            key = accessKeyService.find(key.getId(), user.getId());
+            List<AllowedKeyAction.Action> actions = new ArrayList<>();
+            actions.add(AllowedKeyAction.Action.GET_DEVICE);
+            boolean isAllowedGetDevices = CheckPermissionsHelper.checkAllPermissions(key, actions);
+            if (isAllowedGetDevices){
+            existing.setDevices(deviceService.getDevicesForAccessKey(key, existing));
+            } else{
+                existing.setDevices(null);
+            }
+            return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
+        }
+
     }
 
     /**

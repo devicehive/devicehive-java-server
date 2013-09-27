@@ -73,6 +73,33 @@ public class Network implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
+    /**
+     * Validates network representation. Returns set of strings which are represent constraint violations. Set will
+     * be empty if no constraint violations found.
+     *
+     * @param network   Network that should be validated
+     * @param validator Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(Network network, Validator validator) {
+        Set<ConstraintViolation<Network>> constraintViolations = validator.validate(network);
+        Set<String> result = new HashSet<>();
+        if (!constraintViolations.isEmpty()) {
+            for (ConstraintViolation<Network> cv : constraintViolations)
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+        }
+        return result;
+    }
+
+    public Set<Device> getDevices() {
+        return devices;
+    }
+
+    public void setDevices(Set<Device> devices) {
+        this.devices = devices;
+    }
+
     public Long getId() {
         return id;
     }
@@ -119,26 +146,6 @@ public class Network implements HiveEntity {
 
     public void setEntityVersion(long entityVersion) {
         this.entityVersion = entityVersion;
-    }
-
-
-    /**
-     * Validates network representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
-     *
-     * @param network   Network that should be validated
-     * @param validator Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(Network network, Validator validator) {
-        Set<ConstraintViolation<Network>> constraintViolations = validator.validate(network);
-        Set<String> result = new HashSet<>();
-        if (!constraintViolations.isEmpty()) {
-            for (ConstraintViolation<Network> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
     }
 
     @Override

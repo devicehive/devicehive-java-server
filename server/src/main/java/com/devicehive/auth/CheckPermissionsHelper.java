@@ -1,5 +1,6 @@
 package com.devicehive.auth;
 
+import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Subnet;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
@@ -123,5 +124,18 @@ public class CheckPermissionsHelper {
         }
         permissions.removeAll(permissionToRemove);
         return !permissions.isEmpty();
+    }
+
+    public static boolean checkAllPermissions(AccessKey key, List<AllowedKeyAction.Action> actions){
+        InetAddress clientIP = ThreadLocalVariablesKeeper.getClientIP();
+        Set<AccessKeyPermission> permissions = key.getPermissions();
+
+        boolean isAllowed = CheckPermissionsHelper.checkActions(actions, permissions)
+                && CheckPermissionsHelper.checkIP(clientIP, permissions)
+                && CheckPermissionsHelper.checkDeviceGuids(permissions)
+                && CheckPermissionsHelper.checkNetworks(permissions)
+                && CheckPermissionsHelper.checkDomains(permissions);
+
+        return isAllowed;
     }
 }
