@@ -1,11 +1,11 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.CheckPermissionsHelper;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.Network;
-import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 
 import javax.ejb.EJB;
@@ -14,6 +14,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -84,11 +85,19 @@ public class NetworkService {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId, allowedIds);
     }
 
-    public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
+    public Network createOrVeriryNetwork(NullableWrapper<Network> network, HivePrincipal principal) {
         Network stored;
+
         //case network is not defined
         if (network == null || network.getValue() == null) {
             return null;
+        }
+
+        AccessKey key = principal.getKey();
+        if (key != null){
+            List<AllowedKeyAction.Action> requiredAction = new ArrayList<>();
+            requiredAction.add(AllowedKeyAction.Action.GET_NETWORK); //wtf?
+            CheckPermissionsHelper.checkAllPermissions(key,requiredAction);
         }
 
         Network update = network.getValue();

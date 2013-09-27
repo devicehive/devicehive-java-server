@@ -30,7 +30,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Device.findByUUIDAndKey",
                 query = "select d from Device d where d.guid = :uuid and d.key = :key"),
         @NamedQuery(name = "Device.findByUUIDForUser",
-                query = "select d from Device d  join d.network.users u where u.id = :userid and d.key = :key"),
+                query = "select d from Device d  join d.network.users u where u.id = :userId and d.guid = :uuid"),
         @NamedQuery(name = "Device.findByUUIDListAndUser",
                 query = "select d from Device d join d.network.users u where u = :user and d.guid in :guidList"),
         @NamedQuery(name = "Device.findByUUIDAndUser",

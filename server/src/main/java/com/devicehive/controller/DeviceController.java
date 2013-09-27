@@ -8,9 +8,7 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.AccessKeyService;
-import com.devicehive.service.DeviceEquipmentService;
-import com.devicehive.service.DeviceService;
+import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.SortOrder;
 import com.google.gson.Gson;
@@ -46,6 +44,8 @@ public class DeviceController {
     private DeviceEquipmentService deviceEquipmentService;
     private DeviceService deviceService;
     private AccessKeyService accessKeyService;
+    private UserService userService;
+    private NetworkService networkService;
 
     @EJB
     public void setDeviceEquipmentService(DeviceEquipmentService deviceEquipmentService) {
@@ -60,6 +60,16 @@ public class DeviceController {
     @EJB
     public void setAccessKeyService(AccessKeyService accessKeyService) {
         this.accessKeyService = accessKeyService;
+    }
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @EJB
+    public void setNetworkService(NetworkService networkService){
+        this.networkService = networkService;
     }
 
     /**
@@ -195,11 +205,25 @@ public class DeviceController {
         Device currentDevice = ((HivePrincipal) securityContext.getUserPrincipal()).getDevice();
         AccessKey currentKey = ((HivePrincipal) securityContext.getUserPrincipal()).getKey();
 
-        boolean isAllowedToUpdate = ((currentUser != null && currentUser.isAdmin()) || (currentDevice != null &&
-                currentDevice.getGuid().equals(deviceGuid)) || (currentKey != null && accessKeyService
-                .hasAccessToDevice(currentKey, deviceGuid)));
-
-        deviceService.deviceSaveAndNotify(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
+        Device existing = deviceService.findByUUID(deviceGuid);
+        boolean isAllowedToUpdate = false;
+        if (existing != null) {
+            boolean isClientAllowedToUpdate = false;
+            if (currentUser != null && !currentUser.isAdmin()) {
+                isClientAllowedToUpdate = userService.hasAccessToDevice(currentUser, existing);
+            }
+            isAllowedToUpdate = ((currentUser != null && currentUser.isAdmin())
+                    || isClientAllowedToUpdate
+                    || (currentDevice != null && currentDevice.getGuid().equals(deviceGuid))
+                    || (currentKey != null && accessKeyService.hasAccessToDevice(currentKey, deviceGuid)));
+            if (!isAllowedToUpdate){
+                logger.debug("No permissions to update device. Guid : {}.", deviceGuid);
+                return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse(
+                        Response.Status.UNAUTHORIZED.getStatusCode(), "No permissions"));
+            }
+        }
+        deviceService.deviceSaveAndNotify(device, equipmentSet,(HivePrincipal) securityContext.getUserPrincipal(),
+                useExistingEquipment, isAllowedToUpdate);
         logger.debug("Device register finished successfully");
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
@@ -248,12 +272,13 @@ public class DeviceController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
-    public Response delete(@PathParam("id") String guid) {
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
+    public Response delete(@PathParam("id") String guid, @Context SecurityContext securityContext) {
 
         logger.debug("Device delete requested");
 
-        deviceService.deleteDevice(guid);
+        User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        deviceService.deleteDevice(guid, currentUser);
 
         logger.debug("Device with id = {} is deleted", guid);
 

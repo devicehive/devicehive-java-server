@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
@@ -71,20 +72,23 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, boolean useExistingEquipment,
+    public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
+                                    HivePrincipal principal, boolean useExistingEquipment,
                                     boolean isAllowedToUpdate) {
-        DeviceNotification dn = self.deviceSave(device, equipmentSet, useExistingEquipment, isAllowedToUpdate);
+        DeviceNotification dn = self.deviceSave(device, equipmentSet, principal, useExistingEquipment,
+                isAllowedToUpdate);
         globalMessageBus.publishDeviceNotification(dn);
         deviceActivityService.update(dn.getDevice().getId());
     }
 
-    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate, Set<Equipment> equipmentSet,
+    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
+                                         Set<Equipment> equipmentSet,
+                                         HivePrincipal principal,
                                          boolean useExistingEquipment,
                                          boolean isAllowedToUpdate) {
-        Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
+        Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork(), principal);
         DeviceClass deviceClass = deviceClassService
                 .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
-
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
 
         if (existingDevice == null) {
@@ -136,6 +140,11 @@ public class DeviceService {
         } else {
             return deviceDAO.findByUUID(uuid, u.getId());
         }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public Device findByUUID(String uuid) {
+        return deviceDAO.findByUUID(uuid);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -233,9 +242,9 @@ public class DeviceService {
             }
         }
         Set<Device> result = new HashSet<>();
-        if (allGuids.contains(null)){
-               result.addAll(deviceDAO.findByNetwork(network));
-        } else{
+        if (allGuids.contains(null)) {
+            result.addAll(deviceDAO.findByNetwork(network));
+        } else {
             result.addAll(deviceDAO.findByUUIDListAndNetwork(allGuids, network));
         }
         return result;
@@ -250,8 +259,9 @@ public class DeviceService {
         return device;
     }
 
-    public boolean deleteDevice(@NotNull String guid) {
-        return deviceDAO.deleteDevice(guid);
+    public boolean deleteDevice(@NotNull String guid, @NotNull User user) {
+        Device existing = findByUUID(guid, user);
+        return existing == null || deviceDAO.deleteDevice(guid);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
