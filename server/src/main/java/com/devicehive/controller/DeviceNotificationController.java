@@ -311,7 +311,11 @@ public class DeviceNotificationController {
         asyncPool.submit(new Runnable() {
             @Override
             public void run() {
-                asyncResponsePollProcess(timestamp, deviceGuid, timeout, principal, asyncResponse);
+                try {
+                    asyncResponsePollProcess(timestamp, deviceGuid, timeout, principal, asyncResponse);
+                } catch (Exception e) {
+                    asyncResponse.resume(e);
+                }
             }
         });
     }
@@ -410,7 +414,11 @@ public class DeviceNotificationController {
         asyncPool.submit(new Runnable() {
             @Override
             public void run() {
-                asyncResponsePollManyProcess(deviceGuids, timestamp, timeout, user, asyncResponse, key);
+                try {
+                    asyncResponsePollManyProcess(deviceGuids, timestamp, timeout, user, asyncResponse, key);
+                } catch (Exception e) {
+                    asyncResponse.resume(e);
+                }
             }
         });
     }

@@ -8,6 +8,8 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Priority;
 import javax.naming.InitialContext;
@@ -26,6 +28,8 @@ import static com.devicehive.configuration.Constants.UTF8;
 @Priority(Priorities.AUTHENTICATION)
 public class AuthenticationFilter implements ContainerRequestFilter {
 
+    private static Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+
     private DeviceService deviceService;
     private UserService userService;
     private AccessKeyService accessKeyService;
@@ -40,9 +44,12 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        logger.debug("Thread : {}, URI : {} , Method: {} ", Thread.currentThread().getName(),
+                requestContext.getUriInfo().getPath(), requestContext.getMethod());
         boolean secure = requestContext.getSecurityContext().isSecure();
         HivePrincipal principal = new HivePrincipal(authUser(requestContext), authDevice(requestContext),
                 authKey(requestContext));
+        logger.info("Thread name : {}. principal : {}", Thread.currentThread().getName(), principal);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
         requestContext.setSecurityContext(
                 new HiveSecurityContext(principal, secure));

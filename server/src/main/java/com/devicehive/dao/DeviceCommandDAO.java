@@ -132,7 +132,7 @@ public class DeviceCommandDAO {
         TypedQuery<DeviceCommand> query =
                 em.createNamedQuery("DeviceCommand.getByUserAndDeviceNewerThan", DeviceCommand.class);
         query.setParameter("timestamp", timestamp);
-        query.setParameter("guid", deviceId);
+        query.setParameter("deviceId", deviceId);
         query.setParameter("user", user);
         return query.getResultList();
     }
