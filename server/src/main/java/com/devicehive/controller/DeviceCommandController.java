@@ -113,10 +113,9 @@ public class DeviceCommandController {
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
-            @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -126,7 +125,11 @@ public class DeviceCommandController {
         asyncPool.submit(new Runnable() {
             @Override
             public void run() {
-                pollAction(deviceGuid, timestamp, timeout, principal, asyncResponse);
+                try {
+                    pollAction(deviceGuid, timestamp, timeout, principal, asyncResponse);
+                } catch (Exception e) {
+                    asyncResponse.resume(e);
+                }
             }
         });
     }
@@ -134,7 +137,6 @@ public class DeviceCommandController {
     private void pollAction(String deviceGuid, Timestamp timestamp, long timeout, HivePrincipal principal,
                             AsyncResponse asyncResponse) {
         logger.debug("DeviceCommand poll requested deviceId = {} timestamp = {} ", deviceGuid, timestamp);
-
         if (principal.getUser() != null) {
             logger.debug("DeviceCommand poll was requested by User = {}, deviceId = {}, timestamp = ",
                     principal.getUser().getLogin(), deviceGuid, timestamp);
@@ -169,7 +171,7 @@ public class DeviceCommandController {
             Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
                     principal.getDevice());
             CommandSubscription commandSubscription =
-                    new CommandSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(), reqId,
+                    new CommandSubscription(principal, device.getId(), reqId,
                             restHandlerCreator);
 
             if (SimpleWaiter
@@ -177,6 +179,7 @@ public class DeviceCommandController {
                 list = getDeviceCommandsList(principal, deviceGuid, timestamp);
             }
         }
+
         Response response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
         asyncResponse.resume(response);
     }
@@ -230,7 +233,11 @@ public class DeviceCommandController {
         asyncPool.submit(new Runnable() {
             @Override
             public void run() {
+                try{
                 waitAction(deviceGuid, commandId, timeout, asyncResponse, user);
+                } catch (Exception e){
+                    asyncResponse.resume(e);
+                }
             }
         });
     }

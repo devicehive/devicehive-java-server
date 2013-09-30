@@ -232,6 +232,45 @@ public class DeviceClassController {
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
     }
 
+//    /**
+//     * Gets current state of device equipment.
+//     * <code>
+//     * [
+//     * {
+//     * "id":1,
+//     * "timestamp": "1970-01-01 00:00:00.0",
+//     * "parameters":{/ *custom json object* /}
+//     * },
+//     * {
+//     * "id":2,
+//     * "timestamp": "1970-01-01 00:00:00.0",
+//     * "parameters":{/ *custom json object* /}
+//     * }
+//     * ]
+//     * <p/>
+//     * </code>
+//     *
+//     * @param classId device class id
+//     */
+//    @GET
+//    @Path("/class/{deviceClassId}/equipment")
+//    @RolesAllowed(HiveRoles.ADMIN)
+//    public Response getEquipment(@PathParam("deviceClassId") long classId) {
+//
+//        logger.debug("Device class's equipment get requested");
+//        DeviceClass deviceClass = deviceClassService.get(classId);
+//        if (deviceClass == null){
+//            logger.debug("No  device class with id = {} found",  classId);
+//            return ResponseFactory.response(
+//                    Response.Status.NOT_FOUND,
+//                    new ErrorResponse("Device class with id = " + classId + " not found"));
+//        }
+//        List<Equipment> result = equipmentService.getByDeviceClass(deviceClass);
+//        logger.debug("Device class's equipment get proceed successfully");
+//
+//        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
+//    }
+//
     /**
      * Adds new equipment type to device class
      *
@@ -241,10 +280,10 @@ public class DeviceClassController {
     @Path("/class/{deviceClassId}/equipment")
     @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment equipmentq) {
+    public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment equipment) {
 
         logger.debug("Insert device class's equipment requested");
-        Equipment result = deviceClassService.createEquipment(classId, equipmentq);
+        Equipment result = deviceClassService.createEquipment(classId, equipment);
         logger.debug("New device class's equipment created");
 
         return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED);

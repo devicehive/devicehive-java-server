@@ -3,11 +3,15 @@ package com.devicehive.utils;
 
 import com.devicehive.auth.HivePrincipal;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
 import java.net.InetAddress;
 
 public final class ThreadLocalVariablesKeeper {
+
+    private static Logger logger = LoggerFactory.getLogger(ThreadLocalVariablesKeeper.class);
 
     private static ThreadLocal<JsonObject> REQUEST = new ThreadLocal<>();
     private static ThreadLocal<Session> SESSION = new ThreadLocal<>();
@@ -20,74 +24,55 @@ public final class ThreadLocalVariablesKeeper {
     }
 
     public static void setRequest(JsonObject request) {
-        if (REQUEST == null) {
-            REQUEST = new ThreadLocal<>();
-        }
         REQUEST.set(request);
     }
 
     public static Session getSession() {
-        if (SESSION == null){
-            return null;
-        }
         return SESSION.get();
     }
 
     public static void setSession(Session session) {
-        if (SESSION == null) {
-            SESSION = new ThreadLocal<>();
-        }
         SESSION.set(session);
     }
 
     public static HivePrincipal getPrincipal() {
-        if (PRINCIPAL_KEEPER == null){
-            return null;
-        }
+        logger.debug("GetPrincipal. ThreadName : {}. Principal : {}. Principal value : {}",
+                Thread.currentThread().getName(), PRINCIPAL_KEEPER,PRINCIPAL_KEEPER.get());
         return PRINCIPAL_KEEPER.get();
     }
 
     public static void setPrincipal(HivePrincipal principal) {
-        if (PRINCIPAL_KEEPER == null) {
-            PRINCIPAL_KEEPER = new ThreadLocal<>();
-        }
+        logger.debug("SetPrincipal : ThreadName : {}. Principal : {}. Principal current value : {}. Principal new " +
+                "value : {}",
+        Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get(), principal);
         PRINCIPAL_KEEPER.set(principal);
+        logger.info("SetPrincipal : ThreadName : {}. Principal : {}. Principal current value : {}.",
+                Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get());
     }
 
     public static InetAddress getClientIP() {
-        if (IP == null){
-            return null;
-        }
         return IP.get();
     }
 
     public static void setClientIP(InetAddress ip) {
-        if (IP == null) {
-            IP = new ThreadLocal<>();
-        }
         IP.set(ip);
     }
 
     public static String getHostName() {
-        if (HOST_NAME == null){
-            return null;
-        }
         return HOST_NAME.get();
     }
 
     public static void setHostName(String hostName) {
-        if (HOST_NAME == null) {
-            HOST_NAME = new ThreadLocal<>();
-        }
         HOST_NAME.set(hostName);
     }
 
     public static void clean() {
-        REQUEST = null;
-        PRINCIPAL_KEEPER = null;
-        SESSION = null;
-        IP = null;
-        HOST_NAME = null;
+        logger.debug("Clean : ThreadName : {}.",Thread.currentThread().getName());
+        REQUEST.set(null);
+        PRINCIPAL_KEEPER.set(null);
+        SESSION.set(null);
+        IP.set(null);
+        HOST_NAME.set(null);
     }
 
 }

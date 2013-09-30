@@ -5,6 +5,8 @@ import javax.ejb.ApplicationException;
 
 @ApplicationException
 public class HiveException extends RuntimeException {
+    private static final long serialVersionUID = 6413354755792688308L;
+
     private Integer code = null;
 
     public Integer getCode() {

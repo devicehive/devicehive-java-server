@@ -4,6 +4,8 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.UserStatus;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Priority;
 import javax.interceptor.AroundInvoke;
@@ -20,9 +22,12 @@ import java.util.List;
 @Priority(Interceptor.Priority.APPLICATION + 300)
 public class AccessKeyInterceptor {
 
+    private static Logger logger = LoggerFactory.getLogger(AccessKeyInterceptor.class);
+
     @AroundInvoke
     public Object checkPermissions(InvocationContext context) throws Exception {
         try {
+            logger.debug(Thread.currentThread().getName());
             HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
             AccessKey key = principal.getKey();
             if (key == null) {

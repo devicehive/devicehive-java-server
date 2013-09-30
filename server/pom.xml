@@ -196,7 +196,7 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <url>jdbc:postgresql://localhost/devicehive</url>
+                    <url>jdbc:postgresql://devicehive-java/devicehive</url>
                     <user>devicehive</user>
                     <password>devicehive</password>
                 </configuration>
