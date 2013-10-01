@@ -40,4 +40,8 @@ public class Constants {
 
     public static final String KEY_AUTH = "BEARER";
 
+    public static final String DEBUG_MODE = "debugMode";
+
+    public static final Boolean ENABLE_DEBUG = true;
+
 }

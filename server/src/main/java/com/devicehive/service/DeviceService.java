@@ -1,6 +1,8 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.ConfigurationService;
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
@@ -30,6 +32,7 @@ public class DeviceService {
     private GlobalMessageBus globalMessageBus;
     private DeviceService self;
     private DeviceActivityService deviceActivityService;
+    private ConfigurationService configurationService;
 
     @EJB
     public void setDeviceNotificationService(DeviceNotificationService deviceNotificationService) {
@@ -71,6 +74,11 @@ public class DeviceService {
         this.deviceActivityService = deviceActivityService;
     }
 
+    @EJB
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal, boolean useExistingEquipment,
@@ -86,14 +94,20 @@ public class DeviceService {
                                          HivePrincipal principal,
                                          boolean useExistingEquipment,
                                          boolean isAllowedToUpdate) {
-        Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork(), principal);
+        boolean isDebugModeEnabled = configurationService.getBoolean(Constants.DEBUG_MODE, Constants.ENABLE_DEBUG);
+        Network network = null;
+        if (isDebugModeEnabled) {
+            network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork(), principal);
+        }
         DeviceClass deviceClass = deviceClassService
                 .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
 
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
-            device.setNetwork(network);
+            if (isDebugModeEnabled) {
+                device.setNetwork(network);
+            }
             device.setDeviceClass(deviceClass);
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
@@ -115,7 +129,7 @@ public class DeviceService {
             if (deviceUpdate.getData() != null) {
                 existingDevice.setData(deviceUpdate.getData().getValue());
             }
-            if (deviceUpdate.getNetwork() != null) {
+            if (deviceUpdate.getNetwork() != null && isDebugModeEnabled) {
                 existingDevice.setNetwork(network);
             }
             if (deviceUpdate.getName() != null) {

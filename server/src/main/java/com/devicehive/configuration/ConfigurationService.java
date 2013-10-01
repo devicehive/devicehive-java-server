@@ -106,6 +106,13 @@ public class ConfigurationService {
         return val != null ? Integer.parseInt(val) : defaultValue;
     }
 
+    @Lock(LockType.READ)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public boolean getBoolean(@NotNull String name, boolean defaultValue) {
+        String val = configurationMap.get(name);
+        return val != null ? Boolean.parseBoolean(val) : defaultValue;
+    }
+
 
     private class ConfigurationListener implements MessageListener<String> {
 
