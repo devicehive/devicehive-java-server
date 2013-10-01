@@ -29,7 +29,6 @@ ALTER TABLE access_key_permission ADD CONSTRAINT access_key_permission_pk PRIMAR
 ALTER TABLE access_key_permission ADD CONSTRAINT access_key_permission_access_key_fk FOREIGN KEY (access_key_id) REFERENCES
 access_key (id) ON DELETE CASCADE;
 
-INSERT INTO "user"
-(login, password_hash, password_salt, role, status, login_attempts)
-  VALUES
-  ('admin', 'vQVa9R/bVfN1Nlsn4ZmUZRD9sEA150Ebu0QO7ZUPXVw=', '2Pe08AbthUFQZRnskTcEvpGD', 0, 0, 0);
+--default: debug features are enabled--
+INSERT INTO configuration (name, value)
+  VALUES ('debugMode', 'true');

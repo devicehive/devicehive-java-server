@@ -1,13 +1,12 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.client.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceCommand implements HiveEntity {
 
@@ -25,20 +24,20 @@ public class DeviceCommand implements HiveEntity {
     private Long userId;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
             COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private com.devicehive.client.model.view.NullableWrapper<String> command;
+    private NullableWrapper<String> command;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
             COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private com.devicehive.client.model.view.NullableWrapper<JsonStringWrapper> parameters;
+    private NullableWrapper<JsonStringWrapper> parameters;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private com.devicehive.client.model.view.NullableWrapper<Integer> lifetime;
+    private NullableWrapper<Integer> lifetime;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private com.devicehive.client.model.view.NullableWrapper<Integer> flags;
+    private NullableWrapper<Integer> flags;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
             COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private com.devicehive.client.model.view.NullableWrapper<String> status;
+    private NullableWrapper<String> status;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
             COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private com.devicehive.client.model.view.NullableWrapper<JsonStringWrapper> result;
+    private NullableWrapper<JsonStringWrapper> result;
     @JsonPolicyDef({COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
     private DeviceSubscription device;
 

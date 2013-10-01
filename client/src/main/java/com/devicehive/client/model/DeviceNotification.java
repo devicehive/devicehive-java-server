@@ -1,12 +1,11 @@
 package com.devicehive.client.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.client.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceNotification implements HiveEntity {
 

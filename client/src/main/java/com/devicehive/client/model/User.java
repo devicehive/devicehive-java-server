@@ -1,11 +1,11 @@
 package com.devicehive.client.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.client.json.strategies.JsonPolicyDef;
 
 import java.sql.Timestamp;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class User implements HiveEntity {
 

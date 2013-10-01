@@ -1,11 +1,10 @@
 package com.devicehive.client.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.client.json.strategies.JsonPolicyDef;
 
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceClass implements HiveEntity {
     private static final long serialVersionUID = 967472386318199376L;

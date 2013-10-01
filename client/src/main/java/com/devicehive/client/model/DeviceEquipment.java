@@ -1,11 +1,10 @@
 package com.devicehive.client.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.client.json.strategies.JsonPolicyDef;
 
 import java.sql.Timestamp;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
+import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 
 public class DeviceEquipment implements HiveEntity {
 
