@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @LogExecutionTime
 @Authorize
@@ -87,7 +89,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                                                  Session session) {
 
         if (deviceId == null || deviceKey == null) {
-            throw new HiveException("Device authentication error: credentials are incorrect");
+            throw new HiveException("Device authentication error: credentials are incorrect", SC_UNAUTHORIZED);
         }
         logger.debug("authenticate action for " + deviceId);
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
@@ -96,7 +98,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.setAuthorisedDevice(session, device);
             return new WebSocketResponse();
         } else {
-            throw new HiveException("Device authentication error: credentials are incorrect");
+            throw new HiveException("Device authentication error: credentials are incorrect", SC_UNAUTHORIZED);
         }
     }
 
@@ -123,10 +125,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                                                   Session session) {
         logger.debug("command update action started for session : {{}", session.getId());
         if (commandId == null) {
-            throw new HiveException("Device command identifier cannot be null");
+            throw new HiveException("Device command identifier cannot be null", SC_BAD_REQUEST);
         }
         if (update == null) {
-            throw new HiveException("DeviceCommand resource cannot be null");
+            throw new HiveException("DeviceCommand resource cannot be null", SC_BAD_REQUEST);
         }
         update.setId(commandId);
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
@@ -244,7 +246,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         logger.debug("notification/insert started for session {} ", session.getId());
 
         if (deviceNotification == null || deviceNotification.getNotification() == null) {
-            throw new HiveException("Notification is empty!");
+            throw new HiveException("Notification is empty!", SC_BAD_REQUEST);
         }
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         logger.debug("process submit device notification started for deviceNotification : {}", deviceNotification
@@ -386,10 +388,10 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                                                Session session) {
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
-            throw new HiveException("Device ID is undefined!");
+            throw new HiveException("Device ID is undefined!", SC_BAD_REQUEST);
         }
         if (deviceKey == null) {
-            throw new HiveException("Device key is undefined!");
+            throw new HiveException("Device key is undefined!", SC_BAD_REQUEST);
         }
         logger.debug("check required fields in device ");
         deviceService.checkDevice(device);

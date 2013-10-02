@@ -36,7 +36,6 @@ public class ApiInfoController {
     }
 
     @GET
-
     @PermitAll
     public Response getApiInfo() {
         logger.debug("ApiInfo requested");

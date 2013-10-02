@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_NETWORK;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/network")
 @LogExecutionTime
@@ -158,13 +159,14 @@ public class NetworkController {
         if (existing == null) {
             logger.debug("Network with id =  {} does not exists", id);
             return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), ErrorResponse
+                            .NETWORK_NOT_FOUND_MESSAGE));
         }
 
         //if user specified, return network
         if (principal.getUser() != null){
             logger.debug("Network get proceed successfully.");
-            return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
+            return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
         }
 
         //otherwise, try to perform the same for access key
@@ -173,8 +175,8 @@ public class NetworkController {
             if (!accessKeyService.hasAccessToNetwork(key, existing)) {
                 logger.debug("Access key have no permissions for network with id {}", id);
                 return ResponseFactory
-                        .response(Response.Status.NOT_FOUND,
-                                new ErrorResponse(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
+                        .response(NOT_FOUND,
+                                new ErrorResponse(NOT_FOUND.getStatusCode(), ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
             key = accessKeyService.find(key.getId(), user.getId());
@@ -186,7 +188,7 @@ public class NetworkController {
             } else{
                 existing.setDevices(null);
             }
-            return ResponseFactory.response(Response.Status.OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
+            return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
         }
 
     }
@@ -223,7 +225,7 @@ public class NetworkController {
         logger.debug("Network insert requested");
         Network result = networkService.create(network);
         logger.debug("New network has been created");
-        return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
+        return ResponseFactory.response(CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
 
     /**
@@ -258,7 +260,7 @@ public class NetworkController {
         logger.debug("Network update requested. Id : {}", id);
         networkService.update(id, networkToUpdate);
         logger.debug("Network has been updated successfully. Id : {}", id);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
 
     }
 
@@ -277,6 +279,6 @@ public class NetworkController {
         networkService.delete(id);
         logger.debug("Network with id = {} does not exists any more.", id);
 
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 }

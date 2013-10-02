@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.OptimisticLockException;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
@@ -106,7 +107,7 @@ abstract class Endpoint {
             }
         }
         if (executedMethod == null) {
-            throw new HiveException("Unknown action requested: " + action);
+            throw new HiveException("Unknown action requested: " + action, HttpServletResponse.SC_BAD_REQUEST);
         }
         try {
             Type[] parameterTypes = executedMethod.getGenericParameterTypes();
@@ -173,21 +174,21 @@ abstract class Endpoint {
                 builderForResponse.append(constraintViolation.getMessage());
                 builderForResponse.append("\n");
             }
-            throw new HiveException(builderForResponse.toString());
+            throw new HiveException(builderForResponse.toString(), HttpServletResponse.SC_BAD_REQUEST);
         }
         if (e.getTargetException() instanceof JsonSyntaxException) {
             JsonSyntaxException ex = (JsonSyntaxException) e.getTargetException();
-            throw new HiveException("Incorrect JSON syntax: " + ex.getCause().getMessage(), ex);
+            throw new HiveException("Incorrect JSON syntax: " + ex.getCause().getMessage(), ex, HttpServletResponse.SC_BAD_REQUEST);
         }
         if (e.getTargetException() instanceof JsonParseException) {
             JsonParseException ex = (JsonParseException) e.getTargetException();
-            throw new HiveException("Error occurred on parsing JSON object: " + ex.getMessage(), ex);
+            throw new HiveException("Error occurred on parsing JSON object: " + ex.getMessage(), ex, HttpServletResponse.SC_BAD_REQUEST);
         }
         if (e.getTargetException() instanceof org.hibernate.exception.ConstraintViolationException) {
             org.hibernate.exception.ConstraintViolationException target = (org.hibernate.exception
                     .ConstraintViolationException) e.getTargetException();
             throw new HiveException("Unable to proceed requests, cause unique constraint is broken on unique fields: " +
-                    target.getMessage(), target);
+                    target.getMessage(), target, HttpServletResponse.SC_CONFLICT);
         }
         throw e;
     }

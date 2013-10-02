@@ -22,6 +22,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.ws.rs.core.Response.Status.*;
+
 /**
  * REST controller for device classes: <i>/DeviceClass</i>.
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive RESTful API: DeviceClass</a> for details.
@@ -79,15 +82,15 @@ public class DeviceClassController {
         if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST,
-                            new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                    ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
                 sortOrder, take, skip);
         logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_LISTED);
+        return ResponseFactory.response(OK, result, DEVICECLASS_LISTED);
     }
 
     /**
@@ -110,13 +113,13 @@ public class DeviceClassController {
 
         if (result == null) {
             logger.info("No device class with id = {} found", id);
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse("DeviceClass with id = " + id + " not found."));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), "DeviceClass with id = " + id + " not found."));
         }
 
         logger.debug("Requested device class found");
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED);
+        return ResponseFactory.response(OK, result, DEVICECLASS_PUBLISHED);
     }
 
     /**
@@ -147,7 +150,7 @@ public class DeviceClassController {
         DeviceClass result = deviceClassService.addDeviceClass(insert);
 
         logger.debug("Device class inserted");
-        return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED);
+        return ResponseFactory.response(CREATED, result, DEVICECLASS_SUBMITTED);
     }
 
     /**
@@ -166,11 +169,11 @@ public class DeviceClassController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateDeviceClass(
             @PathParam("id") long id,
-            @JsonPolicyApply(JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
+            @JsonPolicyApply(DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
         logger.debug("Device class update requested for id {}", id);
         deviceClassService.update(id, insert);
         logger.debug("Device class updated. Id {}", id);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
@@ -188,8 +191,7 @@ public class DeviceClassController {
         logger.debug("Device class delete requested");
         deviceClassService.delete(id);
         logger.debug("Device class deleted");
-
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
@@ -223,13 +225,12 @@ public class DeviceClassController {
 
         if (result == null) {
             logger.debug("No equipment with id = {} for device class with id = {} found", eqId, classId);
-            return ResponseFactory.response(
-                    Response.Status.NOT_FOUND,
-                    new ErrorResponse("Equipment with id = " + eqId + " not found"));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), "Equipment with id = " + eqId + " not found"));
         }
         logger.debug("Device class's equipment get proceed successfully");
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED);
+        return ResponseFactory.response(OK, result, EQUIPMENTCLASS_PUBLISHED);
     }
 
 //    /**
@@ -286,7 +287,7 @@ public class DeviceClassController {
         Equipment result = deviceClassService.createEquipment(classId, equipment);
         logger.debug("New device class's equipment created");
 
-        return ResponseFactory.response(Response.Status.CREATED, result, JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED);
+        return ResponseFactory.response(CREATED, result, EQUIPMENTCLASS_SUBMITTED);
     }
 
     /**
@@ -328,14 +329,14 @@ public class DeviceClassController {
         if (!equipmentService.update(equipmentUpdate, eqId, classId)) {
             logger.debug("Unable to update equipment. Equipment with id = {} for device class with id = {} not found",
                     eqId, classId);
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse(
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(),
                             "Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
         }
 
         logger.debug("Update device class's equipment finished successfully");
 
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
@@ -356,7 +357,7 @@ public class DeviceClassController {
         equipmentService.delete(eqId, classId);
         logger.debug("Delete device class's equipment finished");
 
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
 }

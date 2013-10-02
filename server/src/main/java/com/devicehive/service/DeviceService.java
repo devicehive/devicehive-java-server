@@ -19,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Stateless
 @LogExecutionTime
@@ -118,7 +119,7 @@ public class DeviceService {
             return resultList.get(0);
         } else {
             if (!isAllowedToUpdate) {
-                throw new HiveException("Unauthorized. No permissions to update device", 401);
+                throw new HiveException("Unauthorized. No permissions to update device", UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
                 existingDevice.setDeviceClass(deviceClass);

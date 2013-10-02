@@ -8,6 +8,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import javax.servlet.http.HttpServletResponse;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ServerResponsesFactory {
@@ -54,7 +56,7 @@ public class ServerResponsesFactory {
         if (parametersJsonElement instanceof JsonObject) {
             statusJsonObject = (JsonObject) parametersJsonElement;
         } else {
-            throw new HiveException("\"parameters\" must be JSON Object!");
+            throw new HiveException("\"parameters\" must be JSON Object!", HttpServletResponse.SC_BAD_REQUEST);
         }
         return statusJsonObject.get("status").getAsString();
     }
@@ -78,7 +80,7 @@ public class ServerResponsesFactory {
         if (parametersJsonElement instanceof JsonObject) {
             jsonEquipmentObject = (JsonObject) parametersJsonElement;
         } else {
-            throw new HiveException("\"parameters\" must be JSON Object!");
+            throw new HiveException("\"parameters\" must be JSON Object!", HttpServletResponse.SC_BAD_REQUEST);
         }
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
     }

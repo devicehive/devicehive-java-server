@@ -88,7 +88,7 @@ public class DeviceClassService {
         } else {
             //create
             if (deviceClassFromMessage.getId() != null) {
-                throw new HiveException("Invalid request");
+                throw new HiveException("Invalid request", BAD_REQUEST.getStatusCode());
             }
             deviceClassDAO.createDeviceClass(deviceClassFromMessage);
             if (!useExistingEquipment) {
@@ -151,7 +151,7 @@ public class DeviceClassService {
         for (Equipment newEquipment : equipmentsToReplace) {
             if (codes.contains(newEquipment.getCode())) {
                 throw new HiveException("Duplicate equipment entry with code = " + newEquipment.getCode() + " for " +
-                        "device class with id : " + deviceClass.getId());
+                        "device class with id : " + deviceClass.getId(), FORBIDDEN.getStatusCode());
             }
             codes.add(newEquipment.getCode());
             newEquipment.setDeviceClass(deviceClass);
@@ -165,7 +165,7 @@ public class DeviceClassService {
         for (Equipment equipment : equipments) {
             if (existingCodesSet.contains(equipment.getCode())) {
                 throw new HiveException("Duplicate equipment entry with code = " + equipment.getCode() + " for " +
-                        "device class with id : " + deviceClass.getId());
+                        "device class with id : " + deviceClass.getId(), FORBIDDEN.getStatusCode());
             }
             existingCodesSet.add(equipment.getCode());
             equipment.setDeviceClass(deviceClass);
@@ -191,7 +191,7 @@ public class DeviceClassService {
             for (Equipment e : equipments) {
                 if (newCode.equals(e.getCode())) {
                     throw new HiveException("Equipment with code = " + newCode + " and device class id = " + classId +
-                            " already exists");
+                            " already exists", FORBIDDEN.getStatusCode());
                 }
             }
         }

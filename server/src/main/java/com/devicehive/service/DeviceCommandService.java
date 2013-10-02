@@ -25,6 +25,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 
 @Stateless
@@ -158,7 +159,7 @@ public class DeviceCommandService {
         }
 
         if (!cmd.getDevice().getId().equals(device.getId())) {
-            throw new HiveException("Device tries to update incorrect command");
+            throw new HiveException("Device tries to update incorrect command", UNAUTHORIZED.getStatusCode());
         }
 
 

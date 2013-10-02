@@ -26,6 +26,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST Controller for access keys: <i>/user/{userId}/accesskey</i>
@@ -75,7 +76,7 @@ public class AccessKeyController {
 
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
 
-        return ResponseFactory.response(Response.Status.OK, keyList, ACCESS_KEY_LISTED);
+        return ResponseFactory.response(OK, keyList, ACCESS_KEY_LISTED);
     }
 
     /**
@@ -102,13 +103,14 @@ public class AccessKeyController {
             logger.debug("Access key : list failed for userId : {} and accessKeyId : {}. Reason: No access key found" +
                     ".", userId, accessKeyId);
             return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse("Access key not found."));
+                    .response(NOT_FOUND,
+                            new ErrorResponse(NOT_FOUND.getStatusCode(),"Access key not found."));
         }
 
         logger.debug("Access key : insert proceed successfully for userId : {} and accessKeyId : {}", userId,
                 accessKeyId);
 
-        return ResponseFactory.response(Response.Status.OK, result, ACCESS_KEY_LISTED);
+        return ResponseFactory.response(OK, result, ACCESS_KEY_LISTED);
     }
 
     /**
@@ -131,7 +133,7 @@ public class AccessKeyController {
         User user = getUser(securityContext, userId);
         AccessKey generatedKey = accessKeyService.create(user, key);
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
-        return ResponseFactory.response(Response.Status.CREATED, generatedKey, ACCESS_KEY_SUBMITTED);
+        return ResponseFactory.response(CREATED, generatedKey, ACCESS_KEY_SUBMITTED);
     }
 
     /**
@@ -158,12 +160,12 @@ public class AccessKeyController {
             logger.debug("Access key : update failed for userId : {} and accessKeyId : {}. Reason: No access key " +
                     "found.", userId, accessKeyId);
             return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse("Access key not found."));
+                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "Access key not found."));
         }
 
         logger.debug("Access key : update proceed successfully for userId : {}, access key id : {}, access key : {} ",
                 userId, accessKeyId, accessKeyUpdate);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
@@ -187,7 +189,7 @@ public class AccessKeyController {
 
         logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId,
                 accessKeyId);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
 
     }
 
@@ -202,8 +204,7 @@ public class AccessKeyController {
             try {
                 id = Long.parseLong(userId);
             } catch (NumberFormatException e) {
-                throw new HiveException("Bad user identifier :" + userId, e,
-                        Response.Status.BAD_REQUEST.getStatusCode());
+                throw new HiveException("Bad user identifier :" + userId, e,BAD_REQUEST.getStatusCode());
             }
         }
 
@@ -211,12 +212,12 @@ public class AccessKeyController {
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)) {
             result = userService.findById(id);
             if (result == null) {
-                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+                throw new HiveException("Not authorized!",UNAUTHORIZED.getStatusCode());
             }
 
         }
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)) {
-            throw new HiveException("User not found", Response.Status.UNAUTHORIZED.getStatusCode());
+            throw new HiveException("User not found", UNAUTHORIZED.getStatusCode());
         }
         return result;
     }

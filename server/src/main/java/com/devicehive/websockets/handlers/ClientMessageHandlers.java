@@ -42,9 +42,7 @@ import java.util.Set;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.*;
 
 @LogExecutionTime
 @Authorize
@@ -98,7 +96,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                                                  @WsParam("accessKey") String key,
                                                  Session session) {
         if ((login == null || password == null) && key == null) {
-            throw new HiveException("login and password and key cannot be empty!");
+            throw new HiveException("login and password and key cannot be empty!", SC_BAD_REQUEST);
         }
         logger.debug("authenticate action for {} ", login);
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
@@ -107,7 +105,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             WebsocketSession.setAuthorisedUser(session, user);
             return new WebSocketResponse();
         } else {
-            throw new HiveException("Client authentication error: credentials are incorrect");
+            throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
         }
     }
 
@@ -153,7 +151,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         Device device = deviceService.getDevice(deviceGuid, user, null);
         if (deviceCommand == null) {
-            throw new HiveException("Command is empty");
+            throw new HiveException("Command is empty", SC_BAD_REQUEST);
         }
         deviceCommand.setUserId(user.getId());
 
@@ -247,7 +245,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         if (devices.isEmpty()) {
             logger.debug("No devices found. Return " + ". Session {} ", session.getId());
-            throw new HiveException("No available devices found.");
+            throw new HiveException("No available devices found.", SC_NOT_FOUND);
         }
 
         logger.debug("Found " + devices.size() + " devices" + ". Session " + session.getId());
@@ -337,7 +335,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 devices = deviceDAO.findByUUID(list);
                 logger.debug("notification/unsubscribe. found {} devices. ", devices.size());
                 if (devices.isEmpty()) {
-                    throw new HiveException("No available devices found");
+                    throw new HiveException("No available devices found", SC_NOT_FOUND);
                 }
 
                 logger.debug("notification/unsubscribe. performing unsubscribing action");
@@ -390,7 +388,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             responseBuilder
                     .append(". Device(s) with such guids does not exist(s) or you have not permissions to get " +
                             "notifications from this device.");
-            throw new HiveException(responseBuilder.toString());
+            throw new HiveException(responseBuilder.toString(), SC_UNAUTHORIZED);
         }
 
     }
@@ -507,7 +505,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         if (devices.isEmpty()) {
             logger.debug("No devices found. Return " + ". Session {} ", session.getId());
-            throw new HiveException("No available devices found.");
+            throw new HiveException("No available devices found.", SC_NOT_FOUND);
         }
         logger.debug("Found " + devices.size() + " devices" + ". Session " + session.getId());
         List<DeviceCommand> deviceCommands = commandService.getNewerThan(devices, timestamp);
@@ -631,7 +629,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
         if (commandUpdate == null) {
-            throw new HiveException("command with id " + id + " for device with " + guid + " is not found");
+            throw new HiveException("command with id " + id + " for device with " + guid + " is not found", SC_NOT_FOUND);
         }
         commandUpdate.setId(id);
         commandService.submitDeviceCommandUpdate(commandUpdate, device);

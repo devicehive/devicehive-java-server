@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -437,8 +438,7 @@ public class DeviceCommandController {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
                 logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
                         principal.getKey().getId());
-                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
-                        .NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+                return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
             }
         }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
@@ -447,7 +447,7 @@ public class DeviceCommandController {
         if (result == null) {
             logger.debug("Device command get failed. No command with id = {} found for device with guid = {}", id,
                     guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("Command Not Found"));
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "Command Not Found"));
         }
 
         if (result.getUser() != null) {
@@ -455,7 +455,7 @@ public class DeviceCommandController {
         }
 
         logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, id);
-        return ResponseFactory.response(Response.Status.OK, result, Policy.COMMAND_TO_DEVICE);
+        return ResponseFactory.response(OK, result, Policy.COMMAND_TO_DEVICE);
     }
 
     /**
@@ -504,13 +504,12 @@ public class DeviceCommandController {
         if (principal.getKey() != null && !accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
             logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
                     principal.getKey().getId());
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
-                    .NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
         }
         String login = user.getLogin();
 
         if (login == null) {
-            return ResponseFactory.response(Response.Status.FORBIDDEN);
+            return ResponseFactory.response(FORBIDDEN);
         }
 
         User u = userService.findUserWithNetworksByLogin(login);
@@ -522,7 +521,7 @@ public class DeviceCommandController {
 
         logger.debug("Device command insertAll proceed successfully. deviceId = {} commandId = {}", guid,
                 deviceCommand.getId());
-        return ResponseFactory.response(Response.Status.CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
+        return ResponseFactory.response(CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
     }
 
     /**
@@ -558,21 +557,21 @@ public class DeviceCommandController {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
                 logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
                         principal.getKey().getId());
-                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
-                        .NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+                return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
             }
         }
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
         if (command == null) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse("command with id " + commandId + " for device with " + guid + " is not found"));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(),"command with id " + commandId + " for device with "
+                            + guid + " is not found"));
         }
         command.setId(commandId);
 
         commandService.submitDeviceCommandUpdate(command, device);
         logger.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     @PreDestroy

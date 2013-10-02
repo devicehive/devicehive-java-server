@@ -48,7 +48,8 @@ import java.util.concurrent.Executors;
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -169,7 +170,7 @@ public class DeviceNotificationController {
                     " notification {}, sort field {}, sort order {}, take {}, skip {}", guid, start, end,
                     notification, sortField, sortOrder, take, skip);
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         if (sortField == null) {
@@ -187,9 +188,8 @@ public class DeviceNotificationController {
             logger.debug("Device notification query failed. No permissions to access device for key with id {}. Guid " +
                     "{}, start {}, end {}, notification {}, sort field {}, sort order {}, take {}, skip {}",
                     principal.getKey().getId(), guid, start, end, notification, sortField, sortOrder, take, skip);
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse(Response.Status
-                            .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
         }
 
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
@@ -481,7 +481,7 @@ public class DeviceNotificationController {
             }
 
             asyncResponse
-                    .resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+                    .resume(ResponseFactory.response(OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
             return;
         }
         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
@@ -496,7 +496,7 @@ public class DeviceNotificationController {
         for (DeviceNotification notification : list) {
             resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
         }
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+        asyncResponse.resume(ResponseFactory.response(OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
     }
 
     private List<DeviceNotification> getDeviceNotificationsList(User user, List<String> guids, Timestamp timestamp) {
@@ -572,15 +572,15 @@ public class DeviceNotificationController {
             user = principal.getKey().getUser();
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
                 logger.debug("No device found with guid : {} for access key {}", guid, principal.getKey().getId());
-                return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device  " +
+                return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "No device  " +
                         "found with guid : " + guid));
             }
         }
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         Device device = deviceService.getDevice(guid, user, principal.getDevice());
@@ -588,12 +588,13 @@ public class DeviceNotificationController {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}",
                     guid);
-            return ResponseFactory.response(Response.Status.FORBIDDEN, new ErrorResponse("No access to device"));
+            return ResponseFactory.response(FORBIDDEN,
+                    new ErrorResponse(FORBIDDEN.getStatusCode(),"No access to device"));
         }
         notificationService.submitDeviceNotification(notification, device);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
-        return ResponseFactory.response(Response.Status.CREATED, notification, Policy.NOTIFICATION_TO_DEVICE);
+        return ResponseFactory.response(CREATED, notification, NOTIFICATION_TO_DEVICE);
     }
 
     @PreDestroy

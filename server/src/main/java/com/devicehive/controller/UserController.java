@@ -25,7 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/user")
 @LogExecutionTime
@@ -90,8 +90,8 @@ public class UserController {
         }
 
         if (!"ID".equalsIgnoreCase(sortField) && !"Login".equalsIgnoreCase(sortField) && sortField != null) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
@@ -101,7 +101,7 @@ public class UserController {
                 "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
                 take, skip);
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.USERS_LISTED);
+        return ResponseFactory.response(OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
 
     /**
@@ -138,10 +138,11 @@ public class UserController {
         User user = userService.findUserWithNetworks(userId);
 
         if (user == null) {
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("User not found."));
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    "User not found."));
         }
 
-        return ResponseFactory.response(Response.Status.OK,
+        return ResponseFactory.response(OK,
                 UserResponse.createFromUser(user),
                 JsonPolicyDef.Policy.USER_PUBLISHED);
     }
@@ -156,10 +157,10 @@ public class UserController {
 
         if (currentUser == null) {
             return ResponseFactory
-                    .response(Response.Status.CONFLICT, new ErrorResponse("Could not get current user."));
+                    .response(CONFLICT, new ErrorResponse(CONFLICT.getStatusCode(), "Could not get current user."));
         }
 
-        return ResponseFactory.response(Response.Status.OK, currentUser, JsonPolicyDef.Policy.USER_PUBLISHED);
+        return ResponseFactory.response(OK, currentUser, JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     /**
@@ -192,7 +193,7 @@ public class UserController {
     public Response insertUser(UserUpdate userToCreate) {
         String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
         User created = userService.createUser(userToCreate.convertTo(), password);
-        return ResponseFactory.response(Response.Status.CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
+        return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
     }
 
     /**
@@ -219,7 +220,7 @@ public class UserController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(UserUpdate user, @PathParam("id") Long userId) {
         userService.updateUser(userId, user);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     @PUT
@@ -229,7 +230,7 @@ public class UserController {
     public Response updateCurrentUser(UserUpdate user, @Context SecurityContext securityContext) {
         Long id = ((HivePrincipal) securityContext.getUserPrincipal()).getUser().getId();
         userService.updateUser(id, user);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
 
@@ -244,7 +245,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response deleteUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
@@ -272,7 +273,7 @@ public class UserController {
         }
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
-                return ResponseFactory.response(Response.Status.OK,
+                return ResponseFactory.response(OK,
                         UserNetworkResponse.fromNetwork(network),
                         JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
@@ -291,7 +292,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         userService.assignNetwork(id, networkId);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
@@ -306,7 +307,7 @@ public class UserController {
     @RolesAllowed(HiveRoles.ADMIN)
     public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
         userService.unassignNetwork(id, networkId);
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
 }

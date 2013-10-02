@@ -15,11 +15,10 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * This class serves all requests to database from controller.
@@ -111,7 +110,7 @@ public class UserService {
         User existing = userDAO.findById(id);
 
         if (existing == null) {
-            throw new HiveException("User with such id cannot be found", Response.Status.NOT_FOUND.getStatusCode());
+            throw new HiveException("User with such id cannot be found", NOT_FOUND.getStatusCode());
         }
         if (userToUpdate == null) {
             return existing;
@@ -120,13 +119,13 @@ public class UserService {
             User existingLogin = userDAO.findByLogin(userToUpdate.getLogin().getValue());
             if (existingLogin != null && !existingLogin.getId().equals(id)) {
                 throw new HiveException("User with such login already exists. Please, select another one",
-                        Response.Status.FORBIDDEN.getStatusCode());
+                        FORBIDDEN.getStatusCode());
             }
             existing.setLogin(userToUpdate.getLogin().getValue());
         }
         if (userToUpdate.getPassword() != null) {
             if (userToUpdate.getPassword().getValue() == null || userToUpdate.getPassword().getValue().isEmpty()) {
-                throw new HiveException("Password is required!", Response.Status.BAD_REQUEST.getStatusCode());
+                throw new HiveException("Password is required!", BAD_REQUEST.getStatusCode());
             }
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(userToUpdate.getPassword().getValue(), salt);
@@ -234,16 +233,15 @@ public class UserService {
 
     public User createUser(@NotNull User user, String password) {
         if (user.getId() != null) {
-            throw new HiveException("Id cannot be specified for new user",
-                    Response.Status.BAD_REQUEST.getStatusCode());
+            throw new HiveException("Id cannot be specified for new user",BAD_REQUEST.getStatusCode());
         }
         User existing = userDAO.findByLogin(user.getLogin());
         if (existing != null) {
             throw new HiveException("User with such login already exists. Please, select another one",
-                    Response.Status.FORBIDDEN.getStatusCode());
+                    FORBIDDEN.getStatusCode());
         }
         if (password == null || password.isEmpty()) {
-            throw new HiveException("Password is required!", Response.Status.BAD_REQUEST.getStatusCode());
+            throw new HiveException("Password is required!", BAD_REQUEST.getStatusCode());
         }
         String salt = passwordService.generateSalt();
         String hash = passwordService.hashPassword(password, salt);

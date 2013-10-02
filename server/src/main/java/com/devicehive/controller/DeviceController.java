@@ -30,7 +30,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST controller for devices: <i>/device</i>.
@@ -115,7 +117,7 @@ public class DeviceController {
         if (!"Name".equals(sortField) && !"Status".equals(sortField) && !"Network".equals(sortField) &&
                 !"DeviceClass".equals(sortField) && sortField != null) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
@@ -187,7 +189,7 @@ public class DeviceController {
             deviceService.checkDevice(device);
         } catch (HiveException e) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         Gson gsonForEquipment = GsonFactory.createGson();
@@ -218,8 +220,8 @@ public class DeviceController {
                     || (currentKey != null && accessKeyService.hasAccessToDevice(currentKey, deviceGuid)));
             if (!isAllowedToUpdate){
                 logger.debug("No permissions to update device. Guid : {}.", deviceGuid);
-                return ResponseFactory.response(Response.Status.UNAUTHORIZED, new ErrorResponse(
-                        Response.Status.UNAUTHORIZED.getStatusCode(), "No permissions"));
+                return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(
+                        UNAUTHORIZED.getStatusCode(), "No permissions"));
             }
         }
         deviceService.deviceSaveAndNotify(device, equipmentSet,(HivePrincipal) securityContext.getUserPrincipal(),
@@ -282,7 +284,7 @@ public class DeviceController {
 
         logger.debug("Device with id = {} is deleted", guid);
 
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
@@ -334,16 +336,14 @@ public class DeviceController {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
                     || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
-                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
-                        .NOT_FOUND.getStatusCode(), "No device found with such guid"));
+                return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "No device found with such guid"));
             }
         }
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully for device {}", guid);
 
-        return ResponseFactory
-                .response(Response.Status.OK, equipments, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
+        return ResponseFactory.response(OK, equipments, DEVICE_EQUIPMENT_SUBMITTED);
     }
 
     /**
@@ -373,20 +373,19 @@ public class DeviceController {
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
                     || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
                 logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
-                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
-                        .NOT_FOUND.getStatusCode(), "No device found with such guid"));
+                return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "No device found with such guid"));
             }
         }
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
             return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse(ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
+                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
         }
         logger.debug("Device equipment by code proceed successfully");
 
         return ResponseFactory
-                .response(Response.Status.OK, equipment, JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED);
+                .response(OK, equipment, DEVICE_EQUIPMENT_SUBMITTED);
     }
 
 

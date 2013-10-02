@@ -13,13 +13,11 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Stateless
 public class NetworkService {
@@ -63,8 +61,7 @@ public class NetworkService {
     public Network update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
         Network existing = getById(networkId);
         if (existing == null) {
-            throw new HiveException(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE,
-                    Response.Status.NOT_FOUND.getStatusCode());
+            throw new HiveException(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE, NOT_FOUND.getStatusCode());
         }
         if (networkUpdate.getKey() != null) {
             existing.setKey(networkUpdate.getKey().getValue());
@@ -111,12 +108,12 @@ public class NetworkService {
         if (stored != null) {
             if (stored.getKey() != null) {
                 if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException("Wrong network key!", 403);
+                    throw new HiveException("Wrong network key!", UNAUTHORIZED.getStatusCode());
                 }
             }
         } else {
             if (update.getId() != null) {
-                throw new HiveException("Invalid request");
+                throw new HiveException("Invalid request", BAD_REQUEST.getStatusCode());
             }
             stored = networkDAO.createNetwork(update);
         }
