@@ -34,7 +34,6 @@ import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -297,22 +296,20 @@ public class DeviceNotificationController {
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam
                     ("waitTimeout") final long timeout,
-            @Context final ContainerRequestContext requestContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = (HivePrincipal) requestContext.getSecurityContext().getUserPrincipal();
-
+        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("Device notification poll proceed successfully for device with guid = {}", deviceGuid);
+                logger.debug("DeviceCNotification poll proceed successfully. device guid = {}", deviceGuid);
             }
         });
         asyncPool.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollProcess(timestamp, deviceGuid, timeout, principal, asyncResponse);
+                    asyncResponsePollProcess(timestamp, deviceGuid,  timeout, principal, asyncResponse);
                 } catch (Exception e) {
                     asyncResponse.resume(e);
                 }
@@ -325,19 +322,15 @@ public class DeviceNotificationController {
         logger.debug("Device notification poll requested for device with guid = {}. Timestamp = {}. Timeout = {}",
                 deviceGuid, timestamp, timeout);
 
-        if (deviceGuid == null) {
-            logger.debug("Device notification poll finished with error. No device guid specified");
-
-            asyncResponse.resume(
-                    ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device guid specified")));
-            return;
-        }
-        if (timestamp == null) {
-            timestamp = timestampService.getTimestamp();
-        }
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
+        if (principal.getUser() != null) {
+            logger.debug("DeviceNotification poll was requested by User = {}, deviceId = {}, timestamp = ",
+                    principal.getUser().getLogin(), deviceGuid, timestamp);
+        } else if (principal.getDevice() != null) {
+            logger.debug("DeviceNotification poll was requested by Device = {}, deviceId = {}, timestamp = ",
+                    principal.getDevice().getGuid(), deviceGuid, timestamp);
+        } else if (principal.getKey() != null) {
+            logger.debug("DeviceNotification poll was requested by Key = {}, deviceId = {}, timestamp = ",
+                    principal.getKey().getId(), deviceGuid, timestamp);
             if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
                 logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
                         "timestamp = cannot be proceed. No permissions to access device",
@@ -348,37 +341,45 @@ public class DeviceNotificationController {
                 asyncResponse.resume(response);
             }
         }
-        List<DeviceNotification> list = getDeviceNotificationsList(user, deviceGuid, timestamp);
+
+        if (timestamp == null) {
+            timestamp = timestampService.getTimestamp();
+        }
+        List<DeviceNotification> list = getDeviceNotificationsList(principal, deviceGuid, timestamp);
+
         if (list.isEmpty()) {
-            logger.debug("Waiting for notification from device = {}", deviceGuid);
+            logger.debug("Waiting for notifications from device = {}", deviceGuid);
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
                     principal.getDevice());
-            NotificationSubscription notificationSubscription =
-                    new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(), reqId,
-                            restHandlerCreator);
+            NotificationSubscription commandSubscription =
+                    new NotificationSubscription(principal, device.getId(), reqId,restHandlerCreator);
 
             if (SimpleWaiter
-                    .subscribeAndWait(storage, notificationSubscription, restHandlerCreator.getFutureTask(),
-                            timeout)) {
-                list = getDeviceNotificationsList(user, deviceGuid, timestamp);
+                    .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
+                list = getDeviceNotificationsList(principal, deviceGuid, timestamp);
             }
         }
-        Response response = ResponseFactory.response(Response.Status.OK, list,
-                Policy.NOTIFICATION_TO_CLIENT);
-
+        Response response = ResponseFactory.response(OK, list, Policy.NOTIFICATION_TO_CLIENT);
         asyncResponse.resume(response);
     }
 
-    private List<DeviceNotification> getDeviceNotificationsList(User user, String guid, Timestamp timestamp) {
-        List<String> guidList = new ArrayList<>(1);
-        guidList.add(guid);
-        if (user != null && user.getRole().equals(UserRole.CLIENT)) {
-            return deviceNotificationDAO.getByUserAndDevicesNewerThan(user, guidList, timestamp);
+    private List<DeviceNotification> getDeviceNotificationsList(HivePrincipal principal,
+                                                                String guid,
+                                                                Timestamp timestamp) {
+
+        User authUser = principal.getUser();
+        if (authUser == null && principal.getKey() != null) {
+            authUser = principal.getKey().getUser();
         }
-        return deviceNotificationDAO.findByDevicesIdsNewerThan(guidList, timestamp);
+        if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
+            List<String> guids = new ArrayList<String>();
+            guids.add(guid);
+            return deviceNotificationDAO.getByUserAndDevicesNewerThan(authUser, guids, timestamp);
+        }
+        return deviceNotificationDAO.findNewerThan(timestamp);
     }
 
     /**
