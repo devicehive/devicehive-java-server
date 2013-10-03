@@ -28,29 +28,29 @@ import static javax.ws.rs.core.Response.Status.*;
 
 public class ResponseFactory {
 
-    public static <T> T responseGet(WebTarget target, Class<T> resultType) {
+    public static <T> T responseGet(WebTarget target, Class<T> resultType, Annotation readPolicyAnnotation) {
         Map<String, String> headers = getAuthHeaders();
-        return response(headers, target, HttpMethod.GET, resultType, null, null, null);
+        return response(headers, target, HttpMethod.GET, resultType, null, null, readPolicyAnnotation);
     }
 
-    public static <T> T responsePost(WebTarget target, Class<T> resultType, T entityToPost){
+    public static <T> T responsePost(WebTarget target, Class<T> resultType, T entityToPost) {
         Map<String, String> headers = getAuthHeaders();
         return response(headers, target, HttpMethod.POST, resultType, entityToPost, null, null);
     }
 
-    public static boolean responseDelete(WebTarget target){
+    public static boolean responseDelete(WebTarget target) {
         Map<String, String> headers = getAuthHeaders();
         response(headers, target, HttpMethod.DELETE, null, null, null, null);
         return true;
     }
 
-    public static <T> boolean responseUpdate(WebTarget target, T entityToUpdate){
+    public static <T> boolean responseUpdate(WebTarget target, T entityToUpdate) {
         Map<String, String> headers = getAuthHeaders();
         response(headers, target, HttpMethod.PUT, null, entityToUpdate, null, null);
         return true;
     }
 
-    private static Map<String, String> getAuthHeaders(){
+    private static Map<String, String> getAuthHeaders() {
         CredentialsStorage currentUserInfo = Preferences.getCurrentUserInfoStorage();
         Map<String, String> headers;
         if (currentUserInfo == null) {
@@ -66,7 +66,6 @@ public class ResponseFactory {
         }
         return headers;
     }
-
 
     private static Map<String, String> getUserAuthHeaders(String login, String password) {
         Map<String, String> headers = new HashMap<>(1);
@@ -94,25 +93,34 @@ public class ResponseFactory {
                                   String method,
                                   Class<T> entityType,
                                   T entityObject,
-                                  Annotation[] writeAnnotations,
-                                  Annotation[] readAnnotations) {
+                                  Annotation writeAnnotation,
+                                  Annotation readAnnotation) {
         Invocation.Builder invocationBuilder = target.
                 request().
                 accept(MediaType.APPLICATION_JSON_TYPE).
-                header(HttpHeaders.CONTENT_TYPE, "application/json");
+                header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 
         for (String headerName : headers.keySet()) {
             invocationBuilder.header(headerName, headers.get(headerName));
         }
         Response response;
         Entity<T> entity;
-        switch (method){
+        Annotation[] writeAnnotations = {writeAnnotation};
+        switch (method) {
             case HttpMethod.POST:
-                entity = Entity.entity(entityObject, MediaType.APPLICATION_JSON_TYPE, writeAnnotations);
+                if (writeAnnotation == null) {
+                    entity = Entity.entity(entityObject, MediaType.APPLICATION_JSON_TYPE);
+                } else {
+                    entity = Entity.entity(entityObject, MediaType.APPLICATION_JSON_TYPE, writeAnnotations);
+                }
                 response = invocationBuilder.buildPost(entity).invoke();
                 break;
             case HttpMethod.PUT:
-                entity = Entity.entity(entityObject, MediaType.APPLICATION_JSON_TYPE, writeAnnotations);
+                if (writeAnnotation == null) {
+                    entity = Entity.entity(entityObject, MediaType.APPLICATION_JSON_TYPE);
+                } else {
+                    entity = Entity.entity(entityObject, MediaType.APPLICATION_JSON_TYPE, writeAnnotations);
+                }
                 response = invocationBuilder.buildPut(entity).invoke();
                 break;
             default:
@@ -134,9 +142,13 @@ public class ResponseFactory {
                 }
                 throw new HiveClientException(reason, response.getStatus());
             case SUCCESSFUL:
-                if (entityType == null){
+                if (entityType == null) {
                     return null;
                 }
+                if (readAnnotation == null) {
+                    return response.readEntity(entityType);
+                }
+                Annotation[] readAnnotations = {readAnnotation};
                 return response.readEntity(entityType, readAnnotations);
         }
         return null;

@@ -1,8 +1,7 @@
 package com.devicehive.client.json.strategies;
 
 
-import org.glassfish.hk2.api.AnnotationLiteral;
-
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -11,9 +10,7 @@ public @interface JsonPolicyApply {
 
     JsonPolicyDef.Policy value();
 
-    public static class JsonPolicyApplyLiteral extends AnnotationLiteral<JsonPolicyApply>
-            implements JsonPolicyApply {
-
+    public static class JsonPolicyApplyLiteral implements JsonPolicyApply {
 
         private static final long serialVersionUID = 7838737655418173629L;
         private JsonPolicyDef.Policy policy;
@@ -25,6 +22,11 @@ public @interface JsonPolicyApply {
         @Override
         public JsonPolicyDef.Policy value() {
             return policy;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return JsonPolicyApply.class;
         }
     }
 }
