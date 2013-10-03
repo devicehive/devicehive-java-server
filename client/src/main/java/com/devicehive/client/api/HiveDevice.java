@@ -1,7 +1,10 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.model.*;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -23,14 +26,11 @@ public interface HiveDevice {
 
     void updateCommand(DeviceCommand deviceCommand);
 
-
     void subscribeForCommands(CommandHandler handler);
 
     void unsubscribeFromCommands();
 
-
     DeviceNotification insertNotification(DeviceNotification deviceNotification);
-
 
 
 }

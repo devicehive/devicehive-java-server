@@ -7,7 +7,6 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 
 public interface HiveDeviceGateway {
@@ -31,9 +30,5 @@ public interface HiveDeviceGateway {
 
     void unsubscribeFromCommands(String deviceId);
 
-
     DeviceNotification insertNotification(String deviceId, DeviceNotification deviceNotification);
-
-
-
 }
