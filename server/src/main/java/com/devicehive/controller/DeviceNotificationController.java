@@ -390,18 +390,20 @@ public class DeviceNotificationController {
      * @param timeout     Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
+
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/notification/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
+            @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -413,37 +415,40 @@ public class DeviceNotificationController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollManyProcess(deviceGuids, timestamp, timeout, principal, asyncResponse);
+                    asyncResponsePollManyProcess(principal, deviceGuids, timestamp, timeout, user, asyncResponse);
                 } catch (Exception e) {
+                    logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
                 }
             }
         });
     }
 
-    private void asyncResponsePollManyProcess(String deviceGuids, Timestamp timestamp, long timeout,
-                                              HivePrincipal principal, AsyncResponse asyncResponse) {
+    private void asyncResponsePollManyProcess(HivePrincipal principal,
+                                              String deviceGuids,
+                                              Timestamp timestamp,
+                                              long timeout,
+                                              User user, AsyncResponse asyncResponse) {
         logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
                 deviceGuids, timestamp, timeout);
 
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
-        if (timestamp == null) {
-            timestamp = timestampService.getTimestamp();
-        }
         if (!checkPermissions(deviceGuids, timestamp, guids, principal, asyncResponse)) {
             return;
         }
 
+        if (timestamp == null) {
+            timestamp = timestampService.getTimestamp();
+        }
         List<DeviceNotification> list = getDeviceNotificationsList(principal, guids, timestamp);
 
-        if (!list.isEmpty()) {
+        if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-            User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
             if (!guids.isEmpty()) {
                 List<Device> devices;
 
@@ -454,32 +459,18 @@ public class DeviceNotificationController {
                 }
                 for (Device device : devices) {
                     subscriptionSet
-                            .add(new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(),
-                                    device.getId(),
-                                    reqId,
-                                    restHandlerCreator));
+                            .add(new NotificationSubscription(principal, device.getId(), reqId, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
-                        .add(new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(),
-                                Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
+                        .add(new NotificationSubscription(principal, Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
                                 reqId,
                                 restHandlerCreator));
             }
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceNotificationsList(user, guids, timestamp);
-            }
-            if (principal.getUser() == null && principal.getKey() != null) {
-                Iterator<DeviceNotification> notificationsIterator = list.iterator();
-                while (notificationsIterator.hasNext()) {
-                    if (!accessKeyService
-                            .hasAccessToDevice(principal.getKey(),
-                                    notificationsIterator.next().getDevice().getGuid())) {
-                        notificationsIterator.remove();
-                    }
-                }
+                list = getDeviceNotificationsList(principal, guids, timestamp);
             }
             List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
             for (DeviceNotification notification : list) {
@@ -487,23 +478,14 @@ public class DeviceNotificationController {
             }
 
             asyncResponse
-                    .resume(ResponseFactory.response(OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+                    .resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
             return;
         }
         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
-        if (principal.getUser() == null && principal.getKey() != null) {
-            Iterator<DeviceNotification> notificationsIterator = list.iterator();
-            while (notificationsIterator.hasNext()) {
-                if (!accessKeyService
-                        .hasAccessToDevice(principal.getKey(), notificationsIterator.next().getDevice().getGuid())) {
-                    notificationsIterator.remove();
-                }
-            }
-        }
         for (DeviceNotification notification : list) {
             resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
         }
-        asyncResponse.resume(ResponseFactory.response(OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
     }
 
     private boolean checkPermissions(String deviceGuids,
@@ -552,31 +534,30 @@ public class DeviceNotificationController {
         if (authUser == null && principal.getKey() != null) {
             authUser = principal.getKey().getUser();
         }
+        List<DeviceNotification> result;
         if (!guids.isEmpty()) {
             if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
-                return deviceNotificationDAO.getByUserAndDevicesNewerThan(authUser, guids, timestamp);
-            }
-            return deviceNotificationDAO.findByDevicesIdsNewerThan(guids, timestamp);
-        } else {
-            if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
-                return deviceNotificationDAO.getByUserNewerThan(authUser, timestamp);
+                result = deviceNotificationDAO.getByUserAndDevicesNewerThan(authUser, guids, timestamp);
             } else {
-                return deviceNotificationDAO.findNewerThan(timestamp);
+                result = deviceNotificationDAO.findByDevicesIdsNewerThan(guids, timestamp);
+            }
+        } else {
+            if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
+                result = deviceNotificationDAO.getByUserNewerThan(authUser, timestamp);
+            } else {
+                result = deviceNotificationDAO.findNewerThan(timestamp);
             }
         }
-    }
-
-    private List<DeviceNotification> getDeviceNotificationsList(User user, List<String> guids, Timestamp
-            timestamp) {
-        if (!guids.isEmpty()) {
-            return user.getRole().equals(UserRole.CLIENT) ?
-                    deviceNotificationDAO.getByUserAndDevicesNewerThan(user, guids, timestamp) :
-                    deviceNotificationDAO.findByDevicesIdsNewerThan(guids, timestamp);
-        } else {
-            return user.getRole().equals(UserRole.CLIENT) ?
-                    deviceNotificationDAO.getByUserNewerThan(user, timestamp) :
-                    deviceNotificationDAO.findNewerThan(timestamp);
+        if (principal.getUser() == null && principal.getKey() != null) {
+            Iterator<DeviceNotification> iterator = result.iterator();
+            while (iterator.hasNext()) {
+                DeviceNotification notification = iterator.next();
+                if (!accessKeyService.hasAccessToDevice(principal.getKey(), notification.getDevice())) {
+                    iterator.remove();
+                }
+            }
         }
+        return result;
     }
 
     /**
