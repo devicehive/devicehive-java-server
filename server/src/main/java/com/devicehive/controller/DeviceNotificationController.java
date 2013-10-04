@@ -432,38 +432,10 @@ public class DeviceNotificationController {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-
-        if (principal.getUser() != null) {
-            logger.debug("DeviceNotification poll was requested by User = {}, deviceIds = {}, timestamp = ",
-                    principal.getUser().getLogin(), deviceGuids, timestamp);
-        } else {
-            logger.debug("DeviceNotification poll was requested by Key = {}, deviceIds = {}, timestamp = ",
-                    principal.getKey().getId(), deviceGuids, timestamp);
-            if (!guids.isEmpty()) {
-                List<String> guidsWithDeniedAccess = new LinkedList<>();
-                for (String deviceGuid : guids) {
-                    if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
-                        logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
-                                "timestamp = cannot be proceed. No permissions to access device",
-                                principal.getKey().getId(), deviceGuid, timestamp);
-                        guidsWithDeniedAccess.add(deviceGuid);
-                    }
-                }
-                if (!guidsWithDeniedAccess.isEmpty()) {
-                    StringBuilder message = new StringBuilder("No access to devices with guids: {");
-                    for (String guid : guidsWithDeniedAccess) {
-                        message.append(guid).append(", ");
-                    }
-                    message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
-                    // with length 2. We don't need extra commas and spaces.
-                    message.append("}");
-                    Response response = ResponseFactory.response(UNAUTHORIZED,
-                            new ErrorResponse(UNAUTHORIZED.getStatusCode(), message.toString()));
-                    asyncResponse.resume(response);
-                    return;
-                }
-            }
+        if (!checkPermissions(deviceGuids, timestamp, guids, principal, asyncResponse)) {
+            return;
         }
+
         List<DeviceNotification> list = getDeviceNotificationsList(principal, guids, timestamp);
 
         if (!list.isEmpty()) {
@@ -499,15 +471,16 @@ public class DeviceNotificationController {
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = getDeviceNotificationsList(user, guids, timestamp);
             }
-//            if (key != null) {
-//                Iterator<DeviceNotification> notificationsIterator = list.iterator();
-//                while (notificationsIterator.hasNext()) {
-//                    if (!accessKeyService
-//                            .hasAccessToDevice(key, notificationsIterator.next().getDevice().getGuid())) {
-//                        notificationsIterator.remove();
-//                    }
-//                }
-//            }
+            if (principal.getUser() == null && principal.getKey() != null) {
+                Iterator<DeviceNotification> notificationsIterator = list.iterator();
+                while (notificationsIterator.hasNext()) {
+                    if (!accessKeyService
+                            .hasAccessToDevice(principal.getKey(),
+                                    notificationsIterator.next().getDevice().getGuid())) {
+                        notificationsIterator.remove();
+                    }
+                }
+            }
             List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
             for (DeviceNotification notification : list) {
                 resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
@@ -518,18 +491,58 @@ public class DeviceNotificationController {
             return;
         }
         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
-//        if (key != null) {
-//            Iterator<DeviceNotification> notificationsIterator = list.iterator();
-//            while (notificationsIterator.hasNext()) {
-//                if (!accessKeyService.hasAccessToDevice(key, notificationsIterator.next().getDevice().getGuid())) {
-//                    notificationsIterator.remove();
-//                }
-//            }
-//        }
+        if (principal.getUser() == null && principal.getKey() != null) {
+            Iterator<DeviceNotification> notificationsIterator = list.iterator();
+            while (notificationsIterator.hasNext()) {
+                if (!accessKeyService
+                        .hasAccessToDevice(principal.getKey(), notificationsIterator.next().getDevice().getGuid())) {
+                    notificationsIterator.remove();
+                }
+            }
+        }
         for (DeviceNotification notification : list) {
             resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
         }
         asyncResponse.resume(ResponseFactory.response(OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+    }
+
+    private boolean checkPermissions(String deviceGuids,
+                                     Timestamp timestamp,
+                                     List<String> guids,
+                                     HivePrincipal principal,
+                                     AsyncResponse asyncResponse) {
+        if (principal.getUser() != null) {
+            logger.debug("DeviceNotification poll was requested by User = {}, deviceIds = {}, timestamp = ",
+                    principal.getUser().getLogin(), deviceGuids, timestamp);
+        } else {
+            logger.debug("DeviceNotification poll was requested by Key = {}, deviceIds = {}, timestamp = ",
+                    principal.getKey().getId(), deviceGuids, timestamp);
+            if (!guids.isEmpty()) {
+                List<String> guidsWithDeniedAccess = new LinkedList<>();
+                for (String deviceGuid : guids) {
+                    if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
+                        logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
+                                "timestamp = cannot be proceed. No permissions to access device",
+                                principal.getKey().getId(), deviceGuid, timestamp);
+                        guidsWithDeniedAccess.add(deviceGuid);
+                    }
+                }
+                if (!guidsWithDeniedAccess.isEmpty()) {
+                    StringBuilder message = new StringBuilder("No access to devices with guids: {");
+                    for (String guid : guidsWithDeniedAccess) {
+                        message.append(guid).append(", ");
+                    }
+                    message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
+                    // with length 2. We don't need extra commas and spaces.
+                    message.append("}");
+                    Response response = ResponseFactory.response(UNAUTHORIZED,
+                            new ErrorResponse(UNAUTHORIZED.getStatusCode(), message.toString()));
+                    asyncResponse.resume(response);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private List<DeviceNotification> getDeviceNotificationsList(HivePrincipal principal,
@@ -547,8 +560,7 @@ public class DeviceNotificationController {
         } else {
             if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
                 return deviceNotificationDAO.getByUserNewerThan(authUser, timestamp);
-            }
-            else{
+            } else {
                 return deviceNotificationDAO.findNewerThan(timestamp);
             }
         }
