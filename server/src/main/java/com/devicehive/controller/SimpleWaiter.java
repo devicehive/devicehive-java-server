@@ -23,11 +23,9 @@ public class SimpleWaiter {
             future.get(seconds, TimeUnit.SECONDS);
             logger.debug("Waiting done");
             return true;
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | ExecutionException e) {
             throw new HiveException("Unknown error", e, 500);
-        } catch (ExecutionException e) {
-            throw new HiveException("Unknown error", e, 500);
-        } catch (TimeoutException e) {
+        }  catch (TimeoutException e) {
             logger.debug("Waiting timeout");
             return false;
         }
