@@ -25,6 +25,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device.guid = :guid"),
         @NamedQuery(name = "DeviceCommand.getNewerThanByDevices",
                 query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device in :devicesList"),
+        @NamedQuery(name = "DeviceCommand.getNewerThanByDeviceIds",
+                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device.guid in :guidList"),
         @NamedQuery(name = "DeviceCommand.getAllNewerThan",
                 query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp"),
         @NamedQuery(name = "DeviceCommand.getByUserNewerThan",

@@ -84,6 +84,14 @@ public class DeviceCommandDAO {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
+    public List<DeviceCommand> getByDeviceIdNewerThan(List<String> guidList, Timestamp timestamp){
+        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThanByDeviceIds",
+                DeviceCommand.class);
+        query.setParameter("timestamp", timestamp);
+        query.setParameter("guidList", guidList);
+        return query.getResultList();
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
 

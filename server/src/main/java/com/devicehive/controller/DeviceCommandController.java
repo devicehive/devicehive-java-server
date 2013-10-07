@@ -10,6 +10,7 @@ import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.*;
+import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
@@ -34,9 +35,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,7 +46,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for details.
  */
-@Path("/device/{deviceGuid}/command")
+@Path("/device")
 @LogExecutionTime
 @Singleton
 public class DeviceCommandController {
@@ -108,7 +107,7 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
-    @Path("/poll")
+    @Path("/{deviceGuid}/command/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
             @QueryParam("timestamp") final Timestamp timestamp,
@@ -197,6 +196,176 @@ public class DeviceCommandController {
         return deviceCommandDAO.getNewerThan(guid, timestamp);
     }
 
+
+    @GET
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @Path("/command/poll")
+    public void pollMany(
+            @QueryParam("deviceGuids") final String deviceGuids,
+            @QueryParam("timestamp") final Timestamp timestamp,
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @QueryParam("waitTimeout") final long timeout,
+            @Context SecurityContext securityContext,
+            @Suspended final AsyncResponse asyncResponse) {
+
+        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug("Device notification poll many proceed successfully for devices: {}", deviceGuids);
+            }
+        });
+
+        asyncPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    asyncResponsePollManyProcess(principal, deviceGuids, timestamp, timeout, user, asyncResponse);
+                } catch (Exception e) {
+                    logger.error("Error: " + e.getMessage(), e);
+                    asyncResponse.resume(e);
+                }
+            }
+        });
+    }
+
+    private void asyncResponsePollManyProcess(HivePrincipal principal,
+                                              String deviceGuids,
+                                              Timestamp timestamp,
+                                              long timeout,
+                                              User user, AsyncResponse asyncResponse) {
+        logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
+                deviceGuids, timestamp, timeout);
+
+        List<String> guids =
+                deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
+
+        if (!checkPermissions(deviceGuids, timestamp, guids, principal, asyncResponse)) {
+            return;
+        }
+
+        if (timestamp == null) {
+            timestamp = timestampService.getTimestamp();
+        }
+        List<DeviceCommand> list = getDeviceCommandsList(principal, guids, timestamp);
+
+        if (list.isEmpty()) {
+            CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            Set<CommandSubscription> subscriptionSet = new HashSet<>();
+            if (!guids.isEmpty()) {
+                List<Device> devices;
+
+                if (user.getRole().equals(UserRole.ADMIN)) {
+                    devices = deviceService.findByUUID(guids);
+                } else {
+                    devices = deviceService.findByUUIDListAndUser(user, guids);
+                }
+                for (Device device : devices) {
+                    subscriptionSet
+                            .add(new CommandSubscription(principal, device.getId(), reqId, restHandlerCreator));
+                }
+            } else {
+                subscriptionSet
+                        .add(new CommandSubscription(principal,
+                                Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
+                                reqId,
+                                restHandlerCreator));
+            }
+
+            if (SimpleWaiter
+                    .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
+                list = getDeviceCommandsList(principal, guids, timestamp);
+            }
+            List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
+            for (DeviceCommand command : list) {
+                resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
+            }
+
+            asyncResponse
+                    .resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED));
+            return;
+        }
+        List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
+        for (DeviceCommand command : list) {
+            resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
+        }
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED));
+    }
+
+    private boolean checkPermissions(String deviceGuids,
+                                     Timestamp timestamp,
+                                     List<String> guids,
+                                     HivePrincipal principal,
+                                     AsyncResponse asyncResponse) {
+        if (principal.getUser() != null) {
+            logger.debug("DeviceNotification poll was requested by User = {}, deviceIds = {}, timestamp = ",
+                    principal.getUser().getLogin(), deviceGuids, timestamp);
+        } else {
+            logger.debug("DeviceNotification poll was requested by Key = {}, deviceIds = {}, timestamp = ",
+                    principal.getKey().getId(), deviceGuids, timestamp);
+            if (!guids.isEmpty()) {
+                List<String> guidsWithDeniedAccess = new LinkedList<>();
+                for (String deviceGuid : guids) {
+                    if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
+                        logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
+                                "timestamp = cannot be proceed. No permissions to access device",
+                                principal.getKey().getId(), deviceGuid, timestamp);
+                        guidsWithDeniedAccess.add(deviceGuid);
+                    }
+                }
+                if (!guidsWithDeniedAccess.isEmpty()) {
+                    StringBuilder message = new StringBuilder("No access to devices with guids: {");
+                    for (String guid : guidsWithDeniedAccess) {
+                        message.append(guid).append(", ");
+                    }
+                    message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
+                    // with length 2. We don't need extra commas and spaces.
+                    message.append("}");
+                    Response response = ResponseFactory.response(UNAUTHORIZED,
+                            new ErrorResponse(UNAUTHORIZED.getStatusCode(), message.toString()));
+                    asyncResponse.resume(response);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal,
+                                                                List<String> guids,
+                                                                Timestamp timestamp) {
+        User authUser = principal.getUser();
+        if (authUser == null && principal.getKey() != null) {
+            authUser = principal.getKey().getUser();
+        }
+        List<DeviceCommand> result;
+        if (!guids.isEmpty()) {
+            if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
+                result = deviceCommandDAO.getByUserAndDevicesNewerThan(guids, timestamp, authUser);
+            } else {
+                result = deviceCommandDAO.getByDeviceIdNewerThan(guids, timestamp);
+            }
+        } else {
+            if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
+                result = deviceCommandDAO.getNewerThan(timestamp, authUser);
+            } else {
+                result = deviceCommandDAO.getNewerThan(timestamp);
+            }
+        }
+        if (principal.getUser() == null && principal.getKey() != null) {
+            Iterator<DeviceCommand> iterator = result.iterator();
+            while (iterator.hasNext()) {
+                DeviceCommand command = iterator.next();
+                if (!accessKeyService.hasAccessToDevice(principal.getKey(), command.getDevice())) {
+                    iterator.remove();
+                }
+            }
+        }
+        return result;
+    }
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/wait">DeviceHive RESTful API: DeviceCommand: wait</a>
      *
@@ -206,7 +375,7 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
-    @Path("/{commandId}/poll")
+    @Path("/{deviceGuid}/command/{commandId}/poll")
     public void wait(
             @PathParam("deviceGuid") final String deviceGuid,
             @PathParam("commandId") final Long commandId,
@@ -346,6 +515,7 @@ public class DeviceCommandController {
      * @return list of device command with status 200, otherwise empty response with status 400
      */
     @GET
+    @Path("/{deviceGuid}/command")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     public Response query(@PathParam("deviceGuid") String guid,
@@ -426,7 +596,7 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
-    @Path("/{id}")
+    @Path("/{deviceGuid}/command/{id}")
     public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id,
                         @Context SecurityContext securityContext) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
@@ -492,6 +662,7 @@ public class DeviceCommandController {
      * @param deviceCommand
      */
     @POST
+    @Path("/{deviceGuid}/command")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
@@ -541,7 +712,7 @@ public class DeviceCommandController {
      * @return If successful, this method returns an empty response body.
      */
     @PUT
-    @Path("/{id}")
+    @Path("/{deviceGuid}/command/{id}")
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = {UPDATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
