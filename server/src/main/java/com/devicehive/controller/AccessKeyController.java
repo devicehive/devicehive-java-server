@@ -208,7 +208,7 @@ public class AccessKeyController {
             }
         }
 
-        User result = null;
+        User result;
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)) {
             result = userService.findById(id);
             if (result == null) {
@@ -219,6 +219,7 @@ public class AccessKeyController {
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)) {
             throw new HiveException("User not found", UNAUTHORIZED.getStatusCode());
         }
+        result = currentUser;
         return result;
     }
 }

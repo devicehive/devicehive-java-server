@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -72,7 +74,7 @@ public class DeviceClassController {
             @QueryParam("version") String version,
             @QueryParam("sortField") String sortField,
             @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
-            @QueryParam("take") Integer take,
+            @QueryParam("take") @Min(0) @Max(Integer.MAX_VALUE) Integer take,
             @QueryParam("skip") Integer skip) {
 
         logger.debug("DeviceClass list requested");

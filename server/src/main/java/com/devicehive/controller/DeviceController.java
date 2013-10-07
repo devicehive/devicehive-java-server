@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -105,8 +107,8 @@ public class DeviceController {
                          @QueryParam("deviceClassVersion") String deviceClassVersion,
                          @QueryParam("sortField") String sortField,
                          @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
-                         @QueryParam("take") Integer take,
-                         @QueryParam("skip") Integer skip,
+                         @QueryParam("take") @Min(0) @Max(Integer.MAX_VALUE) Integer take,
+                         @QueryParam("skip") @Min(0) @Max(Integer.MAX_VALUE) Integer skip,
                          @Context SecurityContext securityContext) {
 
         logger.debug("Device list requested");
