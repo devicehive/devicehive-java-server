@@ -213,7 +213,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
      */
     @Action(value = "command/unsubscribe")
     @RolesAllowed({HiveRoles.DEVICE})
-    public WebSocketResponse processNotificationUnsubscribe(Session session) {
+    public WebSocketResponse processCommandUnsubscribe(Session session) {
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         logger.debug("command/unsubscribe for device {}", device.getGuid());
         subscriptionManager.getCommandSubscriptionStorage().remove(device.getId(), session.getId());
