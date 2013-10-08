@@ -66,7 +66,7 @@ public class Device implements HiveEntity {
     @NotNull(message = "guid field cannot be null.")
     @Size(min = 1, max = 48,
             message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, NETWORK_PUBLISHED})
     private String guid;
 
     @SerializedName("key")
@@ -80,14 +80,14 @@ public class Device implements HiveEntity {
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
             "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String name;
 
     @SerializedName("status")
     @Column
     @Size(min = 1, max = 128,
             message = "Field cannot be empty. The length of status should not be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String status;
 
     @SerializedName("data")
@@ -95,20 +95,20 @@ public class Device implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
     })
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
 
     @SerializedName("network")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "network_id")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED})
     private Network network;
 
     @SerializedName("deviceClass")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_class_id")
     @NotNull(message = "deviceClass field cannot be null.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private DeviceClass deviceClass;
 
     @Version

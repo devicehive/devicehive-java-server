@@ -3,10 +3,6 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.HiveEntity;
-import com.devicehive.model.Network;
 import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -123,5 +119,4 @@ public class DeviceUpdate implements HiveEntity {
         }
         return device;
     }
-
 }

@@ -16,6 +16,7 @@ public @interface JsonPolicyDef {
         ACCESS_KEY_PUBLISHED,
         ACCESS_KEY_SUBMITTED,
         DEVICE_PUBLISHED,
+        DEVICE_PUBLISHED_DEVICE_AUTH,
         DEVICE_SUBMITTED,
         COMMAND_TO_CLIENT,
         COMMAND_TO_DEVICE,

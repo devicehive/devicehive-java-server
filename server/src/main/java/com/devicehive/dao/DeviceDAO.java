@@ -112,6 +112,11 @@ public class DeviceDAO {
         return device;
     }
 
+    public Device mergeDevice(Device device){
+        em.merge(device);
+        return device;
+    }
+
     public Device setOffline(long id) {
         Device device = findById(id);
         device.setStatus("Offline");

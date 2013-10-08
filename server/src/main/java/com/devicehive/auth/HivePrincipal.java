@@ -25,20 +25,40 @@ public class HivePrincipal implements Principal {
         return user;
     }
 
-    public AccessKey getKey(){
+    public AccessKey getKey() {
         return key;
     }
 
     @Override
     public String getName() {
-        if (user != null){
+        if (user != null) {
             return user.getLogin();
         }
-        if (device != null){
+        if (device != null) {
             return device.getGuid();
         }
-        if (key != null){
+        if (key != null) {
             return key.getKey();
+        }
+        return null;
+    }
+
+    public boolean isAuthenticated() {
+        return user != null || device != null || key != null;
+    }
+
+    public String getRole() {
+        if (user != null && user.isAdmin()) {
+            return HiveRoles.ADMIN;
+        }
+        if (user != null) {
+            return HiveRoles.CLIENT;
+        }
+        if (device != null) {
+            return HiveRoles.DEVICE;
+        }
+        if (key != null) {
+            return HiveRoles.KEY;
         }
         return null;
     }

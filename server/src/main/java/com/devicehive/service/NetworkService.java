@@ -1,8 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.CheckPermissionsHelper;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
@@ -13,7 +10,6 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -22,10 +18,22 @@ import static javax.ws.rs.core.Response.Status.*;
 @Stateless
 public class NetworkService {
     private NetworkDAO networkDAO;
+    private UserService userService;
+    private AccessKeyService accessKeyService;
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     @EJB
     public void setNetworkDAO(NetworkDAO networkDAO) {
         this.networkDAO = networkDAO;
+    }
+
+    @EJB
+    public void setAccessKeyService(AccessKeyService accessKeyService) {
+        this.accessKeyService = accessKeyService;
     }
 
     public Network getById(long id) {
@@ -82,7 +90,7 @@ public class NetworkService {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId, allowedIds);
     }
 
-    public Network createOrVeriryNetwork(NullableWrapper<Network> network, HivePrincipal principal) {
+    public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
         Network stored;
 
         //case network is not defined
@@ -90,12 +98,6 @@ public class NetworkService {
             return null;
         }
 
-        AccessKey key = principal.getKey();
-        if (key != null){
-            List<AllowedKeyAction.Action> requiredAction = new ArrayList<>();
-            requiredAction.add(AllowedKeyAction.Action.GET_NETWORK); //wtf?
-            CheckPermissionsHelper.checkAllPermissions(key,requiredAction);
-        }
 
         Network update = network.getValue();
 
@@ -108,7 +110,7 @@ public class NetworkService {
         if (stored != null) {
             if (stored.getKey() != null) {
                 if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException("Wrong network key!", UNAUTHORIZED.getStatusCode());
+                    throw new HiveException("Wrong network key!", FORBIDDEN.getStatusCode());
                 }
             }
         } else {
@@ -118,6 +120,71 @@ public class NetworkService {
             stored = networkDAO.createNetwork(update);
         }
         assert (stored != null);
+        return stored;
+    }
+
+    public Network createOrUpdateNetworkByUser(NullableWrapper<Network> network, User user) {
+        Network stored;
+
+        //case network is not defined
+        if (network == null || network.getValue() == null) {
+            return null;
+        }
+
+        Network update = network.getValue();
+
+        if (update.getId() != null) {
+            stored = networkDAO.getWithDevicesAndDeviceClasses(update.getId());
+        } else {
+            stored = networkDAO.findByName(update.getName());
+        }
+
+        if (stored != null) {
+            if (stored.getKey() != null) {
+                if (!stored.getKey().equals(update.getKey())) {
+                    throw new HiveException("Wrong network key!", FORBIDDEN.getStatusCode());
+                }
+            }
+            if (!userService.hasAccessToNetwork(user, stored)) {
+                throw new HiveException("No access to network!", FORBIDDEN.getStatusCode());
+            }
+        } else if (user.isAdmin()) {
+            if (update.getId() != null) {
+                throw new HiveException("Invalid request", BAD_REQUEST.getStatusCode());
+            }
+            stored = networkDAO.createNetwork(update);
+
+        } else {
+            throw new HiveException("No permissions to create network!", FORBIDDEN.getStatusCode());
+        }
+        return stored;
+    }
+
+    public Network verifyNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
+        Network stored;
+
+        //case network is not defined
+        if (network == null || network.getValue() == null) {
+            return null;
+        }
+
+        Network update = network.getValue();
+
+        if (update.getId() != null) {
+            stored = networkDAO.getById(update.getId());
+        } else {
+            stored = networkDAO.findByName(update.getName());
+        }
+        if (stored != null) {
+            if (stored.getKey() != null) {
+                if (!stored.getKey().equals(update.getKey())) {
+                    throw new HiveException("Wrong network key!", FORBIDDEN.getStatusCode());
+                }
+                if (!accessKeyService.hasAccessToNetwork(key, stored)) {
+                    throw new HiveException("No permissions to access network!", FORBIDDEN.getStatusCode());
+                }
+            }
+        }
         return stored;
     }
 }

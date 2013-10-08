@@ -36,7 +36,8 @@ public class Network implements HiveEntity {
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED_DEVICE_AUTH,DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED,
+            NETWORK_PUBLISHED, NETWORK_SUBMITTED})
     private Long id;
 
     @SerializedName("key")
@@ -50,13 +51,15 @@ public class Network implements HiveEntity {
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
             "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, USER_PUBLISHED,
+            NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
 
     @SerializedName("description")
     @Column
     @Size(max = 128, message = "The length of description should not be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, USER_PUBLISHED,
+            NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
 
     @ManyToMany(fetch = FetchType.LAZY)

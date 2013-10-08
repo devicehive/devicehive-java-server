@@ -412,7 +412,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device authorizedDevice = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
                 .getValue());
-        deviceService.deviceSaveAndNotify(device, equipmentSet, ThreadLocalVariablesKeeper.getPrincipal(), useExistingEquipment, isAllowedToUpdate);
+        deviceService.deviceSaveAndNotify(device, equipmentSet, ThreadLocalVariablesKeeper.getPrincipal(), useExistingEquipment);
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
     }
