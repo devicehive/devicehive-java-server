@@ -214,6 +214,7 @@ public class AccessKeyController {
             if (result == null) {
                 throw new HiveException("Not authorized!",UNAUTHORIZED.getStatusCode());
             }
+            return result;
 
         }
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)) {
