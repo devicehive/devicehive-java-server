@@ -174,7 +174,6 @@ public class DeviceClassService {
         return equipments;
     }
 
-    @Deprecated
     public Equipment createEquipment(Long classId, Equipment equipment) {
         DeviceClass deviceClass = deviceClassDAO.get(classId);
 
