@@ -334,7 +334,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
         Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue("device", toResponse, DEVICE_PUBLISHED);
+        response.addValue("device", toResponse, DEVICE_PUBLISHED_DEVICE_AUTH);
         return response;
     }
 
@@ -393,26 +393,19 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
         if (deviceKey == null) {
             throw new HiveException("Device key is undefined!", SC_BAD_REQUEST);
         }
-        logger.debug("check required fields in device ");
-        deviceService.checkDevice(device);
+        device.setGuid(new NullableWrapper<>(deviceId));
         Gson gsonForEquipment = GsonFactory.createGson();
-        boolean useExistingEquipment = message.getAsJsonObject("device").get("equipment") == null;
-        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(message.getAsJsonObject("device").get("equipment"),
+        boolean useExistingEquipment = message.get("equipment") == null;
+        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
+                message.get("equipment"),
                 new TypeToken<HashSet<Equipment>>() {
                 }.getType());
+
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        logger.debug("device/save started");
-
-        NullableWrapper<String> uuidNullableWrapper = new NullableWrapper<>();
-        uuidNullableWrapper.setValue(deviceId);
-
-        device.setGuid(uuidNullableWrapper);
-        Device authorizedDevice = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
-        boolean isAllowedToUpdate = authorizedDevice != null && authorizedDevice.getGuid().equals(device.getGuid()
-                .getValue());
-        deviceService.deviceSaveAndNotify(device, equipmentSet, ThreadLocalVariablesKeeper.getPrincipal(), useExistingEquipment);
+        deviceService.deviceSaveAndNotify(device, equipmentSet, ThreadLocalVariablesKeeper.getPrincipal(),
+                useExistingEquipment);
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
     }

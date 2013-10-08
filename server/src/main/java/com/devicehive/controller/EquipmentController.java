@@ -182,11 +182,11 @@ public class EquipmentController {
      * <p/>
      * </code>
      *
-     * @param classId device class id
      */
     @GET
-    public Response getEquipment(@PathParam("deviceClassId") long classId) {
-        return ResponseFactory.response(METHOD_NOT_ALLOWED, new ErrorResponse(METHOD_NOT_ALLOWED.getStatusCode(), ""));
+    public Response getEquipment() {
+        return ResponseFactory.response(METHOD_NOT_ALLOWED, new ErrorResponse(METHOD_NOT_ALLOWED.getStatusCode(),
+                METHOD_NOT_ALLOWED.getReasonPhrase()));
     }
 
 }

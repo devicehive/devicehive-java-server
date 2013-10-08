@@ -167,7 +167,7 @@ public class DeviceController {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(JsonObject jsonObject, @PathParam("id") String deviceGuid, @Context SecurityContext securityContext) {
-        logger.debug("Device register method requested");
+        logger.debug("Device register method requested. Guid : {}", deviceGuid);
 
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
         DeviceUpdate device;
@@ -185,7 +185,7 @@ public class DeviceController {
         }
         deviceService.deviceSaveAndNotify(device, equipmentSet, (HivePrincipal) securityContext.getUserPrincipal(),
                 useExistingEquipment);
-        logger.debug("Device register finished successfully");
+        logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
