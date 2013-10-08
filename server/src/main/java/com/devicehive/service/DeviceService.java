@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
@@ -444,11 +445,10 @@ public class DeviceService {
                                 Integer take,
                                 Integer skip,
                                 User user,
-                                Set<Long> networkIds,
-                                Set<String> deviceGuids) {
+                                Collection<AccessKeyBasedFilter> extraFilters) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                deviceClassVersion, sortField, sortOrderAsc, take, skip, user, networkIds, deviceGuids);
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, user, extraFilters);
     }
 
 }

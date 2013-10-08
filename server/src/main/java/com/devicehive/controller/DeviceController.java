@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -114,35 +116,14 @@ public class DeviceController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
-        Set<Long> resultRequestNetworkIds = null;   //unuseful permissions have been already removed
-        if (principal.getKey() != null) {
-            resultRequestNetworkIds = new HashSet<>();
-            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
-            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
-                if (currentPermission.getNetworkIdsAsSet() == null) {
-                    resultRequestNetworkIds.add(null);
-                } else {
-                    resultRequestNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
-                }
-            }
-        }
+        Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
+                ? AccessKeyBasedFilter.createExtraFilters(principal.getKey().getPermissions())
+                : null;
 
-        Set<String> resultRequestGuidsSet = null;
-        if (principal.getKey() != null) {
-            resultRequestGuidsSet = new HashSet<>();
-            Set<AccessKeyPermission> accessKeyPermissions = principal.getKey().getPermissions();
-            for (AccessKeyPermission currentPermission : accessKeyPermissions) {
-                if (currentPermission.getDeviceGuidsAsSet() == null) {
-                    resultRequestGuidsSet.add(null);
-                } else {
-                    resultRequestGuidsSet.addAll(currentPermission.getDeviceGuidsAsSet());
-                }
-            }
-        }
 
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                 deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser,
-                resultRequestNetworkIds, resultRequestGuidsSet);
+                extraFilters);
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 

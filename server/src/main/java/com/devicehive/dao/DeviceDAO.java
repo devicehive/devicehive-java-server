@@ -1,6 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.model.*;
 
 import javax.ejb.EJB;
@@ -91,8 +92,8 @@ public class DeviceDAO {
         return query.getResultList();
     }
 
-    public List<Device> findByUUIDListAndNetwork(Collection<String> list, Network network){
-        if (list == null || list.isEmpty()){
+    public List<Device> findByUUIDListAndNetwork(Collection<String> list, Network network) {
+        if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         }
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDListAndNetwork", Device.class);
@@ -101,7 +102,7 @@ public class DeviceDAO {
         return query.getResultList();
     }
 
-    public List<Device> findByNetwork(Network network){
+    public List<Device> findByNetwork(Network network) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByNetwork", Device.class);
         query.setParameter("network", network);
         return query.getResultList();
@@ -112,7 +113,7 @@ public class DeviceDAO {
         return device;
     }
 
-    public Device mergeDevice(Device device){
+    public Device mergeDevice(Device device) {
         em.merge(device);
         return device;
     }
@@ -155,19 +156,18 @@ public class DeviceDAO {
                                 Integer take,
                                 Integer skip,
                                 User user,
-                                Set<Long> allowedNetworkIds,
-                                Set<String> allowedDeviceGuids) {
+                                Collection<AccessKeyBasedFilter> extraFilters) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
-        Root fromDevice = deviceCriteria.from(Device.class);
+        Root<Device> fromDevice = deviceCriteria.from(Device.class);
         fromDevice.fetch("network", JoinType.LEFT);
         fromDevice.fetch("deviceClass");
         List<Predicate> devicePredicates = new ArrayList<>();
 
         //device fields filters
         if (namePattern != null) {
-            devicePredicates.add(criteriaBuilder.like(fromDevice.get("name"), namePattern));
+            devicePredicates.add(criteriaBuilder.like(fromDevice.<String>get("name"), namePattern));
         } else {
             if (name != null) {
                 devicePredicates.add(criteriaBuilder.equal(fromDevice.get("name"), name));
@@ -176,59 +176,49 @@ public class DeviceDAO {
         if (status != null) {
             devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
         }
-        if (allowedDeviceGuids !=null && !allowedDeviceGuids.contains(null)){
-            devicePredicates.add((fromDevice.get("guid").in(allowedDeviceGuids)));
+
+        if (user != null && user.getRole().equals(UserRole.CLIENT)) {
+            Path<User> path = fromDevice.join("network").join("users");
+            devicePredicates.add(path.in(user));
         }
 
-        //network subcriteria building
-        if (allowedNetworkIds == null && (networkId != null || networkName != null)) {
-            List<Network> networksResult = networkDAO.getByNameOrId(networkId, networkName);
-
-            if (networksResult.size() == 0) {
-                return new ArrayList<>();
-            }
-
-            Expression<Network> inExpression = fromDevice.get("network");
-            devicePredicates.add(inExpression.in(networksResult));
-        } else if (allowedNetworkIds != null && !allowedNetworkIds.contains(null)) {
-            List<Network> networkResult;
-            if (networkId != null || networkName != null) {
-                networkResult = networkDAO.getByNameOrId(networkId, networkName);
-
-                if (networkResult.size() == 0) {
-                    return new ArrayList<>();
-                }
-                if (!allowedNetworkIds.contains(networkResult.get(0).getId())) {
-                    return new ArrayList<>();            //found network is not in allowed list
-                }
-            } else {
-                networkResult = new ArrayList<>();
-                for (Long allowedNetworkId : allowedNetworkIds) {
-                    networkResult.add(networkDAO.getById(allowedNetworkId));
-                }
-                if (networkResult.isEmpty()) {
-                    return new ArrayList<>();
-                }
-            }
-            Expression<Network> inExpression = fromDevice.get("network");
-            devicePredicates.add(inExpression.in(networkResult));
-        } else {
-            if (user.getRole().equals(UserRole.CLIENT)) {
-                Path<User> path = fromDevice.join("network").join("users");
-                devicePredicates.add(path.in(user));
-            }
+        if (networkId != null) {
+            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("network").get("id"), networkId));
         }
 
-        //deviceclass subcriteria building
-        if (deviceClassId != null || deviceClassName != null || deviceClassVersion != null) {
-            List<DeviceClass> deviceClassResult = deviceClassDAO.getByIdOrNameOrVersion(deviceClassId,
-                    deviceClassName, deviceClassVersion);
-            if (deviceClassResult.size() == 0) {
-                return new ArrayList<>();
-            }
-            Expression<DeviceClass> inExpression = fromDevice.get("deviceClass");
-            devicePredicates.add(inExpression.in(deviceClassResult));
+        if (networkName != null) {
+            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("network").get("name"), networkName));
         }
+
+        if (deviceClassId != null) {
+            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("id"), deviceClassId));
+        }
+
+        if (deviceClassName != null) {
+            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("name"), deviceClassName));
+        }
+
+        if (deviceClassVersion != null) {
+            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("version"), deviceClassVersion));
+        }
+
+
+        if (extraFilters != null) {
+            List<Predicate> extraPredicates = new ArrayList<>();
+            for (AccessKeyBasedFilter extraFilter : extraFilters) {
+                List<Predicate> filter = new ArrayList<>();
+                if (extraFilter.getDeviceGuids() != null) {
+                    filter.add(fromDevice.get("guid").in(extraFilter.getDeviceGuids()));
+                }
+                if (extraFilter.getNetworkIds() != null) {
+                    filter.add(fromDevice.get("network").get("id").in(extraFilter.getNetworkIds()));
+                }
+                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+            }
+            devicePredicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+        }
+
+
 
         deviceCriteria.where(devicePredicates.toArray(new Predicate[devicePredicates.size()]));
         if (sortField != null) {
