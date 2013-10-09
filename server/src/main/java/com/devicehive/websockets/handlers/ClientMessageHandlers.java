@@ -6,6 +6,7 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
@@ -201,14 +202,19 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         User user = WebsocketSession.hasAuthorisedUser(session) ?
                 WebsocketSession.getAuthorisedUser(session) :
                 WebsocketSession.getAuthorizedAccessKey(session).getUser();
-        List<DeviceNotification> deviceNotifications;
-        if (user.getRole() == UserRole.ADMIN) {
-            deviceNotifications =
-                    deviceNotificationService.getDeviceNotificationList(null, user, timestamp, true);
-        } else {
-            deviceNotifications =
-                    deviceNotificationService.getDeviceNotificationList(null, user, timestamp, false);
-        }
+
+//        if (user.getRole() == UserRole.ADMIN) {
+//            deviceNotifications =
+        Collection<AccessKeyBasedFilter> extraFilters = ThreadLocalVariablesKeeper.getPrincipal().getKey() != null
+                ? AccessKeyBasedFilter.createExtraFilters(ThreadLocalVariablesKeeper.getPrincipal().getKey().getPermissions())
+                : null;
+
+        List<DeviceNotification> deviceNotifications = deviceNotificationService.getDeviceNotificationList(null, user,
+                timestamp, extraFilters);
+//        } else {
+//            deviceNotifications =
+//                    deviceNotificationService.getDeviceNotificationList(null, user, timestamp, false);
+//        }
         logger.debug(
                 "notification/subscribe action - null guid case. get device notification. found {}  notifications. {}",
                 deviceNotifications.size(), session.getId());
@@ -223,7 +229,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         User user = WebsocketSession.hasAuthorisedUser(session) ? authUser : authKey.getUser();
 
         List<Device> devices;
-        checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
+//        checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
 
         if (user.getRole() == UserRole.ADMIN) {
             devices = deviceDAO.findByUUID(guids);
@@ -252,43 +258,46 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         }
 
         logger.debug("Found " + devices.size() + " devices" + ". Session " + session.getId());
+        Collection<AccessKeyBasedFilter> extraFilters = ThreadLocalVariablesKeeper.getPrincipal().getKey() != null
+                ? AccessKeyBasedFilter.createExtraFilters(ThreadLocalVariablesKeeper.getPrincipal().getKey().getPermissions())
+                : null;
         List<DeviceNotification> deviceNotifications =
-                deviceNotificationService.getDeviceNotificationList(devices, user, timestamp, null);
+                deviceNotificationService.getDeviceNotificationList(devices, user, timestamp, extraFilters);
 
         notificationSubscribeAction(deviceNotifications, session, devices);
         checkDevicesAndGuidsList(devices, guids, true);
     }
 
-    private boolean checkPermissionsForDevices(Timestamp timestamp,
-                                               List<String> guids,
-                                               HivePrincipal principal) {
-        if (principal.getUser() == null && principal.getKey() != null) {
-            logger.debug("DeviceNotification poll was requested by Key = {}, timestamp = ",
-                    principal.getKey().getId(), timestamp);
-            if (!guids.isEmpty()) {
-                List<String> guidsWithDeniedAccess = new LinkedList<>();
-                for (String deviceGuid : guids) {
-                    if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
-                        logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
-                                "timestamp = cannot be proceed. No permissions to access device",
-                                principal.getKey().getId(), deviceGuid, timestamp);
-                        guidsWithDeniedAccess.add(deviceGuid);
-                    }
-                }
-                if (!guidsWithDeniedAccess.isEmpty()) {
-                    StringBuilder message = new StringBuilder("No access to devices with guids: {");
-                    for (String guid : guidsWithDeniedAccess) {
-                        message.append(guid).append(", ");
-                    }
-                    message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
-                    // with length 2. We don't need extra commas and spaces.
-                    message.append("}");
-                    throw new HiveException(message.toString(), SC_UNAUTHORIZED);
-                }
-            }
-        }
-        return true;
-    }
+//    private boolean checkPermissionsForDevices(Timestamp timestamp,
+//                                               List<String> guids,
+//                                               HivePrincipal principal) {
+//        if (principal.getUser() == null && principal.getKey() != null) {
+//            logger.debug("DeviceNotification poll was requested by Key = {}, timestamp = ",
+//                    principal.getKey().getId(), timestamp);
+//            if (!guids.isEmpty()) {
+//                List<String> guidsWithDeniedAccess = new LinkedList<>();
+//                for (String deviceGuid : guids) {
+//                    if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
+//                        logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
+//                                "timestamp = cannot be proceed. No permissions to access device",
+//                                principal.getKey().getId(), deviceGuid, timestamp);
+//                        guidsWithDeniedAccess.add(deviceGuid);
+//                    }
+//                }
+//                if (!guidsWithDeniedAccess.isEmpty()) {
+//                    StringBuilder message = new StringBuilder("No access to devices with guids: {");
+//                    for (String guid : guidsWithDeniedAccess) {
+//                        message.append(guid).append(", ");
+//                    }
+//                    message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
+//                    // with length 2. We don't need extra commas and spaces.
+//                    message.append("}");
+//                    throw new HiveException(message.toString(), SC_UNAUTHORIZED);
+//                }
+//            }
+//        }
+//        return true;
+//    }
 
     private void notificationSubscribeAction(List<DeviceNotification> deviceNotifications, Session session,
                                              List<Device> devices)
@@ -520,7 +529,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         AccessKey authKey = WebsocketSession.getAuthorizedAccessKey(session);
         User user = WebsocketSession.hasAuthorisedUser(session) ? authUser : authKey.getUser();
 
-        checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
+//        checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
 
         List<Device> devices;
 

@@ -2,6 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
@@ -18,6 +19,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Stateless
@@ -55,19 +57,9 @@ public class DeviceNotificationService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getDeviceNotificationList(List<Device> deviceList, User user, Timestamp timestamp,
-                                                              Boolean isAdmin) {
-        if (deviceList == null) {
-            if (isAdmin) {
-                return deviceNotificationDAO.findNewerThan(timestamp);
-            } else {
-                return deviceNotificationDAO.getByUserNewerThan(user, timestamp);
-            }
-        }
-        if (deviceList.isEmpty()) {
-            return null;
-        }
-        return deviceNotificationDAO.findByDevicesNewerThan(deviceList, timestamp);
+    public List<DeviceNotification> getDeviceNotificationList(List<Device> devices, User user, Timestamp timestamp,
+                                                              Collection<AccessKeyBasedFilter> extraFilters) {
+        return deviceNotificationDAO.findNotificationsForPolling(timestamp, devices, user, extraFilters);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

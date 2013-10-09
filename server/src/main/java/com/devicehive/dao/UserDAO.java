@@ -64,12 +64,12 @@ public class UserDAO {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<User> criteria = criteriaBuilder.createQuery(User.class);
-        Root from = criteria.from(User.class);
+        Root<User> from = criteria.from(User.class);
 
         List<Predicate> predicates = new ArrayList<>();
 
         if (loginPattern != null) {
-            predicates.add(criteriaBuilder.like(from.get("login"), loginPattern));
+            predicates.add(criteriaBuilder.like(from.<String>get("login"), loginPattern));
         } else {
             if (login != null) {
                 predicates.add(criteriaBuilder.equal(from.get("login"), login));

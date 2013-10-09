@@ -1,6 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
@@ -13,13 +14,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Stateless
@@ -40,49 +39,43 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findByDevicesNewerThan(List<Device> deviceList, Timestamp timestamp) {
-        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceNewerThan",
-                DeviceNotification.class);
-        query.setParameter("deviceList", deviceList);
-        query.setParameter("timestamp", timestamp);
-        return query.getResultList();
-    }
+    public List<DeviceNotification> findNotificationsForPolling(@NotNull Timestamp timestamp,
+                                                                List<Device> devices,
+                                                                User user,
+                                                                Collection<AccessKeyBasedFilter> extraFilters) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
+        Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
+        List<Predicate> predicates = new ArrayList<>();
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findByDevicesIdsNewerThan(List<String> deviceIds, Timestamp timestamp) {
-        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByDeviceGuidsNewerThan",
-                DeviceNotification.class);
-        query.setParameter("guidList", deviceIds);
-        query.setParameter("timestamp", timestamp);
-        return query.getResultList();
-    }
+        if (devices != null && !devices.isEmpty()) {
+            predicates.add(from.get("device").in(devices));
+        }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNewerThan(Timestamp timestamp) {
-        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByNewerThan",
-                DeviceNotification.class);
-        query.setParameter("timestamp", timestamp);
-        return query.getResultList();
-    }
+        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getByUserNewerThan(User user, Timestamp timestamp) {
-        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserNewerThan",
-                DeviceNotification.class);
-        query.setParameter("user", user);
-        query.setParameter("timestamp", timestamp);
-        return query.getResultList();
-    }
+        if (user != null && !user.isAdmin()){
+            Path<User> path = from.join("device").join("network").join("users");
+            predicates.add(path.in(user));
+        }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getByUserAndDevicesNewerThan(@NotNull User user, @NotNull List<String> deviceIds,
-                                                                 @NotNull Timestamp timestamp) {
-        TypedQuery<DeviceNotification> query = em.createNamedQuery("DeviceNotification.getByUserAndDevicesNewerThan",
-                DeviceNotification.class);
-        query.setParameter("user", user);
-        query.setParameter("guidList", deviceIds);
-        query.setParameter("timestamp", timestamp);
-        return query.getResultList();
+        if (extraFilters != null) {
+            List<Predicate> extraPredicates = new ArrayList<>();
+            for (AccessKeyBasedFilter extraFilter : extraFilters) {
+                List<Predicate> filter = new ArrayList<>();
+                if (extraFilter.getDeviceGuids() != null) {
+                    filter.add(from.get("device").get("guid").in(extraFilter.getDeviceGuids()));
+                }
+                if (extraFilter.getNetworkIds() != null) {
+                    filter.add(from.get("device").get("network").get("id").in(extraFilter.getNetworkIds()));
+                }
+                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+            }
+            predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+        }
+
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+        return em.createQuery(criteria).getResultList();
     }
 
     @SuppressWarnings("unchecked")
@@ -93,14 +86,14 @@ public class DeviceNotificationDAO {
                                                             Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
-        Root from = criteria.from(DeviceNotification.class);
+        Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.equal(from.get("device"), device));
         if (start != null) {
-            predicates.add(criteriaBuilder.greaterThan(from.get("timestamp"), start));
+            predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), start));
         }
         if (end != null) {
-            predicates.add(criteriaBuilder.lessThan(from.get("timestamp"), end));
+            predicates.add(criteriaBuilder.lessThan(from.<Timestamp>get("timestamp"), end));
         }
         if (notification != null) {
             predicates.add(criteriaBuilder.equal(from.get("notification"), notification));
@@ -126,7 +119,6 @@ public class DeviceNotificationDAO {
         }
         return resultQuery.getResultList();
     }
-
 
     public boolean deleteNotification(@NotNull long id) {
         Query query = em.createNamedQuery("DeviceNotification.deleteById");

@@ -108,7 +108,6 @@ public class NetworkController {
         }
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        User u = userService.findUserWithNetworks(user.getId());
 
         Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
                 ? AccessKeyBasedFilter.createExtraFilters(principal.getKey().getPermissions())

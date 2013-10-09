@@ -177,7 +177,7 @@ public class DeviceDAO {
             devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
         }
 
-        if (user != null && user.getRole().equals(UserRole.CLIENT)) {
+        if (user != null && !user.isAdmin()) {
             Path<User> path = fromDevice.join("network").join("users");
             devicePredicates.add(path.in(user));
         }
