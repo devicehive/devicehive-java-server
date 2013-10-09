@@ -22,28 +22,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device_notification")
 @NamedQueries(value = {
-        @NamedQuery(name = "DeviceNotification.getByDeviceListNewerThan",
-                query = "select dn from DeviceNotification dn where dn.device.id in :deviceIdList and dn.timestamp > :timestamp"),
-        @NamedQuery(name = "DeviceNotification.getByUserNewerThan",
-                query = "select dn from DeviceNotification dn where dn.device.id in (" +
-                        " select distinct d.id from Device d join d.network n join n.users u where u = :user" +
-                        ") and dn.timestamp > :timestamp"),
-        @NamedQuery(name = "DeviceNotification.getByDeviceNewerThan",
-                query = "select dn from DeviceNotification dn where dn.device in :deviceList and dn.timestamp > " +
-                        ":timestamp order by dn.timestamp"),
-        @NamedQuery(name = "DeviceNotification.getByDeviceGuidsNewerThan",
-                query = "select dn from DeviceNotification dn where dn.device.guid in :guidList and dn.timestamp > " +
-                        ":timestamp order by dn.timestamp"),
-        @NamedQuery(name = "DeviceNotification.getByUserAndDevicesNewerThan",
-                query = "select dn from DeviceNotification dn " +
-                        "where dn.timestamp > :timestamp " +
-                        "and dn.device in " +
-                        "(select distinct d from Device d " +
-                        "join d.network n " +
-                        "join n.users u " +
-                        "where u = :user and d.guid in :guidList )"),
-        @NamedQuery(name = "DeviceNotification.getByNewerThan", query = "select dn from DeviceNotification dn " +
-                "where dn.timestamp > :timestamp order by dn.timestamp"),
         @NamedQuery(name = "DeviceNotification.deleteById",
                 query = "delete from DeviceNotification dn where dn.id = :id"),
         @NamedQuery(name = "DeviceNotification.deleteByFK",

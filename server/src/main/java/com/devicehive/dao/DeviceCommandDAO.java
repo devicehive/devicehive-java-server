@@ -13,10 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -84,14 +81,6 @@ public class DeviceCommandDAO {
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
-    public List<DeviceCommand> getByDeviceIdNewerThan(List<String> guidList, Timestamp timestamp){
-        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThanByDeviceIds",
-                DeviceCommand.class);
-        query.setParameter("timestamp", timestamp);
-        query.setParameter("guidList", guidList);
-        return query.getResultList();
-    }
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
 
@@ -105,60 +94,38 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(String deviceId, Timestamp timestamp) {
-        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThan", DeviceCommand.class);
-        query.setParameter("timestamp", timestamp);
-        query.setParameter("guid", deviceId);
-        return query.getResultList();
+    public List<DeviceCommand> getCommandsListForPolling(List<Device> devices, User user, Timestamp timestamp){
+
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
+        Root<DeviceCommand> from = criteria.from(DeviceCommand.class);
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (devices != null && !devices.isEmpty()) {
+            predicates.add(from.get("device").in(devices));
+        }
+
+        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
+
+        if (user != null && !user.isAdmin()){
+            Path<User> path = from.join("device").join("network").join("users");
+            predicates.add(path.in(user));
+        }
+
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+        return em.createQuery(criteria).getResultList();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThanByDevices(List<Device> devices, Timestamp timestamp) {
-        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getNewerThanByDevices", DeviceCommand.class);
-        query.setParameter("timestamp", timestamp);
-        query.setParameter("devicesList", devices);
-        return query.getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(Timestamp timestamp) {
-        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getAllNewerThan", DeviceCommand.class);
-        query.setParameter("timestamp", timestamp);
-        return query.getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(Timestamp timestamp, User user){
-        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getByUserNewerThan", DeviceCommand.class);
-        query.setParameter("timestamp", timestamp);
-        query.setParameter("user", user);
-        return query.getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getByUserAndDeviceNewerThan(String deviceId, Timestamp timestamp, User user) {
-        TypedQuery<DeviceCommand> query =
-                em.createNamedQuery("DeviceCommand.getByUserAndDeviceNewerThan", DeviceCommand.class);
-        query.setParameter("timestamp", timestamp);
-        query.setParameter("deviceId", deviceId);
-        query.setParameter("user", user);
-        return query.getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getByUserAndDevicesNewerThan(List<String> guids, Timestamp timestamp, User user) {
-        TypedQuery<DeviceCommand> query =
-                em.createNamedQuery("DeviceCommand.getByUserAndDevicesNewerThan", DeviceCommand.class);
-        query.setParameter("timestamp", timestamp);
-        query.setParameter("guidList", guids);
-        query.setParameter("user", user);
-        return query.getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
-                                                  String status, String sortField, Boolean sortOrderAsc,
-                                                  Integer take, Integer skip) {
+    public List<DeviceCommand> queryDeviceCommand(Device device,
+                                                  Timestamp start,
+                                                  Timestamp end,
+                                                  String command,
+                                                  String status,
+                                                  String sortField,
+                                                  Boolean sortOrderAsc,
+                                                  Integer take,
+                                                  Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
         Root from = criteria.from(DeviceCommand.class);

@@ -21,30 +21,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device_command")
 @NamedQueries({
-        @NamedQuery(name = "DeviceCommand.getNewerThan",
-                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device.guid = :guid"),
-        @NamedQuery(name = "DeviceCommand.getNewerThanByDevices",
-                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device in :devicesList"),
-        @NamedQuery(name = "DeviceCommand.getNewerThanByDeviceIds",
-                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp and dc.device.guid in :guidList"),
-        @NamedQuery(name = "DeviceCommand.getAllNewerThan",
-                query = "select dc from DeviceCommand dc where dc.timestamp > :timestamp"),
-        @NamedQuery(name = "DeviceCommand.getByUserNewerThan",
-                query = "select dc from DeviceCommand dc where dc.device.id in (" +
-                        " select distinct d.id from Device d join d.network n join n.users u where u = :user" +
-                        ") and dc.timestamp > :timestamp"),
-        @NamedQuery(name = "DeviceCommand.getByUserAndDeviceNewerThan", query = "select dc from DeviceCommand dc " +
-                "where dc.timestamp > :timestamp and " +
-                "dc.device.id in " +
-                "(select distinct d.id from Device d " +
-                "join d.network n " +
-                "join n.users u where u = :user and d.guid = :deviceId)"),
-        @NamedQuery(name = "DeviceCommand.getByUserAndDevicesNewerThan", query = "select dc from DeviceCommand dc " +
-                "where dc.timestamp > :timestamp and " +
-                "dc.device.id in " +
-                "(select distinct d.id from Device d " +
-                "join d.network n " +
-                "join n.users u where u = :user and d.guid in :guidList)"),
         @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
         @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
                 " = :user and dc.device = :device"),

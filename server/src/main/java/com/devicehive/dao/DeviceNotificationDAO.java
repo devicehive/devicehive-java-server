@@ -41,8 +41,7 @@ public class DeviceNotificationDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> findNotificationsForPolling(@NotNull Timestamp timestamp,
                                                                 List<Device> devices,
-                                                                User user,
-                                                                Collection<AccessKeyBasedFilter> extraFilters) {
+                                                                User user) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -57,21 +56,6 @@ public class DeviceNotificationDAO {
         if (user != null && !user.isAdmin()){
             Path<User> path = from.join("device").join("network").join("users");
             predicates.add(path.in(user));
-        }
-
-        if (extraFilters != null) {
-            List<Predicate> extraPredicates = new ArrayList<>();
-            for (AccessKeyBasedFilter extraFilter : extraFilters) {
-                List<Predicate> filter = new ArrayList<>();
-                if (extraFilter.getDeviceGuids() != null) {
-                    filter.add(from.get("device").get("guid").in(extraFilter.getDeviceGuids()));
-                }
-                if (extraFilter.getNetworkIds() != null) {
-                    filter.add(from.get("device").get("network").get("id").in(extraFilter.getNetworkIds()));
-                }
-                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
-            }
-            predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
         }
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));

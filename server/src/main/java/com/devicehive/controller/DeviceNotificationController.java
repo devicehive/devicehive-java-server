@@ -4,7 +4,6 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
@@ -371,14 +370,8 @@ public class DeviceNotificationController {
     private List<DeviceNotification> getDeviceNotificationsList(HivePrincipal principal,
                                                                 Device device,
                                                                 Timestamp timestamp) {
-
-        Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
-                ? AccessKeyBasedFilter
-                .createExtraFilters(principal.getKey().getPermissions())
-                : null;
         User authUser = principal.getKey() != null ? principal.getKey().getUser() : principal.getUser();
-        return deviceNotificationService.getDeviceNotificationList(Arrays.asList(device), authUser, timestamp,
-                extraFilters);
+        return deviceNotificationService.getDeviceNotificationList(Arrays.asList(device), authUser, timestamp);
     }
 
     /**
@@ -535,12 +528,9 @@ public class DeviceNotificationController {
         }
 
         List<Device> deviceList = deviceService.findByUUID(guids);
-        Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
-                ? AccessKeyBasedFilter
-                .createExtraFilters(principal.getKey().getPermissions())
-                : null;
+
         List<DeviceNotification> result = deviceNotificationService.getDeviceNotificationList(deviceList, authUser,
-                timestamp, extraFilters);
+                timestamp);
         if (principal.getUser() == null && principal.getKey() != null) {
             Iterator<DeviceNotification> iterator = result.iterator();
             while (iterator.hasNext()) {

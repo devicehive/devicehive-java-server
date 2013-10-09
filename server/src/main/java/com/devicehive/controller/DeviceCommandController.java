@@ -161,22 +161,23 @@ public class DeviceCommandController {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        List<DeviceCommand> list = getDeviceCommandsList(principal, deviceGuid, timestamp);
+        Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
+                principal.getDevice());
+        List<DeviceCommand> list = getDeviceCommandsList(principal, device, timestamp);
 
         if (list.isEmpty()) {
             logger.debug("Waiting for command for device = {}", deviceGuid);
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-            Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
-                    principal.getDevice());
+
             CommandSubscription commandSubscription =
                     new CommandSubscription(principal, device.getId(), reqId,
                             restHandlerCreator);
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceCommandsList(principal, deviceGuid, timestamp);
+                list = getDeviceCommandsList(principal, device, timestamp);
             }
         }
 
@@ -184,16 +185,18 @@ public class DeviceCommandController {
         asyncResponse.resume(response);
     }
 
-    private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal, String guid, Timestamp timestamp) {
+    private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal, Device device, Timestamp timestamp) {
 
-        User authUser = principal.getUser();
-        if (authUser == null && principal.getKey() != null) {
-            authUser = principal.getKey().getUser();
-        }
-        if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
-            return deviceCommandDAO.getByUserAndDeviceNewerThan(guid, timestamp, authUser);
-        }
-        return deviceCommandDAO.getNewerThan(guid, timestamp);
+//        User authUser = principal.getUser();
+//        if (authUser == null && principal.getKey() != null) {
+//            authUser = principal.getKey().getUser();
+//        }
+//        if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
+//            return deviceCommandDAO.getByUserAndDeviceNewerThan(guid, timestamp, authUser);
+//        }
+//        return deviceCommandDAO.getNewerThan(guid, timestamp);
+        User authUser = principal.getKey() != null ? principal.getKey().getUser() : principal.getUser();
+        return deviceCommandDAO.getCommandsListForPolling(Arrays.asList(device), authUser, timestamp);
     }
 
 
@@ -341,20 +344,9 @@ public class DeviceCommandController {
         if (authUser == null && principal.getKey() != null) {
             authUser = principal.getKey().getUser();
         }
-        List<DeviceCommand> result;
-        if (!guids.isEmpty()) {
-            if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
-                result = deviceCommandDAO.getByUserAndDevicesNewerThan(guids, timestamp, authUser);
-            } else {
-                result = deviceCommandDAO.getByDeviceIdNewerThan(guids, timestamp);
-            }
-        } else {
-            if (authUser != null && authUser.getRole().equals(UserRole.CLIENT)) {
-                result = deviceCommandDAO.getNewerThan(timestamp, authUser);
-            } else {
-                result = deviceCommandDAO.getNewerThan(timestamp);
-            }
-        }
+
+        List<Device> deviceList = deviceService.findByUUID(guids);
+        List<DeviceCommand> result = deviceCommandDAO.getCommandsListForPolling(deviceList, authUser, timestamp);
         if (principal.getUser() == null && principal.getKey() != null) {
             Iterator<DeviceCommand> iterator = result.iterator();
             while (iterator.hasNext()) {
@@ -548,8 +540,6 @@ public class DeviceCommandController {
         sortField = sortField.toLowerCase();
 
         Device device;
-        Set<Long> allowedNetworkIds = null;
-        Set<String> allowedDeviceGuids = null;
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser();
         if (user == null && principal.getKey() != null) {

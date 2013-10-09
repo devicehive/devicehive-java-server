@@ -35,6 +35,7 @@ import javax.ejb.EJB;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -181,7 +182,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
 
 
             logger.debug("will get commands newer than : {}", timestamp);
-            List<DeviceCommand> commandsFromDatabase = commandService.getNewerThan(device.getGuid(), null, timestamp);
+            List<DeviceCommand> commandsFromDatabase = commandService.getNewerThan(Arrays.asList(device), null, timestamp);
             for (DeviceCommand deviceCommand : commandsFromDatabase) {
                 logger.debug("will add command to queue : {}", deviceCommand.getId());
                 WebsocketSession
