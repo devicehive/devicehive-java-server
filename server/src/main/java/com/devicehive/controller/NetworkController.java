@@ -54,9 +54,10 @@ public class NetworkController {
     }
 
     @EJB
-    public void setDeviceService(DeviceService deviceService){
+    public void setDeviceService(DeviceService deviceService) {
         this.deviceService = deviceService;
     }
+
     /**
      * Produces following output:
      * <pre>
@@ -151,13 +152,13 @@ public class NetworkController {
         }
 
         //if user specified, return network
-        if (principal.getUser() != null){
+        if (principal.getUser() != null) {
             logger.debug("Network get proceed successfully.");
             return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
         }
 
         //otherwise, try to perform the same for access key
-        else{
+        else {
             AccessKey key = principal.getKey();
             if (!accessKeyService.hasAccessToNetwork(key, existing)) {
                 logger.debug("Access key have no permissions for network with id {}", id);
@@ -170,9 +171,14 @@ public class NetworkController {
             List<AllowedKeyAction.Action> actions = new ArrayList<>();
             actions.add(AllowedKeyAction.Action.GET_DEVICE);
             boolean isAllowedGetDevices = CheckPermissionsHelper.checkAllPermissions(key, actions);
-            if (isAllowedGetDevices){
-            existing.setDevices(deviceService.getDevicesForAccessKey(key, existing));
-            } else{
+            if (isAllowedGetDevices) {
+                Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
+                        ? AccessKeyBasedFilter.createExtraFilters(principal.getKey().getPermissions())
+                        : null;
+                Set<Device> devices = new HashSet<>(deviceService.getList(null, null, null, existing.getId(), null, null,
+                        null, null, null, true, existing.getDevices().size(), null, user, extraFilters));
+                existing.setDevices(devices);
+            } else {
                 existing.setDevices(null);
             }
             return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
