@@ -11,16 +11,16 @@ public class AccessKeyBasedFilter {
     private Set<Long> networkIds;
 
     public AccessKeyBasedFilter(Collection<String> deviceGuids, Collection<Long> networkIds) {
-        this.deviceGuids = new HashSet<>(deviceGuids);
-        this.networkIds = new HashSet<>(networkIds);
+        this.deviceGuids = deviceGuids != null ? new HashSet<>(deviceGuids) : null;
+        this.networkIds = networkIds != null ? new HashSet<>(networkIds) : null;
     }
 
     public Set<String> getDeviceGuids() {
-        return Collections.unmodifiableSet(deviceGuids);
+        return deviceGuids == null ? null : Collections.unmodifiableSet(deviceGuids);
     }
 
     public Set<Long> getNetworkIds() {
-        return Collections.unmodifiableSet(networkIds);
+        return networkIds == null ? null : Collections.unmodifiableSet(networkIds);
     }
 
     @Override
