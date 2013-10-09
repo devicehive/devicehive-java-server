@@ -4,6 +4,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
@@ -22,10 +23,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_NETWORK;
 import static javax.ws.rs.core.Response.Status.*;
@@ -111,22 +109,11 @@ public class NetworkController {
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         User u = userService.findUserWithNetworks(user.getId());
 
-        Set<Long> allowedNetworkIds = null;
-        if (principal.getKey() != null) {
-            allowedNetworkIds = new HashSet<>();
-            Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
-            for (AccessKeyPermission currentPermission : permissions) {
-                if (currentPermission.getNetworkIdsAsSet() == null) {
-                    allowedNetworkIds.add(null);
-                } else {
-                    allowedNetworkIds.addAll(currentPermission.getNetworkIdsAsSet());
-                }
-            }
-        }
+        Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
+                ? AccessKeyBasedFilter.createExtraFilters(principal.getKey().getPermissions())
+                : null;
         List<Network> result = networkService
-                .list(name, namePattern, sortField, sortOrder, take, skip, u.isAdmin() ? null : u.getId(),
-                        allowedNetworkIds);
-
+                .list(name, namePattern, sortField, sortOrder, take, skip, user, extraFilters);
 
         logger.debug("Network list request proceed successfully.");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);

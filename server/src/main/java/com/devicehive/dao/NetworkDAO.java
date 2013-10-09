@@ -1,7 +1,9 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.model.Network;
+import com.devicehive.model.User;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -13,6 +15,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -70,30 +73,45 @@ public class NetworkDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Network> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take,
-                              Integer skip, Long userId, Set<Long> allowedNetworkIds) {
+    public List<Network> list(String name,
+                              String namePattern,
+                              String sortField,
+                              Boolean sortOrderAsc,
+                              Integer take,
+                              Integer skip,
+                              User user,
+                              Collection<AccessKeyBasedFilter> extraFilters) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Network> criteria = criteriaBuilder.createQuery(Network.class);
-        Root from = criteria.from(Network.class);
+        Root<Network> from = criteria.from(Network.class);
 
         List<Predicate> predicates = new ArrayList<>();
         if (namePattern != null) {
-            predicates.add(criteriaBuilder.like(from.get("name"), namePattern));
+            predicates.add(criteriaBuilder.like(from.<String>get("name"), namePattern));
         } else {
             if (name != null) {
                 predicates.add(criteriaBuilder.equal(from.get("name"), name));
             }
         }
 
-        if (allowedNetworkIds != null && !allowedNetworkIds.contains(null)){
-            predicates.add(from.get("id").in(allowedNetworkIds));
+        if (!user.isAdmin()) {
+            Path<User> path = from.join("users");
+            predicates.add(path.in(user));
         }
 
-        if (userId != null) {
-            Join joinNetworkUsers = from.join("users");
-            predicates.add(criteriaBuilder.equal(joinNetworkUsers.get("id"), userId));
+        if (extraFilters != null) {
+            List<Predicate> extraPredicates = new ArrayList<>();
+            for (AccessKeyBasedFilter extraFilter : extraFilters) {
+                List<Predicate> filter = new ArrayList<>();
+                if (extraFilter.getNetworkIds() != null) {
+                    filter.add(from.get("id").in(extraFilter.getNetworkIds()));
+                }
+                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+            }
+            predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
         }
+
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
 

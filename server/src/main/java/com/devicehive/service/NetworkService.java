@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.NetworkDAO;
+import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
@@ -10,8 +11,8 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -84,10 +85,15 @@ public class NetworkService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Network> list(String name, String namePattern,
-                              String sortField, boolean sortOrder,
-                              Integer take, Integer skip, Long userId, Set<Long> allowedIds) {
-        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, userId, allowedIds);
+    public List<Network> list(String name,
+                              String namePattern,
+                              String sortField,
+                              boolean sortOrder,
+                              Integer take,
+                              Integer skip,
+                              User user,
+                              Collection<AccessKeyBasedFilter> extraFilters) {
+        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, user, extraFilters);
     }
 
     public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
