@@ -17,9 +17,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class WebsocketSession {
 
     private static final Logger logger = LoggerFactory.getLogger(WebsocketSession.class);
-    private static final String AUTHORIZED_USER = "AUTHORIZED_USER";
-    private static final String AUTHORIZED_DEVICE = "AUTHORIZED_DEVICE";
-    private static final String AUTHORIZED_KEY = "AUTHORIZED_KEY";
     private static final String PRINCIPAL = "HIVE_PRINCIPAL";
     public static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
@@ -39,42 +36,6 @@ public class WebsocketSession {
         session.getUserProperties().put(PRINCIPAL, principal);
     }
 
-    public static User getAuthorisedUser(Session session) {
-        return (User) session.getUserProperties().get(AUTHORIZED_USER);
-    }
-
-    public static boolean hasAuthorisedUser(Session session) {
-        return getAuthorisedUser(session) != null;
-    }
-
-    public static void setAuthorisedUser(Session session, User user) {
-        session.getUserProperties().put(AUTHORIZED_USER, user);
-    }
-
-    public static Device getAuthorisedDevice(Session session) {
-        return (Device) session.getUserProperties().get(AUTHORIZED_DEVICE);
-    }
-
-    public static void setAuthorisedDevice(Session session, Device device) {
-        session.getUserProperties().put(AUTHORIZED_DEVICE, device);
-    }
-
-    public static boolean hasAuthorisedDevice(Session session) {
-        return getAuthorisedDevice(session) != null;
-    }
-
-
-    public static AccessKey getAuthorizedAccessKey(Session session){
-        return (AccessKey) session.getUserProperties().get(AUTHORIZED_KEY);
-    }
-
-    public static void setAuthorizedKey(Session session, AccessKey key){
-        session.getUserProperties().put(AUTHORIZED_KEY, key);
-    }
-
-    public static boolean hasAuthorizedKey(Session session){
-        return getAuthorizedAccessKey(session) != null;
-    }
 
     public static Lock getCommandsSubscriptionsLock(Session session) {
         return (Lock) session.getUserProperties().get(COMMANDS_SUBSCRIPTION_LOCK);

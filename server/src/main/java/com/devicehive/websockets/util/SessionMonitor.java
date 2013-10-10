@@ -1,6 +1,7 @@
 package com.devicehive.websockets.util;
 
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.subscriptions.CommandSubscription;
@@ -63,7 +64,8 @@ public class SessionMonitor {
     }
 
     private void updateDeviceSession(Session session) {
-        Device authorizedDevice = WebsocketSession.getAuthorisedDevice(session);
+        HivePrincipal hivePrincipal = WebsocketSession.getPrincipal(session);
+        Device authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
         if (authorizedDevice != null) {
             deviceActivityService.update(authorizedDevice.getId());
         }

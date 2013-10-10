@@ -96,15 +96,20 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("login and password and key cannot be empty!", SC_BAD_REQUEST);
         }
         logger.debug("authenticate action for {} ", login);
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser() == null ? principal.getKey().getUser() : principal.getUser();
-        if (user != null) {
-            WebsocketSession.setAuthorisedUser(session, user); //TODO remove
-            WebsocketSession.setPrincipal(session, principal);
-            return new WebSocketResponse();
-        } else {
-            throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
+        HivePrincipal hivePrincipal = WebsocketSession.getPrincipal(session);
+        if (login != null) {
+            User user = userService.authenticate(login, password);
+            hivePrincipal = new HivePrincipal(user, null, null);
+        } else  {
+            AccessKey accessKey = accessKeyService.authenticate(key);
+            if (accessKey != null) {
+                hivePrincipal = new HivePrincipal(null, null, accessKey);
+            } else {
+                throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
+            }
         }
+        WebsocketSession.setPrincipal(session, hivePrincipal);
+        return new WebSocketResponse();
     }
 
     /**
@@ -139,15 +144,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("Device ID is empty", SC_BAD_REQUEST);
         }
         HivePrincipal principal = WebsocketSession.getPrincipal(session);
-        User authUser = WebsocketSession.getAuthorisedUser(session);
-        AccessKey authKey = WebsocketSession.getAuthorizedAccessKey(session);
-        User user = WebsocketSession.hasAuthorisedUser(session) ? authUser : authKey.getUser();
         Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         if (device == null){
             throw new HiveException("Device with such id not found", SC_NOT_FOUND);
         }
         if (deviceCommand == null) {
             throw new HiveException("Command is empty", SC_BAD_REQUEST);
+        }
+        User user = principal.getUser();
+        if (user == null) {
+            user = principal.getKey().getUser();
         }
         deviceCommand.setUserId(user.getId());
 
@@ -197,9 +203,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
     private void prepareForNotificationSubscribeNullCase(Collection<String> names, Session session, Timestamp timestamp) throws IOException {
         logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
-        User user = WebsocketSession.hasAuthorisedUser(session) ?
-                WebsocketSession.getAuthorisedUser(session) :
-                WebsocketSession.getAuthorizedAccessKey(session).getUser();
+
+        HivePrincipal principal = WebsocketSession.getPrincipal(session);
+        User user = principal.getUser();
+        if (user == null) {
+            user = principal.getKey().getUser();
+        }
+
 
         List<DeviceNotification> deviceNotifications = deviceNotificationService.getDeviceNotificationList(null, user,
                 timestamp);
@@ -213,13 +223,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private void prepareForNotificationSubscribeNotNullCase(List<String> guids, Collection<String> names, Session session, Timestamp timestamp)
             throws IOException {
         logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
-        User authUser = WebsocketSession.getAuthorisedUser(session);
-        AccessKey authKey = WebsocketSession.getAuthorizedAccessKey(session);
-        User user = WebsocketSession.hasAuthorisedUser(session) ? authUser : authKey.getUser();
+        HivePrincipal principal = WebsocketSession.getPrincipal(session);
+        User user = principal.getUser();
+        AccessKey accessKey = principal.getKey();
+        if (user == null) {
+            user = accessKey.getUser();
+        }
 
 
         checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
-        List<Device> devices = deviceDAO.getDeviceList(user, authKey == null ? null : authKey.getPermissions(), guids);
+        List<Device> devices = deviceDAO.getDeviceList(user, accessKey == null ? null : accessKey.getPermissions(), guids);
         if (devices.size() != guids.size()) {
             Set<String> foundDevicesGuids = new HashSet<>(devices.size());
             for (Device currentDevice : devices) {
@@ -288,14 +301,20 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     deviceNotifications.size(), session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
 
-            User authUser = WebsocketSession.getAuthorisedUser(session);
-            AccessKey authKey = WebsocketSession.getAuthorizedAccessKey(session);
+            HivePrincipal principal = WebsocketSession.getPrincipal(session);
+            User user = principal.getUser();
+            AccessKey accessKey = principal.getKey();
+            if (user == null) {
+                user = accessKey.getUser();
+            }
+            /*
+            TODO refactor this part
             if (devices != null) {
                 List<NotificationSubscription> nsList = new ArrayList<>();
                 for (Device device : devices) {
                     boolean isAllowed = true;
-                    if (authUser == null && authKey != null) {
-                        isAllowed = accessKeyService.hasAccessToDevice(authKey, device.getGuid());
+                    if (user == null && accessKey != null) {
+                        isAllowed = accessKeyService.hasAccessToDevice(accessKey, device.getGuid());
                     }
                     if (isAllowed) {
                         NotificationSubscription ns =
@@ -321,7 +340,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     WebsocketSession.addMessagesToQueue(session,
                             ServerResponsesFactory.createNotificationInsertMessage(deviceNotification));
                 }
-            }
+            }   */
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());

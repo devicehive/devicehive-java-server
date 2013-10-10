@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
@@ -93,10 +94,16 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("Device authentication error: credentials are incorrect", SC_UNAUTHORIZED);
         }
         logger.debug("authenticate action for " + deviceId);
-        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
+        Device device = deviceService.authenticate(deviceId, deviceKey);
 
         if (device != null) {
-            WebsocketSession.setAuthorisedDevice(session, device);
+            HivePrincipal hivePrincipal = WebsocketSession.getPrincipal(session);
+            if (hivePrincipal == null) {
+                hivePrincipal = new HivePrincipal(null, device, null);
+            } else {
+                hivePrincipal = new HivePrincipal(hivePrincipal.getUser(), device, hivePrincipal.getKey());
+            }
+            WebsocketSession.setPrincipal(session, hivePrincipal);
             return new WebSocketResponse();
         } else {
             throw new HiveException("Device authentication error: credentials are incorrect", SC_UNAUTHORIZED);
