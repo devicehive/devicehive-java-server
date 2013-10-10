@@ -328,6 +328,12 @@ public class DeviceNotificationController {
         } else if (principal.getDevice() != null) {
             logger.debug("DeviceNotification poll was requested by Device = {}, deviceId = {}, timestamp = ",
                     principal.getDevice().getGuid(), deviceGuid, timestamp);
+            if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(deviceGuid)){
+                Response response = ResponseFactory.response(FORBIDDEN,
+                        new ErrorResponse(FORBIDDEN.getStatusCode(), "No permissions to access another device!"));
+                asyncResponse.resume(response);
+                return;
+            }
         } else if (principal.getKey() != null) {
             logger.debug("DeviceNotification poll was requested by Key = {}, deviceId = {}, timestamp = ",
                     principal.getKey().getId(), deviceGuid, timestamp);
@@ -345,8 +351,9 @@ public class DeviceNotificationController {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        Device device = deviceService.getDevice(deviceGuid, principal.getUser(),
-                principal.getDevice());
+
+        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
+        Device device = deviceService.getDevice(deviceGuid, principal.getUser(),permissions);
         List<DeviceNotification> list = getDeviceNotificationsList(principal, device, timestamp);
 
         if (list.isEmpty()) {
@@ -442,13 +449,9 @@ public class DeviceNotificationController {
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
             if (!guids.isEmpty()) {
-                List<Device> devices;
-
-                if (user.getRole().equals(UserRole.ADMIN)) {
-                    devices = deviceService.findByUUID(guids);
-                } else {
-                    devices = deviceService.findByUUIDListAndUser(user, guids);
-                }
+                Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey()
+                        .getPermissions();
+                List<Device> devices = deviceService.findByUUIDListAndUser(user,permissions, guids);
                 for (Device device : devices) {
                     subscriptionSet
                             .add(new NotificationSubscription(principal, device.getId(), reqId, restHandlerCreator));
@@ -526,8 +529,8 @@ public class DeviceNotificationController {
         if (authUser == null && principal.getKey() != null) {
             authUser = principal.getKey().getUser();
         }
-
-        List<Device> deviceList = deviceService.findByUUID(guids);
+        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
+        List<Device> deviceList = deviceService.findByUUIDListAndUser(authUser, permissions, guids );
 
         List<DeviceNotification> result = deviceNotificationService.getDeviceNotificationList(deviceList, authUser,
                 timestamp);
@@ -617,7 +620,13 @@ public class DeviceNotificationController {
                             ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
-        Device device = deviceService.getDevice(guid, user, principal.getDevice());
+        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)){
+            return ResponseFactory
+                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "No device  " +
+                            "found with guid : " + guid));
+        }
+        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
+        Device device = deviceService.getDevice(guid, user, permissions);
         if (device.getNetwork() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}",

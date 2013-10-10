@@ -301,33 +301,14 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUID(String uuid, User u) {
-        if (u.isAdmin()) {
-            return deviceDAO.findByUUID(uuid);
-        } else {
-            return deviceDAO.findByUUID(uuid, u.getId());
-        }
-    }
-
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Device findByUUID(String uuid) {
-        return deviceDAO.findByUUID(uuid);
+    public Device findByUUID(String uuid, User user, Set<AccessKeyPermission> permissions) {
+        List<Device> result = deviceDAO.getDeviceList(user, permissions, Arrays.asList(uuid));
+        return result.isEmpty() ? null : result.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByUUID(List<String> list) {
-        if (list.size() == 0) {
-            return new ArrayList<>(0);
-        }
-        return deviceDAO.findByUUID(list);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByUUIDListAndUser(User user, List<String> list) {
-        if (list.size() == 0) {
-            return new ArrayList<>(0);
-        }
-        return deviceDAO.findByUUIDListAndUser(user, list);
+    public List<Device> findByUUIDListAndUser(User user, Set<AccessKeyPermission> permissions, List<String> list) {
+         return deviceDAO.getDeviceList(user, permissions, list);
     }
 
     /**
@@ -370,18 +351,18 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device getDevice(String deviceId, User currentUser, Device currentDevice) {
+    public Device getDevice(String deviceId, User currentUser, Set<AccessKeyPermission> permissions) {
 
-        if (!userService.checkPermissions(deviceId, currentUser, currentDevice)) {
+//        if (!userService.checkPermissions(deviceId, currentUser, currentDevice)) {
+//            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
+//        }
+
+//        Device device = deviceDAO.findByUUID(deviceId);
+        List<Device> found = deviceDAO.getDeviceList(currentUser, permissions, Arrays.asList(deviceId));
+        if (found.isEmpty()) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
-
-        Device device = deviceDAO.findByUUID(deviceId);
-
-        if (device == null) {
-            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
-        }
-        return device;
+        return found.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -427,8 +408,8 @@ public class DeviceService {
     }
 
     public boolean deleteDevice(@NotNull String guid, @NotNull User user) {
-        Device existing = findByUUID(guid, user);
-        return existing == null || deviceDAO.deleteDevice(guid);
+        List<Device> existing = deviceDAO.getDeviceList(user, null, Arrays.asList(guid));
+        return existing.isEmpty() || deviceDAO.deleteDevice(guid);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

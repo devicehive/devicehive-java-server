@@ -22,19 +22,12 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-        @NamedQuery(name = "Device.findByUUID", query = "select d from Device d where d.guid = :uuid"),
         @NamedQuery(name = "Device.findByUUIDWithNetworkAndDeviceClass", query = "select d from Device d " +
                 "left join fetch d.network " +
                 "left join fetch d.deviceClass " +
                 "where d.guid = :uuid"),
         @NamedQuery(name = "Device.findByUUIDAndKey",
                 query = "select d from Device d where d.guid = :uuid and d.key = :key"),
-        @NamedQuery(name = "Device.findByUUIDForUser",
-                query = "select d from Device d  join d.network.users u where u.id = :userId and d.guid = :uuid"),
-        @NamedQuery(name = "Device.findByUUIDListAndUser",
-                query = "select d from Device d join d.network.users u where u = :user and d.guid in :guidList"),
-        @NamedQuery(name = "Device.findByUUIDAndUser",
-                query = "select d from Device d join d.network n join n.users u where d.guid = :guid and u = :user"),
         @NamedQuery(name = "Device.findByUUIDAndUserAndTimestamp",
                 query = "select distinct d from DeviceNotification dn " +
                         "inner join dn.device d " +
@@ -42,7 +35,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                         "where dn.timestamp > :timestamp " +
                         "and d.guid in :guidList " +
                         "and u = :user"),
-        @NamedQuery(name = "Device.findByListUUID", query = "select d from Device d where d.guid in :guidList"),
         @NamedQuery(name = "Device.findByNetwork",
                 query = "select d from Device d join d.network where d.network = :network"),
         @NamedQuery(name = "Device.findByUUIDListAndNetwork", query = "select d from Device d join d.network " +

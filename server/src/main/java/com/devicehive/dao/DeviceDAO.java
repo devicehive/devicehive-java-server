@@ -33,15 +33,6 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUID(String uuid) {
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUID", Device.class);
-        query.setParameter("uuid", uuid);
-        CacheHelper.cacheable(query);
-        List<Device> res = query.getResultList();
-        return res.isEmpty() ? null : res.get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDWithNetworkAndDeviceClass(String uuid) {
         TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDWithNetworkAndDeviceClass", Device.class);
         query.setParameter("uuid", uuid);
@@ -56,40 +47,6 @@ public class DeviceDAO {
         query.setParameter("key", key);
         CacheHelper.cacheable(query);
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUID(String uuid, Long userId) {
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDForUser", Device.class);
-        query.setParameter("uuid", uuid);
-        query.setParameter("userId", userId);
-        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByUUIDListAndUser(User user, List<String> list) {
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDListAndUser", Device.class);
-        query.setParameter("user", user);
-        query.setParameter("guidList", list);
-        return query.getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUIDAndUser(User user, String guid) {
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByUUIDAndUser", Device.class);
-        query.setParameter("user", user);
-        query.setParameter("guid", guid);
-        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByUUID(List<String> list) {
-        if (list == null || list.isEmpty()) {
-            return Collections.emptyList();
-        }
-        TypedQuery<Device> query = em.createNamedQuery("Device.findByListUUID", Device.class);
-        query.setParameter("guidList", list);
-        return query.getResultList();
     }
 
     public List<Device> findByUUIDListAndNetwork(Collection<String> list, Network network) {
@@ -141,6 +98,65 @@ public class DeviceDAO {
         query.setParameter("network", network);
         return query.executeUpdate();
     }
+
+    public long getNumberOfAvailableDevices(User user, Set<AccessKeyPermission> permissions, List<String> guids){
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<Long> criteria = criteriaBuilder.createQuery(Long.class);
+        Root<Device> from = criteria.from(Device.class);
+        criteria = buildCriteriaQuery(criteria, criteriaBuilder, user, permissions, guids);
+        criteria.select(criteriaBuilder.count(from));
+        TypedQuery<Long> query = em.createQuery(criteria);
+        return query.getSingleResult();
+    }
+
+    public List<Device> getDeviceList(User user, Set<AccessKeyPermission> permissions, List<String> guids){
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<Device> criteria = criteriaBuilder.createQuery(Device.class);
+        criteria = buildCriteriaQuery(criteria, criteriaBuilder, user, permissions, guids);
+        TypedQuery<Device> query = em.createQuery(criteria);
+        return query.getResultList();
+    }
+
+    private <T> CriteriaQuery<T> buildCriteriaQuery(CriteriaQuery<T> criteria,
+                                                    CriteriaBuilder criteriaBuilder,
+                                                    User user,
+                                                    Set<AccessKeyPermission> permissions,
+                                                    List<String> guids){
+        Root<Device> from = criteria.from(Device.class);
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (user != null && !user.isAdmin()){
+            Path<User> path = from.join("network", JoinType.LEFT).join("users");
+            predicates.add(path.in(user));
+        }
+
+        if (permissions != null){
+            Collection<AccessKeyBasedFilter> extraFilters =  AccessKeyBasedFilter.createExtraFilters(permissions);
+
+            if (extraFilters != null) {
+                List<Predicate> extraPredicates = new ArrayList<>();
+                for (AccessKeyBasedFilter extraFilter : extraFilters) {
+                    List<Predicate> filter = new ArrayList<>();
+                    if (extraFilter.getDeviceGuids() != null) {
+                        filter.add(from.get("guid").in(extraFilter.getDeviceGuids()));
+                    }
+                    if (extraFilter.getNetworkIds() != null) {
+                        filter.add(from.get("network").get("id").in(extraFilter.getNetworkIds()));
+                    }
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                }
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+            }
+        }
+
+        if (guids != null && !guids.isEmpty()){
+            predicates.add(from.get("guid").in(guids));
+        }
+
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+        return criteria;
+    }
+
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(String name,
