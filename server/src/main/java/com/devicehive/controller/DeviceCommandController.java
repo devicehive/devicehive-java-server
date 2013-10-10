@@ -242,7 +242,7 @@ public class DeviceCommandController {
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
-        if (!checkPermissions(deviceGuids, timestamp, guids, principal, asyncResponse)) {
+        if (!checkPermissions(guids, principal, asyncResponse)) {
             return;
         }
 
@@ -259,6 +259,10 @@ public class DeviceCommandController {
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
             if (!guids.isEmpty()) {
                 List<Device> devices = deviceService.findByUUIDListAndUser(user, permissions, guids);
+                if (devices.size() != guids.size()){
+                    createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);
+                    return;
+                }
                 for (Device device : devices) {
                     subscriptionSet
                             .add(new CommandSubscription(principal, device.getId(), reqId, restHandlerCreator));
@@ -291,45 +295,47 @@ public class DeviceCommandController {
         asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED));
     }
 
-    private boolean checkPermissions(String deviceGuids,
-                                     Timestamp timestamp,
-                                     List<String> guids,
+    private boolean checkPermissions(List<String> guids,
                                      HivePrincipal principal,
                                      AsyncResponse asyncResponse) {
-        if (principal.getUser() != null) {
-            logger.debug("DeviceNotification poll was requested by User = {}, deviceIds = {}, timestamp = ",
-                    principal.getUser().getLogin(), deviceGuids, timestamp);
-        } else {
-            logger.debug("DeviceNotification poll was requested by Key = {}, deviceIds = {}, timestamp = ",
-                    principal.getKey().getId(), deviceGuids, timestamp);
-            if (!guids.isEmpty()) {
-                List<String> guidsWithDeniedAccess = new LinkedList<>();
-                for (String deviceGuid : guids) {
-                    if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
-                        logger.debug("DeviceNotification poll requested by Key = {}, deviceId = {}, " +
-                                "timestamp = cannot be proceed. No permissions to access device",
-                                principal.getKey().getId(), deviceGuid, timestamp);
-                        guidsWithDeniedAccess.add(deviceGuid);
-                    }
-                }
-                if (!guidsWithDeniedAccess.isEmpty()) {
-                    StringBuilder message = new StringBuilder("No access to devices with guids: {");
-                    for (String guid : guidsWithDeniedAccess) {
-                        message.append(guid).append(", ");
-                    }
-                    message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
-                    // with length 2. We don't need extra commas and spaces.
-                    message.append("}");
-                    Response response = ResponseFactory.response(UNAUTHORIZED,
-                            new ErrorResponse(UNAUTHORIZED.getStatusCode(), message.toString()));
-                    asyncResponse.resume(response);
-                    return false;
-                }
-            }
+        AccessKey key = principal.getKey();
+        User user = principal.getUser() != null ? principal.getUser() : principal.getUser();
+        Set<AccessKeyPermission> permissions = key == null ? null : key.getPermissions();
+        if (!guids.isEmpty()) {
+            List<Device> allowedDevices = deviceService.findByUUIDListAndUser(user, permissions, guids);
+            return createAccessDeniedForGuidsMessage(guids, allowedDevices, asyncResponse);
         }
         return true;
     }
 
+    private boolean createAccessDeniedForGuidsMessage(List<String> guids,
+                                                      List<Device> allowedDevices,
+                                                      AsyncResponse asyncResponse) {
+        Set<String> guidsWithDeniedAccess = new HashSet<>();
+        Set<String> allowedGuids = new HashSet<>(allowedDevices.size());
+        for (Device device : allowedDevices) {
+            allowedGuids.add(device.getGuid());
+        }
+        for (String deviceGuid : guids) {
+            if (!allowedGuids.contains(deviceGuid)) {
+                guidsWithDeniedAccess.add(deviceGuid);
+            }
+        }
+        if (!guidsWithDeniedAccess.isEmpty()) {
+            StringBuilder message = new StringBuilder("No access to devices with guids: {");
+            for (String guid : guidsWithDeniedAccess) {
+                message.append(guid).append(", ");
+            }
+            message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
+            // with length 2. We don't need extra commas and spaces.
+            message.append("}");
+            Response response = ResponseFactory.response(UNAUTHORIZED,
+                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), message.toString()));
+            asyncResponse.resume(response);
+            return false;
+        }
+        return true;
+    }
     private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal,
                                                       List<String> guids,
                                                       Timestamp timestamp) {

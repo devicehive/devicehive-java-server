@@ -352,12 +352,6 @@ public class DeviceService {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device getDevice(String deviceId, User currentUser, Set<AccessKeyPermission> permissions) {
-
-//        if (!userService.checkPermissions(deviceId, currentUser, currentDevice)) {
-//            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
-//        }
-
-//        Device device = deviceDAO.findByUUID(deviceId);
         List<Device> found = deviceDAO.getDeviceList(currentUser, permissions, Arrays.asList(deviceId));
         if (found.isEmpty()) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
@@ -430,6 +424,10 @@ public class DeviceService {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
                 deviceClassVersion, sortField, sortOrderAsc, take, skip, user, extraFilters);
+    }
+
+    public long getAllowedDevicesCount(User user, Set<AccessKeyPermission> permissions, List<String> guids){
+        return deviceDAO.getNumberOfAvailableDevices(user, permissions, guids);
     }
 
 }
