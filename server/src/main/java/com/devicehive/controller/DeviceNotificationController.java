@@ -338,40 +338,10 @@ public class DeviceNotificationController {
             logger.debug("DeviceNotification poll was requested by Key = {}, deviceId = {}, timestamp = ",
                     principal.getKey().getId(), deviceGuid, timestamp);
         }
-        if (!checkPermissions(Arrays.asList(deviceGuid), principal, asyncResponse)){
-            return;
-        }
-        if (timestamp == null) {
-            timestamp = timestampService.getTimestamp();
-        }
-
-        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
-        Device device = deviceService.getDevice(deviceGuid, principal.getUser(), permissions);
-        List<DeviceNotification> list = getDeviceNotificationsList(principal, device, timestamp);
-
-        if (list.isEmpty()) {
-            logger.debug("Waiting for notifications from device = {}", deviceGuid);
-            NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
-            String reqId = UUID.randomUUID().toString();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-
-            NotificationSubscription commandSubscription =
-                    new NotificationSubscription(principal, device.getId(), reqId, restHandlerCreator);
-
-            if (SimpleWaiter
-                    .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceNotificationsList(principal, device, timestamp);
-            }
-        }
+        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuid, timestamp, timeout,
+                asyncResponse);
         Response response = ResponseFactory.response(OK, list, Policy.NOTIFICATION_TO_CLIENT);
         asyncResponse.resume(response);
-    }
-
-    private List<DeviceNotification> getDeviceNotificationsList(HivePrincipal principal,
-                                                                Device device,
-                                                                Timestamp timestamp) {
-        User authUser = principal.getKey() != null ? principal.getKey().getUser() : principal.getUser();
-        return deviceNotificationService.getDeviceNotificationList(Arrays.asList(device), authUser, timestamp);
     }
 
     /**
@@ -384,7 +354,7 @@ public class DeviceNotificationController {
      */
 
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
@@ -393,8 +363,6 @@ public class DeviceNotificationController {
             @QueryParam("waitTimeout") final long timeout,
             @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
-
-        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -407,7 +375,7 @@ public class DeviceNotificationController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollManyProcess(principal, deviceGuids, timestamp, timeout, user, asyncResponse);
+                    asyncResponsePollMany(principal, deviceGuids, timestamp, timeout, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -416,19 +384,37 @@ public class DeviceNotificationController {
         });
     }
 
-    private void asyncResponsePollManyProcess(HivePrincipal principal,
-                                              String deviceGuids,
-                                              Timestamp timestamp,
-                                              long timeout,
-                                              User user, AsyncResponse asyncResponse) {
+    private void asyncResponsePollMany(HivePrincipal principal,
+                                       String deviceGuids,
+                                       Timestamp timestamp,
+                                       long timeout,
+                                       AsyncResponse asyncResponse){
+        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuids, timestamp, timeout,
+                asyncResponse);
+        if (list == null){
+            return;
+        }
+        List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
+        for (DeviceNotification notification : list) {
+            resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+        }
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+
+    }
+
+    private List<DeviceNotification> asyncResponsePollingProcess(HivePrincipal principal,
+                                             String deviceGuids,
+                                             Timestamp timestamp,
+                                             long timeout,
+                                             AsyncResponse asyncResponse) {
         logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
                 deviceGuids, timestamp, timeout);
-
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
         if (!checkPermissions(guids, principal, asyncResponse)) {
-            return;
+            return null;
         }
 
         if (timestamp == null) {
@@ -447,7 +433,7 @@ public class DeviceNotificationController {
                 List<Device> devices = deviceService.findByUUIDListAndUser(user, permissions, guids);
                 if (devices.size() < guids.size()) {
                     createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);
-                    return;
+                    return null;
                 }
                 for (Device device : devices) {
                     subscriptionSet
@@ -464,20 +450,9 @@ public class DeviceNotificationController {
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = getDeviceNotificationsList(principal, guids, timestamp);
             }
-            List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
-            for (DeviceNotification notification : list) {
-                resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
-            }
-
-            asyncResponse
-                    .resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
-            return;
+            return list;
         }
-        List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
-        for (DeviceNotification notification : list) {
-            resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
-        }
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+        return list;
     }
 
     private boolean checkPermissions(List<String> guids,

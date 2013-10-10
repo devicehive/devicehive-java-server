@@ -160,11 +160,6 @@ public class DeviceCommandController {
         asyncResponse.resume(response);
     }
 
-    private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal, Device device, Timestamp timestamp) {
-        User authUser = principal.getKey() != null ? principal.getKey().getUser() : principal.getUser();
-        return deviceCommandDAO.getCommandsListForPolling(Arrays.asList(device), authUser, timestamp);
-    }
-
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
@@ -325,8 +320,7 @@ public class DeviceCommandController {
         }
         Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
         List<Device> deviceList = deviceService.findByUUIDListAndUser(authUser, permissions, guids);
-        List<DeviceCommand> result = deviceCommandDAO.getCommandsListForPolling(deviceList, authUser, timestamp);
-        return result;
+        return deviceCommandDAO.getCommandsListForPolling(deviceList, authUser, timestamp);
     }
 
     /**
