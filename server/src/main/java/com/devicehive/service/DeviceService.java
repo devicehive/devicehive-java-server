@@ -370,27 +370,6 @@ public class DeviceService {
         return true;
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Set<Device> getDevicesForAccessKey(@NotNull AccessKey key, @NotNull Network network) {
-        Set<AccessKeyPermission> permissions = key.getPermissions();
-        Set<String> allGuids = new HashSet<>();
-        for (AccessKeyPermission currentPermission : permissions) {
-            if (currentPermission.getDeviceGuidsAsSet() == null) {
-                allGuids.add(null);
-                break;
-            } else {
-                allGuids.addAll(currentPermission.getDeviceGuidsAsSet());
-            }
-        }
-        Set<Device> result = new HashSet<>();
-        if (allGuids.contains(null)) {
-            result.addAll(deviceDAO.findByNetwork(network));
-        } else {
-            result.addAll(deviceDAO.findByUUIDListAndNetwork(allGuids, network));
-        }
-        return result;
-    }
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device authenticate(String uuid, String key) {
         Device device = deviceDAO.findByUUIDAndKey(uuid, key);
