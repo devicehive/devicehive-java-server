@@ -484,7 +484,7 @@ public class DeviceNotificationController {
                                      HivePrincipal principal,
                                      AsyncResponse asyncResponse) {
         AccessKey key = principal.getKey();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getUser();
+        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Set<AccessKeyPermission> permissions = key == null ? null : key.getPermissions();
         if (!guids.isEmpty()) {
             List<Device> allowedDevices = deviceService.findByUUIDListAndUser(user, permissions, guids);

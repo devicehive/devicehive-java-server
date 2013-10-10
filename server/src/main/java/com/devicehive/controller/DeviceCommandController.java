@@ -150,45 +150,12 @@ public class DeviceCommandController {
                 asyncResponse.resume(response);
                 return;
             }
-        } else if (principal.getKey() != null) {
-            logger.debug("DeviceCommand poll was requested by Key = {}, deviceId = {}, timestamp = ",
-                    principal.getKey().getId(), deviceGuid, timestamp);
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
-                logger.debug("DeviceCommand poll requested by Key = {}, deviceId = {}, " +
-                        "timestamp = cannot be proceed. No permissions to access device",
-                        principal.getKey().getId(), deviceGuid, timestamp);
-                Response response = ResponseFactory.response(Response.Status.NOT_FOUND,
-                        new ErrorResponse(Response.Status
-                                .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
-                asyncResponse.resume(response);
-            }
-
         }
-
-        if (timestamp == null) {
-            timestamp = timestampService.getTimestamp();
+       List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuid, timestamp, timeout,
+               asyncResponse);
+        if (list == null){
+            return;
         }
-
-        Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
-        Device device = deviceService.getDevice(deviceGuid, principal.getUser(), permissions);
-        List<DeviceCommand> list = getDeviceCommandsList(principal, device, timestamp);
-
-        if (list.isEmpty()) {
-            logger.debug("Waiting for command for device = {}", deviceGuid);
-            CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
-            String reqId = UUID.randomUUID().toString();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-
-            CommandSubscription commandSubscription =
-                    new CommandSubscription(principal, device.getId(), reqId,
-                            restHandlerCreator);
-
-            if (SimpleWaiter
-                    .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceCommandsList(principal, device, timestamp);
-            }
-        }
-
         Response response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
         asyncResponse.resume(response);
     }
@@ -209,7 +176,6 @@ public class DeviceCommandController {
             @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final User user = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
         final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -222,7 +188,7 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollManyProcess(principal, deviceGuids, timestamp, timeout, user, asyncResponse);
+                    asyncResponsePollMany(principal, deviceGuids, timestamp, timeout, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -231,11 +197,27 @@ public class DeviceCommandController {
         });
     }
 
-    private void asyncResponsePollManyProcess(HivePrincipal principal,
-                                              String deviceGuids,
-                                              Timestamp timestamp,
-                                              long timeout,
-                                              User user, AsyncResponse asyncResponse) {
+    private void asyncResponsePollMany(HivePrincipal principal,
+                                       String deviceGuids,
+                                       Timestamp timestamp,
+                                       long timeout,
+                                       AsyncResponse asyncResponse){
+        List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuids, timestamp, timeout, asyncResponse);
+        if (list == null){
+            return;
+        }
+        List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
+        for (DeviceCommand command : list) {
+            resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
+        }
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED));
+    }
+
+    private List<DeviceCommand> asyncResponsePollingProcess(HivePrincipal principal,
+                                             String deviceGuids,
+                                             Timestamp timestamp,
+                                             long timeout,
+                                             AsyncResponse asyncResponse) {
         logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
                 deviceGuids, timestamp, timeout);
 
@@ -243,9 +225,14 @@ public class DeviceCommandController {
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
         if (!checkPermissions(guids, principal, asyncResponse)) {
-            return;
+            return null;
         }
-
+        User user = null;
+        if (principal.getUser() != null) {
+            user = principal.getUser();
+        } else if (principal.getKey() != null) {
+            user = principal.getKey().getUser();
+        }
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
@@ -259,9 +246,9 @@ public class DeviceCommandController {
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
             if (!guids.isEmpty()) {
                 List<Device> devices = deviceService.findByUUIDListAndUser(user, permissions, guids);
-                if (devices.size() != guids.size()){
+                if (devices.size() != guids.size()) {
                     createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);
-                    return;
+                    return null;
                 }
                 for (Device device : devices) {
                     subscriptionSet
@@ -279,27 +266,19 @@ public class DeviceCommandController {
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = getDeviceCommandsList(principal, guids, timestamp);
             }
-            List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
-            for (DeviceCommand command : list) {
-                resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
-            }
-
-            asyncResponse
-                    .resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED));
-            return;
+            return list;
         }
-        List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
-        for (DeviceCommand command : list) {
-            resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
-        }
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED));
+        return list;
     }
 
     private boolean checkPermissions(List<String> guids,
                                      HivePrincipal principal,
                                      AsyncResponse asyncResponse) {
         AccessKey key = principal.getKey();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getUser();
+        User user = null;
+        if (principal.getDevice() == null) {
+            user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        }
         Set<AccessKeyPermission> permissions = key == null ? null : key.getPermissions();
         if (!guids.isEmpty()) {
             List<Device> allowedDevices = deviceService.findByUUIDListAndUser(user, permissions, guids);
@@ -336,6 +315,7 @@ public class DeviceCommandController {
         }
         return true;
     }
+
     private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal,
                                                       List<String> guids,
                                                       Timestamp timestamp) {
@@ -598,7 +578,7 @@ public class DeviceCommandController {
                         new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
             }
         }
-        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)){
+        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)) {
             return ResponseFactory.response(FORBIDDEN,
                     new ErrorResponse(FORBIDDEN.getStatusCode(), "No permissions to access another device!"));
         }
@@ -726,12 +706,12 @@ public class DeviceCommandController {
                         new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
             }
         }
-        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)){
+        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)) {
             return ResponseFactory.response(FORBIDDEN,
                     new ErrorResponse(FORBIDDEN.getStatusCode(), "No permissions to access another device!"));
         }
         Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
-        Device device = deviceService.getDevice(guid, user,permissions);
+        Device device = deviceService.getDevice(guid, user, permissions);
         if (command == null) {
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), "command with id " + commandId + " for device with "
