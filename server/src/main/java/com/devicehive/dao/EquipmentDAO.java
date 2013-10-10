@@ -42,7 +42,7 @@ public class EquipmentDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Equipment> getByDeviceClassAndCode(DeviceClass deviceClass, String code) {
+    public List<Equipment> getByDeviceClassAndCode(DeviceClass deviceClass) {
         TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClass", Equipment.class);
         query.setParameter("deviceClass", deviceClass);
         return query.getResultList();

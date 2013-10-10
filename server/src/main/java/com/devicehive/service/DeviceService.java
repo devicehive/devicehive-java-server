@@ -77,14 +77,13 @@ public class DeviceService {
 
     @EJB
     public void setDeviceActivityService(DeviceActivityService deviceActivityService) {
-
         this.deviceActivityService = deviceActivityService;
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal, boolean useExistingEquipment) {
-        checkDevice(device);
+        validateDevice(device);
         DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
             switch (principal.getRole()) {
@@ -320,7 +319,7 @@ public class DeviceService {
      * @throws HiveException
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void checkDevice(DeviceUpdate device) throws HiveException {
+    public void validateDevice(DeviceUpdate device) throws HiveException {
         if (device == null) {
             throw new HiveException("Device is empty");
         }
