@@ -133,6 +133,10 @@ public class LocalMessageBus {
                         subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
                                 deviceNotification.getDevice().getId());
                 for (NotificationSubscription subscription : subs) {
+                    if (subscription.getNotificationNames() != null
+                            && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
+                        continue;
+                    }
                     User authUser = subscription.getPrincipal().getUser();
                     AccessKey authKey = subscription.getPrincipal().getKey();
                     boolean hasAccess;
@@ -153,6 +157,10 @@ public class LocalMessageBus {
                         .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
 
                 for (NotificationSubscription subscription : subsForAll) {
+                    if (subscription.getNotificationNames() != null
+                            && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
+                        continue;
+                    }
                     if (!subscribersIds.contains(subscription.getSessionId())) {
                         User authUser = subscription.getPrincipal().getUser();
                         AccessKey authKey = subscription.getPrincipal().getKey();

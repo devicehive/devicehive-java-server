@@ -279,6 +279,7 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
+            @QueryParam("names") final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam
                     ("waitTimeout") final long timeout,
@@ -295,7 +296,7 @@ public class DeviceNotificationController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollProcess(timestamp, deviceGuid, timeout, principal, asyncResponse);
+                    asyncResponsePollProcess(timestamp, deviceGuid, names, timeout, principal, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -304,7 +305,7 @@ public class DeviceNotificationController {
         });
     }
 
-    private void asyncResponsePollProcess(Timestamp timestamp, String deviceGuid, long timeout,
+    private void asyncResponsePollProcess(Timestamp timestamp, String deviceGuid, String names, long timeout,
                                           HivePrincipal principal, AsyncResponse asyncResponse) {
         logger.debug("Device notification poll requested for device with guid = {}. Timestamp = {}. Timeout = {}",
                 deviceGuid, timestamp, timeout);
@@ -325,7 +326,7 @@ public class DeviceNotificationController {
             logger.debug("DeviceNotification poll was requested by Key = {}, deviceId = {}, timestamp = ",
                     principal.getKey().getId(), deviceGuid, timestamp);
         }
-        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuid, timestamp, timeout,
+        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuid, names, timestamp, timeout,
                 asyncResponse);
         Response response = ResponseFactory.response(OK, list, Policy.NOTIFICATION_TO_CLIENT);
         asyncResponse.resume(response);
@@ -344,6 +345,7 @@ public class DeviceNotificationController {
     @Path("/notification/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
+            @QueryParam("names") final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -361,7 +363,7 @@ public class DeviceNotificationController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollMany(principal, deviceGuids, timestamp, timeout, asyncResponse);
+                    asyncResponsePollMany(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -372,10 +374,11 @@ public class DeviceNotificationController {
 
     private void asyncResponsePollMany(HivePrincipal principal,
                                        String deviceGuids,
+                                       String names,
                                        Timestamp timestamp,
                                        long timeout,
                                        AsyncResponse asyncResponse){
-        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuids, timestamp, timeout,
+        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuids, names, timestamp, timeout,
                 asyncResponse);
         if (list == null){
             return;
@@ -390,6 +393,7 @@ public class DeviceNotificationController {
 
     private List<DeviceNotification> asyncResponsePollingProcess(HivePrincipal principal,
                                              String deviceGuids,
+                                             String names,
                                              Timestamp timestamp,
                                              long timeout,
                                              AsyncResponse asyncResponse) {
@@ -397,6 +401,9 @@ public class DeviceNotificationController {
                 deviceGuids, timestamp, timeout);
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
+
+        List<String> notificationNames =
+                deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(names.split(","));
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
@@ -415,12 +422,13 @@ public class DeviceNotificationController {
                 }
                 for (Device device : devices) {
                     subscriptionSet
-                            .add(new NotificationSubscription(principal, device.getId(), reqId, restHandlerCreator));
+                            .add(new NotificationSubscription(principal, device.getId(), reqId, notificationNames, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
                         .add(new NotificationSubscription(principal, Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
                                 reqId,
+                                notificationNames,
                                 restHandlerCreator));
             }
 

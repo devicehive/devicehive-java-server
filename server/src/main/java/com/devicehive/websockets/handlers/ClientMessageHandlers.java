@@ -178,6 +178,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
+                                                          @WsParam(JsonMessageBuilder.NOTIFICATION_NAMES) List<String> names,
                                                           @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                                           Session session) throws IOException {
         logger.debug("notification/subscribe action. Session {} ", session.getId());
@@ -185,16 +186,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             timestamp = timestampService.getTimestamp();
         }
         if (list == null || list.isEmpty()) {
-            prepareForNotificationSubscribeNullCase(session, timestamp);
+            prepareForNotificationSubscribeNullCase(names, session, timestamp);
         } else {
-            prepareForNotificationSubscribeNotNullCase(list, session, timestamp);
+            prepareForNotificationSubscribeNotNullCase(list, names, session, timestamp);
         }
         logger.debug("notification/subscribe action  finished");
         return new WebSocketResponse();
 
     }
 
-    private void prepareForNotificationSubscribeNullCase(Session session, Timestamp timestamp) throws IOException {
+    private void prepareForNotificationSubscribeNullCase(Collection<String> names, Session session, Timestamp timestamp) throws IOException {
         logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
         User user = WebsocketSession.hasAuthorisedUser(session) ?
                 WebsocketSession.getAuthorisedUser(session) :
@@ -206,10 +207,10 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug(
                 "notification/subscribe action - null guid case. get device notification. found {}  notifications. {}",
                 deviceNotifications.size(), session.getId());
-        notificationSubscribeAction(deviceNotifications, session, null);
+        notificationSubscribeAction(deviceNotifications, session, null, names);
     }
 
-    private void prepareForNotificationSubscribeNotNullCase(List<String> guids, Session session, Timestamp timestamp)
+    private void prepareForNotificationSubscribeNotNullCase(List<String> guids, Collection<String> names, Session session, Timestamp timestamp)
             throws IOException {
         logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
         User authUser = WebsocketSession.getAuthorisedUser(session);
@@ -244,7 +245,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         List<DeviceNotification> deviceNotifications =
                 deviceNotificationService.getDeviceNotificationList(devices, user, timestamp);
 
-        notificationSubscribeAction(deviceNotifications, session, devices);
+        notificationSubscribeAction(deviceNotifications, session, devices, names);
         checkDevicesAndGuidsList(devices, guids, true);
     }
 
@@ -280,7 +281,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     }
 
     private void notificationSubscribeAction(List<DeviceNotification> deviceNotifications, Session session,
-                                             List<Device> devices)
+                                             List<Device> devices, Collection<String> names)
             throws IOException {
         try {
             logger.debug("notification/subscribe action - not null guid case. found {} devices. Session {}",
@@ -299,7 +300,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     if (isAllowed) {
                         NotificationSubscription ns =
                                 new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(),
-                                        session.getId(),
+                                        session.getId(), names,
                                         new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
                                                 asyncMessageDeliverer));
                         nsList.add(ns);
@@ -310,7 +311,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                 NotificationSubscription forAll =
                         new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(),
                                 Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
-                                session.getId(),
+                                session.getId(), names,
                                 new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
                                         asyncMessageDeliverer));
                 subscriptionManager.getNotificationSubscriptionStorage().insert(forAll);

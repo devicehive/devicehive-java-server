@@ -4,14 +4,21 @@ package com.devicehive.messages.subscriptions;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.messages.handler.HandlerCreator;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 public class NotificationSubscription extends Subscription<Long> {
 
     private final HivePrincipal principal;
 
-    public NotificationSubscription(HivePrincipal principal, Long deviceId, String subscriberId,
+    private final Set<String> notificationNames;
+
+    public NotificationSubscription(HivePrincipal principal, Long deviceId, String subscriberId, Collection<String> notificationNames,
                                     HandlerCreator handlerCreator) {
         super(deviceId, subscriberId, handlerCreator);
         this.principal = principal;
+        this.notificationNames = new HashSet(notificationNames);
     }
 
     public Long getDeviceId() {
@@ -24,5 +31,9 @@ public class NotificationSubscription extends Subscription<Long> {
 
     public HivePrincipal getPrincipal(){
         return principal;
+    }
+
+    public Set<String> getNotificationNames() {
+        return notificationNames;
     }
 }
