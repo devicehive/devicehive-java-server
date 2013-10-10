@@ -43,6 +43,7 @@ public class AuthenticationInterceptor {
         User authUser = getUserAndSetToSession(request, session);
         AccessKey authAccessKey = getAccessKeyAndSetToSession(request, session);
         HivePrincipal principal = new HivePrincipal(authUser, authDevice, authAccessKey);
+        WebsocketSession.setPrincipal(session, principal);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
         return ctx.proceed();
     }

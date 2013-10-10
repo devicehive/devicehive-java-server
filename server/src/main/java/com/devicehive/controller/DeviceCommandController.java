@@ -54,7 +54,6 @@ public class DeviceCommandController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
     private DeviceCommandService commandService;
     private DeviceService deviceService;
-    private UserService userService;
     private DeviceCommandDAO deviceCommandDAO;
     private SubscriptionManager subscriptionManager;
     private TimestampService timestampService;
@@ -69,11 +68,6 @@ public class DeviceCommandController {
     @EJB
     public void setDeviceService(DeviceService deviceService) {
         this.deviceService = deviceService;
-    }
-
-    @EJB
-    public void setUserService(UserService userService) {
-        this.userService = userService;
     }
 
     @EJB
@@ -219,28 +213,18 @@ public class DeviceCommandController {
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
-        if (!checkPermissions(guids, principal, asyncResponse)) {
-            return null;
-        }
-        User user = null;
-        if (principal.getUser() != null) {
-            user = principal.getUser();
-        } else if (principal.getKey() != null) {
-            user = principal.getKey().getUser();
-        }
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
         List<DeviceCommand> list = getDeviceCommandsList(principal, guids, timestamp);
-        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions
-                ();
+
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
             if (!guids.isEmpty()) {
-                List<Device> devices = deviceService.findByUUIDListAndUser(user, permissions, guids);
+                List<Device> devices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
                 if (devices.size() != guids.size()) {
                     createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);
                     return null;
@@ -264,22 +248,6 @@ public class DeviceCommandController {
             return list;
         }
         return list;
-    }
-
-    private boolean checkPermissions(List<String> guids,
-                                     HivePrincipal principal,
-                                     AsyncResponse asyncResponse) {
-        AccessKey key = principal.getKey();
-        User user = null;
-        if (principal.getDevice() == null) {
-            user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        }
-        Set<AccessKeyPermission> permissions = key == null ? null : key.getPermissions();
-        if (!guids.isEmpty()) {
-            List<Device> allowedDevices = deviceService.findByUUIDListAndUser(user, permissions, guids);
-            return createAccessDeniedForGuidsMessage(guids, allowedDevices, asyncResponse);
-        }
-        return true;
     }
 
     private boolean createAccessDeniedForGuidsMessage(List<String> guids,
@@ -318,8 +286,7 @@ public class DeviceCommandController {
         if (authUser == null && principal.getKey() != null) {
             authUser = principal.getKey().getUser();
         }
-        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
-        List<Device> deviceList = deviceService.findByUUIDListAndUser(authUser, permissions, guids);
+        List<Device> deviceList = deviceService.findByGuidWithPermissionsCheck(guids, principal);
         return deviceCommandDAO.getCommandsListForPolling(deviceList, authUser, timestamp);
     }
 
@@ -367,15 +334,6 @@ public class DeviceCommandController {
                             HivePrincipal principal) {
         logger.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
 
-        final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        if (principal.getKey() != null && !accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
-            Response response = ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse(Response.Status
-                            .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
-            asyncResponse.resume(response);
-            return;
-        }
-
         if (deviceGuid == null || commandId == null) {
             logger.debug("DeviceCommand wait request failed. Bad request for sortOrder.");
             Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
@@ -383,8 +341,7 @@ public class DeviceCommandController {
             return;
         }
 
-        Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
-        Device device = deviceService.findByUUID(deviceGuid, user, permissions);
+        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
 
         if (device == null) {
             logger.debug("DeviceCommand wait request failed. No device found with guid = {} ", deviceGuid);
@@ -562,22 +519,11 @@ public class DeviceCommandController {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
-                logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
-                        principal.getKey().getId());
-                return ResponseFactory.response(NOT_FOUND,
+        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        if (device == null){
+            return ResponseFactory.response(NOT_FOUND,
                         new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
-            }
         }
-        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)) {
-            return ResponseFactory.response(FORBIDDEN,
-                    new ErrorResponse(FORBIDDEN.getStatusCode(), "No permissions to access another device!"));
-        }
-        Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
-        Device device = deviceService.getDevice(guid, user, permissions);
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
         if (result == null) {
@@ -634,29 +580,19 @@ public class DeviceCommandController {
     @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid,
-                           @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand,
-                           @Context SecurityContext securityContext) {
+                           @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand) {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        if (principal.getKey() != null && !accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
-            logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
-                    principal.getKey().getId());
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        User authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+
+        if (device == null){
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
         }
-        String login = user.getLogin();
 
-        if (login == null) {
-            return ResponseFactory.response(FORBIDDEN);
-        }
-
-        User u = userService.findUserWithNetworksByLogin(login);
-        Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
-        Device device = deviceService.getDevice(guid, user, permissions);
-
-        commandService.submitDeviceCommand(deviceCommand, device, u, null);
-        deviceCommand.setUserId(u.getId());
+        commandService.submitDeviceCommand(deviceCommand, device, authUser, null);
+        deviceCommand.setUserId(authUser.getId());
 
         logger.debug("Device command insertAll proceed successfully. deviceId = {} commandId = {}", guid,
                 deviceCommand.getId());
@@ -685,28 +621,12 @@ public class DeviceCommandController {
     @AllowedKeyAction(action = {UPDATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
-                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command,
-                           @Context SecurityContext securityContext) {
+                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command) {
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
-                logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
-                        principal.getKey().getId());
-                return ResponseFactory.response(NOT_FOUND,
-                        new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
-            }
-        }
-        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)) {
-            return ResponseFactory.response(FORBIDDEN,
-                    new ErrorResponse(FORBIDDEN.getStatusCode(), "No permissions to access another device!"));
-        }
-        Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
-        Device device = deviceService.getDevice(guid, user, permissions);
-        if (command == null) {
+        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        if (command == null || device == null) {
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), "command with id " + commandId + " for device with "
                             + guid + " is not found"));

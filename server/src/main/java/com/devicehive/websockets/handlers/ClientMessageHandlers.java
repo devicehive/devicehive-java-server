@@ -99,7 +99,8 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser() == null ? principal.getKey().getUser() : principal.getUser();
         if (user != null) {
-            WebsocketSession.setAuthorisedUser(session, user);
+            WebsocketSession.setAuthorisedUser(session, user); //TODO remove
+            WebsocketSession.setPrincipal(session, principal);
             return new WebSocketResponse();
         } else {
             throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
@@ -137,16 +138,14 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (deviceGuid == null) {
             throw new HiveException("Device ID is empty", SC_BAD_REQUEST);
         }
+        HivePrincipal principal = WebsocketSession.getPrincipal(session);
         User authUser = WebsocketSession.getAuthorisedUser(session);
         AccessKey authKey = WebsocketSession.getAuthorizedAccessKey(session);
         User user = WebsocketSession.hasAuthorisedUser(session) ? authUser : authKey.getUser();
-        if (!WebsocketSession.hasAuthorisedUser(session) && !accessKeyService.hasAccessToDevice(WebsocketSession
-                .getAuthorizedAccessKey(session), deviceGuid)) {
-            logger.debug("No permissions to access device with guid {} for access key with id {}", deviceGuid,
-                    WebsocketSession.getAuthorizedAccessKey(session).getId());
-            throw new HiveException("Unknown device ID", SC_BAD_REQUEST);
+        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+        if (device == null){
+            throw new HiveException("Device with such id not found", SC_NOT_FOUND);
         }
-        Device device = deviceService.getDevice(deviceGuid, user, null);
         if (deviceCommand == null) {
             throw new HiveException("Command is empty", SC_BAD_REQUEST);
         }
@@ -185,7 +184,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-
         if (list == null || list.isEmpty()) {
             prepareForNotificationSubscribeNullCase(session, timestamp);
         } else {
@@ -221,11 +219,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
         checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
         List<Device> devices = deviceDAO.getDeviceList(user, authKey == null ? null : authKey.getPermissions(), guids);
-//        if (user.getRole() == UserRole.ADMIN) {
-//            devices = deviceDAO.findByUUID(guids);
-//        } else {
-//            devices = deviceDAO.findByUUIDListAndUser(user, guids);
-//        }
         if (devices.size() != guids.size()) {
             Set<String> foundDevicesGuids = new HashSet<>(devices.size());
             for (Device currentDevice : devices) {
@@ -518,15 +511,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         AccessKey authKey = WebsocketSession.getAuthorizedAccessKey(session);
         User user = WebsocketSession.hasAuthorisedUser(session) ? authUser : authKey.getUser();
 
-//        checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
-
         List<Device> devices = deviceDAO.getDeviceList(user, authKey == null ? null : authKey.getPermissions(), guids);
-//
-//        if (user.getRole() == UserRole.ADMIN) {
-//            devices = deviceDAO.findByUUID(guids);
-//        } else {
-//            devices = deviceDAO.findByUUIDListAndUser(user, guids);
-//        }
         if (devices.size() != guids.size()) {
             Set<String> foundDevicesGuids = new HashSet<>(devices.size());
             for (Device currentDevice : devices) {
@@ -659,19 +644,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             logger.debug("command/update canceled for session: {}. Guid or command id is not provided", session);
             throw new HiveException("Device guid and command id are required parameters!", SC_BAD_REQUEST);
         }
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
-                logger.debug("No permissions to access device with guid {} for access key with id {}", guid,
-                        principal.getKey().getId());
-                throw new HiveException("Device with such guid not fount!", SC_NOT_FOUND);
-            }
-        }
-        AccessKey accessKey = principal.getKey();
-        Device device = deviceService.getDevice(guid, user, accessKey == null ? null : accessKey.getPermissions());
-        if (commandUpdate == null) {
+        HivePrincipal principal = WebsocketSession.getPrincipal(session);
+        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        if (commandUpdate == null || device == null) {
             throw new HiveException("command with id " + id + " for device with " + guid + " is not found",
                     SC_NOT_FOUND);
         }
@@ -692,24 +667,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                                                        DeviceNotification notification,
                                                        Session session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), deviceGuid)) {
-                logger.debug("No device found with guid : {} for access key {}", deviceGuid,
-                        principal.getKey().getId());
-                throw new HiveException("No device found with guid : " + deviceGuid, SC_NOT_FOUND);
-            }
-        }
+        HivePrincipal principal = WebsocketSession.getPrincipal(session);
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException("Notification is required!", SC_BAD_REQUEST);
         }
-
-        AccessKey authKey = principal.getKey();
-        Device device = deviceService.getDevice(deviceGuid, user, authKey == null ? null : authKey.getPermissions());
+        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         if (device.getNetwork() == null) {
             logger.debug(
                     "notification/insert. No network specified for device with guid = {}", deviceGuid);

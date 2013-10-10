@@ -1,6 +1,7 @@
 package com.devicehive.websockets.util;
 
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
@@ -19,6 +20,7 @@ public class WebsocketSession {
     private static final String AUTHORIZED_USER = "AUTHORIZED_USER";
     private static final String AUTHORIZED_DEVICE = "AUTHORIZED_DEVICE";
     private static final String AUTHORIZED_KEY = "AUTHORIZED_KEY";
+    private static final String PRINCIPAL = "HIVE_PRINCIPAL";
     public static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
     public static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
@@ -27,6 +29,14 @@ public class WebsocketSession {
 
     public static Lock getQueueLock(Session session) {
         return (Lock) session.getUserProperties().get(QUEUE_LOCK);
+    }
+
+    public static HivePrincipal getPrincipal(Session session){
+        return  (HivePrincipal) session.getUserProperties().get(PRINCIPAL);
+    }
+
+    public static void setPrincipal(Session session, HivePrincipal principal){
+        session.getUserProperties().put(PRINCIPAL, principal);
     }
 
     public static User getAuthorisedUser(Session session) {

@@ -240,20 +240,9 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification/{id}")
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId,
-                        @Context SecurityContext securityContext) {
+    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") Long notificationId) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-
-        if (principal.getKey() != null && !accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
-            logger.debug("Device notification request failed. No permissions for access key with id {}. Guid {}, " +
-                    "notification id {}", principal.getKey().getId(), guid, notificationId);
-            return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse(Response.Status
-                            .NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
-        }
-
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
             throw new HiveException("Device notification with id : " + notificationId + " not found",
@@ -265,9 +254,8 @@ public class DeviceNotificationController {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
         }
-
-        if (!deviceService
-                .checkPermissions(deviceNotification.getDevice(), user, principal.getDevice())) {
+        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        if (device == null) {
             logger.debug("No permissions to get notifications for device with guid : {}", guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
                     "found for device with guid : " + guid));
@@ -284,7 +272,6 @@ public class DeviceNotificationController {
      * @param deviceGuid Device unique identifier.
      * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
-     * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
@@ -350,7 +337,6 @@ public class DeviceNotificationController {
      * @param deviceGuids Device unique identifier.
      * @param timestamp   Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      * @param timeout     Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
-     * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
      */
 
     @GET
@@ -409,14 +395,8 @@ public class DeviceNotificationController {
                                              AsyncResponse asyncResponse) {
         logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
                 deviceGuids, timestamp, timeout);
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
-
-        if (!checkPermissions(guids, principal, asyncResponse)) {
-            return null;
-        }
-
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
@@ -428,9 +408,7 @@ public class DeviceNotificationController {
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
             if (!guids.isEmpty()) {
-                Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey()
-                        .getPermissions();
-                List<Device> devices = deviceService.findByUUIDListAndUser(user, permissions, guids);
+                List<Device> devices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
                 if (devices.size() < guids.size()) {
                     createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);
                     return null;
@@ -453,19 +431,6 @@ public class DeviceNotificationController {
             return list;
         }
         return list;
-    }
-
-    private boolean checkPermissions(List<String> guids,
-                                     HivePrincipal principal,
-                                     AsyncResponse asyncResponse) {
-        AccessKey key = principal.getKey();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Set<AccessKeyPermission> permissions = key == null ? null : key.getPermissions();
-        if (!guids.isEmpty()) {
-            List<Device> allowedDevices = deviceService.findByUUIDListAndUser(user, permissions, guids);
-            return createAccessDeniedForGuidsMessage(guids, allowedDevices, asyncResponse);
-        }
-        return true;
     }
 
     private boolean createAccessDeniedForGuidsMessage(List<String> guids,
@@ -504,8 +469,7 @@ public class DeviceNotificationController {
         if (authUser == null && principal.getKey() != null) {
             authUser = principal.getKey().getUser();
         }
-        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
-        List<Device> deviceList = deviceService.findByUUIDListAndUser(authUser, permissions, guids);
+        List<Device> deviceList = deviceService.findByGuidWithPermissionsCheck(guids, principal);
 
         List<DeviceNotification> result = deviceNotificationService.getDeviceNotificationList(deviceList, authUser,
                 timestamp);
@@ -573,20 +537,9 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam("deviceGuid") String guid,
-                           @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification notification,
-                           @Context SecurityContext securityContext) {
+                           @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification notification) {
         logger.debug("DeviceNotification insertAll requested");
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), guid)) {
-                logger.debug("No device found with guid : {} for access key {}", guid, principal.getKey().getId());
-                return ResponseFactory
-                        .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "No device  " +
-                                "found with guid : " + guid));
-            }
-        }
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
@@ -594,20 +547,10 @@ public class DeviceNotificationController {
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-
-        if (principal.getDevice() != null && !principal.getDevice().getGuid().equals(guid)) {
-            return ResponseFactory
-                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "No device  " +
-                            "found with guid : " + guid));
-        }
-        Set<AccessKeyPermission> permissions = principal.getKey() == null ? null : principal.getKey().getPermissions();
-        Device device = deviceService.getDevice(guid, user, permissions);
-        if (device.getNetwork() == null) {
-            logger.debug(
-                    "DeviceNotification insertAll proceed with error. No network specified for device with guid = {}",
-                    guid);
-            return ResponseFactory.response(FORBIDDEN,
-                    new ErrorResponse(FORBIDDEN.getStatusCode(), "No access to device"));
+        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        if (device == null){
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), "No device with such guid : " + guid + " exists"));
         }
         notificationService.submitDeviceNotification(notification, device);
 

@@ -176,8 +176,7 @@ public class DeviceService {
         DeviceClass deviceClass = deviceClassService
                 .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
         if (existingDevice == null) {
-            Device device = deviceUpdate.convertTo();       //is it allowed to create new device for specified guid
-            // set?
+            Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
@@ -300,14 +299,41 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device findByUUID(String uuid, User user, Set<AccessKeyPermission> permissions) {
-        List<Device> result = deviceDAO.getDeviceList(user, permissions, Arrays.asList(uuid));
+    public Device findByGuidWithPermissionsCheck(String guid, HivePrincipal principal) {
+        User authUser = principal.getUser();
+        AccessKey authKey = principal.getKey();
+        Device device = principal.getDevice();
+        if (device != null && !device.getGuid().equals(guid)) {
+            return null;
+        }
+        Set<AccessKeyPermission> permissions = null;
+        if (authUser == null && authKey != null) {
+            permissions = authKey.getPermissions();
+            authUser = authKey.getUser();
+        }
+        List<Device> result = deviceDAO.getDeviceList(authUser, permissions, Arrays.asList(guid));
         return result.isEmpty() ? null : result.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByUUIDListAndUser(User user, Set<AccessKeyPermission> permissions, List<String> list) {
-         return deviceDAO.getDeviceList(user, permissions, list);
+    public List<Device> findByGuidWithPermissionsCheck(List<String> guids, HivePrincipal principal) {
+        AccessKey authKey = principal.getKey();
+        User authUser = principal.getUser();
+        Device device = principal.getDevice();
+        if (device != null) {
+            if (!guids.contains(device.getGuid()))
+                return Collections.emptyList();
+            else {
+                guids.clear();
+                guids.add(device.getGuid());
+            }
+        }
+        Set<AccessKeyPermission> permissions = null;
+        if (authUser == null && authKey != null) {
+            permissions = authKey.getPermissions();
+            authUser = authKey.getUser();
+        }
+        return deviceDAO.getDeviceList(authUser, permissions, guids);
     }
 
     /**
@@ -350,27 +376,6 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device getDevice(String deviceId, User currentUser, Set<AccessKeyPermission> permissions) {
-        List<Device> found = deviceDAO.getDeviceList(currentUser, permissions, Arrays.asList(deviceId));
-        if (found.isEmpty()) {
-            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
-        }
-        return found.get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean checkPermissions(Device device, User currentUser, Device currentDevice) {
-        if (currentDevice != null) {
-            return device.getGuid().equals(currentDevice.getGuid());
-        } else {
-            if (currentUser.getRole().equals(UserRole.CLIENT)) {
-                return userService.hasAccessToDevice(currentUser, device);
-            }
-        }
-        return true;
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device authenticate(String uuid, String key) {
         Device device = deviceDAO.findByUUIDAndKey(uuid, key);
         if (device != null) {
@@ -404,7 +409,7 @@ public class DeviceService {
                 deviceClassVersion, sortField, sortOrderAsc, take, skip, user, extraFilters);
     }
 
-    public long getAllowedDevicesCount(User user, Set<AccessKeyPermission> permissions, List<String> guids){
+    public long getAllowedDevicesCount(User user, Set<AccessKeyPermission> permissions, List<String> guids) {
         return deviceDAO.getNumberOfAvailableDevices(user, permissions, guids);
     }
 
