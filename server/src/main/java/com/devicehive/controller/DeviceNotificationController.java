@@ -279,7 +279,7 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
-            @QueryParam("names") final String names,
+            @QueryParam("names") @DefaultValue("") final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam
                     ("waitTimeout") final long timeout,
@@ -305,8 +305,12 @@ public class DeviceNotificationController {
         });
     }
 
-    private void asyncResponsePollProcess(Timestamp timestamp, String deviceGuid, String names, long timeout,
-                                          HivePrincipal principal, AsyncResponse asyncResponse) {
+    private void asyncResponsePollProcess(Timestamp timestamp,
+                                          String deviceGuid,
+                                          String names,
+                                          long timeout,
+                                          HivePrincipal principal,
+                                          AsyncResponse asyncResponse) {
         logger.debug("Device notification poll requested for device with guid = {}. Timestamp = {}. Timeout = {}",
                 deviceGuid, timestamp, timeout);
 
@@ -345,7 +349,7 @@ public class DeviceNotificationController {
     @Path("/notification/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
-            @QueryParam("names") final String names,
+            @QueryParam("names") @DefaultValue("") final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -403,7 +407,7 @@ public class DeviceNotificationController {
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
         List<String> notificationNames =
-                names == null ? Collections.<String>emptyList() : Arrays.asList(names.split(","));
+                names.isEmpty() ? null : Arrays.asList(names.split(","));
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();

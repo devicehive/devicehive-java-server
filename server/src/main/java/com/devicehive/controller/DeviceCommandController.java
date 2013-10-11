@@ -104,7 +104,7 @@ public class DeviceCommandController {
     @Path("/{deviceGuid}/command/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
-            @QueryParam("names") final String names,
+            @QueryParam("names") @DefaultValue("")final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -160,7 +160,7 @@ public class DeviceCommandController {
     @Path("/command/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
-            @QueryParam("names") final String names,
+            @QueryParam("names") @DefaultValue("") final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -217,8 +217,7 @@ public class DeviceCommandController {
         List<String> guids =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
-        List<String> commandNames =
-                names == null ? Collections.<String>emptyList() : Arrays.asList(names.split(","));
+        List<String> commandNames = names.isEmpty() ? null : Arrays.asList(names.split(","));
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();

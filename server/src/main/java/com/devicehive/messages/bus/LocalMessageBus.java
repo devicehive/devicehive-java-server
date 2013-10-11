@@ -61,7 +61,7 @@ public class LocalMessageBus {
                 Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
                         .getByDeviceId(deviceCommand.getDevice().getId());
                 for (CommandSubscription subscription : subs) {
-                    if (subscription.getCommandNames()!= null && !subscription.getCommandNames().isEmpty() &&
+                    if (subscription.getCommandNames()!= null &&
                             !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
                         continue;
                     }
@@ -138,7 +138,7 @@ public class LocalMessageBus {
                         .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
 
                 for (NotificationSubscription subscription : subsForAll) {
-                    if (subscription.getNotificationNames() != null && !subscription.getNotificationNames().isEmpty()
+                    if (subscription.getNotificationNames() != null
                             && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
                         continue;
                     }
