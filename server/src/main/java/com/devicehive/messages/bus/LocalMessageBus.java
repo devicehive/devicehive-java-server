@@ -65,6 +65,9 @@ public class LocalMessageBus {
                 Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
                         .getByDeviceId(deviceCommand.getDevice().getId());
                 for (CommandSubscription subscription : subs) {
+                    if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
+                        continue;
+                    }
                     User authUser = subscription.getPrincipal().getUser();
                     AccessKey authKey = subscription.getPrincipal().getKey();
                     boolean hasAccess;
@@ -83,6 +86,9 @@ public class LocalMessageBus {
                         .getByDeviceId(Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE));
 
                 for (CommandSubscription subscription : subsForAll) {
+                    if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
+                         continue;
+                     }
                     if (!subscribersIds.contains(subscription.getSessionId())) {
                         User authUser = subscription.getPrincipal().getUser();
                         AccessKey authKey = subscription.getPrincipal().getKey();

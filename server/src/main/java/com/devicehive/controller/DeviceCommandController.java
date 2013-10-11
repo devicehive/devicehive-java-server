@@ -104,6 +104,7 @@ public class DeviceCommandController {
     @Path("/{deviceGuid}/command/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
+            @QueryParam("names") final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -120,7 +121,7 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    pollAction(deviceGuid, timestamp, timeout, principal, asyncResponse);
+                    pollAction(deviceGuid, names, timestamp, timeout, principal, asyncResponse);
                 } catch (Exception e) {
                     asyncResponse.resume(e);
                 }
@@ -128,7 +129,7 @@ public class DeviceCommandController {
         });
     }
 
-    private void pollAction(String deviceGuid, Timestamp timestamp, long timeout, HivePrincipal principal,
+    private void pollAction(String deviceGuid, String names, Timestamp timestamp, long timeout, HivePrincipal principal,
                             AsyncResponse asyncResponse) {
         logger.debug("DeviceCommand poll requested deviceId = {} timestamp = {} ", deviceGuid, timestamp);
         if (principal.getUser() != null) {
@@ -145,7 +146,7 @@ public class DeviceCommandController {
                 return;
             }
         }
-       List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuid, timestamp, timeout,
+       List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuid, names, timestamp, timeout,
                asyncResponse);
         if (list == null){
             return;
@@ -159,6 +160,7 @@ public class DeviceCommandController {
     @Path("/command/poll")
     public void pollMany(
             @QueryParam("deviceGuids") final String deviceGuids,
+            @QueryParam("names") final String names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -177,7 +179,7 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollMany(principal, deviceGuids, timestamp, timeout, asyncResponse);
+                    asyncResponsePollMany(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -188,10 +190,11 @@ public class DeviceCommandController {
 
     private void asyncResponsePollMany(HivePrincipal principal,
                                        String deviceGuids,
+                                       String names,
                                        Timestamp timestamp,
                                        long timeout,
                                        AsyncResponse asyncResponse){
-        List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuids, timestamp, timeout, asyncResponse);
+        List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
         if (list == null){
             return;
         }
@@ -204,6 +207,7 @@ public class DeviceCommandController {
 
     private List<DeviceCommand> asyncResponsePollingProcess(HivePrincipal principal,
                                              String deviceGuids,
+                                             String names,
                                              Timestamp timestamp,
                                              long timeout,
                                              AsyncResponse asyncResponse) {
@@ -211,6 +215,9 @@ public class DeviceCommandController {
                 deviceGuids, timestamp, timeout);
 
         List<String> guids =
+                deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
+
+        List<String> commandNames =
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
         if (timestamp == null) {
@@ -231,13 +238,14 @@ public class DeviceCommandController {
                 }
                 for (Device device : devices) {
                     subscriptionSet
-                            .add(new CommandSubscription(principal, device.getId(), reqId, restHandlerCreator));
+                            .add(new CommandSubscription(principal, device.getId(), reqId, commandNames, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
                         .add(new CommandSubscription(principal,
                                 Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
                                 reqId,
+                                commandNames,
                                 restHandlerCreator));
             }
 
