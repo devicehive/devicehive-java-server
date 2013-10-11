@@ -2,12 +2,7 @@ package com.devicehive.websockets.util;
 
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.Device;
-import com.devicehive.model.User;
 import com.google.gson.JsonElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -15,8 +10,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class WebsocketSession {
-
-    private static final Logger logger = LoggerFactory.getLogger(WebsocketSession.class);
     private static final String PRINCIPAL = "HIVE_PRINCIPAL";
     public static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";

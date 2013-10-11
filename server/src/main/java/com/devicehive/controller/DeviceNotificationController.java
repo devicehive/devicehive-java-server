@@ -560,6 +560,10 @@ public class DeviceNotificationController {
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), "No device with such guid : " + guid + " exists"));
         }
+        if (device.getNetwork() == null){
+            return ResponseFactory.response(FORBIDDEN,
+                    new ErrorResponse(FORBIDDEN.getStatusCode(), "No access to device"));
+        }
         notificationService.submitDeviceNotification(notification, device);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
