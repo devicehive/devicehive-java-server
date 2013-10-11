@@ -218,7 +218,7 @@ public class DeviceCommandController {
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
         List<String> commandNames =
-                deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
+                names == null ? Collections.<String>emptyList() : Arrays.asList(names.split(","));
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();

@@ -61,7 +61,8 @@ public class LocalMessageBus {
                 Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
                         .getByDeviceId(deviceCommand.getDevice().getId());
                 for (CommandSubscription subscription : subs) {
-                    if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
+                    if (subscription.getCommandNames()!= null && !subscription.getCommandNames().isEmpty() &&
+                            !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
                         continue;
                     }
                     boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
@@ -137,7 +138,7 @@ public class LocalMessageBus {
                         .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
 
                 for (NotificationSubscription subscription : subsForAll) {
-                    if (subscription.getNotificationNames() != null
+                    if (subscription.getNotificationNames() != null && !subscription.getNotificationNames().isEmpty()
                             && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
                         continue;
                     }
