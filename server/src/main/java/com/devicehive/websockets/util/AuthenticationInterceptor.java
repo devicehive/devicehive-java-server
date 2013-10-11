@@ -1,14 +1,10 @@
 package com.devicehive.websockets.util;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
-import com.devicehive.model.User;
-import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.UserService;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
-import com.devicehive.websockets.handlers.annotations.Authorize;
+import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.google.gson.JsonObject;
 
 import javax.annotation.Priority;
@@ -16,11 +12,8 @@ import javax.ejb.EJB;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.websocket.Session;
 
-@Authorize
+@WebsocketController
 @Interceptor
 @Priority(Interceptor.Priority.APPLICATION)
 public class AuthenticationInterceptor {

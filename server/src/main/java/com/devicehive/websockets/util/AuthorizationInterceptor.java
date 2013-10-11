@@ -6,13 +6,15 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import com.devicehive.service.AccessKeyService;
+import com.devicehive.service.DeviceService;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
-import com.devicehive.websockets.handlers.annotations.Authorize;
-import org.apache.commons.lang3.ObjectUtils;
+import com.devicehive.websockets.handlers.annotations.WebsocketController;
 
 import javax.annotation.Priority;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.ejb.EJB;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
@@ -20,9 +22,12 @@ import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 
 @Interceptor
-@Authorize
+@WebsocketController
 @Priority(Interceptor.Priority.APPLICATION + 200)
 public class AuthorizationInterceptor {
+
+    @EJB
+    private AccessKeyService accessKeyService;
 
 
     @AroundInvoke
@@ -30,32 +35,23 @@ public class AuthorizationInterceptor {
         Method method = context.getMethod();
         boolean allowed = false;
         try {
+            HivePrincipal principal = deployHivePrincipal();
             if (method.isAnnotationPresent(RolesAllowed.class)) {
                 RolesAllowed rolesAllowed = method.getAnnotation(RolesAllowed.class);
-                HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-                if (principal == null) {
-                    principal = WebsocketSession.getPrincipal(ThreadLocalVariablesKeeper.getSession());
-                    //TODO fixme it is needed to make a clone of access key permissions set
-                    // TODO otherwise it becomes dirty after first use
-                    ThreadLocalVariablesKeeper.setPrincipal(principal);
-                }
-                User authUser = principal != null ? principal.getUser() : null;
-                Device authDevice = principal != null ? principal.getDevice() : null;
-                AccessKey accessKey = principal != null ? principal.getKey() : null;
                 String[] roles = rolesAllowed.value();
                 for (String role : roles) {
                     switch (role) {
                         case HiveRoles.ADMIN:
-                            allowed = allowed || (authUser != null && authUser.isAdmin());
+                            allowed = allowed || (principal != null && principal.getUser() != null && principal.getUser().isAdmin());
                             break;
                         case HiveRoles.CLIENT:
-                            allowed = allowed || authUser != null;
+                            allowed = allowed || (principal != null && principal.getUser() != null);
                             break;
                         case HiveRoles.DEVICE:
-                            allowed = allowed || authDevice != null;
+                            allowed = allowed || (principal != null && principal.getDevice() != null);
                             break;
                         case HiveRoles.KEY:
-                            allowed = allowed || accessKey != null;
+                            allowed = allowed || (principal != null && principal.getKey() != null);
                             break;
                         default:
                     }
@@ -70,5 +66,26 @@ public class AuthorizationInterceptor {
         } finally {
             ThreadLocalVariablesKeeper.setPrincipal(null);
         }
+    }
+
+
+    private HivePrincipal deployHivePrincipal() {
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        if (principal == null) {
+            HivePrincipal sessionPrincipal = WebsocketSession.getPrincipal(ThreadLocalVariablesKeeper.getSession());
+            if (sessionPrincipal != null) {
+                principal = new HivePrincipal(
+                        sessionPrincipal.getUser(),
+                        sessionPrincipal.getDevice(),
+                        sessionPrincipal.getKey() != null
+                                ? accessKeyService.authenticate(sessionPrincipal.getKey().getKey())
+                                : null
+
+                );
+                WebsocketSession.setPrincipal(ThreadLocalVariablesKeeper.getSession(), principal);
+            }
+            ThreadLocalVariablesKeeper.setPrincipal(principal);
+        }
+        return principal;
     }
 }

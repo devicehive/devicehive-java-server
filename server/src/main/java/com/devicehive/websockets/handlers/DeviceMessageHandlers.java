@@ -19,7 +19,7 @@ import com.devicehive.utils.LogExecutionTime;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.handlers.annotations.Authorize;
+import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebSocketResponse;
@@ -46,7 +46,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @LogExecutionTime
-@Authorize
+@WebsocketController
 public class DeviceMessageHandlers implements HiveMessageHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceMessageHandlers.class);
