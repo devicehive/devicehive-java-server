@@ -409,7 +409,17 @@ public class DeviceService {
                 deviceClassVersion, sortField, sortOrderAsc, take, skip, user, extraFilters);
     }
 
-    public long getAllowedDevicesCount(User user, Set<AccessKeyPermission> permissions, List<String> guids) {
+    public long getAllowedDevicesCount(HivePrincipal principal, List<String> guids) {
+        User user = principal.getUser();
+        Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
+        Device device = principal.getDevice();
+        if (device != null) {
+            if (!guids.contains(device.getGuid()))
+                return 0;
+            else {
+                return 1;
+            }
+        }
         return deviceDAO.getNumberOfAvailableDevices(user, permissions, guids);
     }
 

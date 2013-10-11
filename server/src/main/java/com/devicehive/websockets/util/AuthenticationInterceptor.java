@@ -21,8 +21,6 @@ public class AuthenticationInterceptor {
     @EJB
     private DeviceService deviceService;
 
-
-
     @AroundInvoke
     public Object authenticate(InvocationContext ctx) throws Exception {
         JsonObject request = ThreadLocalVariablesKeeper.getRequest();

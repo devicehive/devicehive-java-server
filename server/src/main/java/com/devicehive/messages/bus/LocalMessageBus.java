@@ -11,6 +11,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
+import com.devicehive.service.DeviceService;
 import com.devicehive.utils.ServerResponsesFactory;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.*;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +38,8 @@ public class LocalMessageBus {
     private SubscriptionManager subscriptionManager;
     private ExecutorService primaryProcessingService;
     private ExecutorService handlersService;
+    @EJB
+    private DeviceService deviceService;
     @EJB
     private UserDAO userDAO;
     @EJB
@@ -68,14 +72,8 @@ public class LocalMessageBus {
                     if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
                         continue;
                     }
-                    User authUser = subscription.getPrincipal().getUser();
-                    AccessKey authKey = subscription.getPrincipal().getKey();
-                    boolean hasAccess;
-                    if (authUser != null) {
-                        hasAccess = authUser.isAdmin() || userDAO.hasAccessToDevice(authUser,deviceCommand.getDevice());
-                    } else {
-                        hasAccess = accessKeyService.hasAccessToDevice(authKey,deviceCommand.getDevice().getGuid());
-                    }
+                    boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
+                            Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
                     if (hasAccess) {
                         handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                     }
@@ -90,16 +88,8 @@ public class LocalMessageBus {
                          continue;
                      }
                     if (!subscribersIds.contains(subscription.getSessionId())) {
-                        User authUser = subscription.getPrincipal().getUser();
-                        AccessKey authKey = subscription.getPrincipal().getKey();
-                        boolean hasAccess;
-                        if (authUser != null) {
-                            hasAccess = authUser.isAdmin() || userDAO.hasAccessToDevice(authUser,
-                                    deviceCommand.getDevice());
-                        } else {
-                            hasAccess = accessKeyService.hasAccessToDevice(authKey,
-                                    deviceCommand.getDevice().getGuid());
-                        }
+                        boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
+                                Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
                         if (hasAccess) {
                             handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
                         }

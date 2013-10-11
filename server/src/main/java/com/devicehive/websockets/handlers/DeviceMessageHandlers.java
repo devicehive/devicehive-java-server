@@ -183,6 +183,7 @@ public class DeviceMessageHandlers implements HiveMessageHandlers {
                     ThreadLocalVariablesKeeper.getPrincipal(),
                     device.getId(),
                     session.getId(),
+                    null,
                     new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK,
                             asyncMessageDeliverer));
             subscriptionManager.getCommandSubscriptionStorage().insert(commandSubscription);

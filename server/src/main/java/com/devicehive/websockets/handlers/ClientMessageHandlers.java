@@ -5,11 +5,11 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
+import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceCommandUpdate;
@@ -52,8 +52,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     @EJB
     private DeviceService deviceService;
     @EJB
-    private DeviceDAO deviceDAO;
-    @EJB
     private DeviceCommandService commandService;
     @EJB
     private ConfigurationService configurationService;
@@ -73,13 +71,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param session Current session
      * @return JsonObject with structure
-     *         <pre>
-     *                                                                                                                                                                                                                 {
-     *                                                                                                                                                                                                                   "action": {string},
-     *                                                                                                                                                                                                                   "status": {string},
-     *                                                                                                                                                                                                                   "requestId": {object}
-     *                                                                                                                                                                                                                 }
-     *                                                                                                                                                                                                                 </pre>
+     *         <code>
+     *         {
+     *         "action": {string},
+     *         "status": {string},
+     *         "requestId": {object}
+     *         }
+     *         </code>
      *         Where:
      *         action - Action name: authenticate
      *         status - Operation execution status (success or error).
@@ -95,7 +93,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             throw new HiveException("login and password and key cannot be empty!", SC_BAD_REQUEST);
         }
         logger.debug("authenticate action for {} ", login);
-        HivePrincipal hivePrincipal = WebsocketSession.getPrincipal(session);
+        HivePrincipal hivePrincipal;
         if (login != null) {
             User user = userService.authenticate(login, password);
             hivePrincipal = new HivePrincipal(user, null, null);
@@ -106,13 +104,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             } else {
                 throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
             }
-//        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-//        User user = principal.getUser() == null ? principal.getKey().getUser() : principal.getUser();
-//        if (user != null) {
-//            WebsocketSession.setPrincipal(session, principal);
-//            return new WebSocketResponse();
-//        } else {
-//            throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
         }
         WebsocketSession.setPrincipal(session, hivePrincipal);
         return new WebSocketResponse();
@@ -125,7 +116,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param session Current session
      * @return JsonObject with structure:
-     *         <pre></pre>
+     *         <code>
      *         {
      *         "action": {string},
      *         "status": {string},
@@ -136,7 +127,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *         "userId": {integer}
      *         }
      *         }
-     *         </pre>
+     *         </code>
      */
     @Action(value = "command/insert")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
@@ -149,10 +140,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (deviceGuid == null) {
             throw new HiveException("Device ID is empty", SC_BAD_REQUEST);
         }
-//        HivePrincipal principal = WebsocketSession.getPrincipal(session);
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-
-//        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         if (device == null) {
             throw new HiveException("Device with such id not found", SC_NOT_FOUND);
@@ -180,23 +168,23 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param session Current session
      * @return Json object with the following structure:
-     *         <pre>
-     *                                                                                                                                                                                                         {
-     *                                                                                                                                                                                                           "action": {string},
-     *                                                                                                                                                                                                           "status": {string},
-     *                                                                                                                                                                                                           "requestId": {object}
-     *                                                                                                                                                                                                         }
-     *                                                                                                                                                                                                         </pre>
+     *         <code>
+     *         {
+     *         "action": {string},
+     *         "status": {string},
+     *         "requestId": {object}
+     *         }
+     *         </code>
      * @throws IOException if unable to deliver message
      */
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
-    public WebSocketResponse processNotificationSubscribe
-    (@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
-     @WsParam(JsonMessageBuilder.NOTIFICATION_NAMES) List<String> names,
-     @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
-     Session session) throws IOException {
+    public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
+                                                          @WsParam(JsonMessageBuilder.NOTIFICATION_NAMES)
+                                                          List<String> names,
+                                                          @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
+                                                          Session session) throws IOException {
         logger.debug("notification/subscribe action. Session {} ", session.getId());
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
@@ -214,8 +202,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private void prepareForNotificationSubscribeNullCase(Collection<String> names, Session session, Timestamp timestamp)
             throws IOException {
         logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
-
-//        HivePrincipal principal = WebsocketSession.getPrincipal(session);
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser();
         if (user == null) {
@@ -233,44 +219,20 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                                                             Session session, Timestamp timestamp)
             throws IOException {
         logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
-        HivePrincipal principal = WebsocketSession.getPrincipal(session);
-        User user = principal.getUser();
-        AccessKey accessKey = principal.getKey();
-        if (user == null) {
-            user = accessKey.getUser();
-        }
-
-
-        //checkPermissionsForDevices(timestamp, guids, ThreadLocalVariablesKeeper.getPrincipal());
-        List<Device> devices =
-                deviceDAO.getDeviceList(user, accessKey == null ? null : accessKey.getPermissions(), guids);
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        List<Device> devices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
         if (devices.size() != guids.size()) {
-            Set<String> foundDevicesGuids = new HashSet<>(devices.size());
-            for (Device currentDevice : devices) {
-                foundDevicesGuids.add(currentDevice.getGuid());
-            }
-            StringBuilder message = new StringBuilder("No access to devices with guids: {");
-            for (String guid : guids) {
-                if (!foundDevicesGuids.contains(guid)) {
-                    message.append(guid).append(", ");
-                }
-            }
-            message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
-            // with length 2. We don't need extra commas and spaces.
-            message.append("}");
-            throw new HiveException(message.toString(), SC_NOT_FOUND);
+            String message = createAccessDeniedForGuidsMessage(guids, devices);
+            throw new HiveException(message, SC_NOT_FOUND);
         }
-        if (devices.isEmpty()) {
-            logger.debug("No devices found. Return " + ". Session {} ", session.getId());
-            throw new HiveException("No available devices found.", SC_NOT_FOUND);
-        }
-
         logger.debug("Found " + devices.size() + " devices" + ". Session " + session.getId());
+        User user = principal.getUser();
+        if (user == null)
+            user = principal.getKey().getUser();
         List<DeviceNotification> deviceNotifications =
                 deviceNotificationService.getDeviceNotificationList(devices, user, timestamp);
-
         notificationSubscribeAction(deviceNotifications, session, devices, names);
-        checkDevicesAndGuidsList(devices, guids, true);
+//        checkDevicesAndGuidsList(devices, guids, true);
     }
 
     private void notificationSubscribeAction(List<DeviceNotification> deviceNotifications, Session session,
@@ -280,30 +242,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             logger.debug("notification/subscribe action - not null guid case. found {} devices. Session {}",
                     deviceNotifications.size(), session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-
-            HivePrincipal principal = WebsocketSession.getPrincipal(session);
-            User user = principal.getUser();
-            AccessKey accessKey = principal.getKey();
-            if (user == null) {
-                user = accessKey.getUser();
-            }
-            /*
-            TODO refactor this part
             if (devices != null) {
                 List<NotificationSubscription> nsList = new ArrayList<>();
                 for (Device device : devices) {
-                    boolean isAllowed = true;
-                    if (user == null && accessKey != null) {
-                        isAllowed = accessKeyService.hasAccessToDevice(accessKey, device.getGuid());
-                    }
-                    if (isAllowed) {
-                        NotificationSubscription ns =
-                                new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(),
-                                        session.getId(), names,
-                                        new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
-                                                asyncMessageDeliverer));
-                        nsList.add(ns);
-                    }
+                    NotificationSubscription ns =
+                            new NotificationSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(),
+                                    session.getId(), names,
+                                    new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
+                                            asyncMessageDeliverer));
+                    nsList.add(ns);
+
                 }
                 subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             } else {
@@ -320,7 +268,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     WebsocketSession.addMessagesToQueue(session,
                             ServerResponsesFactory.createNotificationInsertMessage(deviceNotification));
                 }
-            }   */
+            }
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());
@@ -336,13 +284,13 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      * @param list    devices' guids list
      * @param session Current session
      * @return Json object with the following structure
-     *         <pre>
-     *                                                                                                                                                                                                                 {
-     *                                                                                                                                                                                                                   "action": {string},
-     *                                                                                                                                                                                                                   "status": {string},
-     *                                                                                                                                                                                                                   "requestId": {object}
-     *                                                                                                                                                                                                                 }
-     *                                                                                                                                                                                                                 </pre>
+     *         <code>
+     *         {
+     *         "action": {string},
+     *         "status": {string},
+     *         "requestId": {object}
+     *         }
+     *         </code>
      */
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
@@ -352,18 +300,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-            List<Device> devices = null;
             List<Pair<Long, String>> subs;
             if (list != null && !list.isEmpty()) {
                 HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-                devices = deviceService.findByGuidWithPermissionsCheck(list, principal);
+                List<Device> devices= deviceService.findByGuidWithPermissionsCheck(list, principal);
                 logger.debug("notification/unsubscribe. found {} devices. ", devices.size());
-                if (devices.isEmpty()) {
-                    throw new HiveException("No available devices found", SC_NOT_FOUND);
+                if (devices.size() != list.size()) {
+                    String message = createAccessDeniedForGuidsMessage(list, devices);
+                    throw new HiveException(message, SC_NOT_FOUND);
                 }
-
                 logger.debug("notification/unsubscribe. performing unsubscribing action");
-
                 subs = new ArrayList<>(devices.size());
                 for (Device device : devices) {
                     subs.add(ImmutablePair.of(device.getId(), session.getId()));
@@ -374,7 +320,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
             }
             subscriptionManager.getNotificationSubscriptionStorage().removePairs(subs);
-            checkDevicesAndGuidsList(devices, list, false);
+//            checkDevicesAndGuidsList(devices, list, false);
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
         }
@@ -383,39 +329,37 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         return new WebSocketResponse();
     }
 
-    private void checkDevicesAndGuidsList(List<Device> devices, List<String> guids, boolean isSubscribe) {
-        if (devices == null && (guids == null || guids.size() == 0)) {
-            return;
-        }
-        if (devices == null || devices.size() != guids.size()) {
-            StringBuilder responseBuilder;
-            if (isSubscribe) {
-                responseBuilder = new StringBuilder("Unable to subscribe for devices with guids: ");
-            } else {
-                responseBuilder = new StringBuilder("Unable to unsubscribe from devices with guids: ");
-            }
-
-            for (String guid : guids) {
-                boolean contains = false;
-                if (devices != null) {
-                    for (Device device : devices) {
-                        if (device.getGuid().equals(guid)) {
-                            contains = true;
-                        }
-                    }
-                }
-                if (!contains) {
-                    responseBuilder.append(guid).append(" ");
-                }
-            }
-
-            responseBuilder
-                    .append(". Device(s) with such guids does not exist(s) or you have not permissions to get " +
-                            "notifications from this device.");
-            throw new HiveException(responseBuilder.toString(), SC_UNAUTHORIZED);
-        }
-
-    }
+//    private void checkDevicesAndGuidsList(List<Device> devices, List<String> guids, boolean isSubscribe) {
+//        if (devices == null && (guids == null || guids.size() == 0)) {
+//            return;
+//        }
+//        if (devices == null || devices.size() != guids.size()) {
+//            StringBuilder responseBuilder;
+//            if (isSubscribe) {
+//                responseBuilder = new StringBuilder("Unable to subscribe for devices with guids: ");
+//            } else {
+//                responseBuilder = new StringBuilder("Unable to unsubscribe from devices with guids: ");
+//            }
+//            for (String guid : guids) {
+//                boolean contains = false;
+//                if (devices != null) {
+//                    for (Device device : devices) {
+//                        if (device.getGuid().equals(guid)) {
+//                            contains = true;
+//                        }
+//                    }
+//                }
+//                if (!contains) {
+//                    responseBuilder.append(guid).append(" ");
+//                }
+//            }
+//            responseBuilder
+//                    .append(". Device(s) with such guids does not exist(s) or you have not permissions to get " +
+//                            "notifications from this device.");
+//            throw new HiveException(responseBuilder.toString(), SC_UNAUTHORIZED);
+//        }
+//
+//    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Client/serverinfo">WebSocket API:
@@ -424,18 +368,18 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
      *
      * @param session Current session
      * @return Json object with the following structure
-     *         <pre>
-     *                                                                          {
-     *                                                                          "action": {string},
-     *                                                                          "status": {string},
-     *                                                                          "requestId": {object},
-     *                                                                          "info": {
-     *                                                                              "apiVersion": {string},
-     *                                                                              "serverTimestamp": {datetime},
-     *                                                                              "restServerUrl": {string}
-     *                                                                          }
-     *                                                                         }
-     *                                                                        </pre>
+     *         <code>
+     *         {
+     *         "action": {string},
+     *         "status": {string},
+     *         "requestId": {object},
+     *         "info": {
+     *         "apiVersion": {string},
+     *         "serverTimestamp": {datetime},
+     *         "restServerUrl": {string}
+     *         }
+     *         }
+     *         </code>
      */
 
     @Action(value = "server/info")
@@ -466,7 +410,6 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-
         if (list == null) {
             prepareForCommandsSubscribeNullCase(session, timestamp);
         } else if (!list.isEmpty()) {
@@ -481,9 +424,9 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
     private void prepareForCommandsSubscribeNullCase(Session session, Timestamp timestamp) throws IOException {
         logger.debug("notification/subscribe action - null guid case. Session {}", session.getId());
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser() != null ?
-                principal.getUser() :
-                principal.getKey().getUser();
+        User user = principal.getUser();
+        if (user == null)
+            principal.getKey().getUser();
         List<DeviceCommand> deviceCommands = commandService.getNewerThan(null, user, timestamp);
         logger.debug(
                 "notification/subscribe action - null guid case. get device notification. found {}  notifications. {}",
@@ -491,39 +434,23 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         commandsSubscribeAction(deviceCommands, session, null);
     }
 
-    private void prepareForCommandsSubscribeNotNullCase(List<String> guids, Session session,
+    private void prepareForCommandsSubscribeNotNullCase(List<String> guids,
+                                                        Session session,
                                                         Timestamp timestamp) throws IOException {
         logger.debug("commands/subscribe action - null guid case. Session {}", session.getId());
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         List<Device> devices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
         if (devices.size() != guids.size()) {
-            Set<String> foundDevicesGuids = new HashSet<>(devices.size());
-            for (Device currentDevice : devices) {
-                foundDevicesGuids.add(currentDevice.getGuid());
-            }
-            StringBuilder message = new StringBuilder("No access to devices with guids: {");
-            for (String guid : guids) {
-                if (!foundDevicesGuids.contains(guid)) {
-                    message.append(guid).append(", ");
-                }
-            }
-            message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
-            // with length 2. We don't need extra commas and spaces.
-            message.append("}");
-            throw new HiveException(message.toString(), SC_NOT_FOUND);
-        }
-        if (devices.isEmpty()) {
-            logger.debug("No devices found. Return " + ". Session {} ", session.getId());
-            throw new HiveException("No available devices found.", SC_NOT_FOUND);
+            String message = createAccessDeniedForGuidsMessage(guids, devices);
+            throw new HiveException(message, SC_NOT_FOUND);
         }
         logger.debug("Found " + devices.size() + " devices" + ". Session " + session.getId());
-        User user = principal.getUser() != null ?
-                principal.getUser() :
-                principal.getKey().getUser();
+        User user = principal.getUser();
+        if (user == null)
+            principal.getKey().getUser();
         List<DeviceCommand> deviceCommands = commandService.getNewerThan(devices, user, timestamp);
-
         commandsSubscribeAction(deviceCommands, session, devices);
-        checkDevicesAndGuidsList(devices, guids, true);
+//        checkDevicesAndGuidsList(devices, guids, true);
     }
 
     private void commandsSubscribeAction(List<DeviceCommand> deviceCommands, Session session,
@@ -539,6 +466,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                     CommandSubscription cs =
                             new CommandSubscription(ThreadLocalVariablesKeeper.getPrincipal(), device.getId(),
                                     session.getId(),
+                                    null,
                                     new WebsocketHandlerCreator(session,
                                             WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK,
                                             asyncMessageDeliverer));
@@ -550,6 +478,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                         new CommandSubscription(ThreadLocalVariablesKeeper.getPrincipal(),
                                 Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
                                 session.getId(),
+                                null,
                                 new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK,
                                         asyncMessageDeliverer));
                 subscriptionManager.getCommandSubscriptionStorage().insert(forAll);
@@ -575,21 +504,16 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
-            List<Device> devices = null;
             List<Pair<Long, String>> subs;
             if (list != null && !list.isEmpty()) {
                 HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-                User user = principal.getUser() != null ?
-                        principal.getUser() :
-                        principal.getKey().getUser();
-                devices = deviceService.findByGuidWithPermissionsCheck(list, principal);
+                List<Device> devices = deviceService.findByGuidWithPermissionsCheck(list, principal);
                 logger.debug("command/unsubscribe. found {} devices. ", devices.size());
-                if (devices.isEmpty()) {
-                    throw new HiveException("No available devices found", SC_NOT_FOUND);
+                if (devices.size() != list.size()) {
+                    String message = createAccessDeniedForGuidsMessage(list, devices);
+                    throw new HiveException(message, SC_NOT_FOUND);
                 }
-
                 logger.debug("command/unsubscribe. performing unsubscribing action");
-
                 subs = new ArrayList<>(devices.size());
                 for (Device device : devices) {
                     subs.add(ImmutablePair.of(device.getId(), session.getId()));
@@ -600,7 +524,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
 
             }
             subscriptionManager.getCommandSubscriptionStorage().removePairs(subs);
-            checkDevicesAndGuidsList(devices, list, false);
+//            checkDevicesAndGuidsList(devices, list, false);
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
         }
@@ -624,7 +548,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
             logger.debug("command/update canceled for session: {}. Guid or command id is not provided", session);
             throw new HiveException("Device guid and command id are required parameters!", SC_BAD_REQUEST);
         }
-        HivePrincipal principal = WebsocketSession.getPrincipal(session);
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (commandUpdate == null || device == null) {
             throw new HiveException("command with id " + id + " for device with " + guid + " is not found",
@@ -647,7 +571,7 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
                                                        DeviceNotification notification,
                                                        Session session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
-        HivePrincipal principal = WebsocketSession.getPrincipal(session);
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");
@@ -665,6 +589,28 @@ public class ClientMessageHandlers implements HiveMessageHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(JsonMessageBuilder.NOTIFICATION, notification, NOTIFICATION_TO_DEVICE);
         return response;
+    }
+
+    private String createAccessDeniedForGuidsMessage(List<String> guids,
+                                                     List<Device> allowedDevices) {
+        Set<String> guidsWithDeniedAccess = new HashSet<>();
+        Set<String> allowedGuids = new HashSet<>(allowedDevices.size());
+        for (Device device : allowedDevices) {
+            allowedGuids.add(device.getGuid());
+        }
+        for (String deviceGuid : guids) {
+            if (!allowedGuids.contains(deviceGuid)) {
+                guidsWithDeniedAccess.add(deviceGuid);
+            }
+        }
+        StringBuilder message = new StringBuilder("No access to devices with guids: {");
+        for (String guid : guidsWithDeniedAccess) {
+            message.append(guid).append(", ");
+        }
+        message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
+        // with length 2. We don't need extra commas and spaces.
+        message.append("}");
+        return message.toString();
     }
 
 }

@@ -403,7 +403,8 @@ public class DeviceNotificationController {
                 deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
 
         List<String> notificationNames =
-                deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(names.split(","));
+                names == null ? Collections.<String>emptyList() : Arrays.asList(names.split(","));
+
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
