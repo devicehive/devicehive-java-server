@@ -1,4 +1,4 @@
-package com.devicehive.utils;
+package com.devicehive.utils.converters;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,5 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SortOrder {
+public @interface CommaSeparated {
 }

@@ -1,4 +1,4 @@
-package com.devicehive.utils;
+package com.devicehive.utils.converters;
 
 import com.devicehive.exceptions.HiveException;
 

@@ -12,7 +12,7 @@ import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.SortOrder;
+import com.devicehive.utils.converters.SortOrder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;

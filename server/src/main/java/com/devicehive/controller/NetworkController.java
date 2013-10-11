@@ -13,7 +13,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.SortOrder;
+import com.devicehive.utils.converters.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

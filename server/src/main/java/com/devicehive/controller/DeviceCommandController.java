@@ -14,7 +14,7 @@ import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.*;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.SortOrder;
+import com.devicehive.utils.converters.SortOrder;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -215,7 +215,7 @@ public class DeviceCommandController {
                 deviceGuids, timestamp, timeout);
 
         List<String> guids =
-                deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
+                deviceGuids == null ? null : Arrays.asList(deviceGuids.split(","));
 
         List<String> commandNames = names.isEmpty() ? null : Arrays.asList(names.split(","));
 
@@ -229,7 +229,7 @@ public class DeviceCommandController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
-            if (!guids.isEmpty()) {
+            if (guids != null) {
                 List<Device> devices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
                 if (devices.size() != guids.size()) {
                     createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);

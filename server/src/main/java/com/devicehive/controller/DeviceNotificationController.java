@@ -11,15 +11,20 @@ import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.User;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.SortOrder;
 import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.utils.converters.CommaSeparated;
+import com.devicehive.utils.converters.SortOrder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -279,7 +284,7 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
-            @QueryParam("names") @DefaultValue("") final String names,
+            @QueryParam("names") @CommaSeparated final List<String> names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam
                     ("waitTimeout") final long timeout,
@@ -307,7 +312,7 @@ public class DeviceNotificationController {
 
     private void asyncResponsePollProcess(Timestamp timestamp,
                                           String deviceGuid,
-                                          String names,
+                                          List<String> names,
                                           long timeout,
                                           HivePrincipal principal,
                                           AsyncResponse asyncResponse) {
@@ -330,8 +335,8 @@ public class DeviceNotificationController {
             logger.debug("DeviceNotification poll was requested by Key = {}, deviceId = {}, timestamp = ",
                     principal.getKey().getId(), deviceGuid, timestamp);
         }
-        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuid, names, timestamp, timeout,
-                asyncResponse);
+        List<DeviceNotification> list = asyncResponsePollingProcess(principal, Arrays.asList(deviceGuid), names,
+                timestamp,  timeout, asyncResponse);
         Response response = ResponseFactory.response(OK, list, Policy.NOTIFICATION_TO_CLIENT);
         asyncResponse.resume(response);
     }
@@ -348,8 +353,8 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
     public void pollMany(
-            @QueryParam("deviceGuids") final String deviceGuids,
-            @QueryParam("names") @DefaultValue("") final String names,
+            @QueryParam("deviceGuids")  @CommaSeparated final List<String> deviceGuids,
+            @QueryParam("names") @CommaSeparated final List<String> names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -377,12 +382,12 @@ public class DeviceNotificationController {
     }
 
     private void asyncResponsePollMany(HivePrincipal principal,
-                                       String deviceGuids,
-                                       String names,
+                                       List<String> guids,
+                                       List<String> notificationNames,
                                        Timestamp timestamp,
                                        long timeout,
                                        AsyncResponse asyncResponse){
-        List<DeviceNotification> list = asyncResponsePollingProcess(principal, deviceGuids, names, timestamp, timeout,
+        List<DeviceNotification> list = asyncResponsePollingProcess(principal, guids, notificationNames, timestamp, timeout,
                 asyncResponse);
         if (list == null){
             return;
@@ -396,18 +401,13 @@ public class DeviceNotificationController {
     }
 
     private List<DeviceNotification> asyncResponsePollingProcess(HivePrincipal principal,
-                                             String deviceGuids,
-                                             String names,
+                                             List<String> guids,
+                                             List<String> notificationNames,
                                              Timestamp timestamp,
                                              long timeout,
                                              AsyncResponse asyncResponse) {
         logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
-                deviceGuids, timestamp, timeout);
-        List<String> guids =
-                deviceGuids == null ? Collections.<String>emptyList() : Arrays.asList(deviceGuids.split(","));
-
-        List<String> notificationNames =
-                names.isEmpty() ? null : Arrays.asList(names.split(","));
+                StringUtils.join(guids == null ? null : guids.toArray(), ","), timestamp, timeout);
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
@@ -419,7 +419,7 @@ public class DeviceNotificationController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-            if (!guids.isEmpty()) {
+            if (guids != null) {
                 List<Device> devices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
                 if (devices.size() < guids.size()) {
                     createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);

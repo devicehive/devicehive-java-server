@@ -7,7 +7,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.SortOrder;
+import com.devicehive.utils.converters.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
