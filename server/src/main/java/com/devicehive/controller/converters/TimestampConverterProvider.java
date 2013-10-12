@@ -1,4 +1,4 @@
-package com.devicehive.json.providers;
+package com.devicehive.controller.converters;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.adapters.TimestampAdapter;

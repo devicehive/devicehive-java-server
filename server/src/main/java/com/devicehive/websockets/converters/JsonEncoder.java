@@ -1,4 +1,4 @@
-package com.devicehive.json.providers;
+package com.devicehive.websockets.converters;
 
 
 import com.devicehive.json.GsonFactory;

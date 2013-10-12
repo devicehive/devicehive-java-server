@@ -1,7 +1,7 @@
 package com.devicehive.controller.exceptions;
 
 
-import com.devicehive.controller.ResponseFactory;
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
 
 import javax.persistence.OptimisticLockException;

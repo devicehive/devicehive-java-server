@@ -1,6 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.util.LogExecutionTime;
 
 import javax.annotation.security.PermitAll;
 import javax.servlet.ServletContext;

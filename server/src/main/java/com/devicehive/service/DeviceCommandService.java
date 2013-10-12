@@ -10,8 +10,8 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
-import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.Timer;
+import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.Timer;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 

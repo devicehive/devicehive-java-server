@@ -4,7 +4,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.util.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import org.slf4j.Logger;

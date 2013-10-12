@@ -3,9 +3,9 @@
 http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd" version="1.1" bean-discovery-mode="all">
 
     <interceptors>
-        <class>com.devicehive.utils.ExecutionTimeLoggerInterceptor</class>
-        <class>com.devicehive.websockets.util.AuthenticationInterceptor</class>
-        <class>com.devicehive.websockets.util.AuthorizationInterceptor</class>
+        <class>com.devicehive.util.ExecutionTimeLoggerInterceptor</class>
+        <class>com.devicehive.auth.websockets.AuthenticationInterceptor</class>
+        <class>com.devicehive.auth.websockets.AuthorizationInterceptor</class>
         <class>com.devicehive.auth.AccessKeyInterceptor</class>
     </interceptors>
 

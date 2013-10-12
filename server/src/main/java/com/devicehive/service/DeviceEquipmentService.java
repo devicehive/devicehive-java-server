@@ -5,7 +5,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
-import com.devicehive.utils.ServerResponsesFactory;
+import com.devicehive.util.ServerResponsesFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;

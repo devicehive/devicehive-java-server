@@ -1,11 +1,10 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.util.LogExecutionTime;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -18,7 +17,6 @@ import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Stateless

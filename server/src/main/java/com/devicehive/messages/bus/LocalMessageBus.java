@@ -8,7 +8,7 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
-import com.devicehive.utils.ServerResponsesFactory;
+import com.devicehive.util.ServerResponsesFactory;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

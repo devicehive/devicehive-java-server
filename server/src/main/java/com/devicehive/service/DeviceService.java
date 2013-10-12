@@ -8,8 +8,8 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.ServerResponsesFactory;
+import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ServerResponsesFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;

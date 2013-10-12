@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Equipment;
@@ -9,7 +10,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.util.LogExecutionTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

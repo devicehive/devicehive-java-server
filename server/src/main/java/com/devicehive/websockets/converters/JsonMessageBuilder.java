@@ -1,4 +1,4 @@
-package com.devicehive.websockets.handlers;
+package com.devicehive.websockets.converters;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

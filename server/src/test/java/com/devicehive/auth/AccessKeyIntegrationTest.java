@@ -1,9 +1,6 @@
 package com.devicehive.auth;
 
 import com.devicehive.Constants;
-import com.devicehive.auth.AccessKeyInterceptor;
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.controller.DeviceCommandController;
 import com.devicehive.controller.DeviceController;
@@ -15,7 +12,7 @@ import com.devicehive.model.*;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.helpers.PasswordProcessor;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

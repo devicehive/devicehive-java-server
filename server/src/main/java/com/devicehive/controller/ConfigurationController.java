@@ -2,7 +2,8 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.ConfigurationService;
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.controller.util.ResponseFactory;
+import com.devicehive.util.LogExecutionTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

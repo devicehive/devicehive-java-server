@@ -4,11 +4,9 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
@@ -16,14 +14,15 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
 import com.devicehive.service.*;
-import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.ServerResponsesFactory;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
-import com.devicehive.websockets.util.WebSocketResponse;
+import com.devicehive.websockets.converters.JsonMessageBuilder;
+import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -53,28 +52,20 @@ public class NotificationHandlers implements WebsocketHandlers {
     @EJB
     private SubscriptionManager subscriptionManager;
     @EJB
-    private UserService userService;
-    @EJB
     private DeviceService deviceService;
-    @EJB
-    private DeviceCommandService commandService;
-    @EJB
-    private ConfigurationService configurationService;
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
     private AsyncMessageSupplier asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
-    @EJB
-    private AccessKeyService accessKeyService;
+
 
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
-                                                          @WsParam(JsonMessageBuilder.NOTIFICATION_NAMES)
-                                                          List<String> names,
+                                                          @WsParam(JsonMessageBuilder.NOTIFICATION_NAMES) List<String> names,
                                                           @WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                                           Session session) throws IOException {
         logger.debug("notification/subscribe action. Session {} ", session.getId());

@@ -3,7 +3,7 @@ package com.devicehive.auth;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Subnet;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 
 import java.net.InetAddress;
 import java.util.HashSet;

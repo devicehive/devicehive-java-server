@@ -1,4 +1,4 @@
-package com.devicehive.controller;
+package com.devicehive.controller.util;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.subscriptions.AbstractStorage;

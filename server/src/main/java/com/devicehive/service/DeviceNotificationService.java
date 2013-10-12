@@ -7,9 +7,9 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.User;
-import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.ServerResponsesFactory;
-import com.devicehive.utils.Timer;
+import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.util.Timer;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;

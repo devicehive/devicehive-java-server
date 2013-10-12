@@ -1,4 +1,4 @@
-package com.devicehive.controller;
+package com.devicehive.controller.util;
 
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;

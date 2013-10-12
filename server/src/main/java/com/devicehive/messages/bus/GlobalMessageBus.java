@@ -3,7 +3,7 @@ package com.devicehive.messages.bus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.HazelcastService;
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.util.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;

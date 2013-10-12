@@ -1,4 +1,4 @@
-package com.devicehive.utils.converters;
+package com.devicehive.controller.converters;
 
 import org.apache.commons.lang3.StringUtils;
 

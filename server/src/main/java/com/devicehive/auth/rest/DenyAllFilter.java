@@ -1,4 +1,4 @@
-package com.devicehive.auth;
+package com.devicehive.auth.rest;
 
 
 import javax.annotation.Priority;

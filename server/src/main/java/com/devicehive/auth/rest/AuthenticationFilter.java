@@ -1,12 +1,14 @@
-package com.devicehive.auth;
+package com.devicehive.auth.rest;
 
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.UserService;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -11,8 +12,8 @@ import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.UserService;
-import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.converters.SortOrder;
+import com.devicehive.util.LogExecutionTime;
+import com.devicehive.controller.converters.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

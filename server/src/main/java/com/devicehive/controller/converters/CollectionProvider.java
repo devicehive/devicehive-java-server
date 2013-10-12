@@ -1,4 +1,4 @@
-package com.devicehive.json.providers;
+package com.devicehive.controller.converters;
 
 import com.devicehive.model.HiveEntity;
 

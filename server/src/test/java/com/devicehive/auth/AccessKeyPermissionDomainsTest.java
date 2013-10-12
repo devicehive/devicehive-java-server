@@ -1,9 +1,8 @@
 package com.devicehive.auth;
 
 
-import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.model.*;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

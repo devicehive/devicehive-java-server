@@ -7,7 +7,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.util.LogExecutionTime;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;

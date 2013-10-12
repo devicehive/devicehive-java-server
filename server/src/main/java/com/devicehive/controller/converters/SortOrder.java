@@ -1,4 +1,4 @@
-package com.devicehive.utils.converters;
+package com.devicehive.controller.converters;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

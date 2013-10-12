@@ -1,8 +1,7 @@
-package com.devicehive.websockets.util;
+package com.devicehive.websockets.converters;
 
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.websockets.handlers.JsonMessageBuilder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 

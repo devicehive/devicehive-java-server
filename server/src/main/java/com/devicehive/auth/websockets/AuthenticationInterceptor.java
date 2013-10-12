@@ -1,9 +1,9 @@
-package com.devicehive.websockets.util;
+package com.devicehive.auth.websockets;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceService;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.google.gson.JsonObject;
 

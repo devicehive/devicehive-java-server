@@ -1,13 +1,14 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
-import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.converters.SortOrder;
+import com.devicehive.util.LogExecutionTime;
+import com.devicehive.controller.converters.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,7 @@ public class DeviceClassController {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                                    ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                            ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
 
         List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,

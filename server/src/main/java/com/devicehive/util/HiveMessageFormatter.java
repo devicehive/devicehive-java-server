@@ -1,4 +1,4 @@
-package com.devicehive.utils;
+package com.devicehive.util;
 
 import org.slf4j.helpers.MessageFormatter;
 

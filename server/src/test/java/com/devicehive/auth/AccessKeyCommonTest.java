@@ -6,7 +6,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

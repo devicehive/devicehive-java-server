@@ -1,4 +1,4 @@
-package com.devicehive.utils;
+package com.devicehive.util;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;

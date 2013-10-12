@@ -4,6 +4,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.dao.filter.AccessKeyBasedFilter;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
@@ -12,8 +13,8 @@ import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.UserService;
-import com.devicehive.utils.LogExecutionTime;
-import com.devicehive.utils.converters.SortOrder;
+import com.devicehive.util.LogExecutionTime;
+import com.devicehive.controller.converters.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

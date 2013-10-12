@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -13,7 +14,7 @@ import com.devicehive.model.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
-import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.util.LogExecutionTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
