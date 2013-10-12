@@ -3,27 +3,37 @@ package com.devicehive.websockets;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.json.providers.JsonEncoder;
+import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.websockets.handlers.ClientMessageHandlers;
-import com.devicehive.websockets.handlers.DeviceMessageHandlers;
-import com.devicehive.websockets.handlers.HiveMessageHandlers;
-import com.devicehive.websockets.handlers.JsonMessageBuilder;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.utils.LogExecutionTime;
+import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.websockets.handlers.*;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
-import com.devicehive.utils.ThreadLocalVariablesKeeper;
+import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebSocketResponse;
+import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.*;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.persistence.OptimisticLockException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import javax.websocket.Session;
+import javax.websocket.*;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -33,21 +43,70 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-abstract class Endpoint {
+@ServerEndpoint(value = "/websocket/{id}", encoders = {JsonEncoder.class})
+@LogExecutionTime
+@Singleton
+public class HiveServerEndpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
-    private static final Logger logger = LoggerFactory.getLogger(Endpoint.class);
-    private static Set<Class> HANDLERS_SET = new HashSet<Class>(){
+    private static final Logger logger = LoggerFactory.getLogger(HiveServerEndpoint.class);
+    private static Set<Class<WebsocketHandlers>> HANDLERS_SET = new HashSet() {
         {
-            add(DeviceMessageHandlers.class);
-            add(ClientMessageHandlers.class);
+            add(CommonHandlers.class);
+            add(CommandHandlers.class);
+            add(NotificationHandlers.class);
+            add(DeviceHandlers.class);
         }
 
         private static final long serialVersionUID = -7417770184838061839L;
     };
-    private ConcurrentMap<Pair<Class, String>, Method> methodsCache = new ConcurrentHashMap<>();
 
-    protected JsonObject processMessage(HiveMessageHandlers handler, Reader reader, Session session) {
+    @Inject
+    private BeanManager beanManager;
+
+    @EJB
+    private SessionMonitor sessionMonitor;
+
+    @EJB
+    private SubscriptionManager subscriptionManager;
+
+    private ConcurrentMap<String, Pair<Class<WebsocketHandlers>, Method>> methodsCache = new ConcurrentHashMap<>();
+
+
+
+    @OnOpen
+    public void onOpen(Session session, @PathParam("id") String id) {
+        logger.debug("[onOpen] session id {} ", session.getId());
+        WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
+        WebsocketSession.createNotificationSubscriptionsLock(session);
+        WebsocketSession.createCommandsSubscriptionsLock(session);
+        WebsocketSession.createQueueLock(session);
+        sessionMonitor.registerSession(session);
+    }
+
+    @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
+    public JsonObject onMessage(Reader reader, Session session) throws InvocationTargetException, IllegalAccessException {
+        logger.debug("[onMessage] session id {} ", session.getId());
+        return processMessage( reader, session);
+    }
+
+    @OnClose
+    public void onClose(Session session, CloseReason closeReason) {
+        logger.debug("[onClose] session id {}, close reason is {} ", session.getId(), closeReason);
+        subscriptionManager.getCommandUpdateSubscriptionStorage().removeBySession(session.getId());
+        subscriptionManager.getCommandSubscriptionStorage().removeBySession(session.getId());
+        subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
+    }
+
+    @OnError
+    public void onError(Throwable exception, Session session) {
+        logger.error("[onError] ", exception);
+    }
+
+
+
+
+    protected JsonObject processMessage(Reader reader, Session session) {
         JsonObject response;
 
         JsonObject request;
@@ -62,54 +121,58 @@ abstract class Endpoint {
         try {
             String action = request.getAsJsonPrimitive("action").getAsString();
             logger.debug("[action] Looking for action " + action);
-            response = tryExecute(handler, action, request, session);
+            response = tryExecute(action, request, session);
         } catch (HiveException ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
         } catch (OptimisticLockException ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Error occurred. Please, retry again.").build();
-        } catch (JsonSyntaxException ex){
+        } catch (JsonSyntaxException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
-        } catch (JsonParseException ex){
+        } catch (JsonParseException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error("[processMessage] Error processing message ", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
         }
         return constructFinalResponse(request, response);
     }
 
-    private JsonObject tryExecute(HiveMessageHandlers handler, String action, JsonObject request,
+    private WebsocketHandlers getBean(Class<WebsocketHandlers> clazz) {
+        Bean bean = beanManager.getBeans(clazz).iterator().next();
+        return (WebsocketHandlers) beanManager.getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean));
+    }
+
+    private JsonObject tryExecute(String action, JsonObject request,
                                   Session session)
             throws IllegalAccessException, InvocationTargetException {
-        ImmutablePair<Class, String> key = ImmutablePair.of((Class) handler.getClass(), action);
-        Method executedMethod = methodsCache.get(key);
-        if (executedMethod == null) {
-            Class currentClass = null;
-            for (Class clazz : HANDLERS_SET) {
-                if (clazz.isInstance(handler)) {
-                    currentClass = clazz;
+
+
+        Pair<Class<WebsocketHandlers>, Method> methodPair = methodsCache.get(action);
+        if (methodPair == null) {
+            for (Class<WebsocketHandlers> currentClass : HANDLERS_SET) {
+                boolean found = false;
+                for (final Method method : currentClass.getMethods()) {
+                    if (method.isAnnotationPresent(Action.class)) {
+                        if (method.getAnnotation(Action.class).value().equals(action)) {
+                            methodPair = ImmutablePair.of(currentClass, method);
+                            methodsCache.put(action, methodPair);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found) {
                     break;
                 }
             }
-            if (currentClass == null) {
-                throw new IllegalAccessException("No handler available for " + handler.getClass().getCanonicalName());
-            }
-            for (final Method method : currentClass.getMethods()) {
-                if (method.isAnnotationPresent(Action.class)) {
-                    if (method.getAnnotation(Action.class).value().equals(action)) {
-                        executedMethod = method;
-                        methodsCache.put(key, method);
-                        break;
-                    }
-                }
-            }
         }
-        if (executedMethod == null) {
+        if (methodPair == null) {
             throw new HiveException("Unknown action requested: " + action, HttpServletResponse.SC_BAD_REQUEST);
         }
         try {
+            Method executedMethod = methodPair.getRight();
             Type[] parameterTypes = executedMethod.getGenericParameterTypes();
             List<Type> parametersTypesList = Arrays.asList(parameterTypes);
             List<Object> realArguments = new LinkedList<>();
@@ -130,8 +193,8 @@ abstract class Endpoint {
                                 if (currentParamAnnotation instanceof WsParam) {
                                     jsonFieldName = ((WsParam) currentParamAnnotation).value();
                                 }
-                                if (currentParamAnnotation instanceof JsonPolicyDef) {
-                                    jsonPolicy = ((JsonPolicyDef) currentParamAnnotation).value()[0];
+                                if (currentParamAnnotation instanceof JsonPolicyApply) {
+                                    jsonPolicy = ((JsonPolicyApply) currentParamAnnotation).value();
                                 }
                             }
                             if (jsonFieldName == null) {
@@ -149,7 +212,8 @@ abstract class Endpoint {
 
             ThreadLocalVariablesKeeper.setRequest(request);
             ThreadLocalVariablesKeeper.setSession(session);
-            WebSocketResponse webSocketResponse = ((WebSocketResponse) executedMethod.invoke(handler,
+            WebsocketHandlers handlers = getBean(methodPair.getLeft());
+            WebSocketResponse webSocketResponse = ((WebSocketResponse) executedMethod.invoke(handlers,
                     realArguments.toArray()));
             return webSocketResponse.getResponseAsJson();
         } catch (InvocationTargetException e) {
