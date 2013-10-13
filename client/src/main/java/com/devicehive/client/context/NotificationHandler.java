@@ -1,4 +1,4 @@
-package com.devicehive.client.api;
+package com.devicehive.client.context;
 
 import com.devicehive.client.model.DeviceNotification;
 

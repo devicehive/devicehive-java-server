@@ -1,6 +1,7 @@
 package com.devicehive.client.api;
 
 
+import com.devicehive.client.context.CommandHandler;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;

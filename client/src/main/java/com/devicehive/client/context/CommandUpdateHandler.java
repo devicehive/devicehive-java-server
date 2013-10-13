@@ -1,9 +1,10 @@
-package com.devicehive.client.api;
+package com.devicehive.client.context;
 
 
 import com.devicehive.client.model.DeviceCommand;
 
-public interface CommandHandler {
+public interface CommandUpdateHandler {
 
     void handle(DeviceCommand command);
+
 }
