@@ -1,5 +1,6 @@
 package com.devicehive.websockets.converters;
 
+import com.devicehive.exceptions.HiveException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -10,6 +11,7 @@ public class JsonMessageBuilder {
 
     public static final String STATUS = "status";
     public static final String ERROR = "error";
+    public static final String ERROR_CODE = "errorCode";
     public static final String ACTION = "action";
     public static final String REQUEST_ID = "requestId";
     public static final String DEVICE_GUID = "deviceGuid";
@@ -27,12 +29,16 @@ public class JsonMessageBuilder {
         return new JsonMessageBuilder().addStatus("success");
     }
 
-    public static JsonMessageBuilder createErrorResponseBuilder() {
+    public static JsonMessageBuilder createErrorResponseBuilder(Integer errorCode) {
         return new JsonMessageBuilder().addStatus("error");
     }
 
-    public static JsonMessageBuilder createErrorResponseBuilder(String errorMessage) {
-        return createErrorResponseBuilder().addErrorMessage(errorMessage);
+    public static JsonMessageBuilder createErrorResponseBuilder(Integer errorCode, String errorMessage) {
+        return createErrorResponseBuilder(errorCode).addErrorMessage(errorMessage);
+    }
+
+    public static JsonMessageBuilder createError(HiveException ex) {
+        return createErrorResponseBuilder(ex.getCode(), ex.getMessage());
     }
 
     public JsonMessageBuilder() {

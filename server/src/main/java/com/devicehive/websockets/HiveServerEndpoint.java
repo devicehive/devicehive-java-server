@@ -16,6 +16,7 @@ import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
+import com.google.common.collect.Sets;
 import com.google.gson.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,6 +35,7 @@ import javax.validation.ConstraintViolationException;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -43,26 +45,17 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@ServerEndpoint(value = "/websocket/{id}", encoders = {JsonEncoder.class})
+@ServerEndpoint(value = "/websocket/{endpoint}", encoders = {JsonEncoder.class})
 @LogExecutionTime
 @Singleton
 public class HiveServerEndpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
+
     private static final Logger logger = LoggerFactory.getLogger(HiveServerEndpoint.class);
-    private static Set<Class<WebsocketHandlers>> HANDLERS_SET = new HashSet() {
-        {
-            add(CommonHandlers.class);
-            add(CommandHandlers.class);
-            add(NotificationHandlers.class);
-            add(DeviceHandlers.class);
-        }
 
-        private static final long serialVersionUID = -7417770184838061839L;
-    };
+    private static final Set<String> allowedEndpoints = Sets.newHashSet("client", "device");
 
-    @Inject
-    private BeanManager beanManager;
 
     @EJB
     private SessionMonitor sessionMonitor;
@@ -70,12 +63,13 @@ public class HiveServerEndpoint {
     @EJB
     private SubscriptionManager subscriptionManager;
 
-    private ConcurrentMap<String, Pair<Class<WebsocketHandlers>, Method>> methodsCache = new ConcurrentHashMap<>();
+    @Inject
+    private HandlerExecutor executor;
 
 
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("id") String id) {
+    public void onOpen(Session session, @PathParam("endpoint") String endpoint) {
         logger.debug("[onOpen] session id {} ", session.getId());
         WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
         WebsocketSession.createNotificationSubscriptionsLock(session);
@@ -85,9 +79,20 @@ public class HiveServerEndpoint {
     }
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
-    public JsonObject onMessage(Reader reader, Session session) throws InvocationTargetException, IllegalAccessException {
-        logger.debug("[onMessage] session id {} ", session.getId());
-        return processMessage( reader, session);
+    public JsonObject onMessage(Reader reader, Session session)  {
+        try {
+            logger.debug("[onMessage] session id {} ", session.getId());
+            JsonObject request = new JsonParser().parse(reader).getAsJsonObject();
+            logger.debug("[onMessage] request is parsed correctly");
+            return executor.execute(request,session);
+        } catch (JsonParseException ex) {
+            logger.error("[onMessage] Incorrect message syntax ", ex);
+            return JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax")
+                    .build();
+        } catch (Exception ex) {
+            return JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error")
+                    .build();
+        }
     }
 
     @OnClose
@@ -105,122 +110,6 @@ public class HiveServerEndpoint {
 
 
 
-
-    protected JsonObject processMessage(Reader reader, Session session) {
-        JsonObject response;
-
-        JsonObject request;
-        try {
-            request = new JsonParser().parse(reader).getAsJsonObject();
-        } catch (JsonSyntaxException ex) {
-            // Stop processing this request, response with simple error message (status and error fields)
-            logger.error("[processMessage] Incorrect message syntax ", ex);
-            return JsonMessageBuilder.createErrorResponseBuilder("Incorrect JSON syntax").build();
-        }
-
-        try {
-            String action = request.getAsJsonPrimitive("action").getAsString();
-            logger.debug("[action] Looking for action " + action);
-            response = tryExecute(action, request, session);
-        } catch (HiveException ex) {
-            logger.error("[processMessage] Error processing message ", ex);
-            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getMessage()).build();
-        } catch (OptimisticLockException ex) {
-            logger.error("[processMessage] Error processing message ", ex);
-            response = JsonMessageBuilder.createErrorResponseBuilder("Error occurred. Please, retry again.").build();
-        } catch (JsonSyntaxException ex) {
-            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
-        } catch (JsonParseException ex) {
-            response = JsonMessageBuilder.createErrorResponseBuilder(ex.getLocalizedMessage()).build();
-        } catch (Exception ex) {
-            logger.error("[processMessage] Error processing message ", ex);
-            response = JsonMessageBuilder.createErrorResponseBuilder("Internal server error").build();
-        }
-        return constructFinalResponse(request, response);
-    }
-
-    private WebsocketHandlers getBean(Class<WebsocketHandlers> clazz) {
-        Bean bean = beanManager.getBeans(clazz).iterator().next();
-        return (WebsocketHandlers) beanManager.getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean));
-    }
-
-    private JsonObject tryExecute(String action, JsonObject request,
-                                  Session session)
-            throws IllegalAccessException, InvocationTargetException {
-
-
-        Pair<Class<WebsocketHandlers>, Method> methodPair = methodsCache.get(action);
-        if (methodPair == null) {
-            for (Class<WebsocketHandlers> currentClass : HANDLERS_SET) {
-                boolean found = false;
-                for (final Method method : currentClass.getMethods()) {
-                    if (method.isAnnotationPresent(Action.class)) {
-                        if (method.getAnnotation(Action.class).value().equals(action)) {
-                            methodPair = ImmutablePair.of(currentClass, method);
-                            methodsCache.put(action, methodPair);
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-                if (found) {
-                    break;
-                }
-            }
-        }
-        if (methodPair == null) {
-            throw new HiveException("Unknown action requested: " + action, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        try {
-            Method executedMethod = methodPair.getRight();
-            Type[] parameterTypes = executedMethod.getGenericParameterTypes();
-            List<Type> parametersTypesList = Arrays.asList(parameterTypes);
-            List<Object> realArguments = new LinkedList<>();
-            List<Annotation[]> allAnnotations = Arrays.asList(executedMethod.getParameterAnnotations());
-            Iterator<Annotation[]> iteratorForAnnotations = allAnnotations.iterator();
-            for (Type currentType : parametersTypesList) {
-                if (Session.class.equals(currentType)) {
-                    realArguments.add(session);
-                } else {
-                    if (JsonObject.class.equals(currentType)) {
-                        realArguments.add(request);
-                    } else {
-                        String jsonFieldName = null;
-                        JsonPolicyDef.Policy jsonPolicy = null;
-                        if (iteratorForAnnotations.hasNext()) {
-                            List<Annotation> parameterAnnotations = Arrays.asList(iteratorForAnnotations.next());
-                            for (Annotation currentParamAnnotation : parameterAnnotations) {
-                                if (currentParamAnnotation instanceof WsParam) {
-                                    jsonFieldName = ((WsParam) currentParamAnnotation).value();
-                                }
-                                if (currentParamAnnotation instanceof JsonPolicyApply) {
-                                    jsonPolicy = ((JsonPolicyApply) currentParamAnnotation).value();
-                                }
-                            }
-                            if (jsonFieldName == null) {
-                                throw new IllegalAccessException("No name specified for param with type : " +
-                                        currentType);
-                            }
-
-                        }
-                        Gson gson = jsonPolicy == null ? GsonFactory.createGson() : GsonFactory.createGson
-                                (jsonPolicy);
-                        realArguments.add(gson.fromJson(request.get(jsonFieldName), currentType));
-                    }
-                }
-            }
-
-            ThreadLocalVariablesKeeper.setRequest(request);
-            ThreadLocalVariablesKeeper.setSession(session);
-            WebsocketHandlers handlers = getBean(methodPair.getLeft());
-            WebSocketResponse webSocketResponse = ((WebSocketResponse) executedMethod.invoke(handlers,
-                    realArguments.toArray()));
-            return webSocketResponse.getResponseAsJson();
-        } catch (InvocationTargetException e) {
-            invocationTargetExceptionResolve(e);
-            throw e;
-        }
-    }
 
     private void invocationTargetExceptionResolve(InvocationTargetException e) throws InvocationTargetException {
         if (e.getTargetException() instanceof HiveException) {
@@ -257,18 +146,6 @@ public class HiveServerEndpoint {
         throw e;
     }
 
-    private JsonObject constructFinalResponse(JsonObject request, JsonObject response) {
-        if (response == null) {
-            logger.error("[constructFinalResponse]  response is null ");
-            response = JsonMessageBuilder.createErrorResponseBuilder().build();
-        }
-        JsonObject finalResponse = new JsonMessageBuilder()
-                .addAction(request.get(JsonMessageBuilder.ACTION).getAsString())
-                .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
-                .include(response)
-                .build();
-        return finalResponse;
-    }
 
 
 }

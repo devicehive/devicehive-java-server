@@ -2,6 +2,7 @@ package com.devicehive.exceptions;
 
 
 import javax.ejb.ApplicationException;
+import javax.servlet.http.HttpServletResponse;
 
 @ApplicationException
 public class HiveException extends RuntimeException {
@@ -27,6 +28,11 @@ public class HiveException extends RuntimeException {
 
     public HiveException(String message, Throwable cause, Integer code) {
         super(message, cause);
-        this.code = code;
+        this.code = code != null ? code : HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
     }
+
+    public static HiveException fatal() {
+        return new HiveException("Internal server error");
+    }
+
 }
