@@ -75,8 +75,8 @@ public class HiveRestClient implements Closeable {
     private WebTarget createTarget(String path, Map<String, Object> queryParams) {
         WebTarget target = restClient.target(rest).path(path);
         if (queryParams != null) {
-            for (String paramName : queryParams.keySet()) {
-                target.queryParam(paramName, queryParams.get(paramName));
+            for (Map.Entry<String, Object> param: queryParams.entrySet()) {
+                target.queryParam(param.getKey(), param.getKey());
             }
         }
         return target;

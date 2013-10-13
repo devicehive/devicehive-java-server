@@ -1,6 +1,7 @@
 package com.devicehive.client.model;
 
 import com.devicehive.client.json.strategies.JsonPolicyDef;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -86,11 +87,11 @@ public class User implements HiveEntity {
     }
 
     public Timestamp getLastLogin() {
-        return lastLogin;
+        return ObjectUtils.cloneIfPossible(lastLogin);
     }
 
     public void setLastLogin(Timestamp lastLogin) {
-        this.lastLogin = lastLogin;
+        this.lastLogin = ObjectUtils.cloneIfPossible(lastLogin);
     }
 
     public Set<UserNetwork> getNetworks() {

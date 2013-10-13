@@ -1,6 +1,7 @@
 package com.devicehive.client.model;
 
 import com.devicehive.client.json.strategies.JsonPolicyDef;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
@@ -28,11 +29,11 @@ public class DeviceEquipment implements HiveEntity {
     }
 
     public Timestamp getTimestamp() {
-        return timestamp;
+        return ObjectUtils.cloneIfPossible(timestamp);
     }
 
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 
     public JsonStringWrapper getParameters() {
