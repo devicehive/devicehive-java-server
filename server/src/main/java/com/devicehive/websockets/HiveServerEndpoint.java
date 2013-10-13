@@ -2,30 +2,19 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.converters.JsonEncoder;
-import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.handlers.*;
-import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.util.SessionMonitor;
-import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.common.collect.Sets;
 import com.google.gson.*;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.persistence.OptimisticLockException;
@@ -35,15 +24,9 @@ import javax.validation.ConstraintViolationException;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
 import java.io.Reader;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @ServerEndpoint(value = "/websocket/{endpoint}", encoders = {JsonEncoder.class})
 @LogExecutionTime
@@ -64,7 +47,7 @@ public class HiveServerEndpoint {
     private SubscriptionManager subscriptionManager;
 
     @Inject
-    private HandlerExecutor executor;
+    private WebsocketExecutor executor;
 
 
 

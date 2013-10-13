@@ -1,7 +1,5 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.controller.exceptions.ConstraintViolationExceptionMapper;
-import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -32,7 +30,6 @@ import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
-import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -44,9 +41,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 @Singleton
-public class HandlerExecutor {
+public class WebsocketExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(HandlerExecutor.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebsocketExecutor.class);
 
     private static Set<Class<WebsocketHandlers>> HANDLERS_SET = new HashSet() {
         {
