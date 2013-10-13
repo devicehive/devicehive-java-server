@@ -13,13 +13,13 @@ public class User implements HiveEntity {
     @JsonPolicyDef({COMMAND_TO_CLIENT, USER_PUBLISHED, COMMAND_TO_DEVICE, USERS_LISTED, USER_SUBMITTED})
     private Long id;
     @JsonPolicyDef({USER_PUBLISHED, USER_SUBMITTED, USERS_LISTED})
-    private String login;
+    private NullableWrapper<String> login;
     @JsonPolicyDef(USER_SUBMITTED)
-    private String password;
-    @JsonPolicyDef({USER_PUBLISHED,USER_SUBMITTED, USERS_LISTED})
-    private Integer role;
-    @JsonPolicyDef({USER_PUBLISHED,USER_SUBMITTED, USERS_LISTED})
-    private Integer status;
+    private NullableWrapper<String> password;
+    @JsonPolicyDef({USER_PUBLISHED, USER_SUBMITTED, USERS_LISTED})
+    private NullableWrapper<Integer> role;
+    @JsonPolicyDef({USER_PUBLISHED, USER_SUBMITTED, USERS_LISTED})
+    private NullableWrapper<Integer> status;
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
     @JsonPolicyDef({USER_PUBLISHED})
@@ -38,35 +38,51 @@ public class User implements HiveEntity {
     }
 
     public String getLogin() {
-        return login;
+        return NullableWrapper.value(login);
     }
 
     public void setLogin(String login) {
-        this.login = login;
+        this.login = NullableWrapper.create(login);
+    }
+
+    public void removeLogin() {
+        this.login = null;
     }
 
     public String getPassword() {
-        return password;
+        return NullableWrapper.value(password);
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.password = NullableWrapper.create(password);
+    }
+
+    public void removePassword() {
+        this.password = null;
     }
 
     public Integer getRole() {
-        return role;
+        return NullableWrapper.value(role);
     }
 
     public void setRole(Integer role) {
-        this.role = role;
+        this.role = NullableWrapper.create(role);
+    }
+
+    public void removeRole() {
+        this.role = null;
     }
 
     public Integer getStatus() {
-        return status;
+        return NullableWrapper.value(status);
     }
 
     public void setStatus(Integer status) {
-        this.status = status;
+        this.status = NullableWrapper.create(status);
+    }
+
+    public void removeStatus() {
+        this.status = null;
     }
 
     public Timestamp getLastLogin() {

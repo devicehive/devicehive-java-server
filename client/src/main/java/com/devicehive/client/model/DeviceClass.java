@@ -12,17 +12,17 @@ public class DeviceClass implements HiveEntity {
             {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
     private Long id;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED})
-    private Set<Equipment> equipment;
+    private NullableWrapper<Set<Equipment>> equipment;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private String name;
+    private NullableWrapper<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private String version;
+    private NullableWrapper<String> version;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Boolean isPermanent;
+    private NullableWrapper<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Integer offlineTimeout;
+    private NullableWrapper<Integer> offlineTimeout;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private JsonStringWrapper data;
+    private NullableWrapper<JsonStringWrapper> data;
 
     public DeviceClass() {
     }
@@ -36,50 +36,74 @@ public class DeviceClass implements HiveEntity {
     }
 
     public Set<Equipment> getEquipment() {
-        return equipment;
+        return NullableWrapper.value(equipment);
     }
 
     public void setEquipment(Set<Equipment> equipment) {
-        this.equipment = equipment;
+        this.equipment = NullableWrapper.create(equipment);
+    }
+
+    public void removeEquipment() {
+        this.equipment = null;
     }
 
     public String getName() {
-        return name;
+        return NullableWrapper.value(name);
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = NullableWrapper.create(name);
+    }
+
+    public void removeName() {
+        this.name = null;
     }
 
     public String getVersion() {
-        return version;
+        return NullableWrapper.value(version);
     }
 
     public void setVersion(String version) {
-        this.version = version;
+        this.version = NullableWrapper.create(version);
+    }
+
+    public void removeVersion() {
+        this.version = null;
     }
 
     public Boolean getPermanent() {
-        return isPermanent;
+        return NullableWrapper.value(isPermanent);
     }
 
     public void setPermanent(Boolean permanent) {
-        isPermanent = permanent;
+        isPermanent = NullableWrapper.create(permanent);
+    }
+
+    public void removePermanent() {
+        this.isPermanent = null;
     }
 
     public Integer getOfflineTimeout() {
-        return offlineTimeout;
+        return NullableWrapper.value(offlineTimeout);
     }
 
     public void setOfflineTimeout(Integer offlineTimeout) {
-        this.offlineTimeout = offlineTimeout;
+        this.offlineTimeout = NullableWrapper.create(offlineTimeout);
+    }
+
+    public void removeOfflineTimeout() {
+        this.offlineTimeout = null;
     }
 
     public JsonStringWrapper getData() {
-        return data;
+        return NullableWrapper.value(data);
     }
 
     public void setData(JsonStringWrapper data) {
-        this.data = data;
+        this.data = NullableWrapper.create(data);
+    }
+
+    public void removeData() {
+        this.data = null;
     }
 }

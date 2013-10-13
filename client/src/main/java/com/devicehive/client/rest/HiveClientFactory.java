@@ -1,7 +1,10 @@
 package com.devicehive.client.rest;
 
 
-import com.devicehive.client.rest.providers.*;
+import com.devicehive.client.rest.providers.CollectionProvider;
+import com.devicehive.client.rest.providers.HiveEntityProvider;
+import com.devicehive.client.rest.providers.JsonRawProvider;
+import com.devicehive.client.rest.providers.TimestampConverterProvider;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;

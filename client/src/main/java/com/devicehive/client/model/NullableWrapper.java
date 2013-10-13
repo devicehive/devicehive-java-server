@@ -21,4 +21,12 @@ public class NullableWrapper<K> implements Serializable {
     public void setValue(K value) {
         this.value = value;
     }
+
+    public static <K> K value(NullableWrapper<K> wrapper) {
+        return wrapper != null ? wrapper.getValue() : null;
+    }
+
+    public static <K> NullableWrapper<K> create(K value) {
+        return new NullableWrapper<>(value);
+    }
 }

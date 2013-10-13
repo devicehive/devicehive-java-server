@@ -1,28 +1,20 @@
 package com.devicehive.client.model;
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
-
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.REST_SERVER_INFO;
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 
 /**
  * TODO JavaDoc
  */
 public class ApiInfo implements HiveEntity {
 
-    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
     private String apiVersion;
 
-    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
     private Timestamp serverTimestamp;
 
-    @JsonPolicyDef(REST_SERVER_INFO)
     private String webSocketServerUrl;
 
-    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String restServerUrl;
 
     public ApiInfo() {

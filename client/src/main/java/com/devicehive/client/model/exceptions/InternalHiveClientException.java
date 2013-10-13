@@ -2,7 +2,7 @@ package com.devicehive.client.model.exceptions;
 
 
 //Is it really necessary to have 2 kinds of client exceptions?
-public class InternalHiveClientException extends HiveClientException{
+public class InternalHiveClientException extends HiveClientException {
 
 
     public InternalHiveClientException(String message, Throwable cause) {

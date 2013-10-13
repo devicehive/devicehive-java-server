@@ -19,17 +19,8 @@ public class DeviceNotification implements HiveEntity {
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private JsonStringWrapper parameters;
     @JsonPolicyDef(NOTIFICATION_TO_DEVICE)
-    private DeviceSubscription device;
 
     public DeviceNotification() {
-    }
-
-    public DeviceSubscription getDevice() {
-        return device;
-    }
-
-    public void setDevice(DeviceSubscription device) {
-        this.device = device;
     }
 
     public JsonStringWrapper getParameters() {

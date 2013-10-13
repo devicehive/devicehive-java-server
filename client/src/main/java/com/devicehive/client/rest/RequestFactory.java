@@ -10,10 +10,10 @@ public class RequestFactory {
 
     private static final Client CLIENT = HiveClientFactory.getClient();
 
-    public static WebTarget request(String path, Map<String, Object> queryParams){
+    public static WebTarget request(String path, Map<String, Object> queryParams) {
         WebTarget target = CLIENT.target(Preferences.getRestServerUrl()).path(path);
-        if (queryParams != null){
-            for (String paramName : queryParams.keySet()){
+        if (queryParams != null) {
+            for (String paramName : queryParams.keySet()) {
                 target.queryParam(paramName, queryParams.get(paramName));
             }
         }

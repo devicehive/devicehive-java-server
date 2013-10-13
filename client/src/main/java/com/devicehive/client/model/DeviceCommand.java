@@ -2,7 +2,6 @@ package com.devicehive.client.model;
 
 
 import com.devicehive.client.json.strategies.JsonPolicyDef;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
@@ -24,12 +23,12 @@ public class DeviceCommand implements HiveEntity {
     private Long userId;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
             COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private NullableWrapper<String> command;
+    private String command;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
             COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private NullableWrapper<JsonStringWrapper> parameters;
+    private JsonStringWrapper parameters;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private NullableWrapper<Integer> lifetime;
+    private Integer lifetime;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private NullableWrapper<Integer> flags;
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
@@ -38,8 +37,7 @@ public class DeviceCommand implements HiveEntity {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
             COMMAND_UPDATE_FROM_DEVICE, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private NullableWrapper<JsonStringWrapper> result;
-    @JsonPolicyDef({COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT})
-    private DeviceSubscription device;
+
 
     public DeviceCommand() {
     }
@@ -53,11 +51,11 @@ public class DeviceCommand implements HiveEntity {
     }
 
     public Timestamp getTimestamp() {
-        return ObjectUtils.cloneIfPossible(timestamp);
+        return timestamp;
     }
 
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
+        this.timestamp = timestamp;
     }
 
     public Long getUserId() {
@@ -68,59 +66,63 @@ public class DeviceCommand implements HiveEntity {
         this.userId = userId;
     }
 
-    public NullableWrapper<String> getCommand() {
+    public String getCommand() {
         return command;
     }
 
-    public void setCommand(NullableWrapper<String> command) {
+    public void setCommand(String command) {
         this.command = command;
     }
 
-    public NullableWrapper<JsonStringWrapper> getParameters() {
+    public JsonStringWrapper getParameters() {
         return parameters;
     }
 
-    public void setParameters(NullableWrapper<JsonStringWrapper> parameters) {
+    public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
 
-    public NullableWrapper<Integer> getLifetime() {
+    public Integer getLifetime() {
         return lifetime;
     }
 
-    public void setLifetime(NullableWrapper<Integer> lifetime) {
+    public void setLifetime(Integer lifetime) {
         this.lifetime = lifetime;
     }
 
-    public NullableWrapper<Integer> getFlags() {
-        return flags;
+    public Integer getFlags() {
+        return NullableWrapper.value(flags);
     }
 
-    public void setFlags(NullableWrapper<Integer> flags) {
-        this.flags = flags;
+    public void setFlags(Integer flags) {
+        this.flags = NullableWrapper.create(flags);
     }
 
-    public NullableWrapper<String> getStatus() {
-        return status;
+    public void removeFlags() {
+        this.flags = null;
     }
 
-    public void setStatus(NullableWrapper<String> status) {
-        this.status = status;
+    public String getStatus() {
+        return NullableWrapper.value(status);
     }
 
-    public NullableWrapper<JsonStringWrapper> getResult() {
-        return result;
+    public void setStatus(String status) {
+        this.status = NullableWrapper.create(status);
     }
 
-    public void setResult(NullableWrapper<JsonStringWrapper> result) {
-        this.result = result;
+    public void removeStatus() {
+        this.status = null;
     }
 
-    public DeviceSubscription getDevice() {
-        return device;
+    public JsonStringWrapper getResult() {
+        return NullableWrapper.value(result);
     }
 
-    public void setDevice(DeviceSubscription device) {
-        this.device = device;
+    public void setResult(JsonStringWrapper result) {
+        this.result = NullableWrapper.create(result);
+    }
+
+    public void removeResult() {
+        this.result = null;
     }
 }

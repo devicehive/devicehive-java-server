@@ -2,8 +2,6 @@ package com.devicehive.client.model;
 
 import com.devicehive.client.json.strategies.JsonPolicyDef;
 
-import java.util.Set;
-
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class Network implements HiveEntity {
@@ -14,16 +12,14 @@ public class Network implements HiveEntity {
     private Long id;
 
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private String key;
+    private NullableWrapper<String> key;
 
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private String name;
+    private NullableWrapper<String> name;
 
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private String description;
+    private NullableWrapper<String> description;
 
-    @JsonPolicyDef(NETWORK_PUBLISHED)
-    private Set<Device> devices;
 
     public Network() {
     }
@@ -37,34 +33,39 @@ public class Network implements HiveEntity {
     }
 
     public String getKey() {
-        return key;
+        return NullableWrapper.value(key);
     }
 
     public void setKey(String key) {
-        this.key = key;
+        this.key = NullableWrapper.create(key);
+    }
+
+    public void removeKey() {
+        this.key = null;
     }
 
     public String getName() {
-        return name;
+        return NullableWrapper.value(name);
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = NullableWrapper.create(name);
+    }
+
+    public void removeName() {
+        this.name = null;
     }
 
     public String getDescription() {
-        return description;
+        return NullableWrapper.value(description);
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = NullableWrapper.create(description);
     }
 
-    public Set<Device> getDevices() {
-        return devices;
+    public void removeDescription() {
+        this.description = null;
     }
 
-    public void setDevices(Set<Device> devices) {
-        this.devices = devices;
-    }
 }

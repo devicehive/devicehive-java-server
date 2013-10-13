@@ -12,19 +12,19 @@ public class Device implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private String id;
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    private String key;
+    private NullableWrapper<String> key;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private String name;
+    private NullableWrapper<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private String status;
+    private NullableWrapper<String> status;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private JsonStringWrapper data;
+    private NullableWrapper<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private Network network;
+    private NullableWrapper<Network> network;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private DeviceClass deviceClass;
+    private NullableWrapper<DeviceClass> deviceClass;
     @JsonPolicyDef(DEVICE_PUBLISHED)
-    private Set<Equipment> equipment;
+    private NullableWrapper<Set<Equipment>> equipment;
 
     public Device() {
     }
@@ -38,58 +38,86 @@ public class Device implements HiveEntity {
     }
 
     public String getKey() {
-        return key;
+        return NullableWrapper.value(key);
     }
 
     public void setKey(String key) {
-        this.key = key;
+        this.key = NullableWrapper.create(key);
+    }
+
+    public void removeKey() {
+        this.key = null;
     }
 
     public String getName() {
-        return name;
+        return NullableWrapper.value(name);
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = NullableWrapper.create(name);
+    }
+
+    public void removeName() {
+        this.name = null;
     }
 
     public String getStatus() {
-        return status;
+        return NullableWrapper.value(status);
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        this.status = NullableWrapper.create(status);
+    }
+
+    public void removeStatus() {
+        this.status = null;
     }
 
     public JsonStringWrapper getData() {
-        return data;
+        return NullableWrapper.value(data);
     }
 
     public void setData(JsonStringWrapper data) {
-        this.data = data;
+        this.data = NullableWrapper.create(data);
+    }
+
+    public void removeData() {
+        this.data = null;
     }
 
     public Network getNetwork() {
-        return network;
+        return NullableWrapper.value(network);
     }
 
     public void setNetwork(Network network) {
-        this.network = network;
+        this.network = NullableWrapper.create(network);
+    }
+
+    public void removeNetwork() {
+        this.network = null;
     }
 
     public DeviceClass getDeviceClass() {
-        return deviceClass;
+        return NullableWrapper.value(deviceClass);
     }
 
     public void setDeviceClass(DeviceClass deviceClass) {
-        this.deviceClass = deviceClass;
+        this.deviceClass = NullableWrapper.create(deviceClass);
+    }
+
+    public void removeDeviceClass() {
+        this.deviceClass = null;
     }
 
     public Set<Equipment> getEquipment() {
-        return equipment;
+        return NullableWrapper.value(equipment);
     }
 
     public void setEquipment(Set<Equipment> equipment) {
-        this.equipment = equipment;
+        this.equipment = NullableWrapper.create(equipment);
+    }
+
+    public void removeEquipment() {
+        this.equipment = null;
     }
 }

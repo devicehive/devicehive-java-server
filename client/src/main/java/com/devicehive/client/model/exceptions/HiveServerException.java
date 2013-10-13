@@ -1,6 +1,6 @@
 package com.devicehive.client.model.exceptions;
 
-public class HiveServerException extends HiveException{
+public class HiveServerException extends HiveException {
 
     private static final String MESSAGE = "Server error";
 

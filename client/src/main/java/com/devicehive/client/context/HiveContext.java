@@ -1,19 +1,11 @@
 package com.devicehive.client.context;
 
 
-import com.devicehive.client.config.Preferences;
 import com.devicehive.client.json.GsonFactory;
 import com.devicehive.client.model.ApiInfo;
-import com.devicehive.client.model.CredentialsStorage;
-import com.devicehive.client.model.Device;
 import com.devicehive.client.model.Transport;
-import com.devicehive.client.rest.ResponseFactory;
-import com.devicehive.client.rest.controller.DeviceController;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.WebTarget;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
@@ -26,7 +18,6 @@ public class HiveContext implements Closeable {
     private HivePrincipal hivePrincipal;
 
 
-
     public HiveContext(Transport transport, URI rest) {
         this.transport = transport;
         hiveRestClient = new HiveRestClient(rest, this);
@@ -37,11 +28,15 @@ public class HiveContext implements Closeable {
         hiveRestClient.close();
     }
 
+    public HiveRestClient getHiveRestClient() {
+        return hiveRestClient;
+    }
+
     public synchronized HivePrincipal getHivePrincipal() {
         return hivePrincipal;
     }
 
-    private synchronized void setHivePrincipal(HivePrincipal hivePrincipal) {
+    public synchronized void setHivePrincipal(HivePrincipal hivePrincipal) {
         if (this.hivePrincipal != null) {
             throw new IllegalStateException("Principal is alreay set");
         }

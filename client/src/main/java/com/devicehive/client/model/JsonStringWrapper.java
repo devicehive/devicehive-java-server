@@ -1,8 +1,5 @@
 package com.devicehive.client.model;
 
-import com.devicehive.client.model.HiveEntity;
-
-
 public class JsonStringWrapper implements HiveEntity {
 
     private static final long serialVersionUID = -152849186108390497L;

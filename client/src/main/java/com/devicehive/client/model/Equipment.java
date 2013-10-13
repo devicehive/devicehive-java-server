@@ -11,16 +11,16 @@ public class Equipment implements HiveEntity {
     private Long id;
 
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
-    private String name;
+    private NullableWrapper<String> name;
 
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
-    private String code;
+    private NullableWrapper<String> code;
 
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
-    private String type;
+    private NullableWrapper<String> type;
 
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, DEVICE_PUBLISHED})
-    private JsonStringWrapper data;
+    private NullableWrapper<JsonStringWrapper> data;
 
     public Equipment() {
     }
@@ -34,34 +34,51 @@ public class Equipment implements HiveEntity {
     }
 
     public String getName() {
-        return name;
+        return NullableWrapper.value(name);
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = NullableWrapper.create(name);
+    }
+
+    public void removeName() {
+        this.name = null;
     }
 
     public String getCode() {
-        return code;
+        return NullableWrapper.value(code);
     }
 
     public void setCode(String code) {
-        this.code = code;
+        this.code = NullableWrapper.create(code);
     }
 
+    public void removeCode() {
+        this.code = null;
+    }
+
+
     public String getType() {
-        return type;
+        return NullableWrapper.value(type);
     }
 
     public void setType(String type) {
-        this.type = type;
+        this.type = NullableWrapper.create(type);
+    }
+
+    public void removeType() {
+        this.type = null;
     }
 
     public JsonStringWrapper getData() {
-        return data;
+        return NullableWrapper.value(data);
     }
 
     public void setData(JsonStringWrapper data) {
-        this.data = data;
+        this.data = NullableWrapper.create(data);
+    }
+
+    public void removeData() {
+        this.data = null;
     }
 }

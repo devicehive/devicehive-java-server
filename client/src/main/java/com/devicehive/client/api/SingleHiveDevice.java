@@ -1,36 +1,44 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.context.CommandHandler;
 import com.devicehive.client.context.HiveContext;
-import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.context.HivePrincipal;
+import com.devicehive.client.json.GsonFactory;
 import com.devicehive.client.model.Device;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.Transport;
+import com.devicehive.client.model.exceptions.HiveClientException;
 
-import java.sql.Timestamp;
-import java.util.List;
+import javax.ws.rs.HttpMethod;
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.URI;
 
-public class SingleHiveDevice {
-    /*
+public class SingleHiveDevice implements Closeable {
+
     private HiveContext hiveContext;
 
-    public SingleHiveDevice(HiveContext hiveContext) {
-        this.hiveContext = hiveContext;
+    public SingleHiveDevice(URI restUri) {
+        this.hiveContext = new HiveContext(Transport.AUTO, restUri);
     }
 
-    public ApiInfo getInfo() {
-
+    @Override
+    public void close() throws IOException {
+        hiveContext.close();
     }
 
     public void authenticate(String deviceId, String deviceKey) {
-
+        hiveContext.setHivePrincipal(HivePrincipal.createDevice(deviceId, deviceKey));
     }
 
     public Device getDevice() {
-
+        String deviceId = hiveContext.getHivePrincipal().getDevice().getKey();
+        if (deviceId == null) {
+            throw new HiveClientException("Device is not authenticated");
+        }
+        String path = "/device/" + deviceId;
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, Device.class, null);
     }
-
+    /*
     public void saveDevice(Device device) {
 
     }
@@ -58,7 +66,14 @@ public class SingleHiveDevice {
 
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) {
 
+    } */
+
+    public static void main(String... args) {
+        SingleHiveDevice shd = new SingleHiveDevice(URI.create("http://localhost:8080/hive/rest/"));
+        shd.authenticate("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8");
+        Device device = shd.getDevice();
+        System.out.println(GsonFactory.createGson().toJson(device));
     }
-    */
+
 
 }

@@ -1,6 +1,6 @@
 package com.devicehive.client.model.exceptions;
 
-public class HiveClientException extends HiveException{
+public class HiveClientException extends HiveException {
 
     public HiveClientException(String message, Throwable cause) {
         super(message, cause);

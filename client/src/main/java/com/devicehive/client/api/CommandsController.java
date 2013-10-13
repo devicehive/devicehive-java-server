@@ -16,7 +16,7 @@ public interface CommandsController {
 
     DeviceCommand getCommand(String guid, long id);
 
-    DeviceCommand insertCommand (String guid, DeviceCommand command, CommandHandler commandHandler);
+    DeviceCommand insertCommand(String guid, DeviceCommand command, CommandHandler commandHandler);
 
     void updateCommand(String deviceGuid, DeviceCommand command, CommandUpdateHandler commandUpdateHandler);
 

@@ -1,13 +1,7 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.context.CommandHandler;
-import com.devicehive.client.context.CommandUpdateHandler;
-import com.devicehive.client.context.NotificationHandler;
-import com.devicehive.client.model.*;
-
-import java.sql.Timestamp;
-import java.util.List;
+import com.devicehive.client.model.ApiInfo;
 
 public interface HiveClient {
 

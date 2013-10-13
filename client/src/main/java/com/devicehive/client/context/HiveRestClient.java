@@ -1,7 +1,6 @@
 package com.devicehive.client.context;
 
 
-import com.devicehive.client.config.Preferences;
 import com.devicehive.client.json.strategies.JsonPolicyApply;
 import com.devicehive.client.json.strategies.JsonPolicyDef;
 import com.devicehive.client.model.exceptions.HiveClientException;
@@ -13,7 +12,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.glassfish.jersey.internal.util.Base64;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
@@ -56,15 +54,15 @@ public class HiveRestClient implements Closeable {
         Map<String, String> headers = Maps.newHashMap();
 
         HivePrincipal principal = hiveContext.getHivePrincipal();
-        if(principal != null) {
+        if (principal != null) {
             if (principal.getUser() != null) {
                 String decodedAuth = principal.getUser().getLeft() + ":" + principal.getUser().getRight();
                 String encodedAuth = Base64.encodeAsString(decodedAuth);
                 headers.put(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
             }
             if (principal.getDevice() != null) {
-                headers.put("Auth-DeviceID", principal.getUser().getLeft());
-                headers.put("Auth-DeviceKey", principal.getUser().getRight());
+                headers.put("Auth-DeviceID", principal.getDevice().getLeft());
+                headers.put("Auth-DeviceKey", principal.getDevice().getRight());
             }
             if (principal.getAccessKey() != null) {
                 headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + principal.getAccessKey());
@@ -74,18 +72,18 @@ public class HiveRestClient implements Closeable {
     }
 
 
-    private WebTarget createTarget(String path, Map<String, Object> queryParams){
+    private WebTarget createTarget(String path, Map<String, Object> queryParams) {
         WebTarget target = restClient.target(rest).path(path);
-        if (queryParams != null){
-            for (String paramName : queryParams.keySet()){
+        if (queryParams != null) {
+            for (String paramName : queryParams.keySet()) {
                 target.queryParam(paramName, queryParams.get(paramName));
             }
         }
         return target;
     }
 
-    private <S> Invocation buildInvocation(String path, String method,Map<String, Object> queryParams, S obejctToSend,
-                                       JsonPolicyDef.Policy sendPolicy) {
+    private <S> Invocation buildInvocation(String path, String method, Map<String, Object> queryParams, S obejctToSend,
+                                           JsonPolicyDef.Policy sendPolicy) {
         Invocation.Builder invocationBuilder = createTarget(path, queryParams).
                 request().
                 accept(MediaType.APPLICATION_JSON_TYPE).
@@ -108,7 +106,7 @@ public class HiveRestClient implements Closeable {
     }
 
     public <S> void execute(String path, String method, Map<String, Object> queryParams, S obejctToSend,
-                           JsonPolicyDef.Policy sendPolicy) {
+                            JsonPolicyDef.Policy sendPolicy) {
         execute(path, method, queryParams, obejctToSend, null, sendPolicy, null);
     }
 
@@ -127,7 +125,7 @@ public class HiveRestClient implements Closeable {
     }
 
     public <R> R execute(String path, String method, Map<String, Object> queryParams, Type typeOfR,
-                        JsonPolicyDef.Policy receivePolicy) {
+                         JsonPolicyDef.Policy receivePolicy) {
         return execute(path, method, queryParams, null, typeOfR, null, receivePolicy);
     }
 
@@ -136,8 +134,8 @@ public class HiveRestClient implements Closeable {
         return execute(path, method, null, null, typeOfR, null, receivePolicy);
     }
 
-    public <S,R> R execute(String path, String method, Map<String, Object> queryParams, S obejctToSend, Type typeOfR,
-                           JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
+    public <S, R> R execute(String path, String method, Map<String, Object> queryParams, S obejctToSend, Type typeOfR,
+                            JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
 
         Response response = buildInvocation(path, method, queryParams, obejctToSend, sendPolicy).invoke();
         Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
