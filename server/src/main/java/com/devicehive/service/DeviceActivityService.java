@@ -38,7 +38,7 @@ public class DeviceActivityService {
         deviceTimestampMap.putAsync(deviceId, hazelcast.getCluster().getClusterTime());
     }
 
-    @Schedule(hour = "*", minute = "*/1")
+    @Schedule(hour = "*", minute = "*/1", persistent = false)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processOfflineDevices() {
         logger.debug("Checking lost offline devices");

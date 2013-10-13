@@ -79,7 +79,7 @@ public class SessionMonitor {
         }
     }
 
-    @Schedule(hour = "*", minute = "*", second = "*/30")
+    @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
     public void ping() {
         for (Session session : sessionMap.values()) {
             if (session.isOpen()) {
@@ -98,7 +98,7 @@ public class SessionMonitor {
         }
     }
 
-    @Schedule(hour = "*", minute = "*", second = "*/30")
+    @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
     public void monitor() {
         Long timeout = configurationService
                 .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);
