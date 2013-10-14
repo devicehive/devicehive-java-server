@@ -4,6 +4,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.dao.DeviceCommandDAO;
@@ -11,13 +12,19 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.User;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.updates.DeviceCommandUpdate;
-import com.devicehive.service.*;
+import com.devicehive.service.AccessKeyService;
+import com.devicehive.service.DeviceCommandService;
+import com.devicehive.service.DeviceService;
+import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +113,7 @@ public class DeviceCommandController {
     @Path("/{deviceGuid}/command/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
-            @QueryParam("names") @DefaultValue("")final String names,
+            @QueryParam("names") final List<String> names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -123,7 +130,8 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    pollAction(deviceGuid, names, timestamp, timeout, principal, asyncResponse);
+                    pollAction(deviceGuid, names.isEmpty() ? null : names, timestamp, timeout, principal,
+                            asyncResponse);
                 } catch (Exception e) {
                     asyncResponse.resume(e);
                 }
@@ -131,7 +139,8 @@ public class DeviceCommandController {
         });
     }
 
-    private void pollAction(String deviceGuid, String names, Timestamp timestamp, long timeout, HivePrincipal principal,
+    private void pollAction(String deviceGuid, List<String> names, Timestamp timestamp, long timeout,
+                            HivePrincipal principal,
                             AsyncResponse asyncResponse) {
         logger.debug("DeviceCommand poll requested deviceId = {} timestamp = {} ", deviceGuid, timestamp);
         if (principal.getUser() != null) {
@@ -148,9 +157,13 @@ public class DeviceCommandController {
                 return;
             }
         }
-       List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuid, names, timestamp, timeout,
-               asyncResponse);
-        if (list == null){
+        List<DeviceCommand> list = asyncResponsePollingProcess(principal,
+                Arrays.asList(deviceGuid),
+                names,
+                timestamp,
+                timeout,
+                asyncResponse);
+        if (list == null) {
             return;
         }
         Response response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
@@ -161,8 +174,8 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
     public void pollMany(
-            @QueryParam("deviceGuids") final String deviceGuids,
-            @QueryParam("names") @DefaultValue("") final String names,
+            @QueryParam("deviceGuids") final List<String> deviceGuids,
+            @QueryParam("names") final List<String> names,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -181,7 +194,12 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollMany(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
+                    asyncResponsePollMany(principal,
+                            deviceGuids.isEmpty() ? null : deviceGuids,
+                            names.isEmpty() ? null : deviceGuids,
+                            timestamp,
+                            timeout,
+                            asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -191,13 +209,14 @@ public class DeviceCommandController {
     }
 
     private void asyncResponsePollMany(HivePrincipal principal,
-                                       String deviceGuids,
-                                       String names,
+                                       List<String> deviceGuids,
+                                       List<String> names,
                                        Timestamp timestamp,
                                        long timeout,
-                                       AsyncResponse asyncResponse){
-        List<DeviceCommand> list = asyncResponsePollingProcess(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
-        if (list == null){
+                                       AsyncResponse asyncResponse) {
+        List<DeviceCommand> list =
+                asyncResponsePollingProcess(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
+        if (list == null) {
             return;
         }
         List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
@@ -208,51 +227,46 @@ public class DeviceCommandController {
     }
 
     private List<DeviceCommand> asyncResponsePollingProcess(HivePrincipal principal,
-                                             String deviceGuids,
-                                             String names,
-                                             Timestamp timestamp,
-                                             long timeout,
-                                             AsyncResponse asyncResponse) {
+                                                            List<String> deviceGuids,
+                                                            List<String> names,
+                                                            Timestamp timestamp,
+                                                            long timeout,
+                                                            AsyncResponse asyncResponse) {
         logger.debug("Device notification pollMany requested for devices: {}. Timestamp: {}. Timeout = {}",
                 deviceGuids, timestamp, timeout);
-
-        List<String> guids =
-                deviceGuids == null ? null : Arrays.asList(deviceGuids.split(","));
-
-        List<String> commandNames = names.isEmpty() ? null : Arrays.asList(names.split(","));
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        List<DeviceCommand> list = getDeviceCommandsList(principal, guids, timestamp);
+        List<DeviceCommand> list = getDeviceCommandsList(principal, deviceGuids, timestamp);
 
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
-            if (guids != null) {
-                List<Device> devices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
-                if (devices.size() != guids.size()) {
-                    createAccessDeniedForGuidsMessage(guids, devices, asyncResponse);
+            if (deviceGuids != null) {
+                List<Device> devices = deviceService.findByGuidWithPermissionsCheck(deviceGuids, principal);
+                if (devices.size() != deviceGuids.size()) {
+                    createAccessDeniedForGuidsMessage(deviceGuids, devices, asyncResponse);
                     return null;
                 }
                 for (Device device : devices) {
                     subscriptionSet
-                            .add(new CommandSubscription(principal, device.getId(), reqId, commandNames, restHandlerCreator));
+                            .add(new CommandSubscription(principal, device.getId(), reqId, names, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
                         .add(new CommandSubscription(principal,
                                 Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
                                 reqId,
-                                commandNames,
+                                names,
                                 restHandlerCreator));
             }
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceCommandsList(principal, guids, timestamp);
+                list = getDeviceCommandsList(principal, deviceGuids, timestamp);
             }
             return list;
         }
@@ -273,13 +287,9 @@ public class DeviceCommandController {
             }
         }
         if (!guidsWithDeniedAccess.isEmpty()) {
-            StringBuilder message = new StringBuilder("No access to devices with guids: {");
-            for (String guid : guidsWithDeniedAccess) {
-                message.append(guid).append(", ");
-            }
-            message.delete(message.length() - 2, message.length());    //2 is a constant for string ", "
-            // with length 2. We don't need extra commas and spaces.
-            message.append("}");
+            StringBuilder message = new StringBuilder("No access to devices with guids: {").
+                    append(StringUtils.join(guidsWithDeniedAccess, ",")).
+                    append("}");
             Response response = ResponseFactory.response(UNAUTHORIZED,
                     new ErrorResponse(UNAUTHORIZED.getStatusCode(), message.toString()));
             asyncResponse.resume(response);
@@ -529,9 +539,9 @@ public class DeviceCommandController {
 
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
-        if (device == null){
+        if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
-                        new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
         }
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
@@ -595,7 +605,7 @@ public class DeviceCommandController {
         User authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
 
-        if (device == null){
+        if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
         }

@@ -1,6 +1,8 @@
 package com.devicehive.controller.converters;
 
 import com.devicehive.exceptions.HiveException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
@@ -14,9 +16,12 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 @Provider
 public class SortOrderConverterProvider implements ParamConverterProvider {
 
+    private static final Logger logger = LoggerFactory.getLogger(ParamConverterProvider.class);
+
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
         for (Annotation annotation : annotations) {
+            logger.debug("annotation : {}", annotation);
             if (annotation.annotationType().equals(SortOrder.class) && Boolean.class.equals(rawType)) {
                 ParamConverter<T> converter = (ParamConverter<T>) new SortOrderParametersConverter();
                 return converter;
