@@ -22,7 +22,7 @@
         <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
         <validation-mode>AUTO</validation-mode>
         <properties>
-            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL82Dialect"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL9Dialect"/>
             <property name="hibernate.hbm2ddl.auto" value="validate"/>
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="true"/>
