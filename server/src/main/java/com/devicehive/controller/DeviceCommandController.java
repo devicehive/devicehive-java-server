@@ -23,6 +23,7 @@ import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ParseUtil;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -113,13 +114,14 @@ public class DeviceCommandController {
     @Path("/{deviceGuid}/command/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
-            @QueryParam("names") final List<String> names,
+            @QueryParam("names") String namesString,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
 
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final List<String> names = ParseUtil.getList(namesString);
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -130,8 +132,7 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    pollAction(deviceGuid, names.isEmpty() ? null : names, timestamp, timeout, principal,
-                            asyncResponse);
+                    pollAction(deviceGuid, names, timestamp, timeout, principal, asyncResponse);
                 } catch (Exception e) {
                     asyncResponse.resume(e);
                 }
@@ -174,8 +175,8 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
     public void pollMany(
-            @QueryParam("deviceGuids") final List<String> deviceGuids,
-            @QueryParam("names") final List<String> names,
+            @QueryParam("deviceGuids") String deviceGuidsString,
+            @QueryParam("names") String namesString,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -183,6 +184,8 @@ public class DeviceCommandController {
             @Suspended final AsyncResponse asyncResponse) {
 
         final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        final List<String> names = ParseUtil.getList(namesString);
+        final List<String> deviceGuids = ParseUtil.getList(deviceGuidsString);
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -194,12 +197,7 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollMany(principal,
-                            deviceGuids.isEmpty() ? null : deviceGuids,
-                            names.isEmpty() ? null : deviceGuids,
-                            timestamp,
-                            timeout,
-                            asyncResponse);
+                    asyncResponsePollMany(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
