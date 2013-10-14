@@ -15,7 +15,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>DEV</build.number>
-        <hibernate-version>4.3.0.Beta3</hibernate-version>
+        <hibernate-version>4.3.0.Beta4</hibernate-version>
         <hazelcast-version>3.0</hazelcast-version>
     </properties>
 
