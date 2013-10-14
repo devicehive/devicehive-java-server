@@ -24,6 +24,7 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ParseUtil;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -285,13 +286,14 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
             @PathParam("deviceGuid") final String deviceGuid,
-            @QueryParam("names") final List<String> names,
+            @QueryParam("names") String namesString,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT) @QueryParam
                     ("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
 
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final List<String> names = ParseUtil.getList(namesString);
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -302,8 +304,7 @@ public class DeviceNotificationController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollProcess(timestamp, deviceGuid, names.isEmpty()? null : names, timeout, principal,
-                            asyncResponse);
+                    asyncResponsePollProcess(timestamp, deviceGuid, names, timeout, principal,asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -346,7 +347,7 @@ public class DeviceNotificationController {
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
      *
-     * @param deviceGuids Device unique identifier.
+     * @param deviceGuidsString Device unique identifiers.
      * @param timestamp         Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      * @param timeout           Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      */
@@ -355,8 +356,8 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
     public void pollMany(
-            @QueryParam("deviceGuids") final List<String> deviceGuids,
-            @QueryParam("names") final List<String> names,
+            @QueryParam("deviceGuids") final String deviceGuidsString,
+            @QueryParam("names") String namesString,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -366,20 +367,16 @@ public class DeviceNotificationController {
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("Device notification poll many proceed successfully for devices: {}", deviceGuids);
+                logger.debug("Device notification poll many proceed successfully for devices: {}", deviceGuidsString);
             }
         });
-
+        final List<String> names = ParseUtil.getList(namesString);
+        final List<String> deviceGuids = ParseUtil.getList(deviceGuidsString);
         asyncPool.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollMany(principal,
-                            deviceGuids.isEmpty() ? null : deviceGuids,
-                            names.isEmpty() ? null : names,
-                            timestamp,
-                            timeout,
-                            asyncResponse);
+                    asyncResponsePollMany(principal, deviceGuids, names, timestamp, timeout, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
