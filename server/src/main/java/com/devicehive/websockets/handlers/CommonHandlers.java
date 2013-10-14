@@ -115,6 +115,9 @@ public class CommonHandlers implements WebsocketHandlers {
                                                  @WsParam("deviceKey") String deviceKey,
                                                  Session session) {
         logger.debug("authenticate action for {} ", login);
+        if (WebsocketSession.getPrincipal(session) != null) {
+            throw new HiveException("There is already active authentication");
+        }
         HivePrincipal hivePrincipal = null;
         if (login != null) {
             User user = userService.authenticate(login, password);
