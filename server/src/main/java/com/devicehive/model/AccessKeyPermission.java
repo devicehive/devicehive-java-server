@@ -1,11 +1,9 @@
 package com.devicehive.model;
 
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import javax.persistence.*;
 import javax.servlet.http.HttpServletResponse;
@@ -13,8 +11,7 @@ import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 @Entity
 @NamedQueries({
@@ -36,31 +33,31 @@ public class AccessKeyPermission implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
     })
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper domains;
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
     })
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper subnets;
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
     })
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper actions;
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
     })
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper networkIds;
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
     })
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper deviceGuids;
     @Version
     @Column(name = "entity_version")
@@ -97,6 +94,11 @@ public class AccessKeyPermission implements HiveEntity {
 
     public void setDomains(JsonStringWrapper domains) {
         this.domains = domains;
+    }
+
+    public void setDomains(String ... domains){
+        Gson gson = GsonFactory.createGson();
+        this.domains = new JsonStringWrapper(gson.toJsonTree(domains).toString());
     }
 
     public Set<String> getDomainsAsSet() {
@@ -176,12 +178,22 @@ public class AccessKeyPermission implements HiveEntity {
         return subnets;
     }
 
+    public void setSubnets(String ... subnets){
+        Gson gson = GsonFactory.createGson();
+        this.subnets = new JsonStringWrapper(gson.toJsonTree(subnets).toString());
+    }
+
     public void setSubnets(JsonStringWrapper subnets) {
         this.subnets = subnets;
     }
 
     public JsonStringWrapper getActions() {
         return actions;
+    }
+
+    public void setActions(String ... actions){
+        Gson gson = GsonFactory.createGson();
+        this.actions = new JsonStringWrapper(gson.toJsonTree(actions).toString());
     }
 
     public void setActions(JsonStringWrapper actions) {

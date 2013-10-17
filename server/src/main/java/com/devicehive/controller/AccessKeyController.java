@@ -4,7 +4,6 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.controller.util.ResponseFactory;
-import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.AccessKey;
@@ -15,15 +14,14 @@ import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -40,7 +38,6 @@ public class AccessKeyController {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
     private UserService userService;
     private AccessKeyService accessKeyService;
-    private AccessKeyDAO accessKeyDAO;
 
     @EJB
     public void setUserService(UserService userService) {
@@ -52,10 +49,6 @@ public class AccessKeyController {
         this.accessKeyService = accessKeyService;
     }
 
-    @EJB
-    public void setAccessKeyDAO(AccessKeyDAO accessKeyDAO) {
-        this.accessKeyDAO = accessKeyDAO;
-    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:
@@ -68,12 +61,12 @@ public class AccessKeyController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response list(@PathParam("userId") String userId, @Context SecurityContext securityContext) {
+    public Response list(@PathParam("userId") String userId) {
 
         logger.debug("Access key : list requested for userId : {}", userId);
 
-        Long id = getUser(securityContext, userId).getId();
-        List<AccessKey> keyList = accessKeyDAO.list(id);
+        Long id = getUser(userId).getId();
+        List<AccessKey> keyList = accessKeyService.list(id);
 
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
 
@@ -93,13 +86,12 @@ public class AccessKeyController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response get(@PathParam("userId") String userId, @PathParam("id") long accessKeyId,
-                        @Context SecurityContext securityContext) {
+    public Response get(@PathParam("userId") String userId, @PathParam("id") long accessKeyId) {
 
         logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
 
-        Long id = getUser(securityContext, userId).getId();
-        AccessKey result = accessKeyDAO.get(id, accessKeyId);
+        Long id = getUser(userId).getId();
+        AccessKey result = accessKeyService.get(id, accessKeyId);
         if (result == null) {
             logger.debug("Access key : list failed for userId : {} and accessKeyId : {}. Reason: No access key found" +
                     ".", userId, accessKeyId);
@@ -126,12 +118,10 @@ public class AccessKeyController {
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response insert(@PathParam("userId") String userId,
-                           @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKey key,
-                           @Context SecurityContext securityContext) {
+                           @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKey key) {
 
         logger.debug("Access key : insert requested for userId : {}", userId);
-
-        User user = getUser(securityContext, userId);
+        User user = getUser(userId);
         AccessKey generatedKey = accessKeyService.create(user, key);
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
         return ResponseFactory.response(CREATED, generatedKey, ACCESS_KEY_SUBMITTED);
@@ -151,12 +141,11 @@ public class AccessKeyController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response update(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId,
-                           @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate,
-                           @Context SecurityContext securityContext) {
+                           @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate) {
         logger.debug("Access key : update requested for userId : {}, access key id : {}, access key : {} ", userId,
                 accessKeyId, accessKeyUpdate);
 
-        Long id = getUser(securityContext, userId).getId();
+        Long id = getUser(userId).getId();
         if (!accessKeyService.update(id, accessKeyId, accessKeyUpdate)) {
             logger.debug("Access key : update failed for userId : {} and accessKeyId : {}. Reason: No access key " +
                     "found.", userId, accessKeyId);
@@ -181,12 +170,11 @@ public class AccessKeyController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response delete(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId,
-                           @Context SecurityContext securityContext) {
+    public Response delete(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId) {
         logger.debug("Access key : delete requested for userId : {}", userId);
 
-        Long id = getUser(securityContext, userId).getId();
-        accessKeyDAO.delete(id, accessKeyId);
+        Long id = getUser(userId).getId();
+        accessKeyService.delete(id, accessKeyId);
 
         logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId,
                 accessKeyId);
@@ -194,8 +182,8 @@ public class AccessKeyController {
 
     }
 
-    private User getUser(SecurityContext securityContext, String userId) {
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+    private User getUser(String userId) {
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User currentUser = principal.getUser();
 
         Long id;
@@ -210,7 +198,7 @@ public class AccessKeyController {
         }
 
         User result;
-        if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.ADMIN)) {
+        if (!currentUser.getId().equals(id) && currentUser.isAdmin()) {
             result = userService.findById(id);
             if (result == null) {
                 throw new HiveException("Not authorized!",UNAUTHORIZED.getStatusCode());

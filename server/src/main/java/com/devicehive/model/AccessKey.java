@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -18,8 +17,9 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 "where u.id = :userId and ak.id = :accessKeyId"),
         @NamedQuery(name = "AccessKey.getByKey", query = "select ak from AccessKey ak left join fetch ak.permissions join fetch ak.user where" +
                 " ak.key = :someKey"),
-        @NamedQuery(name = "AccessKey.deleteById", query = "delete from AccessKey ak " +
-                "where ak.user.id = :userId and ak.id = :accessKeyId")
+        @NamedQuery(name = "AccessKey.deleteByIdAndsUser", query = "delete from AccessKey ak " +
+                "where ak.user.id = :userId and ak.id = :accessKeyId"),
+        @NamedQuery(name = "AccessKey.deleteById", query = "delete from AccessKey ak where ak.id = :accessKeyId")
 })
 @Table(name = "access_key")
 @Cacheable
@@ -28,21 +28,21 @@ public class AccessKey implements HiveEntity {
     private static final long serialVersionUID = 7609754275823483733L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_SUBMITTED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_SUBMITTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Long id;
 
     @Column
     @NotNull(message = "Label column cannot be null")
     @Size(min = 1, max = 64,
             message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private String label;
 
     @Column
     @NotNull(message = "Key column cannot be null")
     @Size(min = 1, max = 48,
             message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_SUBMITTED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_SUBMITTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private String key;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,12 +51,12 @@ public class AccessKey implements HiveEntity {
     private User user;
 
     @Column(name = "expiration_date")
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Timestamp expirationDate;
 
     @OneToMany(mappedBy = "accessKey")
     @NotNull
-    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED})
+    @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Set<AccessKeyPermission> permissions;
 
     @Version

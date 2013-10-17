@@ -44,11 +44,16 @@ public class AccessKeyDAO {
     }
 
     public boolean delete(Long userId, Long accessKeyId){
-        Query query = em.createNamedQuery("AccessKey.deleteById");
+        Query query = em.createNamedQuery("AccessKey.deleteByIdAndsUser");
         query.setParameter("userId", userId);
         query.setParameter("accessKeyId", accessKeyId);
         return query.executeUpdate() > 0;
     }
 
+    public boolean delete(Long accessKeyId){
+        Query query = em.createNamedQuery("AccessKey.deleteById");
+        query.setParameter("accessKeyId", accessKeyId);
+        return query.executeUpdate() > 0;
+    }
 
 }

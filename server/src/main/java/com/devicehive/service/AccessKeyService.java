@@ -8,12 +8,17 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.util.LogExecutionTime;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Stateless
@@ -26,6 +31,12 @@ public class AccessKeyService {
     private AccessKeyPermissionDAO permissionDAO;
     private UserService userService;
     private DeviceDAO deviceDAO;
+    private AccessKeyService self;
+
+    @EJB
+    public void setSelf(AccessKeyService self) {
+        this.self = self;
+    }
 
     @EJB
     public void setAccessKeyDAO(AccessKeyDAO accessKeyDAO) {
@@ -103,7 +114,7 @@ public class AccessKeyService {
         return accessKeyDAO.get(key);
     }
 
-    public AccessKey find(@NotNull Long keyId, @NotNull Long userId){
+    public AccessKey find(@NotNull Long keyId, @NotNull Long userId) {
         return accessKeyDAO.get(userId, keyId);
     }
 
@@ -211,4 +222,66 @@ public class AccessKeyService {
 
         return hasAccess;
     }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public AccessKey createAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
+        AccessKey newKey = new AccessKey();
+        Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
+        newKey.setExpirationDate(expirationDate);
+        newKey.setUser(user);
+        newKey.setLabel("OAuth token for: " + grant.getClient().getName());
+        Set<AccessKeyPermission> permissions = new HashSet<>();
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setDomains(grant.getClient().getDomain());
+        permission.setActions(StringUtils.split(grant.getScope(), ' '));
+        permission.setSubnets(grant.getClient().getSubnet());
+        permission.setNetworkIds(grant.getNetworkIds());
+        permissions.add(permission);
+        newKey.setPermissions(permissions);
+        self.create(user, newKey);
+        return newKey;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
+        AccessKey existing = self.get(user.getId(), grant.getAccessKey().getId());
+        permissionDAO.deleteByAccessKey(existing);
+        Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
+        existing.setExpirationDate(expirationDate);
+        existing.setLabel("OAuth token for: " + grant.getClient().getName());
+        Set<AccessKeyPermission> permissions = new HashSet<>();
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setDomains(grant.getClient().getDomain());
+        permission.setActions(StringUtils.split(grant.getScope(), ' '));
+        permission.setSubnets(grant.getClient().getSubnet());
+        permission.setNetworkIds(grant.getNetworkIds());
+        permissions.add(permission);
+        existing.setPermissions(permissions);
+        AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
+        String key = keyProcessor.generateKey();
+        existing.setKey(key);
+        for (AccessKeyPermission current : permissions) {
+            current.setAccessKey(existing);
+            permissionDAO.insert(current);
+        }
+        return existing;
+    }
+
+
+    public List<AccessKey> list(@NotNull Long userId) {
+        return accessKeyDAO.list(userId);
+    }
+
+    public AccessKey get(@NotNull Long userId, @NotNull Long keyId) {
+        return accessKeyDAO.get(userId, keyId);
+    }
+
+    public boolean delete(Long userId, @NotNull Long keyId) {
+        if (userId == null){
+            return accessKeyDAO.delete(keyId);
+        }
+        return accessKeyDAO.delete(userId, keyId);
+    }
+
+
 }
