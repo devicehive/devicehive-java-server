@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>DEV</build.number>
         <hibernate-version>4.3.0.Beta4</hibernate-version>
-        <hazelcast-version>3.0</hazelcast-version>
+        <hazelcast-version>3.0.2</hazelcast-version>
     </properties>
 
     <dependencies>
