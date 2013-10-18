@@ -24,13 +24,13 @@ public class OAuthGrantDAO {
     private EntityManager em;
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public OAuthGrant insert(OAuthGrant toInsert){
+    public OAuthGrant insert(OAuthGrant toInsert) {
         em.persist(toInsert);
         return toInsert;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public OAuthGrant get(User user, Long grantId){
+    public OAuthGrant get(User user, Long grantId) {
         TypedQuery<OAuthGrant> query = em.createNamedQuery("OAuthGrant.getByIdAndUser", OAuthGrant.class);
         query.setParameter("grantId", grantId);
         query.setParameter("user", user);
@@ -39,12 +39,12 @@ public class OAuthGrantDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public OAuthGrant get(Long grantId){
+    public OAuthGrant get(Long grantId) {
         return em.find(OAuthGrant.class, grantId);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean delete(User user, Long grantId){
+    public boolean delete(User user, Long grantId) {
         Query query = em.createNamedQuery("OAuthGrant.deleteByUserAndId");
         query.setParameter("grantId", grantId);
         query.setParameter("user", user);
@@ -52,7 +52,7 @@ public class OAuthGrantDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean delete(Long grantId){
+    public boolean delete(Long grantId) {
         Query query = em.createNamedQuery("OAuthGrant.deleteById");
         query.setParameter("grantId", grantId);
         return query.executeUpdate() != 0;
@@ -83,25 +83,25 @@ public class OAuthGrantDAO {
             predicates.add(from.join("user").in(user));
         }
 
-        if (start != null){
+        if (start != null) {
             predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), start));
         }
-        if (end != null){
+        if (end != null) {
             predicates.add(criteriaBuilder.lessThan(from.<Timestamp>get("timestamp"), end));
         }
-        if (clientOAuthId != null){
+        if (clientOAuthId != null) {
             predicates.add(criteriaBuilder.equal(from.join("client").get("oauthId"), clientOAuthId));
         }
-        if (type != null){
+        if (type != null) {
             predicates.add(criteriaBuilder.equal(from.get("type"), type));
         }
-        if (accessType != null){
+        if (accessType != null) {
             predicates.add(criteriaBuilder.equal(from.get("accessType"), accessType));
         }
-        if (scope != null){
+        if (scope != null) {
             predicates.add(criteriaBuilder.equal(from.get("scope"), scope));
         }
-        if (redirectUri != null){
+        if (redirectUri != null) {
             predicates.add(criteriaBuilder.equal(from.get("redirectUri"), redirectUri));
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -126,5 +126,13 @@ public class OAuthGrantDAO {
         return resultQuery.getResultList();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public OAuthGrant getByCodeAndOauthID(String authCode, String oauthId) {
+        TypedQuery<OAuthGrant> query = em.createNamedQuery("OAuthGrant.getByCodeAndOAuthID", OAuthGrant.class);
+        query.setParameter("authCode", authCode);
+        query.setParameter("oauthId", oauthId);
+        List<OAuthGrant> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    }
 
 }

@@ -23,10 +23,20 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "oauth_grant")
 @NamedQueries({
         @NamedQuery(name = "OAuthGrant.getByIdAndUser", query = "select oag " +
-                "from OAuthGrant oag join fetch oag.client join fetch oag.accessKey ak join fetch ak.permissions where oag.id = :grantId and oag.user = :user"),
+                "from OAuthGrant oag " +
+                "join fetch oag.client " +
+                "join fetch oag.accessKey ak " +
+                "join fetch ak.permissions " +
+                "where oag.id = :grantId and oag.user = :user"),
         @NamedQuery(name = "OAuthGrant.deleteByUserAndId",
                 query = "delete from OAuthGrant oag where oag.id = :grantId and oag.user = :user"),
-        @NamedQuery(name ="OAuthGrant.deleteById", query = "delete from OAuthGrant oag where oag.id = :grantId")
+        @NamedQuery(name = "OAuthGrant.deleteById", query = "delete from OAuthGrant oag where oag.id = :grantId"),
+        @NamedQuery(name = "OAuthGrant.getByCodeAndOAuthID", query = "select oag " +
+                "from OAuthGrant oag " +
+                "join fetch oag.client c " +
+                "join fetch oag.accessKey ak " +
+                "join fetch ak.permissions " +
+                "where oag.authCode = :authCode and c.oauthId = :oauthId")
 })
 @Cacheable
 public class OAuthGrant implements HiveEntity {

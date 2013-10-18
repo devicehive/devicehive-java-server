@@ -38,7 +38,7 @@ public class Constants {
 
     public static final String CURRENT_USER = "current";
 
-    public static final String KEY_AUTH = "BEARER";
+    public static final String KEY_AUTH = "Bearer";
 
     public static final String DEBUG_MODE = "debugMode";
 

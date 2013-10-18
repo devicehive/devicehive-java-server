@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+
 @Stateless
 public class OAuthGrantService {
 
@@ -22,12 +24,18 @@ public class OAuthGrantService {
     private OAuthGrantDAO grantDAO;
     private AccessKeyService accessKeyService;
     private OAuthClientService clientService;
+    private UserService userService;
     @EJB
     private TimestampService timestampService;
 
     @EJB
     public void setAccessKeyService(AccessKeyService accessKeyService) {
         this.accessKeyService = accessKeyService;
+    }
+
+    @EJB
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     @EJB
@@ -45,6 +53,10 @@ public class OAuthGrantService {
     public OAuthGrant save(@NotNull OAuthGrant grant, @NotNull User user) {
         validate(grant);
         OAuthClient client = clientService.getByOAuthID(grant.getClient().getOauthId());
+        //is it required?
+//        if (client != null && !client.getRedirectUri().equals(grant.getRedirectUri())) {
+//            throw new HiveException("Invalid redirect URI value!", SC_BAD_REQUEST);
+//        }
         grant.setClient(client);
         if (grant.getAccessType() == null) {
             grant.setAccessType(AccessType.ONLINE);
@@ -102,6 +114,10 @@ public class OAuthGrantService {
         if (grantToUpdate.getScope() != null) {
             existing.setScope(grantToUpdate.getScope().getValue());
         }
+        //is it required?
+//        if (!existing.getRedirectUri().equals(existing.getClient().getRedirectUri())) {
+//            throw new HiveException("Invalid redirect URI value!", SC_BAD_REQUEST);
+//        }
         Timestamp now = timestampService.getTimestamp();
         existing.setTimestamp(now);
         AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(existing, user, now);
@@ -125,6 +141,62 @@ public class OAuthGrantService {
                                  Integer skip) {
         return grantDAO.get(user, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField,
                 sortOrder, take, skip);
+    }
+
+    public OAuthGrant get(@NotNull String authCode, @NotNull String clientOAuthID) {
+        return grantDAO.getByCodeAndOauthID(authCode, clientOAuthID);
+    }
+
+    public AccessKey accessTokenRequestForCodeType(@NotNull String code,
+                                                   String redirectUri,
+                                                   @NotNull String clientId) {
+        OAuthGrant grant = get(code, clientId);
+        if (grant == null || !grant.getType().equals(Type.CODE)) {
+            throw new HiveException("Invalid authorization code", SC_UNAUTHORIZED);
+        }
+        if (redirectUri != null && !grant.getRedirectUri().equals(redirectUri)) {
+            throw new HiveException("Invalid \"redirect_uri\"!", SC_UNAUTHORIZED);
+        }
+        if (grant.getTimestamp().getTime() - timestampService.getTimestamp().getTime() > 600_000)
+            throw new HiveException("Invalid authorization code", SC_UNAUTHORIZED);
+        invalidate(grant);
+        return grant.getAccessKey();
+    }
+
+    public AccessKey accessTokenRequestForPasswordType(@NotNull String scope,
+                                                       @NotNull String login,
+                                                       @NotNull String password,
+                                                       OAuthClient client) {
+        User user = userService.authenticate(login, password);
+        if (user == null || !user.getStatus().equals(UserStatus.ACTIVE)) {
+            throw new HiveException("Not authorized!", SC_UNAUTHORIZED);
+        }
+        user.setLastLogin(timestampService.getTimestamp());
+        List<OAuthGrant> found = grantDAO.get(user, null, null, client.getOauthId(), Type.PASSWORD.ordinal(), scope,
+                null, null, null, null, null, null);
+        OAuthGrant grant = found.isEmpty() ? null : found.get(0);
+        Timestamp now = timestampService.getTimestamp();
+        if (grant == null) {
+            grant = new OAuthGrant();
+            grant.setClient(client);
+            grant.setUser(user);
+            grant.setRedirectUri(client.getRedirectUri());
+            grant.setTimestamp(now);
+            grant.setScope(scope);
+            grant.setAccessType(AccessType.ONLINE);
+            grant.setType(Type.PASSWORD);
+            AccessKey key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
+            grant.setAccessKey(key);
+            grantDAO.insert(grant);
+        } else {
+            AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(grant, user, now);
+            grant.setAccessKey(key);
+        }
+        return grant.getAccessKey();
+    }
+
+    private void invalidate(OAuthGrant grant) {
+        grant.setAuthCode(null);
     }
 
     private void validate(OAuthGrant grant) {

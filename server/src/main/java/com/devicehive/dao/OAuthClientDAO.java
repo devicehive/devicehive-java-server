@@ -42,6 +42,14 @@ public class OAuthClientDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    public OAuthClient get(String id, String secret) {
+        TypedQuery<OAuthClient> query = em.createNamedQuery("OAuthClient.getByOAuthIdAndSecret", OAuthClient.class);
+        query.setParameter("oauthId", id);
+        query.setParameter("secret", secret);
+        List<OAuthClient> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean delete(Long id) {
         Query query = em.createNamedQuery("OAuthClient.deleteById");

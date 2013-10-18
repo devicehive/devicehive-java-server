@@ -4,9 +4,11 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
+import com.devicehive.model.OAuthClient;
 import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.apache.commons.codec.binary.Base64;
@@ -31,10 +33,10 @@ import static com.devicehive.configuration.Constants.UTF8;
 public class AuthenticationFilter implements ContainerRequestFilter {
 
     private static Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
-
     private DeviceService deviceService;
     private UserService userService;
     private AccessKeyService accessKeyService;
+    private OAuthClientService clientService;
 
 
     public AuthenticationFilter() throws NamingException {
@@ -42,6 +44,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         this.userService = (UserService) initialContext.lookup("java:comp/env/UserService");
         this.deviceService = (DeviceService) initialContext.lookup("java:comp/env/DeviceService");
         this.accessKeyService = (AccessKeyService) initialContext.lookup("java:comp/env/AccessKeyService");
+        this.clientService = (OAuthClientService) initialContext.lookup("java:comp/env/OAuthClientService");
     }
 
     @Override
@@ -53,6 +56,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 authKey(requestContext));
         logger.info("Thread name : {}. principal : {}", Thread.currentThread().getName(), principal);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
+        ThreadLocalVariablesKeeper.setOAuthClient(authClient(requestContext));
         requestContext.setSecurityContext(
                 new HiveSecurityContext(principal, secure));
     }
@@ -91,7 +95,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         return null;
     }
 
-    private AccessKey authKey(ContainerRequestContext requestContext){
+    private AccessKey authKey(ContainerRequestContext requestContext) {
         String auth = requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;
@@ -99,6 +103,30 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (auth.substring(0, 6).equalsIgnoreCase("Bearer")) {
             String key = auth.substring(6).trim();
             return accessKeyService.authenticate(key);
+        }
+        return null;
+    }
+
+    private OAuthClient authClient(ContainerRequestContext requestContext) {
+        String auth = requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (auth == null) {
+            return null;
+        }
+        if (auth.substring(0, 5).equalsIgnoreCase("Basic")) {
+            String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), Charset.forName(UTF8));
+            int pos = decodedAuth.indexOf(":");
+            if (pos <= 0) {
+                return null;
+            }
+
+            String openAuthID = decodedAuth.substring(0, pos);
+            String openAuthSecret = decodedAuth.substring(pos + 1);
+
+            try {
+                return clientService.authenticate(openAuthID, openAuthSecret);
+            } catch (IllegalArgumentException ex) {
+                return null;
+            }
         }
         return null;
     }

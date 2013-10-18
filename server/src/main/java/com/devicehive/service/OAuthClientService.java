@@ -16,6 +16,7 @@ import java.util.List;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Stateless
+@EJB(beanInterface = OAuthClientService.class, name = "OAuthClientService")
 public class OAuthClientService {
     @EJB
     private OAuthClientDAO clientDAO;
@@ -87,6 +88,10 @@ public class OAuthClientService {
 
     public OAuthClient getByOAuthID(String oauthID){
         return clientDAO.get(oauthID);
+    }
+
+    public OAuthClient authenticate(@NotNull String id, @NotNull String secret){
+        return clientDAO.get(id, secret);
     }
 }
 

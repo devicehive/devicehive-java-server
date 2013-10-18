@@ -223,7 +223,6 @@ public class AccessKeyService {
         return hasAccess;
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public AccessKey createAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
         AccessKey newKey = new AccessKey();
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
