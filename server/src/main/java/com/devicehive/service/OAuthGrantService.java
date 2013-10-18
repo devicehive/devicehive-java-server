@@ -46,6 +46,9 @@ public class OAuthGrantService {
         validate(grant);
         OAuthClient client = clientService.getByOAuthID(grant.getClient().getOauthId());
         grant.setClient(client);
+        if (grant.getAccessType() == null) {
+            grant.setAccessType(AccessType.ONLINE);
+        }
         Timestamp now = timestampService.getTimestamp();
         grant.setTimestamp(now);
         AccessKey key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
@@ -54,7 +57,7 @@ public class OAuthGrantService {
         if (grant.getType().equals(Type.CODE)) {
             grant.setAuthCode(UUID.randomUUID().toString());
         }
-        grant.setAccessType(AccessType.ONLINE);
+
         grantDAO.insert(grant);
         return grant;
     }
@@ -96,7 +99,7 @@ public class OAuthGrantService {
             existing.setNetworkIds(grantToUpdate.getNetworkIds().getValue());
         if (grantToUpdate.getRedirectUri() != null)
             existing.setRedirectUri(grantToUpdate.getRedirectUri().getValue());
-        if (grantToUpdate.getScope() != null){
+        if (grantToUpdate.getScope() != null) {
             existing.setScope(grantToUpdate.getScope().getValue());
         }
         Timestamp now = timestampService.getTimestamp();

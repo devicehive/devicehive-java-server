@@ -226,8 +226,10 @@ public class AccessKeyService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public AccessKey createAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
         AccessKey newKey = new AccessKey();
-        Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
-        newKey.setExpirationDate(expirationDate);
+        if (grant.getAccessType().equals(AccessType.ONLINE)) {
+            Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
+            newKey.setExpirationDate(expirationDate);
+        }
         newKey.setUser(user);
         newKey.setLabel("OAuth token for: " + grant.getClient().getName());
         Set<AccessKeyPermission> permissions = new HashSet<>();
@@ -246,8 +248,12 @@ public class AccessKeyService {
     public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
         AccessKey existing = self.get(user.getId(), grant.getAccessKey().getId());
         permissionDAO.deleteByAccessKey(existing);
-        Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
-        existing.setExpirationDate(expirationDate);
+        if (grant.getAccessType().equals(AccessType.ONLINE)) {
+            Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
+            existing.setExpirationDate(expirationDate);
+        }  else{
+            existing.setExpirationDate(null);
+        }
         existing.setLabel("OAuth token for: " + grant.getClient().getName());
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission permission = new AccessKeyPermission();
@@ -267,7 +273,6 @@ public class AccessKeyService {
         return existing;
     }
 
-
     public List<AccessKey> list(@NotNull Long userId) {
         return accessKeyDAO.list(userId);
     }
@@ -277,7 +282,7 @@ public class AccessKeyService {
     }
 
     public boolean delete(Long userId, @NotNull Long keyId) {
-        if (userId == null){
+        if (userId == null) {
             return accessKeyDAO.delete(keyId);
         }
         return accessKeyDAO.delete(userId, keyId);
