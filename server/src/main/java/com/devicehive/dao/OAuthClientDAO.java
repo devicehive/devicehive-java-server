@@ -35,14 +35,15 @@ public class OAuthClientDAO {
         return em.find(OAuthClient.class, id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient get(String oauthId) {
         TypedQuery<OAuthClient> query = em.createNamedQuery("OAuthClient.getByOAuthId", OAuthClient.class);
         query.setParameter("oauthId", oauthId);
+        CacheHelper.cacheable(query);
         List<OAuthClient> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean delete(Long id) {
         Query query = em.createNamedQuery("OAuthClient.deleteById");
         query.setParameter("id", id);

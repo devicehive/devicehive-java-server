@@ -43,7 +43,7 @@ public class OAuthGrantDAO {
         return em.find(OAuthGrant.class, grantId);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+
     public boolean delete(User user, Long grantId){
         Query query = em.createNamedQuery("OAuthGrant.deleteByUserAndId");
         query.setParameter("grantId", grantId);
@@ -51,7 +51,7 @@ public class OAuthGrantDAO {
         return query.executeUpdate() != 0;
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+
     public boolean delete(Long grantId){
         Query query = em.createNamedQuery("OAuthGrant.deleteById");
         query.setParameter("grantId", grantId);
