@@ -7,6 +7,8 @@ import com.devicehive.client.json.GsonFactory;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.Transport;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
@@ -69,10 +71,12 @@ public class SingleHiveDevice implements Closeable {
     } */
 
     public static void main(String... args) {
-        SingleHiveDevice shd = new SingleHiveDevice(URI.create("http://localhost:8080/hive/rest/"));
+        SingleHiveDevice shd = new SingleHiveDevice(URI.create("http://127.0.0.1:8080/hive/rest/"));
         shd.authenticate("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8");
         Device device = shd.getDevice();
-        System.out.println(GsonFactory.createGson().toJson(device));
+        Gson gson = GsonFactory.createGson();
+        JsonObject obj = (JsonObject)gson.toJsonTree(device);
+        System.out.println(obj.toString());
     }
 
 

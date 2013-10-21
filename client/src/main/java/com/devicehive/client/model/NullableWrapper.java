@@ -29,4 +29,12 @@ public class NullableWrapper<K> implements Serializable {
     public static <K> NullableWrapper<K> create(K value) {
         return new NullableWrapper<>(value);
     }
+
+    @Override
+    public String toString() {
+        if (value == null){
+            return null;
+        }
+        return value.toString();
+    }
 }

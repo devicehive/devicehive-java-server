@@ -6,14 +6,14 @@ import com.devicehive.client.model.CredentialsStorage;
 public class Preferences {
     private static String REST_SERVER_URL;
     private static String WEBSOCKET_SERVER_URL;
-    private static CredentialsStorage currentUserInfoStorage;
+    private static CredentialsStorage CURRENT_USER_INFO_STORAGE;
 
     public static CredentialsStorage getCurrentUserInfoStorage() {
-        return currentUserInfoStorage;
+        return CURRENT_USER_INFO_STORAGE;
     }
 
     public static void setCurrentUserInfoStorage(CredentialsStorage currentUserInfoStorage) {
-        Preferences.currentUserInfoStorage = currentUserInfoStorage;
+        Preferences.CURRENT_USER_INFO_STORAGE = currentUserInfoStorage;
     }
 
     public static String getRestServerUrl() {
