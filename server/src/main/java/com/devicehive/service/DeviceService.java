@@ -3,7 +3,7 @@ package com.devicehive.service;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDAO;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
@@ -403,10 +403,20 @@ public class DeviceService {
                                 Integer take,
                                 Integer skip,
                                 User user,
-                                Collection<AccessKeyBasedFilter> extraFilters) {
+                                Collection<AccessKeyBasedFilterForDevices> extraFilters) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
                 deviceClassVersion, sortField, sortOrderAsc, take, skip, user, extraFilters);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<Device> getList(Long networkId,
+                                User user,
+                                Set<AccessKeyPermission> permissions) {
+        Collection<AccessKeyBasedFilterForDevices> extraFilters = AccessKeyBasedFilterForDevices.createExtraFilters
+                (permissions);
+        return deviceDAO.getList(null, null, null, networkId, null, null, null, null, null, null, null, null, user,
+                extraFilters);
     }
 
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> guids) {

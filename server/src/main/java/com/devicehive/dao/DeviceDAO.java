@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
 
 import javax.ejb.EJB;
@@ -131,11 +131,12 @@ public class DeviceDAO {
         }
 
         if (permissions != null){
-            Collection<AccessKeyBasedFilter> extraFilters =  AccessKeyBasedFilter.createExtraFilters(permissions);
+            Collection<AccessKeyBasedFilterForDevices> extraFilters =  AccessKeyBasedFilterForDevices
+                    .createExtraFilters(permissions);
 
             if (extraFilters != null) {
                 List<Predicate> extraPredicates = new ArrayList<>();
-                for (AccessKeyBasedFilter extraFilter : extraFilters) {
+                for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getDeviceGuids() != null) {
                         filter.add(from.get("guid").in(extraFilter.getDeviceGuids()));
@@ -172,7 +173,7 @@ public class DeviceDAO {
                                 Integer take,
                                 Integer skip,
                                 User user,
-                                Collection<AccessKeyBasedFilter> extraFilters) {
+                                Collection<AccessKeyBasedFilterForDevices> extraFilters) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
@@ -221,7 +222,7 @@ public class DeviceDAO {
 
         if (extraFilters != null) {
             List<Predicate> extraPredicates = new ArrayList<>();
-            for (AccessKeyBasedFilter extraFilter : extraFilters) {
+            for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
                 List<Predicate> filter = new ArrayList<>();
                 if (extraFilter.getDeviceGuids() != null) {
                     filter.add(fromDevice.get("guid").in(extraFilter.getDeviceGuids()));

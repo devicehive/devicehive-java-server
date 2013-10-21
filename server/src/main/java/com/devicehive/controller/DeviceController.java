@@ -4,7 +4,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.controller.util.ResponseFactory;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
@@ -117,8 +117,8 @@ public class DeviceController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
-        Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
-                ? AccessKeyBasedFilter.createExtraFilters(principal.getKey().getPermissions())
+        Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null
+                ? AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())
                 : null;
 
 

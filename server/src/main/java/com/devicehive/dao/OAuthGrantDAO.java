@@ -23,7 +23,6 @@ public class OAuthGrantDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthGrant insert(OAuthGrant toInsert) {
         em.persist(toInsert);
         return toInsert;

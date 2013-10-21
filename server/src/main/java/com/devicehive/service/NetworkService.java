@@ -1,7 +1,10 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.CheckPermissionsHelper;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.NetworkDAO;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
@@ -11,8 +14,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -21,6 +23,12 @@ public class NetworkService {
     private NetworkDAO networkDAO;
     private UserService userService;
     private AccessKeyService accessKeyService;
+    private DeviceService deviceService;
+
+    @EJB
+    public void setDeviceService(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
 
     @EJB
     public void setUserService(UserService userService) {
@@ -41,14 +49,44 @@ public class NetworkService {
         return networkDAO.getById(id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Network getWithDevicesAndDeviceClasses(long id, User user) {
-        if (user.isAdmin()) {
-            return networkDAO.getWithDevicesAndDeviceClasses(id);
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HivePrincipal principal) {
+        if (principal.getUser() != null) {
+            List<Network> found = networkDAO.getNetworkList(principal.getUser(), null, Arrays.asList(networkId));
+            if (found.isEmpty()){
+                return null;
+            }
+            List<Device> devices = deviceService.getList(networkId, principal.getUser(), null);
+            Network result = found.get(0);
+            result.setDevices(new HashSet<Device>(devices));
+            return result;
         } else {
-            return networkDAO.getWithDevicesAndDeviceClasses(id, user.getId());
-        }
+            AccessKey key = principal.getKey();
+            User user = userService.findUserWithNetworks(key.getUser().getId());
+            List<Network> found = networkDAO.getNetworkList(user,
+                    key.getPermissions(),
+                    Arrays.asList(networkId));
+            Network result = found.isEmpty() ? null : found.get(0);
+            if (result == null) {
+                return result;
+            }
+            //to get proper devices 1) get access key with all permissions 2) get devices for required network
+            key = accessKeyService.find(key.getId(), principal.getKey().getUser().getId());
+            List<AllowedKeyAction.Action> actions = new ArrayList<>();
+            actions.add(AllowedKeyAction.Action.GET_DEVICE);
+            if(!CheckPermissionsHelper.checkAllPermissions(key, actions)){
+                result.setDevices(null);
+                return result;
+            }
 
+            Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null
+                    ? AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())
+                    : null;
+            Set<Device> devices =
+                    new HashSet<>(deviceService.getList(result.getId(), key.getUser(), key.getPermissions()));
+            result.setDevices(devices);
+            return result;
+        }
     }
 
     public boolean delete(long id) {
@@ -92,7 +130,7 @@ public class NetworkService {
                               Integer take,
                               Integer skip,
                               User user,
-                              Collection<AccessKeyBasedFilter> extraFilters) {
+                              Collection<AccessKeyBasedFilterForDevices> extraFilters) {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, user, extraFilters);
     }
 

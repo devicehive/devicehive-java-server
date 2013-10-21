@@ -4,13 +4,14 @@ import com.devicehive.model.AccessKeyPermission;
 
 import java.util.*;
 
-public class AccessKeyBasedFilter {
+public class
+        AccessKeyBasedFilterForDevices {
 
     private Set<String> deviceGuids;
 
     private Set<Long> networkIds;
 
-    public AccessKeyBasedFilter(Collection<String> deviceGuids, Collection<Long> networkIds) {
+    public AccessKeyBasedFilterForDevices(Collection<String> deviceGuids, Collection<Long> networkIds) {
         this.deviceGuids = deviceGuids != null ? new HashSet<>(deviceGuids) : null;
         this.networkIds = networkIds != null ? new HashSet<>(networkIds) : null;
     }
@@ -28,7 +29,7 @@ public class AccessKeyBasedFilter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AccessKeyBasedFilter that = (AccessKeyBasedFilter) o;
+        AccessKeyBasedFilterForDevices that = (AccessKeyBasedFilterForDevices) o;
 
         if (deviceGuids != null ? !deviceGuids.equals(that.deviceGuids) : that.deviceGuids != null) return false;
         if (networkIds != null ? !networkIds.equals(that.networkIds) : that.networkIds != null) return false;
@@ -43,13 +44,13 @@ public class AccessKeyBasedFilter {
         return result;
     }
 
-    public static Set<AccessKeyBasedFilter> createExtraFilters(Set<AccessKeyPermission> permissionSet) {
+    public static Set<AccessKeyBasedFilterForDevices> createExtraFilters(Set<AccessKeyPermission> permissionSet) {
         if (permissionSet == null) {
             return null;
         }
-        Set<AccessKeyBasedFilter> result = new HashSet<>();
+        Set<AccessKeyBasedFilterForDevices> result = new HashSet<>();
         for (AccessKeyPermission akp : permissionSet) {
-            result.add(new AccessKeyBasedFilter(akp.getDeviceGuidsAsSet(), akp.getNetworkIdsAsSet()));
+            result.add(new AccessKeyBasedFilterForDevices(akp.getDeviceGuidsAsSet(), akp.getNetworkIdsAsSet()));
         }
         return result;
     }

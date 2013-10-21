@@ -1,7 +1,10 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 
@@ -38,15 +41,41 @@ public class NetworkDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Network getWithDevicesAndDeviceClasses(@NotNull long id, long userId) {
-        TypedQuery<Network> query = em.createNamedQuery("Network.getWithDevicesAndDeviceClassesForUser", Network.class);
-        query.setParameter("id", id);
-        query.setParameter("userId", userId);
-        List<Network> result = query.getResultList();
-        return result.isEmpty() ? null : result.get(0);
-    }
+    public List<Network> getNetworkList(@NotNull User user,
+                                        Set<AccessKeyPermission> permissions,
+                                        List<Long> networkIds) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<Network> criteria = criteriaBuilder.createQuery(Network.class);
+        Root<Network> from = criteria.from(Network.class);
+        List<Predicate> predicates = new ArrayList<>();
+        if (!user.isAdmin()) {
+            predicates.add(from.join("users").get("id").in(user.getId()));
+        }
+        if (permissions != null) {
+            Collection<AccessKeyBasedFilterForNetworks> extraFilters = AccessKeyBasedFilterForNetworks
+                    .createExtraFilters(permissions);
 
+            if (extraFilters != null) {
+                List<Predicate> extraPredicates = new ArrayList<>();
+                for (AccessKeyBasedFilterForNetworks extraFilter : extraFilters) {
+                    List<Predicate> filter = new ArrayList<>();
+                    if (extraFilter.getNetworkIds() != null) {
+                        filter.add(from.get("id").in(extraFilter.getNetworkIds()));
+                    }
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                }
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+            }
+        }
+
+        if (networkIds != null && !networkIds.isEmpty()) {
+            predicates.add(from.get("id").in(networkIds));
+        }
+
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+        TypedQuery<Network> query = em.createQuery(criteria);
+        return query.getResultList();
+    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getById(@NotNull long id) {
@@ -80,7 +109,7 @@ public class NetworkDAO {
                               Integer take,
                               Integer skip,
                               User user,
-                              Collection<AccessKeyBasedFilter> extraFilters) {
+                              Collection<AccessKeyBasedFilterForDevices> extraFilters) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Network> criteria = criteriaBuilder.createQuery(Network.class);
@@ -102,7 +131,7 @@ public class NetworkDAO {
 
         if (extraFilters != null) {
             List<Predicate> extraPredicates = new ArrayList<>();
-            for (AccessKeyBasedFilter extraFilter : extraFilters) {
+            for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
                 List<Predicate> filter = new ArrayList<>();
                 if (extraFilter.getNetworkIds() != null) {
                     filter.add(from.get("id").in(extraFilter.getNetworkIds()));

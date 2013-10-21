@@ -1,19 +1,21 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
-import com.devicehive.dao.filter.AccessKeyBasedFilter;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +25,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_NETWORK;
 import static javax.ws.rs.core.Response.Status.*;
@@ -103,8 +106,8 @@ public class NetworkController {
         HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
-        Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
-                ? AccessKeyBasedFilter.createExtraFilters(principal.getKey().getPermissions())
+        Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null
+                ? AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())
                 : null;
         List<Network> result = networkService
                 .list(name, namePattern, sortField, sortOrder, take, skip, user, extraFilters);
@@ -130,53 +133,18 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_NETWORK})
-    public Response getNetwork(@PathParam("id") long id, @Context SecurityContext securityContext) {
+    public Response getNetwork(@PathParam("id") long id) {
 
         logger.debug("Network get requested.");
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
-        User user = principal.getUser() == null ? principal.getKey().getUser() : principal.getUser();
-
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id, user);
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        Network existing = networkService.getWithDevicesAndDeviceClasses(id, principal);
         if (existing == null) {
             logger.debug("Network with id =  {} does not exists", id);
             return ResponseFactory
                     .response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), ErrorResponse
                             .NETWORK_NOT_FOUND_MESSAGE));
         }
-
-        //if user specified, return network
-        if (principal.getUser() != null) {
-            logger.debug("Network get proceed successfully.");
-            return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
-        }
-
-        //otherwise, try to perform the same for access key
-        else {
-            AccessKey key = principal.getKey();
-            if (!accessKeyService.hasAccessToNetwork(key, existing)) {
-                logger.debug("Access key have no permissions for network with id {}", id);
-                return ResponseFactory
-                        .response(NOT_FOUND,
-                                new ErrorResponse(NOT_FOUND.getStatusCode(), ErrorResponse.NETWORK_NOT_FOUND_MESSAGE));
-            }
-            //to get proper devices 1) get access key with all permissions 2) get devices for required network
-            key = accessKeyService.find(key.getId(), user.getId());
-            List<AllowedKeyAction.Action> actions = new ArrayList<>();
-            actions.add(AllowedKeyAction.Action.GET_DEVICE);
-            boolean isAllowedGetDevices = CheckPermissionsHelper.checkAllPermissions(key, actions);
-            if (isAllowedGetDevices) {
-                Collection<AccessKeyBasedFilter> extraFilters = principal.getKey() != null
-                        ? AccessKeyBasedFilter.createExtraFilters(principal.getKey().getPermissions())
-                        : null;
-                Set<Device> devices = new HashSet<>(deviceService.getList(null, null, null, existing.getId(), null, null,
-                        null, null, null, true, existing.getDevices().size(), null, user, extraFilters));
-                existing.setDevices(devices);
-            } else {
-                existing.setDevices(null);
-            }
-            return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
-        }
-
+        return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }
 
     /**

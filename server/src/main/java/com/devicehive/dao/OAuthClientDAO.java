@@ -24,7 +24,6 @@ public class OAuthClientDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient insert(OAuthClient client) {
         em.persist(client);
         return client;
