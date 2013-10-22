@@ -1,7 +1,7 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.context.CommandHandler;
+
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.json.GsonFactory;
@@ -103,7 +103,7 @@ public class SingleHiveDevice implements Closeable {
 
     }
 
-    public void subscribeForCommands(CommandHandler handler) {
+    public void subscribeForCommands() {
 
     }
 

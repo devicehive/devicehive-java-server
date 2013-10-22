@@ -3,12 +3,18 @@ package com.devicehive.client.context;
 
 import com.devicehive.client.json.GsonFactory;
 import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TransferQueue;
 
 public class HiveContext implements Closeable {
 
@@ -17,6 +23,10 @@ public class HiveContext implements Closeable {
 
     private HivePrincipal hivePrincipal;
 
+
+    private BlockingQueue<DeviceCommand> commandQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<DeviceNotification> notificationQueue = new LinkedBlockingQueue<>();
 
     public HiveContext(Transport transport, URI rest) {
         this.transport = transport;
@@ -47,10 +57,15 @@ public class HiveContext implements Closeable {
         return hiveRestClient.execute("/info", HttpMethod.GET, ApiInfo.class, null);
     }
 
-    public static void main(String... args) {
-        HiveContext hiveContext = new HiveContext(Transport.AUTO, URI.create("http://localhost:8080/hive/rest/"));
-        ApiInfo apiInfo = hiveContext.getInfo();
-        System.out.println(GsonFactory.createGson().toJson(apiInfo));
+    public BlockingQueue<DeviceCommand> getCommandQueue() {
+        return commandQueue;
     }
 
+    public BlockingQueue<DeviceCommand> getCommandUpdateQueue() {
+        return commandUpdateQueue;
+    }
+
+    public BlockingQueue<DeviceNotification> getNotificationQueue() {
+        return notificationQueue;
+    }
 }

@@ -1,7 +1,6 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.context.CommandHandler;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
@@ -27,7 +26,7 @@ public interface HiveDeviceGateway {
 
     void updateCommand(String deviceId, DeviceCommand deviceCommand);
 
-    void subscribeForCommands(String deviceId, CommandHandler handler);
+    void subscribeForCommands(String deviceId);
 
     void unsubscribeFromCommands(String deviceId);
 

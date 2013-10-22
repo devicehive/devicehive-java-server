@@ -1,8 +1,7 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.context.CommandHandler;
-import com.devicehive.client.context.CommandUpdateHandler;
+
 import com.devicehive.client.model.DeviceCommand;
 
 import java.sql.Timestamp;
@@ -16,11 +15,11 @@ public interface CommandsController {
 
     DeviceCommand getCommand(String guid, long id);
 
-    DeviceCommand insertCommand(String guid, DeviceCommand command, CommandHandler commandHandler);
+    DeviceCommand insertCommand(String guid, DeviceCommand command);
 
-    void updateCommand(String deviceGuid, DeviceCommand command, CommandUpdateHandler commandUpdateHandler);
+    void updateCommand(String deviceGuid, DeviceCommand command);
 
-    void subscribeForCommands(CommandHandler handler);
+    void subscribeForCommands();
 
     void unsubscribeFromCommands();
 }
