@@ -179,7 +179,7 @@ public class DeviceDAO {
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
         Root<Device> fromDevice = deviceCriteria.from(Device.class);
         fromDevice.fetch("network", JoinType.LEFT);
-        fromDevice.fetch("deviceClass");
+        fromDevice.fetch("deviceClass").fetch("equipment", JoinType.LEFT);
         List<Predicate> devicePredicates = new ArrayList<>();
 
         //device fields filters

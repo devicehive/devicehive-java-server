@@ -53,7 +53,7 @@ public class NetworkService {
     public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HivePrincipal principal) {
         if (principal.getUser() != null) {
             List<Network> found = networkDAO.getNetworkList(principal.getUser(), null, Arrays.asList(networkId));
-            if (found.isEmpty()){
+            if (found.isEmpty()) {
                 return null;
             }
             List<Device> devices = deviceService.getList(networkId, principal.getUser(), null);
@@ -74,14 +74,13 @@ public class NetworkService {
             key = accessKeyService.find(key.getId(), principal.getKey().getUser().getId());
             List<AllowedKeyAction.Action> actions = new ArrayList<>();
             actions.add(AllowedKeyAction.Action.GET_DEVICE);
-            if(!CheckPermissionsHelper.checkAllPermissions(key, actions)){
+            if (!CheckPermissionsHelper.checkAllPermissions(key, actions)) {
                 result.setDevices(null);
                 return result;
             }
 
-            Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null
-                    ? AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())
-                    : null;
+            Collection<AccessKeyBasedFilterForDevices> extraFilters =
+                    AccessKeyBasedFilterForDevices.createExtraFilters(key.getPermissions());
             Set<Device> devices =
                     new HashSet<>(deviceService.getList(result.getId(), key.getUser(), key.getPermissions()));
             result.setDevices(devices);
