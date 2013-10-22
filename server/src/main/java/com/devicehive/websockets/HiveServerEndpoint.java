@@ -105,10 +105,9 @@ public class HiveServerEndpoint {
             ConstraintViolationException ex = (ConstraintViolationException) e.getTargetException();
             logger.debug("[processMessage] Validation error, incorrect input");
             Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
-            StringBuilder builderForResponse = new StringBuilder("Validation failed: \n");
+            StringBuilder builderForResponse = new StringBuilder("Validation failed: ");
             for (ConstraintViolation<?> constraintViolation : constraintViolations) {
-                builderForResponse.append(constraintViolation.getMessage());
-                builderForResponse.append("\n");
+                builderForResponse.append(constraintViolation.getMessage()).append(";");
             }
             throw new HiveException(builderForResponse.toString(), HttpServletResponse.SC_BAD_REQUEST);
         }

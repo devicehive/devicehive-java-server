@@ -78,9 +78,6 @@ public class NetworkService {
                 result.setDevices(null);
                 return result;
             }
-
-            Collection<AccessKeyBasedFilterForDevices> extraFilters =
-                    AccessKeyBasedFilterForDevices.createExtraFilters(key.getPermissions());
             Set<Device> devices =
                     new HashSet<>(deviceService.getList(result.getId(), key.getUser(), key.getPermissions()));
             result.setDevices(devices);
