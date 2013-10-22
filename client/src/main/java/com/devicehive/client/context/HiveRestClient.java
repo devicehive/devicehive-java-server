@@ -3,13 +3,13 @@ package com.devicehive.client.context;
 
 import com.devicehive.client.json.strategies.JsonPolicyApply;
 import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.model.ErrorMessage;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
+import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.rest.HiveClientFactory;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.glassfish.jersey.internal.util.Base64;
 
 import javax.ws.rs.client.Client;
@@ -105,10 +105,10 @@ public class HiveRestClient implements Closeable {
         }
     }
 
-    public <S> void execute(String path, String method, Map<String, Object> queryParams, S objectToSend,
-                            JsonPolicyDef.Policy sendPolicy) {
-        execute(path, method, queryParams, objectToSend, null, sendPolicy, null);
-    }
+//    public <S> void execute(String path, String method, Map<String, Object> queryParams, S objectToSend,
+//                            JsonPolicyDef.Policy sendPolicy) {
+//        execute(path, method, queryParams, objectToSend, null, sendPolicy, null);
+//    }
 
     public <S> void execute(String path, String method, S objectToSend,
                             JsonPolicyDef.Policy sendPolicy) {
@@ -144,12 +144,10 @@ public class HiveRestClient implements Closeable {
                 throw new HiveServerException(response.getStatus());
             case CLIENT_ERROR:
                 if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
-                    throw new HiveException(METHOD_NOT_ALLOWED.getReasonPhrase(), response.getStatus());
+                    throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(), response.getStatus());
                 }
-                Gson gson = new Gson();
-                JsonObject jsonResponse = gson.toJsonTree(response.getEntity()).getAsJsonObject();
-                String reason = jsonResponse.get("message").getAsString();
-                throw new HiveClientException(reason, response.getStatus());
+                ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
             case SUCCESSFUL:
                 if (typeOfR == null) {
                     return null;

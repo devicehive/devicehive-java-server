@@ -1,10 +1,10 @@
 package com.devicehive.client.json;
 
 
-import com.devicehive.client.json.adapters.JsonStringWrapperAdapterFactory;
-import com.devicehive.client.json.adapters.NullableWrapperAdapterFactory;
-import com.devicehive.client.json.adapters.TimestampAdapter;
+import com.devicehive.client.json.adapters.*;
 import com.devicehive.client.json.strategies.AnnotatedStrategy;
+import com.devicehive.client.model.AccessType;
+import com.devicehive.client.model.OAuthType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -42,6 +42,8 @@ public class GsonFactory {
                 .setPrettyPrinting()
                 .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
                 .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
+                .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
+                .registerTypeAdapter(OAuthType.class, new OAuthTypeAdapter())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter());
     }
 
