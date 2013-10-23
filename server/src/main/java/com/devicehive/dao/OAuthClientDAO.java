@@ -107,4 +107,11 @@ public class OAuthClientDAO {
         return resultQuery.getResultList();
 
     }
+
+    public OAuthClient getByName(String name) {
+        TypedQuery<OAuthClient> query = em.createNamedQuery("OAuthClient.getByName", OAuthClient.class);
+        query.setParameter("name", name);
+        List<OAuthClient> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    }
 }

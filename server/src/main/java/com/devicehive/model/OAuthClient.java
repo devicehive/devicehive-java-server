@@ -15,6 +15,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name="OAuthClient.deleteById", query = "delete from OAuthClient oac where oac.id = :id"),
         @NamedQuery(name = "OAuthClient.getByOAuthId", query = "select oac from OAuthClient oac " +
                 "where oac.oauthId = :oauthId"),
+        @NamedQuery(name = "OAuthClient.getByName", query = "select oac from OAuthClient oac " +
+                "where oac.name = :name"),
         @NamedQuery(name = "OAuthClient.getByOAuthIdAndSecret", query = "select oac from OAuthClient oac " +
                 "where oac.oauthId = :oauthId and oac.oauthSecret = :secret")
 })

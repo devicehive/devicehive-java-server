@@ -14,7 +14,7 @@ public class OAuthGrantUpdate implements HiveEntity {
 
     @SerializedName("client")
     @JsonPolicyDef({OAUTH_GRANT_PUBLISHED})
-    private NullableWrapper<OAuthClientUpdate> client;
+    private NullableWrapper<OAuthClient> client;
 
     @SerializedName("type")
     @JsonPolicyDef({OAUTH_GRANT_PUBLISHED})
@@ -44,11 +44,11 @@ public class OAuthGrantUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public NullableWrapper<OAuthClientUpdate> getClient() {
+    public NullableWrapper<OAuthClient> getClient() {
         return client;
     }
 
-    public void setClient(NullableWrapper<OAuthClientUpdate> client) {
+    public void setClient(NullableWrapper<OAuthClient> client) {
         this.client = client;
     }
 
@@ -96,7 +96,7 @@ public class OAuthGrantUpdate implements HiveEntity {
         OAuthGrant grant = new OAuthGrant();
         grant.setId(id);
         if (client != null) {
-            grant.setClient(client.getValue().convertTo());
+            grant.setClient(client.getValue());
         }
         if (type != null) {
             grant.setType(type.getValue());

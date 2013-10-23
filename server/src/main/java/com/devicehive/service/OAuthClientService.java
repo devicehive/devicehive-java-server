@@ -93,5 +93,9 @@ public class OAuthClientService {
     public OAuthClient authenticate(@NotNull String id, @NotNull String secret){
         return clientDAO.get(id, secret);
     }
+
+    public OAuthClient getByName(String name) {
+        return clientDAO.getByName(name);
+    }
 }
 

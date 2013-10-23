@@ -98,9 +98,16 @@ public class OAuthGrantService {
         }
         OAuthClient client = existing.getClient();
         if (grantToUpdate.getClient() != null) {
-            client = grantToUpdate.getClient().getValue() == null
-                    ? null
-                    : grantToUpdate.getClient().getValue().convertTo();
+            OAuthClient clientFromGrant = grantToUpdate.getClient().getValue();
+            if (clientFromGrant == null) {
+                throw new HiveException("client cannot be null!");
+            }
+            if (clientFromGrant.getId() != null) {
+                client = clientService.get(clientFromGrant.getId());
+            } else if (clientFromGrant.getName() != null) {
+                 client = clientService.getByName(clientFromGrant.getName());
+            }
+
         }
         existing.setClient(client);
         if (grantToUpdate.getAccessType() != null)

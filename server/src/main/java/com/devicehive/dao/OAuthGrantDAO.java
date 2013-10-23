@@ -39,7 +39,10 @@ public class OAuthGrantDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthGrant get(Long grantId) {
-        return em.find(OAuthGrant.class, grantId);
+        TypedQuery<OAuthGrant> query = em.createNamedQuery("OAuthGrant.getById", OAuthGrant.class);
+        query.setParameter("grantId", grantId);
+        List<OAuthGrant> result = query.getResultList();
+        return result.isEmpty() ? null : result.get(0);
     }
 
 

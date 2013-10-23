@@ -1,0 +1,297 @@
+<html>
+<head>
+    <title>DeviceHive OAuth Authorization</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" src="oauth2/scripts/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="oauth2/scripts/oauth.utils.js"></script>
+    <style type="text/css">
+        html, body { margin: 0px auto; padding: 0; font-family: Verdana; font-size: 12pt; }
+        input[type=text], input[type=password] { width: 200px; }
+        button { width: 100px; height: 24px; }
+        .panel { width: 400px; margin: 0px auto; padding: 20px 0; display: none; }
+        .center { text-align: center; }
+        .line { padding: 8px 0; }
+        .line label.block { display: block; float: left; width: 100px; padding-top: 3px; }
+        #client { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="credentials" class="panel">
+        <div class="line">
+            Please authenticate with DeviceHive:
+        </div>
+        <div class="line">
+            <label class="block">Login:</label>
+            <input type="text" id="login" name="login" autocomplete="off" />
+        </div>
+        <div class="line">
+            <label class="block">Password:</label>
+            <input type="password" id="password" name="password" autocomplete="off" />
+        </div>
+        <div class="line center">
+            <button id="btn-credentials-submit">Submit</button>
+        </div>
+    </div>
+    <div id="permissions" class="panel">
+        <div class="line">
+            <span id="client"></span> is requesting permissions for:
+            <ul id="scope"></ul>
+        </div>
+        <div class="line">
+            <label for="cb-limit-networks"><input type="checkbox" id="cb-limit-networks" /> Limit access to specific networks</label>
+        </div>
+        <div class="line" id="line-network-list" style="display: none">
+            <ul id="network-list"></ul>
+        </div>
+        <div class="line center">
+            <button id="btn-permissions-allow">Allow</button>
+            <button id="btn-permissions-cancel">Cancel</button>
+        </div>
+    </div>
+    <div id="error" class="panel">
+        <div class="line">
+            An error occurred with the request!
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        $(function () {
+
+            var viewModel = {
+
+                serviceUrl: 'http://devicehive-java/DeviceHiveJava/rest',
+
+                getClientInfo: function () {
+
+                    // if clientId or redirectUri is missing - show a static error
+                    if (!this.oauthClientId || !this.oauthRedirectUrl) {
+                        $("#error").show();
+                        return false;
+                    }
+
+                    var self = this;
+                    callDeviceHive(this.serviceUrl, null, null, "GET", "/oauth/client", { oauthId: this.oauthClientId }).pipe(
+                        function (data) {
+
+                            // if client does not exist or redirect URI is invalid - should a static error
+                            if (data.length == 0 || data[0].redirectUri != self.oauthRedirectUrl) {
+                                $("#error").show();
+                                return;
+                            }
+
+                            // validate request parameters
+                            self.client = data[0];
+                            if (!self.oauthScope || !self.oauthResponseType) {
+                                return self.redirectBack("?error=invalid_request");
+                            }
+                            self.oauthType = self.oauthResponseType == "code" ? "Code" : self.oauthResponseType == "token" ? "Token" : null;
+                            if (!self.oauthType) {
+                                return self.redirectBack("?error=unsupported_response_type");
+                            }
+                            var scope = self.parseScope(self.oauthScope);
+                            if (scope.length == 0) {
+                                return self.redirectBack("?error=invalid_scope");
+                            }
+
+                            // render information about grant
+                            $("#client").text(self.client.name);
+                            $.each(scope, function (i, item) { $("<li></li>").text(item).appendTo($("#scope")); });
+
+                            // authenticate user or show login dialog
+                            if (sessionStorage && sessionStorage.userLogin) {
+                                self.authenticate(sessionStorage.userLogin, sessionStorage.userPassword);
+                            }
+                            else {
+                                $("#credentials").show();
+                            }
+                        },
+                        function (xhr) {
+                            alert("DeviceHive server error!");
+                        });
+                },
+
+                // authenticates the client using provided credentials
+                authenticate: function (login, password) {
+                    var self = this;
+                    callDeviceHive(this.serviceUrl, login, password, "GET", "/user/current").pipe(
+                        function (data) {
+                            sessionStorage.userLogin = self.userLogin = login;
+                            sessionStorage.userPassword = self.userPassword = password;
+                            self.user = data;
+                            self.validateGrant();
+                        },
+                        function (xhr) {
+                            if (xhr && xhr.status == 401) {
+                                if ($("#credentials").is(":visible")) {
+                                    alert("Invalid credentials, please try again!");
+                                }
+                                $("#credentials").show();
+                            } else {
+                                alert("DeviceHive server error!");
+                                self.redirectBack("?error=server_error");
+                            }
+                        });
+                },
+
+                // loads and displays the list of accessible networks
+                loadNetworks: function () {
+                    if (this.networkListLoading) return;
+                    this.networkListLoading = true;
+
+                    var populateNetworks = function (networks) {
+                        $.each(networks, function (i, item) {
+                            var input = $("<input type='checkbox' id='network-" + item.id + "' />");
+                            var label = $("<label for='network-" + item.id + "'></label>").text(item.name);
+                            $("<li></li>").append(input).append(label).appendTo($("#network-list"));
+                        });
+                    };
+
+                    if (this.user.role != 0) {
+                        populateNetworks($.map(this.user.networks, function (network) { return network.network; }));
+                        return;
+                    }
+
+                    var self = this;
+                    callDeviceHive(this.serviceUrl, this.userLogin, this.userPassword, "GET", "/network").pipe(
+                        function (data) {
+                            populateNetworks(data);
+                        },
+                        function (xhr) {
+                            alert("DeviceHive server error!");
+                            self.redirectBack("?error=server_error");
+                        });
+                },
+
+                // checks if user previously approved the grant
+                validateGrant: function () {
+                    var self = this;
+                    callDeviceHive(this.serviceUrl, this.userLogin, this.userPassword, "GET", "/user/current/oauth/grant", {
+                        clientOAuthId: self.oauthClientId,
+                        type: self.oauthType,
+                        scope: self.oauthScope,
+                        redirectUri: self.oauthRedirectUrl,
+                        accessType: self.oauthAccessType
+                    }).pipe(
+                        function (data) {
+                            if (data.length > 0) {
+                                self.grant = data[0];
+                                self.issueGrant();
+                            }
+                            else {
+                                $("#credentials").hide();
+                                $("#permissions").show();
+                            }
+                        },
+                        function (xhr) {
+                            alert("DeviceHive server error!");
+                            self.redirectBack("?error=server_error");
+                        });
+                },
+
+                // issues new grant
+                issueGrant: function () {
+                    var networkIds = null;
+                    if ($("#cb-limit-networks").is(":checked")) {
+                        var items = $("#network-list input:checked");
+                        if (items.length == 0) {
+                            alert("Please select at least one network!");
+                            return;
+                        }
+                        networkIds = $.map(items, function (i) { return parseInt(i.id.substring(8)); });
+                    }
+
+                    var self = this;
+                    callDeviceHive(this.serviceUrl, this.userLogin, this.userPassword,
+                        self.grant ? "PUT" : "POST", "/user/current/oauth/grant" + (self.grant ? "/" + self.grant.id : ""), {
+                            client: { oauthId: self.oauthClientId },
+                            type: self.oauthType,
+                            accessType: self.oauthAccessType,
+                            redirectUri: self.oauthRedirectUrl,
+                            scope: self.oauthScope,
+                            networkIds: networkIds
+                    }).pipe(
+                        function (data) {
+                            if (data.authCode) {
+                                self.redirectBack("?code=" + data.authCode);
+                            }
+                            else if (data.accessKey && data.accessKey.key) {
+                                self.redirectBack("?token_type=Bearer&access_token=" + data.accessKey.key);
+                            }
+                        },
+                        function (xhr) {
+                            alert("DeviceHive server error!");
+                            self.redirectBack("?error=server_error");
+                        });
+                },
+
+                // redirect user back to the client site
+                redirectBack: function (query) {
+                    document.location.href = this.oauthRedirectUrl + query + (this.oauthState ? "&state=" + this.oauthState : "");
+                    return false;
+                },
+
+                parseScope: function (scope) {
+                    return $.map(scope.split(' '), function (s) {
+                        switch (s) {
+                            case "GetNetwork": return "View Networks";
+                            case "GetDevice": return "View Devices";
+                            case "GetDeviceState": return "Receive Device State";
+                            case "GetDeviceNotification": return "Receive Device Notifications";
+                            case "GetDeviceCommand": return "Receive Device Commands";
+                            case "RegisterDevice": return "Register Devices";
+                            case "CreateDeviceNotification": return "Create Device Notifications";
+                            case "CreateDeviceCommand": return "Create Device Commands";
+                            case "UpdateDeviceCommand": return "Update Device Commands";
+                            default: return null;
+                        }
+                    });
+                }
+            };
+
+
+            // parse URL parameters
+            viewModel.oauthClientId = getUrlParam("client_id");
+            viewModel.oauthRedirectUrl = getUrlParam("redirect_uri")
+            viewModel.oauthResponseType = getUrlParam("response_type");
+            viewModel.oauthScope = getUrlParam("scope");
+            viewModel.oauthState = getUrlParam("state");
+            viewModel.oauthAccessType = getUrlParam("access_type") == "offline" ? "Offline" : "Online";
+
+            // start loading client information
+            viewModel.getClientInfo();
+
+
+            // bind event handlers
+            $("#btn-credentials-submit").click(function () {
+                var login = $("#login").val();
+                var password = $("#password").val();
+                if (!login || !password) {
+                    alert("Please enter your DeviceHive credentials!");
+                    return false;
+                }
+
+                viewModel.authenticate(login, password);
+            });
+
+            $("#btn-permissions-allow").click(function () {
+                viewModel.issueGrant();
+                return false;
+            });
+
+            $("#btn-permissions-cancel").click(function () {
+                return viewModel.redirectBack("?error=access_denied");
+            });
+
+            $("#cb-limit-networks").click(function () {
+                $("#line-network-list").toggle(this.checked);
+                if (this.checked) {
+                    viewModel.loadNetworks();
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>

@@ -27,7 +27,15 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 "join fetch oag.client " +
                 "join fetch oag.accessKey ak " +
                 "join fetch ak.permissions " +
+                "join fetch oag.user " +
                 "where oag.id = :grantId and oag.user = :user"),
+        @NamedQuery(name = "OAuthGrant.getById", query = "select oag " +
+                "from OAuthGrant oag " +
+                "join fetch oag.client " +
+                "join fetch oag.accessKey ak " +
+                "join fetch ak.permissions " +
+                "join fetch oag.user " +
+                "where oag.id = :grantId"),
         @NamedQuery(name = "OAuthGrant.deleteByUserAndId",
                 query = "delete from OAuthGrant oag where oag.id = :grantId and oag.user = :user"),
         @NamedQuery(name = "OAuthGrant.deleteById", query = "delete from OAuthGrant oag where oag.id = :grantId"),

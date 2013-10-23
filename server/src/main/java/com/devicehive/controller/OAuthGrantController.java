@@ -7,10 +7,7 @@ import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.OAuthGrant;
-import com.devicehive.model.Type;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
@@ -22,8 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -56,10 +51,10 @@ public class OAuthGrantController {
                          @QueryParam("start") Timestamp start,
                          @QueryParam("end") Timestamp end,
                          @QueryParam("clientOAuthId") String clientOAuthId,
-                         @QueryParam("type") @Min(0) @Max(2) Integer type,
+                         @QueryParam("type") String type,
                          @QueryParam("scope") String scope,
                          @QueryParam("redirectUri") String redirectUri,
-                         @QueryParam("accessType") @Min(0) @Max(1) Integer accessType,
+                         @QueryParam("accessType") String accessType,
                          @QueryParam("sortField") @DefaultValue("Timestamp") String sortField,
                          @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                          @QueryParam("take") Integer take,
@@ -73,8 +68,10 @@ public class OAuthGrantController {
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
         User user = getUser(userId);
-        List<OAuthGrant> result = grantService.list(user, start, end, clientOAuthId, type, scope,
-                redirectUri, accessType, sortField, sortOrder, take, skip);
+        List<OAuthGrant> result = grantService.list(user, start, end, clientOAuthId,
+                type == null ? null : Type.forName(type).ordinal(), scope,
+                redirectUri, accessType == null ? null : AccessType.forName(accessType).ordinal(), sortField,
+                sortOrder, take, skip);
         logger.debug(
                 "OAuthGrant: list proceed successfully. User id: {}, start: {}, end: {}, clientOAuthID: {}, " +
                         "type: {}, scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
