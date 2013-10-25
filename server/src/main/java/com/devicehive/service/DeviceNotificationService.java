@@ -65,12 +65,17 @@ public class DeviceNotificationService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> queryDeviceNotification(Device device, Timestamp start, Timestamp end,
+    public List<DeviceNotification> queryDeviceNotification(Device device,
+                                                            Timestamp start,
+                                                            Timestamp end,
                                                             String notification,
-                                                            String sortField, Boolean sortOrderAsc, Integer take,
-                                                            Integer skip) {
+                                                            String sortField,
+                                                            Boolean sortOrderAsc,
+                                                            Integer take,
+                                                            Integer skip,
+                                                            Integer gridInterval) {
         return deviceNotificationDAO
-                .queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip);
+                .queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip, gridInterval);
     }
 
 

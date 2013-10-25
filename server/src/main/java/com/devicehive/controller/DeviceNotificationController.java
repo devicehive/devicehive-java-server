@@ -161,7 +161,7 @@ public class DeviceNotificationController {
                           @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                           @QueryParam("take") Integer take,
                           @QueryParam("skip") Integer skip,
-                          @Context SecurityContext securityContext) {
+                          @QueryParam("gridInterval") Integer gridInterval) {
 
         logger.debug("Device notification query requested. Guid {}, start {}, end {}, notification {}, sort field {}," +
                 "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
@@ -184,7 +184,7 @@ public class DeviceNotificationController {
 
         sortField = sortField.toLowerCase();
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
 
@@ -198,7 +198,7 @@ public class DeviceNotificationController {
         }
 
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
-                notification, sortField, sortOrder, take, skip);
+                notification, sortField, sortOrder, take, skip, gridInterval);
 
         logger.debug("Device notification query succeed. Guid {}, start {}, end {}, notification {}, sort field {}," +
                 "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);

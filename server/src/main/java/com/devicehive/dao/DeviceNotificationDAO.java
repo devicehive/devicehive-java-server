@@ -51,7 +51,7 @@ public class DeviceNotificationDAO {
 
         predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
 
-        if (user != null && !user.isAdmin()){
+        if (user != null && !user.isAdmin()) {
             Path<User> path = from.join("device").join("network").join("users");
             predicates.add(path.in(user));
         }
@@ -62,10 +62,15 @@ public class DeviceNotificationDAO {
 
     @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> queryDeviceNotification(Device device, Timestamp start, Timestamp end,
+    public List<DeviceNotification> queryDeviceNotification(Device device,
+                                                            Timestamp start,
+                                                            Timestamp end,
                                                             String notification,
-                                                            String sortField, Boolean sortOrderAsc, Integer take,
-                                                            Integer skip) {
+                                                            String sortField,
+                                                            Boolean sortOrderAsc,
+                                                            Integer take,
+                                                            Integer skip,
+                                                            Integer gridInterval) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -80,17 +85,19 @@ public class DeviceNotificationDAO {
         if (notification != null) {
             predicates.add(criteriaBuilder.equal(from.get("notification"), notification));
         }
-
+        if (gridInterval != null) {
+            predicates.add(from.get("timestamp").in(gridIntervalFilter(criteriaBuilder, gridInterval,from.<Timestamp>get("timestamp"))));
+        }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
 
         if (sortField != null) {
             if (sortOrderAsc) {
                 criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
             } else {
+
                 criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));
             }
         }
-
         TypedQuery<DeviceNotification> resultQuery = em.createQuery(criteria);
         if (skip != null) {
             resultQuery.setFirstResult(skip);
@@ -100,6 +107,12 @@ public class DeviceNotificationDAO {
             resultQuery.setMaxResults(take);
         }
         return resultQuery.getResultList();
+    }
+
+    private Expression<Timestamp> gridIntervalFilter(CriteriaBuilder cb,
+                                                     Integer gridInterval,
+                                                     Expression<Timestamp> exp) {
+        return cb.function("get_first_timestamp", Timestamp.class, cb.literal(gridInterval), exp);
     }
 
     public boolean deleteNotification(@NotNull long id) {
@@ -113,6 +126,5 @@ public class DeviceNotificationDAO {
         query.setParameter("device", device);
         return query.executeUpdate();
     }
-
 
 }
