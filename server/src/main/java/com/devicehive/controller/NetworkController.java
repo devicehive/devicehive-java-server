@@ -22,9 +22,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
 import java.util.List;
 
@@ -89,8 +87,7 @@ public class NetworkController {
                                    @QueryParam("sortField") String sortField,
                                    @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                                    @QueryParam("take") Integer take,
-                                   @QueryParam("skip") Integer skip,
-                                   @Context SecurityContext securityContext) {
+                                   @QueryParam("skip") Integer skip) {
 
         logger.debug("Network list requested");
 
@@ -103,7 +100,7 @@ public class NetworkController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null

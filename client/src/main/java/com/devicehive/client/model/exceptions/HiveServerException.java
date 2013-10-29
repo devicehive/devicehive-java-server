@@ -11,4 +11,8 @@ public class HiveServerException extends HiveException {
     public HiveServerException(Integer code) {
         super(MESSAGE, code);
     }
+
+    public HiveServerException(String message, Integer code) {
+        super(message, code);
+    }
 }

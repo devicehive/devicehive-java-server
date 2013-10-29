@@ -1,7 +1,6 @@
 package com.devicehive.client.context;
 
 
-import com.devicehive.client.json.GsonFactory;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -11,10 +10,8 @@ import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TransferQueue;
 
 public class HiveContext implements Closeable {
 
@@ -48,7 +45,7 @@ public class HiveContext implements Closeable {
 
     public synchronized void setHivePrincipal(HivePrincipal hivePrincipal) {
         if (this.hivePrincipal != null) {
-            throw new IllegalStateException("Principal is alreay set");
+            throw new IllegalStateException("Principal is already set");
         }
         this.hivePrincipal = hivePrincipal;
     }

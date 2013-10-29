@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.json.GsonFactory;
@@ -13,7 +14,7 @@ import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -26,19 +27,15 @@ import javax.ejb.EJB;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -101,8 +98,7 @@ public class DeviceController {
                          @QueryParam("sortField") String sortField,
                          @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                          @QueryParam("take") @Min(0) @Max(Integer.MAX_VALUE) Integer take,
-                         @QueryParam("skip") @Min(0) @Max(Integer.MAX_VALUE) Integer skip,
-                         @Context SecurityContext securityContext) {
+                         @QueryParam("skip") @Min(0) @Max(Integer.MAX_VALUE) Integer skip) {
 
         logger.debug("Device list requested");
 
@@ -114,7 +110,7 @@ public class DeviceController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         }
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null
@@ -148,7 +144,7 @@ public class DeviceController {
     @AllowedKeyAction(action = {REGISTER_DEVICE})
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response register(JsonObject jsonObject, @PathParam("id") String deviceGuid, @Context SecurityContext securityContext) {
+    public Response register(JsonObject jsonObject, @PathParam("id") String deviceGuid) {
         logger.debug("Device register method requested. Guid : {}", deviceGuid);
 
         Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
@@ -165,7 +161,7 @@ public class DeviceController {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        deviceService.deviceSaveAndNotify(device, equipmentSet, (HivePrincipal) securityContext.getUserPrincipal(),
+        deviceService.deviceSaveAndNotify(device, equipmentSet, ThreadLocalVariablesKeeper.getPrincipal(),
                 useExistingEquipment);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
@@ -185,10 +181,10 @@ public class DeviceController {
     @Path("/{id}")
     @AllowedKeyAction(action = {GET_DEVICE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    public Response get(@PathParam("id") String guid, @Context SecurityContext securityContext) {
+    public Response get(@PathParam("id") String guid) {
         logger.debug("Device get requested. Guid {}", guid);
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser();
         if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
@@ -220,11 +216,11 @@ public class DeviceController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
-    public Response delete(@PathParam("id") String guid, @Context SecurityContext securityContext) {
+    public Response delete(@PathParam("id") String guid) {
 
         logger.debug("Device delete requested");
 
-        User currentUser = ((HivePrincipal) securityContext.getUserPrincipal()).getUser();
+        User currentUser = ThreadLocalVariablesKeeper.getPrincipal().getUser();
         deviceService.deleteDevice(guid, currentUser);
 
         logger.debug("Device with id = {} is deleted", guid);
@@ -270,10 +266,10 @@ public class DeviceController {
     @Path("/{id}/equipment")
     @AllowedKeyAction(action = {GET_DEVICE_STATE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    public Response equipment(@PathParam("id") String guid, @Context SecurityContext securityContext) {
+    public Response equipment(@PathParam("id") String guid) {
         logger.debug("Device equipment requested for device {}", guid);
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,
                 principal.getDevice());
@@ -308,11 +304,10 @@ public class DeviceController {
     @AllowedKeyAction(action = {GET_DEVICE_STATE})
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipmentByCode(@PathParam("id") String guid,
-                                    @PathParam("code") String code,
-                                    @Context SecurityContext securityContext) {
+                                    @PathParam("code") String code) {
 
         logger.debug("Device equipment by code requested");
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
         if (principal.getKey() != null) {

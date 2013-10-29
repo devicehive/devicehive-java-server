@@ -2,12 +2,15 @@ package com.devicehive.client.util;
 
 
 import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Equipment;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 public class HiveValidator {
 
@@ -52,7 +55,14 @@ public class HiveValidator {
         }
         if (!constraintViolations.isEmpty()) {
             String message = "Validation failed with following constraint violations: ";
-            throw new HiveClientException(message + StringUtils.join(constraintViolations, ";"));
+            throw new HiveClientException(message + StringUtils.join(constraintViolations, ";"),
+                    BAD_REQUEST.getStatusCode());
+        }
+    }
+
+    public static void validate(DeviceNotification deviceNotification) {
+        if (StringUtils.isEmpty(deviceNotification.getNotification())){
+            throw new HiveClientException("Device notification name is required!", BAD_REQUEST.getStatusCode());
         }
     }
 }

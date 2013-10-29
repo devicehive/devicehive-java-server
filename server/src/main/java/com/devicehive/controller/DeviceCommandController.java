@@ -40,10 +40,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -159,7 +157,7 @@ public class DeviceCommandController {
             }
         }
         List<DeviceCommand> list = asyncResponsePollingProcess(principal,
-                Arrays.asList(deviceGuid),
+                new ArrayList<>(Arrays.asList(deviceGuid)),
                 names,
                 timestamp,
                 timeout,
@@ -180,10 +178,9 @@ public class DeviceCommandController {
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
-            @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         final List<String> names = ParseUtil.getList(namesString);
         final List<String> deviceGuids = ParseUtil.getList(deviceGuidsString);
         asyncResponse.register(new CompletionCallback() {
@@ -322,10 +319,9 @@ public class DeviceCommandController {
             @PathParam("commandId") final Long commandId,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
-            @Context SecurityContext securityContext,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
 
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -462,8 +458,7 @@ public class DeviceCommandController {
                           @QueryParam("sortField") String sortField,
                           @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                           @QueryParam("take") Integer take,
-                          @QueryParam("skip") Integer skip,
-                          @Context SecurityContext securityContext) {
+                          @QueryParam("skip") Integer skip) {
 
         logger.debug("Device command query requested");
         if (sortOrder == null) {
@@ -484,7 +479,7 @@ public class DeviceCommandController {
         sortField = sortField.toLowerCase();
 
         Device device;
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser();
         if (user == null && principal.getKey() != null) {
             user = principal.getKey().getUser();
@@ -531,11 +526,10 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     @Path("/{deviceGuid}/command/{id}")
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id,
-                        @Context SecurityContext securityContext) {
+    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
 
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,

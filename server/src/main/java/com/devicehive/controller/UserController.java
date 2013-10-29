@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -13,17 +14,15 @@ import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.*;
@@ -134,7 +133,7 @@ public class UserController {
     @GET
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response getUser(@PathParam("id") Long userId, @Context SecurityContext securityContext) {
+    public Response getUser(@PathParam("id") Long userId) {
 
         User user = userService.findUserWithNetworks(userId);
 
@@ -151,8 +150,8 @@ public class UserController {
     @GET
     @Path("/current")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response getCurrent(@Context SecurityContext securityContext) {
-        HivePrincipal principal = (HivePrincipal) securityContext.getUserPrincipal();
+    public Response getCurrent() {
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         Long id = principal.getUser().getId();
         User currentUser = userService.findUserWithNetworks(id);
 
@@ -228,8 +227,8 @@ public class UserController {
     @Path("/current")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateCurrentUser(UserUpdate user, @Context SecurityContext securityContext) {
-        Long id = ((HivePrincipal) securityContext.getUserPrincipal()).getUser().getId();
+    public Response updateCurrentUser(UserUpdate user) {
+        Long id = ThreadLocalVariablesKeeper.getPrincipal().getUser().getId();
         userService.updateUser(id, user);
         return ResponseFactory.response(NO_CONTENT);
     }

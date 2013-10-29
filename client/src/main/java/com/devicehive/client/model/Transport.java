@@ -3,7 +3,7 @@ package com.devicehive.client.model;
 
 public enum Transport {
 
-    AUTO(1, 2), PREFER_REST(2, 2), PREFER_WEBSOCKET(1, 2), REST_ONLY(1, 0), WEBSOCKET_ONLY(0, 1);
+    AUTO(1, 2), PREFER_REST(2, 1), PREFER_WEBSOCKET(1, 2), REST_ONLY(1, 0), WEBSOCKET_ONLY(0, 1);
 
 
     private int restPriority;

@@ -1,6 +1,7 @@
 package com.devicehive.client.context;
 
 
+import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.json.strategies.JsonPolicyApply;
 import com.devicehive.client.json.strategies.JsonPolicyDef;
 import com.devicehive.client.model.ErrorMessage;
@@ -10,6 +11,7 @@ import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.rest.HiveClientFactory;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.internal.util.Base64;
 
 import javax.ws.rs.client.Client;
@@ -25,8 +27,16 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
 public class HiveRestClient implements Closeable {
@@ -71,15 +81,27 @@ public class HiveRestClient implements Closeable {
         return headers;
     }
 
-
     private WebTarget createTarget(String path, Map<String, Object> queryParams) {
-        WebTarget target = restClient.target(rest).path(path);
+
         if (queryParams != null) {
-            for (Map.Entry<String, Object> param: queryParams.entrySet()) {
-                target.queryParam(param.getKey(), param.getKey());
+            List<String> queryParamsParts = new ArrayList<>(queryParams.size());
+            for (Map.Entry<String, Object> param : queryParams.entrySet()) {
+                if (param.getValue() != null) {
+                    if (param.getValue() instanceof Timestamp) {
+                        queryParamsParts.add(param.getKey() + "=" + TimestampAdapter.formatTimestamp(
+                                (Timestamp) param.getValue()));
+                    }
+                    else{
+                        queryParamsParts.add(param.getKey() + "=" + param.getValue().toString());
+                    }
+                }
+            }
+            if (!queryParamsParts.isEmpty()) {
+                String resultPathString = rest + path + '?' + StringUtils.join(queryParamsParts, "&");
+                return restClient.target(resultPathString);
             }
         }
-        return target;
+        return restClient.target(rest).path(path);
     }
 
     private <S> Invocation buildInvocation(String path, String method, Map<String, Object> queryParams, S objectToSend,
@@ -114,7 +136,6 @@ public class HiveRestClient implements Closeable {
                             JsonPolicyDef.Policy sendPolicy) {
         execute(path, method, null, objectToSend, null, sendPolicy, null);
     }
-
 
     public void execute(String path, String method, Map<String, Object> queryParams) {
         execute(path, method, queryParams, null, null, null, null);
@@ -162,5 +183,69 @@ public class HiveRestClient implements Closeable {
                 throw new HiveException("Unknown response");
         }
 
+    }
+
+    public <S, R> R executeAsync(String path, String method, Map<String, Object> queryParams, S objectToSend,
+                                 Type typeOfR,
+                                 JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
+
+        Future<Response> futureResponse = buildAsyncInvocation(path, method, queryParams, objectToSend, sendPolicy);
+
+        try {
+            Response response = futureResponse.get(5L, TimeUnit.MINUTES);
+            Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
+            switch (statusFamily) {
+                case SERVER_ERROR:
+                    throw new HiveServerException(response.getStatus());
+                case CLIENT_ERROR:
+                    if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
+                        throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
+                                response.getStatus());
+                    }
+                    ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                    throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
+                case SUCCESSFUL:
+                    if (typeOfR == null) {
+                        return null;
+                    }
+                    if (receivePolicy == null) {
+                        return response.readEntity(new GenericType<R>(typeOfR));
+                    } else {
+                        Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
+                        return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
+                    }
+                default:
+                    throw new HiveException("Unknown response");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            throw new InternalHiveClientException("Request cannot be proceed!", e);
+        } catch (TimeoutException e) {
+            throw new HiveServerException("Server does not response!", INTERNAL_SERVER_ERROR.getStatusCode());
+        }
+
+    }
+
+    private <S> Future<Response> buildAsyncInvocation(String path, String method, Map<String, Object> queryParams,
+                                                      S objectToSend,
+                                                      JsonPolicyDef.Policy sendPolicy) {
+        Invocation.Builder invocationBuilder = createTarget(path, queryParams).
+                request().
+                accept(MediaType.APPLICATION_JSON_TYPE).
+                header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
+            invocationBuilder.header(entry.getKey(), entry.getValue());
+        }
+        if (objectToSend != null) {
+            Entity<S> entity;
+            if (sendPolicy != null) {
+                entity = Entity.entity(objectToSend, MediaType.APPLICATION_JSON_TYPE,
+                        new Annotation[]{new JsonPolicyApply.JsonPolicyApplyLiteral(sendPolicy)});
+            } else {
+                entity = Entity.entity(objectToSend, MediaType.APPLICATION_JSON_TYPE);
+            }
+            return invocationBuilder.async().method(method, entity);
+        } else {
+            return invocationBuilder.async().method(method);
+        }
     }
 }
