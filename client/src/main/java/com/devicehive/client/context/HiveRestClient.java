@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +41,7 @@ public class HiveRestClient implements Closeable {
     private final URI rest;
     private final Client restClient;
     private final HiveContext hiveContext;
+    private Set<Future<Response>> futureResponseSet = new HashSet<>();
 
     public HiveRestClient(URI rest, HiveContext hiveContext) {
         this.rest = rest;
@@ -172,9 +175,10 @@ public class HiveRestClient implements Closeable {
                                  JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
 
         Future<Response> futureResponse = buildAsyncInvocation(path, method, queryParams, objectToSend, sendPolicy);
-
+        futureResponseSet.add(futureResponse);
         try {
             Response response = futureResponse.get(5L, TimeUnit.MINUTES);
+            futureResponseSet.remove(futureResponse);
             Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
             switch (statusFamily) {
                 case SERVER_ERROR:
@@ -228,6 +232,14 @@ public class HiveRestClient implements Closeable {
             return invocationBuilder.async().method(method, entity);
         } else {
             return invocationBuilder.async().method(method);
+        }
+    }
+
+    public void stopAsyncTasks() {
+        for (Future<Response> response : futureResponseSet) {
+            if (!response.isDone() && !response.isCancelled()) {
+                response.cancel(true);
+            }
         }
     }
 }

@@ -25,42 +25,53 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class SingleHiveDevice implements Closeable {
 
     private HiveContext hiveContext;
-    private ExecutorService subscriptionExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService subscriptionExecutor = null;
 
     public SingleHiveDevice(URI restUri) {
         this.hiveContext = new HiveContext(Transport.AUTO, restUri);
     }
 
     public static void main(String... args) {
-        SingleHiveDevice shd = new SingleHiveDevice(URI.create("http://127.0.0.1:8080/hive/rest/"));
+        Thread.currentThread().setName("mainThread");
+        final SingleHiveDevice shd = new SingleHiveDevice(URI.create("http://127.0.0.1:8080/hive/rest/"));
         shd.authenticate("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8");
-//        Device device = shd.getDevice();
-//        Gson gson = GsonFactory.createGson();
-//        JsonObject obj = (JsonObject) gson.toJsonTree(device);
-//        System.out.println(obj.toString());
-//        device.setName("changedName");
-//        shd.saveDevice(device);
-//        List<DeviceCommand> commands = shd.queryCommands(null, null, null, null, "Command", true, null, null);
-//        System.out.println(commands.toString());
-//        DeviceCommand command = shd.getCommand(1L);
-//        System.out.print(command.toString());
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             Date startDate = formatter.parse("2013-10-11 13:12:00");
             shd.subscribeForCommands(new Timestamp(startDate.getTime()), 40);
         } catch (ParseException e) {
-            System.out.print(e);
+            System.err.print(e);
         }
+        ScheduledExecutorService killer = Executors.newSingleThreadScheduledExecutor();
+        killer.schedule(new Runnable() {
+            @Override
+            public void run() {
+                Thread.currentThread().setName("KillerFeature");
+                shd.unsubscribeFromCommands();
+
+            }
+        }, 30, TimeUnit.SECONDS);
+        killer.shutdown();
+        try {
+            if (!killer.awaitTermination(40, TimeUnit.SECONDS)) {
+                killer.shutdownNow();
+                if (!killer.awaitTermination(5, TimeUnit.SECONDS))
+                    throw new InternalHiveClientException(
+                            "Unable to unsubscribe from commands! subscriptionExecutor " +
+                                    "did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            killer.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
     }
 
     @Override
@@ -121,7 +132,8 @@ public class SingleHiveDevice implements Closeable {
     }
 
     public void subscribeForCommands(final Timestamp timestamp, final Integer waitTimeout) {
-        if (!subscriptionExecutor.isShutdown() && !subscriptionExecutor.isTerminated()) {
+        if (subscriptionExecutor == null || subscriptionExecutor.isShutdown() || subscriptionExecutor.isTerminated()) {
+            subscriptionExecutor = Executors.newSingleThreadExecutor();
             Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
             final BlockingQueue<DeviceCommand> commandQueue = hiveContext.getCommandQueue();
             final String path = "/device/" + authenticated.getKey() + "/command/poll";
@@ -129,6 +141,7 @@ public class SingleHiveDevice implements Closeable {
 
                 @Override
                 public void run() {
+                    Thread.currentThread().setName("SubscriptionsGetter");
                     while (true) {
                         Map<String, Object> queryParams = new HashMap<>();
                         queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
@@ -152,23 +165,22 @@ public class SingleHiveDevice implements Closeable {
     }
 
     public void unsubscribeFromCommands() {
-        subscriptionExecutor.shutdown(); // Disable new tasks from being submitted
-        try {
-            // Wait a while for existing tasks to terminate
-            if (!subscriptionExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
-                subscriptionExecutor.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
-                if (!subscriptionExecutor.awaitTermination(60, TimeUnit.SECONDS))
-                    throw new InternalHiveClientException("Unable to unsubscribe from commands! subscriptionExecutor " +
-                            "did not terminate");
+        if (subscriptionExecutor != null) {
+            hiveContext.getHiveRestClient().stopAsyncTasks();
+            subscriptionExecutor.shutdown();
+            try {
+                if (!subscriptionExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    subscriptionExecutor.shutdownNow();
+                    if (!subscriptionExecutor.awaitTermination(5, TimeUnit.SECONDS))
+                        throw new InternalHiveClientException(
+                                "Unable to unsubscribe from commands! subscriptionExecutor " +
+                                        "did not terminate");
+                }
+            } catch (InterruptedException ie) {
+                subscriptionExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
             }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            subscriptionExecutor.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
         }
-        subscriptionExecutor = Executors.newSingleThreadScheduledExecutor();
     }
 
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) {
