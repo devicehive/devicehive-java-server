@@ -1,7 +1,6 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.config.Constants;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.json.adapters.TimestampAdapter;
@@ -10,7 +9,6 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
 import com.devicehive.client.model.exceptions.HiveClientException;
-import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
@@ -28,8 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
@@ -37,7 +35,7 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 public class SingleHiveDevice implements Closeable {
 
     private HiveContext hiveContext;
-    private ScheduledExecutorService subscriptionExecutor = Executors.newSingleThreadScheduledExecutor();
+    private ExecutorService subscriptionExecutor = Executors.newSingleThreadExecutor();
 
     public SingleHiveDevice(URI restUri) {
         this.hiveContext = new HiveContext(Transport.AUTO, restUri);
@@ -127,14 +125,14 @@ public class SingleHiveDevice implements Closeable {
             Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
             final BlockingQueue<DeviceCommand> commandQueue = hiveContext.getCommandQueue();
             final String path = "/device/" + authenticated.getKey() + "/command/poll";
-            subscriptionExecutor.scheduleWithFixedDelay(new Runnable() {
+            subscriptionExecutor.submit(new Runnable() {
 
                 @Override
                 public void run() {
-                    Map<String, Object> queryParams = new HashMap<>();
-                    queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-                    queryParams.put("waitTimeout", waitTimeout);
-                    try {
+                    while (true) {
+                        Map<String, Object> queryParams = new HashMap<>();
+                        queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
+                        queryParams.put("waitTimeout", waitTimeout);
                         List<DeviceCommand> returned =
                                 hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET,
                                         queryParams, null, new TypeToken<List<DeviceCommand>>() {
@@ -146,15 +144,10 @@ public class SingleHiveDevice implements Closeable {
                         if (!returned.isEmpty()) {
                             commandQueue.addAll(returned);
                             timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
-                        } else {
-                            //todo set timestamp. do not try to get extra commands.
                         }
-
-                    } catch (HiveException e) {
-                        System.err.println(e);
                     }
                 }
-            }, 0, Constants.DELAY, TimeUnit.SECONDS);
+            });
         }
     }
 
