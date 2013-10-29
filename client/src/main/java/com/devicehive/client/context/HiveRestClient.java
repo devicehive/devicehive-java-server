@@ -1,7 +1,6 @@
 package com.devicehive.client.context;
 
 
-import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.json.strategies.JsonPolicyApply;
 import com.devicehive.client.json.strategies.JsonPolicyDef;
 import com.devicehive.client.model.ErrorMessage;
@@ -11,7 +10,6 @@ import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.rest.HiveClientFactory;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.internal.util.Base64;
 
 import javax.ws.rs.client.Client;
@@ -27,9 +25,6 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -82,26 +77,13 @@ public class HiveRestClient implements Closeable {
     }
 
     private WebTarget createTarget(String path, Map<String, Object> queryParams) {
-
+        WebTarget target = restClient.target(rest).path(path);
         if (queryParams != null) {
-            List<String> queryParamsParts = new ArrayList<>(queryParams.size());
-            for (Map.Entry<String, Object> param : queryParams.entrySet()) {
-                if (param.getValue() != null) {
-                    if (param.getValue() instanceof Timestamp) {
-                        queryParamsParts.add(param.getKey() + "=" + TimestampAdapter.formatTimestamp(
-                                (Timestamp) param.getValue()));
-                    }
-                    else{
-                        queryParamsParts.add(param.getKey() + "=" + param.getValue().toString());
-                    }
-                }
-            }
-            if (!queryParamsParts.isEmpty()) {
-                String resultPathString = rest + path + '?' + StringUtils.join(queryParamsParts, "&");
-                return restClient.target(resultPathString);
+            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
+                target = target.queryParam(entry.getKey(), entry.getValue());
             }
         }
-        return restClient.target(rest).path(path);
+        return target;
     }
 
     private <S> Invocation buildInvocation(String path, String method, Map<String, Object> queryParams, S objectToSend,

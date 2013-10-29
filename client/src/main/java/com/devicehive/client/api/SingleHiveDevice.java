@@ -4,6 +4,7 @@ package com.devicehive.client.api;
 import com.devicehive.client.config.Constants;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
+import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -131,7 +132,7 @@ public class SingleHiveDevice implements Closeable {
                 @Override
                 public void run() {
                     Map<String, Object> queryParams = new HashMap<>();
-                    queryParams.put("timestamp", timestamp);
+                    queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
                     queryParams.put("waitTimeout", waitTimeout);
                     try {
                         List<DeviceCommand> returned =
