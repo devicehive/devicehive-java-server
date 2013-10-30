@@ -1,6 +1,7 @@
 package com.devicehive.client.context;
 
 
+import com.devicehive.client.config.Constants;
 import com.devicehive.client.json.strategies.JsonPolicyApply;
 import com.devicehive.client.json.strategies.JsonPolicyDef;
 import com.devicehive.client.model.ErrorMessage;
@@ -69,8 +70,8 @@ public class HiveRestClient implements Closeable {
                 headers.put(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
             }
             if (principal.getDevice() != null) {
-                headers.put("Auth-DeviceID", principal.getDevice().getLeft());
-                headers.put("Auth-DeviceKey", principal.getDevice().getRight());
+                headers.put(Constants.DEVICE_ID_HEADER, principal.getDevice().getLeft());
+                headers.put(Constants.DEVICE_KEY_HEADER, principal.getDevice().getRight());
             }
             if (principal.getAccessKey() != null) {
                 headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + principal.getAccessKey());
@@ -89,14 +90,19 @@ public class HiveRestClient implements Closeable {
         return target;
     }
 
-    private <S> Invocation buildInvocation(String path, String method, Map<String, Object> queryParams, S objectToSend,
-                                           JsonPolicyDef.Policy sendPolicy) {
+    private <S> Invocation buildInvocation(String path, String method, Map<String, String> headers, Map<String,
+            Object> queryParams, S objectToSend, JsonPolicyDef.Policy sendPolicy) {
         Invocation.Builder invocationBuilder = createTarget(path, queryParams).
                 request().
                 accept(MediaType.APPLICATION_JSON_TYPE).
                 header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
+        }
+        if (headers != null) {
+            for (Map.Entry<String, String> customHeader : headers.entrySet()) {
+                invocationBuilder.header(customHeader.getKey(), customHeader.getValue());
+            }
         }
         if (objectToSend != null) {
             Entity<S> entity;
@@ -112,38 +118,36 @@ public class HiveRestClient implements Closeable {
         }
     }
 
-//    public <S> void execute(String path, String method, Map<String, Object> queryParams, S objectToSend,
-//                            JsonPolicyDef.Policy sendPolicy) {
-//        execute(path, method, queryParams, objectToSend, null, sendPolicy, null);
-//    }
-
-    public <S> void execute(String path, String method, S objectToSend,
+    public <S> void execute(String path, String method, Map<String, String> headers, S objectToSend,
                             JsonPolicyDef.Policy sendPolicy) {
-        execute(path, method, null, objectToSend, null, sendPolicy, null);
+        execute(path, method, headers, null, objectToSend, null, sendPolicy, null);
     }
 
-    public void execute(String path, String method, Map<String, Object> queryParams) {
-        execute(path, method, queryParams, null, null, null, null);
+    public void execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams) {
+        execute(path, method, headers, queryParams, null, null, null, null);
     }
 
     public void execute(String path, String method) {
-        execute(path, method, null, null, null, null, null);
+        execute(path, method, null, null, null, null, null, null);
     }
 
-    public <R> R execute(String path, String method, Map<String, Object> queryParams, Type typeOfR,
+    public <R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
+                         Type typeOfR,
                          JsonPolicyDef.Policy receivePolicy) {
-        return execute(path, method, queryParams, null, typeOfR, null, receivePolicy);
+        return execute(path, method, headers, queryParams, null, typeOfR, null, receivePolicy);
     }
 
-    public <R> R execute(String path, String method, Type typeOfR,
+    public <R> R execute(String path, String method, Map<String, String> headers, Type typeOfR,
                          JsonPolicyDef.Policy receivePolicy) {
-        return execute(path, method, null, null, typeOfR, null, receivePolicy);
+        return execute(path, method, headers, null, null, typeOfR, null, receivePolicy);
     }
 
-    public <S, R> R execute(String path, String method, Map<String, Object> queryParams, S objectToSend, Type typeOfR,
+    public <S, R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
+                            S objectToSend,
+                            Type typeOfR,
                             JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
 
-        Response response = buildInvocation(path, method, queryParams, objectToSend, sendPolicy).invoke();
+        Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
         Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
         switch (statusFamily) {
             case SERVER_ERROR:
@@ -170,11 +174,12 @@ public class HiveRestClient implements Closeable {
 
     }
 
-    public <S, R> R executeAsync(String path, String method, Map<String, Object> queryParams, S objectToSend,
-                                 Type typeOfR,
+    public <S, R> R executeAsync(String path, String method, Map<String, String> headers,
+                                 Map<String, Object> queryParams, S objectToSend, Type typeOfR,
                                  JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
 
-        Future<Response> futureResponse = buildAsyncInvocation(path, method, queryParams, objectToSend, sendPolicy);
+        Future<Response> futureResponse = buildAsyncInvocation(path, method, headers, queryParams, objectToSend,
+                sendPolicy);
         futureResponseSet.add(futureResponse);
         try {
             Response response = futureResponse.get(5L, TimeUnit.MINUTES);
@@ -211,8 +216,8 @@ public class HiveRestClient implements Closeable {
 
     }
 
-    private <S> Future<Response> buildAsyncInvocation(String path, String method, Map<String, Object> queryParams,
-                                                      S objectToSend,
+    private <S> Future<Response> buildAsyncInvocation(String path, String method, Map<String, String> headers,
+                                                      Map<String, Object> queryParams, S objectToSend,
                                                       JsonPolicyDef.Policy sendPolicy) {
         Invocation.Builder invocationBuilder = createTarget(path, queryParams).
                 request().
@@ -220,6 +225,11 @@ public class HiveRestClient implements Closeable {
                 header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
+        }
+        if (headers != null) {
+            for (Map.Entry<String, String> customHeader : headers.entrySet()) {
+                invocationBuilder.header(customHeader.getKey(), customHeader.getValue());
+            }
         }
         if (objectToSend != null) {
             Entity<S> entity;
@@ -236,10 +246,6 @@ public class HiveRestClient implements Closeable {
     }
 
     public void stopAsyncTasks() {
-        for (Future<Response> response : futureResponseSet) {
-            if (!response.isDone() && !response.isCancelled()) {
-                response.cancel(true);
-            }
-        }
+
     }
 }

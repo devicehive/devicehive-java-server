@@ -51,7 +51,7 @@ public class HiveContext implements Closeable {
     }
 
     public synchronized ApiInfo getInfo() {
-        return hiveRestClient.execute("/info", HttpMethod.GET, ApiInfo.class, null);
+        return hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
     }
 
     public BlockingQueue<DeviceCommand> getCommandQueue() {

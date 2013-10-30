@@ -13,6 +13,7 @@ import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
@@ -30,7 +31,7 @@ import java.util.concurrent.*;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class SingleHiveDevice implements Closeable {
-
+    private static Logger logger = Logger.getLogger(SingleHiveDevice.class);
     private HiveContext hiveContext;
     private ExecutorService subscriptionExecutor = null;
 
@@ -39,7 +40,6 @@ public class SingleHiveDevice implements Closeable {
     }
 
     public static void main(String... args) {
-        Thread.currentThread().setName("mainThread");
         final SingleHiveDevice shd = new SingleHiveDevice(URI.create("http://127.0.0.1:8080/hive/rest/"));
         shd.authenticate("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8");
         try {
@@ -47,7 +47,7 @@ public class SingleHiveDevice implements Closeable {
             Date startDate = formatter.parse("2013-10-11 13:12:00");
             shd.subscribeForCommands(new Timestamp(startDate.getTime()), 40);
         } catch (ParseException e) {
-            System.err.print(e);
+            logger.error(e);
         }
         ScheduledExecutorService killer = Executors.newSingleThreadScheduledExecutor();
         killer.schedule(new Runnable() {
@@ -76,7 +76,11 @@ public class SingleHiveDevice implements Closeable {
 
     @Override
     public void close() throws IOException {
-        hiveContext.close();
+        try {
+            unsubscribeFromCommands();
+        } finally {
+            hiveContext.close();
+        }
     }
 
     public void authenticate(String deviceId, String deviceKey) {
@@ -89,7 +93,7 @@ public class SingleHiveDevice implements Closeable {
             throw new HiveClientException("Device is not authenticated");
         }
         String path = "/device/" + deviceId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, Device.class, null);
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Device.class, null);
     }
 
     public void saveDevice(Device device) {
@@ -97,7 +101,7 @@ public class SingleHiveDevice implements Closeable {
         device.setKey("05F94BF509C8");
         HiveValidator.validate(device);
         String path = "/device/" + device.getId();
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, device, null);
+        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, device, null);
     }
 
     public List<DeviceCommand> queryCommands(Timestamp start, Timestamp end, String command, String status,
@@ -114,7 +118,7 @@ public class SingleHiveDevice implements Closeable {
         queryParams.put("sortOrder", order);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, queryParams,
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, queryParams,
                 new TypeToken<List<DeviceCommand>>() {
                 }.getType(), null);
     }
@@ -122,13 +126,13 @@ public class SingleHiveDevice implements Closeable {
     public DeviceCommand getCommand(long commandId) {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, DeviceCommand.class, null);
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
     }
 
     public void updateCommand(DeviceCommand deviceCommand) {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + deviceCommand.getId();
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
+        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
     }
 
     public void subscribeForCommands(final Timestamp timestamp, final Integer waitTimeout) {
@@ -147,12 +151,12 @@ public class SingleHiveDevice implements Closeable {
                         queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
                         queryParams.put("waitTimeout", waitTimeout);
                         List<DeviceCommand> returned =
-                                hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET,
+                                hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET, null,
                                         queryParams, null, new TypeToken<List<DeviceCommand>>() {
                                 }.getType(), null, COMMAND_LISTED);
-                        System.out.println("\n----Start Timestamp: " + timestamp + "----");
+                        logger.debug("\n----Start Timestamp: " + timestamp + "----");
                         for (DeviceCommand current : returned) {
-                            System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
+                            logger.debug("id: " + current.getId() + "timestamp:" + current.getTimestamp());
                         }
                         if (!returned.isEmpty()) {
                             commandQueue.addAll(returned);
@@ -187,7 +191,7 @@ public class SingleHiveDevice implements Closeable {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         HiveValidator.validate(deviceNotification);
         String path = "/device/" + authenticated.getKey() + "notification";
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, deviceNotification,
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, deviceNotification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
     }
 
