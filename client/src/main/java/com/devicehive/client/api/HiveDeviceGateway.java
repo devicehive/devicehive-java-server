@@ -4,10 +4,7 @@ package com.devicehive.client.api;
 import com.devicehive.client.config.Constants;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.json.adapters.TimestampAdapter;
-import com.devicehive.client.model.Device;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
-import com.devicehive.client.model.Transport;
+import com.devicehive.client.model.*;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
@@ -203,6 +200,10 @@ public class HiveDeviceGateway implements Closeable {
             }
             return null;
         }
+    }
+
+    public ApiInfo getInfo() {
+        return hiveContext.getInfo();
     }
 
 }

@@ -14,13 +14,13 @@ public interface DeviceController {
                              Integer deviceClassId, String deviceClassName, String deviceClassVersion,
                              String sortField, String sortOrder, Integer take, Integer skip);
 
-    Device getDevice(String guid);
+    Device getDevice(String deviceId);
 
-    void registerDevice(String guid, Device device);
+    void registerDevice(String deviceId, Device device);
 
-    void deleteDevice(String guid);
+    void deleteDevice(String deviceId);
 
-    DeviceEquipment getDeviceEquipment(String guid);
+    DeviceEquipment getDeviceEquipment(String deviceId);
 
     //device class block
     List<DeviceClass> listDeviceClass(String name, String namePattern, String version, String sortField,

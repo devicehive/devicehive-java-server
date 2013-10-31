@@ -4,10 +4,7 @@ package com.devicehive.client.api;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.json.adapters.TimestampAdapter;
-import com.devicehive.client.model.Device;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
-import com.devicehive.client.model.Transport;
+import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.util.HiveValidator;
@@ -193,6 +190,10 @@ public class SingleHiveDevice implements Closeable {
         String path = "/device/" + authenticated.getKey() + "notification";
         return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, deviceNotification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
+    }
+
+    public ApiInfo getInfo() {
+        return hiveContext.getInfo();
     }
 
 }

@@ -5,6 +5,7 @@ import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.AccessKey;
 import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.Device;
 import com.devicehive.client.model.Transport;
 import org.apache.log4j.Logger;
 
@@ -24,6 +25,8 @@ public class Client implements HiveClient {
     public static void main(String... args) {
         HiveClient client = new Client(URI.create("http://127.0.0.1:8080/hive/rest/"));
         client.authenticate("dhadmin", "dhadmin_#911");
+
+        //access keys
         AccessKeyController akc = client.getAccessKeyController();
         List<AccessKey> result = akc.listKeys(1);
         logger.debug(result);
@@ -32,10 +35,16 @@ public class Client implements HiveClient {
         logger.debug(inserted.getId());
         logger.debug(inserted.getKey());
         akc.deleteKey(1, inserted.getId());
+
+        //devices
+        DeviceController dc = client.getDeviceController();
+        List<Device> deviceList =
+                dc.listDevices(null, null, null, null, null, null, null, null, null, null, null, null);
+        logger.debug(deviceList);
     }
 
     public ApiInfo getInfo() {
-        return null;
+        return hiveContext.getInfo();
     }
 
     public void authenticate(String login, String password) {
@@ -51,7 +60,7 @@ public class Client implements HiveClient {
     }
 
     public DeviceController getDeviceController() {
-        return null;
+        return new DeviceControllerImpl(hiveContext);
     }
 
     public NetworkContorller getNetworkController() {
