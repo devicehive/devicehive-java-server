@@ -38,7 +38,8 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
 public class HiveRestClient implements Closeable {
-
+    private static final String USER_AUTH_SCHEMA = "Basic";
+    private static final String KEY_AUTH_SCHEMA = "Bearer";
     private final URI rest;
     private final Client restClient;
     private final HiveContext hiveContext;
@@ -67,14 +68,14 @@ public class HiveRestClient implements Closeable {
             if (principal.getUser() != null) {
                 String decodedAuth = principal.getUser().getLeft() + ":" + principal.getUser().getRight();
                 String encodedAuth = Base64.encodeAsString(decodedAuth);
-                headers.put(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
+                headers.put(HttpHeaders.AUTHORIZATION, USER_AUTH_SCHEMA + " " + encodedAuth);
             }
             if (principal.getDevice() != null) {
                 headers.put(Constants.DEVICE_ID_HEADER, principal.getDevice().getLeft());
                 headers.put(Constants.DEVICE_KEY_HEADER, principal.getDevice().getRight());
             }
             if (principal.getAccessKey() != null) {
-                headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + principal.getAccessKey());
+                headers.put(HttpHeaders.AUTHORIZATION, KEY_AUTH_SCHEMA + " " + principal.getAccessKey());
             }
         }
         return headers;
@@ -143,9 +144,8 @@ public class HiveRestClient implements Closeable {
     }
 
     public <S, R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
-                            S objectToSend,
-                            Type typeOfR,
-                            JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
+                            S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
+                            JsonPolicyDef.Policy receivePolicy) {
 
         Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
         Response.Status.Family statusFamily = response.getStatusInfo().getFamily();

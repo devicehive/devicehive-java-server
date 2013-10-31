@@ -3,7 +3,9 @@ package com.devicehive.client.api;
 
 import com.devicehive.client.model.ApiInfo;
 
-public interface HiveClient {
+import java.io.Closeable;
+
+public interface HiveClient extends Closeable {
 
     ApiInfo getInfo();
 
@@ -15,10 +17,10 @@ public interface HiveClient {
 
     DeviceController getDeviceController();
 
-    NetworkContorller getNetworkContorller();
+    NetworkContorller getNetworkController();
 
     NotificationsController getNotificationsController();
 
-    UserContorller getUserContorller();
+    UserContorller getUserController();
 
 }
