@@ -414,7 +414,7 @@ public class DeviceNotificationController {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        List<DeviceNotification> list = getDeviceNotificationsList(principal, guids, timestamp);
+        List<DeviceNotification> list = getDeviceNotificationsList(principal, guids, notificationNames, timestamp);
 
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
@@ -442,7 +442,7 @@ public class DeviceNotificationController {
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceNotificationsList(principal, guids, timestamp);
+                list = getDeviceNotificationsList(principal, guids, notificationNames, timestamp);
             }
             return list;
         }
@@ -476,6 +476,7 @@ public class DeviceNotificationController {
 
     private List<DeviceNotification> getDeviceNotificationsList(HivePrincipal principal,
                                                                 List<String> guids,
+                                                                List<String> names,
                                                                 Timestamp timestamp) {
         User authUser = principal.getUser();
         if (authUser == null && principal.getKey() != null) {
@@ -483,8 +484,8 @@ public class DeviceNotificationController {
         }
         List<Device> deviceList = deviceService.findByGuidWithPermissionsCheck(guids, principal);
 
-        List<DeviceNotification> result = deviceNotificationService.getDeviceNotificationList(deviceList, authUser,
-                timestamp);
+        List<DeviceNotification> result = deviceNotificationService.getDeviceNotificationList(deviceList, names,
+                authUser,timestamp);
         if (principal.getUser() == null && principal.getKey() != null) {
             Iterator<DeviceNotification> iterator = result.iterator();
             while (iterator.hasNext()) {

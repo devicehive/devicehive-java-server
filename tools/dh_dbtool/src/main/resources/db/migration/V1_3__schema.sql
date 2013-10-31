@@ -82,7 +82,7 @@ STABLE;
 CREATE OR REPLACE FUNCTION get_First_Timestamp(interval_int    INTEGER,
                                                timestamp_value TIMESTAMP WITH TIME ZONE DEFAULT
                                                get_Min_Timestamp_From_Notifications())
-  RETURNS TIMESTAMP WITH TIME ZONE
+  RETURNS BIGINT
 AS 'WITH intervals AS (
     SELECT
       (SELECT
@@ -95,7 +95,7 @@ AS 'WITH intervals AS (
                                 max(timestamp) :: DATE - min(timestamp) :: DATE
                               FROM device_notification) + 1) * 24 * 60 * 60, $1) n)
 SELECT
-  min
+  position
 FROM (
 SELECT
   min(timestamp)  min,
@@ -113,6 +113,7 @@ ORDER BY f.start_time) as min_timestamp
 WHERE min_timestamp.start_time <= $2 AND min_timestamp.end_time > $2;'
 LANGUAGE SQL
 STABLE;
+
 --default: debug features are enabled--
 INSERT INTO configuration (name, value)
   VALUES ('debugMode', 'true');

@@ -85,7 +85,7 @@ public class DeviceCommandService {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> getNewerThan(List<Device> devices, User user, Timestamp timestamp) {
-        return commandDAO.getCommandsListForPolling(devices, user, timestamp);
+        return commandDAO.getCommandsListForPolling(devices, null, user, timestamp);
     }
 
 

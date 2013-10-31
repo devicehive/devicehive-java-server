@@ -233,7 +233,7 @@ public class DeviceCommandController {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        List<DeviceCommand> list = getDeviceCommandsList(principal, deviceGuids, timestamp);
+        List<DeviceCommand> list = getDeviceCommandsList(principal, deviceGuids, names, timestamp);
 
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
@@ -261,7 +261,7 @@ public class DeviceCommandController {
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = getDeviceCommandsList(principal, deviceGuids, timestamp);
+                list = getDeviceCommandsList(principal, deviceGuids, names, timestamp);
             }
             return list;
         }
@@ -295,13 +295,14 @@ public class DeviceCommandController {
 
     private List<DeviceCommand> getDeviceCommandsList(HivePrincipal principal,
                                                       List<String> guids,
+                                                      List<String> names,
                                                       Timestamp timestamp) {
         User authUser = principal.getUser();
         if (authUser == null && principal.getKey() != null) {
             authUser = principal.getKey().getUser();
         }
         List<Device> deviceList = deviceService.findByGuidWithPermissionsCheck(guids, principal);
-        return deviceCommandDAO.getCommandsListForPolling(deviceList, authUser, timestamp);
+        return deviceCommandDAO.getCommandsListForPolling(deviceList, names, authUser, timestamp);
     }
 
     /**

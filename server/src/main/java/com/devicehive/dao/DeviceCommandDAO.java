@@ -44,7 +44,6 @@ public class DeviceCommandDAO {
         return query.executeUpdate();
     }
 
-
     public int deleteCommand(@NotNull Device device, @NotNull User user) {
         Query query = em.createNamedQuery("DeviceCommand.deleteByDeviceAndUser");
         query.setParameter("user", user);
@@ -94,7 +93,8 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getCommandsListForPolling(List<Device> devices, User user, Timestamp timestamp){
+    public List<DeviceCommand> getCommandsListForPolling(List<Device> devices, List<String> names, User user,
+                                                         Timestamp timestamp) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
@@ -107,11 +107,14 @@ public class DeviceCommandDAO {
 
         predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
 
-        if (user != null && !user.isAdmin()){
+        if (user != null && !user.isAdmin()) {
             Path<User> path = from.join("device").join("network").join("users");
             predicates.add(path.in(user));
         }
 
+        if (names != null && !names.isEmpty()) {
+            predicates.add(from.get("command").in(names));
+        }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         return em.createQuery(criteria).getResultList();
     }

@@ -55,8 +55,9 @@ public class DeviceNotificationService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getDeviceNotificationList(List<Device> devices, User user, Timestamp timestamp) {
-        return deviceNotificationDAO.findNotificationsForPolling(timestamp, devices, user);
+    public List<DeviceNotification> getDeviceNotificationList(List<Device> devices, List<String> names, User user,
+                                                              Timestamp timestamp) {
+        return deviceNotificationDAO.findNotificationsForPolling(timestamp, devices, names, user);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
