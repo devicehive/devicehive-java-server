@@ -34,10 +34,15 @@ public class ConfigurationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void save(@NotNull String name, String value){
-        Configuration configuration = new Configuration();
-        configuration.setName(name);
-        configuration.setValue(value);
-        em.merge(configuration);
+    public void save(@NotNull String name, String value) {
+        Configuration existing = findByName(name);
+        if (existing != null) {
+            existing.setValue(value);
+        } else {
+            Configuration configuration = new Configuration();
+            configuration.setName(name);
+            configuration.setValue(value);
+            em.persist(configuration);
+        }
     }
 }
