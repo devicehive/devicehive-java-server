@@ -2,8 +2,6 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -34,9 +32,14 @@ public class ConfigurationDAO {
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void save(@NotNull String name, String value) {
-        Configuration configuration = new Configuration();
-        configuration.setName(name);
-        configuration.setValue(value);
-        em.merge(configuration);
+        Configuration existing = findByName(name);
+        if (existing != null) {
+            existing.setValue(value);
+        } else {
+            Configuration configuration = new Configuration();
+            configuration.setName(name);
+            configuration.setValue(value);
+            em.persist(configuration);
+        }
     }
 }
