@@ -13,13 +13,13 @@ public class User implements HiveEntity {
     private static final long serialVersionUID = -8980491502416082011L;
     @JsonPolicyDef({COMMAND_TO_CLIENT, USER_PUBLISHED, COMMAND_TO_DEVICE, USERS_LISTED, USER_SUBMITTED})
     private Long id;
-    @JsonPolicyDef({USER_PUBLISHED, USER_SUBMITTED, USERS_LISTED})
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
     private NullableWrapper<String> login;
-    @JsonPolicyDef(USER_SUBMITTED)
+    @JsonPolicyDef({USER_UPDATE})
     private NullableWrapper<String> password;
-    @JsonPolicyDef({USER_PUBLISHED, USER_SUBMITTED, USERS_LISTED})
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
     private NullableWrapper<Integer> role;
-    @JsonPolicyDef({USER_PUBLISHED, USER_SUBMITTED, USERS_LISTED})
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
     private NullableWrapper<Integer> status;
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;

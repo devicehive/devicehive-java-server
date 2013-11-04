@@ -79,20 +79,20 @@ public class Client implements HiveClient {
     }
 
     public NetworkController getNetworkController() {
-        return null;
+        return new NetworkControllerImpl(hiveContext);
     }
 
     public NotificationsController getNotificationsController() {
-        return null;
+        return new NotificationsControllerImpl(hiveContext);
     }
 
     public UserController getUserController() {
-        return null;
+        return new UserControllerImpl(hiveContext);
     }
 
     @Override
     public void close() throws IOException {
-            hiveContext.close();
+        hiveContext.close();
     }
 
 }

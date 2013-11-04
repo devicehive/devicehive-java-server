@@ -12,11 +12,11 @@ public interface UserController {
     List<User> listUsers(String login, String loginPattern, Integer role, Integer status, String sortField,
                          String sortOrder, Integer take, Integer skip);
 
-    User getUser(long id);
+    User getUser(String id);
 
     User insertUser(User user);
 
-    void updateUser(long id, User user);
+    void updateUser(String id, User user);
 
     void deleteUser(long id);
 
