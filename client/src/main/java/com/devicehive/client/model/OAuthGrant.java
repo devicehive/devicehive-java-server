@@ -19,26 +19,26 @@ public class OAuthGrant implements HiveEntity {
 
     private static final long serialVersionUID = 6725932065321755993L;
     @JsonPolicyDef(
-            {OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})
+            {OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})
     private Long id;
     @JsonPolicyDef(
-            {OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})
+            {OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})
     private NullableWrapper<Timestamp> timestamp;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_CODE})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_CODE})
     private NullableWrapper<String> authCode;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private NullableWrapper<OAuthClient> client;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN})
     private NullableWrapper<AccessKey> accessKey;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private NullableWrapper<OAuthType> type;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private NullableWrapper<AccessType> accessType;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private NullableWrapper<String> redirectUri;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private NullableWrapper<String> scope;
-    @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
+    @JsonPolicyDef({OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private NullableWrapper<JsonStringWrapper> networkIds;
 
     public Long getId() {

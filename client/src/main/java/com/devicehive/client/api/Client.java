@@ -90,6 +90,10 @@ public class Client implements HiveClient {
         return new UserControllerImpl(hiveContext);
     }
 
+    public OAuthClientController getOAuthClientController(){
+        return new OAuthClientControllerImpl(hiveContext);
+    }
+
     @Override
     public void close() throws IOException {
         hiveContext.close();
