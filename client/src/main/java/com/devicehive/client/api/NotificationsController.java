@@ -16,7 +16,7 @@ public interface NotificationsController {
 
     DeviceNotification getNotification(String guid, long notificationId);
 
-    void subscribeForNotifications();
+    void subscribeForNotifications(Timestamp timestamp, String ... deviceIds);
 
-    void unsubscribeFromNotification();
+    void unsubscribeFromNotification(String ... deviceIds);
 }
