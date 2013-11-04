@@ -5,7 +5,7 @@ import com.devicehive.client.model.Network;
 
 import java.util.List;
 
-public interface NetworkContorller {
+public interface NetworkController {
 
     //network block
     List<Network> listNetworks(String name, String namePattern, String sortField, String sortOrder, Integer take,

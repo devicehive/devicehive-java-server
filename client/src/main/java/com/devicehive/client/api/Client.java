@@ -11,6 +11,10 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class Client implements HiveClient {
@@ -41,6 +45,17 @@ public class Client implements HiveClient {
         List<Device> deviceList =
                 dc.listDevices(null, null, null, null, null, null, null, null, null, null, null, null);
         logger.debug(deviceList);
+
+        //commands subscriptions
+        CommandsController cc = client.getCommandsController();
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+            Date startDate = formatter.parse("2013-10-11 13:12:00");
+            cc.subscribeForCommands(new Timestamp(startDate.getTime()), "e50d6085-2aba-48e9-b1c3-73c673e414be");
+        } catch (ParseException e) {
+            logger.error(e);
+        }
+
     }
 
     public ApiInfo getInfo() {
@@ -56,14 +71,14 @@ public class Client implements HiveClient {
     }
 
     public CommandsController getCommandsController() {
-        return null;
+        return new CommandsControllerImpl(hiveContext);
     }
 
     public DeviceController getDeviceController() {
         return new DeviceControllerImpl(hiveContext);
     }
 
-    public NetworkContorller getNetworkController() {
+    public NetworkController getNetworkController() {
         return null;
     }
 
@@ -71,16 +86,13 @@ public class Client implements HiveClient {
         return null;
     }
 
-    public UserContorller getUserController() {
+    public UserController getUserController() {
         return null;
     }
 
     @Override
     public void close() throws IOException {
-        try {
-        } finally {
             hiveContext.close();
-        }
     }
 
 }

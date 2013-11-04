@@ -3,10 +3,8 @@ package com.devicehive.client.api;
 
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
-import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveClientException;
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.tuple.Pair;
@@ -23,14 +21,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class SingleHiveDevice implements Closeable {
     private static Logger logger = Logger.getLogger(SingleHiveDevice.class);
     private HiveContext hiveContext;
-    private ExecutorService subscriptionExecutor = null;
 
     public SingleHiveDevice(URI restUri) {
         this.hiveContext = new HiveContext(Transport.AUTO, restUri);
@@ -42,42 +38,23 @@ public class SingleHiveDevice implements Closeable {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             Date startDate = formatter.parse("2013-10-11 13:12:00");
-            shd.subscribeForCommands(new Timestamp(startDate.getTime()), 40);
+            shd.subscribeForCommands(new Timestamp(startDate.getTime()));
         } catch (ParseException e) {
             logger.error(e);
         }
-        ScheduledExecutorService killer = Executors.newSingleThreadScheduledExecutor();
-        killer.schedule(new Runnable() {
-            @Override
-            public void run() {
-                Thread.currentThread().setName("KillerFeature");
-                shd.unsubscribeFromCommands();
-
-            }
-        }, 30, TimeUnit.SECONDS);
-        killer.shutdown();
         try {
-            if (!killer.awaitTermination(40, TimeUnit.SECONDS)) {
-                killer.shutdownNow();
-                if (!killer.awaitTermination(5, TimeUnit.SECONDS))
-                    throw new InternalHiveClientException(
-                            "Unable to unsubscribe from commands! subscriptionExecutor " +
-                                    "did not terminate");
-            }
-        } catch (InterruptedException ie) {
-            killer.shutdownNow();
-            Thread.currentThread().interrupt();
+            Thread.currentThread().join(5_000);
+            shd.unsubscribeFromCommands();
+            Thread.currentThread().join(300_000);
+            shd.close();
+        } catch (InterruptedException | IOException e) {
+            logger.error(e);
         }
-
     }
 
     @Override
     public void close() throws IOException {
-        try {
-            unsubscribeFromCommands();
-        } finally {
-            hiveContext.close();
-        }
+        hiveContext.close();
     }
 
     public void authenticate(String deviceId, String deviceKey) {
@@ -132,56 +109,15 @@ public class SingleHiveDevice implements Closeable {
         hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
     }
 
-    public void subscribeForCommands(final Timestamp timestamp, final Integer waitTimeout) {
-        if (subscriptionExecutor == null || subscriptionExecutor.isShutdown() || subscriptionExecutor.isTerminated()) {
-            subscriptionExecutor = Executors.newSingleThreadExecutor();
-            Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-            final BlockingQueue<DeviceCommand> commandQueue = hiveContext.getCommandQueue();
-            final String path = "/device/" + authenticated.getKey() + "/command/poll";
-            subscriptionExecutor.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    Thread.currentThread().setName("SubscriptionsGetter");
-                    while (true) {
-                        Map<String, Object> queryParams = new HashMap<>();
-                        queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-                        queryParams.put("waitTimeout", waitTimeout);
-                        List<DeviceCommand> returned =
-                                hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET, null,
-                                        queryParams, null, new TypeToken<List<DeviceCommand>>() {
-                                }.getType(), null, COMMAND_LISTED);
-                        logger.debug("\n----Start Timestamp: " + timestamp + "----");
-                        for (DeviceCommand current : returned) {
-                            logger.debug("id: " + current.getId() + "timestamp:" + current.getTimestamp());
-                        }
-                        if (!returned.isEmpty()) {
-                            commandQueue.addAll(returned);
-                            timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
-                        }
-                    }
-                }
-            });
-        }
+    public void subscribeForCommands(final Timestamp timestamp) {
+        Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
+        final String path = "/device/" + authenticated.getKey() + "/command/poll";
+        hiveContext.addCommandsSubscription(null, timestamp, authenticated.getLeft());
     }
 
     public void unsubscribeFromCommands() {
-        if (subscriptionExecutor != null) {
-            hiveContext.getHiveRestClient().stopAsyncTasks();
-            subscriptionExecutor.shutdown();
-            try {
-                if (!subscriptionExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    subscriptionExecutor.shutdownNow();
-                    if (!subscriptionExecutor.awaitTermination(5, TimeUnit.SECONDS))
-                        throw new InternalHiveClientException(
-                                "Unable to unsubscribe from commands! subscriptionExecutor " +
-                                        "did not terminate");
-                }
-            } catch (InterruptedException ie) {
-                subscriptionExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-        }
+        Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
+        hiveContext.removeCommandSubscription(authenticated.getLeft());
     }
 
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) {

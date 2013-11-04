@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +41,6 @@ public class HiveRestClient implements Closeable {
     private final URI rest;
     private final Client restClient;
     private final HiveContext hiveContext;
-    private Set<Future<Response>> futureResponseSet = new HashSet<>();
 
     public HiveRestClient(URI rest, HiveContext hiveContext) {
         this.rest = rest;
@@ -180,10 +177,8 @@ public class HiveRestClient implements Closeable {
 
         Future<Response> futureResponse = buildAsyncInvocation(path, method, headers, queryParams, objectToSend,
                 sendPolicy);
-        futureResponseSet.add(futureResponse);
         try {
-            Response response = futureResponse.get(5L, TimeUnit.MINUTES);
-            futureResponseSet.remove(futureResponse);
+            Response response = futureResponse.get(1L, TimeUnit.MINUTES);
             Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
             switch (statusFamily) {
                 case SERVER_ERROR:
@@ -243,9 +238,5 @@ public class HiveRestClient implements Closeable {
         } else {
             return invocationBuilder.async().method(method);
         }
-    }
-
-    public void stopAsyncTasks() {
-
     }
 }

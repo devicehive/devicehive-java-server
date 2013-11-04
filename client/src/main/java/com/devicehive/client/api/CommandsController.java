@@ -17,9 +17,9 @@ public interface CommandsController {
 
     DeviceCommand insertCommand(String guid, DeviceCommand command);
 
-    void updateCommand(String deviceGuid, DeviceCommand command);
+    void updateCommand(String deviceGuid, long id, DeviceCommand command);
 
-    void subscribeForCommands();
+    void subscribeForCommands(Timestamp timestamp, String ... deviceIds);
 
-    void unsubscribeFromCommands();
+    void unsubscribeFromCommands(String ... deviceIds);
 }

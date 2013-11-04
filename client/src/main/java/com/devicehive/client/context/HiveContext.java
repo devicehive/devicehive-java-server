@@ -1,26 +1,39 @@
 package com.devicehive.client.context;
 
 
+import com.devicehive.client.config.Constants;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
+import com.devicehive.client.util.SubscriptionTask;
+import org.apache.log4j.Logger;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Response;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class HiveContext implements Closeable {
 
+    private static final int SUBSCRIPTIONS_THREAD_POOL_SIZE = 100;
+    private static Logger logger = Logger.getLogger(HiveContext.class);
     private final Transport transport;
     private HiveRestClient hiveRestClient;
-
     private HivePrincipal hivePrincipal;
-
-
+    private ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(SUBSCRIPTIONS_THREAD_POOL_SIZE);
+    private Map<String, Future<Response>> websocketResponsesMap = new HashMap<>();
+    private Map<String, Future<Void>> commandsSubscriptionsStorage = new HashMap<>();
+    private Map<String, Future<Void>> notificationsSubscriptionsStorage = new HashMap<>();
+    private ReadWriteLock rwCommandsLock = new ReentrantReadWriteLock();
+    private ReadWriteLock rwNotificationsLock = new ReentrantReadWriteLock();
     private BlockingQueue<DeviceCommand> commandQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<DeviceNotification> notificationQueue = new LinkedBlockingQueue<>();
@@ -31,8 +44,12 @@ public class HiveContext implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
-        hiveRestClient.close();
+    public synchronized void close() throws IOException {
+        try {
+            shutdownThreads();
+        } finally {
+            hiveRestClient.close();
+        }
     }
 
     public HiveRestClient getHiveRestClient() {
@@ -65,4 +82,137 @@ public class HiveContext implements Closeable {
     public BlockingQueue<DeviceNotification> getNotificationQueue() {
         return notificationQueue;
     }
+
+    public void addCommandsSubscription(Map<String, String> headers,Timestamp timestamp, String... deviceIds) {
+        if (deviceIds == null) {
+            try {
+                rwCommandsLock.writeLock().lock();
+                if (!commandsSubscriptionsStorage.containsKey(Constants.FOR_ALL_SUBSTITUTE)) {
+                    String path = "/device/command/poll";
+                    SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
+                            path, headers);
+                    Future<Void> subscription = subscriptionExecutor.submit(task);
+                    commandsSubscriptionsStorage.put(Constants.FOR_ALL_SUBSTITUTE, subscription);
+                    logger.debug("New subscription added for:" + Constants.FOR_ALL_SUBSTITUTE);
+                }
+            } finally {
+                rwCommandsLock.writeLock().unlock();
+            }
+        } else {
+            try {
+                rwCommandsLock.writeLock().lock();
+                for (String id : deviceIds) {
+                    Future<Void> subscription = commandsSubscriptionsStorage.get(id);
+                    if (subscription == null || subscription.isDone()) { //Returns true if this task completed.
+                        // Completion may be due to normal termination, an exception, or cancellation --
+                        // in all of these cases, this method will return true.
+                        String path = "/device/" + id + "/command/poll";
+                        SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
+                                path, headers);
+                        subscription = subscriptionExecutor.submit(task);
+                        commandsSubscriptionsStorage.put(id, subscription);
+                        logger.debug("New subscription added for device with id:" + id);
+                    }
+                }
+            } finally {
+                rwCommandsLock.writeLock().unlock();
+            }
+        }
+    }
+
+    public void removeCommandSubscription(String... deviceIds) {
+        unsubscribe(rwCommandsLock, commandsSubscriptionsStorage, deviceIds);
+    }
+
+    public void addNotificationSubscription(Map<String, String> headers, Timestamp timestamp, String... deviceIds) {
+        if (deviceIds == null) {
+            try {
+                rwCommandsLock.writeLock().lock();
+                if (!commandsSubscriptionsStorage.containsKey(Constants.FOR_ALL_SUBSTITUTE)) {
+                    String path = "/device/notification/poll";
+                    SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
+                            path, headers);
+                    Future<Void> subscription = subscriptionExecutor.submit(task);
+                    commandsSubscriptionsStorage.put(Constants.FOR_ALL_SUBSTITUTE, subscription);
+                    logger.debug("New subscription added for:" + Constants.FOR_ALL_SUBSTITUTE);
+                }
+            } finally {
+                rwCommandsLock.writeLock().unlock();
+            }
+        } else {
+            try {
+                rwCommandsLock.writeLock().lock();
+                for (String id : deviceIds) {
+                    Future<Void> subscription = commandsSubscriptionsStorage.get(id);
+                    if (subscription == null || subscription.isDone()) { //Returns true if this task completed.
+                        // Completion may be due to normal termination, an exception, or cancellation --
+                        // in all of these cases, this method will return true.
+                        String path = "/device/" + id + "/notification/poll";
+                        SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
+                                path, headers);
+                        subscription = subscriptionExecutor.submit(task);
+                        commandsSubscriptionsStorage.put(id, subscription);
+                        logger.debug("New subscription added for device with id:" + id);
+                    }
+                }
+            } finally {
+                rwCommandsLock.writeLock().unlock();
+            }
+        }
+    }
+
+    public void removeNotificationSubscription(String... deviceIds) {
+        unsubscribe(rwNotificationsLock, notificationsSubscriptionsStorage, deviceIds);
+    }
+
+    private void unsubscribe(ReadWriteLock lock, Map<String, Future<Void>> subscriptionStorage, String... deviceIds) {
+        if (deviceIds == null) {
+            try {
+                lock.readLock().lock();
+                Future<Void> task = subscriptionStorage.remove(Constants.FOR_ALL_SUBSTITUTE);
+                if (task != null && !task.isDone()) {
+                    boolean result = task.cancel(true);
+                    logger.debug("Task is cancelled for device with id:" + Constants.FOR_ALL_SUBSTITUTE +
+                            ". Cancellation result:" + result);
+                }
+            } finally {
+                lock.readLock().unlock();
+            }
+        } else {
+            try {
+                lock.readLock().lock();
+                for (String id : deviceIds) {
+                    Future<Void> task = subscriptionStorage.remove(id);
+                    if (task != null && !task.isDone()) {
+                        boolean result = task.cancel(true);
+                        logger.debug("Task is cancelled for device with id:" + id + ". Cancellation result:" + result);
+                    }
+                }
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+    }
+
+    private void shutdownThreads() {
+        try {
+            rwNotificationsLock.writeLock().lock();
+            subscriptionExecutor.shutdown();
+            try {
+                if (!subscriptionExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    subscriptionExecutor.shutdownNow();
+                    if (!subscriptionExecutor.awaitTermination(10, TimeUnit.SECONDS))
+                        logger.warn("Pool did not terminate");
+                }
+            } catch (InterruptedException ie) {
+                logger.warn(ie);
+                subscriptionExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        } finally {
+            rwNotificationsLock.writeLock().unlock();
+        }
+    }
+
+
 }

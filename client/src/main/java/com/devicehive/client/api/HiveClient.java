@@ -17,10 +17,10 @@ public interface HiveClient extends Closeable {
 
     DeviceController getDeviceController();
 
-    NetworkContorller getNetworkController();
+    NetworkController getNetworkController();
 
     NotificationsController getNotificationsController();
 
-    UserContorller getUserController();
+    UserController getUserController();
 
 }

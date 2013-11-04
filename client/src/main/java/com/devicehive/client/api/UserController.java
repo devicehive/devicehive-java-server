@@ -6,7 +6,7 @@ import com.devicehive.client.model.User;
 
 import java.util.List;
 
-public interface UserContorller {
+public interface UserController {
 
     //user
     List<User> listUsers(String login, String loginPattern, Integer role, Integer status, String sortField,

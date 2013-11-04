@@ -8,4 +8,8 @@ public class Constants {
 
     public static final String DEVICE_KEY_HEADER = "Auth-DeviceKey";
 
+    public static final String FOR_ALL_SUBSTITUTE = "This is surrogate for subscription for all available";
+
+    public static final int WAIT_TIMEOUT = 30;
+
 }
