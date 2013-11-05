@@ -13,14 +13,12 @@ import com.devicehive.client.rest.HiveClientFactory;
 import com.google.common.collect.Maps;
 import org.glassfish.jersey.internal.util.Base64;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -238,5 +236,57 @@ public class HiveRestClient implements Closeable {
         } else {
             return invocationBuilder.async().method(method);
         }
+    }
+
+    public <R> R executeForm(String path, Map<String, String> formParams, Type typeOfR,
+                             JsonPolicyDef.Policy receivePolicy) {
+        Response response = buildFormInvocation(path, formParams).invoke();
+        Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
+        switch (statusFamily) {
+            case SERVER_ERROR:
+                throw new HiveServerException(response.getStatus());
+            case CLIENT_ERROR:
+                if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
+                    throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(), response.getStatus());
+                }
+                ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
+            case SUCCESSFUL:
+                if (typeOfR == null) {
+                    return null;
+                }
+                if (receivePolicy == null) {
+                    return response.readEntity(new GenericType<R>(typeOfR));
+                } else {
+                    Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
+                    return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
+                }
+            default:
+                throw new HiveException("Unknown response");
+        }
+
+    }
+
+    private Invocation buildFormInvocation(String path, Map<String, String> formParams) {
+        Invocation.Builder invocationBuilder = createTarget(path).
+                request().
+                accept(MediaType.APPLICATION_JSON_TYPE).
+                header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+
+        for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
+            invocationBuilder.header(entry.getKey(), entry.getValue());
+        }
+
+        Entity<Form> entity;
+        if (formParams != null) {
+            Form f = new Form();
+            for (Map.Entry<String, String> entry : formParams.entrySet()) {
+                f.param(entry.getKey(), entry.getValue());
+            }
+            entity = Entity.entity(f, MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+            return invocationBuilder.build(HttpMethod.POST, entity);
+        }
+        throw new InternalHiveClientException("form params cannot be null!");
+
     }
 }

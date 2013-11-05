@@ -90,8 +90,16 @@ public class Client implements HiveClient {
         return new UserControllerImpl(hiveContext);
     }
 
-    public OAuthClientController getOAuthClientController(){
+    public OAuthClientController getOAuthClientController() {
         return new OAuthClientControllerImpl(hiveContext);
+    }
+
+    public OAuthGrantController getOAuthGrantController() {
+        return new OAuthGrantControllerImpl(hiveContext);
+    }
+
+    public OAuthTokenController getOAuthTokenController(){
+        return new OAuthTokenControllerImpl(hiveContext);
     }
 
     @Override
