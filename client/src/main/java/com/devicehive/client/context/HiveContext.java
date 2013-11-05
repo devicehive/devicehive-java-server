@@ -20,6 +20,7 @@ import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -33,8 +34,8 @@ public class HiveContext implements Closeable {
     private HivePrincipal hivePrincipal;
     private ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(SUBSCRIPTIONS_THREAD_POOL_SIZE);
     private Map<String, Future<Response>> websocketResponsesMap = new HashMap<>();
-    private Map<String, Future<Void>> commandsSubscriptionsStorage = new HashMap<>();
-    private Map<String, Future<Void>> notificationsSubscriptionsStorage = new HashMap<>();
+    private Map<Pair<String, Set<String>>, Future<Void>> commandsSubscriptionsStorage = new HashMap<>();
+    private Map<Pair<String, Set<String>>, Future<Void>> notificationsSubscriptionsStorage = new HashMap<>();
     private Map<Pair<String, Long>, Future<DeviceCommand>> commandsUpdateSubscriptionStorage = new HashMap<>();
     private ReadWriteLock rwCommandsLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwCommandUpdateLock = new ReentrantReadWriteLock();
@@ -88,16 +89,18 @@ public class HiveContext implements Closeable {
         return notificationQueue;
     }
 
-    public void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp, String... deviceIds) {
+    public void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp,
+                                        Set<String> names, String... deviceIds) {
         if (deviceIds == null) {
             try {
                 rwCommandsLock.writeLock().lock();
-                if (!commandsSubscriptionsStorage.containsKey(Constants.FOR_ALL_SUBSTITUTE)) {
+                if (!commandsSubscriptionsStorage.containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
                     String path = "/device/command/poll";
                     SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
-                            path, headers);
+                            path, headers, names);
                     Future<Void> subscription = subscriptionExecutor.submit(task);
-                    commandsSubscriptionsStorage.put(Constants.FOR_ALL_SUBSTITUTE, subscription);
+                    commandsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
+                            subscription);
                     logger.debug("New subscription added for:" + Constants.FOR_ALL_SUBSTITUTE);
                 }
             } finally {
@@ -107,15 +110,15 @@ public class HiveContext implements Closeable {
             try {
                 rwCommandsLock.writeLock().lock();
                 for (String id : deviceIds) {
-                    Future<Void> subscription = commandsSubscriptionsStorage.get(id);
+                    Future<Void> subscription = commandsSubscriptionsStorage.get(ImmutablePair.of(id, names));
                     if (subscription == null || subscription.isDone()) { //Returns true if this task completed.
                         // Completion may be due to normal termination, an exception, or cancellation --
                         // in all of these cases, this method will return true.
                         String path = "/device/" + id + "/command/poll";
                         SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
-                                path, headers);
+                                path, headers, names);
                         subscription = subscriptionExecutor.submit(task);
-                        commandsSubscriptionsStorage.put(id, subscription);
+                        commandsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
                         logger.debug("New subscription added for device with id:" + id);
                     }
                 }
@@ -145,20 +148,22 @@ public class HiveContext implements Closeable {
         }
     }
 
-    public void removeCommandSubscription(String... deviceIds) {
-        unsubscribe(rwCommandsLock, commandsSubscriptionsStorage, deviceIds);
+    public void removeCommandSubscription(Set<String> names, String... deviceIds) {
+        unsubscribe(rwCommandsLock, commandsSubscriptionsStorage, names, deviceIds);
     }
 
-    public void addNotificationSubscription(Map<String, String> headers, Timestamp timestamp, String... deviceIds) {
+    public void addNotificationSubscription(Map<String, String> headers, Timestamp timestamp, Set<String> names,
+                                            String... deviceIds) {
         if (deviceIds == null) {
             try {
                 rwCommandsLock.writeLock().lock();
-                if (!commandsSubscriptionsStorage.containsKey(Constants.FOR_ALL_SUBSTITUTE)) {
+                if (!commandsSubscriptionsStorage.containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
                     String path = "/device/notification/poll";
                     SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
-                            path, headers);
+                            path, headers, names);
                     Future<Void> subscription = subscriptionExecutor.submit(task);
-                    commandsSubscriptionsStorage.put(Constants.FOR_ALL_SUBSTITUTE, subscription);
+                    commandsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
+                            subscription);
                     logger.debug("New subscription added for:" + Constants.FOR_ALL_SUBSTITUTE);
                 }
             } finally {
@@ -168,15 +173,15 @@ public class HiveContext implements Closeable {
             try {
                 rwCommandsLock.writeLock().lock();
                 for (String id : deviceIds) {
-                    Future<Void> subscription = commandsSubscriptionsStorage.get(id);
+                    Future<Void> subscription = commandsSubscriptionsStorage.get(ImmutablePair.of(id, names));
                     if (subscription == null || subscription.isDone()) { //Returns true if this task completed.
                         // Completion may be due to normal termination, an exception, or cancellation --
                         // in all of these cases, this method will return true.
                         String path = "/device/" + id + "/notification/poll";
                         SubscriptionTask task = new SubscriptionTask(this, timestamp, Constants.WAIT_TIMEOUT,
-                                path, headers);
+                                path, headers, names);
                         subscription = subscriptionExecutor.submit(task);
-                        commandsSubscriptionsStorage.put(id, subscription);
+                        commandsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
                         logger.debug("New subscription added for device with id:" + id);
                     }
                 }
@@ -186,15 +191,16 @@ public class HiveContext implements Closeable {
         }
     }
 
-    public void removeNotificationSubscription(String... deviceIds) {
-        unsubscribe(rwNotificationsLock, notificationsSubscriptionsStorage, deviceIds);
+    public void removeNotificationSubscription(Set<String> names, String... deviceIds) {
+        unsubscribe(rwNotificationsLock, notificationsSubscriptionsStorage, names, deviceIds);
     }
 
-    private void unsubscribe(ReadWriteLock lock, Map<String, Future<Void>> subscriptionStorage, String... deviceIds) {
+    private void unsubscribe(ReadWriteLock lock, Map<Pair<String, Set<String>>, Future<Void>> subscriptionStorage,
+                             Set<String> names, String... deviceIds) {
         if (deviceIds == null) {
             try {
                 lock.readLock().lock();
-                Future<Void> task = subscriptionStorage.remove(Constants.FOR_ALL_SUBSTITUTE);
+                Future<Void> task = subscriptionStorage.remove(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names));
                 if (task != null && !task.isDone()) {
                     boolean result = task.cancel(true);
                     logger.debug("Task is cancelled for device with id:" + Constants.FOR_ALL_SUBSTITUTE +
@@ -207,7 +213,7 @@ public class HiveContext implements Closeable {
             try {
                 lock.readLock().lock();
                 for (String id : deviceIds) {
-                    Future<Void> task = subscriptionStorage.remove(id);
+                    Future<Void> task = subscriptionStorage.remove(ImmutablePair.of(id, names));
                     if (task != null && !task.isDone()) {
                         boolean result = task.cancel(true);
                         logger.debug("Task is cancelled for device with id:" + id + ". Cancellation result:" + result);

@@ -5,6 +5,7 @@ import com.devicehive.client.model.DeviceNotification;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 public interface NotificationsController {
 
@@ -16,7 +17,7 @@ public interface NotificationsController {
 
     DeviceNotification getNotification(String guid, long notificationId);
 
-    void subscribeForNotifications(Timestamp timestamp, String ... deviceIds);
+    void subscribeForNotifications(Timestamp timestamp, Set<String> names, String ... deviceIds);
 
-    void unsubscribeFromNotification(String ... deviceIds);
+    void unsubscribeFromNotification(Set<String> names, String ... deviceIds);
 }

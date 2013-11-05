@@ -48,7 +48,7 @@ public class Client implements HiveClient {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             Date startDate = formatter.parse("2013-10-11 13:12:00");
-            cc.subscribeForCommands(new Timestamp(startDate.getTime()), "e50d6085-2aba-48e9-b1c3-73c673e414be");
+            cc.subscribeForCommands(new Timestamp(startDate.getTime()), null, "e50d6085-2aba-48e9-b1c3-73c673e414be");
         } catch (ParseException e) {
             logger.error(e);
         }

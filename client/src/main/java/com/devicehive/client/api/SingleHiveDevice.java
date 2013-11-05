@@ -17,10 +17,7 @@ import java.net.URI;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -38,13 +35,13 @@ public class SingleHiveDevice implements Closeable {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             Date startDate = formatter.parse("2013-10-11 13:12:00");
-            shd.subscribeForCommands(new Timestamp(startDate.getTime()));
+            shd.subscribeForCommands(new Timestamp(startDate.getTime()), null);
         } catch (ParseException e) {
             logger.error(e);
         }
         try {
             Thread.currentThread().join(5_000);
-            shd.unsubscribeFromCommands();
+            shd.unsubscribeFromCommands(null);
             Thread.currentThread().join(300_000);
             shd.close();
         } catch (InterruptedException | IOException e) {
@@ -109,15 +106,15 @@ public class SingleHiveDevice implements Closeable {
         hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
     }
 
-    public void subscribeForCommands(final Timestamp timestamp) {
+    public void subscribeForCommands(final Timestamp timestamp, final Set<String> names) {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         final String path = "/device/" + authenticated.getKey() + "/command/poll";
-        hiveContext.addCommandsSubscription(null, timestamp, authenticated.getLeft());
+        hiveContext.addCommandsSubscription(null, timestamp, names, authenticated.getLeft());
     }
 
-    public void unsubscribeFromCommands() {
+    public void unsubscribeFromCommands(final Set<String> names) {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.removeCommandSubscription(authenticated.getLeft());
+        hiveContext.removeCommandSubscription(names, authenticated.getLeft());
     }
 
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) {

@@ -6,6 +6,7 @@ import com.devicehive.client.model.DeviceCommand;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 public interface CommandsController {
 
@@ -19,7 +20,7 @@ public interface CommandsController {
 
     void updateCommand(String deviceGuid, long id, DeviceCommand command);
 
-    void subscribeForCommands(Timestamp timestamp, String ... deviceIds);
+    void subscribeForCommands(Timestamp timestamp, Set<String> names, String ... deviceIds);
 
-    void unsubscribeFromCommands(String ... deviceIds);
+    void unsubscribeFromCommands(Set<String> names, String ... deviceIds);
 }

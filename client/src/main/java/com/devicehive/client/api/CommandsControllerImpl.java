@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -64,12 +65,12 @@ public class CommandsControllerImpl implements CommandsController {
     }
 
     @Override
-    public void subscribeForCommands(Timestamp timestamp, String ... deviceIds) {
-        hiveContext.addCommandsSubscription(null, timestamp, deviceIds);
+    public void subscribeForCommands(Timestamp timestamp, Set<String> names,String ... deviceIds) {
+        hiveContext.addCommandsSubscription(null, timestamp, names,deviceIds);
     }
 
     @Override
-    public void unsubscribeFromCommands(String ... deviceIds) {
-        hiveContext.removeCommandSubscription(deviceIds);
+    public void unsubscribeFromCommands(Set<String> names, String ... deviceIds) {
+        hiveContext.removeCommandSubscription(names, deviceIds);
     }
 }

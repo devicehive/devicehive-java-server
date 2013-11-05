@@ -15,10 +15,7 @@ import java.net.URI;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -37,7 +34,7 @@ public class HiveDeviceGateway implements Closeable {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             Date startDate = formatter.parse("2013-10-11 13:12:00");
             gateway.subscribeForCommands("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8",
-                    new Timestamp(startDate.getTime()));
+                    new Timestamp(startDate.getTime()), null);
         } catch (ParseException e) {
             logger.error(e);
         }
@@ -98,15 +95,15 @@ public class HiveDeviceGateway implements Closeable {
 
     }
 
-    public void subscribeForCommands(String deviceId, String key, Timestamp timestamp) {
+    public void subscribeForCommands(String deviceId, String key, Timestamp timestamp, Set<String> names) {
         final Map<String, String> headers = getHeaders(deviceId, key);
-        hiveContext.addCommandsSubscription(headers, timestamp, deviceId);
+        hiveContext.addCommandsSubscription(headers, timestamp, names, deviceId);
     }
 
-    public void unsubscribeFromCommands(String deviceId, String key) {
+    public void unsubscribeFromCommands(Set<String> names, String deviceId, String key) {
         Device device = getDevice(deviceId, key);
         if (device != null) {
-            hiveContext.removeCommandSubscription(deviceId);
+            hiveContext.removeCommandSubscription(names, deviceId);
         }
     }
 

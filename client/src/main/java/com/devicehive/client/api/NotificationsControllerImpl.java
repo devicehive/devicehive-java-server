@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 public class NotificationsControllerImpl implements NotificationsController{
@@ -53,12 +54,12 @@ public class NotificationsControllerImpl implements NotificationsController{
     }
 
     @Override
-    public void subscribeForNotifications(Timestamp timestamp, String ... deviceIds) {
-        hiveContext.addNotificationSubscription(null, timestamp, deviceIds);
+    public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String ... deviceIds) {
+        hiveContext.addNotificationSubscription(null, timestamp, names, deviceIds);
     }
 
     @Override
-    public void unsubscribeFromNotification(String ... deviceIds) {
-        hiveContext.removeCommandSubscription(deviceIds);
+    public void unsubscribeFromNotification(Set<String> names,String ... deviceIds) {
+        hiveContext.removeCommandSubscription(names, deviceIds);
     }
 }
