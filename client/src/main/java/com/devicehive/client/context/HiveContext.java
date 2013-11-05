@@ -7,6 +7,9 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
 import com.devicehive.client.util.SubscriptionTask;
+import com.devicehive.client.util.UpdatesSubscriptionTask;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import javax.ws.rs.HttpMethod;
@@ -32,7 +35,9 @@ public class HiveContext implements Closeable {
     private Map<String, Future<Response>> websocketResponsesMap = new HashMap<>();
     private Map<String, Future<Void>> commandsSubscriptionsStorage = new HashMap<>();
     private Map<String, Future<Void>> notificationsSubscriptionsStorage = new HashMap<>();
+    private Map<Pair<String, Long>, Future<DeviceCommand>> commandsUpdateSubscriptionStorage = new HashMap<>();
     private ReadWriteLock rwCommandsLock = new ReentrantReadWriteLock();
+    private ReadWriteLock rwCommandUpdateLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwNotificationsLock = new ReentrantReadWriteLock();
     private BlockingQueue<DeviceCommand> commandQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
@@ -83,7 +88,7 @@ public class HiveContext implements Closeable {
         return notificationQueue;
     }
 
-    public void addCommandsSubscription(Map<String, String> headers,Timestamp timestamp, String... deviceIds) {
+    public void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp, String... deviceIds) {
         if (deviceIds == null) {
             try {
                 rwCommandsLock.writeLock().lock();
@@ -117,6 +122,26 @@ public class HiveContext implements Closeable {
             } finally {
                 rwCommandsLock.writeLock().unlock();
             }
+        }
+    }
+
+    public void addCommandUpdateSubscription(long commandId, String deviceId) {
+        try {
+            rwCommandUpdateLock.writeLock().lock();
+            Future<DeviceCommand> subscription =
+                    commandsUpdateSubscriptionStorage.get(ImmutablePair.of(deviceId, commandId));
+            if (subscription == null || subscription.isDone()) { //Returns true if this task completed.
+                // Completion may be due to normal termination, an exception, or cancellation --
+                // in all of these cases, this method will return true.
+                String path = "/device/" + deviceId + "/command/" + commandId + "/poll";
+                UpdatesSubscriptionTask task = new UpdatesSubscriptionTask(this, path, Constants.WAIT_TIMEOUT);
+                subscription = subscriptionExecutor.submit(task);
+                commandsUpdateSubscriptionStorage.put(ImmutablePair.of(deviceId, commandId), subscription);
+                logger.debug("New subscription added for device with id:" + deviceId + " and command id: " +
+                        commandId);
+            }
+        } finally {
+            rwCommandUpdateLock.writeLock().unlock();
         }
     }
 

@@ -3,10 +3,7 @@ package com.devicehive.client.api;
 
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
-import com.devicehive.client.model.AccessKey;
-import com.devicehive.client.model.ApiInfo;
-import com.devicehive.client.model.Device;
-import com.devicehive.client.model.Transport;
+import com.devicehive.client.model.*;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -55,7 +52,19 @@ public class Client implements HiveClient {
         } catch (ParseException e) {
             logger.error(e);
         }
+        DeviceCommand newCommand = new DeviceCommand();
+        newCommand.setCommand("jkjnhlkm");
+        DeviceCommand resultCommand = cc.insertCommand("e50d6085-2aba-48e9-b1c3-73c673e414be", newCommand);
 
+        try {
+            Thread.currentThread().join(5_000);
+            resultCommand.setStatus("success");
+            cc.updateCommand("e50d6085-2aba-48e9-b1c3-73c673e414be", resultCommand.getId(), resultCommand);
+            Thread.currentThread().join(300_000);
+            client.close();
+        } catch (InterruptedException | IOException e) {
+            logger.error(e);
+        }
     }
 
     public ApiInfo getInfo() {

@@ -50,14 +50,17 @@ public class CommandsControllerImpl implements CommandsController {
     @Override
     public DeviceCommand insertCommand(String guid, DeviceCommand command) {
         String path = "/device/" + guid + "/command";
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, command,
+        DeviceCommand proceed = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, command,
                 DeviceCommand.class, COMMAND_FROM_CLIENT, COMMAND_TO_CLIENT);
+        hiveContext.addCommandUpdateSubscription(proceed.getId(), guid);
+        return proceed;
     }
 
     @Override
     public void updateCommand(String deviceGuid, long id, DeviceCommand command) {
         String path = "/device/" + deviceGuid + "/command/" + id;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, command, REST_COMMAND_UPDATE_FROM_DEVICE);
+        System.out.print("Try to update");
     }
 
     @Override
