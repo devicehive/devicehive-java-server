@@ -8,6 +8,7 @@ import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -29,9 +30,10 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     private final static String NOTIFICATION_MEMBER = "notification";
     private static Logger logger = Logger.getLogger(HiveWebsocketHandler.class);
     private final HiveContext hiveContext;
-    private final Map<String, JsonObject> websocketResponsesMap;
+    private final Map<String, SettableFuture<JsonObject>> websocketResponsesMap;
 
-    public HiveWebsocketHandler(HiveContext hiveContext, Map responsesMap) {
+
+    public HiveWebsocketHandler(HiveContext hiveContext, Map<String, SettableFuture<JsonObject>> responsesMap) {
         this.hiveContext = hiveContext;
         this.websocketResponsesMap = responsesMap;
     }
@@ -77,7 +79,9 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                 throw new InternalHiveClientException(e.getMessage(), e);
             }
         } else{
-            websocketResponsesMap.put(jsonMessage.get(REQUEST_ID_MEMBER).getAsString(), jsonMessage);
+            SettableFuture<JsonObject> future =  websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
+                    .getAsString());
+            future.set(jsonMessage);
         }
     }
 }
