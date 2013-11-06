@@ -2,7 +2,8 @@ package com.devicehive.client.util;
 
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.model.DeviceCommand;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.util.HashMap;
@@ -12,7 +13,7 @@ import java.util.concurrent.Callable;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
 
 public class UpdatesSubscriptionTask implements Callable<DeviceCommand> {
-    private static Logger logger = Logger.getLogger(UpdatesSubscriptionTask.class);
+    private static Logger logger = LoggerFactory.getLogger(UpdatesSubscriptionTask.class);
     private final HiveContext hiveContext;
     private final String path;
     private final Integer waitTimeout;
@@ -38,7 +39,7 @@ public class UpdatesSubscriptionTask implements Callable<DeviceCommand> {
                 }
             }
         } catch (Exception e) {
-            logger.error(e);
+            logger.error(e.getMessage(), e);
             if (e.getCause() instanceof InterruptedException)
                 Thread.currentThread().interrupt();
         }

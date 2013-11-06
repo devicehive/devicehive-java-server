@@ -13,12 +13,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
-
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
 
     private final static String REQUEST_ID_MEMBER = "requestId";
@@ -28,7 +29,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     private final static String NOTIFICATION_INSERT = "notification/insert";
     private final static String CLIENT_MEMBER = "client";
     private final static String NOTIFICATION_MEMBER = "notification";
-    private static Logger logger = Logger.getLogger(HiveWebsocketHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
     private final HiveContext hiveContext;
     private final Map<String, SettableFuture<JsonObject>> websocketResponsesMap;
 
@@ -42,7 +43,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     public void handleMessage(String message) {
         JsonElement elem = new JsonParser().parse(message);
         if (!elem.isJsonObject()) {
-            throw new HiveServerException("Server sent unparseable message", 500);
+            throw new HiveServerException("Server sent unparseable message", INTERNAL_SERVER_ERROR.getStatusCode());
         }
         JsonObject jsonMessage = (JsonObject) elem;
         if (!jsonMessage.has(REQUEST_ID_MEMBER)) {
@@ -75,7 +76,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                         throw new HiveException("Request id is undefined");
                 }
             } catch (InterruptedException e) {
-                logger.debug(e);
+                logger.info(e.getMessage(), e);
                 throw new InternalHiveClientException(e.getMessage(), e);
             }
         } else{

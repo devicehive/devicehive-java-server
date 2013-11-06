@@ -4,7 +4,8 @@ package com.devicehive.client.api;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.*;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class Client implements HiveClient {
 
-    private static Logger logger = Logger.getLogger(SingleHiveDevice.class);
+    private static Logger logger = LoggerFactory.getLogger(SingleHiveDevice.class);
     private final HiveContext hiveContext;
 
     public Client(URI uri, URI websocket) {
@@ -32,10 +33,10 @@ public class Client implements HiveClient {
         //access keys
         AccessKeyController akc = client.getAccessKeyController();
         List<AccessKey> result = akc.listKeys(1);
-        logger.debug(result);
+        logger.debug("List:{}", result);
         AccessKey toInsert = result.get(0);
         AccessKey inserted = akc.insertKey(1, toInsert);
-        logger.debug(inserted.getId());
+        logger.debug("Inserted Access Key:{} ", inserted.getId());
         logger.debug(inserted.getKey());
         akc.deleteKey(1, inserted.getId());
 
@@ -43,7 +44,7 @@ public class Client implements HiveClient {
         DeviceController dc = client.getDeviceController();
         List<Device> deviceList =
                 dc.listDevices(null, null, null, null, null, null, null, null, null, null, null, null);
-        logger.debug(deviceList);
+        logger.debug("result device list: {}", deviceList);
 
         //commands subscriptions
         CommandsController cc = client.getCommandsController();
@@ -52,7 +53,7 @@ public class Client implements HiveClient {
             Date startDate = formatter.parse("2013-10-11 13:12:00");
             cc.subscribeForCommands(new Timestamp(startDate.getTime()), null, "e50d6085-2aba-48e9-b1c3-73c673e414be");
         } catch (ParseException e) {
-            logger.error(e);
+            logger.error("Parse exception: ", e);
         }
         DeviceCommand newCommand = new DeviceCommand();
         newCommand.setCommand("jkjnhlkm");
@@ -65,7 +66,7 @@ public class Client implements HiveClient {
             Thread.currentThread().join(300_000);
             client.close();
         } catch (InterruptedException | IOException e) {
-            logger.error(e);
+            logger.error(e.getMessage(), e);
         }
     }
 

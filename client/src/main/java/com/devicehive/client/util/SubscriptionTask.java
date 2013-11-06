@@ -7,7 +7,8 @@ import com.devicehive.client.model.DeviceCommand;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
@@ -20,7 +21,7 @@ import java.util.concurrent.Callable;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
 
 public class SubscriptionTask implements Callable<Void> {
-    private static Logger logger = Logger.getLogger(SubscriptionTask.class);
+    private static Logger logger = LoggerFactory.getLogger(SubscriptionTask.class);
     private final HiveContext hiveContext;
     private final Timestamp timestamp;
     private final Integer waitTimeout;
@@ -62,7 +63,7 @@ public class SubscriptionTask implements Callable<Void> {
                 }
             }
         } catch (Exception e) {
-            logger.error(e);
+            logger.error(e.getMessage(), e);
             if (e.getCause() instanceof InterruptedException)
                 Thread.currentThread().interrupt();
         }

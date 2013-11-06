@@ -9,7 +9,8 @@ import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
@@ -21,7 +22,7 @@ import java.util.*;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class SingleHiveDevice implements Closeable {
-    private static Logger logger = Logger.getLogger(SingleHiveDevice.class);
+    private static Logger logger = LoggerFactory.getLogger(SingleHiveDevice.class);
     private HiveContext hiveContext;
 
     public SingleHiveDevice(URI restUri, URI websocketUri) {
@@ -38,7 +39,7 @@ public class SingleHiveDevice implements Closeable {
         final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
         shd.authenticate("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8");
         Device device = shd.getDevice();
-        logger.debug(device);
+        logger.debug("Received device: {}", device);
 //        try {
 //            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 //            Date startDate = formatter.parse("2013-10-11 13:12:00");
@@ -52,7 +53,7 @@ public class SingleHiveDevice implements Closeable {
 //            Thread.currentThread().join(300_000);
             shd.close();
         } catch (InterruptedException | IOException e) {
-            logger.error(e);
+            logger.error(e.getMessage(), e);
         }
     }
 

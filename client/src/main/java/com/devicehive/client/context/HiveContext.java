@@ -5,7 +5,8 @@ import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
@@ -17,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class HiveContext implements Closeable {
 
 
-    private static Logger logger = Logger.getLogger(HiveContext.class);
+    private static Logger logger = LoggerFactory.getLogger(HiveContext.class);
     private final Transport transport;
     private HiveRestClient hiveRestClient;
     private HiveWebSocketClient hiveWebSocketClient;

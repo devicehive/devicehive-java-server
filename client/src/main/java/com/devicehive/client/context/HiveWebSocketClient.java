@@ -13,7 +13,8 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -29,7 +30,9 @@ public class HiveWebSocketClient implements Closeable {
 
     private static final String REQUEST_ID_MEMBER = "requestId";
     private static final Integer POOL_SIZE = 100;
-    private static Logger logger = Logger.getLogger(HiveWebSocketClient.class);
+    private static final Long WAIT_TIMEOUT = 1L;
+    private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
+    private static Logger logger = LoggerFactory.getLogger(HiveWebSocketClient.class);
     private HiveClientEndpoint endpoint;
     private Map<String, SettableFuture<JsonObject>> websocketResponsesMap = new HashMap<>();
     private ExecutorService pool = Executors.newFixedThreadPool(POOL_SIZE);
@@ -57,7 +60,7 @@ public class HiveWebSocketClient implements Closeable {
     private void processResponse(final String requestId) {
 
         try {
-            JsonObject result = websocketResponsesMap.get(requestId).get(1L, TimeUnit.MINUTES);
+            JsonObject result = websocketResponsesMap.get(requestId).get(WAIT_TIMEOUT, TimeUnit.MINUTES);
 
             if (result != null) {
                 Gson gson = GsonFactory.createGson();
@@ -98,7 +101,7 @@ public class HiveWebSocketClient implements Closeable {
     private <T> T processResponse(final String requestId, final String responseMemberName, final Type typeOfResponse,
                                   final JsonPolicyDef.Policy receivePolicy) {
         try {
-            JsonObject result = websocketResponsesMap.get(requestId).get(1L, TimeUnit.MINUTES);
+            JsonObject result = websocketResponsesMap.get(requestId).get(WAIT_TIMEOUT, TimeUnit.MINUTES);
             if (result != null) {
                 if (result.get("status").getAsString().equals("success")) {
                     logger.debug("Request with id:" + requestId + "proceed successfully");
@@ -141,13 +144,13 @@ public class HiveWebSocketClient implements Closeable {
     public void close() throws IOException {
         pool.shutdown();
         try {
-            if (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
+            if (!pool.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS)) {
                 pool.shutdownNow();
-                if (!pool.awaitTermination(10, TimeUnit.SECONDS))
+                if (!pool.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS))
                     logger.warn("Pool did not terminate");
             }
         } catch (InterruptedException ie) {
-            logger.warn(ie);
+            logger.warn(ie.getMessage(), ie);
             pool.shutdownNow();
             Thread.currentThread().interrupt();
         }

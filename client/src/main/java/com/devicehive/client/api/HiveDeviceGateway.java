@@ -6,7 +6,8 @@ import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.model.*;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
@@ -21,7 +22,7 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class HiveDeviceGateway implements Closeable {
 
-    private static Logger logger = Logger.getLogger(HiveDeviceGateway.class);
+    private static Logger logger = LoggerFactory.getLogger(HiveDeviceGateway.class);
     private HiveContext hiveContext;
 
     public HiveDeviceGateway(URI restUri, URI websocketUri) {
@@ -38,7 +39,7 @@ public class HiveDeviceGateway implements Closeable {
             gateway.subscribeForCommands("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8",
                     new Timestamp(startDate.getTime()), null);
         } catch (ParseException e) {
-            logger.error(e);
+            logger.error(e.getMessage(), e);
         }
     }
 

@@ -7,7 +7,8 @@ import com.devicehive.client.util.SubscriptionTask;
 import com.devicehive.client.util.UpdatesSubscriptionTask;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -22,8 +23,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class HiveSubscriptions {
 
-    private static Logger logger = Logger.getLogger(HiveSubscriptions.class);
+    private static Logger logger = LoggerFactory.getLogger(HiveSubscriptions.class);
     private static final int SUBSCRIPTIONS_THREAD_POOL_SIZE = 100;
+    private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
     private final HiveContext hiveContext;
     private ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(SUBSCRIPTIONS_THREAD_POOL_SIZE);
     private Map<Pair<String, Set<String>>, Future<Void>> commandsSubscriptionsStorage = new HashMap<>();
@@ -178,13 +180,13 @@ public class HiveSubscriptions {
             rwNotificationsLock.writeLock().lock();
             subscriptionExecutor.shutdown();
             try {
-                if (!subscriptionExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                if (!subscriptionExecutor.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS)) {
                     subscriptionExecutor.shutdownNow();
-                    if (!subscriptionExecutor.awaitTermination(10, TimeUnit.SECONDS))
+                    if (!subscriptionExecutor.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS))
                         logger.warn("Pool did not terminate");
                 }
             } catch (InterruptedException ie) {
-                logger.warn(ie);
+                logger.warn(ie.getMessage(), ie);
                 subscriptionExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
             }

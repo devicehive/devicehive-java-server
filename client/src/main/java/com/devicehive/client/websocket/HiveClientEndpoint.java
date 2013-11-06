@@ -2,14 +2,15 @@ package com.devicehive.client.websocket;
 
 
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
 import java.net.URI;
 
 @ClientEndpoint(encoders = {JsonEncoder.class})
 public class HiveClientEndpoint {
-    private static final Logger logger = Logger.getLogger(HiveClientEndpoint.class);
+    private static final Logger logger = LoggerFactory.getLogger(HiveClientEndpoint.class);
     private Session userSession;
     private MessageHandler messageHandler;
     private WebSocketContainer container;
