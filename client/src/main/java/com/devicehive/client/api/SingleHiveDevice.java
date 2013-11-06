@@ -44,14 +44,14 @@ public class SingleHiveDevice implements Closeable {
 //        } catch (ParseException e) {
 //            logger.error(e);
 //        }
-//        try {
-//            Thread.currentThread().join(5_000);
+        try {
+            Thread.currentThread().join(5_000);
 //            shd.unsubscribeFromCommands(null);
 //            Thread.currentThread().join(300_000);
-//            shd.close();
-//        } catch (InterruptedException | IOException e) {
-//            logger.error(e);
-//        }
+            shd.close();
+        } catch (InterruptedException | IOException e) {
+            logger.error(e);
+        }
     }
 
     @Override
