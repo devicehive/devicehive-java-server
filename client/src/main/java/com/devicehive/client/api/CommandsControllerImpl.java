@@ -53,7 +53,7 @@ public class CommandsControllerImpl implements CommandsController {
         String path = "/device/" + guid + "/command";
         DeviceCommand proceed = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, command,
                 DeviceCommand.class, COMMAND_FROM_CLIENT, COMMAND_TO_CLIENT);
-        hiveContext.addCommandUpdateSubscription(proceed.getId(), guid);
+        hiveContext.getHiveSubscriptions().addCommandUpdateSubscription(proceed.getId(), guid);
         return proceed;
     }
 
@@ -66,11 +66,11 @@ public class CommandsControllerImpl implements CommandsController {
 
     @Override
     public void subscribeForCommands(Timestamp timestamp, Set<String> names,String ... deviceIds) {
-        hiveContext.addCommandsSubscription(null, timestamp, names,deviceIds);
+        hiveContext.getHiveSubscriptions().addCommandsSubscription(null, timestamp, names,deviceIds);
     }
 
     @Override
     public void unsubscribeFromCommands(Set<String> names, String ... deviceIds) {
-        hiveContext.removeCommandSubscription(names, deviceIds);
+        hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceIds);
     }
 }

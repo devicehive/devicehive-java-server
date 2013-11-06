@@ -97,13 +97,13 @@ public class HiveDeviceGateway implements Closeable {
 
     public void subscribeForCommands(String deviceId, String key, Timestamp timestamp, Set<String> names) {
         final Map<String, String> headers = getHeaders(deviceId, key);
-        hiveContext.addCommandsSubscription(headers, timestamp, names, deviceId);
+        hiveContext.getHiveSubscriptions().addCommandsSubscription(headers, timestamp, names, deviceId);
     }
 
     public void unsubscribeFromCommands(Set<String> names, String deviceId, String key) {
         Device device = getDevice(deviceId, key);
         if (device != null) {
-            hiveContext.removeCommandSubscription(names, deviceId);
+            hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceId);
         }
     }
 

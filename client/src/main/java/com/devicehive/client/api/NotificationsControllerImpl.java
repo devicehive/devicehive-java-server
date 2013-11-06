@@ -55,11 +55,11 @@ public class NotificationsControllerImpl implements NotificationsController{
 
     @Override
     public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String ... deviceIds) {
-        hiveContext.addNotificationSubscription(null, timestamp, names, deviceIds);
+        hiveContext.getHiveSubscriptions().addNotificationSubscription(null, timestamp, names, deviceIds);
     }
 
     @Override
     public void unsubscribeFromNotification(Set<String> names,String ... deviceIds) {
-        hiveContext.removeCommandSubscription(names, deviceIds);
+        hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceIds);
     }
 }

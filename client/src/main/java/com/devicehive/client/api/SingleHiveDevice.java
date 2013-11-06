@@ -109,12 +109,12 @@ public class SingleHiveDevice implements Closeable {
     public void subscribeForCommands(final Timestamp timestamp, final Set<String> names) {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         final String path = "/device/" + authenticated.getKey() + "/command/poll";
-        hiveContext.addCommandsSubscription(null, timestamp, names, authenticated.getLeft());
+        hiveContext.getHiveSubscriptions().addCommandsSubscription(null, timestamp, names, authenticated.getLeft());
     }
 
     public void unsubscribeFromCommands(final Set<String> names) {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.removeCommandSubscription(names, authenticated.getLeft());
+        hiveContext.getHiveSubscriptions().removeCommandSubscription(names, authenticated.getLeft());
     }
 
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) {
