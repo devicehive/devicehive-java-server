@@ -12,10 +12,11 @@ public class HiveClientEndpoint {
     private static final Logger logger = Logger.getLogger(HiveClientEndpoint.class);
     private Session userSession;
     private MessageHandler messageHandler;
+    private WebSocketContainer container;
 
     public HiveClientEndpoint(URI endpointURI) {
         try {
-            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, endpointURI);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -27,12 +28,6 @@ public class HiveClientEndpoint {
     public void onOpen(Session userSession) {
         this.userSession = userSession;
     }
-
-//    @Override
-//    public void onOpen(Session session, EndpointConfig config) {
-//        this.userSession = session;
-//        userSession.addMessageHandler(this.messageHandler);
-//    }
 
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
