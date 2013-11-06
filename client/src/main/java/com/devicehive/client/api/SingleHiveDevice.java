@@ -28,15 +28,17 @@ public class SingleHiveDevice implements Closeable {
         this.hiveContext = new HiveContext(Transport.AUTO, restUri, websocketUri);
     }
 
-    public SingleHiveDevice(URI restUri, URI websocketUri,  Transport transport) {
+    public SingleHiveDevice(URI restUri, URI websocketUri, Transport transport) {
         this.hiveContext = new HiveContext(transport, restUri, websocketUri);
     }
 
     public static void main(String... args) {
         URI restUri = URI.create("http://127.0.0.1:8080/hive/rest/");
-        URI websocketUri =  URI.create("ws://127.0.0.1:8080/hive/websocket/");
+        URI websocketUri = URI.create("ws://127.0.0.1:8080/hive/websocket/");
         final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
         shd.authenticate("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8");
+        Device device = shd.getDevice();
+        logger.debug(device);
 //        try {
 //            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 //            Date startDate = formatter.parse("2013-10-11 13:12:00");
@@ -74,12 +76,21 @@ public class SingleHiveDevice implements Closeable {
     }
 
     public Device getDevice() {
-        String deviceId = hiveContext.getHivePrincipal().getDevice().getKey();
-        if (deviceId == null) {
-            throw new HiveClientException("Device is not authenticated");
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "device/get");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            return hiveContext.getHiveWebSocketClient().sendMessage(request, "device", Device.class,
+                    DEVICE_PUBLISHED_DEVICE_AUTH);
+        } else {
+            String deviceId = hiveContext.getHivePrincipal().getDevice().getKey();
+            if (deviceId == null) {
+                throw new HiveClientException("Device is not authenticated");
+            }
+            String path = "/device/" + deviceId;
+            return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Device.class, null);
         }
-        String path = "/device/" + deviceId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Device.class, null);
     }
 
     public void saveDevice(Device device) {

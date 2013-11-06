@@ -115,19 +115,20 @@ public class HiveWebSocketClient implements Closeable {
                     if (result != null) {
                         if (result.get("status").getAsString().equals("success")) {
                             logger.debug("Request with id:" + requestId + "proceed successfully");
-                        }
-                        Family errorFamily = Response.Status.Family.familyOf(result.get("code").getAsInt());
-                        String error = result.get("error").getAsString();
-                        Integer code = result.get("code").getAsInt();
-                        switch (errorFamily) {
-                            case SERVER_ERROR:
-                                logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
-                                        "code:" + code);
-                                throw new HiveServerException(error, code);
-                            case CLIENT_ERROR:
-                                logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
-                                        "code:" + code);
-                                throw new HiveClientException(error, code);
+                        } else {
+                            Family errorFamily = Response.Status.Family.familyOf(result.get("code").getAsInt());
+                            String error = result.get("error").getAsString();
+                            Integer code = result.get("code").getAsInt();
+                            switch (errorFamily) {
+                                case SERVER_ERROR:
+                                    logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
+                                            "code:" + code);
+                                    throw new HiveServerException(error, code);
+                                case CLIENT_ERROR:
+                                    logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
+                                            "code:" + code);
+                                    throw new HiveClientException(error, code);
+                            }
                         }
                         Gson gson = GsonFactory.createGson(receivePolicy);
                         try {

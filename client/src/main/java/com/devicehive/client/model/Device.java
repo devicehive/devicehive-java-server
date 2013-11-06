@@ -9,19 +9,19 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 public class Device implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private String id;
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     private NullableWrapper<String> key;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> name;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> status;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<JsonStringWrapper> data;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<Network> network;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<DeviceClass> deviceClass;
     @JsonPolicyDef(DEVICE_PUBLISHED)
     private NullableWrapper<Set<Equipment>> equipment;
