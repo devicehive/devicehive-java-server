@@ -24,12 +24,14 @@ public class HiveDeviceGateway implements Closeable {
     private static Logger logger = Logger.getLogger(HiveDeviceGateway.class);
     private HiveContext hiveContext;
 
-    public HiveDeviceGateway(URI restUri) {
-        hiveContext = new HiveContext(Transport.AUTO, restUri);
+    public HiveDeviceGateway(URI restUri, URI websocketUri) {
+        hiveContext = new HiveContext(Transport.AUTO, restUri, websocketUri);
     }
 
     public static void main(String... args) {
-        HiveDeviceGateway gateway = new HiveDeviceGateway(URI.create("http://127.0.0.1:8080/hive/rest/"));
+        URI restUri = URI.create("http://127.0.0.1:8080/hive/rest/");
+        URI websocketUri =  URI.create("ws://127.0.0.1:8080/hive/websocket/");
+        HiveDeviceGateway gateway = new HiveDeviceGateway(restUri, websocketUri);
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             Date startDate = formatter.parse("2013-10-11 13:12:00");

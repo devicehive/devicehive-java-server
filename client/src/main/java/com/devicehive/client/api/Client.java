@@ -19,12 +19,14 @@ public class Client implements HiveClient {
     private static Logger logger = Logger.getLogger(SingleHiveDevice.class);
     private final HiveContext hiveContext;
 
-    public Client(URI uri) {
-        hiveContext = new HiveContext(Transport.AUTO, uri);
+    public Client(URI uri, URI websocket) {
+        hiveContext = new HiveContext(Transport.AUTO, uri, websocket);
     }
 
     public static void main(String... args) {
-        HiveClient client = new Client(URI.create("http://127.0.0.1:8080/hive/rest/"));
+        URI restUri = URI.create("http://127.0.0.1:8080/hive/rest/");
+        URI websocketUri =  URI.create("ws://127.0.0.1:8080/hive/websocket/");
+        HiveClient client = new Client(restUri, websocketUri);
         client.authenticate("dhadmin", "dhadmin_#911");
 
         //access keys

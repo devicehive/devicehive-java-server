@@ -7,6 +7,7 @@ import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
@@ -15,8 +16,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
@@ -25,28 +24,34 @@ public class SingleHiveDevice implements Closeable {
     private static Logger logger = Logger.getLogger(SingleHiveDevice.class);
     private HiveContext hiveContext;
 
-    public SingleHiveDevice(URI restUri) {
-        this.hiveContext = new HiveContext(Transport.AUTO, restUri);
+    public SingleHiveDevice(URI restUri, URI websocketUri) {
+        this.hiveContext = new HiveContext(Transport.AUTO, restUri, websocketUri);
+    }
+
+    public SingleHiveDevice(URI restUri, URI websocketUri,  Transport transport) {
+        this.hiveContext = new HiveContext(transport, restUri, websocketUri);
     }
 
     public static void main(String... args) {
-        final SingleHiveDevice shd = new SingleHiveDevice(URI.create("http://127.0.0.1:8080/hive/rest/"));
+        URI restUri = URI.create("http://127.0.0.1:8080/hive/rest/");
+        URI websocketUri =  URI.create("ws://127.0.0.1:8080/hive/websocket/");
+        final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
         shd.authenticate("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8");
-        try {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-            Date startDate = formatter.parse("2013-10-11 13:12:00");
-            shd.subscribeForCommands(new Timestamp(startDate.getTime()), null);
-        } catch (ParseException e) {
-            logger.error(e);
-        }
-        try {
-            Thread.currentThread().join(5_000);
-            shd.unsubscribeFromCommands(null);
-            Thread.currentThread().join(300_000);
-            shd.close();
-        } catch (InterruptedException | IOException e) {
-            logger.error(e);
-        }
+//        try {
+//            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+//            Date startDate = formatter.parse("2013-10-11 13:12:00");
+//            shd.subscribeForCommands(new Timestamp(startDate.getTime()), null);
+//        } catch (ParseException e) {
+//            logger.error(e);
+//        }
+//        try {
+//            Thread.currentThread().join(5_000);
+//            shd.unsubscribeFromCommands(null);
+//            Thread.currentThread().join(300_000);
+//            shd.close();
+//        } catch (InterruptedException | IOException e) {
+//            logger.error(e);
+//        }
     }
 
     @Override
@@ -55,7 +60,17 @@ public class SingleHiveDevice implements Closeable {
     }
 
     public void authenticate(String deviceId, String deviceKey) {
-        hiveContext.setHivePrincipal(HivePrincipal.createDevice(deviceId, deviceKey));
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "authenticate");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            request.addProperty("deviceId", deviceId);
+            request.addProperty("deviceKey", deviceKey);
+            hiveContext.getHiveWebSocketClient().sendMessage(request);
+        } else {
+            hiveContext.setHivePrincipal(HivePrincipal.createDevice(deviceId, deviceKey));
+        }
     }
 
     public Device getDevice() {

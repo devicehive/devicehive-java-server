@@ -8,14 +8,10 @@ import com.devicehive.client.model.Transport;
 import org.apache.log4j.Logger;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class HiveContext implements Closeable {
@@ -26,18 +22,20 @@ public class HiveContext implements Closeable {
     private HiveRestClient hiveRestClient;
     private HiveWebSocketClient hiveWebSocketClient;
     private HivePrincipal hivePrincipal;
-
-    private Map<String, Future<Response>> websocketResponsesMap = new HashMap<>();
-
     private HiveSubscriptions hiveSubscriptions;
     private BlockingQueue<DeviceCommand> commandQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<DeviceNotification> notificationQueue = new LinkedBlockingQueue<>();
 
-    public HiveContext(Transport transport, URI rest) {
+    public HiveContext(Transport transport, URI rest, URI websocket) {
         this.transport = transport;
         hiveRestClient = new HiveRestClient(rest, this);
         hiveSubscriptions = new HiveSubscriptions(this);
+        hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
+    }
+
+    public boolean useSockets() {
+        return transport.getWebsocketPriority() > transport.getRestPriority();
     }
 
     @Override
@@ -46,10 +44,11 @@ public class HiveContext implements Closeable {
             hiveSubscriptions.shutdownThreads();
         } finally {
             hiveRestClient.close();
+            hiveWebSocketClient.close();
         }
     }
 
-    public HiveSubscriptions getHiveSubscriptions(){
+    public HiveSubscriptions getHiveSubscriptions() {
         return hiveSubscriptions;
     }
 
@@ -84,7 +83,7 @@ public class HiveContext implements Closeable {
         return notificationQueue;
     }
 
-
-
-
+    public HiveWebSocketClient getHiveWebSocketClient() {
+        return hiveWebSocketClient;
+    }
 }

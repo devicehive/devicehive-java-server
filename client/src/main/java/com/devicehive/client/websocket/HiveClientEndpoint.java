@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 import javax.websocket.*;
 import java.net.URI;
 
-@ClientEndpoint
+@ClientEndpoint(encoders = {JsonEncoder.class})
 public class HiveClientEndpoint {
     private static final Logger logger = Logger.getLogger(HiveClientEndpoint.class);
     private Session userSession;
@@ -18,6 +18,7 @@ public class HiveClientEndpoint {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, endpointURI);
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new InternalHiveClientException(e.getMessage(), e);
         }
     }
@@ -27,8 +28,15 @@ public class HiveClientEndpoint {
         this.userSession = userSession;
     }
 
+//    @Override
+//    public void onOpen(Session session, EndpointConfig config) {
+//        this.userSession = session;
+//        userSession.addMessageHandler(this.messageHandler);
+//    }
+
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
+        //todo close reason?
         this.userSession = null;
     }
 
@@ -46,8 +54,7 @@ public class HiveClientEndpoint {
         this.userSession.getAsyncRemote().sendText(message);
     }
 
-
-    public static interface MessageHandler {
+    public static interface MessageHandler extends javax.websocket.MessageHandler {
         public void handleMessage(String message);
     }
 }
