@@ -48,7 +48,7 @@ public class SingleHiveDevice implements Closeable {
 //            logger.error(e);
 //        }
         try {
-            Thread.currentThread().join(5_000);
+            Thread.currentThread().join(30_000);
 //            shd.unsubscribeFromCommands(null);
 //            Thread.currentThread().join(300_000);
             shd.close();

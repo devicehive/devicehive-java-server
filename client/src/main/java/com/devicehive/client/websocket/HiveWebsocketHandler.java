@@ -20,6 +20,7 @@ import java.util.Map;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
 public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
 
     private final static String REQUEST_ID_MEMBER = "requestId";
@@ -37,6 +38,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     public HiveWebsocketHandler(HiveContext hiveContext, Map<String, SettableFuture<JsonObject>> responsesMap) {
         this.hiveContext = hiveContext;
         this.websocketResponsesMap = responsesMap;
+
     }
 
     @Override
@@ -79,8 +81,8 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                 logger.info(e.getMessage(), e);
                 throw new InternalHiveClientException(e.getMessage(), e);
             }
-        } else{
-            SettableFuture<JsonObject> future =  websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
+        } else {
+            SettableFuture<JsonObject> future = websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
                     .getAsString());
             future.set(jsonMessage);
         }

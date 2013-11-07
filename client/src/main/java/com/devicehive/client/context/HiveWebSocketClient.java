@@ -154,5 +154,6 @@ public class HiveWebSocketClient implements Closeable {
             pool.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        endpoint.close();
     }
 }
