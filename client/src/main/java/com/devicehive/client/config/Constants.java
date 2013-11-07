@@ -12,6 +12,6 @@ public class Constants {
 
     public static final int WAIT_TIMEOUT = 30;
 
-    public static long WEBSOCKET_PING_TIMEOUT = 5L;
+    public static final long WEBSOCKET_PING_TIMEOUT = 5L;
 
 }

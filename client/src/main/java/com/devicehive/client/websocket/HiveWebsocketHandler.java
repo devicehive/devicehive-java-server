@@ -28,7 +28,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     private final static String COMMAND_INSERT = "command/insert";
     private final static String COMMAND_UPDATE = "command/update";
     private final static String NOTIFICATION_INSERT = "notification/insert";
-    private final static String CLIENT_MEMBER = "client";
+    private final static String COMMAND_MEMBER = "command";
     private final static String NOTIFICATION_MEMBER = "notification";
     private static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
     private final HiveContext hiveContext;
@@ -54,15 +54,18 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                     case COMMAND_INSERT:
                         Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
                         DeviceCommand commandInsert =
-                                commandInsertGson.fromJson(jsonMessage.getAsJsonObject(CLIENT_MEMBER),
+                                commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
                                         DeviceCommand.class);
-                        hiveContext.getCommandQueue().put(commandInsert);
-                        logger.debug("Device command inserted. Id: " + commandInsert.getId());
+                        if (commandInsert != null){
+                            hiveContext.getCommandQueue().put(commandInsert);
+                            logger.debug("Device command inserted. Id: " + commandInsert.getId());
+                        }
+
                         break;
                     case COMMAND_UPDATE:
                         Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
                         DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
-                                (CLIENT_MEMBER), DeviceCommand.class);
+                                (COMMAND_MEMBER), DeviceCommand.class);
                         hiveContext.getCommandUpdateQueue().put(commandUpdated);
                         logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
                                 commandUpdated.getStatus());

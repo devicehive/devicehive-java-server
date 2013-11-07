@@ -5,6 +5,7 @@ import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,7 @@ import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -69,7 +71,15 @@ public class HiveContext implements Closeable {
     }
 
     public synchronized ApiInfo getInfo() {
-        return hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        if (useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "server/info");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            return hiveWebSocketClient.sendMessage(request, "info", ApiInfo.class, null);
+        } else {
+            return hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        }
     }
 
     public BlockingQueue<DeviceCommand> getCommandQueue() {

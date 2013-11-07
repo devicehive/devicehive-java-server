@@ -1,5 +1,6 @@
 package com.devicehive.client.websocket.util;
 
+import com.devicehive.client.config.Constants;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import org.slf4j.Logger;
@@ -61,7 +62,8 @@ public class SessionMonitor implements Closeable {
         serverMonitor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                if (System.currentTimeMillis() - timeOfLastReceivedPong.getTime() > TimeUnit.MINUTES.toMillis(5)) {
+                if (System.currentTimeMillis() - timeOfLastReceivedPong.getTime() > TimeUnit.MINUTES.toMillis
+                        (Constants.WEBSOCKET_PING_TIMEOUT)) {
                     logger.info("No pings received from server for a long time. Session will be closed");
                     try {
                         userSession.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "No pings from server"));

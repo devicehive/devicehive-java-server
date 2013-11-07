@@ -11,7 +11,7 @@ public class JsonMessageBuilder {
 
     public static final String STATUS = "status";
     public static final String ERROR = "error";
-    public static final String ERROR_CODE = "errorCode";
+    public static final String ERROR_CODE = "code";
     public static final String ACTION = "action";
     public static final String REQUEST_ID = "requestId";
     public static final String DEVICE_GUID = "deviceGuid";
@@ -20,17 +20,19 @@ public class JsonMessageBuilder {
     public static final String TIMESTAMP = "timestamp";
     public static final String COMMAND_ID = "commandId";
     public static final String NOTIFICATION = "notification";
-    public static final String COMMAND ="command";
-
+    public static final String COMMAND = "command";
     private JsonObject jsonObject = new JsonObject();
 
+
+    public JsonMessageBuilder() {
+    }
 
     public static JsonMessageBuilder createSuccessResponseBuilder() {
         return new JsonMessageBuilder().addStatus("success");
     }
 
     public static JsonMessageBuilder createErrorResponseBuilder(Integer errorCode) {
-        return new JsonMessageBuilder().addStatus("error");
+        return new JsonMessageBuilder().addErrorCode(errorCode).addStatus("error");
     }
 
     public static JsonMessageBuilder createErrorResponseBuilder(Integer errorCode, String errorMessage) {
@@ -41,13 +43,14 @@ public class JsonMessageBuilder {
         return createErrorResponseBuilder(ex.getCode(), ex.getMessage());
     }
 
-    public JsonMessageBuilder() {
-    }
-
     public JsonObject build() {
         return jsonObject;
     }
 
+    public JsonMessageBuilder addErrorCode(Integer errorCode) {
+        jsonObject.addProperty(ERROR_CODE, errorCode);
+        return this;
+    }
 
     public JsonMessageBuilder addStatus(String status) {
         jsonObject.addProperty(STATUS, status);
@@ -59,7 +62,6 @@ public class JsonMessageBuilder {
         return this;
     }
 
-
     public JsonMessageBuilder addAction(String action) {
         jsonObject.addProperty(ACTION, action);
         return this;
@@ -69,7 +71,6 @@ public class JsonMessageBuilder {
         jsonObject.add(REQUEST_ID, requestId);
         return this;
     }
-
 
     public JsonMessageBuilder addElement(String name, JsonElement element) {
         jsonObject.add(name, element);
