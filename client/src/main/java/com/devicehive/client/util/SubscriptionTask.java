@@ -7,6 +7,7 @@ import com.devicehive.client.model.DeviceCommand;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,15 +29,18 @@ public class SubscriptionTask implements Callable<Void> {
     private final String path;
     private final Map<String, String> headers;
     private final Set<String> names;
+    private final String deviceGuid;
+
 
     public SubscriptionTask(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout, String path,
-                            Map<String, String> headers, Set<String> names) {
+                            Map<String, String> headers, Set<String> names, String deviceGuid) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
         this.timestamp = timestamp;
         this.waitTimeout = waitTimeout;
         this.path = path;
         this.headers = headers;
         this.names = names;
+        this.deviceGuid = deviceGuid;
     }
 
     @Override
@@ -58,7 +62,9 @@ public class SubscriptionTask implements Callable<Void> {
                     System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
                 }
                 if (!returned.isEmpty()) {
-                    hiveContext.getCommandQueue().addAll(returned);
+                    for (DeviceCommand currentCommand : returned) {
+                        hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, currentCommand));
+                    }
                     timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
                 }
 

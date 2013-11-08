@@ -23,9 +23,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class HiveSubscriptions {
 
-    private static Logger logger = LoggerFactory.getLogger(HiveSubscriptions.class);
     private static final int SUBSCRIPTIONS_THREAD_POOL_SIZE = 100;
     private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
+    private static Logger logger = LoggerFactory.getLogger(HiveSubscriptions.class);
     private final HiveContext hiveContext;
     private ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(SUBSCRIPTIONS_THREAD_POOL_SIZE);
     private Map<Pair<String, Set<String>>, Future<Void>> commandsSubscriptionsStorage = new HashMap<>();
@@ -47,7 +47,7 @@ public class HiveSubscriptions {
                 if (!commandsSubscriptionsStorage.containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
                     String path = "/device/command/poll";
                     SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                            path, headers, names);
+                            path, headers, names, Constants.FOR_ALL_SUBSTITUTE);
                     Future<Void> subscription = subscriptionExecutor.submit(task);
                     commandsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
                             subscription);
@@ -66,7 +66,7 @@ public class HiveSubscriptions {
                         // in all of these cases, this method will return true.
                         String path = "/device/" + id + "/command/poll";
                         SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                                path, headers, names);
+                                path, headers, names, id);
                         subscription = subscriptionExecutor.submit(task);
                         commandsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
                         logger.debug("New subscription added for device with id:" + id);
@@ -110,7 +110,7 @@ public class HiveSubscriptions {
                 if (!commandsSubscriptionsStorage.containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
                     String path = "/device/notification/poll";
                     SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                            path, headers, names);
+                            path, headers, names, Constants.FOR_ALL_SUBSTITUTE);
                     Future<Void> subscription = subscriptionExecutor.submit(task);
                     commandsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
                             subscription);
@@ -129,7 +129,7 @@ public class HiveSubscriptions {
                         // in all of these cases, this method will return true.
                         String path = "/device/" + id + "/notification/poll";
                         SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                                path, headers, names);
+                                path, headers, names, id);
                         subscription = subscriptionExecutor.submit(task);
                         commandsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
                         logger.debug("New subscription added for device with id:" + id);

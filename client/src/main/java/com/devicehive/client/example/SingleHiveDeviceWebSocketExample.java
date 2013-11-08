@@ -4,6 +4,7 @@ package com.devicehive.client.example;
 import com.devicehive.client.api.SingleHiveDevice;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * TODO
+ */
 public class SingleHiveDeviceWebSocketExample {
 
     private static Logger logger = LoggerFactory.getLogger(SingleHiveDeviceRestExample.class);
@@ -67,7 +71,7 @@ public class SingleHiveDeviceWebSocketExample {
             try {
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
                 Date startDate = formatter.parse("2013-10-11 13:12:00");
-                shd.subscribeForCommands(new Timestamp(startDate.getTime()), null);
+                shd.subscribeForCommands(new Timestamp(startDate.getTime()));
                 logger.debug("device subscribed for commands");
             } catch (ParseException e) {
                 logger.error(e.getMessage(), e);
@@ -132,9 +136,9 @@ public class SingleHiveDeviceWebSocketExample {
     }
 
     private static void updateCommands(SingleHiveDevice shd) {
-        Queue<DeviceCommand> commandsQueue = shd.getCommandsQueue();
+        Queue<Pair<String, DeviceCommand>> commandsQueue = shd.getCommandsQueue();
         while (!commandsQueue.isEmpty()) {
-            DeviceCommand command = commandsQueue.poll();
+            DeviceCommand command = commandsQueue.poll().getRight();
             command.setStatus("procceed");
             shd.updateCommand(command);
             logger.debug("command with id {} is updated", command.getId());

@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,10 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
             throw new HiveServerException("Server sent unparseable message", INTERNAL_SERVER_ERROR.getStatusCode());
         }
         JsonObject jsonMessage = (JsonObject) elem;
+        String deviceGuid = null;
+        if (jsonMessage.has("deviceGuid")) {
+            deviceGuid = jsonMessage.get("deviceGuid").getAsString();
+        }
         if (!jsonMessage.has(REQUEST_ID_MEMBER)) {
             try {
                 switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
@@ -56,8 +61,8 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                         DeviceCommand commandInsert =
                                 commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
                                         DeviceCommand.class);
-                        if (commandInsert != null){
-                            hiveContext.getCommandQueue().put(commandInsert);
+                        if (commandInsert != null) {
+                            hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, commandInsert));
                             logger.debug("Device command inserted. Id: " + commandInsert.getId());
                         }
 
@@ -74,7 +79,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                         Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
                         DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
                                 (NOTIFICATION_MEMBER), DeviceNotification.class);
-                        hiveContext.getNotificationQueue().put(notification);
+                        hiveContext.getNotificationQueue().put(ImmutablePair.of(deviceGuid, notification));
                         logger.debug("Device notification inserted. Id: " + notification.getId());
                         break;
                     default: //unknown request

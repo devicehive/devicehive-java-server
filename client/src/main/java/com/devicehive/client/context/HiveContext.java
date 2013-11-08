@@ -6,6 +6,7 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,9 @@ public class HiveContext implements Closeable {
     private HiveWebSocketClient hiveWebSocketClient;
     private HivePrincipal hivePrincipal;
     private HiveSubscriptions hiveSubscriptions;
-    private BlockingQueue<DeviceCommand> commandQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<Pair<String, DeviceCommand>> commandQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
-    private BlockingQueue<DeviceNotification> notificationQueue = new LinkedBlockingQueue<>();
+    private BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
 
     public HiveContext(Transport transport, URI rest, URI websocket) {
         this.transport = transport;
@@ -82,7 +83,7 @@ public class HiveContext implements Closeable {
         }
     }
 
-    public BlockingQueue<DeviceCommand> getCommandQueue() {
+    public BlockingQueue<Pair<String,DeviceCommand>> getCommandQueue() {
         return commandQueue;
     }
 
@@ -90,7 +91,7 @@ public class HiveContext implements Closeable {
         return commandUpdateQueue;
     }
 
-    public BlockingQueue<DeviceNotification> getNotificationQueue() {
+    public BlockingQueue<Pair<String,DeviceNotification>> getNotificationQueue() {
         return notificationQueue;
     }
 

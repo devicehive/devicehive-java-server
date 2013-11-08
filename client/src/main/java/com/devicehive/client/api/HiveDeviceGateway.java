@@ -10,6 +10,7 @@ import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,10 @@ public class HiveDeviceGateway implements Closeable {
 
     public HiveDeviceGateway(URI restUri, URI websocketUri) {
         hiveContext = new HiveContext(Transport.AUTO, restUri, websocketUri);
+    }
+
+    public HiveDeviceGateway(URI restUri, URI websocketUri, Transport transport) {
+        hiveContext = new HiveContext(transport, restUri, websocketUri);
     }
 
 //    public static void main(String... args) {
@@ -135,7 +140,7 @@ public class HiveDeviceGateway implements Closeable {
 
     }
 
-    public void subscribeForCommands(String deviceId, String key, Timestamp timestamp, Set<String> names) {
+    public void subscribeForCommands(String deviceId, String key, Timestamp timestamp) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
             request.addProperty("action", "command/subscribe");
@@ -147,11 +152,11 @@ public class HiveDeviceGateway implements Closeable {
             hiveContext.getHiveWebSocketClient().sendMessage(request);
         } else {
             final Map<String, String> headers = getHeaders(deviceId, key);
-            hiveContext.getHiveSubscriptions().addCommandsSubscription(headers, timestamp, names, deviceId);
+            hiveContext.getHiveSubscriptions().addCommandsSubscription(headers, timestamp, null, deviceId);
         }
     }
 
-    public void unsubscribeFromCommands(Set<String> names, String deviceId, String key) {
+    public void unsubscribeFromCommands(String deviceId, String key) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
             request.addProperty("action", "command/unsubscribe");
@@ -163,7 +168,7 @@ public class HiveDeviceGateway implements Closeable {
         } else {
             Device device = getDevice(deviceId, key);
             if (device != null) {
-                hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceId);
+                hiveContext.getHiveSubscriptions().removeCommandSubscription(null, deviceId);
             }
         }
     }
@@ -183,7 +188,7 @@ public class HiveDeviceGateway implements Closeable {
         } else {
             Map<String, String> headers = getHeaders(deviceId, key);
             HiveValidator.validate(deviceNotification);
-            String path = "/device/" + deviceId + "notification";
+            String path = "/device/" + deviceId + "/notification";
             return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, headers, null, deviceNotification,
                     DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
         }
@@ -201,4 +206,7 @@ public class HiveDeviceGateway implements Closeable {
         return hiveContext.getInfo();
     }
 
+    public Queue<Pair<String, DeviceCommand>> getCommandsQueue(){
+        return hiveContext.getCommandQueue();
+    }
 }
