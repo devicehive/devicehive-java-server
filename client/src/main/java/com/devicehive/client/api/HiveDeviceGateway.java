@@ -3,9 +3,13 @@ package com.devicehive.client.api;
 
 import com.devicehive.client.config.Constants;
 import com.devicehive.client.context.HiveContext;
+import com.devicehive.client.json.GsonFactory;
+import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.*;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +35,7 @@ public class HiveDeviceGateway implements Closeable {
 
     public static void main(String... args) {
         URI restUri = URI.create("http://127.0.0.1:8080/hive/rest/");
-        URI websocketUri =  URI.create("ws://127.0.0.1:8080/hive/websocket/");
+        URI websocketUri = URI.create("ws://127.0.0.1:8080/hive/websocket/");
         HiveDeviceGateway gateway = new HiveDeviceGateway(restUri, websocketUri);
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -49,19 +53,41 @@ public class HiveDeviceGateway implements Closeable {
     }
 
     public Device getDevice(String deviceId, String key) {
-        Map<String, String> headers = getHeaders(deviceId, key);
-        String path = "/device/" + deviceId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, headers, Device.class, null);
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "device/get");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("deviceId", deviceId);
+            request.addProperty("deviceKey", key);
+            request.addProperty("requestId", requestId);
+            return hiveContext.getHiveWebSocketClient().sendMessage(request, "device", Device.class,
+                    DEVICE_PUBLISHED_DEVICE_AUTH);
+        } else {
+            Map<String, String> headers = getHeaders(deviceId, key);
+            String path = "/device/" + deviceId;
+            return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, headers, Device.class, null);
+        }
     }
 
     public void saveDevice(String deviceId, String key, Device device) {
-        Map<String, String> headers = getHeaders(deviceId, key);
-        device.setId(deviceId);
-        device.setKey(key);
-        HiveValidator.validate(device);
-        String path = "/device/" + device.getId();
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, headers, device, null);
-
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "device/save");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            Gson gson = GsonFactory.createGson();
+            request.add("device", gson.toJsonTree(device));
+            request.addProperty("deviceId", deviceId);
+            request.addProperty("deviceKey", key);
+            hiveContext.getHiveWebSocketClient().sendMessage(request);
+        } else {
+            Map<String, String> headers = getHeaders(deviceId, key);
+            device.setId(deviceId);
+            device.setKey(key);
+            HiveValidator.validate(device);
+            String path = "/device/" + device.getId();
+            hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, headers, device, null);
+        }
     }
 
     public List<DeviceCommand> queryCommands(String deviceId, String key, Timestamp start, Timestamp end,
@@ -91,31 +117,78 @@ public class HiveDeviceGateway implements Closeable {
     }
 
     public void updateCommand(String deviceId, String key, DeviceCommand deviceCommand) {
-        Map<String, String> headers = getHeaders(deviceId, key);
-        String path = "/device/" + key + "/command/" + deviceCommand.getId();
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, headers, deviceCommand,
-                COMMAND_UPDATE_FROM_DEVICE);
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "command/update");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            request.addProperty("deviceId", deviceId);
+            request.addProperty("deviceKey", key);
+            request.addProperty("commandId", deviceCommand.getId());
+            Gson gson = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE);
+            request.add("command", gson.toJsonTree(deviceCommand));
+            hiveContext.getHiveWebSocketClient().sendMessage(request);
+        } else {
+            Map<String, String> headers = getHeaders(deviceId, key);
+            String path = "/device/" + key + "/command/" + deviceCommand.getId();
+            hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, headers, deviceCommand,
+                    COMMAND_UPDATE_FROM_DEVICE);
+        }
 
     }
 
     public void subscribeForCommands(String deviceId, String key, Timestamp timestamp, Set<String> names) {
-        final Map<String, String> headers = getHeaders(deviceId, key);
-        hiveContext.getHiveSubscriptions().addCommandsSubscription(headers, timestamp, names, deviceId);
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "command/subscribe");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            request.addProperty("deviceId", deviceId);
+            request.addProperty("deviceKey", key);
+            request.addProperty("timestamp", TimestampAdapter.formatTimestamp(timestamp));
+            hiveContext.getHiveWebSocketClient().sendMessage(request);
+        } else {
+            final Map<String, String> headers = getHeaders(deviceId, key);
+            hiveContext.getHiveSubscriptions().addCommandsSubscription(headers, timestamp, names, deviceId);
+        }
     }
 
     public void unsubscribeFromCommands(Set<String> names, String deviceId, String key) {
-        Device device = getDevice(deviceId, key);
-        if (device != null) {
-            hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceId);
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "command/unsubscribe");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            request.addProperty("deviceId", deviceId);
+            request.addProperty("deviceKey", key);
+            hiveContext.getHiveWebSocketClient().sendMessage(request);
+        } else {
+            Device device = getDevice(deviceId, key);
+            if (device != null) {
+                hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceId);
+            }
         }
     }
 
     public DeviceNotification insertNotification(String deviceId, String key, DeviceNotification deviceNotification) {
-        Map<String, String> headers = getHeaders(deviceId, key);
-        HiveValidator.validate(deviceNotification);
-        String path = "/device/" + deviceId + "notification";
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, headers, null, deviceNotification,
-                DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
+        if (hiveContext.useSockets()) {
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "notification/insert");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            request.addProperty("deviceId", deviceId);
+            request.addProperty("deviceKey", key);
+            Gson gson = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE);
+            request.add("notification", gson.toJsonTree(deviceNotification));
+            return hiveContext.getHiveWebSocketClient().sendMessage(request, "notification", DeviceNotification.class,
+                    NOTIFICATION_TO_DEVICE);
+        } else {
+            Map<String, String> headers = getHeaders(deviceId, key);
+            HiveValidator.validate(deviceNotification);
+            String path = "/device/" + deviceId + "notification";
+            return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, headers, null, deviceNotification,
+                    DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
+        }
 
     }
 
