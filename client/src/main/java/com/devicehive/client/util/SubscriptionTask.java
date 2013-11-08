@@ -53,7 +53,7 @@ public class SubscriptionTask implements Callable<Void> {
                         hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET, headers,
                                 queryParams, null, new TypeToken<List<DeviceCommand>>() {
                         }.getType(), null, COMMAND_LISTED);
-                System.out.println("\n----Start Timestamp: " + timestamp + "----");
+                logger.debug("\n----Start Timestamp: " + timestamp + "----");
                 for (DeviceCommand current : returned) {
                     System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
                 }
@@ -61,11 +61,15 @@ public class SubscriptionTask implements Callable<Void> {
                     hiveContext.getCommandQueue().addAll(returned);
                     timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
                 }
+
             }
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            if (e.getCause() instanceof InterruptedException)
+            if (e.getCause() instanceof InterruptedException) {
+                logger.warn(e.getMessage());
                 Thread.currentThread().interrupt();
+            } else {
+                logger.error(e.getMessage(), e);
+            }
         }
         return null;
     }

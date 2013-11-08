@@ -95,7 +95,7 @@ public class NotificationsControllerImpl implements NotificationsController {
             request.add("deviceGuids", gson.toJsonTree(deviceIds));
             hiveContext.getHiveWebSocketClient().sendMessage(request);
         } else {
-            hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceIds);
+            hiveContext.getHiveSubscriptions().removeNotificationSubscription(names, deviceIds);
         }
     }
 }

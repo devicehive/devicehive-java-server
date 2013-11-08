@@ -12,6 +12,8 @@ import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.rest.HiveClientFactory;
 import com.google.common.collect.Maps;
 import org.glassfish.jersey.internal.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
@@ -34,6 +36,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
 public class HiveRestClient implements Closeable {
+    private static Logger logger = LoggerFactory.getLogger(HiveRestClient.class);
     private static final String USER_AUTH_SCHEMA = "Basic";
     private static final String KEY_AUTH_SCHEMA = "Bearer";
     private final URI rest;
@@ -202,11 +205,11 @@ public class HiveRestClient implements Closeable {
                     throw new HiveException("Unknown response");
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new InternalHiveClientException("Request cannot be proceed!", e);
+            logger.warn("task cancelled for path: {}", path);
+            throw new InternalHiveClientException("task cancelled", e);
         } catch (TimeoutException e) {
             throw new HiveServerException("Server does not response!", INTERNAL_SERVER_ERROR.getStatusCode());
         }
-
     }
 
     private <S> Future<Response> buildAsyncInvocation(String path, String method, Map<String, String> headers,
