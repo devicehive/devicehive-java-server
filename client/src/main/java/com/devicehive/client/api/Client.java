@@ -4,6 +4,7 @@ package com.devicehive.client.api;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.*;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class Client implements HiveClient {
 
@@ -24,10 +26,14 @@ public class Client implements HiveClient {
         hiveContext = new HiveContext(Transport.AUTO, uri, websocket);
     }
 
+    public Client(URI uri, URI websocket, Transport transport) {
+        hiveContext = new HiveContext(transport, uri, websocket);
+    }
+
     public static void main(String... args) {
         URI restUri = URI.create("http://127.0.0.1:8080/hive/rest/");
         URI websocketUri =  URI.create("ws://127.0.0.1:8080/hive/websocket/");
-        HiveClient client = new Client(restUri, websocketUri);
+        HiveClient client = new Client(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
         client.authenticate("dhadmin", "dhadmin_#911");
 
         //access keys
@@ -63,7 +69,7 @@ public class Client implements HiveClient {
             Thread.currentThread().join(5_000);
             resultCommand.setStatus("success");
             cc.updateCommand("e50d6085-2aba-48e9-b1c3-73c673e414be", resultCommand.getId(), resultCommand);
-            Thread.currentThread().join(300_000);
+            Thread.currentThread().join(15_000);
             client.close();
         } catch (InterruptedException | IOException e) {
             logger.error(e.getMessage(), e);
@@ -75,7 +81,29 @@ public class Client implements HiveClient {
     }
 
     public void authenticate(String login, String password) {
+        if (hiveContext.useSockets()){
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "authenticate");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            request.addProperty("login", login);
+            request.addProperty("password", password);
+            hiveContext.getHiveWebSocketClient().sendMessage(request);
+        }
         hiveContext.setHivePrincipal(HivePrincipal.createUser(login, password));
+    }
+
+    public void authenticate(String accessKey){
+        if (hiveContext.useSockets()){
+            JsonObject request = new JsonObject();
+            request.addProperty("action", "authenticate");
+            String requestId = UUID.randomUUID().toString();
+            request.addProperty("requestId", requestId);
+            request.addProperty("accessKey", accessKey);
+            hiveContext.getHiveWebSocketClient().sendMessage(request);
+        }
+        hiveContext.setHivePrincipal(HivePrincipal.createAccessKey(accessKey));
+
     }
 
     public AccessKeyController getAccessKeyController() {
