@@ -12,6 +12,7 @@ import com.devicehive.client.websocket.SimpleWebsocketResponse;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,8 +108,12 @@ public class HiveWebSocketClient implements Closeable {
                     logger.debug("Request with id:" + requestId + "proceed successfully");
                 } else {
                     Family errorFamily = Family.familyOf(result.get("code").getAsInt());
-                    String error = result.get("error").getAsString();
-                    Integer code = result.get("code").getAsInt();
+                    String error = null;
+                    if (result.get("error") instanceof JsonPrimitive)
+                        error = result.get("error").getAsString();
+                    Integer code = null;
+                    if (result.get("code") instanceof JsonPrimitive)
+                        result.get("code").getAsInt();
                     switch (errorFamily) {
                         case SERVER_ERROR:
                             logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +

@@ -80,9 +80,14 @@ public class SingleHiveDevice implements Closeable {
             request.addProperty("requestId", requestId);
             Gson gson = GsonFactory.createGson();
             request.add("device", gson.toJsonTree(device));
-            Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-            request.addProperty("deviceId", authenticated.getLeft());
-            request.addProperty("deviceKey", authenticated.getRight());
+            if (hiveContext.getHivePrincipal() != null) {
+                Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
+                request.addProperty("deviceId", authenticated.getLeft());
+                request.addProperty("deviceKey", authenticated.getRight());
+            } else {
+                request.addProperty("deviceId", device.getId());
+                request.addProperty("deviceKey", device.getKey());
+            }
             hiveContext.getHiveWebSocketClient().sendMessage(request);
         } else {
             device.setKey("05F94BF509C8");
@@ -183,9 +188,8 @@ public class SingleHiveDevice implements Closeable {
         }
     }
 
-
-    public Queue<DeviceCommand> getCommandsQueue(){
-       return hiveContext.getCommandQueue();
+    public Queue<DeviceCommand> getCommandsQueue() {
+        return hiveContext.getCommandQueue();
     }
 
     public ApiInfo getInfo() {

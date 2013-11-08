@@ -229,7 +229,12 @@ public class NotificationHandlers implements WebsocketHandlers {
                     "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException("Notification is required!", SC_BAD_REQUEST);
         }
-        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+        Device device;
+        if (deviceGuid == null) {
+            device = principal.getDevice();
+        } else {
+            device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+        }
         if (device.getNetwork() == null) {
             logger.debug(
                     "notification/insert. No network specified for device with guid = {}", deviceGuid);

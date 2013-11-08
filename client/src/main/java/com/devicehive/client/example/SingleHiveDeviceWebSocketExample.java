@@ -1,5 +1,6 @@
 package com.devicehive.client.example;
 
+
 import com.devicehive.client.api.SingleHiveDevice;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -16,10 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- *
- */
-public class SingleHiveDeviceRestExample {
+public class SingleHiveDeviceWebSocketExample {
 
     private static Logger logger = LoggerFactory.getLogger(SingleHiveDeviceRestExample.class);
     private static ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
@@ -33,7 +31,7 @@ public class SingleHiveDeviceRestExample {
     public static void main(String... args) {
         URI restUri = URI.create(args[0]);
         URI websocketUri = URI.create(args[1]);
-        final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_REST);
+        final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
         try {
             //save device
             Device deviceToSave = createDeviceToSave();
