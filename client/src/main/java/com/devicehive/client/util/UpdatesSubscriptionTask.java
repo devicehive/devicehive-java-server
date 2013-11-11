@@ -39,9 +39,13 @@ public class UpdatesSubscriptionTask implements Callable<DeviceCommand> {
                 }
             }
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            if (e.getCause() instanceof InterruptedException)
+
+            if (e.getCause() instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
+                logger.warn("task cancellled for path {}", path);
+            } else {
+                logger.error(e.getMessage(), e);
+            }
         }
         return null;
     }

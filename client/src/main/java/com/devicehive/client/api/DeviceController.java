@@ -20,7 +20,7 @@ public interface DeviceController {
 
     void deleteDevice(String deviceId);
 
-    DeviceEquipment getDeviceEquipment(String deviceId);
+    List<DeviceEquipment> getDeviceEquipment(String deviceId);
 
     //device class block
     List<DeviceClass> listDeviceClass(String name, String namePattern, String version, String sortField,

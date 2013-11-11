@@ -45,8 +45,8 @@ public class NetworkControllerImpl implements NetworkController {
     @Override
     public long insertNetwork(Network network) {
         String path = "/network";
-        Network returned =
-                hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, Network.class, NETWORK_SUBMITTED);
+        Network returned = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null,
+                network, Network.class, NETWORK_UPDATE, NETWORK_SUBMITTED);
         return returned.getId();
     }
 

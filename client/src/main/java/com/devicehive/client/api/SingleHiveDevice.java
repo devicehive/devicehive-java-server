@@ -150,7 +150,6 @@ public class SingleHiveDevice implements Closeable {
             hiveContext.getHiveWebSocketClient().sendMessage(request);
         } else {
             Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-            final String path = "/device/" + authenticated.getKey() + "/command/poll";
             hiveContext.getHiveSubscriptions().addCommandsSubscription(null, timestamp, null,
                     authenticated.getLeft());
         }

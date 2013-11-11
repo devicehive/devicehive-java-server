@@ -50,9 +50,7 @@ import java.util.concurrent.Executors;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -175,6 +173,8 @@ public class DeviceNotificationController {
                     notification, sortField, sortOrder, take, skip);
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
         }
 
         if (sortField == null) {
@@ -303,7 +303,7 @@ public class DeviceNotificationController {
             @Override
             public void run() {
                 try {
-                    asyncResponsePollProcess(timestamp, deviceGuid, names, timeout, principal,asyncResponse);
+                    asyncResponsePollProcess(timestamp, deviceGuid, names, timeout, principal, asyncResponse);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -486,7 +486,7 @@ public class DeviceNotificationController {
         List<Device> deviceList = deviceService.findByGuidWithPermissionsCheck(guids, principal);
 
         List<DeviceNotification> result = deviceNotificationService.getDeviceNotificationList(deviceList, names,
-                authUser,timestamp);
+                authUser, timestamp);
         if (principal.getUser() == null && principal.getKey() != null) {
             Iterator<DeviceNotification> iterator = result.iterator();
             while (iterator.hasNext()) {

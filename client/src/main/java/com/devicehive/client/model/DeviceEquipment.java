@@ -12,6 +12,9 @@ public class DeviceEquipment implements HiveEntity {
     private static final long serialVersionUID = 479737367629574073L;
 
     @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
+    private Long id;
+
+    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
     private String code;
 
     @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
@@ -42,5 +45,13 @@ public class DeviceEquipment implements HiveEntity {
 
     public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

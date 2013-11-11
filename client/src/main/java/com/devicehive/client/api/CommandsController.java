@@ -1,11 +1,12 @@
 package com.devicehive.client.api;
 
 
-
 import com.devicehive.client.model.DeviceCommand;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 public interface CommandsController {
@@ -20,7 +21,11 @@ public interface CommandsController {
 
     void updateCommand(String deviceGuid, long id, DeviceCommand command);
 
-    void subscribeForCommands(Timestamp timestamp, Set<String> names, String ... deviceIds);
+    void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds);
 
-    void unsubscribeFromCommands(Set<String> names, String ... deviceIds);
+    void unsubscribeFromCommands(Set<String> names, String... deviceIds);
+
+    Queue<Pair<String, DeviceCommand>> getCommandQueue();
+
+    Queue<DeviceCommand> getCommandUpdatesQueue();
 }

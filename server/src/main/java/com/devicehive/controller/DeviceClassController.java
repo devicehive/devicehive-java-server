@@ -75,6 +75,8 @@ public class DeviceClassController {
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        } else if (sortField != null){
+            sortField = sortField.toLowerCase();
         }
 
         List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,

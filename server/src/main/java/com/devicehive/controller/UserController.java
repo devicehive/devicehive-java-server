@@ -92,6 +92,8 @@ public class UserController {
         if (!"ID".equalsIgnoreCase(sortField) && !"Login".equalsIgnoreCase(sortField) && sortField != null) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
         }
 
         List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
@@ -232,7 +234,6 @@ public class UserController {
         userService.updateUser(id, user);
         return ResponseFactory.response(NO_CONTENT);
     }
-
 
     /**
      * Deletes user by id

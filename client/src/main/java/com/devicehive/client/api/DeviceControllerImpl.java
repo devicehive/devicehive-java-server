@@ -66,10 +66,11 @@ public class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public DeviceEquipment getDeviceEquipment(String deviceId) {
+    public List<DeviceEquipment> getDeviceEquipment(String deviceId) {
         String path = "/device/" + deviceId + "/equipment";
         return hiveContext.getHiveRestClient()
-                .execute(path, HttpMethod.GET, null, DeviceEquipment.class, DEVICE_EQUIPMENT_SUBMITTED);
+                .execute(path, HttpMethod.GET, null, null, null, new TypeToken<List<DeviceEquipment>>() {
+                }.getType(), null, DEVICE_EQUIPMENT_SUBMITTED);
     }
 
     //for device classes

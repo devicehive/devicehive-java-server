@@ -8,6 +8,7 @@ import com.devicehive.client.model.DeviceCommand;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,5 +124,15 @@ public class CommandsControllerImpl implements CommandsController {
         } else {
             hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceIds);
         }
+    }
+
+    @Override
+    public Queue<Pair<String, DeviceCommand>> getCommandQueue() {
+        return hiveContext.getCommandQueue();
+    }
+
+    @Override
+    public Queue<DeviceCommand> getCommandUpdatesQueue() {
+        return hiveContext.getCommandUpdateQueue();
     }
 }

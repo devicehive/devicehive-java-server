@@ -109,6 +109,8 @@ public class DeviceController {
                 !"DeviceClass".equals(sortField) && sortField != null) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
@@ -197,7 +199,7 @@ public class DeviceController {
                         .NOT_FOUND.getStatusCode(), "No device found with such guid"));
             }
         }
-        if (principal.getRole().equals(HiveRoles.DEVICE)){
+        if (principal.getRole().equals(HiveRoles.DEVICE)) {
             logger.debug("Device get proceed successfully. Guid {}", guid);
             return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED_DEVICE_AUTH);
         }

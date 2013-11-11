@@ -8,6 +8,7 @@ import com.devicehive.client.model.DeviceNotification;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
@@ -29,8 +30,8 @@ public class NotificationsControllerImpl implements NotificationsController {
                                                        Integer take, Integer skip) {
         String path = "/device/" + guid + "/notification";
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("start", start);
-        queryParams.put("end", end);
+        queryParams.put("start", TimestampAdapter.formatTimestamp(start));
+        queryParams.put("end", TimestampAdapter.formatTimestamp(end));
         queryParams.put("notification", notificationName);
         queryParams.put("sortField", sortField);
         queryParams.put("sortOrder", sortOrder);
@@ -62,7 +63,7 @@ public class NotificationsControllerImpl implements NotificationsController {
 
     @Override
     public DeviceNotification getNotification(String guid, long notificationId) {
-        String path = "/device/" + guid + "/command/" + notificationId;
+        String path = "/device/" + guid + "/notification/" + notificationId;
         return hiveContext.getHiveRestClient()
                 .execute(path, HttpMethod.GET, null, DeviceNotification.class, NOTIFICATION_TO_CLIENT);
     }
@@ -97,5 +98,9 @@ public class NotificationsControllerImpl implements NotificationsController {
         } else {
             hiveContext.getHiveSubscriptions().removeNotificationSubscription(names, deviceIds);
         }
+    }
+
+    public Queue<Pair<String, DeviceNotification>> getNotificationsQueue() {
+        return hiveContext.getNotificationQueue();
     }
 }

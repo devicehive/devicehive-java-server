@@ -99,6 +99,8 @@ public class NetworkController {
             logger.debug("Unable to proceed network list request. Invalid sortField");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();

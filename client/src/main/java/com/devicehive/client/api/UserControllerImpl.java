@@ -2,9 +2,10 @@ package com.devicehive.client.api;
 
 
 import com.devicehive.client.context.HiveContext;
-import com.devicehive.client.model.Network;
 import com.devicehive.client.model.User;
+import com.devicehive.client.model.UserNetwork;
 import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonObject;
 
 import javax.ws.rs.HttpMethod;
 import java.util.HashMap;
@@ -64,15 +65,16 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public Network getNetwork(long userId, long networkId) {
+    public UserNetwork getNetwork(long userId, long networkId) {
         String path = "/user/" + userId + "/network/" + networkId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Network.class, NETWORKS_LISTED);
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, UserNetwork.class, NETWORKS_LISTED);
     }
 
     @Override
     public void assignNetwork(long userId, long networkId) {
         String path = "/user/" + userId + "/network/" + networkId;
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT);
+        JsonObject stub = new JsonObject();
+        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, stub, null);
     }
 
     @Override

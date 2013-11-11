@@ -1,8 +1,8 @@
 package com.devicehive.client.api;
 
 
-import com.devicehive.client.model.Network;
 import com.devicehive.client.model.User;
+import com.devicehive.client.model.UserNetwork;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public interface UserController {
 
     void deleteUser(long id);
 
-    Network getNetwork(long userId, long networkId);
+    UserNetwork getNetwork(long userId, long networkId);
 
     void assignNetwork(long userId, long networkId);
 
