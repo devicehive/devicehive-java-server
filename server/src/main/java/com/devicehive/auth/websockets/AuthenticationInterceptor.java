@@ -26,7 +26,7 @@ public class AuthenticationInterceptor {
     @AroundInvoke
     public Object authenticate(InvocationContext ctx) throws Exception {
         Session session = ThreadLocalVariablesKeeper.getSession();
-        if (WebsocketSession.getPrincipal(session) == null) {
+        if (WebsocketSession.getPrincipal(session) != null) {
             ThreadLocalVariablesKeeper.setPrincipal(WebsocketSession.getPrincipal(session));
         } else {
             JsonObject request = ThreadLocalVariablesKeeper.getRequest();
