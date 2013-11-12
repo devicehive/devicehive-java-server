@@ -31,7 +31,7 @@ public class AccessKeyDAO {
         TypedQuery<AccessKey> query = em.createNamedQuery("AccessKey.getById", AccessKey.class);
         query.setParameter("userId", userId);
         query.setParameter("accessKeyId", accessKeyId);
-        CacheHelper.cacheable(query);
+//        CacheHelper.cacheable(query);
         List<AccessKey> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }
@@ -40,7 +40,7 @@ public class AccessKeyDAO {
     public AccessKey get (String accessKey){
         TypedQuery<AccessKey> query = em.createNamedQuery("AccessKey.getByKey", AccessKey.class);
         query.setParameter("someKey", accessKey);
-        CacheHelper.cacheable(query);
+//        CacheHelper.cacheable(query);
         List<AccessKey> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }

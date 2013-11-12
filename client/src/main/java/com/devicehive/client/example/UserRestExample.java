@@ -124,6 +124,17 @@ public class UserRestExample {
         //register
         Device device = createDeviceToSave();
         controller.registerDevice(device.getId(), device);
+        //list devices
+        List<Device> devices = controller.listDevices(null, null, null, null, null, null, null, null, null, null,
+                null, null);
+        for (Device currentDevice : devices){
+            StringBuilder builder = new StringBuilder();
+            builder.append("Id: ")
+                    .append(currentDevice.getId())
+                    .append("; device class id: ")
+                    .append(currentDevice.getDeviceClass().getId());
+            System.out.println(builder.toString());
+        }
         //get equipment list
         List<DeviceEquipment> equipment = controller.getDeviceEquipment(device.getId());
         for (DeviceEquipment currentEquipment : equipment) {
