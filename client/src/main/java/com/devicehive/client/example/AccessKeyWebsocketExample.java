@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-public class AccessKeyRestExample {
-    private static Logger logger = LoggerFactory.getLogger(AccessKeyRestExample.class);
+public class AccessKeyWebsocketExample {
+    private static Logger logger = LoggerFactory.getLogger(AccessKeyWebsocketExample.class);
     private Client client;
 
     /**
@@ -25,7 +25,7 @@ public class AccessKeyRestExample {
      *             args[1] - Web socket server URI
      */
     public static void main(String... args) {
-        AccessKeyRestExample example = new AccessKeyRestExample();
+        AccessKeyWebsocketExample example = new AccessKeyWebsocketExample();
         URI rest = URI.create(args[0]);
         URI websocket = URI.create(args[1]);
         try {
@@ -52,7 +52,7 @@ public class AccessKeyRestExample {
     }
 
     private void init(URI restUri, URI websocketUri) {
-        client = new Client(restUri, websocketUri, Transport.REST_ONLY);
+        client = new Client(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
