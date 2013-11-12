@@ -14,7 +14,6 @@ public class OAuthExample {
 
     private static Logger logger = LoggerFactory.getLogger(OAuthExample.class);
     private Client client;
-    private Long userId = 1L;
 
     /**
      * example's main method
@@ -66,6 +65,7 @@ public class OAuthExample {
         grant.setAccessType(AccessType.OFFLINE);
         grant.setRedirectUri("http://www.devicehive.com/");
         grant.setScope(AllowedAction.GET_DEVICE.getValue());
+        Long userId = 1L;
         OAuthGrant newGrant = grantController.insert(userId, grant);
         //exchange code
         OAuthTokenController tokenController = client.getOAuthTokenController();

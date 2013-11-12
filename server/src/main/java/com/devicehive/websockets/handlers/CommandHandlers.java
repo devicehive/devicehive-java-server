@@ -317,7 +317,12 @@ public class CommandHandlers implements WebsocketHandlers {
                                                   DeviceCommandUpdate commandUpdate,
                                                   Session session) {
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
-
+        if (guid == null) {
+            HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+            if (principal.getDevice() != null) {
+                guid = principal.getDevice().getGuid();
+            }
+        }
         if (guid == null || id == null) {
             logger.debug("command/update canceled for session: {}. Guid or command id is not provided", session);
             throw new HiveException("Device guid and command id are required parameters!", SC_BAD_REQUEST);
