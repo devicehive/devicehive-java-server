@@ -32,50 +32,50 @@ public class OAuthClient implements HiveEntity {
     }
 
     public String getName() {
-        return name.getValue();
+        return NullableWrapper.value(name);
     }
 
     public void setName(String name) {
-        this.name.setValue(name);
+        this.name = NullableWrapper.create(name);
     }
 
     public String getDomain() {
-        return domain.getValue();
+        return NullableWrapper.value(domain);
     }
 
     public void setDomain(String domain) {
-        this.domain.setValue(domain);
+        this.domain = NullableWrapper.create(domain);
     }
 
     public String getSubnet() {
-        return subnet.getValue();
+        return NullableWrapper.value(subnet);
     }
 
     public void setSubnet(String subnet) {
-        this.subnet.setValue(subnet);
+        this.subnet = NullableWrapper.create(subnet);
     }
 
     public String getRedirectUri() {
-        return redirectUri.getValue();
+        return NullableWrapper.value(redirectUri);
     }
 
     public void setRedirectUri(String redirectUri) {
-        this.redirectUri.setValue(redirectUri);
+        this.redirectUri = NullableWrapper.create(redirectUri);
     }
 
     public String getOauthId() {
-        return oauthId.getValue();
+        return NullableWrapper.value(oauthId);
     }
 
     public void setOauthId(String oauthId) {
-        this.oauthId.setValue(oauthId);
+        this.oauthId = NullableWrapper.create(oauthId);
     }
 
     public String getOauthSecret() {
-        return oauthSecret.getValue();
+        return NullableWrapper.value(oauthSecret);
     }
 
     public void setOauthSecret(String oauthSecret) {
-        this.oauthSecret.setValue(oauthSecret);
+        this.oauthSecret = NullableWrapper.create(oauthSecret);
     }
 }

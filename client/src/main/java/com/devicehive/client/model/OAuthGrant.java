@@ -58,67 +58,67 @@ public class OAuthGrant implements HiveEntity {
     }
 
     public String getAuthCode() {
-        return authCode.getValue();
+        return NullableWrapper.value(authCode);
     }
 
     public void setAuthCode(String authCode) {
-        this.authCode.setValue(authCode);
+        this.authCode = NullableWrapper.create(authCode);
     }
 
     public OAuthClient getClient() {
-        return client.getValue();
+        return NullableWrapper.value(client);
     }
 
     public void setClient(OAuthClient client) {
-        this.client.setValue(client);
+        this.client = NullableWrapper.create(client);
     }
 
     public AccessKey getAccessKey() {
-        return accessKey.getValue();
+        return NullableWrapper.value(accessKey);
     }
 
     public void setAccessKey(AccessKey accessKey) {
-        this.accessKey.setValue(accessKey);
+        this.accessKey = NullableWrapper.create(accessKey);
     }
 
     public OAuthType getType() {
-        return type.getValue();
+        return NullableWrapper.value(type);
     }
 
-    public void setType(OAuthType OAuthType) {
-        this.type.setValue(OAuthType);
+    public void setType(OAuthType oauthType) {
+        this.type = NullableWrapper.create(oauthType);
     }
 
     public AccessType getAccessType() {
-        return accessType.getValue();
+        return NullableWrapper.value(accessType);
     }
 
     public void setAccessType(AccessType accessType) {
-        this.accessType.setValue(accessType);
+        this.accessType = NullableWrapper.create(accessType);
     }
 
     public String getRedirectUri() {
-        return redirectUri.getValue();
+        return NullableWrapper.value(redirectUri);
     }
 
     public void setRedirectUri(String redirectUri) {
-        this.redirectUri.setValue(redirectUri);
+        this.redirectUri = NullableWrapper.create(redirectUri);
     }
 
     public String getScope() {
-        return scope.getValue();
+        return NullableWrapper.value(scope);
     }
 
     public void setScope(String scope) {
-        this.scope.setValue(scope);
+        this.scope = NullableWrapper.create(scope);
     }
 
     public JsonStringWrapper getNetworkIds() {
-        return networkIds.getValue();
+        return NullableWrapper.value(networkIds);
     }
 
     public void setNetworkIds(JsonStringWrapper networkIds) {
-        this.networkIds.setValue(networkIds);
+        this.networkIds = NullableWrapper.create(networkIds);
     }
 
     public Set<Long> getNetworkIdsAsSet() {

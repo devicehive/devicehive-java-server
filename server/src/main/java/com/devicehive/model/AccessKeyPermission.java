@@ -96,7 +96,7 @@ public class AccessKeyPermission implements HiveEntity {
         this.domains = domains;
     }
 
-    public void setDomains(String ... domains){
+    public void setDomains(String... domains) {
         Gson gson = GsonFactory.createGson();
         this.domains = new JsonStringWrapper(gson.toJsonTree(domains).toString());
     }
@@ -118,7 +118,12 @@ public class AccessKeyPermission implements HiveEntity {
             JsonArray json = (JsonArray) elem;
             Set<Subnet> result = new HashSet<>(json.size());
             for (JsonElement current : json) {
-                result.add(new Subnet(current.getAsString()));
+                if (!current.isJsonNull()) {
+                    result.add(new Subnet(current.getAsString()));
+                }
+            }
+            if (result.isEmpty()) {
+                result = null;
             }
             return result;
         }
@@ -178,7 +183,7 @@ public class AccessKeyPermission implements HiveEntity {
         return subnets;
     }
 
-    public void setSubnets(String ... subnets){
+    public void setSubnets(String... subnets) {
         Gson gson = GsonFactory.createGson();
         this.subnets = new JsonStringWrapper(gson.toJsonTree(subnets).toString());
     }
@@ -191,7 +196,7 @@ public class AccessKeyPermission implements HiveEntity {
         return actions;
     }
 
-    public void setActions(String ... actions){
+    public void setActions(String... actions) {
         Gson gson = GsonFactory.createGson();
         this.actions = new JsonStringWrapper(gson.toJsonTree(actions).toString());
     }
