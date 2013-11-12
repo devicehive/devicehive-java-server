@@ -53,6 +53,11 @@ public class OAuthClientController {
                 !sortField.equalsIgnoreCase("Domain") && !sortField.equalsIgnoreCase("OAuthID")) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
+            if (sortField.equalsIgnoreCase("OAuthID")) {
+                sortField = "oauthId";
+            }
         }
 
         List<OAuthClient> result =

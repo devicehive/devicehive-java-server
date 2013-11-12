@@ -18,6 +18,7 @@ import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,7 +111,7 @@ public class DeviceController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
+            sortField = StringUtils.uncapitalize(sortField);
         }
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();

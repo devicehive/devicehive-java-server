@@ -66,6 +66,8 @@ public class OAuthGrantController {
         if (!sortField.equalsIgnoreCase("Timestamp")) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+        } else {
+            sortField = sortField.toLowerCase();
         }
         User user = getUser(userId);
         List<OAuthGrant> result = grantService.list(user, start, end, clientOAuthId,

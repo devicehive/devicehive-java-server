@@ -472,7 +472,7 @@ public class DeviceCommandController {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
+            sortField = StringUtils.uncapitalize(sortField);
         }
 
         if (sortField == null) {
