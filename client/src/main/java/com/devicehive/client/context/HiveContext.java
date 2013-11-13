@@ -35,7 +35,8 @@ public class HiveContext implements Closeable {
         this.transport = transport;
         hiveRestClient = new HiveRestClient(rest, this);
         hiveSubscriptions = new HiveSubscriptions(this);
-        hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
+        if (!transport.equals(Transport.REST_ONLY))
+            hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
     }
 
     public boolean useSockets() {
@@ -48,7 +49,8 @@ public class HiveContext implements Closeable {
             hiveSubscriptions.shutdownThreads();
         } finally {
             hiveRestClient.close();
-            hiveWebSocketClient.close();
+            if (!transport.equals(Transport.REST_ONLY))
+                hiveWebSocketClient.close();
         }
     }
 
@@ -83,7 +85,7 @@ public class HiveContext implements Closeable {
         }
     }
 
-    public BlockingQueue<Pair<String,DeviceCommand>> getCommandQueue() {
+    public BlockingQueue<Pair<String, DeviceCommand>> getCommandQueue() {
         return commandQueue;
     }
 
@@ -91,7 +93,7 @@ public class HiveContext implements Closeable {
         return commandUpdateQueue;
     }
 
-    public BlockingQueue<Pair<String,DeviceNotification>> getNotificationQueue() {
+    public BlockingQueue<Pair<String, DeviceNotification>> getNotificationQueue() {
         return notificationQueue;
     }
 

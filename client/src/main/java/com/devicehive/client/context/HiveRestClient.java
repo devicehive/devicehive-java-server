@@ -94,7 +94,7 @@ public class HiveRestClient implements Closeable {
         Invocation.Builder invocationBuilder = createTarget(path, queryParams).
                 request().
                 accept(MediaType.APPLICATION_JSON_TYPE).
-                header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_TYPE);
         for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
         }

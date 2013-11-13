@@ -35,8 +35,8 @@ public class SubscriptionTask implements Callable<Void> {
     public SubscriptionTask(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout, String path,
                             Map<String, String> headers, Set<String> names, String deviceGuid) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
-        this.timestamp = timestamp;
-        this.waitTimeout = waitTimeout;
+        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
+        this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);
         this.path = path;
         this.headers = headers;
         this.names = names;

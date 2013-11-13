@@ -1,5 +1,8 @@
 package com.devicehive.client.model;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 
 public class NullableWrapper<K> implements Serializable {
@@ -32,9 +35,6 @@ public class NullableWrapper<K> implements Serializable {
 
     @Override
     public String toString() {
-        if (value == null){
-            return null;
-        }
-        return value.toString();
+        return ObjectUtils.toString(value, null);
     }
 }

@@ -34,7 +34,7 @@ public class SingleHiveDeviceRestExample {
     public static void main(String... args) {
         URI restUri = URI.create(args[0]);
         URI websocketUri = URI.create(args[1]);
-        final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_REST);
+        final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.REST_ONLY);
         try {
             //save device
             Device deviceToSave = createDeviceToSave();

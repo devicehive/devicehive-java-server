@@ -56,7 +56,7 @@ public class OAuthExample {
         oauthClient.setDomain(domain);
         oauthClient.setOauthId("example" + UUID.randomUUID().toString().substring(15));
         OAuthClientController clientController = client.getOAuthClientController();
-        OAuthClient inserted = clientController.insert(oauthClient);
+        clientController.insert(oauthClient);
         // then, create a grant
         OAuthGrantController grantController = client.getOAuthGrantController();
         OAuthGrant grant = new OAuthGrant();
@@ -78,7 +78,7 @@ public class OAuthExample {
             DeviceController controller = accessTokenClient.getDeviceController();
             String guid = "E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase();
             Device device = controller.getDevice(guid);
-            System.out.print("device received");
+            System.out.print("device received. Device name: " + device.getName());
         } catch (IOException e) {
             logger.warn(e.getMessage(), e);
         }

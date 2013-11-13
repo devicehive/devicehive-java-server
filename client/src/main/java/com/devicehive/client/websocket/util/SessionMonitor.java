@@ -13,13 +13,14 @@ import javax.websocket.Session;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class SessionMonitor implements Closeable {
-    private static final String PONG_MESSAGE = "devicehive-client-ping";
+    private static final String PING_MESSAGE = "devicehive-client-ping";
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
     private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
     private final Date timeOfLastReceivedPong;
@@ -50,7 +51,7 @@ public class SessionMonitor implements Closeable {
             @Override
             public void run() {
                 try {
-                    userSession.getAsyncRemote().sendPing(ByteBuffer.wrap(PONG_MESSAGE.getBytes()));
+                    userSession.getAsyncRemote().sendPing(ByteBuffer.wrap(PING_MESSAGE.getBytes(Charset.forName("UTF-8"))));
                 } catch (IOException ioe) {
                     logger.warn("Unable to send ping", ioe);
                 }

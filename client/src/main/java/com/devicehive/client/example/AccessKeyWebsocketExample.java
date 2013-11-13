@@ -93,7 +93,7 @@ public class AccessKeyWebsocketExample {
                         .append(currentEquipment.getTimestamp())
                         .append("; params: ")
                         .append(currentEquipment.getParameters().getJsonString());
-                System.out.println(builder.toString());
+                System.out.println(equipmentsBuilder.toString());
             }
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
@@ -130,7 +130,7 @@ public class AccessKeyWebsocketExample {
             DeviceCommand inserted = controller.insertCommand(guid, command);
             System.out.println("Id: " + inserted.getId());
             //get commands updates queue
-            Queue<DeviceCommand> updates = controller.getCommandUpdatesQueue();
+            controller.getCommandUpdatesQueue();
             //update
             inserted.setCommand(newCommand.getCommand());
             inserted.setStatus("proceed");
@@ -138,7 +138,7 @@ public class AccessKeyWebsocketExample {
             //subscribe
             controller.subscribeForCommands(null, null, guid);
             //get commands subscription queue
-            Queue<Pair<String, DeviceCommand>> commandsQueue = controller.getCommandQueue();
+            controller.getCommandQueue();
             //unsubscribe from commands
             controller.unsubscribeFromCommands(null, null, guid);
         } catch (IOException e) {
@@ -179,7 +179,7 @@ public class AccessKeyWebsocketExample {
             //subscribe
             controller.subscribeForNotifications(null, null, guid);
             //get notifications subscription queue
-            Queue<Pair<String, DeviceNotification>> commandsQueue = controller.getNotificationsQueue();
+            controller.getNotificationsQueue();
             //unsubscribe from notifications
             controller.unsubscribeFromNotification(null, null, guid);
         } catch (IOException e) {
