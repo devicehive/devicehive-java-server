@@ -1,4 +1,4 @@
-package com.devicehive.client.example;
+package com.devicehive.client.example.user;
 
 
 import com.devicehive.client.api.*;
@@ -14,44 +14,35 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-/**
- * TODO
- */
-public class UserRestExample {
+public abstract class UserExample {
+
     private static Logger logger = LoggerFactory.getLogger(UserRestExample.class);
     private Client client;
 
-    /**
-     * example's main method
-     *
-     * @param args args[0] - REST server URI
-     *             args[1] - Web socket server URI
-     */
-    public static void main(String... args) {
-        UserRestExample example = new UserRestExample();
+    public void run(URI rest, URI websocket, Transport transport) {
         try {
-            example.init(URI.create(args[0]), URI.create(args[1]));
+            init(rest, websocket, transport);
             System.out.println("--- User example ---");
-            example.userExample();
+            userExample();
             System.out.println("--- Network example ---");
-            example.networkExample();
+            networkExample();
             System.out.println("--- Device notification example ---");
-            example.deviceNotificationExample();
+            deviceNotificationExample();
             System.out.println("--- Device command example ---");
-            example.deviceCommandExample();
+            deviceCommandExample();
             System.out.println("--- Device example ---");
-            example.deviceExample();
+            deviceExample();
             System.out.println("--- Access key example ---");
-            example.accessKeysExample();
+            accessKeysExample();
         } catch (Exception e) {
             logger.debug(e.getMessage(), e);
         } finally {
-            example.close();
+            close();
         }
     }
 
-    private void init(URI restUri, URI websocketUri) {
-        client = new Client(restUri, websocketUri, Transport.REST_ONLY);
+    private void init(URI restUri, URI websocketUri, Transport transport) {
+        client = new Client(restUri, websocketUri, transport);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
@@ -127,7 +118,7 @@ public class UserRestExample {
         //list devices
         List<Device> devices = controller.listDevices(null, null, null, null, null, null, null, null, null, null,
                 null, null);
-        for (Device currentDevice : devices){
+        for (Device currentDevice : devices) {
             StringBuilder builder = new StringBuilder();
             builder.append("Id: ")
                     .append(currentDevice.getId())

@@ -1,4 +1,5 @@
-package com.devicehive.client.example;
+package com.devicehive.client.example.device;
+
 
 import com.devicehive.client.api.SingleHiveDevice;
 import com.devicehive.client.model.*;
@@ -8,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,24 +17,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- *   TODO
- */
-public class SingleHiveDeviceRestExample {
-
-    private static Logger logger = LoggerFactory.getLogger(SingleHiveDeviceRestExample.class);
+public abstract class SingleHiveDeviceExample {
+    private static Logger logger = LoggerFactory.getLogger(SingleHiveDeviceExample.class);
     private static ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
 
-    /**
-     * example's main method
-     *
-     * @param args args[0] - REST server URI
-     *             args[1] - Web socket server URI
-     */
-    public static void main(String... args) {
-        URI restUri = URI.create(args[0]);
-        URI websocketUri = URI.create(args[1]);
-        final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.REST_ONLY);
+    public void example(final SingleHiveDevice shd) {
         try {
             //save device
             Device deviceToSave = createDeviceToSave();
@@ -106,10 +93,9 @@ public class SingleHiveDeviceRestExample {
                 logger.error(e.getMessage(), e);
             }
         }
-
     }
 
-    private static Device createDeviceToSave() {
+    private Device createDeviceToSave() {
         Device device = new Device();
         device.setId(UUID.randomUUID().toString());
         device.setKey(UUID.randomUUID().toString());
@@ -134,8 +120,8 @@ public class SingleHiveDeviceRestExample {
         return device;
     }
 
-    private static void updateCommands(SingleHiveDevice shd) {
-        Queue<Pair<String,DeviceCommand>> commandsQueue = shd.getCommandsQueue();
+    private void updateCommands(SingleHiveDevice shd) {
+        Queue<Pair<String, DeviceCommand>> commandsQueue = shd.getCommandsQueue();
         while (!commandsQueue.isEmpty()) {
             DeviceCommand command = commandsQueue.poll().getRight();
             command.setStatus("procceed");
@@ -144,14 +130,14 @@ public class SingleHiveDeviceRestExample {
         }
     }
 
-    private static DeviceNotification createNotification() {
+    private DeviceNotification createNotification() {
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification("example notification");
         notification.setParameters(new JsonStringWrapper("{\"params\": example_param}"));
         return notification;
     }
 
-    private static void killUpdater() {
+    private void killUpdater() {
         commandsUpdater.shutdown();
         try {
             if (!commandsUpdater.awaitTermination(5, TimeUnit.SECONDS)) {

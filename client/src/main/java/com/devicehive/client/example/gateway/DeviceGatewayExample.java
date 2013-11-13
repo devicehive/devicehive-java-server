@@ -1,7 +1,7 @@
-package com.devicehive.client.example;
+package com.devicehive.client.example.gateway;
 
 
-import com.devicehive.client.api.SingleHiveDevice;
+import com.devicehive.client.api.HiveDeviceGateway;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,36 +17,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * TODO
- */
-public class SingleHiveDeviceWebSocketExample {
-
-    private static Logger logger = LoggerFactory.getLogger(SingleHiveDeviceRestExample.class);
+public abstract class DeviceGatewayExample {
+    private static Logger logger = LoggerFactory.getLogger(DeviceGatewayExample.class);
     private static ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
 
-    /**
-     * example's main method
-     *
-     * @param args args[0] - REST server URI
-     *             args[1] - Web socket server URI
-     */
-    public static void main(String... args) {
-        URI restUri = URI.create(args[0]);
-        URI websocketUri = URI.create(args[1]);
-        final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
+    public void example(final HiveDeviceGateway hdg){
         try {
             //save device
-            Device deviceToSave = createDeviceToSave();
-            shd.saveDevice(deviceToSave);
+            final Device deviceToSave = createDeviceToSave();
+            hdg.saveDevice(deviceToSave.getId(), deviceToSave.getKey(), deviceToSave);
             logger.debug("device saved");
 
-            //authenticate device
-            shd.authenticate(deviceToSave.getId(), deviceToSave.getKey());
-            logger.debug("device authenticated");
-
             //get device
-            Device savedDevice = shd.getDevice();
+            Device savedDevice = hdg.getDevice(deviceToSave.getId(), deviceToSave.getKey());
             logger.debug("saved device: id {}, name {}, status {}, data {}, device class id {}, " +
                     "device class name {}, device class version {}", savedDevice.getId(),
                     savedDevice.getName(), savedDevice.getStatus(), savedDevice.getData(),
@@ -56,11 +38,11 @@ public class SingleHiveDeviceWebSocketExample {
 
             //update device
             deviceToSave.setStatus("updated example status");
-            shd.saveDevice(deviceToSave);
+            hdg.saveDevice(deviceToSave.getId(), deviceToSave.getKey(), deviceToSave);
             logger.debug("device updated");
 
             //get device
-            Device updatedDevice = shd.getDevice();
+            Device updatedDevice = hdg.getDevice(deviceToSave.getId(), deviceToSave.getKey());
             logger.debug("updated device: id {}, name {}, status {}, data {}, device class id {}, " +
                     "device class name {}, device class version {}", updatedDevice.getId(),
                     updatedDevice.getName(), updatedDevice.getStatus(), updatedDevice.getData(),
@@ -71,7 +53,8 @@ public class SingleHiveDeviceWebSocketExample {
             try {
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
                 Date startDate = formatter.parse("2013-10-11 13:12:00");
-                shd.subscribeForCommands(new Timestamp(startDate.getTime()));
+                hdg.subscribeForCommands(deviceToSave.getId(), deviceToSave.getKey(),
+                        new Timestamp(startDate.getTime()));
                 logger.debug("device subscribed for commands");
             } catch (ParseException e) {
                 logger.error(e.getMessage(), e);
@@ -82,17 +65,17 @@ public class SingleHiveDeviceWebSocketExample {
                 @Override
                 public void run() {
                     while (!Thread.currentThread().isInterrupted()) {
-                        updateCommands(shd);
+                        updateCommands(hdg, deviceToSave.getId(), deviceToSave.getKey());
                     }
                 }
             }, 0, 1, TimeUnit.SECONDS);
 
             //notification insert
-            shd.insertNotification(createNotification());
+            hdg.insertNotification(deviceToSave.getId(), deviceToSave.getKey(), createNotification());
 
             try {
                 Thread.currentThread().join(5_000);
-                shd.unsubscribeFromCommands(null);
+                hdg.unsubscribeFromCommands(deviceToSave.getId(), deviceToSave.getKey());
                 Thread.currentThread().join(5_000);
             } catch (InterruptedException e) {
                 logger.error(e.getMessage(), e);
@@ -102,12 +85,11 @@ public class SingleHiveDeviceWebSocketExample {
         } finally {
             killUpdater();
             try {
-                shd.close();
+                hdg.close();
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }
         }
-
     }
 
     private static Device createDeviceToSave() {
@@ -135,13 +117,19 @@ public class SingleHiveDeviceWebSocketExample {
         return device;
     }
 
-    private static void updateCommands(SingleHiveDevice shd) {
-        Queue<Pair<String, DeviceCommand>> commandsQueue = shd.getCommandsQueue();
-        while (!commandsQueue.isEmpty()) {
-            DeviceCommand command = commandsQueue.poll().getRight();
-            command.setStatus("procceed");
-            shd.updateCommand(command);
-            logger.debug("command with id {} is updated", command.getId());
+    private static void updateCommands(HiveDeviceGateway hdg, String deviceId, String deviceKey) {
+        Queue<Pair<String, DeviceCommand>> commandsQueue = hdg.getCommandsQueue();
+        Iterator<Pair<String, DeviceCommand>> commandIterator = commandsQueue.iterator();
+        while (commandIterator.hasNext()) {
+            Pair<String, DeviceCommand> pair = commandIterator.next();
+            if (pair.getLeft().equals(deviceId)) {
+                DeviceCommand command = pair.getRight();
+                command.setStatus("procceed");
+                hdg.updateCommand(deviceId, deviceKey, command);
+                commandIterator.remove();
+                logger.debug("command with id {} is updated", command.getId());
+            }
+
         }
     }
 
@@ -166,4 +154,5 @@ public class SingleHiveDeviceWebSocketExample {
             Thread.currentThread().interrupt();
         }
     }
+
 }
