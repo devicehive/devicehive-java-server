@@ -71,7 +71,7 @@ public class SubscriptionTask implements Callable<Void> {
             }
         } catch (Exception e) {
             if (e.getCause() instanceof InterruptedException) {
-                logger.warn(e.getMessage());
+                logger.info(e.getMessage());
                 Thread.currentThread().interrupt();
             } else {
                 logger.error(e.getMessage(), e);
