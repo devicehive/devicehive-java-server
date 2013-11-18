@@ -12,6 +12,7 @@ import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.rest.HiveClientFactory;
 import com.google.common.collect.Maps;
 import org.glassfish.jersey.internal.util.Base64;
+import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +37,9 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
 public class HiveRestClient implements Closeable {
-    private static Logger logger = LoggerFactory.getLogger(HiveRestClient.class);
     private static final String USER_AUTH_SCHEMA = "Basic";
     private static final String KEY_AUTH_SCHEMA = "Bearer";
+    private static Logger logger = LoggerFactory.getLogger(HiveRestClient.class);
     private final URI rest;
     private final Client restClient;
     private final HiveContext hiveContext;
@@ -147,27 +148,32 @@ public class HiveRestClient implements Closeable {
 
         Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
         Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
-        switch (statusFamily) {
-            case SERVER_ERROR:
-                throw new HiveServerException(response.getStatus());
-            case CLIENT_ERROR:
-                if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
-                    throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(), response.getStatus());
-                }
-                ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
-                throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
-            case SUCCESSFUL:
-                if (typeOfR == null) {
-                    return null;
-                }
-                if (receivePolicy == null) {
-                    return response.readEntity(new GenericType<R>(typeOfR));
-                } else {
-                    Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
-                    return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
-                }
-            default:
-                throw new HiveException("Unknown response");
+        try {
+            switch (statusFamily) {
+                case SERVER_ERROR:
+                    throw new HiveServerException(response.getStatus());
+                case CLIENT_ERROR:
+                    if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
+                        throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
+                                response.getStatus());
+                    }
+                    ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                    throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
+                case SUCCESSFUL:
+                    if (typeOfR == null) {
+                        return null;
+                    }
+                    if (receivePolicy == null) {
+                        return response.readEntity(new GenericType<R>(typeOfR));
+                    } else {
+                        Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
+                        return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
+                    }
+                default:
+                    throw new HiveException("Unknown response");
+            }
+        } catch (MessageBodyProviderNotFoundException e) {
+            throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
         }
 
     }

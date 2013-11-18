@@ -5,6 +5,7 @@ import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
+import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -33,10 +34,26 @@ public class HiveContext implements Closeable {
 
     public HiveContext(Transport transport, URI rest, URI websocket) {
         this.transport = transport;
-        hiveRestClient = new HiveRestClient(rest, this);
+        try {
+            hiveRestClient = new HiveRestClient(rest, this);
+        } catch (Exception e) {
+            if (!transport.equals(Transport.REST_ONLY)) {
+                logger.warn("Unable to connect to server vis REST. Some services are unavailable.");
+            } else {
+                throw new InternalHiveClientException("Unable to connect to server via REST", e);
+            }
+        }
         hiveSubscriptions = new HiveSubscriptions(this);
-        if (!transport.equals(Transport.REST_ONLY))
-            hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
+        if (useSockets() || hiveRestClient == null)
+            try {
+                hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
+            } catch (Exception e) {
+                if (hiveRestClient != null) {
+                    logger.warn("Unable connect to server via websocket. Will use REST");
+                } else {
+                    throw new InternalHiveClientException("Unable to connect to server!", e);
+                }
+            }
     }
 
     public boolean useSockets() {
