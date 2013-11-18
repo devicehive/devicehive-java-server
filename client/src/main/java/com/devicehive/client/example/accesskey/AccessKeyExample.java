@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +16,11 @@ import java.util.Set;
 public abstract class AccessKeyExample {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyExample.class);
     private Client client;
+    private PrintStream out;
+
+    protected AccessKeyExample(PrintStream out) {
+        this.out = out;
+    }
 
     public void close() {
         try {
@@ -44,7 +50,7 @@ public abstract class AccessKeyExample {
                         .append(currentDevice.getId())
                         .append("; device class id: ")
                         .append(currentDevice.getDeviceClass().getId());
-                System.out.println(builder.toString());
+                out.println(builder.toString());
             }
             //get
             Device existing = controller.getDevice(resultList.get(resultList.size() - 1).getId());
@@ -53,7 +59,7 @@ public abstract class AccessKeyExample {
                     .append(existing.getId())
                     .append("; device class id: ")
                     .append(existing.getDeviceClass().getId());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
             //register
             controller.registerDevice(existing.getId(), existing);
             //equipments
@@ -66,7 +72,7 @@ public abstract class AccessKeyExample {
                         .append(currentEquipment.getTimestamp())
                         .append("; params: ")
                         .append(currentEquipment.getParameters().getJsonString());
-                System.out.println(equipmentsBuilder.toString());
+                out.println(equipmentsBuilder.toString());
             }
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
@@ -88,7 +94,7 @@ public abstract class AccessKeyExample {
                         .append(currentCommand.getId())
                         .append("; command: ")
                         .append(currentCommand.getCommand());
-                System.out.println(builder.toString());
+                out.println(builder.toString());
             }
             //get
             DeviceCommand command = controller.getCommand(guid, resultList.get(resultList.size() - 1).getId());
@@ -96,12 +102,12 @@ public abstract class AccessKeyExample {
                     .append(command.getId())
                     .append("; command: ")
                     .append(command.getCommand());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
             //insert
             DeviceCommand newCommand = new DeviceCommand();
             newCommand.setCommand("example command");
             DeviceCommand inserted = controller.insertCommand(guid, command);
-            System.out.println("Id: " + inserted.getId());
+            out.println("Id: " + inserted.getId());
             //get commands updates queue
             controller.getCommandUpdatesQueue();
             //update
@@ -134,7 +140,7 @@ public abstract class AccessKeyExample {
                         .append(currentNotification.getId())
                         .append("; notification: ")
                         .append(currentNotification.getNotification());
-                System.out.println(builder.toString());
+                out.println(builder.toString());
             }
             //get
             DeviceNotification command =
@@ -143,12 +149,12 @@ public abstract class AccessKeyExample {
                     .append(command.getId())
                     .append("; notification: ")
                     .append(command.getNotification());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
             //insert
             DeviceNotification newNotification = new DeviceNotification();
             newNotification.setNotification("example notification");
             DeviceNotification inserted = controller.insertNotification(guid, command);
-            System.out.println("Id: " + inserted.getId());
+            out.println("Id: " + inserted.getId());
             //subscribe
             controller.subscribeForNotifications(null, null, guid);
             //get notifications subscription queue
@@ -175,7 +181,7 @@ public abstract class AccessKeyExample {
                         .append(currentNetwork.getName())
                         .append("; description: ")
                         .append(currentNetwork.getDescription());
-                System.out.println(builder.toString());
+                out.println(builder.toString());
             }
             //get
             Network network = controller.getNetwork(resultList.get(resultList.size() - 1).getId());
@@ -185,7 +191,7 @@ public abstract class AccessKeyExample {
                     .append(network.getName())
                     .append("; description: ")
                     .append(network.getDescription());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
         }
@@ -205,5 +211,11 @@ public abstract class AccessKeyExample {
         toInsert.setPermissions(permissionSet);
         Long userId = 1L;
         return client.getAccessKeyController().insertKey(userId, toInsert).getKey();
+    }
+
+    public void printUsage(){
+        out.println("URLs required! ");
+        out.println("1'st param - REST URL");
+        out.println("2'nd param - websocket URL");
     }
 }

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,22 +20,22 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class SingleHiveDeviceExample {
     private static Logger logger = LoggerFactory.getLogger(SingleHiveDeviceExample.class);
-    private static ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
 
     public void example(final SingleHiveDevice shd) {
         try {
             //save device
             Device deviceToSave = createDeviceToSave();
             shd.saveDevice(deviceToSave);
-            logger.debug("device saved");
+            logger.info("device saved");
 
             //authenticate device
             shd.authenticate(deviceToSave.getId(), deviceToSave.getKey());
-            logger.debug("device authenticated");
+            logger.info("device authenticated");
 
             //get device
             Device savedDevice = shd.getDevice();
-            logger.debug("saved device: id {}, name {}, status {}, data {}, device class id {}, " +
+            logger.info("saved device: id {}, name {}, status {}, data {}, device class id {}, " +
                     "device class name {}, device class version {}", savedDevice.getId(),
                     savedDevice.getName(), savedDevice.getStatus(), savedDevice.getData(),
                     savedDevice.getDeviceClass().getId(), savedDevice.getDeviceClass().getName(),
@@ -44,10 +45,9 @@ public abstract class SingleHiveDeviceExample {
             deviceToSave.setStatus("updated example status");
             shd.saveDevice(deviceToSave);
             logger.debug("device updated");
-
             //get device
             Device updatedDevice = shd.getDevice();
-            logger.debug("updated device: id {}, name {}, status {}, data {}, device class id {}, " +
+            logger.info("updated device: id {}, name {}, status {}, data {}, device class id {}, " +
                     "device class name {}, device class version {}", updatedDevice.getId(),
                     updatedDevice.getName(), updatedDevice.getStatus(), updatedDevice.getData(),
                     updatedDevice.getDeviceClass().getId(), updatedDevice.getDeviceClass().getName(),
@@ -58,7 +58,7 @@ public abstract class SingleHiveDeviceExample {
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
                 Date startDate = formatter.parse("2013-10-11 13:12:00");
                 shd.subscribeForCommands(new Timestamp(startDate.getTime()));
-                logger.debug("device subscribed for commands");
+                logger.info("device subscribed for commands");
             } catch (ParseException e) {
                 logger.error(e.getMessage(), e);
             }
@@ -151,4 +151,11 @@ public abstract class SingleHiveDeviceExample {
             Thread.currentThread().interrupt();
         }
     }
+
+    public void printUsage(PrintStream out){
+        out.println("URLs required! ");
+        out.println("1'st param - REST URL");
+        out.println("2'nd param - websocket URL");
+    }
+
 }

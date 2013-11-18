@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.util.Queue;
 import java.util.concurrent.Executors;
@@ -25,10 +26,11 @@ import java.util.concurrent.TimeUnit;
  * subscribe for notifications,
  * send commands
  * receive notifications
+ * Each 100 ms green or red diode changes it's state
  */
-public class Example {
+public class MSP430Example {
 
-    private static final Logger logger = LoggerFactory.getLogger(Example.class);
+    private static final Logger logger = LoggerFactory.getLogger(MSP430Example.class);
     private static final String guid = "c73ccf23-8bf5-4c2c-b330-ead36f469d1a";
     private Client userClient;
     private ScheduledExecutorService notificationsMonitor = Executors.newSingleThreadScheduledExecutor();
@@ -37,25 +39,41 @@ public class Example {
     private int i = 0;
     private ScheduledExecutorService commandsInsertService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledExecutorService commandsUpdatesService = Executors.newSingleThreadScheduledExecutor();
+    private PrintStream out;
 
+    public MSP430Example(PrintStream out) {
+        this.out = out;
+    }
+
+    /**
+     * example's main method
+     *
+     * @param args args[0] - REST server URI
+     *             args[1] - Web socket server URI
+     */
     public static void main(String... args) {
-        Example example = new Example();
-        try {
-            example.init();
-            example.subscribeForNotifications();
-            example.commandInsertServiceStart();
-            Thread.currentThread().join(15_000);
-        } catch (InterruptedException e) {
-            logger.debug(e.getMessage(), e);
-        } finally {
-            example.close();
+        MSP430Example example = new MSP430Example(System.out);
+        if (args.length < 2) {
+            example.printUsage();
+        } else {
+            URI rest = URI.create("http://127.0.0.1:8080/hive/rest/");
+            URI websocket = URI.create("ws://127.0.0.1:8080/hive/websocket/");
+            try {
+                example.init(rest, websocket);
+                example.subscribeForNotifications();
+                example.commandInsertServiceStart();
+                Thread.currentThread().join(15_000);
+            } catch (InterruptedException e) {
+                logger.debug(e.getMessage(), e);
+            } finally {
+                example.close();
+            }
         }
 
     }
 
-    private void init() {
-        userClient = new Client(URI.create("http://127.0.0.1:8080/hive/rest/"),
-                URI.create("ws://127.0.0.1:8080/hive/websocket/"), Transport.PREFER_WEBSOCKET);
+    private void init(URI rest, URI websocket) {
+        userClient = new Client(rest, websocket, Transport.PREFER_WEBSOCKET);
         userClient.authenticate("dhadmin", "dhadmin_#911");
     }
 
@@ -109,7 +127,7 @@ public class Example {
                 Queue<DeviceCommand> queue = controller.getCommandUpdatesQueue();
                 while (!queue.isEmpty()) {
                     DeviceCommand command = queue.poll();
-                    System.out.println("command updated: " + command.getId());
+                    out.println("command updated: " + command.getId());
                 }
             }
         }, 0, 100, TimeUnit.MILLISECONDS);
@@ -124,13 +142,17 @@ public class Example {
                 Queue<Pair<String, DeviceNotification>> queue = controller.getNotificationsQueue();
                 while (!queue.isEmpty()) {
                     Pair<String, DeviceNotification> pair = queue.poll();
-                    System.out.println("guid: " + pair.getLeft() + " notification: " + pair.getRight()
+                    out.println("guid: " + pair.getLeft() + " notification: " + pair.getRight()
                             .getNotification());
                 }
             }
         }, 0, 100, TimeUnit.MILLISECONDS);
+    }
 
-
+    public void printUsage() {
+        out.println("URLs required! ");
+        out.println("1'st param - REST URL");
+        out.println("2'nd param - websocket URL");
     }
 
 }

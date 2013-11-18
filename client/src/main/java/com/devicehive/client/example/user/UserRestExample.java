@@ -1,23 +1,16 @@
 package com.devicehive.client.example.user;
 
 
-import com.devicehive.client.api.*;
-import com.devicehive.client.model.*;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.devicehive.client.model.Transport;
 
-import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
-/**
- * TODO
- */
 public class UserRestExample extends UserExample {
+
+    public UserRestExample(PrintStream out) {
+        super(out);
+    }
 
     /**
      * example's main method
@@ -26,10 +19,14 @@ public class UserRestExample extends UserExample {
      *             args[1] - Web socket server URI
      */
     public static void main(String... args) {
-        UserRestExample example = new UserRestExample();
-        URI rest = URI.create(args[0]);
-        URI websocket = URI.create(args[1]);
-        example.run(rest, websocket, Transport.REST_ONLY);
+        UserRestExample example = new UserRestExample(System.out);
+        if (args.length < 2) {
+            example.printUsage();
+        } else {
+            URI rest = URI.create(args[0]);
+            URI websocket = URI.create(args[1]);
+            example.run(rest, websocket, Transport.REST_ONLY);
+        }
     }
 
 

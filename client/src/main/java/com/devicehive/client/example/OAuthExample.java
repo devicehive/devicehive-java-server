@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.util.UUID;
 
@@ -14,6 +15,12 @@ public class OAuthExample {
 
     private static Logger logger = LoggerFactory.getLogger(OAuthExample.class);
     private Client client;
+    private PrintStream out;
+
+
+    public OAuthExample(PrintStream out) {
+        this.out = out;
+    }
 
     /**
      * example's main method
@@ -23,15 +30,19 @@ public class OAuthExample {
      *             args[2] - the domain of the current application
      */
     public static void main(String... args) {
-        OAuthExample example = new OAuthExample();
-        URI rest = URI.create(args[0]);
-        URI websocket = URI.create(args[1]);
-        try {
-            example.init(rest, websocket);
-            System.out.println();
-            example.token(args[2], rest, websocket);
-        } finally {
-            example.close();
+        OAuthExample example = new OAuthExample(System.out);
+        if (args.length < 3) {
+            example.printUsage();
+        } else {
+            URI rest = URI.create(args[0]);
+            URI websocket = URI.create(args[1]);
+            try {
+                example.init(rest, websocket);
+                System.out.println();
+                example.token(args[2], rest, websocket);
+            } finally {
+                example.close();
+            }
         }
     }
 
@@ -78,12 +89,17 @@ public class OAuthExample {
             DeviceController controller = accessTokenClient.getDeviceController();
             String guid = "E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase();
             Device device = controller.getDevice(guid);
-            System.out.print("device received. Device name: " + device.getName());
+            out.print("device received. Device name: " + device.getName());
         } catch (IOException e) {
             logger.warn(e.getMessage(), e);
         }
+    }
 
-
+    public void printUsage() {
+        out.println("Params missed!");
+        out.println("1'st param - REST URL");
+        out.println("2'nd param - websocket URL");
+        out.println("3'rd param - domain of the current application");
     }
 
 }

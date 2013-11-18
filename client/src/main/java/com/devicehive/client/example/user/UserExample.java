@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -18,21 +19,26 @@ public abstract class UserExample {
 
     private static Logger logger = LoggerFactory.getLogger(UserRestExample.class);
     private Client client;
+    private PrintStream out;
+
+    protected UserExample(PrintStream out) {
+        this.out = out;
+    }
 
     public void run(URI rest, URI websocket, Transport transport) {
         try {
             init(rest, websocket, transport);
-            System.out.println("--- User example ---");
+            out.println("--- User example ---");
             userExample();
-            System.out.println("--- Network example ---");
+            out.println("--- Network example ---");
             networkExample();
-            System.out.println("--- Device notification example ---");
+            out.println("--- Device notification example ---");
             deviceNotificationExample();
-            System.out.println("--- Device command example ---");
+            out.println("--- Device command example ---");
             deviceCommandExample();
-            System.out.println("--- Device example ---");
+            out.println("--- Device example ---");
             deviceExample();
-            System.out.println("--- Access key example ---");
+            out.println("--- Access key example ---");
             accessKeysExample();
         } catch (Exception e) {
             logger.debug(e.getMessage(), e);
@@ -69,7 +75,7 @@ public abstract class UserExample {
                     .append(currentKey.getKey())
                     .append("; expiration date: ")
                     .append(currentKey.getExpirationDate());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
         }
         //insert
         AccessKey toInsert = new AccessKey();
@@ -105,7 +111,7 @@ public abstract class UserExample {
                 .append(existing.getKey())
                 .append("; expiration date: ")
                 .append(existing.getExpirationDate());
-        System.out.println(builder.toString());
+        out.println(builder.toString());
         //delete
         controller.deleteKey(dhadminId, existing.getId());
     }
@@ -124,7 +130,7 @@ public abstract class UserExample {
                     .append(currentDevice.getId())
                     .append("; device class id: ")
                     .append(currentDevice.getDeviceClass().getId());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
         }
         //get equipment list
         List<DeviceEquipment> equipment = controller.getDeviceEquipment(device.getId());
@@ -136,7 +142,7 @@ public abstract class UserExample {
                     .append(currentEquipment.getTimestamp())
                     .append("; params: ")
                     .append(currentEquipment.getParameters().getJsonString());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
         }
         //list device class
         List<DeviceClass> resultList = controller.listDeviceClass(null, null, null, "Name", "ASC", null, null);
@@ -150,7 +156,7 @@ public abstract class UserExample {
                     .append(currentClass.getVersion())
                     .append("; data: ")
                     .append(currentClass.getData().getJsonString());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
         }
         //insert device class
         DeviceClass toInsert = new DeviceClass();
@@ -171,7 +177,7 @@ public abstract class UserExample {
                 .append(existing.getVersion())
                 .append("; data: ")
                 .append(existing.getData().getJsonString());
-        System.out.println(builder.toString());
+        out.println(builder.toString());
         //delete device class
         controller.deleteDeviceClass(existing.getId());
         //release resources
@@ -225,7 +231,7 @@ public abstract class UserExample {
                 break;
             }
         }
-        System.out.println("Is command proceed: " + isProceed);
+        out.println("Is command proceed: " + isProceed);
     }
 
     private void deviceNotificationExample() {
@@ -249,7 +255,7 @@ public abstract class UserExample {
                         .append(currentNotification.getNotification())
                         .append("; params: ")
                         .append(currentNotification.getParameters().getJsonString());
-                System.out.println(builder.toString());
+                out.println(builder.toString());
                 notificationId = currentNotification.getId();
             }
         } catch (ParseException e) {
@@ -267,7 +273,7 @@ public abstract class UserExample {
                     .append(notification.getNotification())
                     .append("; params: ")
                     .append(notification.getParameters().getJsonString());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
         }
         //subscribe
         try {
@@ -303,7 +309,7 @@ public abstract class UserExample {
                     .append(currentNetwork.getName())
                     .append("; description: ")
                     .append(currentNetwork.getDescription());
-            System.out.println(builder.toString());
+            out.println(builder.toString());
         }
         //insert
         Network networkToInsert = new Network();
@@ -322,7 +328,7 @@ public abstract class UserExample {
                 .append(existing.getName())
                 .append("; description: ")
                 .append(existing.getDescription());
-        System.out.println(builder.toString());
+        out.println(builder.toString());
         //update
         existing.setDescription("new example description");
         controller.updateNetwork(existing.getId(), existing);
@@ -335,12 +341,12 @@ public abstract class UserExample {
         //list
         List<User> resultList = controller.listUsers(null, "%in", null, null, null, "ASC", 100, null);
         for (User currentUser : resultList) {
-            System.out.println("Id: " + currentUser.getId() + "; login: " + currentUser.getLogin() + "; role: " +
+            out.println("Id: " + currentUser.getId() + "; login: " + currentUser.getLogin() + "; role: " +
                     currentUser.getRole() + "; status: " + currentUser.getStatus());
         }
         //get
         User current = controller.getUser("current");
-        System.out.println("Id: " + current.getId() + "; login: " + current.getLogin() + "; role: " +
+        out.println("Id: " + current.getId() + "; login: " + current.getLogin() + "; role: " +
                 current.getRole() + "; status: " + current.getStatus() + "; last login: " + current.getLastLogin());
         if (current.getNetworks() != null) {
             for (UserNetwork currentNetwork : current.getNetworks()) {
@@ -353,7 +359,7 @@ public abstract class UserExample {
                         .append(currentNetwork.getNetwork().getName())
                         .append("; description: ")
                         .append(currentNetwork.getNetwork().getDescription());
-                System.out.println(builder.toString());
+                out.println(builder.toString());
             }
         }
         //insert
@@ -373,11 +379,17 @@ public abstract class UserExample {
         controller.assignNetwork(toInsert.getId(), networkId);
         //get network
         UserNetwork assignedNetwork = controller.getNetwork(toInsert.getId(), networkId);
-        System.out.println("Name: " + assignedNetwork.getNetwork().getName() + "; key: " + assignedNetwork.getNetwork
+        out.println("Name: " + assignedNetwork.getNetwork().getName() + "; key: " + assignedNetwork.getNetwork
                 ().getKey());
         //unassign network
         controller.unassignNetwork(toInsert.getId(), networkId);
         //delete
         controller.deleteUser(toInsert.getId());
+    }
+
+    public void printUsage() {
+        out.println("URLs required! ");
+        out.println("1'st param - REST URL");
+        out.println("2'nd param - websocket URL");
     }
 }

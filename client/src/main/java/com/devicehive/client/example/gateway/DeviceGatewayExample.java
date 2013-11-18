@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -21,7 +22,70 @@ public abstract class DeviceGatewayExample {
     private static Logger logger = LoggerFactory.getLogger(DeviceGatewayExample.class);
     private static ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
 
-    public void example(final HiveDeviceGateway hdg){
+    private static Device createDeviceToSave() {
+        Device device = new Device();
+        device.setId(UUID.randomUUID().toString());
+        device.setKey(UUID.randomUUID().toString());
+        device.setStatus("new device example status");
+        device.setName("example device");
+        DeviceClass deviceClass = new DeviceClass();
+        deviceClass.setName("example device class name");
+        deviceClass.setVersion("v1");
+        deviceClass.setPermanent(true);
+        Set<Equipment> equipmentSet = new HashSet<>();
+        Equipment equipment = new Equipment();
+        equipment.setName("example equipment name");
+        equipment.setCode(UUID.randomUUID().toString());
+        equipment.setType("example");
+        equipmentSet.add(equipment);
+        deviceClass.setEquipment(equipmentSet);
+        device.setDeviceClass(deviceClass);
+        Network network = new Network();
+        network.setId(1L);
+        network.setName("VirtualLed Sample Network");
+        device.setNetwork(network);
+        return device;
+    }
+
+    private static void updateCommands(HiveDeviceGateway hdg, String deviceId, String deviceKey) {
+        Queue<Pair<String, DeviceCommand>> commandsQueue = hdg.getCommandsQueue();
+        Iterator<Pair<String, DeviceCommand>> commandIterator = commandsQueue.iterator();
+        while (commandIterator.hasNext()) {
+            Pair<String, DeviceCommand> pair = commandIterator.next();
+            if (pair.getLeft().equals(deviceId)) {
+                DeviceCommand command = pair.getRight();
+                command.setStatus("procceed");
+                hdg.updateCommand(deviceId, deviceKey, command);
+                commandIterator.remove();
+                logger.debug("command with id {} is updated", command.getId());
+            }
+
+        }
+    }
+
+    private static DeviceNotification createNotification() {
+        DeviceNotification notification = new DeviceNotification();
+        notification.setNotification("example notification");
+        notification.setParameters(new JsonStringWrapper("{\"params\": example_param}"));
+        return notification;
+    }
+
+    private static void killUpdater() {
+        commandsUpdater.shutdown();
+        try {
+            if (!commandsUpdater.awaitTermination(5, TimeUnit.SECONDS)) {
+                commandsUpdater.shutdownNow();
+                if (!commandsUpdater.awaitTermination(5, TimeUnit.SECONDS))
+                    logger.warn("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            logger.warn(ie.getMessage(), ie);
+            commandsUpdater.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void example(final HiveDeviceGateway hdg) {
         try {
             //save device
             final Device deviceToSave = createDeviceToSave();
@@ -92,67 +156,10 @@ public abstract class DeviceGatewayExample {
         }
     }
 
-    private static Device createDeviceToSave() {
-        Device device = new Device();
-        device.setId(UUID.randomUUID().toString());
-        device.setKey(UUID.randomUUID().toString());
-        device.setStatus("new device example status");
-        device.setName("example device");
-        DeviceClass deviceClass = new DeviceClass();
-        deviceClass.setName("example device class name");
-        deviceClass.setVersion("v1");
-        deviceClass.setPermanent(true);
-        Set<Equipment> equipmentSet = new HashSet<>();
-        Equipment equipment = new Equipment();
-        equipment.setName("example equipment name");
-        equipment.setCode(UUID.randomUUID().toString());
-        equipment.setType("example");
-        equipmentSet.add(equipment);
-        deviceClass.setEquipment(equipmentSet);
-        device.setDeviceClass(deviceClass);
-        Network network = new Network();
-        network.setId(1L);
-        network.setName("VirtualLed Sample Network");
-        device.setNetwork(network);
-        return device;
-    }
-
-    private static void updateCommands(HiveDeviceGateway hdg, String deviceId, String deviceKey) {
-        Queue<Pair<String, DeviceCommand>> commandsQueue = hdg.getCommandsQueue();
-        Iterator<Pair<String, DeviceCommand>> commandIterator = commandsQueue.iterator();
-        while (commandIterator.hasNext()) {
-            Pair<String, DeviceCommand> pair = commandIterator.next();
-            if (pair.getLeft().equals(deviceId)) {
-                DeviceCommand command = pair.getRight();
-                command.setStatus("procceed");
-                hdg.updateCommand(deviceId, deviceKey, command);
-                commandIterator.remove();
-                logger.debug("command with id {} is updated", command.getId());
-            }
-
-        }
-    }
-
-    private static DeviceNotification createNotification() {
-        DeviceNotification notification = new DeviceNotification();
-        notification.setNotification("example notification");
-        notification.setParameters(new JsonStringWrapper("{\"params\": example_param}"));
-        return notification;
-    }
-
-    private static void killUpdater() {
-        commandsUpdater.shutdown();
-        try {
-            if (!commandsUpdater.awaitTermination(5, TimeUnit.SECONDS)) {
-                commandsUpdater.shutdownNow();
-                if (!commandsUpdater.awaitTermination(5, TimeUnit.SECONDS))
-                    logger.warn("Pool did not terminate");
-            }
-        } catch (InterruptedException ie) {
-            logger.warn(ie.getMessage(), ie);
-            commandsUpdater.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+    public void printUsage(PrintStream out) {
+        out.println("URLs required! ");
+        out.println("1'st param - REST URL");
+        out.println("2'nd param - websocket URL");
     }
 
 }

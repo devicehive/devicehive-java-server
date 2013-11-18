@@ -85,6 +85,156 @@
                             <goal>single</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>SingleHiveDeviceRestExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-SingleHiveDeviceRestExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.device.SingleHiveDeviceRestExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>SingleHiveWebSocketExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-SingleHiveDeviceWebSocketExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.device.SingleHiveDeviceWebSocketExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>DeviceGatewayRestExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-DeviceGatewayRestExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.gateway.DeviceGatewayRestExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>DeviceGatewayWebsocketExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-DeviceGatewayWebsocketExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.gateway.DeviceGatewayWebsocketExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>AccessKeyRestExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-AccessKeyRestExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.accesskey.AccessKeyRestExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>AccessKeyWebsocketExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-AccessKeyWebsocketExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.accesskey.AccessKeyWebsocketExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>UserRestExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-UserRestExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.user.UserRestExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>UserWebsocketExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-UserWebsocketExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.user.UserWebsocketExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>OAuthExample</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-OAuthExample</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.OAuthExample</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>MSP430Example</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>dhclient-1.3.0.0-MSP430Example</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.devicehive.client.example.MSP430Example</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
                 </executions>
                 <configuration>
                     <archive>
@@ -92,7 +242,7 @@
                         </manifest>
                     </archive>
                     <appendAssemblyId>false</appendAssemblyId>
-                    <finalName>dhclient</finalName>
+                    <finalName>dhclient-1.3.0.0</finalName>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
@@ -117,6 +267,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 </project>

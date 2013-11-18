@@ -2,7 +2,7 @@ package com.devicehive.client.example.gateway;
 
 
 import com.devicehive.client.api.HiveDeviceGateway;
-import com.devicehive.client.model.*;
+import com.devicehive.client.model.Transport;
 
 import java.net.URI;
 
@@ -16,11 +16,15 @@ public class DeviceGatewayRestExample extends DeviceGatewayExample {
      *             args[1] - Web socket server URI
      */
     public static void main(String... args) {
-        URI restUri = URI.create(args[0]);
-        URI websocketUri = URI.create(args[1]);
-        final HiveDeviceGateway hdg = new HiveDeviceGateway(restUri, websocketUri, Transport.REST_ONLY);
         DeviceGatewayRestExample example = new DeviceGatewayRestExample();
-        example.example(hdg);
+        if (args.length < 2) {
+            example.printUsage(System.out);
+        } else {
+            URI restUri = URI.create(args[0]);
+            URI websocketUri = URI.create(args[1]);
+            final HiveDeviceGateway hdg = new HiveDeviceGateway(restUri, websocketUri, Transport.REST_ONLY);
+            example.example(hdg);
+        }
     }
 
 
