@@ -1,4 +1,4 @@
-package com.devicehive.client.api;
+package com.devicehive.client.api.device;
 
 
 import com.devicehive.client.context.HiveContext;

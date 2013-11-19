@@ -1,8 +1,8 @@
 package com.devicehive.client.example;
 
-import com.devicehive.client.api.Client;
-import com.devicehive.client.api.CommandsController;
-import com.devicehive.client.api.NotificationsController;
+import com.devicehive.client.api.client.Client;
+import com.devicehive.client.api.client.CommandsController;
+import com.devicehive.client.api.client.NotificationsController;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.JsonStringWrapper;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  * subscribe for notifications,
  * send commands
  * receive notifications
- * Each 100 ms green or red diode changes it's state
+ * Every 200 ms green or red diode changes it's state
  */
 public class MSP430Example {
 
@@ -56,8 +56,8 @@ public class MSP430Example {
         if (args.length < 2) {
             example.printUsage();
         } else {
-            URI rest = URI.create("http://127.0.0.1:8080/hive/rest/");
-            URI websocket = URI.create("ws://127.0.0.1:8080/hive/websocket/");
+            URI rest = URI.create(args[0]);
+            URI websocket = URI.create(args[1]);
             try {
                 example.init(rest, websocket);
                 example.subscribeForNotifications();

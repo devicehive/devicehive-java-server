@@ -1,7 +1,7 @@
 package com.devicehive.client.example.gateway;
 
 
-import com.devicehive.client.api.HiveDeviceGateway;
+import com.devicehive.client.api.gateway.HiveDeviceGateway;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
 import org.apache.commons.lang3.tuple.Pair;

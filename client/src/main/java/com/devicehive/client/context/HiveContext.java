@@ -33,27 +33,32 @@ public class HiveContext implements Closeable {
     private BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
 
     public HiveContext(Transport transport, URI rest, URI websocket) {
-        this.transport = transport;
+        Transport transportToSet = transport;
         try {
             hiveRestClient = new HiveRestClient(rest, this);
+            hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
         } catch (Exception e) {
             if (!transport.equals(Transport.REST_ONLY)) {
                 logger.warn("Unable to connect to server vis REST. Some services are unavailable.");
+                transportToSet = Transport.PREFER_WEBSOCKET;
+                hiveRestClient = null;
             } else {
                 throw new InternalHiveClientException("Unable to connect to server via REST", e);
             }
         }
         hiveSubscriptions = new HiveSubscriptions(this);
-        if (useSockets() || hiveRestClient == null)
+        if (hiveRestClient == null || transport.getWebsocketPriority() > transport.getRestPriority())
             try {
                 hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
             } catch (Exception e) {
                 if (hiveRestClient != null) {
                     logger.warn("Unable connect to server via websocket. Will use REST");
+                    transportToSet = Transport.PREFER_REST;
                 } else {
                     throw new InternalHiveClientException("Unable to connect to server!", e);
                 }
             }
+        this.transport = transportToSet;
     }
 
     public boolean useSockets() {
@@ -66,7 +71,7 @@ public class HiveContext implements Closeable {
             hiveSubscriptions.shutdownThreads();
         } finally {
             hiveRestClient.close();
-            if (!transport.equals(Transport.REST_ONLY))
+            if (hiveWebSocketClient != null)
                 hiveWebSocketClient.close();
         }
     }

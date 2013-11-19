@@ -2,6 +2,7 @@ package com.devicehive.client.example.accesskey;
 
 
 import com.devicehive.client.api.*;
+import com.devicehive.client.api.client.*;
 import com.devicehive.client.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

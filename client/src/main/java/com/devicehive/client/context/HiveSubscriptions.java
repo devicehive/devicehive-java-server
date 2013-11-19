@@ -21,6 +21,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * Here is all logic that connected with subscribe/unsubscribe actions.
+ * Represents commands updates storage, commands storage and notifications storage. Keeps implementation of
+ * subscribe/unsubscribe actions.
+ */
 public class HiveSubscriptions {
 
     private static final int SUBSCRIPTIONS_THREAD_POOL_SIZE = 100;
@@ -39,6 +44,13 @@ public class HiveSubscriptions {
         this.hiveContext = hiveContext;
     }
 
+    /**
+     * Adds commands subscription to storage. Creates task that store commands in context's command queue
+     * @param headers headers that defines the sample of commands
+     * @param timestamp first command timestamp
+     * @param names names of commands that defines
+     * @param deviceIds devices identifiers of devices that should be subscribed
+     */
     public void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp,
                                         Set<String> names, String... deviceIds) {
         if (deviceIds == null) {
@@ -78,6 +90,11 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     *
+     * @param commandId
+     * @param deviceId
+     */
     public void addCommandUpdateSubscription(long commandId, String deviceId) {
         try {
             rwCommandUpdateLock.writeLock().lock();

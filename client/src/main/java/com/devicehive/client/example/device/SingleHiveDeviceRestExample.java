@@ -1,6 +1,6 @@
 package com.devicehive.client.example.device;
 
-import com.devicehive.client.api.SingleHiveDevice;
+import com.devicehive.client.api.device.SingleHiveDevice;
 import com.devicehive.client.model.Transport;
 
 import java.net.URI;

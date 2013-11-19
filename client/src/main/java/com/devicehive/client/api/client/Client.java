@@ -1,6 +1,7 @@
-package com.devicehive.client.api;
+package com.devicehive.client.api.client;
 
 
+import com.devicehive.client.api.device.SingleHiveDevice;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.ApiInfo;

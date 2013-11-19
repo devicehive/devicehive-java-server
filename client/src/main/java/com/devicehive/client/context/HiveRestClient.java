@@ -36,6 +36,10 @@ import java.util.concurrent.TimeoutException;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
+/**
+ * Part of client that creates requests based on required parameters (set by user) and parses responses into model
+ * classes representation
+ */
 public class HiveRestClient implements Closeable {
     private static final String USER_AUTH_SCHEMA = "Basic";
     private static final String KEY_AUTH_SCHEMA = "Bearer";
@@ -44,6 +48,12 @@ public class HiveRestClient implements Closeable {
     private final Client restClient;
     private final HiveContext hiveContext;
 
+    /**
+     * Creates client connected to the given REST URL. All state is kept in the hive context.
+     *
+     * @param rest        URI of RESTful service
+     * @param hiveContext context. Keeps state, for example credentials.
+     */
     public HiveRestClient(URI rest, HiveContext hiveContext) {
         this.rest = rest;
         this.hiveContext = hiveContext;
@@ -55,7 +65,7 @@ public class HiveRestClient implements Closeable {
         restClient.close();
     }
 
-    public WebTarget createTarget(String path) {
+    private WebTarget createTarget(String path) {
         return createTarget(path, null);
     }
 
@@ -118,30 +128,86 @@ public class HiveRestClient implements Closeable {
         }
     }
 
+    /**
+     * Executes request with following params
+     *
+     * @param path         requested uri
+     * @param method       http method
+     * @param headers      custom headers (authorization headers are added during the request build)
+     * @param objectToSend Object to send (for http methods POST and PUT only)
+     * @param sendPolicy   policy that declares exclusion strategy for sending object
+     */
     public <S> void execute(String path, String method, Map<String, String> headers, S objectToSend,
                             JsonPolicyDef.Policy sendPolicy) {
         execute(path, method, headers, null, objectToSend, null, sendPolicy, null);
     }
 
+    /**
+     * Executes request with following params
+     *
+     * @param path        requested uri
+     * @param method      http method
+     * @param headers     custom headers (authorization headers are added during the request build)
+     * @param queryParams query params that should be added to the url. Null-valued params are ignored.
+     */
     public void execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams) {
         execute(path, method, headers, queryParams, null, null, null, null);
     }
 
+    /**
+     * Executes request with following params
+     *
+     * @param path   requested uri
+     * @param method http method
+     */
     public void execute(String path, String method) {
         execute(path, method, null, null, null, null, null, null);
     }
 
+    /**
+     * Executes request with following params
+     *
+     * @param path          requested uri
+     * @param method        http method
+     * @param headers       custom headers (authorization headers are added during the request build)
+     * @param queryParams   query params that should be added to the url. Null-valued params are ignored.
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param receivePolicy policy that declares exclusion strategy for received object
+     * @return instance of typeOfR, that represents server's response
+     */
     public <R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
-                         Type typeOfR,
-                         JsonPolicyDef.Policy receivePolicy) {
+                         Type typeOfR, JsonPolicyDef.Policy receivePolicy) {
         return execute(path, method, headers, queryParams, null, typeOfR, null, receivePolicy);
     }
 
+    /**
+     * Executes request with following params
+     *
+     * @param path          requested uri
+     * @param method        http method
+     * @param headers       custom headers (authorization headers are added during the request build)
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param receivePolicy policy that declares exclusion strategy for received object
+     * @return instance of typeOfR, that represents server's response
+     */
     public <R> R execute(String path, String method, Map<String, String> headers, Type typeOfR,
                          JsonPolicyDef.Policy receivePolicy) {
         return execute(path, method, headers, null, null, typeOfR, null, receivePolicy);
     }
 
+    /**
+     * Executes request with following params
+     *
+     * @param path          requested uri
+     * @param method        http method
+     * @param headers       custom headers (authorization headers are added during the request build)
+     * @param queryParams   query params that should be added to the url. Null-valued params are ignored.
+     * @param objectToSend  Object to send (for http methods POST and PUT only)
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param sendPolicy    policy that declares exclusion strategy for sending object
+     * @param receivePolicy policy that declares exclusion strategy for received object
+     * @return instance of TypeOfR or null
+     */
     public <S, R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
                             S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
                             JsonPolicyDef.Policy receivePolicy) {
@@ -178,6 +244,19 @@ public class HiveRestClient implements Closeable {
 
     }
 
+    /**
+     * Executes request with following params asynchronously
+     *
+     * @param path          requested uri
+     * @param method        http method
+     * @param headers       custom headers (authorization headers are added during the request build)
+     * @param queryParams   query params that should be added to the url. Null-valued params are ignored.
+     * @param objectToSend  Object to send (for http methods POST and PUT only)
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param sendPolicy    policy that declares exclusion strategy for sending object
+     * @param receivePolicy policy that declares exclusion strategy for received object
+     * @return instance of TypeOfR or null
+     */
     public <S, R> R executeAsync(String path, String method, Map<String, String> headers,
                                  Map<String, Object> queryParams, S objectToSend, Type typeOfR,
                                  JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
@@ -247,6 +326,15 @@ public class HiveRestClient implements Closeable {
         }
     }
 
+    /**
+     * Executes request with following params using forms
+     *
+     * @param path          requested uri
+     * @param formParams    form parameters
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param receivePolicy policy that declares exclusion strategy for received object
+     * @return instance of TypeOfR or null
+     */
     public <R> R executeForm(String path, Map<String, String> formParams, Type typeOfR,
                              JsonPolicyDef.Policy receivePolicy) {
         Response response = buildFormInvocation(path, formParams).invoke();

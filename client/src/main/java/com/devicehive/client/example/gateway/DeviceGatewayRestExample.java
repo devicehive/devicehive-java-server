@@ -1,7 +1,7 @@
 package com.devicehive.client.example.gateway;
 
 
-import com.devicehive.client.api.HiveDeviceGateway;
+import com.devicehive.client.api.gateway.HiveDeviceGateway;
 import com.devicehive.client.model.Transport;
 
 import java.net.URI;

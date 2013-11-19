@@ -1,7 +1,7 @@
 package com.devicehive.client.example.device;
 
 
-import com.devicehive.client.api.SingleHiveDevice;
+import com.devicehive.client.api.device.SingleHiveDevice;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
 import org.apache.commons.lang3.tuple.Pair;

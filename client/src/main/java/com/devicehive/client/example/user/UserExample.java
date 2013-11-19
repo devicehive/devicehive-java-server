@@ -2,6 +2,7 @@ package com.devicehive.client.example.user;
 
 
 import com.devicehive.client.api.*;
+import com.devicehive.client.api.client.*;
 import com.devicehive.client.model.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;

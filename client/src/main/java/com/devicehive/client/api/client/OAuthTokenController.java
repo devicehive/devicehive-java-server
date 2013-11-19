@@ -1,4 +1,4 @@
-package com.devicehive.client.api;
+package com.devicehive.client.api.client;
 
 
 import com.devicehive.client.model.AccessToken;

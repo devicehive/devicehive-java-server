@@ -1,4 +1,4 @@
-package com.devicehive.client.api;
+package com.devicehive.client.api.gateway;
 
 
 import com.devicehive.client.config.Constants;

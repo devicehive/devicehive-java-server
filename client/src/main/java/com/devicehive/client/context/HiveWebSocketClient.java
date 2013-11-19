@@ -27,22 +27,34 @@ import java.util.concurrent.*;
 
 import static javax.ws.rs.core.Response.Status.Family;
 
+/**
+ * Part of client that creates requests based on required parameters (set by user) and parses responses into model
+ * classes representation
+ */
 public class HiveWebSocketClient implements Closeable {
 
     private static final String REQUEST_ID_MEMBER = "requestId";
-    private static final Integer POOL_SIZE = 100;
     private static final Long WAIT_TIMEOUT = 1L;
-    private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
     private static Logger logger = LoggerFactory.getLogger(HiveWebSocketClient.class);
     private HiveClientEndpoint endpoint;
     private Map<String, SettableFuture<JsonObject>> websocketResponsesMap = new HashMap<>();
-    private ExecutorService pool = Executors.newFixedThreadPool(POOL_SIZE);
 
+    /**
+     * Creates client connected to the given websocket URL. All state is kept in the hive context.
+     *
+     * @param socket      URI of websocket service
+     * @param hiveContext context. Keeps state, for example credentials.
+     */
     public HiveWebSocketClient(URI socket, HiveContext hiveContext) {
         endpoint = new HiveClientEndpoint(socket);
         endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
     }
 
+    /**
+     * Sends message to server
+     *
+     * @param message some HiveEntity object in JSON
+     */
     public void sendMessage(JsonObject message) {
         endpoint.sendMessage(message.toString());
         String requestId = message.get(REQUEST_ID_MEMBER).getAsString();
@@ -50,6 +62,15 @@ public class HiveWebSocketClient implements Closeable {
         processResponse(requestId);
     }
 
+    /**
+     * Sends message to server
+     *
+     * @param message            some HiveEntity object in JSON
+     * @param responseMemberName in response name of field that contains required object
+     * @param typeOfResponse     type of response
+     * @param policy             policy that declares exclusion strategy for received object
+     * @return instance of typeOfResponse, that represents server's response
+     */
     public <T> T sendMessage(JsonObject message, String responseMemberName, Type typeOfResponse,
                              JsonPolicyDef.Policy policy) {
         endpoint.sendMessage(message.toString());
@@ -145,20 +166,12 @@ public class HiveWebSocketClient implements Closeable {
         return null;
     }
 
+    /**
+     * Implementation of close method in closeable interface. Closes endpoint.
+     * @throws IOException
+     */
     @Override
     public void close() throws IOException {
-        pool.shutdown();
-        try {
-            if (!pool.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS)) {
-                pool.shutdownNow();
-                if (!pool.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS))
-                    logger.warn("Pool did not terminate");
-            }
-        } catch (InterruptedException ie) {
-            logger.warn(ie.getMessage(), ie);
-            pool.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
         endpoint.close();
     }
 }
