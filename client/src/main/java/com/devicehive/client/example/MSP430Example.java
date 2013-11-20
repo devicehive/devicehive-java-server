@@ -7,6 +7,7 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.JsonStringWrapper;
 import com.devicehive.client.model.Transport;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,7 @@ import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * MSP430 LaunchPad example
@@ -32,14 +33,20 @@ public class MSP430Example {
 
     private static final Logger logger = LoggerFactory.getLogger(MSP430Example.class);
     private static final String guid = "c73ccf23-8bf5-4c2c-b330-ead36f469d1a";
+    private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private Client userClient;
     private ScheduledExecutorService notificationsMonitor = Executors.newSingleThreadScheduledExecutor();
-    private boolean greenState = false;
-    private boolean redState = false;
-    private int i = 0;
+    private volatile boolean greenState = false;
+    private volatile boolean redState = false;
+    private AtomicInteger i = new AtomicInteger();
     private ScheduledExecutorService commandsInsertService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledExecutorService commandsUpdatesService = Executors.newSingleThreadScheduledExecutor();
     private PrintStream out;
+    private Options options = new Options();
+    private URI rest;
+    private URI webSocket;
+    private Transport transport;
+    private long interval;
 
     public MSP430Example(PrintStream out) {
         this.out = out;
@@ -53,17 +60,17 @@ public class MSP430Example {
      */
     public static void main(String... args) {
         MSP430Example example = new MSP430Example(System.out);
+        example.initOptions();
         if (args.length < 2) {
             example.printUsage();
         } else {
-            URI rest = URI.create(args[0]);
-            URI websocket = URI.create(args[1]);
             try {
-                example.init(rest, websocket);
+                example.parseArguments(args);
+                example.init();
                 example.subscribeForNotifications();
                 example.commandInsertServiceStart();
                 Thread.currentThread().join(15_000);
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 logger.debug(e.getMessage(), e);
             } finally {
                 example.close();
@@ -72,14 +79,15 @@ public class MSP430Example {
 
     }
 
-    private void init(URI rest, URI websocket) {
-        userClient = new Client(rest, websocket, Transport.PREFER_WEBSOCKET);
+    private void init() {
+        userClient = new Client(rest, webSocket, transport);
         userClient.authenticate("dhadmin", "dhadmin_#911");
     }
 
     private void close() {
         try {
-            userClient.close();
+            if (userClient != null)
+                userClient.close();
         } catch (IOException e) {
             logger.warn(e.getMessage(), e);
         } finally {
@@ -96,27 +104,26 @@ public class MSP430Example {
             public void run() {
                 DeviceCommand command = new DeviceCommand();
                 command.setCommand("UpdateLedState");
-                if (i % 2 == 0) {
+                if (i.getAndIncrement() % 2 == 0) {
                     if (greenState) {
                         command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_G\",\"state\":1}"));
-                        greenState = false;
+                        greenState = !greenState;
                     } else {
                         command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_G\",\"state\":0}"));
-                        greenState = true;
+                        greenState = !greenState;
                     }
                 } else {
                     if (redState) {
                         command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_R\",\"state\":1}"));
-                        redState = false;
+                        redState = !redState;
                     } else {
                         command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_R\",\"state\":0}"));
-                        redState = true;
+                        redState = !redState;
                     }
                 }
-                i++;
                 controller.insertCommand(guid, command);
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, interval / 2, TimeUnit.MILLISECONDS);
     }
 
     private void commandUpdateServiceStart() {
@@ -130,7 +137,7 @@ public class MSP430Example {
                     out.println("command updated: " + command.getId());
                 }
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, interval / 2, TimeUnit.MILLISECONDS);
     }
 
     private void subscribeForNotifications() {
@@ -146,13 +153,51 @@ public class MSP430Example {
                             .getNotification());
                 }
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, interval / 2, TimeUnit.MILLISECONDS);
     }
 
     public void printUsage() {
-        out.println("URLs required! ");
-        out.println("1'st param - REST URL");
-        out.println("2'nd param - websocket URL");
+        HELP_FORMATTER.printHelp("MSP430Example", options);
     }
 
+    public void parseArguments(String... args) {
+        CommandLineParser parser = new BasicParser();
+        try {
+            CommandLine cmdLine = parser.parse(options, args);
+            rest = URI.create(cmdLine.getOptionValue("rest"));
+            webSocket = URI.create(cmdLine.getOptionValue("ws"));
+            transport = cmdLine.hasOption("use_sockets") ? Transport.PREFER_WEBSOCKET : Transport.PREFER_REST;
+            long defaultInterval = 200;
+            interval = cmdLine.hasOption("interval")
+                    ? Long.parseLong(cmdLine.getOptionValue("interval"))
+                    : defaultInterval;
+        } catch (ParseException e) {
+            logger.error("unable to parse command line arguments!");
+            printUsage();
+            System.exit(0);
+        }
+    }
+
+    public void initOptions() {
+        Option restUrl = OptionBuilder.hasArg()
+                .withArgName("rest")
+                .withDescription("REST service URL")
+                .isRequired(true)
+                .create("rest");
+        Option wsURL = OptionBuilder.hasArg()
+                .withArgName("ws")
+                .withDescription("WebSocket service URL")
+                .isRequired(true).create("ws");
+        Option timeInterval = OptionBuilder.hasArg()
+                .withArgName("interval")
+                .withDescription("time interval in ms for sending commands to device")
+                .create("interval");
+        Option transport = OptionBuilder.hasArg(false)
+                .withDescription("if set use sockets")
+                .create("use_sockets");
+        options.addOption(restUrl);
+        options.addOption(wsURL);
+        options.addOption(timeInterval);
+        options.addOption(transport);
+    }
 }

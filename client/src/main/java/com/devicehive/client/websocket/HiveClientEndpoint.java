@@ -24,7 +24,6 @@ public class HiveClientEndpoint implements Closeable{
             container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, endpointURI);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
             throw new InternalHiveClientException(e.getMessage(), e);
         }
     }

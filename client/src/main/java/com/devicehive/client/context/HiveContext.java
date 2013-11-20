@@ -39,7 +39,7 @@ public class HiveContext implements Closeable {
             hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
         } catch (Exception e) {
             if (!transport.equals(Transport.REST_ONLY)) {
-                logger.warn("Unable to connect to server vis REST. Some services are unavailable.");
+                logger.warn("Unable to connect to server via REST. Some services are unavailable.");
                 transportToSet = Transport.PREFER_WEBSOCKET;
                 hiveRestClient = null;
             } else {

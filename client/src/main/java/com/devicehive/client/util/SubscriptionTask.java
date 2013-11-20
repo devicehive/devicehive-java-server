@@ -24,12 +24,12 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND
 public class SubscriptionTask implements Callable<Void> {
     private static Logger logger = LoggerFactory.getLogger(SubscriptionTask.class);
     private final HiveContext hiveContext;
-    private final Timestamp timestamp;
     private final Integer waitTimeout;
     private final String path;
     private final Map<String, String> headers;
     private final Set<String> names;
     private final String deviceGuid;
+    private Timestamp timestamp;
 
 
     public SubscriptionTask(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout, String path,
@@ -64,6 +64,9 @@ public class SubscriptionTask implements Callable<Void> {
                 if (!returned.isEmpty()) {
                     for (DeviceCommand currentCommand : returned) {
                         hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, currentCommand));
+                    }
+                    if (timestamp == null) {
+                        timestamp = new Timestamp(System.currentTimeMillis());
                     }
                     timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
                 }
