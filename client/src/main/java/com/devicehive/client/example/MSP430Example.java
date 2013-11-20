@@ -19,7 +19,7 @@ import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * MSP430 LaunchPad example
@@ -34,11 +34,13 @@ public class MSP430Example {
     private static final Logger logger = LoggerFactory.getLogger(MSP430Example.class);
     private static final String guid = "c73ccf23-8bf5-4c2c-b330-ead36f469d1a";
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
+    private final DeviceCommand command = new DeviceCommand();
+    private final ReentrantLock lock = new ReentrantLock();
     private Client userClient;
     private ScheduledExecutorService notificationsMonitor = Executors.newSingleThreadScheduledExecutor();
     private volatile boolean greenState = false;
     private volatile boolean redState = false;
-    private AtomicInteger i = new AtomicInteger();
+    private volatile int i = 0;
     private ScheduledExecutorService commandsInsertService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledExecutorService commandsUpdatesService = Executors.newSingleThreadScheduledExecutor();
     private PrintStream out;
@@ -82,6 +84,7 @@ public class MSP430Example {
     private void init() {
         userClient = new Client(rest, webSocket, transport);
         userClient.authenticate("dhadmin", "dhadmin_#911");
+        command.setCommand("UpdateLedState");
     }
 
     private void close() {
@@ -102,26 +105,30 @@ public class MSP430Example {
         commandsInsertService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                DeviceCommand command = new DeviceCommand();
-                command.setCommand("UpdateLedState");
-                if (i.getAndIncrement() % 2 == 0) {
-                    if (greenState) {
-                        command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_G\",\"state\":1}"));
-                        greenState = !greenState;
+                try {
+                    lock.lock();
+                    if (i % 2 == 0) {
+                        if (greenState) {
+                            command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_G\",\"state\":1}"));
+                            greenState = !greenState;
+                        } else {
+                            command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_G\",\"state\":0}"));
+                            greenState = !greenState;
+                        }
                     } else {
-                        command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_G\",\"state\":0}"));
-                        greenState = !greenState;
+                        if (redState) {
+                            command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_R\",\"state\":1}"));
+                            redState = !redState;
+                        } else {
+                            command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_R\",\"state\":0}"));
+                            redState = !redState;
+                        }
                     }
-                } else {
-                    if (redState) {
-                        command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_R\",\"state\":1}"));
-                        redState = !redState;
-                    } else {
-                        command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_R\",\"state\":0}"));
-                        redState = !redState;
-                    }
+                    i++;
+                    controller.insertCommand(guid, command);
+                } finally {
+                    lock.unlock();
                 }
-                controller.insertCommand(guid, command);
             }
         }, 0, interval / 2, TimeUnit.MILLISECONDS);
     }
