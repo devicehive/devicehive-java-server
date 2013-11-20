@@ -49,6 +49,7 @@ public class MSP430Example {
     private URI webSocket;
     private Transport transport;
     private long interval;
+    private boolean isParseable = true;
 
     public MSP430Example(PrintStream out) {
         this.out = out;
@@ -62,23 +63,23 @@ public class MSP430Example {
      */
     public static void main(String... args) {
         MSP430Example example = new MSP430Example(System.out);
-        example.initOptions();
-        if (args.length < 2) {
-            example.printUsage();
-        } else {
+        example.run(args);
+    }
+
+    public void run(String... args) {
+        initOptions();
+        parseArguments(args);
+        if (isParseable)
             try {
-                example.parseArguments(args);
-                example.init();
-                example.subscribeForNotifications();
-                example.commandInsertServiceStart();
+                init();
+                subscribeForNotifications();
+                commandInsertServiceStart();
                 Thread.currentThread().join(15_000);
             } catch (Exception e) {
                 logger.debug(e.getMessage(), e);
             } finally {
-                example.close();
+                close();
             }
-        }
-
     }
 
     private void init() {
@@ -105,8 +106,8 @@ public class MSP430Example {
         commandsInsertService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                lock.lock();
                 try {
-                    lock.lock();
                     if (i % 2 == 0) {
                         if (greenState) {
                             command.setParameters(new JsonStringWrapper("{\"equipment\":\"LED_G\",\"state\":1}"));
@@ -181,7 +182,7 @@ public class MSP430Example {
         } catch (ParseException e) {
             logger.error("unable to parse command line arguments!");
             printUsage();
-            System.exit(0);
+            isParseable = false;
         }
     }
 

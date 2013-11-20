@@ -11,8 +11,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
@@ -25,30 +23,17 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class HiveDeviceGateway implements Closeable {
 
-    private static Logger logger = LoggerFactory.getLogger(HiveDeviceGateway.class);
+    private static final String DEVICE_ENDPOINT_PATH = "/device";
     private HiveContext hiveContext;
 
     public HiveDeviceGateway(URI restUri, URI websocketUri) {
-        hiveContext = new HiveContext(Transport.AUTO, restUri, websocketUri);
+        hiveContext =
+                new HiveContext(Transport.AUTO, restUri, URI.create(websocketUri.toString() + DEVICE_ENDPOINT_PATH));
     }
 
     public HiveDeviceGateway(URI restUri, URI websocketUri, Transport transport) {
-        hiveContext = new HiveContext(transport, restUri, websocketUri);
+        hiveContext = new HiveContext(transport, restUri, URI.create(websocketUri.toString() + DEVICE_ENDPOINT_PATH));
     }
-
-//    public static void main(String... args) {
-//        URI restUri = URI.create("http://127.0.0.1:8080/hive/rest/");
-//        URI websocketUri = URI.create("ws://127.0.0.1:8080/hive/websocket/");
-//        HiveDeviceGateway gateway = new HiveDeviceGateway(restUri, websocketUri);
-//        try {
-//            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-//            Date startDate = formatter.parse("2013-10-11 13:12:00");
-//            gateway.subscribeForCommands("e50d6085-2aba-48e9-b1c3-73c673e414be", "05F94BF509C8",
-//                    new Timestamp(startDate.getTime()), null);
-//        } catch (ParseException e) {
-//            logger.error(e.getMessage(), e);
-//        }
-//    }
 
     @Override
     public void close() throws IOException {
@@ -206,7 +191,7 @@ public class HiveDeviceGateway implements Closeable {
         return hiveContext.getInfo();
     }
 
-    public Queue<Pair<String, DeviceCommand>> getCommandsQueue(){
+    public Queue<Pair<String, DeviceCommand>> getCommandsQueue() {
         return hiveContext.getCommandQueue();
     }
 }

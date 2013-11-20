@@ -12,8 +12,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.io.Closeable;
@@ -25,15 +23,17 @@ import java.util.*;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
 public class SingleHiveDevice implements Closeable {
-    private static Logger logger = LoggerFactory.getLogger(SingleHiveDevice.class);
+    private static final String DEVICE_ENDPOINT_PATH = "/device";
     private HiveContext hiveContext;
 
     public SingleHiveDevice(URI restUri, URI websocketUri) {
-        this.hiveContext = new HiveContext(Transport.AUTO, restUri, websocketUri);
+        this.hiveContext =
+                new HiveContext(Transport.AUTO, restUri, URI.create(websocketUri.toString() + DEVICE_ENDPOINT_PATH));
     }
 
     public SingleHiveDevice(URI restUri, URI websocketUri, Transport transport) {
-        this.hiveContext = new HiveContext(transport, restUri, websocketUri);
+        this.hiveContext =
+                new HiveContext(transport, restUri, URI.create(websocketUri.toString() + DEVICE_ENDPOINT_PATH));
     }
 
     @Override
