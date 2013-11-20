@@ -6,6 +6,7 @@ import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.Transport;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,11 +18,13 @@ public class Client implements HiveClient {
     private final HiveContext hiveContext;
 
     public Client(URI uri, URI websocket) {
-        hiveContext = new HiveContext(Transport.AUTO, uri, URI.create(websocket.toString() + CLIENT_ENDPOINT_PATH));
+        String ws = StringUtils.removeEnd(websocket.toString(), "/");
+        hiveContext = new HiveContext(Transport.AUTO, uri, URI.create(ws + CLIENT_ENDPOINT_PATH));
     }
 
     public Client(URI uri, URI websocket, Transport transport) {
-        hiveContext = new HiveContext(transport, uri, URI.create(websocket.toString() + CLIENT_ENDPOINT_PATH));
+        String ws = StringUtils.removeEnd(websocket.toString(), "/");
+        hiveContext = new HiveContext(transport, uri, URI.create(ws + CLIENT_ENDPOINT_PATH));
     }
 
     public ApiInfo getInfo() {

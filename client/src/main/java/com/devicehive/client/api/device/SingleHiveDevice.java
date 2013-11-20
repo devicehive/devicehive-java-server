@@ -11,6 +11,7 @@ import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.HttpMethod;
@@ -27,13 +28,13 @@ public class SingleHiveDevice implements Closeable {
     private HiveContext hiveContext;
 
     public SingleHiveDevice(URI restUri, URI websocketUri) {
-        this.hiveContext =
-                new HiveContext(Transport.AUTO, restUri, URI.create(websocketUri.toString() + DEVICE_ENDPOINT_PATH));
+        String ws = StringUtils.removeEnd(websocketUri.toString(), "/");
+        this.hiveContext = new HiveContext(Transport.AUTO, restUri, URI.create(ws + DEVICE_ENDPOINT_PATH));
     }
 
     public SingleHiveDevice(URI restUri, URI websocketUri, Transport transport) {
-        this.hiveContext =
-                new HiveContext(transport, restUri, URI.create(websocketUri.toString() + DEVICE_ENDPOINT_PATH));
+        String ws = StringUtils.removeEnd(websocketUri.toString(), "/");
+        this.hiveContext = new HiveContext(transport, restUri, URI.create(ws + DEVICE_ENDPOINT_PATH));
     }
 
     @Override
