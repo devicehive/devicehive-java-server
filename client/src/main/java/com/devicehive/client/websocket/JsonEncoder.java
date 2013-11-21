@@ -10,6 +10,9 @@ import javax.websocket.EndpointConfig;
 import java.io.IOException;
 import java.io.Writer;
 
+/**
+ * Encoder for JSON. Converts jsonObject to text and writes to text stream
+ */
 public class JsonEncoder implements Encoder.TextStream<JsonObject> {
 
     @Override

@@ -4,7 +4,11 @@ package com.devicehive.client.websocket;
 import com.devicehive.client.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 
-public class SimpleWebsocketResponse implements HiveEntity{
+/**
+ * Entity that represents simple websocket response (response that does not contain model entity,
+ * but contains request processing result)
+ */
+public class SimpleWebsocketResponse implements HiveEntity {
 
     private static final long serialVersionUID = 5718896503617891330L;
     @SerializedName("action")

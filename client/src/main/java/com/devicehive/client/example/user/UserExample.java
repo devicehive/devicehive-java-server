@@ -1,7 +1,6 @@
 package com.devicehive.client.example.user;
 
 
-import com.devicehive.client.api.*;
 import com.devicehive.client.api.client.*;
 import com.devicehive.client.model.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -346,7 +345,7 @@ public abstract class UserExample {
                     currentUser.getRole() + "; status: " + currentUser.getStatus());
         }
         //get
-        User current = controller.getUser("current");
+        User current = controller.getUser();
         out.println("Id: " + current.getId() + "; login: " + current.getLogin() + "; role: " +
                 current.getRole() + "; status: " + current.getStatus() + "; last login: " + current.getLastLogin());
         if (current.getNetworks() != null) {
@@ -374,7 +373,7 @@ public abstract class UserExample {
         toInsert.setLastLogin(inserted.getLastLogin());
         //update
         toInsert.setPassword("update_example");
-        controller.updateUser(toInsert.getId().toString(), toInsert);
+        controller.updateUser(toInsert.getId(), toInsert);
         Long networkId = 1l;
         //assign network
         controller.assignNetwork(toInsert.getId(), networkId);

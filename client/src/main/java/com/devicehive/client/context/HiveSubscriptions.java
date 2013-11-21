@@ -3,6 +3,7 @@ package com.devicehive.client.context;
 
 import com.devicehive.client.config.Constants;
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.util.SubscriptionTask;
 import com.devicehive.client.util.UpdatesSubscriptionTask;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -45,10 +46,12 @@ public class HiveSubscriptions {
     }
 
     /**
-     * Adds commands subscription to storage. Creates task that store commands in context's command queue
-     * @param headers headers that defines the sample of commands
+     * Adds commands subscription to storage. Creates task that store commands in context's command queue. In case
+     * when no device identifiers specified, subscription "for all available" will be added.
+     *
+     * @param headers   headers that defines the sample of commands
      * @param timestamp first command timestamp
-     * @param names names of commands that defines
+     * @param names     names of commands that defines
      * @param deviceIds devices identifiers of devices that should be subscribed
      */
     public void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp,
@@ -59,7 +62,7 @@ public class HiveSubscriptions {
                 if (!commandsSubscriptionsStorage.containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
                     String path = "/device/command/poll";
                     SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                            path, headers, names, Constants.FOR_ALL_SUBSTITUTE);
+                            path, headers, names, Constants.FOR_ALL_SUBSTITUTE, DeviceCommand.class);
                     Future<Void> subscription = subscriptionExecutor.submit(task);
                     commandsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
                             subscription);
@@ -78,7 +81,7 @@ public class HiveSubscriptions {
                         // in all of these cases, this method will return true.
                         String path = "/device/" + id + "/command/poll";
                         SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                                path, headers, names, id);
+                                path, headers, names, id, DeviceCommand.class);
                         subscription = subscriptionExecutor.submit(task);
                         commandsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
                         logger.debug("New subscription added for device with id:" + id);
@@ -91,9 +94,11 @@ public class HiveSubscriptions {
     }
 
     /**
+     * Put command updates into the queue as soon as update coming. Command update subscription adds when the command
+     * insert executes.
      *
-     * @param commandId
-     * @param deviceId
+     * @param commandId command identifier
+     * @param deviceId  device identifier
      */
     public void addCommandUpdateSubscription(long commandId, String deviceId) {
         try {
@@ -115,10 +120,27 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Remove command subscription for following command name and device identifier. In case when no device identifiers specified,
+     * surrogate subscription "for all available" will be removed. This subscription does not
+     * include subscriptions for specific device.
+     *
+     * @param names     set of command names
+     * @param deviceIds device identifiers.
+     */
     public void removeCommandSubscription(Set<String> names, String... deviceIds) {
         unsubscribe(rwCommandsLock, commandsSubscriptionsStorage, names, deviceIds);
     }
 
+    /**
+     * Adds subscription for notifications with following set of notification's names from device with defined device
+     * identifiers. In case when no device identifiers specified, subscription for all available devices will be added.
+     *
+     * @param headers   headers that define the sample of commands
+     * @param timestamp start timestamp
+     * @param names     notifications names (statistics)
+     * @param deviceIds device identifiers
+     */
     public void addNotificationSubscription(Map<String, String> headers, Timestamp timestamp, Set<String> names,
                                             String... deviceIds) {
         if (deviceIds == null) {
@@ -127,7 +149,7 @@ public class HiveSubscriptions {
                 if (!commandsSubscriptionsStorage.containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
                     String path = "/device/notification/poll";
                     SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                            path, headers, names, Constants.FOR_ALL_SUBSTITUTE);
+                            path, headers, names, Constants.FOR_ALL_SUBSTITUTE, DeviceNotification.class);
                     Future<Void> subscription = subscriptionExecutor.submit(task);
                     commandsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
                             subscription);
@@ -146,7 +168,7 @@ public class HiveSubscriptions {
                         // in all of these cases, this method will return true.
                         String path = "/device/" + id + "/notification/poll";
                         SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
-                                path, headers, names, id);
+                                path, headers, names, id, DeviceNotification.class);
                         subscription = subscriptionExecutor.submit(task);
                         commandsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
                         logger.debug("New subscription added for device with id:" + id);
@@ -158,6 +180,14 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Remove notification subscription for following notification name and device identifier. In case when no device
+     * identifiers specified, surrogate subscription "for all available" will be removed. This subscription does not
+     * include subscriptions for specific device.
+     *
+     * @param names     set of notification names
+     * @param deviceIds device identifiers.
+     */
     public void removeNotificationSubscription(Set<String> names, String... deviceIds) {
         unsubscribe(rwNotificationsLock, notificationsSubscriptionsStorage, names, deviceIds);
     }
@@ -192,6 +222,9 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Kills threads which monitoring commands, command updates and notifications.
+     */
     public void shutdownThreads() {
         try {
             rwNotificationsLock.writeLock().lock();

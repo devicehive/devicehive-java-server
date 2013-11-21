@@ -26,7 +26,7 @@ public abstract class SingleHiveDeviceExample {
         try {
             //save device
             Device deviceToSave = createDeviceToSave();
-            shd.saveDevice(deviceToSave);
+            shd.registerDevice(deviceToSave);
             logger.info("device saved");
 
             //authenticate device
@@ -43,7 +43,7 @@ public abstract class SingleHiveDeviceExample {
 
             //update device
             deviceToSave.setStatus("updated example status");
-            shd.saveDevice(deviceToSave);
+            shd.registerDevice(deviceToSave);
             logger.debug("device updated");
             //get device
             Device updatedDevice = shd.getDevice();
@@ -78,7 +78,7 @@ public abstract class SingleHiveDeviceExample {
 
             try {
                 Thread.currentThread().join(5_000);
-                shd.unsubscribeFromCommands(null);
+                shd.unsubscribeFromCommands();
                 Thread.currentThread().join(5_000);
             } catch (InterruptedException e) {
                 logger.error(e.getMessage(), e);

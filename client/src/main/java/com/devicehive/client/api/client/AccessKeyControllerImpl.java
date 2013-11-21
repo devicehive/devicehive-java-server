@@ -27,8 +27,22 @@ public class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
+    public List<AccessKey> listKeys() {
+        String path = "/user/current/accesskey";
+        return hiveContext.getHiveRestClient()
+                .execute(path, HttpMethod.GET, null, null, new TypeToken<List<AccessKey>>() {
+                }.getType(), ACCESS_KEY_LISTED);
+    }
+
+    @Override
     public AccessKey getKey(long userId, long keyId) {
         String path = "/user/" + userId + "/accesskey/" + keyId;
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, AccessKey.class, ACCESS_KEY_LISTED);
+    }
+
+    @Override
+    public AccessKey getKey(long keyId) {
+        String path = "/user/current/accesskey/" + keyId;
         return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, AccessKey.class, ACCESS_KEY_LISTED);
     }
 
@@ -40,14 +54,33 @@ public class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
+    public AccessKey insertKey(AccessKey key) {
+        String path = "/user/current/accesskey";
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, key, AccessKey.class,
+                ACCESS_KEY_PUBLISHED, ACCESS_KEY_SUBMITTED);
+    }
+
+    @Override
     public void updateKey(long userId, long keyId, AccessKey key) {
         String path = "/user/" + userId + "/accesskey/" + keyId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
     }
 
     @Override
+    public void updateKey(long keyId, AccessKey key) {
+        String path = "/user/current/accesskey/" + keyId;
+        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
+    }
+
+    @Override
     public void deleteKey(long userId, long keyId) {
         String path = "/user/" + userId + "/accesskey/" + keyId;
+        hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
+    }
+
+    @Override
+    public void deleteKey(long keyId) {
+        String path = "/user/current/accesskey/" + keyId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
     }
 }

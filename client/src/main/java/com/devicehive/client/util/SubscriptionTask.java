@@ -4,6 +4,7 @@ package com.devicehive.client.util;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +21,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
+import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 
+/**
+ * Polling task.
+ */
 public class SubscriptionTask implements Callable<Void> {
     private static Logger logger = LoggerFactory.getLogger(SubscriptionTask.class);
     private final HiveContext hiveContext;
@@ -30,10 +35,22 @@ public class SubscriptionTask implements Callable<Void> {
     private final Set<String> names;
     private final String deviceGuid;
     private Timestamp timestamp;
+    private Class returnType;
 
-
+    /**
+     * Constructor.
+     *
+     * @param hiveContext hive context
+     * @param timestamp   start timestamp, may be null
+     * @param waitTimeout wait timeout (polling parameter)
+     * @param path        notification or command poll path
+     * @param headers     custom headers as path parameters, may be null
+     * @param names       set of notification or command names parameters, may be null
+     * @param deviceGuid  device identifier
+     * @param returnType  tells command or notification will be returned in list
+     */
     public SubscriptionTask(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout, String path,
-                            Map<String, String> headers, Set<String> names, String deviceGuid) {
+                            Map<String, String> headers, Set<String> names, String deviceGuid, Class returnType) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
         this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);
@@ -41,45 +58,82 @@ public class SubscriptionTask implements Callable<Void> {
         this.headers = headers;
         this.names = names;
         this.deviceGuid = deviceGuid;
+        this.returnType = returnType;
     }
 
+    /**
+     * Polling task performer. Put command or notification to the required queue.
+     */
+    //TODO refactor. make generic
     @Override
     public Void call() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                Map<String, Object> queryParams = new HashMap<>();
-                queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-                queryParams.put("waitTimeout", waitTimeout);
-                if (names != null) {
-                    queryParams.put("names", StringUtils.join(names, ","));
-                }
-                List<DeviceCommand> returned =
-                        hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET, headers,
-                                queryParams, null, new TypeToken<List<DeviceCommand>>() {
-                        }.getType(), null, COMMAND_LISTED);
-                logger.debug("\n----Start Timestamp: " + timestamp + "----");
-                for (DeviceCommand current : returned) {
-                    System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
-                }
-                if (!returned.isEmpty()) {
-                    for (DeviceCommand currentCommand : returned) {
-                        hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, currentCommand));
+                try {
+                    Map<String, Object> queryParams = new HashMap<>();
+                    queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
+                    queryParams.put("waitTimeout", waitTimeout);
+                    if (names != null) {
+                        queryParams.put("names", StringUtils.join(names, ","));
                     }
-                    if (timestamp == null) {
-                        timestamp = new Timestamp(System.currentTimeMillis());
+                    if (returnType.equals(DeviceCommand.class)) {
+                        deviceCommandCase(queryParams);
+                    } else {
+                        deviceNotificationCase(queryParams);
                     }
-                    timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
+                } catch (Exception e) {
+                    if (e.getCause() instanceof InterruptedException) {
+                        throw (InterruptedException) e.getCause();
+                    } else {
+                        logger.error(e.getMessage(), e);
+                    }
                 }
-
             }
-        } catch (Exception e) {
-            if (e.getCause() instanceof InterruptedException) {
-                logger.info(e.getMessage());
-                Thread.currentThread().interrupt();
-            } else {
-                logger.error(e.getMessage(), e);
-            }
+        } catch (InterruptedException e) {
+            logger.info(e.getMessage());
+            Thread.currentThread().interrupt();
         }
         return null;
     }
+
+    private void deviceCommandCase(Map<String, Object> queryParams) throws InterruptedException {
+        List<DeviceCommand> returned =
+                hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET, headers,
+                        queryParams, null, new TypeToken<List<DeviceCommand>>() {
+                }.getType(), null, COMMAND_LISTED);
+        logger.debug("\n----Start Timestamp: " + timestamp + "----");
+        for (DeviceCommand current : returned) {
+            System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
+        }
+        if (!returned.isEmpty()) {
+            for (DeviceCommand currentCommand : returned) {
+                hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, currentCommand));
+            }
+            if (timestamp == null) {
+                timestamp = new Timestamp(System.currentTimeMillis());
+            }
+            timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
+        }
+    }
+
+    private void deviceNotificationCase(Map<String, Object> queryParams) throws InterruptedException {
+        List<DeviceNotification> returned =
+                hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET, headers,
+                        queryParams, null, new TypeToken<List<DeviceNotification>>() {
+                }.getType(), null, NOTIFICATION_TO_CLIENT);
+        logger.debug("\n----Start Timestamp: " + timestamp + "----");
+        for (DeviceNotification current : returned) {
+            System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
+        }
+        if (!returned.isEmpty()) {
+            for (DeviceNotification currentNotification : returned) {
+                hiveContext.getNotificationQueue().put(ImmutablePair.of(deviceGuid, currentNotification));
+            }
+            if (timestamp == null) {
+                timestamp = new Timestamp(System.currentTimeMillis());
+            }
+            timestamp.setTime(returned.get(returned.size() - 1).getTimestamp().getTime());
+        }
+    }
+
 }

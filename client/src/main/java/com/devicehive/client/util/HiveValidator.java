@@ -12,6 +12,9 @@ import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
+/**
+ * Class to perform pre-validation of required fields and possible values of the fields.
+ */
 public class HiveValidator {
 
     public static void validate(Device device) {
@@ -61,7 +64,7 @@ public class HiveValidator {
     }
 
     public static void validate(DeviceNotification deviceNotification) {
-        if (StringUtils.isEmpty(deviceNotification.getNotification())){
+        if (StringUtils.isEmpty(deviceNotification.getNotification())) {
             throw new HiveClientException("Device notification name is required!", BAD_REQUEST.getStatusCode());
         }
     }

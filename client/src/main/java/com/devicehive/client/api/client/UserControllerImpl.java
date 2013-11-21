@@ -40,8 +40,14 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public User getUser(String id) {   //for getCurrent support
+    public User getUser(long id) {
         String path = "/user/" + id;
+        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, null, User.class, USER_PUBLISHED);
+    }
+
+    @Override
+    public User getUser() {
+        String path = "/user/current";
         return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, null, User.class, USER_PUBLISHED);
     }
 
@@ -53,8 +59,14 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void updateUser(String id, User user) {
+    public void updateUser(long id, User user) {
         String path = "/user/" + id;
+        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, user, USER_UPDATE);
+    }
+
+    @Override
+    public void updateUser(User user) {
+        String path = "/user/current";
         hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, user, USER_UPDATE);
     }
 

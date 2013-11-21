@@ -22,26 +22,53 @@ import java.util.*;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * HiveDeviceGateway is useful for communications with devices with can understand only binary protocol.
+ * That scenario is common for gateways which typically proxy multiple devices and use a single connection to the server.
+ */
 public class HiveDeviceGateway implements Closeable {
 
     private static final String DEVICE_ENDPOINT_PATH = "/device";
     private HiveContext hiveContext;
 
+    /**
+     * Creates new device gateway, that can communicate with the server via provided URLs.
+     *
+     * @param restUri      RESTful service URL
+     * @param websocketUri websocket service URL (not the URL of the device endpoint!)
+     */
     public HiveDeviceGateway(URI restUri, URI websocketUri) {
         String ws = StringUtils.removeEnd(websocketUri.toString(), "/");
         this.hiveContext = new HiveContext(Transport.AUTO, restUri, URI.create(ws + DEVICE_ENDPOINT_PATH));
     }
 
+    /**
+     * Creates new device gateway, that can communicate with the server via provided URLs.
+     *
+     * @param restUri      RESTful service URL
+     * @param websocketUri websocket service URL (not the URL of the device endpoint!)
+     * @param transport    transport to use
+     */
     public HiveDeviceGateway(URI restUri, URI websocketUri, Transport transport) {
         String ws = StringUtils.removeEnd(websocketUri.toString(), "/");
         this.hiveContext = new HiveContext(transport, restUri, URI.create(ws + DEVICE_ENDPOINT_PATH));
     }
 
+    /**
+     * Closes device gateway with associated context
+     *
+     * @throws IOException
+     */
     @Override
     public void close() throws IOException {
         hiveContext.close();
     }
 
+    /**
+     * Gets information about the requested device.
+     *
+     * @return current device info
+     */
     public Device getDevice(String deviceId, String key) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
@@ -59,6 +86,13 @@ public class HiveDeviceGateway implements Closeable {
         }
     }
 
+    /**
+     * Registers or updates a device.
+     *
+     * @param device   update/create device info
+     * @param deviceId device identifier
+     * @param key      device key
+     */
     public void saveDevice(String deviceId, String key, Device device) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
@@ -80,6 +114,21 @@ public class HiveDeviceGateway implements Closeable {
         }
     }
 
+    /**
+     * Queries device commands.
+     *
+     * @param deviceId device identifier
+     * @param key      device key
+     * @param start    command start timestamp (UTC).
+     * @param end      command end timestamp (UTC).
+     * @param command  command name.
+     * @param status   command status.
+     * @param sortBy   Result list sort field. Available values are Timestamp (default), Command and Status.
+     * @param sortAsc  if true - ascending sort order in the result list will be used, descending otherwise
+     * @param take     Number of records to take from the result list (default is 1000).
+     * @param skip     Number of records to skip from the result list.
+     * @return list of device commands
+     */
     public List<DeviceCommand> queryCommands(String deviceId, String key, Timestamp start, Timestamp end,
                                              String command, String status, String sortBy, boolean sortAsc,
                                              Integer take, Integer skip) {
@@ -100,12 +149,27 @@ public class HiveDeviceGateway implements Closeable {
                 }.getType(), null);
     }
 
+    /**
+     * Gets information about device command.
+     *
+     * @param deviceId  device identifier
+     * @param key       device key
+     * @param commandId command identifier
+     * @return existing device command
+     */
     public DeviceCommand getCommand(String deviceId, String key, long commandId) {
         Map<String, String> headers = getHeaders(deviceId, key);
         String path = "/device/" + deviceId + "/command/" + commandId;
         return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, headers, DeviceCommand.class, null);
     }
 
+    /**
+     * Updates an existing device command.
+     *
+     * @param deviceId      device identifier
+     * @param key           device key
+     * @param deviceCommand update info in the device command representation
+     */
     public void updateCommand(String deviceId, String key, DeviceCommand deviceCommand) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
@@ -127,6 +191,14 @@ public class HiveDeviceGateway implements Closeable {
 
     }
 
+    /**
+     * Subscribes the device to commands. After subscription is completed, the server will start to send commands to
+     * the connected device.
+     *
+     * @param deviceId  device identifier
+     * @param key       device key
+     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     */
     public void subscribeForCommands(String deviceId, String key, Timestamp timestamp) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
@@ -143,6 +215,12 @@ public class HiveDeviceGateway implements Closeable {
         }
     }
 
+    /**
+     * Unsubscribes the device from commands.
+     *
+     * @param deviceId device identifier
+     * @param key      device key
+     */
     public void unsubscribeFromCommands(String deviceId, String key) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
@@ -160,6 +238,14 @@ public class HiveDeviceGateway implements Closeable {
         }
     }
 
+    /**
+     * Creates new device notification on behalf of device.
+     *
+     * @param deviceId           device identifier
+     * @param key                device key
+     * @param deviceNotification device notification that should be created
+     * @return info about inserted notification
+     */
     public DeviceNotification insertNotification(String deviceId, String key, DeviceNotification deviceNotification) {
         if (hiveContext.useSockets()) {
             JsonObject request = new JsonObject();
@@ -189,10 +275,20 @@ public class HiveDeviceGateway implements Closeable {
         return headers;
     }
 
+    /**
+     * Requests API info from server
+     *
+     * @return API info
+     */
     public ApiInfo getInfo() {
         return hiveContext.getInfo();
     }
 
+    /**
+     * Get commands queue
+     *
+     * @return commands queue
+     */
     public Queue<Pair<String, DeviceCommand>> getCommandsQueue() {
         return hiveContext.getCommandQueue();
     }

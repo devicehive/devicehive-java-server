@@ -9,8 +9,14 @@ import com.devicehive.client.rest.providers.TimestampConverterProvider;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
+/**
+ * RESTful client factory
+ */
 public class HiveClientFactory {
 
+    /**
+     * @return Jersey client with entity body parse providers, parameters converters.
+     */
     public static Client getClient() {
         Client client = ClientBuilder.newClient();
         client.register(JsonRawProvider.class);

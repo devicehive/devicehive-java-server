@@ -22,6 +22,9 @@ import java.util.Map;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
+/**
+ * Class that is used to handle messages from server.
+ */
 public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
 
     private final static String REQUEST_ID_MEMBER = "requestId";
@@ -35,13 +38,25 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     private final HiveContext hiveContext;
     private final Map<String, SettableFuture<JsonObject>> websocketResponsesMap;
 
-
+    /**
+     * Constructor.
+     *
+     * @param hiveContext  hive context
+     * @param responsesMap map that contains request id and response association.
+     */
     public HiveWebsocketHandler(HiveContext hiveContext, Map<String, SettableFuture<JsonObject>> responsesMap) {
         this.hiveContext = hiveContext;
         this.websocketResponsesMap = responsesMap;
 
     }
 
+    /**
+     * Handle messages from server. If message is not a JSON object - HiveServerException will be thrown (server
+     * sends smth unparseable and unexpected), else if request identifier is provided then response for some request
+     * received, otherwise - command, notification or command update received.
+     *
+     * @param message message from server.
+     */
     @Override
     public void handleMessage(String message) {
         JsonElement elem = new JsonParser().parse(message);
@@ -57,30 +72,13 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
             try {
                 switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
                     case COMMAND_INSERT:
-                        Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
-                        DeviceCommand commandInsert =
-                                commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
-                                        DeviceCommand.class);
-                        if (commandInsert != null) {
-                            hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, commandInsert));
-                            logger.debug("Device command inserted. Id: " + commandInsert.getId());
-                        }
-
+                        handleCommandInsert(jsonMessage, deviceGuid);
                         break;
                     case COMMAND_UPDATE:
-                        Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
-                        DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
-                                (COMMAND_MEMBER), DeviceCommand.class);
-                        hiveContext.getCommandUpdateQueue().put(commandUpdated);
-                        logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
-                                commandUpdated.getStatus());
+                        handleCommandUpdate(jsonMessage);
                         break;
                     case NOTIFICATION_INSERT:
-                        Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
-                        DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
-                                (NOTIFICATION_MEMBER), DeviceNotification.class);
-                        hiveContext.getNotificationQueue().put(ImmutablePair.of(deviceGuid, notification));
-                        logger.debug("Device notification inserted. Id: " + notification.getId());
+                        handleNotification(jsonMessage, deviceGuid);
                         break;
                     default: //unknown request
                         throw new HiveException("Request id is undefined");
@@ -94,5 +92,33 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                     .getAsString());
             future.set(jsonMessage);
         }
+    }
+
+    private void handleCommandInsert(JsonObject jsonMessage, String deviceGuid) throws InterruptedException {
+        Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
+        DeviceCommand commandInsert =
+                commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
+                        DeviceCommand.class);
+        if (commandInsert != null) {
+            hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, commandInsert));
+            logger.debug("Device command inserted. Id: " + commandInsert.getId());
+        }
+    }
+
+    private void handleCommandUpdate(JsonObject jsonMessage) throws InterruptedException {
+        Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
+        DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
+                (COMMAND_MEMBER), DeviceCommand.class);
+        hiveContext.getCommandUpdateQueue().put(commandUpdated);
+        logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
+                commandUpdated.getStatus());
+    }
+
+    private void handleNotification(JsonObject jsonMessage, String deviceGuid) throws InterruptedException {
+        Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
+        DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
+                (NOTIFICATION_MEMBER), DeviceNotification.class);
+        hiveContext.getNotificationQueue().put(ImmutablePair.of(deviceGuid, notification));
+        logger.debug("Device notification inserted. Id: " + notification.getId());
     }
 }
