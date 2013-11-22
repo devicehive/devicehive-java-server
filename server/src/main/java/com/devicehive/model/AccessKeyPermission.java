@@ -92,13 +92,13 @@ public class AccessKeyPermission implements HiveEntity {
         return domains;
     }
 
-    public void setDomains(JsonStringWrapper domains) {
-        this.domains = domains;
-    }
-
     public void setDomains(String... domains) {
         Gson gson = GsonFactory.createGson();
         this.domains = new JsonStringWrapper(gson.toJsonTree(domains).toString());
+    }
+
+    public void setDomains(JsonStringWrapper domains) {
+        this.domains = domains;
     }
 
     public Set<String> getDomainsAsSet() {
@@ -120,11 +120,13 @@ public class AccessKeyPermission implements HiveEntity {
             for (JsonElement current : json) {
                 if (!current.isJsonNull()) {
                     result.add(new Subnet(current.getAsString()));
+                } else {
+                    result.add(null);
                 }
             }
-            if (result.isEmpty()) {
-                result = null;
-            }
+//            if (result.isEmpty()) {
+//                result = null;
+//            }
             return result;
         }
         throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
@@ -183,26 +185,26 @@ public class AccessKeyPermission implements HiveEntity {
         return subnets;
     }
 
+    public void setSubnets(JsonStringWrapper subnets) {
+        this.subnets = subnets;
+    }
+
     public void setSubnets(String... subnets) {
         Gson gson = GsonFactory.createGson();
         this.subnets = new JsonStringWrapper(gson.toJsonTree(subnets).toString());
-    }
-
-    public void setSubnets(JsonStringWrapper subnets) {
-        this.subnets = subnets;
     }
 
     public JsonStringWrapper getActions() {
         return actions;
     }
 
+    public void setActions(JsonStringWrapper actions) {
+        this.actions = actions;
+    }
+
     public void setActions(String... actions) {
         Gson gson = GsonFactory.createGson();
         this.actions = new JsonStringWrapper(gson.toJsonTree(actions).toString());
-    }
-
-    public void setActions(JsonStringWrapper actions) {
-        this.actions = actions;
     }
 
     public JsonStringWrapper getNetworkIds() {

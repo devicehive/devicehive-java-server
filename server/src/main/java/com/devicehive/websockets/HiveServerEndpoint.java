@@ -1,32 +1,29 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.websockets.converters.JsonEncoder;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.websockets.handlers.*;
+import com.devicehive.websockets.converters.JsonEncoder;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
+import com.devicehive.websockets.handlers.WebsocketExecutor;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.common.collect.Sets;
-import com.google.gson.*;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.persistence.OptimisticLockException;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.Reader;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Set;
 
 @ServerEndpoint(value = "/websocket/{endpoint}", encoders = {JsonEncoder.class})
 @LogExecutionTime
@@ -90,44 +87,6 @@ public class HiveServerEndpoint {
     public void onError(Throwable exception, Session session) {
         logger.error("[onError] ", exception);
     }
-
-
-
-
-    private void invocationTargetExceptionResolve(InvocationTargetException e) throws InvocationTargetException {
-        if (e.getTargetException() instanceof HiveException) {
-            throw (HiveException) e.getTargetException();
-        }
-        if (e.getTargetException() instanceof OptimisticLockException) {
-            throw (OptimisticLockException) e.getTargetException();
-        }
-        if (e.getTargetException() instanceof ConstraintViolationException) {
-            ConstraintViolationException ex = (ConstraintViolationException) e.getTargetException();
-            logger.debug("[processMessage] Validation error, incorrect input");
-            Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
-            StringBuilder builderForResponse = new StringBuilder("Validation failed: ");
-            for (ConstraintViolation<?> constraintViolation : constraintViolations) {
-                builderForResponse.append(constraintViolation.getMessage()).append(";");
-            }
-            throw new HiveException(builderForResponse.toString(), HttpServletResponse.SC_BAD_REQUEST);
-        }
-        if (e.getTargetException() instanceof JsonSyntaxException) {
-            JsonSyntaxException ex = (JsonSyntaxException) e.getTargetException();
-            throw new HiveException("Incorrect JSON syntax: " + ex.getCause().getMessage(), ex, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        if (e.getTargetException() instanceof JsonParseException) {
-            JsonParseException ex = (JsonParseException) e.getTargetException();
-            throw new HiveException("Error occurred on parsing JSON object: " + ex.getMessage(), ex, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        if (e.getTargetException() instanceof org.hibernate.exception.ConstraintViolationException) {
-            org.hibernate.exception.ConstraintViolationException target = (org.hibernate.exception
-                    .ConstraintViolationException) e.getTargetException();
-            throw new HiveException("Unable to proceed requests, cause unique constraint is broken on unique fields: " +
-                    target.getMessage(), target, HttpServletResponse.SC_CONFLICT);
-        }
-        throw e;
-    }
-
 
 
 }
