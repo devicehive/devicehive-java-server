@@ -1,6 +1,7 @@
 package com.devicehive.client.api.client;
 
 
+import com.devicehive.client.api.SubscriptionsService;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.json.GsonFactory;
 import com.devicehive.client.json.adapters.TimestampAdapter;
@@ -71,15 +72,7 @@ public class NotificationsControllerImpl implements NotificationsController {
     @Override
     public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds) {
         if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "notification/subscribe");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            request.addProperty("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-            Gson gson = GsonFactory.createGson();
-            request.add("deviceGuids", gson.toJsonTree(deviceIds));
-            request.add("names", gson.toJsonTree(names));
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
+            SubscriptionsService.subscribeClientForNotifications(hiveContext, timestamp, names, deviceIds);
         } else {
             hiveContext.getHiveSubscriptions().addNotificationSubscription(null, timestamp, names, deviceIds);
         }
@@ -95,6 +88,7 @@ public class NotificationsControllerImpl implements NotificationsController {
             Gson gson = GsonFactory.createGson();
             request.add("deviceGuids", gson.toJsonTree(deviceIds));
             hiveContext.getHiveWebSocketClient().sendMessage(request);
+            hiveContext.getHiveSubscriptions().removeWsNotificationSubscription(names, deviceIds);
         } else {
             hiveContext.getHiveSubscriptions().removeNotificationSubscription(names, deviceIds);
         }

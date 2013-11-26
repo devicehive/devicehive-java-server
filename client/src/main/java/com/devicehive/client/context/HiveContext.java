@@ -57,7 +57,8 @@ public class HiveContext implements Closeable {
             }
         }
         hiveSubscriptions = new HiveSubscriptions(this);
-        if (hiveRestClient == null || transport.getWebsocketPriority() > transport.getRestPriority())
+        if ((hiveRestClient == null || transport.getWebsocketPriority() > transport.getRestPriority())
+                && !Transport.REST_ONLY.equals(transport))
             try {
                 hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
             } catch (Exception e) {

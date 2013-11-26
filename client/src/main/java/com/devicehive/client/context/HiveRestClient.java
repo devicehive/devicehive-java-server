@@ -384,6 +384,5 @@ public class HiveRestClient implements Closeable {
             return invocationBuilder.build(HttpMethod.POST, entity);
         }
         throw new InternalHiveClientException("form params cannot be null!");
-
     }
 }

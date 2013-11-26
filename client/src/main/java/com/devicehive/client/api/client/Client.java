@@ -1,16 +1,15 @@
 package com.devicehive.client.api.client;
 
 
+import com.devicehive.client.api.AuthenticationService;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.Transport;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.UUID;
 
 public class Client implements HiveClient {
 
@@ -33,25 +32,14 @@ public class Client implements HiveClient {
 
     public void authenticate(String login, String password) {
         if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "authenticate");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            request.addProperty("login", login);
-            request.addProperty("password", password);
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
+            AuthenticationService.authenticateClient(login, password, hiveContext);
         }
         hiveContext.setHivePrincipal(HivePrincipal.createUser(login, password));
     }
 
     public void authenticate(String accessKey) {
         if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "authenticate");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            request.addProperty("accessKey", accessKey);
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
+            AuthenticationService.authenticateKey(accessKey, hiveContext);
         }
         hiveContext.setHivePrincipal(HivePrincipal.createAccessKey(accessKey));
 

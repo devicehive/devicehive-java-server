@@ -1,6 +1,7 @@
 package com.devicehive.client.context;
 
 
+import com.devicehive.client.api.SubscriptionsService;
 import com.devicehive.client.config.Constants;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -12,13 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -31,6 +27,7 @@ public class HiveSubscriptions {
 
     private static final int SUBSCRIPTIONS_THREAD_POOL_SIZE = 100;
     private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
+    private static final Integer CLEANER_TASK_INTERVAL = 30;// in minutes
     private static Logger logger = LoggerFactory.getLogger(HiveSubscriptions.class);
     private final HiveContext hiveContext;
     private ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(SUBSCRIPTIONS_THREAD_POOL_SIZE);
@@ -40,9 +37,23 @@ public class HiveSubscriptions {
     private ReadWriteLock rwCommandsLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwCommandUpdateLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwNotificationsLock = new ReentrantReadWriteLock();
+    private Set<Pair<String, String>> wsCommandSubscriptionsStorage = new HashSet<>();
+    private Set<Pair<String, String>> wsNotificationSubscriptionsStorage = new HashSet<>();
+    private Map<Long, String> wsCommandUpdateSubscriptionsStorage = new HashMap<>();
+    private Map<String, Timestamp> wsDeviceLastCommandTimestampAssociation = new HashMap<>();
+    private Map<String, Timestamp> wsDeviceLastNotificationTimestampAssociation = new HashMap<>();
+    private ReadWriteLock rwWsCommandsLock = new ReentrantReadWriteLock();
+    private ReadWriteLock rwWsCommandUpdateLock = new ReentrantReadWriteLock();
+    private ReadWriteLock rwWsNotificationsLock = new ReentrantReadWriteLock();
+    //once in  minutes clean associations to avoid memory leak
+    private ScheduledExecutorService wsAssociationsCleaner = Executors.newSingleThreadScheduledExecutor();
 
     public HiveSubscriptions(HiveContext hiveContext) {
         this.hiveContext = hiveContext;
+    }
+
+    private void clean() {
+        //TODO
     }
 
     /**
@@ -145,24 +156,25 @@ public class HiveSubscriptions {
                                             String... deviceIds) {
         if (deviceIds == null) {
             try {
-                rwCommandsLock.writeLock().lock();
-                if (!commandsSubscriptionsStorage.containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
+                rwNotificationsLock.writeLock().lock();
+                if (!notificationsSubscriptionsStorage
+                        .containsKey(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names))) {
                     String path = "/device/notification/poll";
                     SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
                             path, headers, names, Constants.FOR_ALL_SUBSTITUTE, DeviceNotification.class);
                     Future<Void> subscription = subscriptionExecutor.submit(task);
-                    commandsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
+                    notificationsSubscriptionsStorage.put(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names),
                             subscription);
                     logger.debug("New subscription added for:" + Constants.FOR_ALL_SUBSTITUTE);
                 }
             } finally {
-                rwCommandsLock.writeLock().unlock();
+                rwNotificationsLock.writeLock().unlock();
             }
         } else {
             try {
-                rwCommandsLock.writeLock().lock();
+                rwNotificationsLock.writeLock().lock();
                 for (String id : deviceIds) {
-                    Future<Void> subscription = commandsSubscriptionsStorage.get(ImmutablePair.of(id, names));
+                    Future<Void> subscription = notificationsSubscriptionsStorage.get(ImmutablePair.of(id, names));
                     if (subscription == null || subscription.isDone()) { //Returns true if this task completed.
                         // Completion may be due to normal termination, an exception, or cancellation --
                         // in all of these cases, this method will return true.
@@ -170,12 +182,12 @@ public class HiveSubscriptions {
                         SubscriptionTask task = new SubscriptionTask(hiveContext, timestamp, Constants.WAIT_TIMEOUT,
                                 path, headers, names, id, DeviceNotification.class);
                         subscription = subscriptionExecutor.submit(task);
-                        commandsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
+                        notificationsSubscriptionsStorage.put(ImmutablePair.of(id, names), subscription);
                         logger.debug("New subscription added for device with id:" + id);
                     }
                 }
             } finally {
-                rwCommandsLock.writeLock().unlock();
+                rwNotificationsLock.writeLock().unlock();
             }
         }
     }
@@ -220,6 +232,161 @@ public class HiveSubscriptions {
                 lock.readLock().unlock();
             }
         }
+    }
+
+    public void addWsCommandsSubscription(Timestamp timestamp, Set<String> names, String... deviceIds) {
+        rwWsCommandsLock.writeLock().lock();
+        try {
+            if (deviceIds == null) {
+                deviceIds = new String[]{Constants.FOR_ALL_SUBSTITUTE};
+            }
+            for (String deviceId : deviceIds) {
+                for (String name : names)
+                    wsCommandSubscriptionsStorage.add(ImmutablePair.of(deviceId, name));
+                if (timestamp == null) {
+                    timestamp = new Timestamp(System.currentTimeMillis());
+                }
+                if (!wsDeviceLastCommandTimestampAssociation.containsKey(deviceId))
+                    wsDeviceLastCommandTimestampAssociation.put(deviceId, timestamp);
+            }
+        } finally {
+            rwWsCommandsLock.writeLock().unlock();
+        }
+    }
+
+    public void addWsNotificationsSubscription(Timestamp timestamp, Set<String> names, String... deviceIds) {
+        rwWsNotificationsLock.writeLock().lock();
+        try {
+            if (deviceIds == null) {
+                deviceIds = new String[]{Constants.FOR_ALL_SUBSTITUTE};
+            }
+            for (String deviceId : deviceIds) {
+                for (String name : names)
+                    wsNotificationSubscriptionsStorage.add(ImmutablePair.of(deviceId, name));
+                if (timestamp == null) {
+                    timestamp = new Timestamp(System.currentTimeMillis());
+                }
+                if (!wsDeviceLastNotificationTimestampAssociation.containsKey(deviceId))
+                    wsDeviceLastNotificationTimestampAssociation.put(deviceId, timestamp);
+            }
+        } finally {
+            rwWsNotificationsLock.writeLock().unlock();
+        }
+    }
+
+    public void addWsCommandUpdateSubscription(Long commandId, String deviceId) {
+        rwWsCommandUpdateLock.writeLock().lock();
+        try {
+            wsCommandUpdateSubscriptionsStorage.put(commandId, deviceId);
+        } finally {
+            rwWsCommandUpdateLock.writeLock().unlock();
+        }
+    }
+
+    public void removeWsCommandSubscription(Set<String> names, String... deviceIds) {
+        rwWsCommandsLock.readLock().lock();
+        try {
+            if (deviceIds == null) {
+                deviceIds = new String[]{Constants.FOR_ALL_SUBSTITUTE};
+            }
+            for (String deviceId : deviceIds)
+                for (String name : names)
+                    wsCommandSubscriptionsStorage.remove(ImmutablePair.of(deviceId, name));
+        } finally {
+            rwWsCommandsLock.readLock().unlock();
+        }
+    }
+
+    public void removeWsNotificationSubscription(Set<String> names, String... deviceIds) {
+        rwWsNotificationsLock.readLock().lock();
+        try {
+            if (deviceIds == null) {
+                deviceIds = new String[]{Constants.FOR_ALL_SUBSTITUTE};
+            }
+            for (String deviceId : deviceIds)
+                for (String name : names)
+                    wsNotificationSubscriptionsStorage.remove(ImmutablePair.of(deviceId, name));
+        } finally {
+            rwWsNotificationsLock.readLock().unlock();
+        }
+    }
+
+    public void removeWsCommandUpdateSubscription(Long commandId) {
+        rwWsCommandUpdateLock.readLock().lock();
+        try {
+            wsCommandUpdateSubscriptionsStorage.remove(commandId);
+        } finally {
+            rwWsCommandUpdateLock.readLock().unlock();
+        }
+    }
+
+    public void updateWsDeviceLastCommandTimestampAssociation(String deviceId, Timestamp newTimestamp) {
+        rwWsCommandsLock.writeLock().lock();
+        try {
+            Timestamp lastTimestamp = wsDeviceLastCommandTimestampAssociation.get(deviceId);
+            if (lastTimestamp.before(new Date(newTimestamp.getTime()))) {
+                wsDeviceLastCommandTimestampAssociation.put(deviceId, newTimestamp);
+            }
+        } finally {
+            rwWsCommandsLock.writeLock().unlock();
+        }
+    }
+
+    public void updateWsDeviceLastNotificationTimestampAssociation(String deviceId, Timestamp newTimestamp) {
+        rwWsNotificationsLock.writeLock().lock();
+        try {
+            Timestamp lastTimestamp = wsDeviceLastNotificationTimestampAssociation.get(deviceId);
+            if (lastTimestamp.before(new Date(newTimestamp.getTime()))) {
+                wsDeviceLastNotificationTimestampAssociation.put(deviceId, newTimestamp);
+            }
+        } finally {
+            rwWsNotificationsLock.writeLock().unlock();
+        }
+    }
+
+    public void resubscribeForCommands() {
+        rwWsCommandsLock.writeLock().lock();
+        try {
+            if (hiveContext.getHivePrincipal().getUser() != null || hiveContext.getHivePrincipal().getAccessKey() !=
+                    null)
+                for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
+                    Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
+                    Set<String> names = new HashSet<>();
+                    names.add(currentSubscription.getValue());
+                    SubscriptionsService.subscribeClientForCommands(hiveContext, timestamp, names,
+                            currentSubscription.getKey());
+                }
+            else if (hiveContext.getHivePrincipal().getDevice() != null) {
+                for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
+                    Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
+                    SubscriptionsService.subscribeDeviceForCommands(hiveContext, timestamp);
+                }
+            } //TODO gateway
+        } finally {
+            rwWsCommandsLock.writeLock().unlock();
+        }
+    }
+
+    public void resubscribeForNotifications() {
+        rwWsNotificationsLock.writeLock().lock();
+        try {
+            if (hiveContext.getHivePrincipal().getUser() != null ||
+                    hiveContext.getHivePrincipal().getAccessKey() != null)
+                for (Pair<String, String> currentSubscription : wsNotificationSubscriptionsStorage) {
+                    Timestamp timestamp =
+                            wsDeviceLastNotificationTimestampAssociation.get(currentSubscription.getKey());
+                    Set<String> names = new HashSet<>();
+                    names.add(currentSubscription.getValue());
+                    SubscriptionsService.subscribeClientForNotifications(hiveContext, timestamp, names,
+                            currentSubscription.getKey());
+                }
+        } finally {
+            rwWsNotificationsLock.writeLock().unlock();
+        }
+    }
+
+    public void requestCommandsUpdates(){
+       //todo
     }
 
     /**

@@ -17,7 +17,10 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -37,6 +40,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     private static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
     private final HiveContext hiveContext;
     private final Map<String, SettableFuture<JsonObject>> websocketResponsesMap;
+    private final Lock lock = new ReentrantLock();
 
     /**
      * Constructor.
@@ -88,21 +92,34 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                 throw new InternalHiveClientException(e.getMessage(), e);
             }
         } else {
-            SettableFuture<JsonObject> future = websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
-                    .getAsString());
-            future.set(jsonMessage);
+            lock.lock();
+            try {
+                SettableFuture<JsonObject> future = websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
+                        .getAsString());
+                future.set(jsonMessage);
+            } catch (Exception e) {
+                logger.debug("task cancelled");
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
     private void handleCommandInsert(JsonObject jsonMessage, String deviceGuid) throws InterruptedException {
         Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
-        DeviceCommand commandInsert =
-                commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
-                        DeviceCommand.class);
-        if (commandInsert != null) {
-            hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, commandInsert));
-            logger.debug("Device command inserted. Id: " + commandInsert.getId());
+        DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
+                DeviceCommand.class);
+        hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, commandInsert));
+        if (commandInsert.getTimestamp() != null) {
+            hiveContext.getHiveSubscriptions().updateWsDeviceLastCommandTimestampAssociation(deviceGuid,
+                    commandInsert.getTimestamp());
+        } else {
+            logger.warn("Device command inserted without timestamp. Id: " + commandInsert.getId());
+            hiveContext.getHiveSubscriptions().updateWsDeviceLastCommandTimestampAssociation(deviceGuid,
+                    new Timestamp(0L));
         }
+        logger.debug("Device command inserted. Id: " + commandInsert.getId());
+
     }
 
     private void handleCommandUpdate(JsonObject jsonMessage) throws InterruptedException {
@@ -110,6 +127,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
         DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
                 (COMMAND_MEMBER), DeviceCommand.class);
         hiveContext.getCommandUpdateQueue().put(commandUpdated);
+        hiveContext.getHiveSubscriptions().removeWsCommandUpdateSubscription(commandUpdated.getId());
         logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
                 commandUpdated.getStatus());
     }
@@ -119,6 +137,14 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
         DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
                 (NOTIFICATION_MEMBER), DeviceNotification.class);
         hiveContext.getNotificationQueue().put(ImmutablePair.of(deviceGuid, notification));
+        if (notification.getTimestamp() != null) {
+            hiveContext.getHiveSubscriptions().updateWsDeviceLastNotificationTimestampAssociation(deviceGuid,
+                    notification.getTimestamp());
+        } else {
+            logger.warn("Device notification inserted without timestamp. Id: " + notification.getId());
+            hiveContext.getHiveSubscriptions().updateWsDeviceLastNotificationTimestampAssociation(deviceGuid,
+                    new Timestamp(0L));
+        }
         logger.debug("Device notification inserted. Id: " + notification.getId());
     }
 }

@@ -1,10 +1,10 @@
 package com.devicehive.client.api.gateway;
 
 
+import com.devicehive.client.api.SubscriptionsService;
 import com.devicehive.client.config.Constants;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.json.GsonFactory;
-import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.*;
 import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
@@ -201,14 +201,7 @@ public class HiveDeviceGateway implements Closeable {
      */
     public void subscribeForCommands(String deviceId, String key, Timestamp timestamp) {
         if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "command/subscribe");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            request.addProperty("deviceId", deviceId);
-            request.addProperty("deviceKey", key);
-            request.addProperty("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
+            SubscriptionsService.subscribeDeviceForCommands(hiveContext, timestamp, deviceId, key);
         } else {
             final Map<String, String> headers = getHeaders(deviceId, key);
             hiveContext.getHiveSubscriptions().addCommandsSubscription(headers, timestamp, null, deviceId);
@@ -230,6 +223,7 @@ public class HiveDeviceGateway implements Closeable {
             request.addProperty("deviceId", deviceId);
             request.addProperty("deviceKey", key);
             hiveContext.getHiveWebSocketClient().sendMessage(request);
+            hiveContext.getHiveSubscriptions().removeWsCommandSubscription(null, deviceId);
         } else {
             Device device = getDevice(deviceId, key);
             if (device != null) {

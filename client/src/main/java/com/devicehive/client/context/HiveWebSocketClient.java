@@ -46,7 +46,7 @@ public class HiveWebSocketClient implements Closeable {
      * @param hiveContext context. Keeps state, for example credentials.
      */
     public HiveWebSocketClient(URI socket, HiveContext hiveContext) {
-        endpoint = new HiveClientEndpoint(socket);
+        endpoint = new HiveClientEndpoint(socket, hiveContext);
         endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
     }
 

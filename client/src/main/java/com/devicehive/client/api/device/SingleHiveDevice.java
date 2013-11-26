@@ -1,10 +1,11 @@
 package com.devicehive.client.api.device;
 
 
+import com.devicehive.client.api.AuthenticationService;
+import com.devicehive.client.api.SubscriptionsService;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.json.GsonFactory;
-import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.util.HiveValidator;
@@ -73,13 +74,7 @@ public class SingleHiveDevice implements Closeable {
      */
     public void authenticate(String deviceId, String deviceKey) {
         if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "authenticate");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            request.addProperty("deviceId", deviceId);
-            request.addProperty("deviceKey", deviceKey);
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
+            AuthenticationService.authenticateDevice(deviceId, deviceKey, hiveContext);
         }
         hiveContext.setHivePrincipal(HivePrincipal.createDevice(deviceId, deviceKey));
     }
@@ -212,12 +207,7 @@ public class SingleHiveDevice implements Closeable {
      */
     public void subscribeForCommands(final Timestamp timestamp) {
         if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "command/subscribe");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            request.addProperty("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
+            SubscriptionsService.subscribeDeviceForCommands(hiveContext, timestamp);
         } else {
             Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
             hiveContext.getHiveSubscriptions().addCommandsSubscription(null, timestamp, null,
@@ -235,6 +225,8 @@ public class SingleHiveDevice implements Closeable {
             String requestId = UUID.randomUUID().toString();
             request.addProperty("requestId", requestId);
             hiveContext.getHiveWebSocketClient().sendMessage(request);
+            Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
+            hiveContext.getHiveSubscriptions().removeWsCommandSubscription(null, authenticated.getLeft());
         } else {
             Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
             hiveContext.getHiveSubscriptions().removeCommandSubscription(null, authenticated.getLeft());

@@ -19,6 +19,7 @@ import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -35,7 +36,7 @@ public class MSP430Example {
     private static final String guid = "c73ccf23-8bf5-4c2c-b330-ead36f469d1a";
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private final DeviceCommand command = new DeviceCommand();
-    private final ReentrantLock lock = new ReentrantLock();
+    private final Lock lock = new ReentrantLock();
     private Client userClient;
     private ScheduledExecutorService notificationsMonitor = Executors.newSingleThreadScheduledExecutor();
     private volatile boolean greenState = false;
@@ -74,6 +75,7 @@ public class MSP430Example {
                 init();
                 subscribeForNotifications();
                 commandInsertServiceStart();
+                commandUpdateServiceStart();
                 Thread.currentThread().join(15_000);
             } catch (Exception e) {
                 logger.debug(e.getMessage(), e);
@@ -126,7 +128,8 @@ public class MSP430Example {
                         }
                     }
                     i++;
-                    controller.insertCommand(guid, command);
+                    logger.debug("Command inserted. Command id: " + controller.insertCommand(guid,
+                            command).getId());
                 } finally {
                     lock.unlock();
                 }

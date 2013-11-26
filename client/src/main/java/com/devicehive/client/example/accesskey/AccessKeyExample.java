@@ -1,7 +1,6 @@
 package com.devicehive.client.example.accesskey;
 
 
-import com.devicehive.client.api.*;
 import com.devicehive.client.api.client.*;
 import com.devicehive.client.model.*;
 import org.slf4j.Logger;
@@ -25,7 +24,8 @@ public abstract class AccessKeyExample {
 
     public void close() {
         try {
-            client.close();
+            if (client != null)
+                client.close();
         } catch (IOException e) {
             logger.warn(e.getMessage(), e);
         }
@@ -214,7 +214,7 @@ public abstract class AccessKeyExample {
         return client.getAccessKeyController().insertKey(userId, toInsert).getKey();
     }
 
-    public void printUsage(){
+    public void printUsage() {
         out.println("URLs required! ");
         out.println("1'st param - REST URL");
         out.println("2'nd param - websocket URL");

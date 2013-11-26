@@ -67,7 +67,7 @@ public class SessionMonitor implements Closeable {
                         (Constants.WEBSOCKET_PING_TIMEOUT)) {
                     logger.info("No pings received from server for a long time. Session will be closed");
                     try {
-                        userSession.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "No pings from server"));
+                        userSession.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "No pings from server"));
                     } catch (IOException ioe) {
                         logger.debug("unable to close session");
                         throw new InternalHiveClientException("Unable to close session. No pings", ioe);

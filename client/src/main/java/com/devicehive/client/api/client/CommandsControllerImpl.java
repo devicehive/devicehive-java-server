@@ -1,9 +1,9 @@
 package com.devicehive.client.api.client;
 
 
+import com.devicehive.client.api.SubscriptionsService;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.json.GsonFactory;
-import com.devicehive.client.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceCommand;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -63,8 +63,10 @@ public class CommandsControllerImpl implements CommandsController {
             request.addProperty("deviceGuid", guid);
             Gson gson = GsonFactory.createGson(COMMAND_FROM_CLIENT);
             request.add("command", gson.toJsonTree(command));
-            return hiveContext.getHiveWebSocketClient().sendMessage(request, "command", DeviceCommand.class,
-                    COMMAND_TO_CLIENT);
+            DeviceCommand toReturn = hiveContext.getHiveWebSocketClient().sendMessage(request, "command",
+                    DeviceCommand.class, COMMAND_TO_CLIENT);
+            hiveContext.getHiveSubscriptions().addCommandUpdateSubscription(toReturn.getId(), guid);
+            return toReturn;
         } else {
             String path = "/device/" + guid + "/command";
             DeviceCommand proceed = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, command,
@@ -97,15 +99,7 @@ public class CommandsControllerImpl implements CommandsController {
     @Override
     public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) {
         if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "command/subscribe");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            request.addProperty("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-            Gson gson = GsonFactory.createGson();
-            request.add("deviceGuids", gson.toJsonTree(deviceIds));
-            request.add("names", gson.toJsonTree(names));
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
+            SubscriptionsService.subscribeClientForCommands(hiveContext, timestamp, names, deviceIds);
         } else {
             hiveContext.getHiveSubscriptions().addCommandsSubscription(null, timestamp, names, deviceIds);
         }
@@ -121,6 +115,7 @@ public class CommandsControllerImpl implements CommandsController {
             Gson gson = GsonFactory.createGson();
             request.add("deviceGuids", gson.toJsonTree(deviceIds));
             hiveContext.getHiveWebSocketClient().sendMessage(request);
+            hiveContext.getHiveSubscriptions().removeWsCommandSubscription(names, deviceIds);
         } else {
             hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceIds);
         }
