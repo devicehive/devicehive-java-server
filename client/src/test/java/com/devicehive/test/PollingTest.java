@@ -90,7 +90,7 @@ public class PollingTest {
             shd.subscribeForCommands(null);
             commandUpdateServiceStart();
             commandUpdatesProcessorStart();
-            Thread.currentThread().join(240_000);
+            Thread.currentThread().join(360_000);
         } catch (Exception e) {
             e.printStackTrace();
             TestCase.fail("No exception expected: " + e.getMessage());
@@ -117,6 +117,7 @@ public class PollingTest {
         commandsUpdatesProcessor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                System.out.println("Try to update commands");
                 Queue<Pair<String, DeviceCommand>> queue = shd.getCommandsQueue();
                 while (!queue.isEmpty()) {
                     Pair<String, DeviceCommand> commandAssociation = queue.poll();
@@ -124,6 +125,7 @@ public class PollingTest {
                     command.setStatus("Status");
                     command.setResult(new JsonStringWrapper("{\"ololo\":\"result\"}"));
                     shd.updateCommand(command);
+                    System.out.println("Command update sent. Command id: " + command.getId());
                 }
             }
         }, 0, 10, TimeUnit.SECONDS);

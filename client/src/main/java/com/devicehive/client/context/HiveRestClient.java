@@ -33,8 +33,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 /**
  * Part of client that creates requests based on required parameters (set by user) and parses responses into model
@@ -293,7 +293,7 @@ public class HiveRestClient implements Closeable {
             logger.warn("task cancelled for path: {}", path);
             throw new InternalHiveClientException("task cancelled", e);
         } catch (TimeoutException e) {
-            throw new HiveServerException("Server does not response!", INTERNAL_SERVER_ERROR.getStatusCode());
+            throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
         }
     }
 

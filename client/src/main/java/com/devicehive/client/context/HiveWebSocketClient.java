@@ -23,9 +23,12 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static javax.ws.rs.core.Response.Status.Family;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 /**
  * Part of client that creates requests based on required parameters (set by user) and parses responses into model
@@ -110,8 +113,10 @@ public class HiveWebSocketClient implements Closeable {
                         throw new HiveClientException(response.getError(), response.getCode());
                 }
             }
-        } catch (InterruptedException | TimeoutException e) {
+        } catch (InterruptedException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
+        } catch (TimeoutException e) {
+            throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
         } catch (ExecutionException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
             throw new InternalHiveClientException(e.getMessage(), e);
@@ -155,8 +160,10 @@ public class HiveWebSocketClient implements Closeable {
                 }
                 return response;
             }
-        } catch (InterruptedException | TimeoutException e) {
+        } catch (InterruptedException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
+        } catch (TimeoutException e) {
+            throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
         } catch (ExecutionException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
             throw new InternalHiveClientException(e.getMessage(), e);
@@ -168,6 +175,7 @@ public class HiveWebSocketClient implements Closeable {
 
     /**
      * Implementation of close method in closeable interface. Closes endpoint.
+     *
      * @throws IOException
      */
     @Override

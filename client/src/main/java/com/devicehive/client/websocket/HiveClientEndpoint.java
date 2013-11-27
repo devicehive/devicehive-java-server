@@ -17,6 +17,7 @@ import javax.websocket.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.*;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -39,14 +40,28 @@ public class HiveClientEndpoint implements Closeable {
      *
      * @param endpointURI full endpoint URI (with client or device path specified).
      */
-    public HiveClientEndpoint(URI endpointURI, HiveContext hiveContext) {
+    public HiveClientEndpoint(final URI endpointURI, HiveContext hiveContext) {
         this.endpointURI = endpointURI;
         this.hiveContext = hiveContext;
+        final HiveClientEndpoint hiveClientEndpoint = this;
         try {
-            clientManager = ClientManager.createClient();
-            clientManager.connectToServer(this, endpointURI);
-        } catch (DeploymentException | IOException e) {
-            throw new InternalHiveClientException(e.getMessage(), e);
+            Future<Void> future = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
+                @Override
+                public Void call() throws DeploymentException, IOException {
+                    clientManager = ClientManager.createClient();
+                    clientManager.connectToServer(hiveClientEndpoint, endpointURI);
+                    return null;
+
+
+                }
+            });
+            future.get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.warn("unable to establish connection! Reason: " + e.getMessage(), e);
+        } catch (ExecutionException e) {
+            throw new InternalHiveClientException(e.getCause().getMessage(), e.getCause());
+        } catch (TimeoutException e) {
+            throw new HiveClientException("Unable to establish connection");
         }
     }
 
@@ -69,20 +84,23 @@ public class HiveClientEndpoint implements Closeable {
      */
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
-        logger.warn("Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " + reason.getCloseCode
-                ().getCode());
+        logger.warn("Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
+                reason.getCloseCode
+                        ().getCode());
         try {
             switch (reason.getCloseCode().getCode()) {  //cannot use required enum at the compile-time
                 //CANNOT_ACCEPT
                 case 1003:
                     reconnectToServer();
-                    throw new HiveServerException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
-                            "Status code: 1003",
+                    throw new HiveServerException(
+                            "Try to reconnect on close reason: " + reason.getReasonPhrase() +
+                                    "Status code: 1003",
                             INTERNAL_SERVER_ERROR.getStatusCode());
 
                     //CLOSED_ABNORMALLY
                 case 1006:
-                    logger.warn("Connection lost! Reason: " + reason.getReasonPhrase() + " Trying to reconnect..");
+                    logger.warn(
+                            "Connection lost! Reason: " + reason.getReasonPhrase() + " Trying to reconnect..");
                     this.userSession = null;
                     while (this.userSession == null) {
                         try {
@@ -96,21 +114,24 @@ public class HiveClientEndpoint implements Closeable {
                 //NOT_CONSISTENT
                 case 1007:
                     reconnectToServer();
-                    throw new HiveServerException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
-                            "Status code: 1007",
+                    throw new HiveServerException(
+                            "Try to reconnect on close reason: " + reason.getReasonPhrase() +
+                                    "Status code: 1007",
                             INTERNAL_SERVER_ERROR.getStatusCode());
 
                     //TOO_BIG
                 case 1009:
-                    clientManager.connectToServer(this, endpointURI);
-                    throw new HiveClientException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
-                            "Status code: 1009", BAD_REQUEST.getStatusCode());
+                    reconnectToServer();
+                    throw new HiveClientException(
+                            "Try to reconnect on close reason: " + reason.getReasonPhrase() +
+                                    "Status code: 1009", BAD_REQUEST.getStatusCode());
 
                     //UNEXPECTED_CONDITION
                 case 1011:
                     reconnectToServer();
-                    throw new HiveServerException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
-                            "Status code: 1011", BAD_REQUEST.getStatusCode());
+                    throw new HiveServerException(
+                            "Try to reconnect on close reason: " + reason.getReasonPhrase() +
+                                    "Status code: 1011", BAD_REQUEST.getStatusCode());
                 default:
                     try {
                         close();
@@ -118,8 +139,9 @@ public class HiveClientEndpoint implements Closeable {
                         logger.debug("Dirty close.", e);
                     }
                     if (reason.getCloseCode().getCode() != CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
-                        throw new InternalHiveClientException("Closed abnormally. Closure status code: " + reason
-                                .getCloseCode().getCode() + " Reason: " + reason.getReasonPhrase());
+                        throw new InternalHiveClientException(
+                                "Closed abnormally. Closure status code: " + reason
+                                        .getCloseCode().getCode() + " Reason: " + reason.getReasonPhrase());
                     }
             }
         } catch (DeploymentException | IOException e) {
