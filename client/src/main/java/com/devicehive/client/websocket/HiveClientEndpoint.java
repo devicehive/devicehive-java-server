@@ -75,18 +75,18 @@ public class HiveClientEndpoint implements Closeable {
             switch (reason.getCloseCode().getCode()) {  //cannot use required enum at the compile-time
                 //CANNOT_ACCEPT
                 case 1003:
-                    clientManager.connectToServer(this, endpointURI);
+                    reconnectToServer();
                     throw new HiveServerException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
                             "Status code: 1003",
                             INTERNAL_SERVER_ERROR.getStatusCode());
 
-                //CLOSED_ABNORMALLY
+                    //CLOSED_ABNORMALLY
                 case 1006:
                     logger.warn("Connection lost! Reason: " + reason.getReasonPhrase() + " Trying to reconnect..");
                     this.userSession = null;
                     while (this.userSession == null) {
                         try {
-                            this.userSession = clientManager.connectToServer(this, endpointURI);
+                            reconnectToServer();
                         } catch (Exception e) {
                             logger.warn("Unable to reconnect! Reason: " + e.getMessage() + "Will try again.");
                         }
@@ -95,20 +95,20 @@ public class HiveClientEndpoint implements Closeable {
 
                 //NOT_CONSISTENT
                 case 1007:
-                    clientManager.connectToServer(this, endpointURI);
+                    reconnectToServer();
                     throw new HiveServerException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
                             "Status code: 1007",
                             INTERNAL_SERVER_ERROR.getStatusCode());
 
-                //TOO_BIG
+                    //TOO_BIG
                 case 1009:
                     clientManager.connectToServer(this, endpointURI);
                     throw new HiveClientException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
                             "Status code: 1009", BAD_REQUEST.getStatusCode());
 
-                //UNEXPECTED_CONDITION
+                    //UNEXPECTED_CONDITION
                 case 1011:
-                    clientManager.connectToServer(this, endpointURI);
+                    reconnectToServer();
                     throw new HiveServerException("Try to reconnect on close reason: " + reason.getReasonPhrase() +
                             "Status code: 1011", BAD_REQUEST.getStatusCode());
                 default:
@@ -184,20 +184,16 @@ public class HiveClientEndpoint implements Closeable {
         }
     }
 
-    public static interface MessageHandler extends javax.websocket.MessageHandler {
-        public void handleMessage(String message);
-    }
-
     private void reconnectToServer() throws IOException, DeploymentException {
         userSession = clientManager.connectToServer(this, endpointURI);
         //need to authenticate 'cause authentication is associated with the session
-        if (hiveContext.getHivePrincipal().getDevice() != null){
+        if (hiveContext.getHivePrincipal().getDevice() != null) {
             Pair<String, String> device = hiveContext.getHivePrincipal().getDevice();
             AuthenticationService.authenticateDevice(device.getLeft(), device.getRight(), hiveContext);
-        } else if (hiveContext.getHivePrincipal().getUser() != null){
+        } else if (hiveContext.getHivePrincipal().getUser() != null) {
             Pair<String, String> user = hiveContext.getHivePrincipal().getUser();
-            AuthenticationService.authenticateDevice(user.getLeft(), user.getRight(), hiveContext);
-        } else if (hiveContext.getHivePrincipal().getAccessKey() != null){
+            AuthenticationService.authenticateClient(user.getLeft(), user.getRight(), hiveContext);
+        } else if (hiveContext.getHivePrincipal().getAccessKey() != null) {
             String key = hiveContext.getHivePrincipal().getAccessKey();
             AuthenticationService.authenticateKey(key, hiveContext);
         }
@@ -207,16 +203,20 @@ public class HiveClientEndpoint implements Closeable {
         checkIfCommandUpdated();
     }
 
-    private void resubscribeForCommands(){
-       hiveContext.getHiveSubscriptions().resubscribeForCommands();
+    private void resubscribeForCommands() {
+        hiveContext.getHiveSubscriptions().resubscribeForCommands();
     }
 
-    private void resubscribeForNotifications(){
-       hiveContext.getHiveSubscriptions().resubscribeForNotifications();
+    private void resubscribeForNotifications() {
+        hiveContext.getHiveSubscriptions().resubscribeForNotifications();
     }
 
-    private void checkIfCommandUpdated(){
+    private void checkIfCommandUpdated() {
+        hiveContext.getHiveSubscriptions().requestCommandsUpdates();
+    }
 
+    public static interface MessageHandler extends javax.websocket.MessageHandler {
+        public void handleMessage(String message);
     }
 }
 

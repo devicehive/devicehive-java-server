@@ -65,7 +65,7 @@ public class CommandsControllerImpl implements CommandsController {
             request.add("command", gson.toJsonTree(command));
             DeviceCommand toReturn = hiveContext.getHiveWebSocketClient().sendMessage(request, "command",
                     DeviceCommand.class, COMMAND_TO_CLIENT);
-            hiveContext.getHiveSubscriptions().addCommandUpdateSubscription(toReturn.getId(), guid);
+            hiveContext.getHiveSubscriptions().addWsCommandUpdateSubscription(toReturn.getId(), guid);
             return toReturn;
         } else {
             String path = "/device/" + guid + "/command";

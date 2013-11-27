@@ -64,7 +64,6 @@ public class SubscriptionTask implements Callable<Void> {
     /**
      * Polling task performer. Put command or notification to the required queue.
      */
-    //TODO refactor. make generic
     @Override
     public Void call() {
         try {

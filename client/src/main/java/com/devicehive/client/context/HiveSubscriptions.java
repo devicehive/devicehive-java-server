@@ -12,11 +12,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
 
 /**
  * Here is all logic that connected with subscribe/unsubscribe actions.
@@ -45,7 +48,7 @@ public class HiveSubscriptions {
     private ReadWriteLock rwWsCommandsLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwWsCommandUpdateLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwWsNotificationsLock = new ReentrantReadWriteLock();
-    //once in  minutes clean associations to avoid memory leak
+    //once in 30 minutes clean associations to avoid memory leak
     private ScheduledExecutorService wsAssociationsCleaner = Executors.newSingleThreadScheduledExecutor();
 
     public HiveSubscriptions(HiveContext hiveContext) {
@@ -241,13 +244,17 @@ public class HiveSubscriptions {
                 deviceIds = new String[]{Constants.FOR_ALL_SUBSTITUTE};
             }
             for (String deviceId : deviceIds) {
-                for (String name : names)
-                    wsCommandSubscriptionsStorage.add(ImmutablePair.of(deviceId, name));
-                if (timestamp == null) {
-                    timestamp = new Timestamp(System.currentTimeMillis());
+                if (names != null) {
+                    for (String name : names)
+                        wsCommandSubscriptionsStorage.add(ImmutablePair.of(deviceId, name));
+                    if (timestamp == null) {
+                        timestamp = new Timestamp(System.currentTimeMillis());
+                    }
+                    if (!wsDeviceLastCommandTimestampAssociation.containsKey(deviceId))
+                        wsDeviceLastCommandTimestampAssociation.put(deviceId, timestamp);
+                } else {
+                    wsCommandSubscriptionsStorage.add(ImmutablePair.<String, String>of(deviceId, null));
                 }
-                if (!wsDeviceLastCommandTimestampAssociation.containsKey(deviceId))
-                    wsDeviceLastCommandTimestampAssociation.put(deviceId, timestamp);
             }
         } finally {
             rwWsCommandsLock.writeLock().unlock();
@@ -261,13 +268,18 @@ public class HiveSubscriptions {
                 deviceIds = new String[]{Constants.FOR_ALL_SUBSTITUTE};
             }
             for (String deviceId : deviceIds) {
-                for (String name : names)
-                    wsNotificationSubscriptionsStorage.add(ImmutablePair.of(deviceId, name));
-                if (timestamp == null) {
-                    timestamp = new Timestamp(System.currentTimeMillis());
+                if (names != null) {
+                    for (String name : names) {
+                        wsNotificationSubscriptionsStorage.add(ImmutablePair.of(deviceId, name));
+                        if (timestamp == null) {
+                            timestamp = new Timestamp(System.currentTimeMillis());
+                        }
+                        if (!wsDeviceLastNotificationTimestampAssociation.containsKey(deviceId))
+                            wsDeviceLastNotificationTimestampAssociation.put(deviceId, timestamp);
+                    }
+                } else {
+                    wsNotificationSubscriptionsStorage.add(ImmutablePair.<String, String>of(deviceId, null));
                 }
-                if (!wsDeviceLastNotificationTimestampAssociation.containsKey(deviceId))
-                    wsDeviceLastNotificationTimestampAssociation.put(deviceId, timestamp);
             }
         } finally {
             rwWsNotificationsLock.writeLock().unlock();
@@ -324,7 +336,9 @@ public class HiveSubscriptions {
         rwWsCommandsLock.writeLock().lock();
         try {
             Timestamp lastTimestamp = wsDeviceLastCommandTimestampAssociation.get(deviceId);
-            if (lastTimestamp.before(new Date(newTimestamp.getTime()))) {
+            if (lastTimestamp != null && lastTimestamp.before(new Date(newTimestamp.getTime()))) {
+                wsDeviceLastCommandTimestampAssociation.put(deviceId, newTimestamp);
+            } else {
                 wsDeviceLastCommandTimestampAssociation.put(deviceId, newTimestamp);
             }
         } finally {
@@ -336,7 +350,9 @@ public class HiveSubscriptions {
         rwWsNotificationsLock.writeLock().lock();
         try {
             Timestamp lastTimestamp = wsDeviceLastNotificationTimestampAssociation.get(deviceId);
-            if (lastTimestamp.before(new Date(newTimestamp.getTime()))) {
+            if (lastTimestamp != null && lastTimestamp.before(new Date(newTimestamp.getTime()))) {
+                wsDeviceLastNotificationTimestampAssociation.put(deviceId, newTimestamp);
+            } else {
                 wsDeviceLastNotificationTimestampAssociation.put(deviceId, newTimestamp);
             }
         } finally {
@@ -385,8 +401,22 @@ public class HiveSubscriptions {
         }
     }
 
-    public void requestCommandsUpdates(){
-       //todo
+    public void requestCommandsUpdates() {
+        Iterator<Map.Entry<Long, String>> iterator = wsCommandUpdateSubscriptionsStorage.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Long, String> entry = iterator.next();
+            String path = "/device/" + entry.getValue() + "/command/" + entry.getKey();
+            DeviceCommand command = hiveContext.getHiveRestClient()
+                    .execute(path, HttpMethod.GET, null, DeviceCommand.class, COMMAND_TO_DEVICE);
+            if (command.getStatus() != null) {
+                try {
+                    hiveContext.getCommandUpdateQueue().put(command);
+                    iterator.remove();
+                } catch (InterruptedException e) {
+                    logger.warn("Unable to proceed command update!");
+                }
+            }
+        }
     }
 
     /**
