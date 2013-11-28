@@ -48,15 +48,47 @@ public class HiveSubscriptions {
     private ReadWriteLock rwWsCommandsLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwWsCommandUpdateLock = new ReentrantReadWriteLock();
     private ReadWriteLock rwWsNotificationsLock = new ReentrantReadWriteLock();
-    //once in 30 minutes clean associations to avoid memory leak
+    //once in 30 minutes clean associations to avoid memory leak, see CLEANER_TASK_INTERVAL
     private ScheduledExecutorService wsAssociationsCleaner = Executors.newSingleThreadScheduledExecutor();
 
     public HiveSubscriptions(HiveContext hiveContext) {
         this.hiveContext = hiveContext;
+        clean();
     }
 
     private void clean() {
-        //TODO
+        wsAssociationsCleaner.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                logger.info("Perform wsStorages cleaning to avoid memory leak");
+                cleanStorage(rwWsCommandsLock, wsDeviceLastCommandTimestampAssociation, wsCommandSubscriptionsStorage);
+                cleanStorage(rwWsNotificationsLock, wsDeviceLastNotificationTimestampAssociation,
+                        wsNotificationSubscriptionsStorage);
+            }
+        }, CLEANER_TASK_INTERVAL, CLEANER_TASK_INTERVAL, TimeUnit.MINUTES);
+    }
+
+    private void cleanStorage(ReadWriteLock lock, Map<String, Timestamp> association, Set<Pair<String,
+            String>> storage) {
+        lock.writeLock().lock();
+        try {
+            Iterator<String> deviceIdIt = association.keySet().iterator();
+            while (deviceIdIt.hasNext()) {
+                String deviceId = deviceIdIt.next();
+                boolean isExists = false;
+                for (Pair<String, String> pair : storage) {
+                    isExists = pair.getLeft().equals(deviceId);
+                    if (isExists) {
+                        break;
+                    }
+                }
+                if (!isExists) {
+                    deviceIdIt.remove();
+                }
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -237,6 +269,13 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Add record about websocket command subscription, that was made. Useful for recovering subscriptions on reconnect
+     *
+     * @param timestamp start timestamp
+     * @param names     names of commands
+     * @param deviceIds device identifiers
+     */
     public void addWsCommandsSubscription(Timestamp timestamp, Set<String> names, String... deviceIds) {
         rwWsCommandsLock.writeLock().lock();
         try {
@@ -261,6 +300,14 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Add record about websocket notification subscription, that was made. Useful for recovering subscriptions on
+     * reconnect
+     *
+     * @param timestamp start timestamp
+     * @param names     names of notifications
+     * @param deviceIds device identifiers
+     */
     public void addWsNotificationsSubscription(Timestamp timestamp, Set<String> names, String... deviceIds) {
         rwWsNotificationsLock.writeLock().lock();
         try {
@@ -286,6 +333,12 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Adds subscription for websocket command update
+     *
+     * @param commandId command identifier
+     * @param deviceId  device identifier
+     */
     public void addWsCommandUpdateSubscription(Long commandId, String deviceId) {
         rwWsCommandUpdateLock.writeLock().lock();
         try {
@@ -295,6 +348,12 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Remove websocket command subscriptions to avoid resubscribtion on reconnect when it was cancelled
+     *
+     * @param names     names of commands
+     * @param deviceIds device identifiers
+     */
     public void removeWsCommandSubscription(Set<String> names, String... deviceIds) {
         rwWsCommandsLock.readLock().lock();
         try {
@@ -309,6 +368,12 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Remove websocket notification subscriptions to avoid resubscribtion on reconnect when it was cancelled
+     *
+     * @param names     names of notifications
+     * @param deviceIds device identifiers
+     */
     public void removeWsNotificationSubscription(Set<String> names, String... deviceIds) {
         rwWsNotificationsLock.readLock().lock();
         try {
@@ -323,6 +388,11 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Remove websocket command update subscription, when command is updated
+     *
+     * @param commandId command identifier
+     */
     public void removeWsCommandUpdateSubscription(Long commandId) {
         rwWsCommandUpdateLock.readLock().lock();
         try {
@@ -333,30 +403,27 @@ public class HiveSubscriptions {
     }
 
     public void updateWsDeviceLastCommandTimestampAssociation(String deviceId, Timestamp newTimestamp) {
-        rwWsCommandsLock.writeLock().lock();
-        try {
-            Timestamp lastTimestamp = wsDeviceLastCommandTimestampAssociation.get(deviceId);
-            if (lastTimestamp != null && lastTimestamp.before(new Date(newTimestamp.getTime()))) {
-                wsDeviceLastCommandTimestampAssociation.put(deviceId, newTimestamp);
-            } else {
-                wsDeviceLastCommandTimestampAssociation.put(deviceId, newTimestamp);
-            }
-        } finally {
-            rwWsCommandsLock.writeLock().unlock();
-        }
+        updateDeviceTimestampAssociation(rwWsCommandsLock, wsDeviceLastCommandTimestampAssociation, deviceId,
+                newTimestamp);
     }
 
     public void updateWsDeviceLastNotificationTimestampAssociation(String deviceId, Timestamp newTimestamp) {
-        rwWsNotificationsLock.writeLock().lock();
+        updateDeviceTimestampAssociation(rwWsNotificationsLock, wsDeviceLastNotificationTimestampAssociation,
+                deviceId, newTimestamp);
+    }
+
+    private void updateDeviceTimestampAssociation(ReadWriteLock lock, Map<String, Timestamp> association,
+                                                  String deviceId, Timestamp newTimestamp) {
+        lock.writeLock().lock();
         try {
-            Timestamp lastTimestamp = wsDeviceLastNotificationTimestampAssociation.get(deviceId);
+            Timestamp lastTimestamp = association.get(deviceId);
             if (lastTimestamp != null && lastTimestamp.before(new Date(newTimestamp.getTime()))) {
-                wsDeviceLastNotificationTimestampAssociation.put(deviceId, newTimestamp);
-            } else {
-                wsDeviceLastNotificationTimestampAssociation.put(deviceId, newTimestamp);
+                association.put(deviceId, newTimestamp);
+            } else if (lastTimestamp == null) {
+                association.put(deviceId, newTimestamp);
             }
         } finally {
-            rwWsNotificationsLock.writeLock().unlock();
+            lock.writeLock().unlock();
         }
     }
 
@@ -440,5 +507,6 @@ public class HiveSubscriptions {
         } finally {
             rwNotificationsLock.writeLock().unlock();
         }
+        wsAssociationsCleaner.shutdown();
     }
 }

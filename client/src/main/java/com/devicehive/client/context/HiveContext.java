@@ -6,6 +6,8 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Transport;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
+import com.devicehive.client.util.connection.ConnectionEstablishedNotifier;
+import com.devicehive.client.util.connection.ConnectionLostNotifier;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -44,8 +46,9 @@ public class HiveContext implements Closeable {
      */
     public HiveContext(Transport transport, URI rest, URI websocket) {
         Transport transportToSet = transport;
+        hiveRestClient = new HiveRestClient(rest, this);
         try {
-            hiveRestClient = new HiveRestClient(rest, this);
+
             hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
         } catch (Exception e) {
             if (!transport.equals(Transport.REST_ONLY)) {
@@ -61,6 +64,89 @@ public class HiveContext implements Closeable {
                 && !Transport.REST_ONLY.equals(transport))
             try {
                 hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
+            } catch (Exception e) {
+                if (hiveRestClient != null) {
+                    logger.warn("Unable connect to server via websocket. Will use REST");
+                    transportToSet = Transport.PREFER_REST;
+                } else {
+                    throw new InternalHiveClientException("Unable to connect to server!", e);
+                }
+            }
+        this.transport = transportToSet;
+    }
+
+    /**
+     * Constructor. Creates rest client or websocket client based on specified transport. If this transport is not
+     * available and it is not REST_ONLY switches to another one.
+     *
+     * @param transport                     transport that defines protocol that should be used
+     * @param rest                          RESTful service URL
+     * @param websocket                     websocket service URL
+     * @param connectionEstablishedNotifier notifier for successful reconnection completion
+     * @param connectionLostNotifier        notifier for lost connection
+     */
+    public HiveContext(Transport transport, URI rest, URI websocket, ConnectionEstablishedNotifier
+            connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) {
+        Transport transportToSet = transport;
+        hiveRestClient = new HiveRestClient(rest, this, connectionEstablishedNotifier, connectionLostNotifier);
+        try {
+
+            hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        } catch (Exception e) {
+            if (!transport.equals(Transport.REST_ONLY)) {
+                logger.warn("Unable to connect to server via REST. Some services are unavailable.");
+                transportToSet = Transport.PREFER_WEBSOCKET;
+                hiveRestClient = null;
+            } else {
+                throw new InternalHiveClientException("Unable to connect to server via REST", e);
+            }
+        }
+        hiveSubscriptions = new HiveSubscriptions(this);
+        if ((hiveRestClient == null || transport.getWebsocketPriority() > transport.getRestPriority())
+                && !Transport.REST_ONLY.equals(transport))
+            try {
+                hiveWebSocketClient =
+                        new HiveWebSocketClient(websocket, this, connectionEstablishedNotifier, connectionLostNotifier);
+            } catch (Exception e) {
+                if (hiveRestClient != null) {
+                    logger.warn("Unable connect to server via websocket. Will use REST");
+                    transportToSet = Transport.PREFER_REST;
+                } else {
+                    throw new InternalHiveClientException("Unable to connect to server!", e);
+                }
+            }
+        this.transport = transportToSet;
+    }
+
+    /**
+     * Constructor. Creates rest client or websocket client based on specified transport. If this transport is not
+     * available and it is not REST_ONLY switches to another one.
+     *
+     * @param transport              transport that defines protocol that should be used
+     * @param rest                   RESTful service URL
+     * @param websocket              websocket service URL
+     * @param connectionLostNotifier notifier for lost connection
+     */
+    public HiveContext(Transport transport, URI rest, URI websocket, ConnectionLostNotifier connectionLostNotifier) {
+        Transport transportToSet = transport;
+        hiveRestClient = new HiveRestClient(rest, this, connectionLostNotifier);
+        try {
+
+            hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        } catch (Exception e) {
+            if (!transport.equals(Transport.REST_ONLY)) {
+                logger.warn("Unable to connect to server via REST. Some services are unavailable.");
+                transportToSet = Transport.PREFER_WEBSOCKET;
+                hiveRestClient = null;
+            } else {
+                throw new InternalHiveClientException("Unable to connect to server via REST", e);
+            }
+        }
+        hiveSubscriptions = new HiveSubscriptions(this);
+        if ((hiveRestClient == null || transport.getWebsocketPriority() > transport.getRestPriority())
+                && !Transport.REST_ONLY.equals(transport))
+            try {
+                hiveWebSocketClient = new HiveWebSocketClient(websocket, this, connectionLostNotifier);
             } catch (Exception e) {
                 if (hiveRestClient != null) {
                     logger.warn("Unable connect to server via websocket. Will use REST");

@@ -6,6 +6,9 @@ import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
+import com.devicehive.client.util.connection.ConnectionEvent;
+import com.devicehive.client.util.connection.ConnectionEventHandler;
+import com.devicehive.client.util.connection.HiveConnectionEventHandler;
 import com.devicehive.client.websocket.util.SessionMonitor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.glassfish.tyrus.client.ClientManager;
@@ -17,6 +20,7 @@ import javax.websocket.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.concurrent.*;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -34,16 +38,19 @@ public class HiveClientEndpoint implements Closeable {
     private SessionMonitor sessionMonitor;
     private URI endpointURI;
     private HiveContext hiveContext;
+    private HiveConnectionEventHandler hiveConnectionEventHandler;
 
     /**
      * Creates new endpoint and trying to connect to server. Client or device endpoint should be already set.
      *
      * @param endpointURI full endpoint URI (with client or device path specified).
      */
-    public HiveClientEndpoint(final URI endpointURI, HiveContext hiveContext) {
+    public HiveClientEndpoint(final URI endpointURI, HiveContext hiveContext,
+                              HiveConnectionEventHandler hiveConnectionEventHandler) {
         this.endpointURI = endpointURI;
         this.hiveContext = hiveContext;
         final HiveClientEndpoint hiveClientEndpoint = this;
+        this.hiveConnectionEventHandler = hiveConnectionEventHandler;
         try {
             Future<Void> future = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
                 @Override
@@ -51,11 +58,9 @@ public class HiveClientEndpoint implements Closeable {
                     clientManager = ClientManager.createClient();
                     clientManager.connectToServer(hiveClientEndpoint, endpointURI);
                     return null;
-
-
                 }
             });
-            future.get(10, TimeUnit.SECONDS);
+            future.get(20, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             logger.warn("unable to establish connection! Reason: " + e.getMessage(), e);
         } catch (ExecutionException e) {
@@ -72,8 +77,10 @@ public class HiveClientEndpoint implements Closeable {
      */
     @OnOpen
     public void onOpen(Session userSession) {
+        logger.error("[onOpen] ", userSession);
         this.userSession = userSession;
         sessionMonitor = new SessionMonitor(userSession);
+        hiveConnectionEventHandler.setUserSession(userSession);
     }
 
     /**
@@ -84,7 +91,7 @@ public class HiveClientEndpoint implements Closeable {
      */
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
-        logger.warn("Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
+        logger.warn("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
                 reason.getCloseCode
                         ().getCode());
         try {
@@ -208,21 +215,33 @@ public class HiveClientEndpoint implements Closeable {
 
     private void reconnectToServer() throws IOException, DeploymentException {
         userSession = clientManager.connectToServer(this, endpointURI);
+        hiveConnectionEventHandler.setUserSession(userSession);
         //need to authenticate 'cause authentication is associated with the session
+        ConnectionEvent event;
         if (hiveContext.getHivePrincipal().getDevice() != null) {
             Pair<String, String> device = hiveContext.getHivePrincipal().getDevice();
+            event = new ConnectionEvent(endpointURI, null, device.getLeft());
             AuthenticationService.authenticateDevice(device.getLeft(), device.getRight(), hiveContext);
         } else if (hiveContext.getHivePrincipal().getUser() != null) {
             Pair<String, String> user = hiveContext.getHivePrincipal().getUser();
+            event = new ConnectionEvent(endpointURI, null, user.getLeft());
             AuthenticationService.authenticateClient(user.getLeft(), user.getRight(), hiveContext);
         } else if (hiveContext.getHivePrincipal().getAccessKey() != null) {
             String key = hiveContext.getHivePrincipal().getAccessKey();
+            event = new ConnectionEvent(endpointURI, null, key);
             AuthenticationService.authenticateKey(key, hiveContext);
+        } else {
+            //TODO set event for gateway
+            event = new ConnectionEvent(endpointURI, null, null);
         }
         //need to resubscribe for the notifications, commands and command updates
         resubscribeForNotifications();
         resubscribeForCommands();
         checkIfCommandUpdated();
+        //raise up connection event
+        event.setTimestamp(new Timestamp(System.currentTimeMillis()));
+        event.setLost(false);
+        hiveConnectionEventHandler.handle(event);
     }
 
     private void resubscribeForCommands() {
@@ -235,6 +254,10 @@ public class HiveClientEndpoint implements Closeable {
 
     private void checkIfCommandUpdated() {
         hiveContext.getHiveSubscriptions().requestCommandsUpdates();
+    }
+
+    public ConnectionEventHandler getHiveConnectionEventHandler() {
+        return hiveConnectionEventHandler;
     }
 
     public static interface MessageHandler extends javax.websocket.MessageHandler {

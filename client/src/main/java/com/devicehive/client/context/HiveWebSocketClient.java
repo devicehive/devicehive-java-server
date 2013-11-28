@@ -6,6 +6,7 @@ import com.devicehive.client.json.strategies.JsonPolicyDef;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
+import com.devicehive.client.util.connection.*;
 import com.devicehive.client.websocket.HiveClientEndpoint;
 import com.devicehive.client.websocket.HiveWebsocketHandler;
 import com.devicehive.client.websocket.SimpleWebsocketResponse;
@@ -21,6 +22,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -39,6 +41,9 @@ public class HiveWebSocketClient implements Closeable {
     private static final String REQUEST_ID_MEMBER = "requestId";
     private static final Long WAIT_TIMEOUT = 1L;
     private static Logger logger = LoggerFactory.getLogger(HiveWebSocketClient.class);
+    private final HiveContext hiveContext;
+    private final ConnectionEventHandler connectionEventHandler;
+    private final URI socket;
     private HiveClientEndpoint endpoint;
     private Map<String, SettableFuture<JsonObject>> websocketResponsesMap = new HashMap<>();
 
@@ -49,8 +54,47 @@ public class HiveWebSocketClient implements Closeable {
      * @param hiveContext context. Keeps state, for example credentials.
      */
     public HiveWebSocketClient(URI socket, HiveContext hiveContext) {
-        endpoint = new HiveClientEndpoint(socket, hiveContext);
+        this.hiveContext = hiveContext;
+        this.socket = socket;
+        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler();
+        endpoint = new HiveClientEndpoint(socket, hiveContext, connectionEventHandler);
         endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
+        this.connectionEventHandler = connectionEventHandler;
+    }
+
+    /**
+     * Creates client connected to the given websocket URL. All state is kept in the hive context.
+     *
+     * @param socket                        URI of websocket service
+     * @param hiveContext                   context. Keeps state, for example credentials.
+     * @param connectionEstablishedNotifier notifier for successful reconnection completion
+     * @param connectionLostNotifier        notifier for lost connection
+     */
+    public HiveWebSocketClient(URI socket, HiveContext hiveContext, ConnectionEstablishedNotifier
+            connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) {
+        this.hiveContext = hiveContext;
+        this.socket = socket;
+        HiveConnectionEventHandler connectionEventHandler =
+                new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
+        endpoint = new HiveClientEndpoint(socket, hiveContext, connectionEventHandler);
+        endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
+        this.connectionEventHandler = connectionEventHandler;
+    }
+
+    /**
+     * Creates client connected to the given websocket URL. All state is kept in the hive context.
+     *
+     * @param socket                        URI of websocket service
+     * @param hiveContext                   context. Keeps state, for example credentials.
+     * @param connectionLostNotifier        notifier for lost connection
+     */
+    public HiveWebSocketClient(URI socket, HiveContext hiveContext, ConnectionLostNotifier connectionLostNotifier) {
+        this.hiveContext = hiveContext;
+        this.socket = socket;
+        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier);
+        endpoint = new HiveClientEndpoint(socket, hiveContext, connectionEventHandler);
+        endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
+        this.connectionEventHandler = connectionEventHandler;
     }
 
     /**
@@ -116,7 +160,7 @@ public class HiveWebSocketClient implements Closeable {
         } catch (InterruptedException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
         } catch (TimeoutException e) {
-            throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
+            noResponseAction();
         } catch (ExecutionException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
             throw new InternalHiveClientException(e.getMessage(), e);
@@ -163,14 +207,33 @@ public class HiveWebSocketClient implements Closeable {
         } catch (InterruptedException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
         } catch (TimeoutException e) {
-            throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
+            noResponseAction();
         } catch (ExecutionException e) {
             logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
             throw new InternalHiveClientException(e.getMessage(), e);
+        } catch (Exception e) {
+            logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
         } finally {
             websocketResponsesMap.remove(requestId);
         }
         return null;
+    }
+
+    private void noResponseAction() {
+        Timestamp connectionLost = new Timestamp(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis
+                (WAIT_TIMEOUT));
+        ConnectionEvent event;
+        HivePrincipal principal = hiveContext.getHivePrincipal();
+        if (principal.getDevice() != null)
+            event = new ConnectionEvent(socket, connectionLost, principal.getDevice().getLeft());
+        else if (principal.getAccessKey() != null) {
+            event = new ConnectionEvent(socket, connectionLost, principal.getAccessKey());
+        } else {
+            event = new ConnectionEvent(socket, connectionLost, principal.getUser().getLeft());
+        }
+        event.setLost(true);
+        connectionEventHandler.handle(event);
+        throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
     }
 
     /**

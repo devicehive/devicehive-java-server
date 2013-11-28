@@ -10,6 +10,7 @@ import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.rest.HiveClientFactory;
+import com.devicehive.client.util.connection.*;
 import com.google.common.collect.Maps;
 import org.glassfish.jersey.internal.util.Base64;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
@@ -26,7 +28,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.ConnectException;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -47,6 +51,7 @@ public class HiveRestClient implements Closeable {
     private final URI rest;
     private final Client restClient;
     private final HiveContext hiveContext;
+    private final ConnectionEventHandler connectionEventHandler;
 
     /**
      * Creates client connected to the given REST URL. All state is kept in the hive context.
@@ -58,6 +63,24 @@ public class HiveRestClient implements Closeable {
         this.rest = rest;
         this.hiveContext = hiveContext;
         restClient = HiveClientFactory.getClient();
+        connectionEventHandler = new HiveConnectionEventHandler();
+    }
+
+    public HiveRestClient(URI rest, HiveContext hiveContext, ConnectionEstablishedNotifier
+            connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) {
+        this.rest = rest;
+        this.hiveContext = hiveContext;
+        restClient = HiveClientFactory.getClient();
+        this.connectionEventHandler =
+                new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
+    }
+
+    public HiveRestClient(URI rest, HiveContext hiveContext, ConnectionLostNotifier connectionLostNotifier) {
+        this.rest = rest;
+        this.hiveContext = hiveContext;
+        restClient = HiveClientFactory.getClient();
+        this.connectionEventHandler =
+                new HiveConnectionEventHandler(connectionLostNotifier);
     }
 
     @Override
@@ -211,37 +234,62 @@ public class HiveRestClient implements Closeable {
     public <S, R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
                             S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
                             JsonPolicyDef.Policy receivePolicy) {
-
-        Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
-        Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
         try {
-            switch (statusFamily) {
-                case SERVER_ERROR:
-                    throw new HiveServerException(response.getStatus());
-                case CLIENT_ERROR:
-                    if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
-                        throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
-                                response.getStatus());
-                    }
-                    ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
-                    throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
-                case SUCCESSFUL:
-                    if (typeOfR == null) {
-                        return null;
-                    }
-                    if (receivePolicy == null) {
-                        return response.readEntity(new GenericType<R>(typeOfR));
-                    } else {
-                        Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
-                        return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
-                    }
-                default:
-                    throw new HiveException("Unknown response");
+            Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
+            Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
+            try {
+                switch (statusFamily) {
+                    case SERVER_ERROR:
+                        throw new HiveServerException(response.getStatus());
+                    case CLIENT_ERROR:
+                        if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
+                            throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
+                                    response.getStatus());
+                        }
+                        ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                        throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
+                    case SUCCESSFUL:
+                        if (typeOfR == null) {
+                            return null;
+                        }
+                        if (receivePolicy == null) {
+                            return response.readEntity(new GenericType<R>(typeOfR));
+                        } else {
+                            Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
+                            return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
+                        }
+                    default:
+                        throw new HiveException("Unknown response");
+                }
+            } catch (MessageBodyProviderNotFoundException e) {
+                throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
             }
-        } catch (MessageBodyProviderNotFoundException e) {
-            throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
+        } catch (Exception e) {
+            if (e instanceof ProcessingException && e.getCause() instanceof ConnectException) {
+                connectionExceptionResolver();
+            } else {
+                throw e;
+            }
         }
+        return null;
+    }
 
+    private void connectionExceptionResolver() {
+        ConnectionEvent event;
+        HivePrincipal principal = hiveContext.getHivePrincipal();
+        Timestamp lost = new Timestamp(System.currentTimeMillis());
+        if (principal.getDevice() != null) {
+            event = new ConnectionEvent(rest, lost, principal.getDevice().getLeft());
+        } else if (principal.getAccessKey() != null) {
+            event = new ConnectionEvent(rest, lost, principal.getAccessKey());
+        } else if (principal.getUser() != null) {
+            event = new ConnectionEvent(rest, lost, principal.getUser().getLeft());
+        } else {
+            //TODO gateway
+            event = new ConnectionEvent(rest, lost, null);
+        }
+        event.setLost(true);
+        throw new HiveServerException("connection lost!", SERVICE_UNAVAILABLE.getStatusCode());
     }
 
     /**
@@ -289,9 +337,21 @@ public class HiveRestClient implements Closeable {
                 default:
                     throw new HiveException("Unknown response");
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
             logger.warn("task cancelled for path: {}", path);
-            throw new InternalHiveClientException("task cancelled", e);
+            return null;
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ProcessingException) {
+                logger.debug("case 2");
+                connectionExceptionResolver();
+            } else if (e.getCause() instanceof HiveServerException) {
+                throw (HiveServerException) e.getCause();
+            } else if (e.getCause() instanceof HiveClientException) {
+                throw (HiveClientException) e.getCause();
+            } else if (e.getCause() instanceof InternalHiveClientException) {
+                throw (InternalHiveClientException) e.getCause();
+            }
+            throw new InternalHiveClientException("task processing exception", e.getCause());
         } catch (TimeoutException e) {
             throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
         }
