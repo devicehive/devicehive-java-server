@@ -8,6 +8,10 @@ import java.sql.Timestamp;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * Represents a device command, a unit of information sent to devices.
+ * For more details see <a href="http://www.devicehive.com/restful#Reference/DeviceCommand"></a>
+ */
 public class DeviceCommand implements HiveEntity {
 
     private static final long serialVersionUID = -5147107009697358635L;

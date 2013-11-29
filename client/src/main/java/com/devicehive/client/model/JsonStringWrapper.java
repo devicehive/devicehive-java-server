@@ -1,5 +1,8 @@
 package com.devicehive.client.model;
 
+/**
+ * Wrapper for JSON objects. Represents JSON object as a string
+ */
 public class JsonStringWrapper implements HiveEntity {
 
     private static final long serialVersionUID = -152849186108390497L;

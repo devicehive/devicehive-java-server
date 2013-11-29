@@ -5,6 +5,13 @@ import com.devicehive.client.model.exceptions.HiveClientException;
 
 import javax.ws.rs.core.Response;
 
+/**
+ * OAuth grant type.
+ * Code: Authorization Code grant
+ * Token: Implicit grant
+ * Password: Password Credentials grant
+ * See <a href="http://tools.ietf.org/html/rfc6749">The OAuth 2.0 Authorization Framework</a> for more details
+ */
 public enum OAuthType {
     CODE("Code"),
     TOKEN("Token"),

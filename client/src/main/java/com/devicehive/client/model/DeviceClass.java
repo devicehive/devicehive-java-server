@@ -6,25 +6,36 @@ import java.util.Set;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * Represents a device class which holds meta-information about devices.
+ * For more details see <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceClass</a>
+ */
 public class DeviceClass implements HiveEntity {
     private static final long serialVersionUID = 967472386318199376L;
     @JsonPolicyDef(
-            {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED, DEVICE_PUBLISHED_DEVICE_AUTH})
+            {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED,
+                    DEVICE_PUBLISHED_DEVICE_AUTH})
     private Long id;
+
     @JsonPolicyDef({DEVICECLASS_PUBLISHED})
     private NullableWrapper<Set<Equipment>> equipment;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED,
             DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> name;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED,
             DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> version;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED,
             DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<Boolean> isPermanent;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED,
             DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<Integer> offlineTimeout;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED,
             DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<JsonStringWrapper> data;

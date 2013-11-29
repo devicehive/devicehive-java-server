@@ -10,7 +10,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
 /**
- * TODO
+ * Converter from JSON into AccessType, and AccessType into JSON
  */
 public class AccessTypeAdapter extends TypeAdapter<AccessType> {
     @Override

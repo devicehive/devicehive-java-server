@@ -7,7 +7,9 @@ import java.net.URI;
 import java.sql.Timestamp;
 
 /**
- * TODO
+ * Connection event that raises up on connection lost or connection established events. Contains info about
+ * connection lost/established time, client id (for user it is access key or login,
+ * for device it id device identifier), service URI (REST and websocket URI are differ from each other)
  */
 public class ConnectionEvent {
     private boolean isLost;

@@ -14,20 +14,12 @@ import java.io.IOException;
 import java.sql.Timestamp;
 
 /**
- * TODO
+ * Adapter for conversion timestamp into JSON string with format "yyyy-MM-dd'T'HH:mm:ss" and JSON into timestamp
  */
 public class TimestampAdapter extends TypeAdapter<Timestamp> {
 
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZoneUTC();
-
-    public static Timestamp parseTimestampQuietly(String input) {
-        try {
-            return parseTimestamp(input);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
 
     public static Timestamp parseTimestamp(String input) throws IllegalArgumentException {
         if (StringUtils.isEmpty(input)) {
@@ -79,7 +71,6 @@ public class TimestampAdapter extends TypeAdapter<Timestamp> {
         }
         return res.append(micro.substring(0, index + 1)).toString();
     }
-
 
     @Override
     public void write(JsonWriter out, Timestamp timestamp) throws IOException {

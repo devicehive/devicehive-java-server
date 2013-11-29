@@ -14,7 +14,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * TODO
+ * Adapter factory for conversion from JSON into NullableWrapper and NullableWrapper into JSON
  */
 public class NullableWrapperAdapterFactory implements TypeAdapterFactory {
     @Override

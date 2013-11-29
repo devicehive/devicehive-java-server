@@ -3,6 +3,9 @@ package com.devicehive.client.model;
 
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 
+/**
+ * Enumeration of all allowed actions for access keys
+ */
 public enum AllowedAction {
     GET_NETWORK("GetNetwork"),
     GET_DEVICE("GetDevice"),

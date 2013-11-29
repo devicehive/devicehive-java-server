@@ -14,7 +14,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
 /**
- * TODO
+ * Adapter factory for conversion from JSON into JsonStringWrapper and JsonStringWrapper into JSON
  */
 public class JsonStringWrapperAdapterFactory implements TypeAdapterFactory {
     @Override

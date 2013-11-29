@@ -20,7 +20,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 
 /**
- * TODO
+ * Provider that converts hive entity to JSON and JSON to hive entity
  */
 @Provider
 public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBodyReader<JsonObject> {

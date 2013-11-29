@@ -4,22 +4,27 @@ import com.devicehive.client.json.strategies.JsonPolicyDef;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * Represents a network, an isolated area where devices reside.
+ * For more details see <a href="http://www.devicehive.com/restful#Reference/Network">Network</a>
+ */
 public class Network implements HiveEntity {
 
     private static final long serialVersionUID = -4134073649300446791L;
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_SUBMITTED,
             DEVICE_PUBLISHED_DEVICE_AUTH})
     private Long id;
-    @JsonPolicyDef(
-            {DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_UPDATE})
+
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_UPDATE})
     private NullableWrapper<String> key;
+
     @JsonPolicyDef(
             {DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_UPDATE,
                     DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> name;
-    @JsonPolicyDef(
-            {DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_UPDATE,
-                    DEVICE_PUBLISHED_DEVICE_AUTH})
+
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED,
+            NETWORK_UPDATE,DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> description;
 
 

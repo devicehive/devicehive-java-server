@@ -5,7 +5,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import java.sql.Timestamp;
 
 /**
- * TODO JavaDoc
+ * Represents meta-information about the current API.
+ * For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfo</a>
  */
 public class ApiInfo implements HiveEntity {
 
@@ -43,7 +44,6 @@ public class ApiInfo implements HiveEntity {
     public void setWebSocketServerUrl(String webSocketServerUrl) {
         this.webSocketServerUrl = webSocketServerUrl;
     }
-
 
     public String getRestServerUrl() {
         return restServerUrl;

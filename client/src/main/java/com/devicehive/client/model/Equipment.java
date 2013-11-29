@@ -4,6 +4,10 @@ import com.devicehive.client.json.strategies.JsonPolicyDef;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * Represents an equipment which is installed on devices.
+ * For more details see <a href="http://www.devicehive.com/restful#Reference/Equipment"></a>
+ */
 public class Equipment implements HiveEntity {
     private static final long serialVersionUID = -1048095377970919818L;
 

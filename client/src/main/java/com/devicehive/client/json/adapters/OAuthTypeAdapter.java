@@ -9,7 +9,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
 /**
- * TODO
+ * Adapter for conversion OAuthType into JSON and JSON into OAuthType
  */
 public class OAuthTypeAdapter extends TypeAdapter<OAuthType> {
     @Override

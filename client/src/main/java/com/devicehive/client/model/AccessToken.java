@@ -3,10 +3,13 @@ package com.devicehive.client.model;
 
 import com.google.gson.annotations.SerializedName;
 
-public class AccessToken implements HiveEntity{
+/**
+ * Represents access token
+ * For more details see <a href="http://tools.ietf.org/html/rfc6749">The OAuth 2.0 Authorization Framework</a>
+ */
+public class AccessToken implements HiveEntity {
 
     private static final long serialVersionUID = 663053837130392591L;
-
     @SerializedName("access_token")
     private String accessToken;
 

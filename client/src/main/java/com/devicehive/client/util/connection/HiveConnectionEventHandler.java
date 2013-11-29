@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * TODO
+ * Handler for connections events delegates processing of connection lost/est
  */
 public class HiveConnectionEventHandler implements ConnectionEventHandler {
 

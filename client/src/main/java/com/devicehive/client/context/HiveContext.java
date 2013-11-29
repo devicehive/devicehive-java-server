@@ -2,6 +2,7 @@ package com.devicehive.client.context;
 
 
 import com.devicehive.client.model.*;
+import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.util.connection.ConnectionEstablishedNotifier;
 import com.devicehive.client.util.connection.ConnectionLostNotifier;
 import com.google.gson.JsonObject;
@@ -17,6 +18,8 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static com.devicehive.client.config.Constants.REQUIRED_VERSION_OF_API;
 
 /**
  * Entity that keeps all state, i.e. rest and websocket client, subscriptions info, transport to use.
@@ -34,8 +37,6 @@ public class HiveContext implements Closeable {
     private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
 
-    //TODO ApiInfo
-
     /**
      * Constructor. Creates rest client or websocket client based on specified transport. If this transport is not
      * available and it is not REST_ONLY switches to another one.
@@ -48,6 +49,9 @@ public class HiveContext implements Closeable {
         Transport transportToSet = transport;
         hiveRestClient = new HiveRestClient(rest, this);
         ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        if (!info.getApiVersion().equals(REQUIRED_VERSION_OF_API)) {
+            throw new InternalHiveClientException("incompatible version of device hive server API!");
+        }
         hiveSubscriptions = new HiveSubscriptions(this);
         if (transport.getWebsocketPriority() > transport.getRestPriority())
             try {
@@ -75,6 +79,9 @@ public class HiveContext implements Closeable {
         Transport transportToSet = transport;
         hiveRestClient = new HiveRestClient(rest, this, connectionEstablishedNotifier, connectionLostNotifier);
         ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        if (!info.getApiVersion().equals(REQUIRED_VERSION_OF_API)) {
+            throw new InternalHiveClientException("incompatible version of device hive server API!");
+        }
         hiveSubscriptions = new HiveSubscriptions(this);
         if (transport.getWebsocketPriority() > transport.getRestPriority())
             try {
@@ -101,6 +108,9 @@ public class HiveContext implements Closeable {
         Transport transportToSet = transport;
         hiveRestClient = new HiveRestClient(rest, this, connectionLostNotifier);
         ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        if (!info.getApiVersion().equals(REQUIRED_VERSION_OF_API)) {
+            throw new InternalHiveClientException("incompatible version of device hive server API!");
+        }
         hiveSubscriptions = new HiveSubscriptions(this);
         if (transport.getWebsocketPriority() > transport.getRestPriority())
             try {

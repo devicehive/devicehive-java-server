@@ -8,21 +8,31 @@ import java.util.Set;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * Represents a user to this API.
+ * See <a href="http://www.devicehive.com/restful#Reference/User">User</a>
+ */
 public class User implements HiveEntity {
 
     private static final long serialVersionUID = -8980491502416082011L;
     @JsonPolicyDef({COMMAND_TO_CLIENT, USER_PUBLISHED, COMMAND_TO_DEVICE, USERS_LISTED, USER_SUBMITTED})
     private Long id;
+
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
     private NullableWrapper<String> login;
+
     @JsonPolicyDef({USER_UPDATE})
     private NullableWrapper<String> password;
+
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
     private NullableWrapper<Integer> role;
+
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
     private NullableWrapper<Integer> status;
+
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
+
     @JsonPolicyDef({USER_PUBLISHED})
     private Set<UserNetwork> networks;
 

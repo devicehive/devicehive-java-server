@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 /**
- * TODO
+ * Provider that converts timestamps into request URLs into parseable form
  */
 @Provider
 public class TimestampConverterProvider implements ParamConverterProvider {
@@ -25,7 +25,6 @@ public class TimestampConverterProvider implements ParamConverterProvider {
         }
         return null;
     }
-
 
     public static class TimestampConverter implements ParamConverter<Timestamp> {
 

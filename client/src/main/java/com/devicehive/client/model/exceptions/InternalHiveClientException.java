@@ -2,7 +2,8 @@ package com.devicehive.client.model.exceptions;
 
 
 /**
- * TODO
+ * Unexpected exception. Should not occur. If occurred, that means that library is used with incompatible version of
+ * device hive server API.
  */
 public class InternalHiveClientException extends HiveClientException {
 
@@ -18,9 +19,5 @@ public class InternalHiveClientException extends HiveClientException {
 
     public InternalHiveClientException(String message, Integer code) {
         super(message, code);
-    }
-
-    public InternalHiveClientException(String message, Throwable cause, Integer code) {
-        super(message, cause, code);
     }
 }

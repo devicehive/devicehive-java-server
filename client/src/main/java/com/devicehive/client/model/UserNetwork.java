@@ -5,6 +5,9 @@ import com.devicehive.client.json.strategies.JsonPolicyDef;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
+/**
+ * User-Network association
+ */
 public class UserNetwork implements HiveEntity {
 
     @JsonPolicyDef({NETWORKS_LISTED, USER_PUBLISHED})
@@ -12,7 +15,6 @@ public class UserNetwork implements HiveEntity {
 
     public UserNetwork() {
     }
-
 
     public Network getNetwork() {
         return network;

@@ -5,6 +5,12 @@ import com.devicehive.client.model.exceptions.HiveClientException;
 
 import javax.ws.rs.core.Response;
 
+/**
+ * Grant access type. Available values:
+ * Online: Access is requested to a limited period of time
+ * Offline: Assess is requested for an unlimited period of time
+ * For more details see <a href="http://tools.ietf.org/html/rfc6749">The OAuth 2.0 Authorization Framework</a>
+ */
 public enum AccessType {
     ONLINE("Online"),
     OFFLINE("Offline");
@@ -12,15 +18,6 @@ public enum AccessType {
 
     AccessType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    @Override
-    public String toString() {
-        return this.name();
     }
 
     public static AccessType forName(String value) {
@@ -31,5 +28,14 @@ public enum AccessType {
         }
         throw new HiveClientException("Illegal argument: " + value, Response.Status.BAD_REQUEST.getStatusCode());
 
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
+        return this.name();
     }
 }

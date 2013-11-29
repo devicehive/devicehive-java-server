@@ -7,18 +7,26 @@ import java.util.Set;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * Represents an permissions of access keys.
+ */
 public class AccessKeyPermission implements HiveEntity {
     private static final long serialVersionUID = 1640449055358665301L;
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED})
     private Set<String> domains;
+
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED})
     private Set<String> subnets;
+
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED})
     private Set<String> actions;
+
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED})
     private Set<Long> networks;
+
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED})
     private Set<String> devices;
+
     private AccessKey accessKey;
 
     public AccessKeyPermission() {

@@ -7,6 +7,9 @@ import java.sql.Timestamp;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 
+/**
+ * Device Equipment
+ */
 public class DeviceEquipment implements HiveEntity {
 
     private static final long serialVersionUID = 479737367629574073L;

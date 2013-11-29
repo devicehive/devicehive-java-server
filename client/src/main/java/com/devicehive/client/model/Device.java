@@ -6,23 +6,34 @@ import java.util.Set;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
 
+/**
+ * Represents a device, a unit that runs microcode and communicates to this API.
+ * For more details see <a href="http://www.devicehive.com/restful#Reference/Device">Device</a>
+ */
 public class Device implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private String id;
+
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     private NullableWrapper<String> key;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> name;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> status;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<JsonStringWrapper> data;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<Network> network;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<DeviceClass> deviceClass;
+
     @JsonPolicyDef(DEVICE_PUBLISHED)
     private NullableWrapper<Set<Equipment>> equipment;
 
