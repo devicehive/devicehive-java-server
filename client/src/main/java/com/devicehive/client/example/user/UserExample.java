@@ -244,7 +244,7 @@ public abstract class UserExample {
             Date startDate = formatter.parse("2013-10-11 13:12:00");
             List<DeviceNotification> resultList =
                     controller.queryNotifications(guid, new Timestamp(startDate.getTime()),
-                            null, null, null, null, null, 5);
+                            null, null, null, null, null, 5, null);
             for (DeviceNotification currentNotification : resultList) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Id: ")

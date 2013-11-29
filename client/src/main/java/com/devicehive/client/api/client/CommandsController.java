@@ -31,7 +31,8 @@ public interface CommandsController {
      * @return list of device commands
      */
     List<DeviceCommand> queryCommands(String deviceGuid, Timestamp start, Timestamp end, String commandName,
-                                      String status, String sortField, String sortOrder, Integer take, Integer skip);
+                                      String status, String sortField, String sortOrder, Integer take, Integer skip,
+                                      Integer gridInterval);
 
     /**
      * Get command with following parameters

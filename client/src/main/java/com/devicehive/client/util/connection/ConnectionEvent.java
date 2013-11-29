@@ -6,6 +6,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import java.net.URI;
 import java.sql.Timestamp;
 
+/**
+ * TODO
+ */
 public class ConnectionEvent {
     private boolean isLost;
     private Timestamp timestamp;

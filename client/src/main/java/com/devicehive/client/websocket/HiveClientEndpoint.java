@@ -3,11 +3,11 @@ package com.devicehive.client.websocket;
 
 import com.devicehive.client.api.AuthenticationService;
 import com.devicehive.client.context.HiveContext;
+import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.util.connection.ConnectionEvent;
-import com.devicehive.client.util.connection.ConnectionEventHandler;
 import com.devicehive.client.util.connection.HiveConnectionEventHandler;
 import com.devicehive.client.websocket.util.SessionMonitor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -77,7 +77,7 @@ public class HiveClientEndpoint implements Closeable {
      */
     @OnOpen
     public void onOpen(Session userSession) {
-        logger.error("[onOpen] ", userSession);
+        logger.info("[onOpen] User session: {}", userSession);
         this.userSession = userSession;
         sessionMonitor = new SessionMonitor(userSession);
         hiveConnectionEventHandler.setUserSession(userSession);
@@ -91,7 +91,7 @@ public class HiveClientEndpoint implements Closeable {
      */
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
-        logger.warn("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
+        logger.info("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
                 reason.getCloseCode
                         ().getCode());
         try {
@@ -218,21 +218,24 @@ public class HiveClientEndpoint implements Closeable {
         hiveConnectionEventHandler.setUserSession(userSession);
         //need to authenticate 'cause authentication is associated with the session
         ConnectionEvent event;
-        if (hiveContext.getHivePrincipal().getDevice() != null) {
-            Pair<String, String> device = hiveContext.getHivePrincipal().getDevice();
-            event = new ConnectionEvent(endpointURI, null, device.getLeft());
-            AuthenticationService.authenticateDevice(device.getLeft(), device.getRight(), hiveContext);
-        } else if (hiveContext.getHivePrincipal().getUser() != null) {
-            Pair<String, String> user = hiveContext.getHivePrincipal().getUser();
-            event = new ConnectionEvent(endpointURI, null, user.getLeft());
-            AuthenticationService.authenticateClient(user.getLeft(), user.getRight(), hiveContext);
-        } else if (hiveContext.getHivePrincipal().getAccessKey() != null) {
-            String key = hiveContext.getHivePrincipal().getAccessKey();
-            event = new ConnectionEvent(endpointURI, null, key);
-            AuthenticationService.authenticateKey(key, hiveContext);
-        } else {
+        HivePrincipal principal = hiveContext.getHivePrincipal();
+        if (principal == null) {
             //TODO set event for gateway
             event = new ConnectionEvent(endpointURI, null, null);
+        } else {
+            if (principal.getDevice() != null) {
+                Pair<String, String> device = principal.getDevice();
+                event = new ConnectionEvent(endpointURI, null, device.getLeft());
+                AuthenticationService.authenticateDevice(device.getLeft(), device.getRight(), hiveContext);
+            } else if (principal.getUser() != null) {
+                Pair<String, String> user = principal.getUser();
+                event = new ConnectionEvent(endpointURI, null, user.getLeft());
+                AuthenticationService.authenticateClient(user.getLeft(), user.getRight(), hiveContext);
+            } else {
+                String key = principal.getAccessKey();
+                event = new ConnectionEvent(endpointURI, null, key);
+                AuthenticationService.authenticateKey(key, hiveContext);
+            }
         }
         //need to resubscribe for the notifications, commands and command updates
         resubscribeForNotifications();
@@ -254,10 +257,6 @@ public class HiveClientEndpoint implements Closeable {
 
     private void checkIfCommandUpdated() {
         hiveContext.getHiveSubscriptions().requestCommandsUpdates();
-    }
-
-    public ConnectionEventHandler getHiveConnectionEventHandler() {
-        return hiveConnectionEventHandler;
     }
 
     public static interface MessageHandler extends javax.websocket.MessageHandler {

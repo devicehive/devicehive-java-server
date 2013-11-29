@@ -126,8 +126,18 @@ public class HiveWebSocketClient implements Closeable {
         return processResponse(requestId, responseMemberName, typeOfResponse, policy);
     }
 
-    private void processResponse(final String requestId) {
+    /**
+     * Implementation of close method in closeable interface. Closes endpoint.
+     *
+     * @throws IOException
+     */
+    @Override
+    public void close() throws IOException {
+        endpoint.close();
+    }
 
+    //Private methods-----------------------------------------------------------------------------------------------
+    private void processResponse(final String requestId) {
         try {
             JsonObject result = websocketResponsesMap.get(requestId).get(WAIT_TIMEOUT, TimeUnit.MINUTES);
 
@@ -234,15 +244,5 @@ public class HiveWebSocketClient implements Closeable {
         event.setLost(true);
         connectionEventHandler.handle(event);
         throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
-    }
-
-    /**
-     * Implementation of close method in closeable interface. Closes endpoint.
-     *
-     * @throws IOException
-     */
-    @Override
-    public void close() throws IOException {
-        endpoint.close();
     }
 }

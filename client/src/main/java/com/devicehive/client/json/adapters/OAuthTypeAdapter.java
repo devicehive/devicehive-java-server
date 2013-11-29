@@ -8,6 +8,9 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
+/**
+ * TODO
+ */
 public class OAuthTypeAdapter extends TypeAdapter<OAuthType> {
     @Override
     public void write(JsonWriter out, OAuthType value) throws IOException {

@@ -1,6 +1,11 @@
 package com.devicehive.client.model.exceptions;
 
+/**
+ * TODO
+ */
 public class HiveClientException extends HiveException {
+
+    private static final long serialVersionUID = -3831035988767839952L;
 
     public HiveClientException(String message, Throwable cause) {
         super(message, cause);

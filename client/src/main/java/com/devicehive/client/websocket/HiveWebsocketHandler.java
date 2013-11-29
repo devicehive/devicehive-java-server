@@ -7,7 +7,6 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -17,7 +16,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -37,6 +35,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
     private final static String NOTIFICATION_INSERT = "notification/insert";
     private final static String COMMAND_MEMBER = "command";
     private final static String NOTIFICATION_MEMBER = "notification";
+    private final static String DEVICE_GUID_MEMBER = "deviceGuid";
     private static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
     private final HiveContext hiveContext;
     private final Map<String, SettableFuture<JsonObject>> websocketResponsesMap;
@@ -69,8 +68,8 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
         }
         JsonObject jsonMessage = (JsonObject) elem;
         String deviceGuid = null;
-        if (jsonMessage.has("deviceGuid")) {
-            deviceGuid = jsonMessage.get("deviceGuid").getAsString();
+        if (jsonMessage.has(DEVICE_GUID_MEMBER)) {
+            deviceGuid = jsonMessage.get(DEVICE_GUID_MEMBER).getAsString();
         }
         if (!jsonMessage.has(REQUEST_ID_MEMBER)) {
             try {
@@ -88,8 +87,7 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                         throw new HiveException("Request id is undefined");
                 }
             } catch (InterruptedException e) {
-                logger.info(e.getMessage(), e);
-                throw new InternalHiveClientException(e.getMessage(), e);
+                logger.info("Task cancelled: " + e.getMessage(), e);
             }
         } else {
             lock.lock();
@@ -97,8 +95,6 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                 SettableFuture<JsonObject> future = websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
                         .getAsString());
                 future.set(jsonMessage);
-            } catch (Exception e) {
-                logger.debug("task cancelled");
             } finally {
                 lock.unlock();
             }
@@ -115,8 +111,6 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                     commandInsert.getTimestamp());
         } else {
             logger.warn("Device command inserted without timestamp. Id: " + commandInsert.getId());
-            hiveContext.getHiveSubscriptions().updateWsDeviceLastCommandTimestampAssociation(deviceGuid,
-                    new Timestamp(0L));
         }
         logger.debug("Device command inserted. Id: " + commandInsert.getId());
 
@@ -142,8 +136,6 @@ public class HiveWebsocketHandler implements HiveClientEndpoint.MessageHandler {
                     notification.getTimestamp());
         } else {
             logger.warn("Device notification inserted without timestamp. Id: " + notification.getId());
-            hiveContext.getHiveSubscriptions().updateWsDeviceLastNotificationTimestampAssociation(deviceGuid,
-                    new Timestamp(0L));
         }
         logger.debug("Device notification inserted. Id: " + notification.getId());
     }

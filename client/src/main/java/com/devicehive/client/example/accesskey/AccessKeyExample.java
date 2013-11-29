@@ -89,7 +89,7 @@ public abstract class AccessKeyExample {
             String guid = "E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase();
             //query
             List<DeviceCommand> resultList = controller.queryCommands(guid, null, null, null, null, null, null, null,
-                    null);
+                    null, null);
             for (DeviceCommand currentCommand : resultList) {
                 StringBuilder builder = new StringBuilder().append("command id: ")
                         .append(currentCommand.getId())
@@ -135,7 +135,7 @@ public abstract class AccessKeyExample {
             String guid = "E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase();
             //query
             List<DeviceNotification> resultList = controller.queryNotifications(guid, null, null, null, null, null,
-                    null, null);
+                    null, null, null);
             for (DeviceNotification currentNotification : resultList) {
                 StringBuilder builder = new StringBuilder().append("notification id: ")
                         .append(currentNotification.getId())

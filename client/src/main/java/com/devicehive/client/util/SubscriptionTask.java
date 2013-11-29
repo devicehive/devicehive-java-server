@@ -27,6 +27,10 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.NOTIFIC
  * Polling task.
  */
 public class SubscriptionTask implements Callable<Void> {
+
+    private static final String TIMESTAMP_PARAM = "timestamp";
+    private static final String WAIT_TIMEOUT_PARAM = "waitTimeout";
+    private static final String NAMES_PARAM = "names";
     private static Logger logger = LoggerFactory.getLogger(SubscriptionTask.class);
     private final HiveContext hiveContext;
     private final Integer waitTimeout;
@@ -70,10 +74,10 @@ public class SubscriptionTask implements Callable<Void> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Map<String, Object> queryParams = new HashMap<>();
-                    queryParams.put("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-                    queryParams.put("waitTimeout", waitTimeout);
+                    queryParams.put(TIMESTAMP_PARAM, TimestampAdapter.formatTimestamp(timestamp));
+                    queryParams.put(WAIT_TIMEOUT_PARAM, waitTimeout);
                     if (names != null) {
-                        queryParams.put("names", StringUtils.join(names, ","));
+                        queryParams.put(NAMES_PARAM, StringUtils.join(names, ","));
                     }
                     if (returnType.equals(DeviceCommand.class)) {
                         deviceCommandCase(queryParams);
@@ -102,7 +106,7 @@ public class SubscriptionTask implements Callable<Void> {
                 }.getType(), null, COMMAND_LISTED);
         logger.debug("\n----Start Timestamp: " + timestamp + "----");
         for (DeviceCommand current : returned) {
-            System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
+            logger.debug("id: " + current.getId() + "timestamp:" + current.getTimestamp());
         }
         if (!returned.isEmpty()) {
             for (DeviceCommand currentCommand : returned) {
@@ -122,7 +126,7 @@ public class SubscriptionTask implements Callable<Void> {
                 }.getType(), null, NOTIFICATION_TO_CLIENT);
         logger.debug("\n----Start Timestamp: " + timestamp + "----");
         for (DeviceNotification current : returned) {
-            System.out.println("id: " + current.getId() + "timestamp:" + current.getTimestamp());
+            logger.debug("id: " + current.getId() + "timestamp:" + current.getTimestamp());
         }
         if (!returned.isEmpty()) {
             for (DeviceNotification currentNotification : returned) {

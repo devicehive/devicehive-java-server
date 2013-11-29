@@ -13,6 +13,9 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.IOException;
 import java.sql.Timestamp;
 
+/**
+ * TODO
+ */
 public class TimestampAdapter extends TypeAdapter<Timestamp> {
 
 

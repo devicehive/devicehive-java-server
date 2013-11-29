@@ -9,6 +9,9 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
+/**
+ * TODO
+ */
 public class AccessTypeAdapter extends TypeAdapter<AccessType> {
     @Override
     public void write(JsonWriter out, AccessType value) throws IOException {

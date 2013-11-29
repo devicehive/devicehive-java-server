@@ -2,7 +2,6 @@ package com.devicehive.client.context;
 
 
 import com.devicehive.client.model.*;
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.util.connection.ConnectionEstablishedNotifier;
 import com.devicehive.client.util.connection.ConnectionLostNotifier;
 import com.google.gson.JsonObject;
@@ -35,6 +34,8 @@ public class HiveContext implements Closeable {
     private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
     private BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
 
+    //TODO ApiInfo
+
     /**
      * Constructor. Creates rest client or websocket client based on specified transport. If this transport is not
      * available and it is not REST_ONLY switches to another one.
@@ -46,20 +47,16 @@ public class HiveContext implements Closeable {
     public HiveContext(Transport transport, URI rest, Role role) {
         Transport transportToSet = transport;
         hiveRestClient = new HiveRestClient(rest, this);
-        try {
-            ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
-            hiveSubscriptions = new HiveSubscriptions(this);
-            if (transport.getWebsocketPriority() > transport.getRestPriority())
-                try {
-                    URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
-                    hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
-                } catch (Exception e) {
-                    logger.warn("Unable connect to server via websocket. Will use REST");
-                    transportToSet = Transport.REST_ONLY;
-                }
-        } catch (Exception e) {
-            throw new InternalHiveClientException("Unable to connect to server via REST", e);
-        }
+        ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        hiveSubscriptions = new HiveSubscriptions(this);
+        if (transport.getWebsocketPriority() > transport.getRestPriority())
+            try {
+                URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
+                hiveWebSocketClient = new HiveWebSocketClient(websocket, this);
+            } catch (Exception e) {
+                logger.warn("Unable connect to server via websocket. Will use REST");
+                transportToSet = Transport.REST_ONLY;
+            }
         this.transport = transportToSet;
     }
 
@@ -77,21 +74,17 @@ public class HiveContext implements Closeable {
             connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) {
         Transport transportToSet = transport;
         hiveRestClient = new HiveRestClient(rest, this, connectionEstablishedNotifier, connectionLostNotifier);
-        try {
-            ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
-            hiveSubscriptions = new HiveSubscriptions(this);
-            if (transport.getWebsocketPriority() > transport.getRestPriority())
-                try {
-                    URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
-                    hiveWebSocketClient = new HiveWebSocketClient(websocket, this, connectionEstablishedNotifier,
-                            connectionLostNotifier);
-                } catch (Exception e) {
-                    logger.warn("Unable connect to server via websocket. Will use REST");
-                    transportToSet = Transport.REST_ONLY;
-                }
-        } catch (Exception e) {
-            throw new InternalHiveClientException("Unable to connect to server via REST", e);
-        }
+        ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        hiveSubscriptions = new HiveSubscriptions(this);
+        if (transport.getWebsocketPriority() > transport.getRestPriority())
+            try {
+                URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
+                hiveWebSocketClient = new HiveWebSocketClient(websocket, this, connectionEstablishedNotifier,
+                        connectionLostNotifier);
+            } catch (Exception e) {
+                logger.warn("Unable connect to server via websocket. Will use REST");
+                transportToSet = Transport.REST_ONLY;
+            }
         this.transport = transportToSet;
     }
 
@@ -107,31 +100,17 @@ public class HiveContext implements Closeable {
     public HiveContext(Transport transport, URI rest, Role role, ConnectionLostNotifier connectionLostNotifier) {
         Transport transportToSet = transport;
         hiveRestClient = new HiveRestClient(rest, this, connectionLostNotifier);
-        try {
-            ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
-            hiveSubscriptions = new HiveSubscriptions(this);
-            if (transport.getWebsocketPriority() > transport.getRestPriority())
-                try {
-                    URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
-                    hiveWebSocketClient = new HiveWebSocketClient(websocket, this, connectionLostNotifier);
-                } catch (Exception e) {
-                    logger.warn("Unable connect to server via websocket. Will use REST");
-                    transportToSet = Transport.REST_ONLY;
-                }
-        } catch (Exception e) {
-            throw new InternalHiveClientException("Unable to connect to server via REST", e);
-        }
+        ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+        hiveSubscriptions = new HiveSubscriptions(this);
+        if (transport.getWebsocketPriority() > transport.getRestPriority())
+            try {
+                URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
+                hiveWebSocketClient = new HiveWebSocketClient(websocket, this, connectionLostNotifier);
+            } catch (Exception e) {
+                logger.warn("Unable connect to server via websocket. Will use REST");
+                transportToSet = Transport.REST_ONLY;
+            }
         this.transport = transportToSet;
-    }
-
-    private URI websocketUriBuilder(String websocket, Role role) {
-        String ws = StringUtils.removeEnd(websocket, "/");
-        if (role.equals(Role.USER)) {
-            return URI.create(ws + CLIENT_ENDPOINT_PATH);
-        } else {
-            return URI.create(ws + DEVICE_ENDPOINT_PATH);
-        }
-
     }
 
     /**
@@ -249,5 +228,15 @@ public class HiveContext implements Closeable {
      */
     public HiveWebSocketClient getHiveWebSocketClient() {
         return hiveWebSocketClient;
+    }
+
+    //Private methods------------------------------------------------------------------------------------------
+    private URI websocketUriBuilder(String websocket, Role role) {
+        String ws = StringUtils.removeEnd(websocket, "/");
+        if (role.equals(Role.USER)) {
+            return URI.create(ws + CLIENT_ENDPOINT_PATH);
+        } else {
+            return URI.create(ws + DEVICE_ENDPOINT_PATH);
+        }
     }
 }

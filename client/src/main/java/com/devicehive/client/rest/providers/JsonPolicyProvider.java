@@ -18,6 +18,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 
+/**
+ * TODO
+ * @param <T>
+ */
 public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
 
     @Override

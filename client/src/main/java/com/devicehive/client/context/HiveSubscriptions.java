@@ -19,6 +19,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.devicehive.client.config.Constants.*;
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
 
 /**
@@ -27,10 +28,6 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND
  * subscribe/unsubscribe actions.
  */
 public class HiveSubscriptions {
-
-    private static final int SUBSCRIPTIONS_THREAD_POOL_SIZE = 100;
-    private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
-    private static final Integer CLEANER_TASK_INTERVAL = 30;// in minutes
     private static Logger logger = LoggerFactory.getLogger(HiveSubscriptions.class);
     private final HiveContext hiveContext;
     private ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(SUBSCRIPTIONS_THREAD_POOL_SIZE);
@@ -54,41 +51,6 @@ public class HiveSubscriptions {
     public HiveSubscriptions(HiveContext hiveContext) {
         this.hiveContext = hiveContext;
         clean();
-    }
-
-    private void clean() {
-        wsAssociationsCleaner.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                logger.info("Perform wsStorages cleaning to avoid memory leak");
-                cleanStorage(rwWsCommandsLock, wsDeviceLastCommandTimestampAssociation, wsCommandSubscriptionsStorage);
-                cleanStorage(rwWsNotificationsLock, wsDeviceLastNotificationTimestampAssociation,
-                        wsNotificationSubscriptionsStorage);
-            }
-        }, CLEANER_TASK_INTERVAL, CLEANER_TASK_INTERVAL, TimeUnit.MINUTES);
-    }
-
-    private void cleanStorage(ReadWriteLock lock, Map<String, Timestamp> association, Set<Pair<String,
-            String>> storage) {
-        lock.writeLock().lock();
-        try {
-            Iterator<String> deviceIdIt = association.keySet().iterator();
-            while (deviceIdIt.hasNext()) {
-                String deviceId = deviceIdIt.next();
-                boolean isExists = false;
-                for (Pair<String, String> pair : storage) {
-                    isExists = pair.getLeft().equals(deviceId);
-                    if (isExists) {
-                        break;
-                    }
-                }
-                if (!isExists) {
-                    deviceIdIt.remove();
-                }
-            }
-        } finally {
-            lock.writeLock().unlock();
-        }
     }
 
     /**
@@ -239,36 +201,6 @@ public class HiveSubscriptions {
         unsubscribe(rwNotificationsLock, notificationsSubscriptionsStorage, names, deviceIds);
     }
 
-    private void unsubscribe(ReadWriteLock lock, Map<Pair<String, Set<String>>, Future<Void>> subscriptionStorage,
-                             Set<String> names, String... deviceIds) {
-        if (deviceIds == null) {
-            try {
-                lock.readLock().lock();
-                Future<Void> task = subscriptionStorage.remove(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names));
-                if (task != null && !task.isDone()) {
-                    boolean result = task.cancel(true);
-                    logger.debug("Task is cancelled for device with id:" + Constants.FOR_ALL_SUBSTITUTE +
-                            ". Cancellation result:" + result);
-                }
-            } finally {
-                lock.readLock().unlock();
-            }
-        } else {
-            try {
-                lock.readLock().lock();
-                for (String id : deviceIds) {
-                    Future<Void> task = subscriptionStorage.remove(ImmutablePair.of(id, names));
-                    if (task != null && !task.isDone()) {
-                        boolean result = task.cancel(true);
-                        logger.debug("Task is cancelled for device with id:" + id + ". Cancellation result:" + result);
-                    }
-                }
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-    }
-
     /**
      * Add record about websocket command subscription, that was made. Useful for recovering subscriptions on reconnect
      *
@@ -402,54 +334,62 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Updates timestamp of last received command for device
+     *
+     * @param deviceId     device identifier
+     * @param newTimestamp timestamp of last received command
+     */
     public void updateWsDeviceLastCommandTimestampAssociation(String deviceId, Timestamp newTimestamp) {
         updateDeviceTimestampAssociation(rwWsCommandsLock, wsDeviceLastCommandTimestampAssociation, deviceId,
                 newTimestamp);
     }
 
+    /**
+     * Updates timestamp of last received notification from device
+     *
+     * @param deviceId     device identifier
+     * @param newTimestamp timestamp of last received notification
+     */
     public void updateWsDeviceLastNotificationTimestampAssociation(String deviceId, Timestamp newTimestamp) {
         updateDeviceTimestampAssociation(rwWsNotificationsLock, wsDeviceLastNotificationTimestampAssociation,
                 deviceId, newTimestamp);
     }
 
-    private void updateDeviceTimestampAssociation(ReadWriteLock lock, Map<String, Timestamp> association,
-                                                  String deviceId, Timestamp newTimestamp) {
-        lock.writeLock().lock();
-        try {
-            Timestamp lastTimestamp = association.get(deviceId);
-            if (lastTimestamp != null && lastTimestamp.before(new Date(newTimestamp.getTime()))) {
-                association.put(deviceId, newTimestamp);
-            } else if (lastTimestamp == null) {
-                association.put(deviceId, newTimestamp);
-            }
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
+    /**
+     * Resubscribes for commands on connection lost (sockets)
+     */
     public void resubscribeForCommands() {
         rwWsCommandsLock.writeLock().lock();
         try {
-            if (hiveContext.getHivePrincipal().getUser() != null || hiveContext.getHivePrincipal().getAccessKey() !=
-                    null)
-                for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
-                    Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
-                    Set<String> names = new HashSet<>();
-                    names.add(currentSubscription.getValue());
-                    SubscriptionsService.subscribeClientForCommands(hiveContext, timestamp, names,
-                            currentSubscription.getKey());
+            HivePrincipal principal = hiveContext.getHivePrincipal();
+            if (principal == null) {
+                //TODO gateway
+            } else {
+
+                if (principal.getUser() != null || principal.getAccessKey() != null)
+                    for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
+                        Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
+                        Set<String> names = new HashSet<>();
+                        names.add(currentSubscription.getValue());
+                        SubscriptionsService.subscribeClientForCommands(hiveContext, timestamp, names,
+                                currentSubscription.getKey());
+                    }
+                else if (principal.getDevice() != null) {
+                    for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
+                        Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
+                        SubscriptionsService.subscribeDeviceForCommands(hiveContext, timestamp);
+                    }
                 }
-            else if (hiveContext.getHivePrincipal().getDevice() != null) {
-                for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
-                    Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
-                    SubscriptionsService.subscribeDeviceForCommands(hiveContext, timestamp);
-                }
-            } //TODO gateway
+            }
         } finally {
             rwWsCommandsLock.writeLock().unlock();
         }
     }
 
+    /**
+     * Resubscribes for notifications on connection lost (sockets)
+     */
     public void resubscribeForNotifications() {
         rwWsNotificationsLock.writeLock().lock();
         try {
@@ -468,6 +408,9 @@ public class HiveSubscriptions {
         }
     }
 
+    /**
+     * Resubscribes for command updates and check if command is updated on connection lost (sockets)
+     */
     public void requestCommandsUpdates() {
         Iterator<Map.Entry<Long, String>> iterator = wsCommandUpdateSubscriptionsStorage.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -508,5 +451,87 @@ public class HiveSubscriptions {
             rwNotificationsLock.writeLock().unlock();
         }
         wsAssociationsCleaner.shutdown();
+    }
+
+    //Private methods---------------------------------------------------------------------------------------------
+
+    private void clean() {
+        wsAssociationsCleaner.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                logger.info("Perform wsStorages cleaning to avoid memory leak");
+                cleanStorage(rwWsCommandsLock, wsDeviceLastCommandTimestampAssociation, wsCommandSubscriptionsStorage);
+                cleanStorage(rwWsNotificationsLock, wsDeviceLastNotificationTimestampAssociation,
+                        wsNotificationSubscriptionsStorage);
+            }
+        }, CLEANER_TASK_INTERVAL, CLEANER_TASK_INTERVAL, TimeUnit.MINUTES);
+    }
+
+    private void cleanStorage(ReadWriteLock lock, Map<String, Timestamp> association, Set<Pair<String,
+            String>> storage) {
+        lock.writeLock().lock();
+        try {
+            Iterator<String> deviceIdIt = association.keySet().iterator();
+            while (deviceIdIt.hasNext()) {
+                String deviceId = deviceIdIt.next();
+                boolean isExists = false;
+                for (Pair<String, String> pair : storage) {
+                    isExists = pair.getLeft().equals(deviceId);
+                    if (isExists) {
+                        break;
+                    }
+                }
+                if (!isExists) {
+                    deviceIdIt.remove();
+                }
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    private void unsubscribe(ReadWriteLock lock, Map<Pair<String, Set<String>>, Future<Void>> subscriptionStorage,
+                             Set<String> names, String... deviceIds) {
+        if (deviceIds == null) {
+            try {
+                lock.readLock().lock();
+                Future<Void> task = subscriptionStorage.remove(ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names));
+                if (task != null && !task.isDone()) {
+                    boolean result = task.cancel(true);
+                    logger.debug("Task is cancelled for device with id:" + Constants.FOR_ALL_SUBSTITUTE +
+                            ". Cancellation result:" + result);
+                }
+            } finally {
+                lock.readLock().unlock();
+            }
+        } else {
+            try {
+                lock.readLock().lock();
+                for (String id : deviceIds) {
+                    Future<Void> task = subscriptionStorage.remove(ImmutablePair.of(id, names));
+                    if (task != null && !task.isDone()) {
+                        boolean result = task.cancel(true);
+                        logger.debug("Task is cancelled for device with id:" + id + ". Cancellation result:" + result);
+                    }
+                }
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+    }
+
+    private void updateDeviceTimestampAssociation(ReadWriteLock lock, Map<String, Timestamp> association,
+                                                  String deviceId, Timestamp newTimestamp) {
+        lock.writeLock().lock();
+        try {
+            Timestamp lastTimestamp = association.get(deviceId);
+            if (lastTimestamp != null && lastTimestamp.before(new Date(newTimestamp.getTime()))) {
+                association.put(deviceId, newTimestamp);
+            } else if (lastTimestamp == null) {
+                association.put(deviceId, newTimestamp);
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 }

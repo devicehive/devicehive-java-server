@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Entity that represents simple websocket response (response that does not contain model entity,
- * but contains request processing result)
+ * but contains request result)
  */
 public class SimpleWebsocketResponse implements HiveEntity {
 

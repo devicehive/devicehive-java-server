@@ -16,6 +16,7 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND
  * Command updates task performer
  */
 public class UpdatesSubscriptionTask implements Callable<DeviceCommand> {
+    private static final String WAIT_TIMEOUT_PARAM = "waitTimeout";
     private static Logger logger = LoggerFactory.getLogger(UpdatesSubscriptionTask.class);
     private final HiveContext hiveContext;
     private final String path;
@@ -46,7 +47,7 @@ public class UpdatesSubscriptionTask implements Callable<DeviceCommand> {
             while (!Thread.currentThread().isInterrupted() && returned == null) {
                 try {
                     Map<String, Object> queryParams = new HashMap<>();
-                    queryParams.put("waitTimeout", waitTimeout);
+                    queryParams.put(WAIT_TIMEOUT_PARAM, waitTimeout);
                     returned = hiveContext.getHiveRestClient().executeAsync(path, HttpMethod.GET, null,
                             queryParams, null, DeviceCommand.class, null, COMMAND_LISTED);
                     if (returned != null) {

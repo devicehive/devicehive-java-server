@@ -33,7 +33,8 @@ public interface NotificationsController {
      */
     List<DeviceNotification> queryNotifications(String deviceId, Timestamp start, Timestamp end,
                                                 String notificationName,
-                                                String sortOrder, String sortField, Integer take, Integer skip);
+                                                String sortOrder, String sortField, Integer take, Integer skip,
+                                                Integer gridInterval);
 
     /**
      * Insert and send notification to the client.

@@ -1,9 +1,12 @@
 package com.devicehive.client.model.exceptions;
 
 
-//Is it really necessary to have 2 kinds of client exceptions?
+/**
+ * TODO
+ */
 public class InternalHiveClientException extends HiveClientException {
 
+    private static final long serialVersionUID = -8333329700032097189L;
 
     public InternalHiveClientException(String message, Throwable cause) {
         super(message, cause);

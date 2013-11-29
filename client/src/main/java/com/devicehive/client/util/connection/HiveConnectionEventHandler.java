@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * TODO
+ */
 public class HiveConnectionEventHandler implements ConnectionEventHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(HiveConnectionEventHandler.class);

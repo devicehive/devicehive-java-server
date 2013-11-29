@@ -7,6 +7,7 @@ import com.devicehive.client.api.device.SingleHiveDevice;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.JsonStringWrapper;
 import com.devicehive.client.model.Transport;
+import com.devicehive.client.model.exceptions.HiveException;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
@@ -38,7 +39,8 @@ public class PollingTest {
     @Test
     public void commandsPollingTest() {
         try {
-            shd = new SingleHiveDevice(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"), Transport.PREFER_WEBSOCKET);
+            shd = new SingleHiveDevice(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"),
+                    Transport.PREFER_WEBSOCKET);
             shd.authenticate("E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase(), "05F94BF509C8");
             client = new Client(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"), Transport.PREFER_WEBSOCKET);
             client.authenticate("dhadmin", "dhadmin_#911");
@@ -90,7 +92,8 @@ public class PollingTest {
             Thread.currentThread().join(360_000);
         } catch (Exception e) {
             e.printStackTrace();
-            TestCase.fail("No exception expected: " + e.getMessage());
+            if (!(e instanceof HiveException))
+                TestCase.fail("No exception expected: " + e.getMessage());
         } finally {
             close();
         }
