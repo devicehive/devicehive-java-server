@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-//TODO remove it
 @RunWith(JUnit4.class)
 public class PollingTest {
 
@@ -39,11 +38,9 @@ public class PollingTest {
     @Test
     public void commandsPollingTest() {
         try {
-            shd = new SingleHiveDevice(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"),
-                    URI.create("ws://jk-pc:8080/DeviceHiveJava/websocket/"), Transport.REST_ONLY);
+            shd = new SingleHiveDevice(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"), Transport.PREFER_WEBSOCKET);
             shd.authenticate("E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase(), "05F94BF509C8");
-            client = new Client(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"),
-                    URI.create("ws://jk-pc:8080/DeviceHiveJava/websocket/"), Transport.REST_ONLY);
+            client = new Client(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"), Transport.PREFER_WEBSOCKET);
             client.authenticate("dhadmin", "dhadmin_#911");
             final CommandsController controller = client.getCommandsController();
             final DeviceCommand command = new DeviceCommand();

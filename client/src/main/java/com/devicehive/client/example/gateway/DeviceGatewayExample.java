@@ -159,7 +159,6 @@ public abstract class DeviceGatewayExample {
     public void printUsage(PrintStream out) {
         out.println("URLs required! ");
         out.println("1'st param - REST URL");
-        out.println("2'nd param - websocket URL");
     }
 
 }

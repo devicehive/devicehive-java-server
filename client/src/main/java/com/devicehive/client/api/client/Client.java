@@ -5,25 +5,23 @@ import com.devicehive.client.api.AuthenticationService;
 import com.devicehive.client.context.HiveContext;
 import com.devicehive.client.context.HivePrincipal;
 import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.Role;
 import com.devicehive.client.model.Transport;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
 
 public class Client implements HiveClient {
 
-    private static final String CLIENT_ENDPOINT_PATH = "/client";
+
     private final HiveContext hiveContext;
 
-    public Client(URI uri, URI websocket) {
-        String ws = StringUtils.removeEnd(websocket.toString(), "/");
-        hiveContext = new HiveContext(Transport.AUTO, uri, URI.create(ws + CLIENT_ENDPOINT_PATH));
+    public Client(URI uri) {
+        hiveContext = new HiveContext(Transport.AUTO, uri, Role.USER);
     }
 
-    public Client(URI uri, URI websocket, Transport transport) {
-        String ws = StringUtils.removeEnd(websocket.toString(), "/");
-        hiveContext = new HiveContext(transport, uri, URI.create(ws + CLIENT_ENDPOINT_PATH));
+    public Client(URI uri, Transport transport) {
+        hiveContext = new HiveContext(transport, uri, Role.USER);
     }
 
     public ApiInfo getInfo() {

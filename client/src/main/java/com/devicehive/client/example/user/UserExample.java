@@ -25,9 +25,9 @@ public abstract class UserExample {
         this.out = out;
     }
 
-    public void run(URI rest, URI websocket, Transport transport) {
+    public void run(URI rest, Transport transport) {
         try {
-            init(rest, websocket, transport);
+            init(rest, transport);
             out.println("--- User example ---");
             userExample();
             out.println("--- Network example ---");
@@ -47,8 +47,8 @@ public abstract class UserExample {
         }
     }
 
-    private void init(URI restUri, URI websocketUri, Transport transport) {
-        client = new Client(restUri, websocketUri, transport);
+    private void init(URI restUri, Transport transport) {
+        client = new Client(restUri, transport);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
@@ -390,6 +390,5 @@ public abstract class UserExample {
     public void printUsage() {
         out.println("URLs required! ");
         out.println("1'st param - REST URL");
-        out.println("2'nd param - websocket URL");
     }
 }

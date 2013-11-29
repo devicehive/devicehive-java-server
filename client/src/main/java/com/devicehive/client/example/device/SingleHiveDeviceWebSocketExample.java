@@ -16,12 +16,11 @@ public class SingleHiveDeviceWebSocketExample extends SingleHiveDeviceExample {
      */
     public static void main(String... args) {
         SingleHiveDeviceWebSocketExample example = new SingleHiveDeviceWebSocketExample();
-        if (args.length < 2) {
+        if (args.length < 1) {
             example.printUsage(System.out);
         } else {
             URI restUri = URI.create(args[0]);
-            URI websocketUri = URI.create(args[1]);
-            final SingleHiveDevice shd = new SingleHiveDevice(restUri, websocketUri, Transport.PREFER_WEBSOCKET);
+            final SingleHiveDevice shd = new SingleHiveDevice(restUri, Transport.PREFER_WEBSOCKET);
             example.example(shd);
         }
     }

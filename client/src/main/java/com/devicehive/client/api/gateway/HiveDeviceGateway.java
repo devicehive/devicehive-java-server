@@ -10,7 +10,6 @@ import com.devicehive.client.util.HiveValidator;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.HttpMethod;
@@ -28,30 +27,25 @@ import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
  */
 public class HiveDeviceGateway implements Closeable {
 
-    private static final String DEVICE_ENDPOINT_PATH = "/device";
     private HiveContext hiveContext;
 
     /**
      * Creates new device gateway, that can communicate with the server via provided URLs.
      *
      * @param restUri      RESTful service URL
-     * @param websocketUri websocket service URL (not the URL of the device endpoint!)
      */
-    public HiveDeviceGateway(URI restUri, URI websocketUri) {
-        String ws = StringUtils.removeEnd(websocketUri.toString(), "/");
-        this.hiveContext = new HiveContext(Transport.AUTO, restUri, URI.create(ws + DEVICE_ENDPOINT_PATH));
+    public HiveDeviceGateway(URI restUri) {
+        this.hiveContext = new HiveContext(Transport.AUTO, restUri, Role.GATEWAY);
     }
 
     /**
      * Creates new device gateway, that can communicate with the server via provided URLs.
      *
      * @param restUri      RESTful service URL
-     * @param websocketUri websocket service URL (not the URL of the device endpoint!)
      * @param transport    transport to use
      */
-    public HiveDeviceGateway(URI restUri, URI websocketUri, Transport transport) {
-        String ws = StringUtils.removeEnd(websocketUri.toString(), "/");
-        this.hiveContext = new HiveContext(transport, restUri, URI.create(ws + DEVICE_ENDPOINT_PATH));
+    public HiveDeviceGateway(URI restUri, Transport transport) {
+        this.hiveContext = new HiveContext(transport, restUri, Role.GATEWAY);
     }
 
     /**

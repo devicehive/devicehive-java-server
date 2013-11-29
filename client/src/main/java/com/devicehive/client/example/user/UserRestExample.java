@@ -16,16 +16,14 @@ public class UserRestExample extends UserExample {
      * example's main method
      *
      * @param args args[0] - REST server URI
-     *             args[1] - Web socket server URI
      */
     public static void main(String... args) {
         UserRestExample example = new UserRestExample(System.out);
-        if (args.length < 2) {
+        if (args.length < 1) {
             example.printUsage();
         } else {
             URI rest = URI.create(args[0]);
-            URI websocket = URI.create(args[1]);
-            example.run(rest, websocket, Transport.REST_ONLY);
+            example.run(rest, Transport.REST_ONLY);
         }
     }
 

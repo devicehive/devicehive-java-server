@@ -23,21 +23,20 @@ public class AccessKeyWebsocketExample extends AccessKeyExample {
      */
     public static void main(String... args) {
         AccessKeyWebsocketExample example = new AccessKeyWebsocketExample(System.out);
-        if (args.length < 2) {
+        if (args.length < 1) {
             example.printUsage();
         } else {
             URI rest = URI.create(args[0]);
-            URI websocket = URI.create(args[1]);
             try {
-                example.init(rest, websocket, Transport.PREFER_WEBSOCKET);
+                example.init(rest, Transport.PREFER_WEBSOCKET);
                 System.out.println("--- Device example ---");
-                example.deviceExample(rest, websocket);
+                example.deviceExample(rest);
                 System.out.println("--- Commands example ---");
-                example.commandsExample(rest, websocket);
+                example.commandsExample(rest);
                 System.out.println("--- Notifications example ---");
-                example.notificationsExample(rest, websocket);
+                example.notificationsExample(rest);
                 System.out.println("--- Network example ---");
-                example.networkExample(rest, websocket);
+                example.networkExample(rest);
             } finally {
                 example.close();
             }

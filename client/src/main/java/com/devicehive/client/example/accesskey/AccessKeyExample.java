@@ -31,13 +31,13 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void init(URI restUri, URI websocketUri, Transport transport) {
-        client = new Client(restUri, websocketUri, transport);
+    public void init(URI restUri, Transport transport) {
+        client = new Client(restUri, transport);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
-    public void deviceExample(URI rest, URI websocket) {
-        try (Client deviceExampleClient = new Client(rest, websocket, Transport.REST_ONLY)) {
+    public void deviceExample(URI rest) {
+        try (Client deviceExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key = createAccessKey(AllowedAction.GET_DEVICE, AllowedAction.REGISTER_DEVICE,
                     AllowedAction.GET_DEVICE_STATE);
             deviceExampleClient.authenticate(key);
@@ -80,8 +80,8 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void commandsExample(URI rest, URI websocket) {
-        try (Client commandsExampleClient = new Client(rest, websocket, Transport.REST_ONLY)) {
+    public void commandsExample(URI rest) {
+        try (Client commandsExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key = createAccessKey(AllowedAction.GET_DEVICE_COMMAND, AllowedAction.UPDATE_DEVICE_COMMAND,
                     AllowedAction.CREATE_DEVICE_COMMAND);
             commandsExampleClient.authenticate(key);
@@ -126,8 +126,8 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void notificationsExample(URI rest, URI websocket) {
-        try (Client notificationsExampleClient = new Client(rest, websocket, Transport.REST_ONLY)) {
+    public void notificationsExample(URI rest) {
+        try (Client notificationsExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key =
                     createAccessKey(AllowedAction.GET_DEVICE_NOTIFICATION, AllowedAction.CREATE_DEVICE_NOTIFICATION);
             notificationsExampleClient.authenticate(key);
@@ -167,8 +167,8 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void networkExample(URI rest, URI websocket) {
-        try (Client networkExampleClient = new Client(rest, websocket, Transport.REST_ONLY)) {
+    public void networkExample(URI rest) {
+        try (Client networkExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key =
                     createAccessKey(AllowedAction.GET_NETWORK);
             networkExampleClient.authenticate(key);
@@ -217,6 +217,5 @@ public abstract class AccessKeyExample {
     public void printUsage() {
         out.println("URLs required! ");
         out.println("1'st param - REST URL");
-        out.println("2'nd param - websocket URL");
     }
 }

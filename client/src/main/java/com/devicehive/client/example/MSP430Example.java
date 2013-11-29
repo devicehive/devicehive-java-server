@@ -58,9 +58,6 @@ public class MSP430Example {
 
     /**
      * example's main method
-     *
-     * @param args args[0] - REST server URI
-     *             args[1] - Web socket server URI
      */
     public static void main(String... args) {
         MSP430Example example = new MSP430Example(System.out);
@@ -85,7 +82,7 @@ public class MSP430Example {
     }
 
     private void init() {
-        userClient = new Client(rest, webSocket, transport);
+        userClient = new Client(rest, transport);
         userClient.authenticate("dhadmin", "dhadmin_#911");
         command.setCommand("UpdateLedState");
     }
@@ -176,8 +173,7 @@ public class MSP430Example {
         try {
             CommandLine cmdLine = parser.parse(options, args);
             rest = URI.create(cmdLine.getOptionValue("rest"));
-            webSocket = URI.create(cmdLine.getOptionValue("ws"));
-            transport = cmdLine.hasOption("use_sockets") ? Transport.PREFER_WEBSOCKET : Transport.PREFER_REST;
+            transport = cmdLine.hasOption("use_sockets") ? Transport.PREFER_WEBSOCKET : Transport.REST_ONLY;
             long defaultInterval = 200;
             interval = cmdLine.hasOption("interval")
                     ? Long.parseLong(cmdLine.getOptionValue("interval"))
@@ -195,10 +191,6 @@ public class MSP430Example {
                 .withDescription("REST service URL")
                 .isRequired(true)
                 .create("rest");
-        Option wsURL = OptionBuilder.hasArg()
-                .withArgName("ws")
-                .withDescription("WebSocket service URL")
-                .isRequired(true).create("ws");
         Option timeInterval = OptionBuilder.hasArg()
                 .withArgName("interval")
                 .withDescription("time interval in ms for sending commands to device")
@@ -207,7 +199,6 @@ public class MSP430Example {
                 .withDescription("if set use sockets")
                 .create("use_sockets");
         options.addOption(restUrl);
-        options.addOption(wsURL);
         options.addOption(timeInterval);
         options.addOption(transport);
     }

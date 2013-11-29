@@ -1,7 +1,6 @@
 package com.devicehive.client.example;
 
 
-import com.devicehive.client.api.*;
 import com.devicehive.client.api.client.*;
 import com.devicehive.client.model.*;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ public class OAuthExample {
             URI rest = URI.create(args[0]);
             URI websocket = URI.create(args[1]);
             try {
-                example.init(rest, websocket);
+                example.init(rest);
                 System.out.println();
                 example.token(args[2], rest, websocket);
             } finally {
@@ -47,8 +46,8 @@ public class OAuthExample {
         }
     }
 
-    private void init(URI rest, URI websocket) {
-        client = new Client(rest, websocket, Transport.REST_ONLY);
+    private void init(URI rest) {
+        client = new Client(rest,Transport.REST_ONLY);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
@@ -85,7 +84,7 @@ public class OAuthExample {
                 grant.getRedirectUri(), grant.getClient().getOauthId(), null, null, null);
         //finally, try to use access token
         String accessToken = token.getAccessToken();
-        try (Client accessTokenClient = new Client(rest, websocket, Transport.REST_ONLY)) {
+        try (Client accessTokenClient = new Client(rest, Transport.REST_ONLY)) {
             accessTokenClient.authenticate(accessToken);
             DeviceController controller = accessTokenClient.getDeviceController();
             String guid = "E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase();
