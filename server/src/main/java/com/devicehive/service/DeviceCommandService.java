@@ -92,8 +92,9 @@ public class DeviceCommandService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
-                                                  Integer take, Integer skip) {
-        return commandDAO.queryDeviceCommand(device, start, end, command, status, sortField, sortOrderAsc, take, skip);
+                                                  Integer take, Integer skip, Integer gridInterval) {
+        return commandDAO.queryDeviceCommand(device, start, end, command, status, sortField, sortOrderAsc, take,
+                skip, gridInterval);
     }
 
     public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {

@@ -128,17 +128,19 @@ public class DeviceCommandDAO {
                                                   String sortField,
                                                   Boolean sortOrderAsc,
                                                   Integer take,
-                                                  Integer skip) {
+                                                  Integer skip,
+                                                  Integer gridInterval) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
-        Root from = criteria.from(DeviceCommand.class);
+        Root<DeviceCommand> from = criteria.from(DeviceCommand.class);
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.equal(from.get("device"), device));
+        //where
         if (start != null) {
-            predicates.add(criteriaBuilder.greaterThan(from.get("timestamp"), start));
+            predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), start));
         }
         if (end != null) {
-            predicates.add(criteriaBuilder.lessThan(from.get("timestamp"), end));
+            predicates.add(criteriaBuilder.lessThan(from.<Timestamp>get("timestamp"), end));
         }
         if (command != null) {
             predicates.add(criteriaBuilder.equal(from.get("command"), command));
@@ -147,9 +149,16 @@ public class DeviceCommandDAO {
             predicates.add(criteriaBuilder.equal(from.get("status"), status));
         }
 
+        //groupBy
+        if (gridInterval != null) {
+            Subquery<Timestamp> timestampSubquery = gridIntervalFilter(criteriaBuilder, criteria,
+                    gridInterval, from.<Timestamp>get("timestamp"));
+            predicates.add(from.get("timestamp").in(timestampSubquery));
+        }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+        //orderBy
         if (sortField != null) {
-            if (sortOrderAsc == null || sortOrderAsc) {
+            if (sortOrderAsc) {
                 criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
             } else {
                 criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));
@@ -166,5 +175,20 @@ public class DeviceCommandDAO {
         }
         return resultQuery.getResultList();
 
+    }
+
+    private Subquery<Timestamp> gridIntervalFilter(CriteriaBuilder cb,
+                                                   CriteriaQuery<DeviceCommand> criteria,
+                                                   Integer gridInterval,
+                                                   Expression<Timestamp> exp) {
+        Subquery<Timestamp> timestampSubquery = criteria.subquery(Timestamp.class);
+        Root<DeviceCommand> subqueryFrom = timestampSubquery.from(DeviceCommand.class);
+        timestampSubquery.select(cb.least(subqueryFrom.<Timestamp>get("timestamp")));
+        List<Expression<?>> groupExpressions = new ArrayList<>();
+        groupExpressions.add(cb.function("get_first_timestamp", Long.class, cb.literal(gridInterval), exp));
+        groupExpressions.add(subqueryFrom.get("device"));
+        groupExpressions.add(subqueryFrom.get("command"));
+        timestampSubquery.groupBy(groupExpressions);
+        return timestampSubquery;
     }
 }

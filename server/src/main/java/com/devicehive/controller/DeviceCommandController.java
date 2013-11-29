@@ -459,7 +459,8 @@ public class DeviceCommandController {
                           @QueryParam("sortField") String sortField,
                           @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
                           @QueryParam("take") Integer take,
-                          @QueryParam("skip") Integer skip) {
+                          @QueryParam("skip") Integer skip,
+                          @QueryParam("gridInterval") Integer gridInterval) {
 
         logger.debug("Device command query requested");
         if (sortOrder == null) {
@@ -499,7 +500,7 @@ public class DeviceCommandController {
 
         List<DeviceCommand> commandList =
                 commandService.queryDeviceCommand(device, start, end, command, status, sortField, sortOrder, take,
-                        skip);
+                        skip, gridInterval);
 
         logger.debug("Device command query request proceed successfully");
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);
