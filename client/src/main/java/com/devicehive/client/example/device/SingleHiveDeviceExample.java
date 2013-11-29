@@ -4,74 +4,54 @@ package com.devicehive.client.example.device;
 import com.devicehive.client.api.device.SingleHiveDevice;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintStream;
+import java.net.URI;
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public abstract class SingleHiveDeviceExample {
+public class SingleHiveDeviceExample {
     private static Logger logger = LoggerFactory.getLogger(SingleHiveDeviceExample.class);
+    private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
+    private Options options = new Options();
+    private URI rest;
+    private boolean isParseable = true;
+    private Transport transport;
+    private Device deviceToSave;
 
-    public void example(final SingleHiveDevice shd) {
+    public static void main(String... args) {
+        SingleHiveDeviceExample example = new SingleHiveDeviceExample();
+        example.run(args);
+    }
+
+    private void example(SingleHiveDevice shd) {
         try {
             //save device
-            Device deviceToSave = createDeviceToSave();
-            shd.registerDevice(deviceToSave);
-            logger.info("device saved");
+            saveDeviceExample(shd);
 
             //authenticate device
-            shd.authenticate(deviceToSave.getId(), deviceToSave.getKey());
-            logger.info("device authenticated");
+            authenticationExample(shd);
 
             //get device
-            Device savedDevice = shd.getDevice();
-            logger.info("saved device: id {}, name {}, status {}, data {}, device class id {}, " +
-                    "device class name {}, device class version {}", savedDevice.getId(),
-                    savedDevice.getName(), savedDevice.getStatus(), savedDevice.getData(),
-                    savedDevice.getDeviceClass().getId(), savedDevice.getDeviceClass().getName(),
-                    savedDevice.getDeviceClass().getVersion());
+            getDeviceExample(shd);
 
             //update device
-            deviceToSave.setStatus("updated example status");
-            shd.registerDevice(deviceToSave);
-            logger.debug("device updated");
-            //get device
-            Device updatedDevice = shd.getDevice();
-            logger.info("updated device: id {}, name {}, status {}, data {}, device class id {}, " +
-                    "device class name {}, device class version {}", updatedDevice.getId(),
-                    updatedDevice.getName(), updatedDevice.getStatus(), updatedDevice.getData(),
-                    updatedDevice.getDeviceClass().getId(), updatedDevice.getDeviceClass().getName(),
-                    updatedDevice.getDeviceClass().getVersion());
+            updateDeviceExample(shd);
 
             //subscribe for commands
-            try {
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-                Date startDate = formatter.parse("2013-10-11 13:12:00");
-                shd.subscribeForCommands(new Timestamp(startDate.getTime()));
-                logger.info("device subscribed for commands");
-            } catch (ParseException e) {
-                logger.error(e.getMessage(), e);
-            }
+            commandSubscriptionExample(shd);
 
             //update commands
-            commandsUpdater.scheduleAtFixedRate(new Runnable() {
-                @Override
-                public void run() {
-                    while (!Thread.currentThread().isInterrupted()) {
-                        updateCommands(shd);
-                    }
-                }
-            }, 0, 1, TimeUnit.SECONDS);
+            commandUpdatesExample(shd);
 
             //notification insert
             shd.insertNotification(createNotification());
@@ -93,6 +73,60 @@ public abstract class SingleHiveDeviceExample {
                 logger.error(e.getMessage(), e);
             }
         }
+    }
+
+    private void saveDeviceExample(final SingleHiveDevice shd) {
+        deviceToSave = createDeviceToSave();
+        shd.registerDevice(deviceToSave);
+        logger.info("device saved");
+    }
+
+    private void authenticationExample(final SingleHiveDevice shd) {
+        shd.authenticate(deviceToSave.getId(), deviceToSave.getKey());
+        logger.info("device authenticated");
+    }
+
+    private void getDeviceExample(final SingleHiveDevice shd) {
+        Device savedDevice = shd.getDevice();
+        logger.info("saved device: id {}, name {}, status {}, data {}, device class id {}, " +
+                "device class name {}, device class version {}", savedDevice.getId(),
+                savedDevice.getName(), savedDevice.getStatus(), savedDevice.getData(),
+                savedDevice.getDeviceClass().getId(), savedDevice.getDeviceClass().getName(),
+                savedDevice.getDeviceClass().getVersion());
+    }
+
+    private void updateDeviceExample(final SingleHiveDevice shd) {
+        deviceToSave.setStatus("updated example status");
+        shd.registerDevice(deviceToSave);
+        logger.debug("device updated");
+        Device updatedDevice = shd.getDevice();
+        logger.info("updated device: id {}, name {}, status {}, data {}, device class id {}, " +
+                "device class name {}, device class version {}", updatedDevice.getId(),
+                updatedDevice.getName(), updatedDevice.getStatus(), updatedDevice.getData(),
+                updatedDevice.getDeviceClass().getId(), updatedDevice.getDeviceClass().getName(),
+                updatedDevice.getDeviceClass().getVersion());
+    }
+
+    private void commandSubscriptionExample(final SingleHiveDevice shd) {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+            Date startDate = formatter.parse("2013-10-11 13:12:00");
+            shd.subscribeForCommands(new Timestamp(startDate.getTime()));
+            logger.info("device subscribed for commands");
+        } catch (java.text.ParseException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    private void commandUpdatesExample(final SingleHiveDevice shd) {
+        commandsUpdater.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.currentThread().isInterrupted()) {
+                    updateCommands(shd);
+                }
+            }
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
     private Device createDeviceToSave() {
@@ -152,9 +186,47 @@ public abstract class SingleHiveDeviceExample {
         }
     }
 
-    public void printUsage(PrintStream out){
-        out.println("URLs required! ");
-        out.println("1'st param - REST URL");
+    private void printUsage() {
+        HELP_FORMATTER.printHelp("SingleHiveDeviceExample", options);
+    }
+
+    private void parseArguments(String... args) {
+        CommandLineParser parser = new BasicParser();
+        try {
+            CommandLine cmdLine = parser.parse(options, args);
+            rest = URI.create(cmdLine.getOptionValue("rest"));
+            transport = cmdLine.hasOption("use_sockets") ? Transport.PREFER_WEBSOCKET : Transport.REST_ONLY;
+        } catch (org.apache.commons.cli.ParseException e) {
+            logger.error("unable to parse command line arguments!");
+            printUsage();
+            isParseable = false;
+        }
+    }
+
+    private void initOptions() {
+        Option restUrl = OptionBuilder.hasArg()
+                .withArgName("rest")
+                .withDescription("REST service URL")
+                .isRequired(true)
+                .create("rest");
+        Option transport = OptionBuilder.hasArg(false)
+                .withDescription("if set use sockets")
+                .create("use_sockets");
+        options.addOption(restUrl);
+        options.addOption(transport);
+    }
+
+    public void run(String... args) {
+        initOptions();
+        parseArguments(args);
+        if (isParseable) {
+            try {
+                final SingleHiveDevice shd = new SingleHiveDevice(rest, transport);
+                example(shd);
+            } catch (Exception e) {
+                logger.debug(e.getMessage(), e);
+            }
+        }
     }
 
 }

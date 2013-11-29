@@ -3,6 +3,7 @@ package com.devicehive.client.example.accesskey;
 
 import com.devicehive.client.api.client.*;
 import com.devicehive.client.model.*;
+import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,16 +14,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class AccessKeyExample {
+public class AccessKeyExample {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyExample.class);
+    private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private Client client;
     private PrintStream out;
+    private Options options = new Options();
+    private URI rest;
+    private boolean isParseable = true;
+    private Transport transport;
 
-    protected AccessKeyExample(PrintStream out) {
+    public AccessKeyExample(PrintStream out) {
         this.out = out;
     }
 
-    public void close() {
+    /**
+     * example's main method
+     */
+    public static void main(String... args) {
+        AccessKeyExample example = new AccessKeyExample(System.out);
+        example.run(args);
+    }
+
+    private void close() {
         try {
             if (client != null)
                 client.close();
@@ -31,12 +45,12 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void init(URI restUri, Transport transport) {
+    private void init(URI restUri, Transport transport) {
         client = new Client(restUri, transport);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
-    public void deviceExample(URI rest) {
+    private void deviceExample(URI rest) {
         try (Client deviceExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key = createAccessKey(AllowedAction.GET_DEVICE, AllowedAction.REGISTER_DEVICE,
                     AllowedAction.GET_DEVICE_STATE);
@@ -80,7 +94,7 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void commandsExample(URI rest) {
+    private void commandsExample(URI rest) {
         try (Client commandsExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key = createAccessKey(AllowedAction.GET_DEVICE_COMMAND, AllowedAction.UPDATE_DEVICE_COMMAND,
                     AllowedAction.CREATE_DEVICE_COMMAND);
@@ -126,7 +140,7 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void notificationsExample(URI rest) {
+    private void notificationsExample(URI rest) {
         try (Client notificationsExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key =
                     createAccessKey(AllowedAction.GET_DEVICE_NOTIFICATION, AllowedAction.CREATE_DEVICE_NOTIFICATION);
@@ -167,7 +181,7 @@ public abstract class AccessKeyExample {
         }
     }
 
-    public void networkExample(URI rest) {
+    private void networkExample(URI rest) {
         try (Client networkExampleClient = new Client(rest, Transport.REST_ONLY)) {
             String key =
                     createAccessKey(AllowedAction.GET_NETWORK);
@@ -214,8 +228,55 @@ public abstract class AccessKeyExample {
         return client.getAccessKeyController().insertKey(userId, toInsert).getKey();
     }
 
-    public void printUsage() {
-        out.println("URLs required! ");
-        out.println("1'st param - REST URL");
+    private void printUsage() {
+        HELP_FORMATTER.printHelp("AccessKeyExample", options);
+    }
+
+    private void parseArguments(String... args) {
+        CommandLineParser parser = new BasicParser();
+        try {
+            CommandLine cmdLine = parser.parse(options, args);
+            rest = URI.create(cmdLine.getOptionValue("rest"));
+            transport = cmdLine.hasOption("use_sockets") ? Transport.PREFER_WEBSOCKET : Transport.REST_ONLY;
+        } catch (ParseException e) {
+            logger.error("unable to parse command line arguments!");
+            printUsage();
+            isParseable = false;
+        }
+    }
+
+    private void initOptions() {
+        Option restUrl = OptionBuilder.hasArg()
+                .withArgName("rest")
+                .withDescription("REST service URL")
+                .isRequired(true)
+                .create("rest");
+        Option transport = OptionBuilder.hasArg(false)
+                .withDescription("if set use sockets")
+                .create("use_sockets");
+        options.addOption(restUrl);
+        options.addOption(transport);
+    }
+
+    public void run(String... args) {
+        initOptions();
+        parseArguments(args);
+        if (isParseable) {
+            try {
+                init(rest, transport);
+                out.println("--- Device example ---");
+                deviceExample(rest);
+                out.println("--- Commands example ---");
+                commandsExample(rest);
+                out.println("--- Notifications example ---");
+                notificationsExample(rest);
+                out.println("--- Network example ---");
+                networkExample(rest);
+            } catch (Exception e) {
+                logger.debug(e.getMessage(), e);
+            } finally {
+                close();
+            }
+        }
     }
 }

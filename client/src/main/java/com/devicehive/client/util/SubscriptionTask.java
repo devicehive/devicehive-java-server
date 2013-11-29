@@ -14,10 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
@@ -105,6 +102,9 @@ public class SubscriptionTask implements Callable<Void> {
                         queryParams, null, new TypeToken<List<DeviceCommand>>() {
                 }.getType(), null, COMMAND_LISTED);
         logger.debug("\n----Start Timestamp: " + timestamp + "----");
+        if (returned == null) {
+            returned = Collections.emptyList();
+        }
         for (DeviceCommand current : returned) {
             logger.debug("id: " + current.getId() + "timestamp:" + current.getTimestamp());
         }
@@ -125,6 +125,9 @@ public class SubscriptionTask implements Callable<Void> {
                         queryParams, null, new TypeToken<List<DeviceNotification>>() {
                 }.getType(), null, NOTIFICATION_TO_CLIENT);
         logger.debug("\n----Start Timestamp: " + timestamp + "----");
+        if (returned == null) {
+            returned = Collections.emptyList();
+        }
         for (DeviceNotification current : returned) {
             logger.debug("id: " + current.getId() + "timestamp:" + current.getTimestamp());
         }

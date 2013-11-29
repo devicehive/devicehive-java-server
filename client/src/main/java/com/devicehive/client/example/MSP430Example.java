@@ -47,7 +47,6 @@ public class MSP430Example {
     private PrintStream out;
     private Options options = new Options();
     private URI rest;
-    private URI webSocket;
     private Transport transport;
     private long interval;
     private boolean isParseable = true;

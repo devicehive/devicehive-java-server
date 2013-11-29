@@ -4,12 +4,13 @@ package com.devicehive.client.example.gateway;
 import com.devicehive.client.api.gateway.HiveDeviceGateway;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintStream;
+import java.net.URI;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,11 +19,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public abstract class DeviceGatewayExample {
+public class DeviceGatewayExample {
     private static Logger logger = LoggerFactory.getLogger(DeviceGatewayExample.class);
     private static ScheduledExecutorService commandsUpdater = Executors.newSingleThreadScheduledExecutor();
+    private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
+    private Options options = new Options();
+    private URI rest;
+    private boolean isParseable = true;
+    private Transport transport;
 
-    private static Device createDeviceToSave() {
+    public static void main(String... args) {
+        DeviceGatewayExample example = new DeviceGatewayExample();
+        example.run(args);
+    }
+
+    private Device createDeviceToSave() {
         Device device = new Device();
         device.setId(UUID.randomUUID().toString());
         device.setKey(UUID.randomUUID().toString());
@@ -47,7 +58,7 @@ public abstract class DeviceGatewayExample {
         return device;
     }
 
-    private static void updateCommands(HiveDeviceGateway hdg, String deviceId, String deviceKey) {
+    private void updateCommands(HiveDeviceGateway hdg, String deviceId, String deviceKey) {
         Queue<Pair<String, DeviceCommand>> commandsQueue = hdg.getCommandsQueue();
         Iterator<Pair<String, DeviceCommand>> commandIterator = commandsQueue.iterator();
         while (commandIterator.hasNext()) {
@@ -63,14 +74,14 @@ public abstract class DeviceGatewayExample {
         }
     }
 
-    private static DeviceNotification createNotification() {
+    private DeviceNotification createNotification() {
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification("example notification");
         notification.setParameters(new JsonStringWrapper("{\"params\": example_param}"));
         return notification;
     }
 
-    private static void killUpdater() {
+    private void killUpdater() {
         commandsUpdater.shutdown();
         try {
             if (!commandsUpdater.awaitTermination(5, TimeUnit.SECONDS)) {
@@ -85,7 +96,7 @@ public abstract class DeviceGatewayExample {
         }
     }
 
-    public void example(final HiveDeviceGateway hdg) {
+    private void example(final HiveDeviceGateway hdg) {
         try {
             //save device
             final Device deviceToSave = createDeviceToSave();
@@ -156,9 +167,44 @@ public abstract class DeviceGatewayExample {
         }
     }
 
-    public void printUsage(PrintStream out) {
-        out.println("URLs required! ");
-        out.println("1'st param - REST URL");
+    private void printUsage() {
+        HELP_FORMATTER.printHelp("SingleHiveDeviceExample", options);
+    }
+
+    private void parseArguments(String... args) {
+        CommandLineParser parser = new BasicParser();
+        try {
+            CommandLine cmdLine = parser.parse(options, args);
+            rest = URI.create(cmdLine.getOptionValue("rest"));
+            transport = cmdLine.hasOption("use_sockets") ? Transport.PREFER_WEBSOCKET : Transport.REST_ONLY;
+        } catch (org.apache.commons.cli.ParseException e) {
+            logger.error("unable to parse command line arguments!");
+            printUsage();
+            isParseable = false;
+        }
+    }
+
+    private void initOptions() {
+        Option restUrl = OptionBuilder.hasArg()
+                .withArgName("rest")
+                .withDescription("REST service URL")
+                .isRequired(true)
+                .create("rest");
+        Option transport = OptionBuilder.hasArg(false)
+                .withDescription("if set use sockets")
+                .create("use_sockets");
+        options.addOption(restUrl);
+        options.addOption(transport);
+    }
+
+    public void run(String... args) {
+        initOptions();
+        parseArguments(args);
+        if (isParseable) {
+            HiveDeviceGateway hdg = new HiveDeviceGateway(rest, transport);
+            example(hdg);
+        }
+
     }
 
 }
