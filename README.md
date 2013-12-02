@@ -68,8 +68,8 @@ Glassfish configuration
 * Navigate to Resources -> JDBC -> JDBC Connection Pools. You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
 
 Pool Name: Specify some pool name, e.g. DeviceHivePool 
-Resource Type: javax.sql.ConnectionPoolDataSource
-Datasource Classname: org.postgresql.ds.PGConnectionPoolDataSource
+Resource Type: javax.sql.XADataSource
+Datasource Classname: org.postgresql.xa.PGXADataSource
 
 Specify pool settings at your convenience.
 
@@ -123,3 +123,28 @@ http://localhost:8080/hive/rest/config/set?name=rest.url&value=http://localhost:
 http://localhost:8080/hive/rest/config/set?name=websocket.url&value=ws://localhost:8080/hive/websocket
 
 * Use it.
+
+DeviceHive Java update instructions
+===================================
+
+* Download source code from https://github.com/devicehive/devicehive-java using "Download ZIP" button. It should
+always point to the BRANCH-1.3. It also can be done using one of Git version control client (http://git-scm
+.com/downloads/guis) or git command line tool. If you prefer git, clone project using command `git clone
+https://github.com/devicehive/devicehive-java.git`. After that you can switch to the tag or branch you need. The list
+ of all available releases can be found at https://github.com/devicehive/devicehive-java/releases
+* Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command `java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
+* The parameter ${databaseurl} is a jdbc connection URL to your database (like jdbc://, user is a database user’s login and password is a user’s password, if required.  To get help use `java –jar dh_dbtool.jar –help`
+* Go to ${yourServerName}:4848
+* Open Applications tab.
+* Click on Undeploy button (is not required)
+* Restart glassfish server (is not required)
+* Click on Deploy button
+* Click on “Select file” button. In the dialog box select DeviceHiveJava.war. Click on “Ok” button
+* Launch DeviceHiveJava
+Notice, that the all parameters set up for configuration of RESTful and websocket services will be the same. If it is
+ required to change these parameters use:
+
+ http://${yourServerName}:${port}/DeviceHiveJava/rest/config/set?name=${name}&value=${value}
+
+ You can get access to this service using any of your administrative accounts.
+ For more details see RELEASE_NOTES
