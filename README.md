@@ -37,7 +37,10 @@ In order to use DeviceHive framework you must have the following components inst
 * PostgreSQL 9.1 (9.1 is tested version, but above should work fine too). It can be downloaded from http://www.postgresql.org/download/
 * PostgreSQL JDBC driver suitable for your version of PostgreSQL (http://jdbc.postgresql.org/download.html#others)
 * Glassfish 4 application server (http://glassfish.java.net/download.html)
-* Oracle JDK 7 or OpenJDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7). Oracle JDK 7 can be downloaded from http://www.oracle.com/technetwork/java/javase/downloads/index.html. If you would like to use Open JDK 7 you have to use this link http://openjdk.java.net/install/ or install it from the distribution repository of your choice
+* Oracle JDK 7 or OpenJDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7). Oracle JDK 7 can be
+downloaded from http://www.oracle.com/technetwork/java/javase/downloads/index.html. If you would like to use Open JDK
+ 7 you have to use this link http://openjdk.java.net/install/ or install it from the distribution repository of your
+ choice. Package java-1.7.0-openjdk-devel is required for Open JDK
 * Maven (http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava 
 * dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java)
 * DeviceHiveJava source files. This is the main part of the DeviceHive framework (https://github.com/devicehive/devicehive-java)
