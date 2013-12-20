@@ -363,23 +363,18 @@ public class HiveSubscriptions {
         rwWsCommandsLock.writeLock().lock();
         try {
             HivePrincipal principal = hiveContext.getHivePrincipal();
-            if (principal == null) {
-                //TODO gateway
-            } else {
-
-                if (principal.getUser() != null || principal.getAccessKey() != null)
-                    for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
-                        Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
-                        Set<String> names = new HashSet<>();
-                        names.add(currentSubscription.getValue());
-                        SubscriptionsService.subscribeClientForCommands(hiveContext, timestamp, names,
-                                currentSubscription.getKey());
-                    }
-                else if (principal.getDevice() != null) {
-                    for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
-                        Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
-                        SubscriptionsService.subscribeDeviceForCommands(hiveContext, timestamp);
-                    }
+            if (principal.getUser() != null || principal.getAccessKey() != null)
+                for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
+                    Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
+                    Set<String> names = new HashSet<>();
+                    names.add(currentSubscription.getValue());
+                    SubscriptionsService.subscribeClientForCommands(hiveContext, timestamp, names,
+                            currentSubscription.getKey());
+                }
+            else if (principal.getDevice() != null) {
+                for (Pair<String, String> currentSubscription : wsCommandSubscriptionsStorage) {
+                    Timestamp timestamp = wsDeviceLastCommandTimestampAssociation.get(currentSubscription.getKey());
+                    SubscriptionsService.subscribeDeviceForCommands(hiveContext, timestamp);
                 }
             }
         } finally {

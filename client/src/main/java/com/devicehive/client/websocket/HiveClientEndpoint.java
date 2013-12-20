@@ -219,23 +219,18 @@ public class HiveClientEndpoint implements Closeable {
         //need to authenticate 'cause authentication is associated with the session
         ConnectionEvent event;
         HivePrincipal principal = hiveContext.getHivePrincipal();
-        if (principal == null) {
-            //TODO set event for gateway
-            event = new ConnectionEvent(endpointURI, null, null);
+        if (principal.getDevice() != null) {
+            Pair<String, String> device = principal.getDevice();
+            event = new ConnectionEvent(endpointURI, null, device.getLeft());
+            AuthenticationService.authenticateDevice(device.getLeft(), device.getRight(), hiveContext);
+        } else if (principal.getUser() != null) {
+            Pair<String, String> user = principal.getUser();
+            event = new ConnectionEvent(endpointURI, null, user.getLeft());
+            AuthenticationService.authenticateClient(user.getLeft(), user.getRight(), hiveContext);
         } else {
-            if (principal.getDevice() != null) {
-                Pair<String, String> device = principal.getDevice();
-                event = new ConnectionEvent(endpointURI, null, device.getLeft());
-                AuthenticationService.authenticateDevice(device.getLeft(), device.getRight(), hiveContext);
-            } else if (principal.getUser() != null) {
-                Pair<String, String> user = principal.getUser();
-                event = new ConnectionEvent(endpointURI, null, user.getLeft());
-                AuthenticationService.authenticateClient(user.getLeft(), user.getRight(), hiveContext);
-            } else {
-                String key = principal.getAccessKey();
-                event = new ConnectionEvent(endpointURI, null, key);
-                AuthenticationService.authenticateKey(key, hiveContext);
-            }
+            String key = principal.getAccessKey();
+            event = new ConnectionEvent(endpointURI, null, key);
+            AuthenticationService.authenticateKey(key, hiveContext);
         }
         //need to resubscribe for the notifications, commands and command updates
         resubscribeForNotifications();

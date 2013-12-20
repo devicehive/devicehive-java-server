@@ -4,7 +4,7 @@ import java.net.URI;
 import java.sql.Timestamp;
 
 /**
- * Optional. Notifies that device, gateway or client established the connection after its loosing
+ * Optional. Notifies that device or client established the connection after its loosing
  */
 public interface ConnectionEstablishedNotifier {
 

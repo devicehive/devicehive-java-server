@@ -93,8 +93,7 @@ public class HiveRestClient implements Closeable {
         this.rest = rest;
         this.hiveContext = hiveContext;
         restClient = HiveClientFactory.getClient();
-        this.connectionEventHandler =
-                new HiveConnectionEventHandler(connectionLostNotifier);
+        this.connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier);
     }
 
     @Override
@@ -432,10 +431,7 @@ public class HiveRestClient implements Closeable {
         ConnectionEvent event;
         HivePrincipal principal = hiveContext.getHivePrincipal();
         Timestamp lost = new Timestamp(System.currentTimeMillis());
-        if (principal == null) {
-            //TODO gateway
-            event = new ConnectionEvent(rest, lost, null);
-        } else {
+        if (principal != null) {
             if (principal.getDevice() != null) {
                 event = new ConnectionEvent(rest, lost, principal.getDevice().getLeft());
             } else if (principal.getAccessKey() != null) {
@@ -443,8 +439,9 @@ public class HiveRestClient implements Closeable {
             } else {
                 event = new ConnectionEvent(rest, lost, principal.getUser().getLeft());
             }
+            event.setLost(true);
+            connectionEventHandler.handle(event);
         }
-        event.setLost(true);
         throw new HiveServerException("connection lost or cannot be established!",
                 SERVICE_UNAVAILABLE.getStatusCode());
     }

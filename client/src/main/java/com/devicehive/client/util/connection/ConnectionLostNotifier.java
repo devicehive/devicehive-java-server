@@ -4,7 +4,7 @@ import java.net.URI;
 import java.sql.Timestamp;
 
 /**
- * Optional. Notifies that device, gateway or client has lost the connection to the server
+ * Optional. Notifies that device or client has lost the connection to the server
  */
 public interface ConnectionLostNotifier {
 
