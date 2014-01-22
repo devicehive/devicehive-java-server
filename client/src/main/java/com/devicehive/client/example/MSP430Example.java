@@ -1,8 +1,8 @@
 package com.devicehive.client.example;
 
-import com.devicehive.client.api.client.Client;
-import com.devicehive.client.api.client.CommandsController;
-import com.devicehive.client.api.client.NotificationsController;
+import com.devicehive.client.impl.HiveClientImpl;
+import com.devicehive.client.CommandsController;
+import com.devicehive.client.NotificationsController;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.JsonStringWrapper;
@@ -37,7 +37,7 @@ public class MSP430Example {
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private final DeviceCommand command = new DeviceCommand();
     private final Lock lock = new ReentrantLock();
-    private Client userClient;
+    private HiveClientImpl userClient;
     private ScheduledExecutorService notificationsMonitor = Executors.newSingleThreadScheduledExecutor();
     private volatile boolean greenState = false;
     private volatile boolean redState = false;
@@ -81,7 +81,7 @@ public class MSP430Example {
     }
 
     private void init() {
-        userClient = new Client(rest, transport);
+        userClient = new HiveClientImpl(rest, transport);
         userClient.authenticate("dhadmin", "dhadmin_#911");
         command.setCommand("UpdateLedState");
     }

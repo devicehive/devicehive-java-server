@@ -1,7 +1,8 @@
 package com.devicehive.client.example.user;
 
 
-import com.devicehive.client.api.client.*;
+import com.devicehive.client.*;
+import com.devicehive.client.impl.HiveClientImpl;
 import com.devicehive.client.model.*;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,7 +21,7 @@ public class UserExample {
 
     private static Logger logger = LoggerFactory.getLogger(UserExample.class);
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
-    private Client client;
+    private HiveClientImpl client;
     private PrintStream out;
     private Options options = new Options();
     private URI rest;
@@ -62,7 +63,7 @@ public class UserExample {
     }
 
     private void init() {
-        client = new Client(rest, transport);
+        client = new HiveClientImpl(rest, transport);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 

@@ -1,8 +1,8 @@
 package com.devicehive.client.model;
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * Represents a network, an isolated area where devices reside.

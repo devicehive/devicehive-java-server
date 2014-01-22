@@ -1,12 +1,12 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
 import java.sql.Timestamp;
 import java.util.Set;
 
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * Represents an access key to this API.

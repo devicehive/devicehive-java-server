@@ -1,12 +1,12 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * Represents a device command, a unit of information sent to devices.

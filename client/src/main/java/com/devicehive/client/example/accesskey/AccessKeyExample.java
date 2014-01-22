@@ -1,7 +1,8 @@
 package com.devicehive.client.example.accesskey;
 
 
-import com.devicehive.client.api.client.*;
+import com.devicehive.client.*;
+import com.devicehive.client.impl.HiveClientImpl;
 import com.devicehive.client.model.*;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ import java.util.Set;
 public class AccessKeyExample {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyExample.class);
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
-    private Client client;
+    private HiveClientImpl client;
     private PrintStream out;
     private Options options = new Options();
     private URI rest;
@@ -46,12 +47,12 @@ public class AccessKeyExample {
     }
 
     private void init(URI restUri, Transport transport) {
-        client = new Client(restUri, transport);
+        client = new HiveClientImpl(restUri, transport);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
     private void deviceExample(URI rest) {
-        try (Client deviceExampleClient = new Client(rest, Transport.REST_ONLY)) {
+        try (HiveClientImpl deviceExampleClient = new HiveClientImpl(rest, Transport.REST_ONLY)) {
             String key = createAccessKey(AllowedAction.GET_DEVICE, AllowedAction.REGISTER_DEVICE,
                     AllowedAction.GET_DEVICE_STATE);
             deviceExampleClient.authenticate(key);
@@ -95,7 +96,7 @@ public class AccessKeyExample {
     }
 
     private void commandsExample(URI rest) {
-        try (Client commandsExampleClient = new Client(rest, Transport.REST_ONLY)) {
+        try (HiveClientImpl commandsExampleClient = new HiveClientImpl(rest, Transport.REST_ONLY)) {
             String key = createAccessKey(AllowedAction.GET_DEVICE_COMMAND, AllowedAction.UPDATE_DEVICE_COMMAND,
                     AllowedAction.CREATE_DEVICE_COMMAND);
             commandsExampleClient.authenticate(key);
@@ -141,7 +142,7 @@ public class AccessKeyExample {
     }
 
     private void notificationsExample(URI rest) {
-        try (Client notificationsExampleClient = new Client(rest, Transport.REST_ONLY)) {
+        try (HiveClientImpl notificationsExampleClient = new HiveClientImpl(rest, Transport.REST_ONLY)) {
             String key =
                     createAccessKey(AllowedAction.GET_DEVICE_NOTIFICATION, AllowedAction.CREATE_DEVICE_NOTIFICATION);
             notificationsExampleClient.authenticate(key);
@@ -182,7 +183,7 @@ public class AccessKeyExample {
     }
 
     private void networkExample(URI rest) {
-        try (Client networkExampleClient = new Client(rest, Transport.REST_ONLY)) {
+        try (HiveClientImpl networkExampleClient = new HiveClientImpl(rest, Transport.REST_ONLY)) {
             String key =
                     createAccessKey(AllowedAction.GET_NETWORK);
             networkExampleClient.authenticate(key);

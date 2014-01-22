@@ -1,9 +1,9 @@
 package com.devicehive.client.model;
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
 /**
  * User-Network association

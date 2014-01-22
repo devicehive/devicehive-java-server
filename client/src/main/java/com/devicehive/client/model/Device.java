@@ -1,10 +1,10 @@
 package com.devicehive.client.model;
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
 import java.util.Set;
 
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * Represents a device, a unit that runs microcode and communicates to this API.

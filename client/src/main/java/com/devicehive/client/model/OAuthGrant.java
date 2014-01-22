@@ -1,6 +1,6 @@
 package com.devicehive.client.model;
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * Represents an OAuth permission grant.

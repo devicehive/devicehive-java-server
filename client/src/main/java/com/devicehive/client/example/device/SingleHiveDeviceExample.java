@@ -1,7 +1,8 @@
 package com.devicehive.client.example.device;
 
 
-import com.devicehive.client.api.device.SingleHiveDevice;
+import com.devicehive.client.HiveDevice;
+import com.devicehive.client.impl.HiveDeviceRestImpl;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
 import org.apache.commons.cli.*;
@@ -33,7 +34,7 @@ public class SingleHiveDeviceExample {
         example.run(args);
     }
 
-    private void example(SingleHiveDevice shd) {
+    private void example(HiveDeviceRestImpl shd) {
         try {
             //save device
             saveDeviceExample(shd);
@@ -75,18 +76,18 @@ public class SingleHiveDeviceExample {
         }
     }
 
-    private void saveDeviceExample(final SingleHiveDevice shd) {
+    private void saveDeviceExample(final HiveDevice shd) {
         deviceToSave = createDeviceToSave();
         shd.registerDevice(deviceToSave);
         logger.info("device saved");
     }
 
-    private void authenticationExample(final SingleHiveDevice shd) {
+    private void authenticationExample(final HiveDevice shd) {
         shd.authenticate(deviceToSave.getId(), deviceToSave.getKey());
         logger.info("device authenticated");
     }
 
-    private void getDeviceExample(final SingleHiveDevice shd) {
+    private void getDeviceExample(final HiveDevice shd) {
         Device savedDevice = shd.getDevice();
         logger.info("saved device: id {}, name {}, status {}, data {}, device class id {}, " +
                 "device class name {}, device class version {}", savedDevice.getId(),
@@ -95,7 +96,7 @@ public class SingleHiveDeviceExample {
                 savedDevice.getDeviceClass().getVersion());
     }
 
-    private void updateDeviceExample(final SingleHiveDevice shd) {
+    private void updateDeviceExample(final HiveDevice shd) {
         deviceToSave.setStatus("updated example status");
         shd.registerDevice(deviceToSave);
         logger.debug("device updated");
@@ -107,7 +108,7 @@ public class SingleHiveDeviceExample {
                 updatedDevice.getDeviceClass().getVersion());
     }
 
-    private void commandSubscriptionExample(final SingleHiveDevice shd) {
+    private void commandSubscriptionExample(final HiveDevice shd) {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
             Date startDate = formatter.parse("2013-10-11 13:12:00");
@@ -118,7 +119,7 @@ public class SingleHiveDeviceExample {
         }
     }
 
-    private void commandUpdatesExample(final SingleHiveDevice shd) {
+    private void commandUpdatesExample(final HiveDevice shd) {
         commandsUpdater.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -154,7 +155,7 @@ public class SingleHiveDeviceExample {
         return device;
     }
 
-    private void updateCommands(SingleHiveDevice shd) {
+    private void updateCommands(HiveDevice shd) {
         Queue<Pair<String, DeviceCommand>> commandsQueue = shd.getCommandsQueue();
         while (!commandsQueue.isEmpty()) {
             DeviceCommand command = commandsQueue.poll().getRight();
@@ -221,7 +222,7 @@ public class SingleHiveDeviceExample {
         parseArguments(args);
         if (isParseable) {
             try {
-                final SingleHiveDevice shd = new SingleHiveDevice(rest, transport);
+                final HiveDeviceRestImpl shd = new HiveDeviceRestImpl(rest, transport);
                 example(shd);
             } catch (Exception e) {
                 logger.debug(e.getMessage(), e);

@@ -1,7 +1,8 @@
 package com.devicehive.client.example;
 
 
-import com.devicehive.client.api.client.*;
+import com.devicehive.client.*;
+import com.devicehive.client.impl.HiveClientImpl;
 import com.devicehive.client.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,7 @@ import java.util.UUID;
 public class OAuthExample {
 
     private static Logger logger = LoggerFactory.getLogger(OAuthExample.class);
-    private Client client;
+    private HiveClientImpl client;
     private PrintStream out;
 
 
@@ -47,7 +48,7 @@ public class OAuthExample {
     }
 
     private void init(URI rest) {
-        client = new Client(rest,Transport.REST_ONLY);
+        client = new HiveClientImpl(rest,Transport.REST_ONLY);
         client.authenticate("dhadmin", "dhadmin_#911");
     }
 
@@ -84,7 +85,7 @@ public class OAuthExample {
                 grant.getRedirectUri(), grant.getClient().getOauthId(), null, null, null);
         //finally, try to use access token
         String accessToken = token.getAccessToken();
-        try (Client accessTokenClient = new Client(rest, Transport.REST_ONLY)) {
+        try (HiveClientImpl accessTokenClient = new HiveClientImpl(rest, Transport.REST_ONLY)) {
             accessTokenClient.authenticate(accessToken);
             DeviceController controller = accessTokenClient.getDeviceController();
             String guid = "E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase();

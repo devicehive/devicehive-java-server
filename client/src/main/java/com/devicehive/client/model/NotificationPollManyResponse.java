@@ -1,10 +1,10 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.client.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
-import static com.devicehive.client.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 
 public class NotificationPollManyResponse implements HiveEntity {
 
