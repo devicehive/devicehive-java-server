@@ -5,6 +5,7 @@ import com.devicehive.client.NetworkController;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.model.Network;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ class NetworkControllerImpl implements NetworkController {
 
     @Override
     public List<Network> listNetworks(String name, String namePattern, String sortField, String sortOrder, Integer take,
-                                      Integer skip) {
+                                      Integer skip) throws HiveException {
         logger.debug("Network: list requested with parameters: name {}, name pattern {}, sort field {}, " +
                 "sort order {}, take {}, skip {}", name, namePattern, sortField, sortOrder, take, skip);
         String path = "/network";
@@ -48,7 +49,7 @@ class NetworkControllerImpl implements NetworkController {
     }
 
     @Override
-    public Network getNetwork(long id) {
+    public Network getNetwork(long id) throws HiveException {
         logger.debug("Network: get requested for network with id {}", id);
         String path = "/network/" + id;
         Network result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Network.class,
@@ -58,7 +59,7 @@ class NetworkControllerImpl implements NetworkController {
     }
 
     @Override
-    public long insertNetwork(Network network) throws HiveClientException {
+    public long insertNetwork(Network network) throws HiveException {
         if (network == null) {
             throw new HiveClientException("Network cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -72,7 +73,7 @@ class NetworkControllerImpl implements NetworkController {
     }
 
     @Override
-    public void updateNetwork(long id, Network network) throws HiveClientException {
+    public void updateNetwork(long id, Network network) throws HiveException {
         if (network == null) {
             throw new HiveClientException("Network cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -83,7 +84,7 @@ class NetworkControllerImpl implements NetworkController {
     }
 
     @Override
-    public void deleteNetwork(long id) {
+    public void deleteNetwork(long id) throws HiveException {
         logger.debug("Network: delete requested for network with id {}", id);
         String path = "/network/" + id;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);

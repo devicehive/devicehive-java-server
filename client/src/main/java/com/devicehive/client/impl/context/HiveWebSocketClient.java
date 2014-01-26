@@ -62,10 +62,13 @@ public class HiveWebSocketClient implements AutoCloseable {
      * @param uri      URI of websocket service
      * @param hiveContext context. Keeps state, for example credentials.
      */
-    public HiveWebSocketClient(URI uri, HiveContext hiveContext) {
+    public HiveWebSocketClient(URI uri, HiveContext hiveContext) throws HiveException {
         this.hiveContext = hiveContext;
         this.uri = uri;
+        initSession();
     }
+
+
 
 
 
@@ -86,8 +89,6 @@ public class HiveWebSocketClient implements AutoCloseable {
         } finally {
             lock.writeLock().unlock();
         }
-        HiveClientEndpoint endpoint = new HiveClientEndpoint(hiveContext);
-
     }
 
     /**

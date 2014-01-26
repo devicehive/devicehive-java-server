@@ -1,6 +1,8 @@
 package com.devicehive.client.impl.context;
 
 
+import com.devicehive.client.impl.rest.subs.RestSubManager;
+import com.devicehive.client.impl.rest.subs.WebsocketSubManager;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
@@ -27,15 +29,18 @@ import static com.devicehive.client.impl.context.Constants.REQUIRED_VERSION_OF_A
 /**
  * Entity that keeps all state, i.e. rest and websocket client, subscriptions info, transport to use.
  */
-public class HiveContext implements Closeable {
+public class HiveContext implements AutoCloseable {
     private static Logger logger = LoggerFactory.getLogger(HiveContext.class);
     private final HiveRestClient hiveRestClient;
     private final HiveWebSocketClient hiveWebSocketClient;
+    private final BlockingQueue<Pair<String, DeviceCommand>> commandQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
+    private final RestSubManager restSubManager;
+    private final WebsocketSubManager websocketSubManager;
+
+
     private HivePrincipal hivePrincipal;
-    private HiveSubscriptions hiveSubscriptions;
-    private BlockingQueue<Pair<String, DeviceCommand>> commandQueue = new LinkedBlockingQueue<>();
-    private BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
-    private BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
 
     /**
      * Constructor. Creates rest client or websocket client based on specified transport. If this transport is not
@@ -50,19 +55,29 @@ public class HiveContext implements Closeable {
     public HiveContext(boolean useWebsockets, URI rest, Role role, ConnectionEstablishedNotifier
             connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) throws HiveException {
 
-        //TODO
+        try {
 
-        this.hiveRestClient = new HiveRestClient(rest, this, connectionEstablishedNotifier, connectionLostNotifier);
-        ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
-        if (!info.getApiVersion().equals(REQUIRED_VERSION_OF_API)) {
-            throw new InternalHiveClientException("incompatible version of device hive server API!");
+            this.hiveRestClient = new HiveRestClient(rest, this, connectionEstablishedNotifier, connectionLostNotifier);
+            ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
+            if (!info.getApiVersion().equals(REQUIRED_VERSION_OF_API)) {
+                throw new InternalHiveClientException("incompatible version of device hive server API!");
+            }
+
+            URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
+            this.hiveWebSocketClient = useWebsockets ? new HiveWebSocketClient(websocket, this) : null;
+
+            restSubManager = new RestSubManager(this);
+
+            websocketSubManager = new WebsocketSubManager(this);
+        } catch (HiveException ex) {
+            close();
+            throw ex;
+        } catch (Exception ex) {
+            close();
+            throw new HiveException("Error creating Hive Context", ex);
         }
 
-        URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
-        this.hiveWebSocketClient = useWebsockets ? new HiveWebSocketClient(websocket, this) : null;
 
-
-        this.hiveSubscriptions = new HiveSubscriptions(this);
     }
 
     /**
@@ -79,30 +94,43 @@ public class HiveContext implements Closeable {
      * @throws IOException
      */
     @Override
-    public synchronized void close() throws IOException {
+    public synchronized void close() {
         try {
-            hiveSubscriptions.close();
-        } finally {
+            if (websocketSubManager != null) {
+                websocketSubManager.close();
+            }
+        } catch (Exception ex) {
+            logger.error("Error closing Websocket subscriptions", ex);
+        }
+        try {
+            if (restSubManager != null) {
+                restSubManager.close();
+            }
+        } catch (Exception ex) {
+            logger.error("Error closing REST subscriptions", ex);
+        }
+        try {
+            if (hiveWebSocketClient != null) {
+                restSubManager.close();
+            }
+        } catch (Exception ex) {
+            logger.error("Error closing Websocket client", ex);
+        }
+        try {
             if (hiveRestClient != null) {
                 hiveRestClient.close();
             }
-            try {
-                if (hiveWebSocketClient != null) {
-                    hiveWebSocketClient.close();
-                }
-            } catch (IOException ex) {
-                logger.error("Error closing Websocket client", ex);
-            }
+        } catch (Exception ex) {
+            logger.error("Error closing REST client", ex);
         }
     }
 
-    /**
-     * Get storage of all made subscriptions.
-     *
-     * @return storage of all made subscriptions.
-     */
-    public HiveSubscriptions getHiveSubscriptions() {
-        return hiveSubscriptions;
+    public RestSubManager getRestSubManager() {
+        return restSubManager;
+    }
+
+    public WebsocketSubManager getWebsocketSubManager() {
+        return websocketSubManager;
     }
 
     /**
