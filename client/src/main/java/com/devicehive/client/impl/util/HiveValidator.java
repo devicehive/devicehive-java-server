@@ -17,7 +17,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
  */
 public class HiveValidator {
 
-    public static void validate(Device device) {
+    public static void validate(Device device) throws HiveClientException {
         List<String> constraintViolations = new LinkedList<>();
         if (StringUtils.isBlank(device.getId())) {
             constraintViolations.add("id is required");
@@ -63,7 +63,7 @@ public class HiveValidator {
         }
     }
 
-    public static void validate(DeviceNotification deviceNotification) {
+    public static void validate(DeviceNotification deviceNotification) throws HiveClientException {
         if (StringUtils.isEmpty(deviceNotification.getNotification())) {
             throw new HiveClientException("Device notification name is required!", BAD_REQUEST.getStatusCode());
         }

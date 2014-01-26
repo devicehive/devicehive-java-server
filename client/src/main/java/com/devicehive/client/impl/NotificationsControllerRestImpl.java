@@ -54,7 +54,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
     }
 
     @Override
-    public DeviceNotification insertNotification(String guid, DeviceNotification notification) {
+    public DeviceNotification insertNotification(String guid, DeviceNotification notification) throws HiveClientException {
         if (notification == null) {
             throw new HiveClientException("Notification cannot be null!", BAD_REQUEST.getStatusCode());
         }

@@ -19,10 +19,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class SessionMonitor implements Closeable {
+public class SessionMonitor implements AutoCloseable {
+    public static final String SESSION_MONITOR_KEY = "SESSION_MONITOR_KEY";
     private static final String PING_MESSAGE = "devicehive-client-ping";
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
-    private static final Integer AWAIT_TERMINATION_TIMEOUT = 10;
     private final Date timeOfLastReceivedPong;
     private final Session userSession;
     private ScheduledExecutorService serverMonitor = Executors.newSingleThreadScheduledExecutor();
@@ -73,31 +73,16 @@ public class SessionMonitor implements Closeable {
                                     "No pings from server"));
                     } catch (IOException ioe) {
                         logger.debug("unable to close session");
-                        throw new InternalHiveClientException("Unable to close session. No pings", ioe);
                     }
-                    throw new HiveException("Session is dead. Try to connect once again");
                 }
             }
         }, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
-    public void close() throws IOException {
-        if (!serverMonitor.isShutdown()) {
-            serverMonitor.shutdown();
-        }
+    public void close() {
+        serverMonitor.shutdown();
         pingsSender.shutdown();
-        try {
-            if (!pingsSender.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS)) {
-                pingsSender.shutdownNow();
-                if (!pingsSender.awaitTermination(AWAIT_TERMINATION_TIMEOUT, TimeUnit.SECONDS))
-                    logger.warn("Ping sender did not terminate");
-            }
-        } catch (InterruptedException ie) {
-            logger.warn(ie.getMessage(), ie);
-            pingsSender.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
     }
 
 }

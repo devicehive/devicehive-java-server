@@ -4,6 +4,7 @@ import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.exceptions.HiveException;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Closeable;
@@ -24,21 +25,21 @@ public interface HiveDevice extends Closeable {
      * @param deviceId  device identifier
      * @param deviceKey device key
      */
-    void authenticate(String deviceId, String deviceKey);
+    void authenticate(String deviceId, String deviceKey) throws HiveException;
 
     /**
      * Gets information about the current device.
      *
      * @return current device info
      */
-    Device getDevice();
+    Device getDevice() throws HiveException;
 
     /**
      * Registers or updates a device.
      *
      * @param device update/create device info
      */
-    void registerDevice(Device device);
+    void registerDevice(Device device) throws HiveException;
 
 
     /**
@@ -55,7 +56,7 @@ public interface HiveDevice extends Closeable {
      * @return list of device commands
      */
     List<DeviceCommand> queryCommands(Timestamp start, Timestamp end, String command, String status,
-                                      String sortBy, boolean sortAsc, Integer take, Integer skip);
+                                      String sortBy, boolean sortAsc, Integer take, Integer skip) throws HiveException;
 
     /**
      * Gets information about device command.
@@ -63,14 +64,14 @@ public interface HiveDevice extends Closeable {
      * @param commandId command identifier
      * @return existing device command
      */
-    DeviceCommand getCommand(long commandId);
+    DeviceCommand getCommand(long commandId) throws HiveException;
 
     /**
      * Updates an existing device command.
      *
      * @param deviceCommand update info in the device command representation
      */
-    void updateCommand(DeviceCommand deviceCommand);
+    void updateCommand(DeviceCommand deviceCommand) throws HiveException;
 
 
     /**
@@ -79,12 +80,12 @@ public interface HiveDevice extends Closeable {
      *
      * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      */
-    void subscribeForCommands(Timestamp timestamp);
+    void subscribeForCommands(Timestamp timestamp) throws HiveException;
 
     /**
      * Unsubscribes the device from commands.
      */
-    void unsubscribeFromCommands();
+    void unsubscribeFromCommands() throws HiveException;
 
 
     /**
@@ -93,19 +94,19 @@ public interface HiveDevice extends Closeable {
      * @param deviceNotification device notification that should be created
      * @return info about inserted notification
      */
-    DeviceNotification insertNotification(DeviceNotification deviceNotification);
+    DeviceNotification insertNotification(DeviceNotification deviceNotification) throws HiveException;
 
     /**
      * Get commands queue
      *
      * @return commands queue
      */
-    Queue<Pair<String, DeviceCommand>> getCommandsQueue();
+    Queue<Pair<String, DeviceCommand>> getCommandsQueue() throws HiveException;
 
     /**
      * Requests API info from server
      *
      * @return API info
      */
-    ApiInfo getInfo();
+    ApiInfo getInfo() throws HiveException;
 }

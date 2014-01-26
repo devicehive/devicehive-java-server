@@ -4,6 +4,7 @@ package com.devicehive.client.impl.websocket;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.impl.util.connection.ConnectionEvent;
@@ -28,44 +29,16 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
  * Client websocket endpoint.
  */
 @ClientEndpoint(encoders = {JsonEncoder.class})
-public class HiveClientEndpoint implements Closeable {
+public class HiveClientEndpoint extends Endpoint {
     private static final Logger logger = LoggerFactory.getLogger(HiveClientEndpoint.class);
-    private Session userSession;
-    private MessageHandler messageHandler;
-    private ClientManager clientManager;
-    private SessionMonitor sessionMonitor;
-    private URI endpointURI;
     private HiveContext hiveContext;
-    private HiveConnectionEventHandler hiveConnectionEventHandler;
 
     /**
      * Creates new endpoint and trying to connect to server. Client or device endpoint should be already set.
      *
-     * @param endpointURI full endpoint URI (with client or device path specified).
      */
-    public HiveClientEndpoint(final URI endpointURI, HiveContext hiveContext,
-                              HiveConnectionEventHandler hiveConnectionEventHandler) {
-        this.endpointURI = endpointURI;
+    public HiveClientEndpoint( HiveContext hiveContext) {
         this.hiveContext = hiveContext;
-        final HiveClientEndpoint hiveClientEndpoint = this;
-        this.hiveConnectionEventHandler = hiveConnectionEventHandler;
-        try {
-            Future<Void> future = Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
-                @Override
-                public Void call() throws DeploymentException, IOException {
-                    clientManager = ClientManager.createClient();
-                    clientManager.connectToServer(hiveClientEndpoint, endpointURI);
-                    return null;
-                }
-            });
-            future.get(20, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            logger.warn("unable to establish connection! Reason: " + e.getMessage(), e);
-        } catch (ExecutionException e) {
-            throw new InternalHiveClientException(e.getCause().getMessage(), e.getCause());
-        } catch (TimeoutException e) {
-            throw new HiveClientException("Unable to establish connection");
-        }
     }
 
     /**
@@ -73,12 +46,10 @@ public class HiveClientEndpoint implements Closeable {
      *
      * @param userSession user session
      */
-    @OnOpen
-    public void onOpen(Session userSession) {
+    public void onOpen(Session userSession, EndpointConfig config) {
         logger.info("[onOpen] User session: {}", userSession);
-        this.userSession = userSession;
-        sessionMonitor = new SessionMonitor(userSession);
-        hiveConnectionEventHandler.setUserSession(userSession);
+        SessionMonitor sessionMonitor = new SessionMonitor(userSession);
+        userSession.getUserProperties().put(SessionMonitor.SESSION_MONITOR_KEY, sessionMonitor);
     }
 
     /**
@@ -87,16 +58,22 @@ public class HiveClientEndpoint implements Closeable {
      * @param userSession user session
      * @param reason      close reason
      */
-    @OnClose
     public void onClose(Session userSession, CloseReason reason) {
         logger.info("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
                 reason.getCloseCode
                         ().getCode());
+        SessionMonitor sessionMonitor = (SessionMonitor) userSession.getUserProperties().get(SessionMonitor.SESSION_MONITOR_KEY);
+        if (sessionMonitor != null) {
+            sessionMonitor.close();
+        }
+
+
+                        /*
         try {
             switch (reason.getCloseCode().getCode()) {  //cannot use required enum at the compile-time
                 //CANNOT_ACCEPT
                 case 1003:
-                    reconnectToServer();
+                    //reconnectToServer();
                     throw new HiveServerException(
                             "Try to reconnect on close reason: " + reason.getReasonPhrase() +
                                     "Status code: 1003",
@@ -152,65 +129,14 @@ public class HiveClientEndpoint implements Closeable {
         } catch (DeploymentException | IOException e) {
             throw new InternalHiveClientException(e.getMessage(), e);
         }
-
+        */
     }
 
-    @OnError
-    public void onError(Throwable exception) {
+    public void onError(Throwable exception, Session session) {
         logger.error("[onError] ", exception);
     }
 
-    /**
-     * Client endpoint onMessage message. Pass message to the HiveWebsocketHandler for the further processing
-     *
-     * @param message message from server.
-     */
-    @OnMessage
-    public void onMessage(String message) {
-        try {
-            if (messageHandler != null)
-                messageHandler.handleMessage(message);
-        } catch (Utf8DecodingError e) {
-            //decoding error occurred. exception will be thrown
-            throw new InternalHiveClientException("Wrong encoding type!", e);
-        }
-    }
-
-    /**
-     * Adds message handler
-     *
-     * @param msgHandler message handler
-     */
-    public void addMessageHandler(MessageHandler msgHandler) {
-        messageHandler = msgHandler;
-    }
-
-    /**
-     * Send message to the server asynchronously
-     *
-     * @param message message to send
-     */
-    public void sendMessage(String message) {
-        try {
-            this.userSession.getAsyncRemote().sendText(message);
-        } catch (Utf8DecodingError e) {
-            //decoding error occurred. exception will be thrown
-            throw new InternalHiveClientException("Wrong encoding type!", e);
-        }
-    }
-
-    /**
-     * Stop the session monitor
-     *
-     * @throws IOException
-     */
-    @Override
-    public void close() throws IOException {
-        if (sessionMonitor != null) {
-            sessionMonitor.close();
-        }
-    }
-
+    /*
     private void reconnectToServer() throws IOException, DeploymentException {
         userSession = clientManager.connectToServer(this, endpointURI);
         hiveConnectionEventHandler.setUserSession(userSession);
@@ -250,10 +176,7 @@ public class HiveClientEndpoint implements Closeable {
 
     private void checkIfCommandUpdated() {
         hiveContext.getHiveSubscriptions().requestCommandsUpdates();
-    }
+    } */
 
-    public static interface MessageHandler extends javax.websocket.MessageHandler {
-        public void handleMessage(String message);
-    }
 }
 

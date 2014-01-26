@@ -1,9 +1,11 @@
 package com.devicehive.client.impl.context;
 
 
+import com.devicehive.client.HiveClient;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.devicehive.client.impl.util.connection.*;
@@ -18,6 +20,7 @@ import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.websocket.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -25,9 +28,10 @@ import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.UUID;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static javax.ws.rs.core.Response.Status.Family;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
@@ -36,65 +40,54 @@ import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
  * Part of client that creates requests based on required parameters (set by user) and parses responses into model
  * classes representation
  */
-public class HiveWebSocketClient implements Closeable {
+public class HiveWebSocketClient implements AutoCloseable {
+
+    private static Logger logger = LoggerFactory.getLogger(HiveWebSocketClient.class);
 
     private static final String REQUEST_ID_MEMBER = "requestId";
     private static final Long WAIT_TIMEOUT = 1L;
-    private static Logger logger = LoggerFactory.getLogger(HiveWebSocketClient.class);
+
+    private static final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
+
     private final HiveContext hiveContext;
-    private final ConnectionEventHandler connectionEventHandler;
-    private final URI socket;
-    private HiveClientEndpoint endpoint;
-    private Map<String, SettableFuture<JsonObject>> websocketResponsesMap = new HashMap<>();
+    private final URI uri;
+    private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap = new ConcurrentHashMap<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock(true);
+
+    private Session currentSession;
 
     /**
      * Creates client connected to the given websocket URL. All state is kept in the hive context.
      *
-     * @param socket      URI of websocket service
+     * @param uri      URI of websocket service
      * @param hiveContext context. Keeps state, for example credentials.
      */
-    public HiveWebSocketClient(URI socket, HiveContext hiveContext) {
+    public HiveWebSocketClient(URI uri, HiveContext hiveContext) {
         this.hiveContext = hiveContext;
-        this.socket = socket;
-        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler();
-        endpoint = new HiveClientEndpoint(socket, hiveContext, connectionEventHandler);
-        endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
-        this.connectionEventHandler = connectionEventHandler;
+        this.uri = uri;
     }
 
-    /**
-     * Creates client connected to the given websocket URL. All state is kept in the hive context.
-     *
-     * @param socket                        URI of websocket service
-     * @param hiveContext                   context. Keeps state, for example credentials.
-     * @param connectionEstablishedNotifier notifier for successful reconnection completion
-     * @param connectionLostNotifier        notifier for lost connection
-     */
-    public HiveWebSocketClient(URI socket, HiveContext hiveContext, ConnectionEstablishedNotifier
-            connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) {
-        this.hiveContext = hiveContext;
-        this.socket = socket;
-        HiveConnectionEventHandler connectionEventHandler =
-                new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
-        endpoint = new HiveClientEndpoint(socket, hiveContext, connectionEventHandler);
-        endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
-        this.connectionEventHandler = connectionEventHandler;
-    }
 
-    /**
-     * Creates client connected to the given websocket URL. All state is kept in the hive context.
-     *
-     * @param socket                        URI of websocket service
-     * @param hiveContext                   context. Keeps state, for example credentials.
-     * @param connectionLostNotifier        notifier for lost connection
-     */
-    public HiveWebSocketClient(URI socket, HiveContext hiveContext, ConnectionLostNotifier connectionLostNotifier) {
-        this.hiveContext = hiveContext;
-        this.socket = socket;
-        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier);
-        endpoint = new HiveClientEndpoint(socket, hiveContext, connectionEventHandler);
-        endpoint.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
-        this.connectionEventHandler = connectionEventHandler;
+
+    private synchronized void initSession() throws HiveException {
+        try {
+            lock.writeLock().lock();
+            HiveClientEndpoint endpoint = new HiveClientEndpoint(hiveContext);
+            currentSession = webSocketContainer.connectToServer(endpoint, ClientEndpointConfig.Builder.create().build(), uri);
+            if (!websocketResponsesMap.isEmpty()) {
+                logger.error("There are requests without responses, they will be lost in new session");
+                websocketResponsesMap.clear();
+            }
+            currentSession.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
+        } catch (DeploymentException e) {
+            throw new IllegalStateException(e);
+        } catch (IOException e) {
+            throw new HiveException("Can not connect to " + uri);
+        } finally {
+            lock.writeLock().unlock();
+        }
+        HiveClientEndpoint endpoint = new HiveClientEndpoint(hiveContext);
+
     }
 
     /**
@@ -102,11 +95,15 @@ public class HiveWebSocketClient implements Closeable {
      *
      * @param message some HiveEntity object in JSON
      */
-    public void sendMessage(JsonObject message) {
-        endpoint.sendMessage(message.toString());
-        String requestId = message.get(REQUEST_ID_MEMBER).getAsString();
-        websocketResponsesMap.put(requestId, SettableFuture.<JsonObject>create());
-        processResponse(requestId);
+    public void sendMessage(JsonObject message) throws HiveException {
+        try {
+            lock.readLock().lock();
+            String requestId = rawSend(message);
+            websocketResponsesMap.put(requestId, SettableFuture.<JsonObject>create());
+            processResponse(requestId);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -119,11 +116,23 @@ public class HiveWebSocketClient implements Closeable {
      * @return instance of typeOfResponse, that represents server's response
      */
     public <T> T sendMessage(JsonObject message, String responseMemberName, Type typeOfResponse,
-                             JsonPolicyDef.Policy policy) {
-        endpoint.sendMessage(message.toString());
-        String requestId = message.get(REQUEST_ID_MEMBER).getAsString();
-        websocketResponsesMap.put(requestId, SettableFuture.<JsonObject>create());
-        return processResponse(requestId, responseMemberName, typeOfResponse, policy);
+                             JsonPolicyDef.Policy policy) throws HiveException {
+        try {
+            lock.readLock().lock();
+            String requestId = rawSend(message);
+            websocketResponsesMap.put(requestId, SettableFuture.<JsonObject>create());
+            return processResponse(requestId, responseMemberName, typeOfResponse, policy);
+        } finally {
+            lock.readLock().unlock();
+        }
+
+    }
+
+    private String rawSend(JsonObject message) {
+        String requestId = UUID.randomUUID().toString();
+        message.addProperty(REQUEST_ID_MEMBER, requestId);
+        currentSession.getAsyncRemote().sendObject(message);
+        return requestId;
     }
 
     /**
@@ -133,11 +142,11 @@ public class HiveWebSocketClient implements Closeable {
      */
     @Override
     public void close() throws IOException {
-        endpoint.close();
+        currentSession.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, ""));
     }
 
     //Private methods-----------------------------------------------------------------------------------------------
-    private void processResponse(final String requestId) {
+    private void processResponse(final String requestId) throws HiveException {
         try {
             JsonObject result = websocketResponsesMap.get(requestId).get(WAIT_TIMEOUT, TimeUnit.MINUTES);
 
@@ -147,7 +156,7 @@ public class HiveWebSocketClient implements Closeable {
                 try {
                     response = gson.fromJson(result, SimpleWebsocketResponse.class);
                 } catch (JsonSyntaxException e) {
-                    throw new InternalHiveClientException("Wrong type of response!");
+                    throw new HiveServerException("Wrong type of response!", 500);
                 }
                 if (response.getStatus().equals("success")) {
                     logger.debug("Request with id:" + requestId + "proceed successfully");
@@ -180,7 +189,7 @@ public class HiveWebSocketClient implements Closeable {
     }
 
     private <T> T processResponse(final String requestId, final String responseMemberName, final Type typeOfResponse,
-                                  final JsonPolicyDef.Policy receivePolicy) {
+                                  final JsonPolicyDef.Policy receivePolicy) throws HiveException {
         try {
             JsonObject result = websocketResponsesMap.get(requestId).get(WAIT_TIMEOUT, TimeUnit.MINUTES);
             if (result != null) {
@@ -229,20 +238,7 @@ public class HiveWebSocketClient implements Closeable {
         return null;
     }
 
-    private void noResponseAction() {
-        Timestamp connectionLost = new Timestamp(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis
-                (WAIT_TIMEOUT));
-        ConnectionEvent event;
-        HivePrincipal principal = hiveContext.getHivePrincipal();
-        if (principal.getDevice() != null)
-            event = new ConnectionEvent(socket, connectionLost, principal.getDevice().getLeft());
-        else if (principal.getAccessKey() != null) {
-            event = new ConnectionEvent(socket, connectionLost, principal.getAccessKey());
-        } else {
-            event = new ConnectionEvent(socket, connectionLost, principal.getUser().getLeft());
-        }
-        event.setLost(true);
-        connectionEventHandler.handle(event);
+    private void noResponseAction() throws HiveServerException {
         throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
     }
 }

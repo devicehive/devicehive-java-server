@@ -4,6 +4,7 @@ package com.devicehive.client;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceClass;
 import com.devicehive.client.model.DeviceEquipment;
+import com.devicehive.client.model.exceptions.HiveException;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public interface DeviceController {
      */
     List<Device> listDevices(String name, String namePattern, String status, Integer networkId, String networkName,
                              Integer deviceClassId, String deviceClassName, String deviceClassVersion,
-                             String sortField, String sortOrder, Integer take, Integer skip);
+                             String sortField, String sortOrder, Integer take, Integer skip) throws HiveException;
 
     /**
      * Gets information about device.
@@ -50,7 +51,7 @@ public interface DeviceController {
      * @return If successful, this method returns
      *         a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
      */
-    Device getDevice(String deviceId);
+    Device getDevice(String deviceId) throws HiveException;
 
     /**
      * Registers a device.
@@ -63,7 +64,7 @@ public interface DeviceController {
      *                 .com/restful#Reference/Device/register">
      * @param deviceId Device unique identifier.
      */
-    void registerDevice(String deviceId, Device device);
+    void registerDevice(String deviceId, Device device) throws HiveException;
 
     /**
      * Deletes an existing device.
@@ -72,7 +73,7 @@ public interface DeviceController {
      *
      * @param deviceId Device unique identifier
      */
-    void deleteDevice(String deviceId);
+    void deleteDevice(String deviceId) throws HiveException;
 
     /**
      * Gets current state of device equipment.
@@ -85,7 +86,7 @@ public interface DeviceController {
      *
      * @param deviceId Device unique identifier.
      */
-    List<DeviceEquipment> getDeviceEquipment(String deviceId);
+    List<DeviceEquipment> getDeviceEquipment(String deviceId) throws HiveException;
 
     //device class block
 
@@ -105,7 +106,7 @@ public interface DeviceController {
      *         .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
      */
     List<DeviceClass> listDeviceClass(String name, String namePattern, String version, String sortField,
-                                      String sortOrder, Integer take, Integer skip);
+                                      String sortOrder, Integer take, Integer skip) throws HiveException;
 
     /**
      * Gets information about device class and its equipment.
@@ -116,7 +117,7 @@ public interface DeviceController {
      * @return If successful, this method returns a <a href="http://www.devicehive
      *         .com/restful#Reference/DeviceClass">DeviceClass</a> resource in the response body.
      */
-    DeviceClass getDeviceClass(long classId);
+    DeviceClass getDeviceClass(long classId) throws HiveException;
 
     /**
      * Creates new device class.
@@ -126,7 +127,7 @@ public interface DeviceController {
      * @param deviceClass device class to be inserted
      * @return device class identifier
      */
-    long insertDeviceClass(DeviceClass deviceClass);
+    long insertDeviceClass(DeviceClass deviceClass) throws HiveException;
 
     /**
      * Updates an existing device class.
@@ -136,7 +137,7 @@ public interface DeviceController {
      * @param classId     device class identifier
      * @param deviceClass device class to be updated
      */
-    void updateDeviceClass(long classId, DeviceClass deviceClass);
+    void updateDeviceClass(long classId, DeviceClass deviceClass) throws HiveException;
 
     /**
      * Deletes an existing device class by id.
@@ -145,5 +146,5 @@ public interface DeviceController {
      *
      * @param classId device class identifier
      */
-    void deleteDeviceClass(long classId);
+    void deleteDeviceClass(long classId) throws HiveException;
 }

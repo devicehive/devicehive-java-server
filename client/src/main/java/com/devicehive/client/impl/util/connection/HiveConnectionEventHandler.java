@@ -34,7 +34,7 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
     }
 
     @Override
-    public void handle(final ConnectionEvent event) {
+    public void handle(final ConnectionEvent event) throws InternalHiveClientException {
         logger.info("Connection event info. Timestamp : {}, id : {}, is lost : {}, service uri:",
                 event.getTimestamp(), event.getId(), event.isLost(), event.getServiceUri());
         if (event.isLost()) {

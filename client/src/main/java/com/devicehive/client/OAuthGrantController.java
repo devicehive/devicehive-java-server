@@ -4,6 +4,7 @@ package com.devicehive.client;
 import com.devicehive.client.model.AccessType;
 import com.devicehive.client.model.OAuthGrant;
 import com.devicehive.client.model.OAuthType;
+import com.devicehive.client.model.exceptions.HiveException;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -32,7 +33,7 @@ public interface OAuthGrantController {
      */
     List<OAuthGrant> list(long userId, Timestamp start, Timestamp end, String clientOauthId, OAuthType type,
                           String scope, String redirectUri, AccessType accessType, String sortField, String sortOrder,
-                          Integer take, Integer skip);
+                          Integer take, Integer skip) throws HiveException;
 
     /**
      * Queries OAuth grants of the current user.
@@ -52,7 +53,7 @@ public interface OAuthGrantController {
      */
     List<OAuthGrant> list(Timestamp start, Timestamp end, String clientOauthId, OAuthType type,
                           String scope, String redirectUri, AccessType accessType, String sortField, String sortOrder,
-                          Integer take, Integer skip);
+                          Integer take, Integer skip) throws HiveException;
 
     /**
      * Gets information about OAuth grant.
@@ -61,7 +62,7 @@ public interface OAuthGrantController {
      * @param grantId grant identifier
      * @return OAuth grant associated with requested id.
      */
-    OAuthGrant get(long userId, long grantId);
+    OAuthGrant get(long userId, long grantId) throws HiveException;
 
     /**
      * Gets information about OAuth grant of the current user.
@@ -69,7 +70,7 @@ public interface OAuthGrantController {
      * @param grantId grant identifier
      * @return OAuth grant associated with requested id.
      */
-    OAuthGrant get(long grantId);
+    OAuthGrant get(long grantId) throws HiveException;
 
     /**
      * Creates new OAuth grant.
@@ -78,7 +79,7 @@ public interface OAuthGrantController {
      * @param grant  grant to be created
      * @return created OAuth grant
      */
-    OAuthGrant insert(long userId, OAuthGrant grant);
+    OAuthGrant insert(long userId, OAuthGrant grant) throws HiveException;
 
     /**
      * Creates new OAuth grant for current user.
@@ -86,7 +87,7 @@ public interface OAuthGrantController {
      * @param grant grant to be created
      * @return created OAuth grant
      */
-    OAuthGrant insert(OAuthGrant grant);
+    OAuthGrant insert(OAuthGrant grant) throws HiveException;
 
     /**
      * Updates an existing OAuth grant.
@@ -96,7 +97,7 @@ public interface OAuthGrantController {
      * @param grant   grant resource providing update info
      * @return update OAuth grant
      */
-    OAuthGrant update(long userId, long grantId, OAuthGrant grant);
+    OAuthGrant update(long userId, long grantId, OAuthGrant grant) throws HiveException;
 
     /**
      * Updates an existing OAuth grant of current user
@@ -105,7 +106,7 @@ public interface OAuthGrantController {
      * @param grant   grant resource providing update info
      * @return update OAuth grant
      */
-    OAuthGrant update(long grantId, OAuthGrant grant);
+    OAuthGrant update(long grantId, OAuthGrant grant) throws HiveException;
 
     /**
      * Deletes an existing OAuth grant.
@@ -113,12 +114,12 @@ public interface OAuthGrantController {
      * @param userId  user identifier
      * @param grantId grant identifier
      */
-    void delete(long userId, long grantId);
+    void delete(long userId, long grantId) throws HiveException;
 
     /**
      * Deletes an existing OAuth grant of current user.
      *
      * @param grantId grant identifier
      */
-    void delete(long grantId);
+    void delete(long grantId) throws HiveException;
 }

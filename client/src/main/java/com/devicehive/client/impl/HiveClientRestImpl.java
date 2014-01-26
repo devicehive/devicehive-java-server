@@ -2,46 +2,33 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.*;
-import com.devicehive.client.impl.websocket.WebsocketAuthenticationUtil;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.model.ApiInfo;
-import com.devicehive.client.model.Role;
-import com.devicehive.client.model.Transport;
+import com.devicehive.client.model.exceptions.HiveException;
 
 import java.io.IOException;
-import java.net.URI;
 
-public class HiveClientImpl implements HiveClient {
+public class HiveClientRestImpl implements HiveClient {
 
 
-    private final HiveContext hiveContext;
+    protected final HiveContext hiveContext;
 
-    public HiveClientImpl(URI uri) {
-        hiveContext = new HiveContext(Transport.AUTO, uri, Role.USER);
+
+    public HiveClientRestImpl(HiveContext hiveContext) {
+        this.hiveContext = hiveContext;
     }
 
-    public HiveClientImpl(URI uri, Transport transport) {
-        hiveContext = new HiveContext(transport, uri, Role.USER);
-    }
-
-    public ApiInfo getInfo() {
+    public ApiInfo getInfo() throws HiveException {
         return hiveContext.getInfo();
     }
 
-    public void authenticate(String login, String password) {
-        if (hiveContext.useSockets()) {
-            WebsocketAuthenticationUtil.authenticateClient(login, password, hiveContext);
-        }
+    public void authenticate(String login, String password) throws HiveException {
         hiveContext.setHivePrincipal(HivePrincipal.createUser(login, password));
     }
 
-    public void authenticate(String accessKey) {
-        if (hiveContext.useSockets()) {
-            WebsocketAuthenticationUtil.authenticateKey(accessKey, hiveContext);
-        }
+    public void authenticate(String accessKey) throws HiveException {
         hiveContext.setHivePrincipal(HivePrincipal.createAccessKey(accessKey));
-
     }
 
     public AccessKeyController getAccessKeyController() {

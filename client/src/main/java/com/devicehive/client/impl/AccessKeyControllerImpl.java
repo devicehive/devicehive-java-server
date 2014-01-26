@@ -67,7 +67,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public AccessKey insertKey(long userId, AccessKey key) {
+    public AccessKey insertKey(long userId, AccessKey key) throws HiveClientException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -82,7 +82,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public AccessKey insertKey(AccessKey key) {
+    public AccessKey insertKey(AccessKey key) throws HiveClientException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -98,7 +98,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public void updateKey(long userId, long keyId, AccessKey key) {
+    public void updateKey(long userId, long keyId, AccessKey key) throws HiveClientException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -111,7 +111,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public void updateKey(long keyId, AccessKey key) {
+    public void updateKey(long keyId, AccessKey key) throws HiveClientException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }

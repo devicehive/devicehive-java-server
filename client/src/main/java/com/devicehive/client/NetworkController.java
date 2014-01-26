@@ -2,6 +2,7 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.Network;
+import com.devicehive.client.model.exceptions.HiveException;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public interface NetworkController {
      * @return list of <a href="http://www.devicehive.com/restful#Reference/Network">networks</a>
      */
     List<Network> listNetworks(String name, String namePattern, String sortField, String sortOrder, Integer take,
-                               Integer skip);
+                               Integer skip) throws HiveException;
 
     /**
      * Gets information about network.
@@ -39,7 +40,7 @@ public interface NetworkController {
      *         <a href="http://www.devicehive.com/restful#Reference/Network">network</a> resource in the response
      *         body.
      */
-    Network getNetwork(long id);
+    Network getNetwork(long id) throws HiveException;
 
     /**
      * Creates new network.
@@ -49,7 +50,7 @@ public interface NetworkController {
      * @param network network to be inserted
      * @return network identifier
      */
-    long insertNetwork(Network network);
+    long insertNetwork(Network network) throws HiveException;
 
     /**
      * Updates existing network.
@@ -59,7 +60,7 @@ public interface NetworkController {
      * @param id      network identifier
      * @param network network to be updated
      */
-    void updateNetwork(long id, Network network);
+    void updateNetwork(long id, Network network) throws HiveException;
 
     /**
      * Deletes network by its identifier.
@@ -68,5 +69,5 @@ public interface NetworkController {
      *
      * @param id network identifier
      */
-    void deleteNetwork(long id);
+    void deleteNetwork(long id) throws HiveException;
 }

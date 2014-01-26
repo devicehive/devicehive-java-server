@@ -2,6 +2,7 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.exceptions.HiveException;
 
 import java.io.Closeable;
 
@@ -17,7 +18,7 @@ public interface HiveClient extends Closeable {
      *
      * @return API info
      */
-    ApiInfo getInfo();
+    ApiInfo getInfo() throws HiveException;
 
     /**
      * Authenticates client as user (by login and password). Permissions will be determined by user's role.
@@ -25,55 +26,55 @@ public interface HiveClient extends Closeable {
      * @param login    login
      * @param password password
      */
-    void authenticate(String login, String password);
+    void authenticate(String login, String password) throws HiveException;
 
     /**
      * Authenticates client by access key. Permissions will be determined by the access key permissions.
      *
      * @param key access key
      */
-    void authenticate(String key);
+    void authenticate(String key) throws HiveException;
 
     /**
      * Return new instance of access key controller
      *
      * @return access key controller
      */
-    AccessKeyController getAccessKeyController();
+    AccessKeyController getAccessKeyController() throws HiveException;
 
     /**
      * Return new instance of command controller
      *
      * @return command controller
      */
-    CommandsController getCommandsController();
+    CommandsController getCommandsController() throws HiveException;
 
     /**
      * Return new instance of device controller
      *
      * @return device controller
      */
-    DeviceController getDeviceController();
+    DeviceController getDeviceController() throws HiveException;
 
     /**
      * Return new instance of network controller
      *
      * @return network controller
      */
-    NetworkController getNetworkController();
+    NetworkController getNetworkController() throws HiveException;
 
     /**
      * Return new instance of notification controller
      *
      * @return notification controller
      */
-    NotificationsController getNotificationsController();
+    NotificationsController getNotificationsController() throws HiveException;
 
     /**
      * Return new instance of user controller.
      *
      * @return user controller
      */
-    UserController getUserController();
+    UserController getUserController() throws HiveException;
 
 }

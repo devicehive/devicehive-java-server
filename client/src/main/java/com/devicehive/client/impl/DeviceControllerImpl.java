@@ -79,7 +79,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public void registerDevice(String deviceId, Device device) {
+    public void registerDevice(String deviceId, Device device) throws HiveClientException {
         if (device == null) {
             throw new HiveClientException("Device cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -158,7 +158,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public long insertDeviceClass(DeviceClass deviceClass) {
+    public long insertDeviceClass(DeviceClass deviceClass) throws HiveClientException {
         if (deviceClass == null) {
             throw new HiveClientException("Device class cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -173,7 +173,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public void updateDeviceClass(long classId, DeviceClass deviceClass) {
+    public void updateDeviceClass(long classId, DeviceClass deviceClass) throws HiveClientException {
         if (deviceClass == null) {
             throw new HiveClientException("Device class cannot be null!", BAD_REQUEST.getStatusCode());
         }

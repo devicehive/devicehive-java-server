@@ -64,7 +64,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
     }
 
     @Override
-    public OAuthClient insert(OAuthClient client) {
+    public OAuthClient insert(OAuthClient client) throws HiveClientException {
         if (client == null) {
             throw new HiveClientException("OAuthClient cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -80,7 +80,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
     }
 
     @Override
-    public void update(long id, OAuthClient client) {
+    public void update(long id, OAuthClient client) throws HiveClientException {
         if (client == null) {
             throw new HiveClientException("OAuthClient cannot be null!", BAD_REQUEST.getStatusCode());
         }

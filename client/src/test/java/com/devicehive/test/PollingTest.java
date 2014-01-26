@@ -1,11 +1,10 @@
 package com.devicehive.test;
 
 import com.devicehive.client.*;
-import com.devicehive.client.impl.HiveClientImpl;
+import com.devicehive.client.impl.HiveClientRestImpl;
 import com.devicehive.client.impl.HiveDeviceRestImpl;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.JsonStringWrapper;
-import com.devicehive.client.model.Transport;
 import com.devicehive.client.model.exceptions.HiveException;
 import junit.framework.TestCase;
 import org.apache.commons.lang3.tuple.Pair;
@@ -41,7 +40,7 @@ public class PollingTest {
             shd = new HiveDeviceRestImpl(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"),
                     Transport.PREFER_WEBSOCKET);
             shd.authenticate("E50D6085-2ABA-48E9-B1C3-73C673E414BE".toLowerCase(), "05F94BF509C8");
-            client = new HiveClientImpl(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"), Transport.PREFER_WEBSOCKET);
+            client = new HiveClientRestImpl(URI.create("http://jk-pc:8080/DeviceHiveJava/rest/"), Transport.PREFER_WEBSOCKET);
             client.authenticate("dhadmin", "dhadmin_#911");
             final CommandsController controller = client.getCommandsController();
             final DeviceCommand command = new DeviceCommand();

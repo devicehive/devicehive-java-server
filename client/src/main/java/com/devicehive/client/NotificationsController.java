@@ -2,6 +2,7 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.exceptions.HiveException;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Timestamp;
@@ -34,7 +35,7 @@ public interface NotificationsController {
     List<DeviceNotification> queryNotifications(String deviceId, Timestamp start, Timestamp end,
                                                 String notificationName,
                                                 String sortOrder, String sortField, Integer take, Integer skip,
-                                                Integer gridInterval);
+                                                Integer gridInterval) throws HiveException;
 
     /**
      * Insert and send notification to the client.
@@ -44,7 +45,7 @@ public interface NotificationsController {
      * @param deviceId     device identifier
      * @param notification notification to be inserted
      */
-    DeviceNotification insertNotification(String deviceId, DeviceNotification notification);
+    DeviceNotification insertNotification(String deviceId, DeviceNotification notification) throws HiveException;
 
     /**
      * Get information about required notification.
@@ -55,7 +56,7 @@ public interface NotificationsController {
      * @param notificationId notification identifier
      * @return requested device notification resource
      */
-    DeviceNotification getNotification(String deviceId, long notificationId);
+    DeviceNotification getNotification(String deviceId, long notificationId) throws HiveException;
 
     /**
      * Subscribes client to notifications. RESTful poll/pollMany or websocket subscribe will be used.
@@ -64,7 +65,7 @@ public interface NotificationsController {
      * @param names     names of the notifications
      * @param deviceIds device identifiers
      */
-    void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds);
+    void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException;
 
     /**
      * Unsubscribes client from notifications. In case of websocket unsubscribe method will be used,
@@ -73,12 +74,12 @@ public interface NotificationsController {
      * @param names     names of the notifications
      * @param deviceIds device identifiers
      */
-    void unsubscribeFromNotification(Set<String> names, String... deviceIds);
+    void unsubscribeFromNotification(Set<String> names, String... deviceIds) throws HiveException;
 
     /**
      * Get notification queue.
      *
      * @return notifications queue
      */
-    Queue<Pair<String, DeviceNotification>> getNotificationsQueue();
+    Queue<Pair<String, DeviceNotification>> getNotificationsQueue() throws HiveException;
 }

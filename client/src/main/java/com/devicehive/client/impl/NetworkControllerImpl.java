@@ -58,7 +58,7 @@ class NetworkControllerImpl implements NetworkController {
     }
 
     @Override
-    public long insertNetwork(Network network) {
+    public long insertNetwork(Network network) throws HiveClientException {
         if (network == null) {
             throw new HiveClientException("Network cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -72,7 +72,7 @@ class NetworkControllerImpl implements NetworkController {
     }
 
     @Override
-    public void updateNetwork(long id, Network network) {
+    public void updateNetwork(long id, Network network) throws HiveClientException {
         if (network == null) {
             throw new HiveClientException("Network cannot be null!", BAD_REQUEST.getStatusCode());
         }

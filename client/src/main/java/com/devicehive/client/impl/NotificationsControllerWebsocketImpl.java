@@ -1,7 +1,6 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.impl.websocket.WebsocketSubscriptionsUtil;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceNotification;
@@ -27,7 +26,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
 
 
     @Override
-    public DeviceNotification insertNotification(String guid, DeviceNotification notification) {
+    public DeviceNotification insertNotification(String guid, DeviceNotification notification) throws HiveClientException {
         if (notification == null) {
             throw new HiveClientException("Notification cannot be null!", BAD_REQUEST.getStatusCode());
         }

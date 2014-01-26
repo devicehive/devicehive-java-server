@@ -6,6 +6,7 @@ import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -32,7 +33,7 @@ class CommandsControllerRestImpl implements CommandsController {
     @Override
     public List<DeviceCommand> queryCommands(String deviceGuid, Timestamp start, Timestamp end, String commandName,
                                              String status, String sortField, String sortOrder, Integer take,
-                                             Integer skip, Integer gridInterval) {
+                                             Integer skip, Integer gridInterval) throws HiveException {
         logger.debug("DeviceCommand: query requested for device id {}, start timestamp {], end timestamp {}, " +
                 "commandName {}, status {}, sort field {}, sort order {}, take param {}, skip param {}, " +
                 "grid interval {}", deviceGuid, start, end, commandName, status, sortField, sortOrder, take, skip,
@@ -59,7 +60,7 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public DeviceCommand getCommand(String guid, long id) {
+    public DeviceCommand getCommand(String guid, long id) throws HiveException {
         logger.debug("DeviceCommand: get requested for device id {] and command id {}", guid, id);
         String path = "/device/" + guid + "/command/" + id;
         DeviceCommand result = hiveContext.getHiveRestClient()
@@ -72,7 +73,7 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public DeviceCommand insertCommand(String guid, DeviceCommand command) {
+    public DeviceCommand insertCommand(String guid, DeviceCommand command) throws HiveException {
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -92,7 +93,7 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public void updateCommand(String deviceId, long id, DeviceCommand command) {
+    public void updateCommand(String deviceId, long id, DeviceCommand command) throws HiveException {
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -118,18 +119,7 @@ class CommandsControllerRestImpl implements CommandsController {
     @Override
     public void unsubscribeFromCommands(Set<String> names, String... deviceIds) {
         logger.debug("Device: command/unsubscribe requested for names {}, device ids {}", names, deviceIds);
-        if (hiveContext.useSockets()) {
-            JsonObject request = new JsonObject();
-            request.addProperty("action", "command/unsubscribe");
-            String requestId = UUID.randomUUID().toString();
-            request.addProperty("requestId", requestId);
-            Gson gson = GsonFactory.createGson();
-            request.add("deviceGuids", gson.toJsonTree(deviceIds));
-            hiveContext.getHiveWebSocketClient().sendMessage(request);
-            hiveContext.getHiveSubscriptions().removeWsCommandSubscription(names, deviceIds);
-        } else {
             hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceIds);
-        }
         logger.debug("Device: command/unsubscribe request proceed successfully for names {}, device ids {}", names,
                 deviceIds);
     }

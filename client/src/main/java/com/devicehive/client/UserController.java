@@ -3,6 +3,7 @@ package com.devicehive.client;
 
 import com.devicehive.client.model.User;
 import com.devicehive.client.model.UserNetwork;
+import com.devicehive.client.model.exceptions.HiveException;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public interface UserController {
      * @return List of users
      */
     List<User> listUsers(String login, String loginPattern, Integer role, Integer status, String sortField,
-                         String sortOrder, Integer take, Integer skip);
+                         String sortOrder, Integer take, Integer skip) throws HiveException;
 
     /**
      * Gets information about user.
@@ -41,7 +42,7 @@ public interface UserController {
      * @param id user identifier
      * @return user associated with request identifier
      */
-    User getUser(long id);
+    User getUser(long id) throws HiveException;
 
     /**
      * Gets information about current user.
@@ -50,7 +51,7 @@ public interface UserController {
      *
      * @return current user
      */
-    User getUser();
+    User getUser() throws HiveException;
 
     /**
      * Creates new user.
@@ -60,7 +61,7 @@ public interface UserController {
      * @param user user to be inserted
      * @return User resource with id and last log in timestamp
      */
-    User insertUser(User user);
+    User insertUser(User user) throws HiveException;
 
     /**
      * Updates an existing user.
@@ -70,7 +71,7 @@ public interface UserController {
      * @param id   user identifier
      * @param user user resource with update info
      */
-    void updateUser(long id, User user);
+    void updateUser(long id, User user) throws HiveException;
 
     /**
      * Updates current user.
@@ -79,7 +80,7 @@ public interface UserController {
      *
      * @param user user resource with update info
      */
-    void updateUser(User user);
+    void updateUser(User user) throws HiveException;
 
     /**
      * Deletes an existing user.
@@ -88,7 +89,7 @@ public interface UserController {
      *
      * @param id user identifier
      */
-    void deleteUser(long id);
+    void deleteUser(long id) throws HiveException;
 
     /**
      * Gets information about user/network association.
@@ -99,7 +100,7 @@ public interface UserController {
      * @param networkId network identifier
      * @return If successful, this method returns UserNetwork association.
      */
-    UserNetwork getNetwork(long userId, long networkId);
+    UserNetwork getNetwork(long userId, long networkId) throws HiveException;
 
     /**
      * Associates network with the user.
@@ -109,7 +110,7 @@ public interface UserController {
      * @param userId    user identifier
      * @param networkId network identifier
      */
-    void assignNetwork(long userId, long networkId);
+    void assignNetwork(long userId, long networkId) throws HiveException;
 
     /**
      * Breaks association between network and user.
@@ -117,5 +118,5 @@ public interface UserController {
      * @param userId    user identifier
      * @param networkId network identifier
      */
-    void unassignNetwork(long userId, long networkId);
+    void unassignNetwork(long userId, long networkId) throws HiveException;
 }

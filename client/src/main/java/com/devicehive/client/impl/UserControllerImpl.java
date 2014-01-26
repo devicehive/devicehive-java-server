@@ -73,7 +73,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public User insertUser(User user) {
+    public User insertUser(User user) throws HiveClientException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -88,7 +88,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void updateUser(long id, User user) {
+    public void updateUser(long id, User user) throws HiveClientException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -101,7 +101,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void updateUser(User user) {
+    public void updateUser(User user) throws HiveClientException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }

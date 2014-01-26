@@ -2,6 +2,7 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.exceptions.HiveException;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Timestamp;
@@ -32,7 +33,7 @@ public interface CommandsController {
      */
     List<DeviceCommand> queryCommands(String deviceGuid, Timestamp start, Timestamp end, String commandName,
                                       String status, String sortField, String sortOrder, Integer take, Integer skip,
-                                      Integer gridInterval);
+                                      Integer gridInterval) throws HiveException;
 
     /**
      * Get command with following parameters
@@ -41,7 +42,7 @@ public interface CommandsController {
      * @param id   command identifier
      * @return Command resource associated with required id
      */
-    DeviceCommand getCommand(String guid, long id);
+    DeviceCommand getCommand(String guid, long id) throws HiveException;
 
     /**
      * Insert and send command to device with specified identifier.
@@ -50,7 +51,7 @@ public interface CommandsController {
      * @param command command to be inserted
      * @return inserted command resource
      */
-    DeviceCommand insertCommand(String guid, DeviceCommand command);
+    DeviceCommand insertCommand(String guid, DeviceCommand command) throws HiveException;
 
     /**
      * Updates command with specified id by device with specified identifier. Notifies client who sent this command
@@ -60,7 +61,7 @@ public interface CommandsController {
      * @param id         command identifier
      * @param command    command resource
      */
-    void updateCommand(String deviceGuid, long id, DeviceCommand command);
+    void updateCommand(String deviceGuid, long id, DeviceCommand command) throws HiveException;
 
     /**
      * Subscribes client or device to commands. RESTful poll/pollMany or websocket subscribe will be used. When
@@ -70,7 +71,7 @@ public interface CommandsController {
      * @param names     names of the commands
      * @param deviceIds device identifiers
      */
-    void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds);
+    void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException;
 
     /**
      * Unsubscribes client or device from commands. In case of websocket unsubscribe method will be used,
@@ -79,19 +80,19 @@ public interface CommandsController {
      * @param names     names of commands
      * @param deviceIds device identifiers
      */
-    void unsubscribeFromCommands(Set<String> names, String... deviceIds);
+    void unsubscribeFromCommands(Set<String> names, String... deviceIds) throws HiveException;
 
     /**
      * Return commands queue
      *
      * @return commands queue
      */
-    Queue<Pair<String, DeviceCommand>> getCommandQueue();
+    Queue<Pair<String, DeviceCommand>> getCommandQueue() throws HiveException;
 
     /**
      * Return command updates queue
      *
      * @return command updates queue
      */
-    Queue<DeviceCommand> getCommandUpdatesQueue();
+    Queue<DeviceCommand> getCommandUpdatesQueue() throws HiveException;
 }

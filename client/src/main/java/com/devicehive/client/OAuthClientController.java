@@ -2,6 +2,7 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.OAuthClient;
+import com.devicehive.client.model.exceptions.HiveException;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ public interface OAuthClientController {
      * @return list of OAuth clients
      */
     List<OAuthClient> list(String name, String namePattern, String domain, String oauthId, String sortField,
-                           String sortOrder, Integer take, Integer skip);
+                           String sortOrder, Integer take, Integer skip) throws HiveException;
 
     /**
      * Gets information about OAuth client.
@@ -32,7 +33,7 @@ public interface OAuthClientController {
      * @param id OAuth client identifier.
      * @return OAuth client associated with requested id.
      */
-    OAuthClient get(long id);
+    OAuthClient get(long id) throws HiveException;
 
     /**
      * Creates new OAuth client.
@@ -40,7 +41,7 @@ public interface OAuthClientController {
      * @param client client to be inserted
      * @return OAuthClient resource with client identifier and client OAuth secret.
      */
-    OAuthClient insert(OAuthClient client);
+    OAuthClient insert(OAuthClient client) throws HiveException;
 
     /**
      * Updates an existing OAuth client.
@@ -48,12 +49,12 @@ public interface OAuthClientController {
      * @param id     OAuth client identifier.
      * @param client OAuth client resource update info.
      */
-    void update(long id, OAuthClient client);
+    void update(long id, OAuthClient client) throws HiveException;
 
     /**
      * Deletes an existing OAuth client.
      *
      * @param id OAuth client identifier.
      */
-    void delete(long id);
+    void delete(long id) throws HiveException;
 }

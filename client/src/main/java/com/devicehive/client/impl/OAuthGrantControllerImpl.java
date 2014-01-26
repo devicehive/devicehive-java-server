@@ -115,7 +115,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant insert(long userId, OAuthGrant grant) {
+    public OAuthGrant insert(long userId, OAuthGrant grant) throws HiveClientException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -138,7 +138,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant insert(OAuthGrant grant) {
+    public OAuthGrant insert(OAuthGrant grant) throws HiveClientException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -159,7 +159,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant update(long userId, long grantId, OAuthGrant grant) {
+    public OAuthGrant update(long userId, long grantId, OAuthGrant grant) throws HiveClientException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -174,7 +174,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant update(long grantId, OAuthGrant grant) {
+    public OAuthGrant update(long grantId, OAuthGrant grant) throws HiveClientException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }

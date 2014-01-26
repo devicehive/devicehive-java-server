@@ -46,7 +46,7 @@ public class HiveRestClient implements Closeable {
     private static final String USER_AUTH_SCHEMA = "Basic";
     private static final String KEY_AUTH_SCHEMA = "Bearer";
     private static Logger logger = LoggerFactory.getLogger(HiveRestClient.class);
-    private final URI rest;
+    private final URI uri;
     private final Client restClient;
     private final HiveContext hiveContext;
     private final ConnectionEventHandler connectionEventHandler;
@@ -54,11 +54,11 @@ public class HiveRestClient implements Closeable {
     /**
      * Creates client connected to the given REST URL. All state is kept in the hive context.
      *
-     * @param rest        URI of RESTful service
+     * @param uri         URI of RESTful service
      * @param hiveContext context. Keeps state, for example credentials.
      */
-    public HiveRestClient(URI rest, HiveContext hiveContext) {
-        this.rest = rest;
+    public HiveRestClient(URI uri, HiveContext hiveContext) {
+        this.uri = uri;
         this.hiveContext = hiveContext;
         restClient = HiveClientFactory.getClient();
         connectionEventHandler = new HiveConnectionEventHandler();
@@ -67,14 +67,14 @@ public class HiveRestClient implements Closeable {
     /**
      * Creates client connected to the given REST URL. All state is kept in the hive context.
      *
-     * @param rest                          URI of RESTful service
+     * @param uri                           URI of RESTful service
      * @param hiveContext                   context. Keeps state, for example credentials.
      * @param connectionEstablishedNotifier notifier for successful reconnection completion
      * @param connectionLostNotifier        notifier for lost connection
      */
-    public HiveRestClient(URI rest, HiveContext hiveContext, ConnectionEstablishedNotifier
+    public HiveRestClient(URI uri, HiveContext hiveContext, ConnectionEstablishedNotifier
             connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) {
-        this.rest = rest;
+        this.uri = uri;
         this.hiveContext = hiveContext;
         restClient = HiveClientFactory.getClient();
         this.connectionEventHandler =
@@ -84,19 +84,19 @@ public class HiveRestClient implements Closeable {
     /**
      * Creates client connected to the given REST URL. All state is kept in the hive context.
      *
-     * @param rest                   URI of RESTful service
+     * @param uri                    URI of RESTful service
      * @param hiveContext            context. Keeps state, for example credentials.
      * @param connectionLostNotifier notifier for lost connection
      */
-    public HiveRestClient(URI rest, HiveContext hiveContext, ConnectionLostNotifier connectionLostNotifier) {
-        this.rest = rest;
+    public HiveRestClient(URI uri, HiveContext hiveContext, ConnectionLostNotifier connectionLostNotifier) {
+        this.uri = uri;
         this.hiveContext = hiveContext;
         restClient = HiveClientFactory.getClient();
         this.connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier);
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         restClient.close();
     }
 
@@ -110,7 +110,7 @@ public class HiveRestClient implements Closeable {
      * @param sendPolicy   policy that declares exclusion strategy for sending object
      */
     public <S> void execute(String path, String method, Map<String, String> headers, S objectToSend,
-                            JsonPolicyDef.Policy sendPolicy) {
+                            JsonPolicyDef.Policy sendPolicy) throws HiveException {
         execute(path, method, headers, null, objectToSend, null, sendPolicy, null);
     }
 
@@ -122,7 +122,7 @@ public class HiveRestClient implements Closeable {
      * @param headers     custom headers (authorization headers are added during the request build)
      * @param queryParams query params that should be added to the url. Null-valued params are ignored.
      */
-    public void execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams) {
+    public void execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams) throws HiveException {
         execute(path, method, headers, queryParams, null, null, null, null);
     }
 
@@ -132,7 +132,7 @@ public class HiveRestClient implements Closeable {
      * @param path   requested uri
      * @param method http method
      */
-    public void execute(String path, String method) {
+    public void execute(String path, String method) throws HiveException {
         execute(path, method, null, null, null, null, null, null);
     }
 
@@ -148,7 +148,7 @@ public class HiveRestClient implements Closeable {
      * @return instance of typeOfR, that represents server's response
      */
     public <R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
-                         Type typeOfR, JsonPolicyDef.Policy receivePolicy) {
+                         Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
         return execute(path, method, headers, queryParams, null, typeOfR, null, receivePolicy);
     }
 
@@ -163,7 +163,7 @@ public class HiveRestClient implements Closeable {
      * @return instance of typeOfR, that represents server's response
      */
     public <R> R execute(String path, String method, Map<String, String> headers, Type typeOfR,
-                         JsonPolicyDef.Policy receivePolicy) {
+                         JsonPolicyDef.Policy receivePolicy) throws HiveException {
         return execute(path, method, headers, null, null, typeOfR, null, receivePolicy);
     }
 
@@ -182,47 +182,36 @@ public class HiveRestClient implements Closeable {
      */
     public <S, R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
                             S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
-                            JsonPolicyDef.Policy receivePolicy) {
+                            JsonPolicyDef.Policy receivePolicy) throws HiveException {
+        Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
+        Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
         try {
-            Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
-            Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
-            try {
-                switch (statusFamily) {
-                    case SERVER_ERROR:
-                        throw new HiveServerException(response.getStatus());
-                    case CLIENT_ERROR:
-                        if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
-                            throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
-                                    response.getStatus());
-                        }
-                        ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
-                        throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
-                    case SUCCESSFUL:
-                        if (typeOfR == null) {
-                            return null;
-                        }
-                        if (receivePolicy == null) {
-                            return response.readEntity(new GenericType<R>(typeOfR));
-                        } else {
-                            Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
-                            return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
-                        }
-                    default:
-                        throw new HiveException("Unknown response");
-                }
-            } catch (MessageBodyProviderNotFoundException e) {
-                throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
+            switch (statusFamily) {
+                case SERVER_ERROR:
+                    throw new HiveServerException(response.getStatus());
+                case CLIENT_ERROR:
+                    if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
+                        throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
+                                response.getStatus());
+                    }
+                    ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                    throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
+                case SUCCESSFUL:
+                    if (typeOfR == null) {
+                        return null;
+                    }
+                    if (receivePolicy == null) {
+                        return response.readEntity(new GenericType<R>(typeOfR));
+                    } else {
+                        Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
+                        return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
+                    }
+                default:
+                    throw new HiveException("Unknown response");
             }
-        } catch (Exception e) {
-            if (e instanceof ProcessingException) {
-                connectionExceptionResolver();
-            } else if (e instanceof HiveException) {
-                throw e;
-            } else {
-                throw new InternalHiveClientException("Unexpected exception: " + e.getMessage(), e);
-            }
+        } catch (MessageBodyProviderNotFoundException e) {
+            throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
         }
-        return null;
     }
 
     /**
@@ -238,9 +227,10 @@ public class HiveRestClient implements Closeable {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of TypeOfR or null
      */
+    /*
     public <S, R> R executeAsync(String path, String method, Map<String, String> headers,
                                  Map<String, Object> queryParams, S objectToSend, Type typeOfR,
-                                 JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) {
+                                 JsonPolicyDef.Policy sendPolicy, JsonPolicyDef.Policy receivePolicy) throws HiveException {
 
         Future<Response> futureResponse = buildAsyncInvocation(path, method, headers, queryParams, objectToSend,
                 sendPolicy);
@@ -288,6 +278,7 @@ public class HiveRestClient implements Closeable {
             throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
         }
     }
+    */
 
     /**
      * Executes request with following params using forms
@@ -299,7 +290,7 @@ public class HiveRestClient implements Closeable {
      * @return instance of TypeOfR or null
      */
     public <R> R executeForm(String path, Map<String, String> formParams, Type typeOfR,
-                             JsonPolicyDef.Policy receivePolicy) {
+                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
         try {
             Response response = buildFormInvocation(path, formParams).invoke();
             Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
@@ -341,7 +332,7 @@ public class HiveRestClient implements Closeable {
 
     //Private methods------------------------------------------------------------------------------------------
 
-    private Invocation buildFormInvocation(String path, Map<String, String> formParams) {
+    private Invocation buildFormInvocation(String path, Map<String, String> formParams) throws HiveException {
         Invocation.Builder invocationBuilder = createTarget(path).
                 request().
                 accept(MediaType.APPLICATION_JSON_TYPE).
@@ -389,7 +380,7 @@ public class HiveRestClient implements Closeable {
     }
 
     private WebTarget createTarget(String path, Map<String, Object> queryParams) {
-        WebTarget target = restClient.target(rest).path(path);
+        WebTarget target = restClient.target(uri).path(path);
         if (queryParams != null) {
             for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
                 target = target.queryParam(entry.getKey(), entry.getValue());
@@ -426,17 +417,17 @@ public class HiveRestClient implements Closeable {
         }
     }
 
-    private void connectionExceptionResolver() {
+    private void connectionExceptionResolver() throws HiveServerException {
         ConnectionEvent event;
         HivePrincipal principal = hiveContext.getHivePrincipal();
         Timestamp lost = new Timestamp(System.currentTimeMillis());
         if (principal != null) {
             if (principal.getDevice() != null) {
-                event = new ConnectionEvent(rest, lost, principal.getDevice().getLeft());
+                event = new ConnectionEvent(uri, lost, principal.getDevice().getLeft());
             } else if (principal.getAccessKey() != null) {
-                event = new ConnectionEvent(rest, lost, principal.getAccessKey());
+                event = new ConnectionEvent(uri, lost, principal.getAccessKey());
             } else {
-                event = new ConnectionEvent(rest, lost, principal.getUser().getLeft());
+                event = new ConnectionEvent(uri, lost, principal.getUser().getLeft());
             }
             event.setLost(true);
             connectionEventHandler.handle(event);
