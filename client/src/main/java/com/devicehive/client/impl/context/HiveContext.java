@@ -2,12 +2,15 @@ package com.devicehive.client.impl.context;
 
 
 import com.devicehive.client.impl.rest.subs.RestSubManager;
-import com.devicehive.client.impl.rest.subs.WebsocketSubManager;
-import com.devicehive.client.model.*;
-import com.devicehive.client.model.exceptions.HiveException;
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
+import com.devicehive.client.impl.websocket.WebsocketSubManager;
 import com.devicehive.client.impl.util.connection.ConnectionEstablishedNotifier;
 import com.devicehive.client.impl.util.connection.ConnectionLostNotifier;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.Role;
+import com.devicehive.client.model.exceptions.HiveException;
+import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,11 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -111,7 +112,7 @@ public class HiveContext implements AutoCloseable {
         }
         try {
             if (hiveWebSocketClient != null) {
-                restSubManager.close();
+                hiveWebSocketClient.close();
             }
         } catch (Exception ex) {
             logger.error("Error closing Websocket client", ex);

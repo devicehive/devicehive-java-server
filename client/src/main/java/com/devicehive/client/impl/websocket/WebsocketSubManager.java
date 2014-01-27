@@ -1,23 +1,19 @@
-package com.devicehive.client.impl.rest.subs;
+package com.devicehive.client.impl.websocket;
 
 
-import com.devicehive.client.impl.context.Constants;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
+import com.devicehive.client.impl.rest.subs.SubManager;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Map;
+import java.util.Set;
 
 public class WebsocketSubManager implements AutoCloseable, SubManager {
 

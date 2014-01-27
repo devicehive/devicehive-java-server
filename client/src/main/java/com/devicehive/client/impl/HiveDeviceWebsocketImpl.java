@@ -83,8 +83,9 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
 
     @Override
-    public void subscribeForCommands(final Timestamp timestamp) {
-        WebsocketSubscriptionsUtil.subscribeDeviceForCommands(hiveContext, timestamp);
+    public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
+        hiveContext.getWebsocketSubManager().addCommandsSubscription(null, timestamp, null,
+                hiveContext.getHivePrincipal().getDevice().getLeft());
 
     }
 
@@ -92,12 +93,12 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
      * Unsubscribes the device from commands.
      */
     @Override
-    public void unsubscribeFromCommands() {
+    public void unsubscribeFromCommands() throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
         hiveContext.getHiveWebSocketClient().sendMessage(request);
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.getHiveSubscriptions().removeWsCommandSubscription(null, authenticated.getLeft());
+        hiveContext.getWebsocketSubManager().removeCommandSubscription(null, authenticated.getLeft());
     }
 
 

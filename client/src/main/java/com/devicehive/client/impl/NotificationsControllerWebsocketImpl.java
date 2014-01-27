@@ -5,6 +5,7 @@ import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
 
 
     @Override
-    public DeviceNotification insertNotification(String guid, DeviceNotification notification) throws HiveClientException {
+    public DeviceNotification insertNotification(String guid, DeviceNotification notification) throws HiveException {
         if (notification == null) {
             throw new HiveClientException("Notification cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -51,16 +52,17 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
 
 
     @Override
-    public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds) {
+    public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds)
+            throws HiveException {
         logger.debug("Client: notification/subscribe requested. Params: timestamp {}, names {}, device ids {}",
                 timestamp, names, deviceIds);
-        WebsocketSubscriptionsUtil.subscribeClientForNotifications(hiveContext, timestamp, names, deviceIds);
+        hiveContext.getWebsocketSubManager().addNotificationSubscription(null, timestamp, names, deviceIds);
         logger.debug("Client: notification/subscribe proceed. Params: timestamp {}, names {}, device ids {}",
                 timestamp, names, deviceIds);
     }
 
     @Override
-    public void unsubscribeFromNotification(Set<String> names, String... deviceIds) {
+    public void unsubscribeFromNotification(Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested. Params: names {}, device ids {}", names, deviceIds);
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/unsubscribe");
@@ -69,7 +71,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
         Gson gson = GsonFactory.createGson();
         request.add("deviceGuids", gson.toJsonTree(deviceIds));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
-        hiveContext.getHiveSubscriptions().removeWsNotificationSubscription(names, deviceIds);
+        hiveContext.getWebsocketSubManager().removeNotificationSubscription(names, deviceIds);
 
         logger.debug("Client: notification/unsubscribe proceed. Params: names {}, device ids {}", names, deviceIds);
     }

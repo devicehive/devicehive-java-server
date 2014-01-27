@@ -61,7 +61,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, device, null);
     }
 
-
+    @SuppressWarnings("serial")
     @Override
     public List<DeviceCommand> queryCommands(Timestamp start, Timestamp end, String command, String status,
                                              String sortBy, boolean sortAsc, Integer take, Integer skip) throws HiveException {
@@ -101,9 +101,9 @@ public class HiveDeviceRestImpl implements HiveDevice {
 
 
     @Override
-    public void subscribeForCommands(final Timestamp timestamp) {
+    public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.getHiveSubscriptions().addCommandsSubscription(null, timestamp, null,
+        hiveContext.getRestSubManager().addCommandsSubscription(null, timestamp, null,
                 authenticated.getLeft());
     }
 
@@ -111,9 +111,9 @@ public class HiveDeviceRestImpl implements HiveDevice {
      * Unsubscribes the device from commands.
      */
     @Override
-    public void unsubscribeFromCommands() {
+    public void unsubscribeFromCommands() throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.getHiveSubscriptions().removeCommandSubscription(null, authenticated.getLeft());
+        hiveContext.getRestSubManager().removeCommandSubscription(null, authenticated.getLeft());
     }
 
 

@@ -6,6 +6,7 @@ import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -27,10 +28,12 @@ class NotificationsControllerRestImpl implements NotificationsController {
         this.hiveContext = hiveContext;
     }
 
+    @SuppressWarnings("serial")
     @Override
     public List<DeviceNotification> queryNotifications(String guid, Timestamp start, Timestamp end,
                                                        String notificationName, String sortOrder, String sortField,
-                                                       Integer take, Integer skip, Integer gridInterval) {
+                                                       Integer take, Integer skip, Integer gridInterval)
+            throws HiveException {
         logger.debug("DeviceNotification: query requested with parameters: device id {}, start timestamp {}, " +
                 "end timestamp {}, notification name {}, sort order {}, sort field {}, take {}, skip {}, " +
                 "grid interval {}", guid, start, end, notificationName, sortOrder, sortField, take, skip, gridInterval);
@@ -54,16 +57,17 @@ class NotificationsControllerRestImpl implements NotificationsController {
     }
 
     @Override
-    public DeviceNotification insertNotification(String guid, DeviceNotification notification) throws HiveClientException {
+    public DeviceNotification insertNotification(String guid, DeviceNotification notification)
+            throws HiveException {
         if (notification == null) {
             throw new HiveClientException("Notification cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("DeviceNotification: insert requested for device with id {} and notification name {} and params " +
                 "{}", guid, notification.getNotification(), notification.getParameters());
         DeviceNotification result;
-            String path = "/device/" + guid + "/notification";
-            result = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, notification,
-                    DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
+        String path = "/device/" + guid + "/notification";
+        result = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, notification,
+                DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
                 "params {}. Result id {} and timestamp {}", guid, notification.getNotification(),
                 notification.getParameters(), result.getId(), result.getTimestamp());
@@ -71,7 +75,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
     }
 
     @Override
-    public DeviceNotification getNotification(String guid, long notificationId) {
+    public DeviceNotification getNotification(String guid, long notificationId) throws HiveException {
         logger.debug("DeviceNotification: get requested for device with id {} and notification id {}", guid,
                 notificationId);
         String path = "/device/" + guid + "/notification/" + notificationId;
@@ -83,21 +87,22 @@ class NotificationsControllerRestImpl implements NotificationsController {
     }
 
     @Override
-    public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds) {
+    public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds)
+            throws HiveException {
         logger.debug("Client: notification/subscribe requested. Params: timestamp {}, names {}, device ids {}",
                 timestamp, names, deviceIds);
 
-            hiveContext.getHiveSubscriptions().addNotificationSubscription(null, timestamp, names, deviceIds);
+        hiveContext.getRestSubManager().addNotificationSubscription(null, timestamp, names, deviceIds);
 
         logger.debug("Client: notification/subscribe proceed. Params: timestamp {}, names {}, device ids {}",
                 timestamp, names, deviceIds);
     }
 
     @Override
-    public void unsubscribeFromNotification(Set<String> names, String... deviceIds) {
+    public void unsubscribeFromNotification(Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested. Params: names {}, device ids {}", names, deviceIds);
 
-            hiveContext.getHiveSubscriptions().removeNotificationSubscription(names, deviceIds);
+        hiveContext.getRestSubManager().removeNotificationSubscription(names, deviceIds);
 
         logger.debug("Client: notification/unsubscribe proceed. Params: names {}, device ids {}", names, deviceIds);
     }

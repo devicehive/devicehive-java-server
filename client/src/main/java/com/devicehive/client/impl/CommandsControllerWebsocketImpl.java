@@ -42,7 +42,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.add("command", gson.toJsonTree(command));
         DeviceCommand toReturn = hiveContext.getHiveWebSocketClient().sendMessage(request, "command",
                 DeviceCommand.class, COMMAND_TO_CLIENT);
-        hiveContext.getHiveSubscriptions().addWsCommandUpdateSubscription(toReturn.getId(), guid);
+        hiveContext.getWebsocketSubManager().addCommandUpdateSubscription(toReturn.getId(), guid);
         logger.debug("DeviceCommand: insert request proceed successfully for device id {] and command: command {}, " +
                 "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
                 command.getCommand(), command.getParameters(), command.getLifetime(), command.getFlags(),
@@ -70,23 +70,23 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     }
 
     @Override
-    public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) {
+    public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Device: command/subscribe requested for timestamp {}, names {}, device ids {}", timestamp,
                 names, deviceIds);
-        WebsocketSubscriptionsUtil.subscribeClientForCommands(hiveContext, timestamp, names, deviceIds);
+        hiveContext.getWebsocketSubManager().addCommandsSubscription(null, timestamp, names, deviceIds);
         logger.debug("Device: command/subscribe request proceed successfully for timestamp {}, names {}, " +
                 "device ids {}", timestamp, names, deviceIds);
     }
 
     @Override
-    public void unsubscribeFromCommands(Set<String> names, String... deviceIds) {
+    public void unsubscribeFromCommands(Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Device: command/unsubscribe requested for names {}, device ids {}", names, deviceIds);
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
         Gson gson = GsonFactory.createGson();
         request.add("deviceGuids", gson.toJsonTree(deviceIds));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
-        hiveContext.getHiveSubscriptions().removeWsCommandSubscription(names, deviceIds);
+        hiveContext.getWebsocketSubManager().removeCommandSubscription(names, deviceIds);
         logger.debug("Device: command/unsubscribe request proceed successfully for names {}, device ids {}", names,
                 deviceIds);
     }

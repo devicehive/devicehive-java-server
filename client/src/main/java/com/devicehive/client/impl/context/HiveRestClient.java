@@ -3,13 +3,13 @@ package com.devicehive.client.impl.context;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.rest.HiveClientFactory;
+import com.devicehive.client.impl.util.connection.*;
 import com.devicehive.client.model.ErrorMessage;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
-import com.devicehive.client.impl.rest.HiveClientFactory;
-import com.devicehive.client.impl.util.connection.*;
 import com.google.common.collect.Maps;
 import org.glassfish.jersey.internal.util.Base64;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
@@ -24,16 +24,12 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.*;
 import java.io.Closeable;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
@@ -417,7 +413,7 @@ public class HiveRestClient implements Closeable {
         }
     }
 
-    private void connectionExceptionResolver() throws HiveServerException {
+    private void connectionExceptionResolver() throws HiveServerException, InternalHiveClientException {
         ConnectionEvent event;
         HivePrincipal principal = hiveContext.getHivePrincipal();
         Timestamp lost = new Timestamp(System.currentTimeMillis());

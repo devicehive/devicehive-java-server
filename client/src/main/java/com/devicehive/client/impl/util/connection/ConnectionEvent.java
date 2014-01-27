@@ -47,7 +47,7 @@ public class ConnectionEvent {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(String id) throws InternalHiveClientException {
         if (this.id == null) {
             this.id = id;
         } else {

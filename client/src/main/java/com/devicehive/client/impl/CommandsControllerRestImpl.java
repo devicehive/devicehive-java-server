@@ -3,13 +3,10 @@ package com.devicehive.client.impl;
 
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.impl.context.HiveContext;
-import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +27,7 @@ class CommandsControllerRestImpl implements CommandsController {
         this.hiveContext = hiveContext;
     }
 
+    @SuppressWarnings("serial")
     @Override
     public List<DeviceCommand> queryCommands(String deviceGuid, Timestamp start, Timestamp end, String commandName,
                                              String status, String sortField, String sortOrder, Integer take,
@@ -84,7 +82,7 @@ class CommandsControllerRestImpl implements CommandsController {
         String path = "/device/" + guid + "/command";
         toReturn = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, command,
                 DeviceCommand.class, COMMAND_FROM_CLIENT, COMMAND_TO_CLIENT);
-        hiveContext.getHiveSubscriptions().addCommandUpdateSubscription(toReturn.getId(), guid);
+        hiveContext.getRestSubManager().addCommandUpdateSubscription(toReturn.getId(), guid);
         logger.debug("DeviceCommand: insert request proceed successfully for device id {] and command: command {}, " +
                 "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
                 command.getCommand(), command.getParameters(), command.getLifetime(), command.getFlags(),
@@ -108,18 +106,18 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) {
+    public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Device: command/subscribe requested for timestamp {}, names {}, device ids {}", timestamp,
                 names, deviceIds);
-        hiveContext.getHiveSubscriptions().addCommandsSubscription(null, timestamp, names, deviceIds);
+        hiveContext.getRestSubManager().addCommandsSubscription(null, timestamp, names, deviceIds);
         logger.debug("Device: command/subscribe request proceed successfully for timestamp {}, names {}, " +
                 "device ids {}", timestamp, names, deviceIds);
     }
 
     @Override
-    public void unsubscribeFromCommands(Set<String> names, String... deviceIds) {
+    public void unsubscribeFromCommands(Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Device: command/unsubscribe requested for names {}, device ids {}", names, deviceIds);
-            hiveContext.getHiveSubscriptions().removeCommandSubscription(names, deviceIds);
+        hiveContext.getRestSubManager().removeCommandSubscription(names, deviceIds);
         logger.debug("Device: command/unsubscribe request proceed successfully for names {}, device ids {}", names,
                 deviceIds);
     }
