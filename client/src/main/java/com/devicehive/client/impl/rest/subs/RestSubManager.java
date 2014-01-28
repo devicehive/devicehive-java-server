@@ -36,17 +36,16 @@ public class RestSubManager {
      * Adds commands subscription to storage. Creates task that store commands in context's command queue. In case
      * when no device identifiers specified, subscription "for all available" will be added.
      *
-     * @param headers   headers that defines the sample of commands
      * @param timestamp first command timestamp
      * @param names     names of commands that defines
      * @param deviceIds devices identifiers of devices that should be subscribed
      */
-    public synchronized void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp,
+    public synchronized void addCommandsSubscription(Timestamp timestamp,
                                                      Set<String> names, String... deviceIds) {
         if (deviceIds == null) {
             Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
             if (!commandsSubscriptionsStorage.containsKey(key)) {
-                Future subscription = subscriptionExecutor.submit(new AllDeviceCommandRestSubscription(hiveContext, timestamp, 60, headers, names));
+                Future subscription = subscriptionExecutor.submit(new AllDeviceCommandRestSubscription(hiveContext, timestamp, 60, names));
                 commandsSubscriptionsStorage.put(key, subscription);
                 logger.debug("New subscription added for: {}", Constants.FOR_ALL_SUBSTITUTE);
             }
@@ -54,7 +53,7 @@ public class RestSubManager {
             for (String id : deviceIds) {
                 Pair<String, Set<String>> key = ImmutablePair.of(id, names);
                 if (!commandsSubscriptionsStorage.containsKey(key)) {
-                    Future subscription = subscriptionExecutor.submit(new SingleDeviceCommandRestSubscription(hiveContext, timestamp, 60, headers, names, id));
+                    Future subscription = subscriptionExecutor.submit(new SingleDeviceCommandRestSubscription(hiveContext, timestamp, 60, names, id));
                     commandsSubscriptionsStorage.put(key, subscription);
                     logger.debug("New subscription added for device with id: {}", id);
                 }
@@ -70,7 +69,7 @@ public class RestSubManager {
      * @param deviceId  device identifier
      */
     public synchronized void addCommandUpdateSubscription(long commandId, String deviceId) {
-        Future subscription = subscriptionExecutor.submit(new CommandUpdateRestSubscription(hiveContext, 60, Collections.<String, String>emptyMap(), deviceId, commandId));
+        Future subscription = subscriptionExecutor.submit(new CommandUpdateRestSubscription(hiveContext, 60, deviceId, commandId));
         logger.debug("New subscription added for device with id: {} and command id: {}", deviceId, commandId);
     }
 
@@ -114,7 +113,7 @@ public class RestSubManager {
         if (deviceIds == null) {
             Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
             if (!notificationsSubscriptionsStorage.containsKey(key)) {
-                Future subscription = subscriptionExecutor.submit(new AllDeviceNotificationRestSubscription(hiveContext, timestamp, 60, headers, names));
+                Future subscription = subscriptionExecutor.submit(new AllDeviceNotificationRestSubscription(hiveContext, timestamp, 60,  names));
                 notificationsSubscriptionsStorage.put(key, subscription);
                 logger.debug("New subscription added for: {}", Constants.FOR_ALL_SUBSTITUTE);
             }
@@ -122,7 +121,7 @@ public class RestSubManager {
             for (String id : deviceIds) {
                 Pair<String, Set<String>> key = ImmutablePair.of(id, names);
                 if (!notificationsSubscriptionsStorage.containsKey(key)) {
-                    Future subscription = subscriptionExecutor.submit(new SingleDeviceNotificationRestSubscription(hiveContext, timestamp, 60, headers, names, id));
+                    Future subscription = subscriptionExecutor.submit(new SingleDeviceNotificationRestSubscription(hiveContext, timestamp, 60,  names, id));
                     notificationsSubscriptionsStorage.put(key, subscription);
                     logger.debug("New subscription added for device with id: {}", id);
                 }

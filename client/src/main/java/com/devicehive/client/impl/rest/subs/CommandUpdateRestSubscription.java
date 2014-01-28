@@ -34,18 +34,15 @@ public class CommandUpdateRestSubscription extends RestSubscription {
 
     private HiveContext hiveContext;
     private final Integer waitTimeout;
-    private final Map<String, String> headers;
     private final Long commandId;
     private final String deviceGuid;
 
 
-    public CommandUpdateRestSubscription(HiveContext hiveContext, Integer waitTimeout,
-                                         Map<String, String> headers, String deviceGuid, Long commandId) {
+    public CommandUpdateRestSubscription(HiveContext hiveContext, Integer waitTimeout, String deviceGuid, Long commandId) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
         this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);
         this.commandId = commandId;
         this.deviceGuid = deviceGuid;
-        this.headers = headers;
     }
 
 
@@ -59,7 +56,7 @@ public class CommandUpdateRestSubscription extends RestSubscription {
             queryParams.put(WAIT_TIMEOUT_PARAM, waitTimeout);
             String path = new StringBuilder("/device/").append(deviceGuid).append("/command/").append(commandId).append("poll").toString();
             DeviceCommand command =
-                    hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, headers,
+                    hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null,
                             queryParams, null, new TypeToken<DeviceCommand>() {
                     }.getType(), null, COMMAND_LISTED);
             if (command != null) {

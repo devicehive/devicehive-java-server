@@ -32,18 +32,16 @@ public class SingleDeviceNotificationRestSubscription extends RestSubscription {
 
     private HiveContext hiveContext;
     private final Integer waitTimeout;
-    private final Map<String, String> headers;
     private final Set<String> names;
     private final String deviceGuid;
     private Timestamp timestamp;
 
 
     public SingleDeviceNotificationRestSubscription(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout,
-                                                    Map<String, String> headers, Set<String> names, String deviceGuid) {
+                                                     Set<String> names, String deviceGuid) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
         this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);
-        this.headers = headers;
         this.names = names;
         this.deviceGuid = deviceGuid;
     }
@@ -65,7 +63,7 @@ public class SingleDeviceNotificationRestSubscription extends RestSubscription {
             }
             String path = new StringBuilder("/device/").append(deviceGuid).append("/notification/poll").toString();
             List<DeviceNotification> notifications =
-                    hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, headers,
+                    hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null,
                             queryParams, null, new TypeToken<List<DeviceNotification>>() {
                     }.getType(), null, COMMAND_LISTED);
             for (DeviceNotification notification : notifications) {

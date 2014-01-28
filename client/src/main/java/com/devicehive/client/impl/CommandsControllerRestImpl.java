@@ -109,7 +109,7 @@ class CommandsControllerRestImpl implements CommandsController {
     public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Device: command/subscribe requested for timestamp {}, names {}, device ids {}", timestamp,
                 names, deviceIds);
-        hiveContext.getRestSubManager().addCommandsSubscription(null, timestamp, names, deviceIds);
+        hiveContext.getRestSubManager().addCommandsSubscription(timestamp, names, deviceIds);
         logger.debug("Device: command/subscribe request proceed successfully for timestamp {}, names {}, " +
                 "device ids {}", timestamp, names, deviceIds);
     }

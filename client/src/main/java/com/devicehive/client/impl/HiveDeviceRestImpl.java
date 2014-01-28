@@ -103,7 +103,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     @Override
     public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.getRestSubManager().addCommandsSubscription(null, timestamp, null,
+        hiveContext.getRestSubManager().addCommandsSubscription(timestamp, null,
                 authenticated.getLeft());
     }
 
