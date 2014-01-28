@@ -73,7 +73,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Device: command/subscribe requested for timestamp {}, names {}, device ids {}", timestamp,
                 names, deviceIds);
-        hiveContext.getWebsocketSubManager().addCommandsSubscription(null, timestamp, names, deviceIds);
+        hiveContext.getWebsocketSubManager().addCommandsSubscription(timestamp, names, deviceIds);
         logger.debug("Device: command/subscribe request proceed successfully for timestamp {}, names {}, " +
                 "device ids {}", timestamp, names, deviceIds);
     }
@@ -81,11 +81,6 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     @Override
     public void unsubscribeFromCommands(Set<String> names, String... deviceIds) throws HiveException {
         logger.debug("Device: command/unsubscribe requested for names {}, device ids {}", names, deviceIds);
-        JsonObject request = new JsonObject();
-        request.addProperty("action", "command/unsubscribe");
-        Gson gson = GsonFactory.createGson();
-        request.add("deviceGuids", gson.toJsonTree(deviceIds));
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
         hiveContext.getWebsocketSubManager().removeCommandSubscription(names, deviceIds);
         logger.debug("Device: command/unsubscribe request proceed successfully for names {}, device ids {}", names,
                 deviceIds);

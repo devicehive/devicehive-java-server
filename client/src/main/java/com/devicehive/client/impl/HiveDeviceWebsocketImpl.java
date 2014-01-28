@@ -84,7 +84,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
     @Override
     public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
-        hiveContext.getWebsocketSubManager().addCommandsSubscription(null, timestamp, null,
+        hiveContext.getWebsocketSubManager().addCommandsSubscription(timestamp, null,
                 hiveContext.getHivePrincipal().getDevice().getLeft());
 
     }

@@ -4,7 +4,6 @@ package com.devicehive.client.impl.websocket;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
-import com.devicehive.client.impl.rest.subs.SubManager;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -12,10 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.Map;
 import java.util.Set;
 
-public class WebsocketSubManager implements AutoCloseable, SubManager {
+public class WebsocketSubManager  {
 
     private static Logger logger = LoggerFactory.getLogger(WebsocketSubManager.class);
 
@@ -29,13 +27,11 @@ public class WebsocketSubManager implements AutoCloseable, SubManager {
      * Adds commands subscription to storage. Creates task that store commands in context's command queue. In case
      * when no device identifiers specified, subscription "for all available" will be added.
      *
-     * @param headers   headers that defines the sample of commands
      * @param timestamp first command timestamp
      * @param names     names of commands that defines
      * @param deviceIds devices identifiers of devices that should be subscribed
      */
-    @Override
-    public synchronized void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp,
+    public synchronized void addCommandsSubscription(Timestamp timestamp,
                                                      Set<String> names, String... deviceIds) throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/subscribe");
@@ -53,7 +49,6 @@ public class WebsocketSubManager implements AutoCloseable, SubManager {
      * @param commandId command identifier
      * @param deviceId  device identifier
      */
-    @Override
     public synchronized void addCommandUpdateSubscription(long commandId, String deviceId) {
         //nothing to do - this subscription is added implicitly on command send
     }
@@ -66,7 +61,6 @@ public class WebsocketSubManager implements AutoCloseable, SubManager {
      * @param names     set of command names
      * @param deviceIds device identifiers.
      */
-    @Override
     public synchronized void removeCommandSubscription(Set<String> names, String... deviceIds) throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
@@ -80,13 +74,11 @@ public class WebsocketSubManager implements AutoCloseable, SubManager {
      * Adds subscription for notifications with following set of notification's names from device with defined device
      * identifiers. In case when no device identifiers specified, subscription for all available devices will be added.
      *
-     * @param headers   headers that define the sample of commands
      * @param timestamp start timestamp
      * @param names     notifications names (statistics)
      * @param deviceIds device identifiers
      */
-    @Override
-    public synchronized void addNotificationSubscription(Map<String, String> headers, Timestamp timestamp, Set<String> names,
+    public synchronized void addNotificationSubscription(Timestamp timestamp, Set<String> names,
                                                          String... deviceIds) throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/subscribe");
@@ -105,7 +97,6 @@ public class WebsocketSubManager implements AutoCloseable, SubManager {
      * @param names     set of notification names
      * @param deviceIds device identifiers.
      */
-    @Override
     public synchronized void removeNotificationSubscription(Set<String> names, String... deviceIds) throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/unsubscribe");
@@ -115,12 +106,10 @@ public class WebsocketSubManager implements AutoCloseable, SubManager {
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
-    @Override
     public synchronized void resubscribeAll() {
         //TODO implement subscriptions restore
     }
 
-    @Override
     public void close() {
         //nothing to do
     }

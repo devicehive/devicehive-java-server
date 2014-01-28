@@ -7,6 +7,7 @@ import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceClass;
 import com.devicehive.client.model.DeviceEquipment;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ class DeviceControllerImpl implements DeviceController {
     public List<Device> listDevices(String name, String namePattern, String status, Integer networkId,
                                     String networkName, Integer deviceClassId, String deviceClassName,
                                     String deviceClassVersion, String sortField, String sortOrder, Integer take,
-                                    Integer skip) {
+                                    Integer skip) throws HiveException {
         logger.debug("Device: list requested with following parameters: name {}, name pattern {}, network id {}, " +
                 "network name {}, device class id {}, device class name {}, device class version {}, sort field {}, " +
                 "sort order {}, take {}, skip {}", name, namePattern, networkId, networkName, deviceClassId,
@@ -63,7 +64,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public Device getDevice(String deviceId) {
+    public Device getDevice(String deviceId) throws HiveException {
         logger.debug("Device: get requested for device id {}", deviceId);
         String path = "/device/" + deviceId;
         Device result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Device.class,
@@ -79,7 +80,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public void registerDevice(String deviceId, Device device) throws HiveClientException {
+    public void registerDevice(String deviceId, Device device) throws HiveException {
         if (device == null) {
             throw new HiveClientException("Device cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -104,7 +105,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public void deleteDevice(String deviceId) {
+    public void deleteDevice(String deviceId) throws HiveException {
         logger.debug("Device: delete requested for device with id {}", deviceId);
         String path = "/device/" + deviceId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
@@ -112,7 +113,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public List<DeviceEquipment> getDeviceEquipment(String deviceId) {
+    public List<DeviceEquipment> getDeviceEquipment(String deviceId) throws HiveException {
         logger.debug("Device: equipment requested for device with id {}", deviceId);
         String path = "/device/" + deviceId + "/equipment";
         List<DeviceEquipment> result = hiveContext.getHiveRestClient()
@@ -125,7 +126,7 @@ class DeviceControllerImpl implements DeviceController {
     //for device classes
     @Override
     public List<DeviceClass> listDeviceClass(String name, String namePattern, String version, String sortField,
-                                             String sortOrder, Integer take, Integer skip) {
+                                             String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("DeviceClass: list requested with parameters: name {}, name pattern {}, version {}, " +
                 "sort field {}, sort order {}, take param {}, skip  param {}", name, namePattern, version, sortField,
                 sortOrder, take, skip);
@@ -148,7 +149,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public DeviceClass getDeviceClass(long classId) {
+    public DeviceClass getDeviceClass(long classId) throws HiveException {
         logger.debug("DeviceClass: get requested for class with id {}", classId);
         String path = "/device/class/" + classId;
         DeviceClass result = hiveContext.getHiveRestClient()
@@ -158,7 +159,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public long insertDeviceClass(DeviceClass deviceClass) throws HiveClientException {
+    public long insertDeviceClass(DeviceClass deviceClass) throws HiveException {
         if (deviceClass == null) {
             throw new HiveClientException("Device class cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -173,7 +174,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public void updateDeviceClass(long classId, DeviceClass deviceClass) throws HiveClientException {
+    public void updateDeviceClass(long classId, DeviceClass deviceClass) throws HiveException {
         if (deviceClass == null) {
             throw new HiveClientException("Device class cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -186,7 +187,7 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public void deleteDeviceClass(long classId) {
+    public void deleteDeviceClass(long classId) throws HiveException {
         logger.debug("DeviceClass: delete requested for class with id {}", classId);
         String path = "/device/class" + classId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);

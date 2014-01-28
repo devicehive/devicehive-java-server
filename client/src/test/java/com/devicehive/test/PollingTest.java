@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @RunWith(JUnit4.class)
 public class PollingTest {
-
+    /*
     private final Lock lock = new ReentrantLock();
     private ScheduledExecutorService commandsInsertService = Executors.newSingleThreadScheduledExecutor();
     private volatile boolean greenState = false;
@@ -141,4 +141,5 @@ public class PollingTest {
             commandsUpdatesProcessor.shutdown();
         }
     }
+    */
 }

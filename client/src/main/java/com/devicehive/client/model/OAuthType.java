@@ -28,7 +28,7 @@ public enum OAuthType {
                 return OAuthType;
             }
         }
-        throw new HiveClientException("Illegal argument: " + value, Response.Status.BAD_REQUEST.getStatusCode());
+        throw new IllegalArgumentException("Illegal oauth type: " + value);
 
     }
 

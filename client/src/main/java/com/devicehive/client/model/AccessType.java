@@ -26,7 +26,7 @@ public enum AccessType {
                 return type;
             }
         }
-        throw new HiveClientException("Illegal argument: " + value, Response.Status.BAD_REQUEST.getStatusCode());
+        throw new IllegalArgumentException("Illegal access type: " + value);
 
     }
 

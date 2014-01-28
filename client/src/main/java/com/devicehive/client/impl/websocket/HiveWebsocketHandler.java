@@ -35,7 +35,6 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     private final static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
     private final HiveContext hiveContext;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap;
-    private final WebsocketSubManager websocketSubManager;
 
 
     /**
@@ -47,8 +46,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     public HiveWebsocketHandler(HiveContext hiveContext,
                                 ConcurrentMap<String, SettableFuture<JsonObject>> responsesMap) {
         this.hiveContext = hiveContext;
-        this.websocketResponsesMap = responsesMap;
-        websocketSubManager = new WebsocketSubManager(hiveContext);
+        this.websocketResponsesMap = responsesMap;;
     }
 
     /**
@@ -103,8 +101,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
                 DeviceCommand.class);
         hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, commandInsert));
         if (commandInsert.getTimestamp() != null) {
-            hiveContext.getWebsocketSubManager().updateWsDeviceLastCommandTimestampAssociation(deviceGuid,
-                    commandInsert.getTimestamp());
+            // TODO update timestamp
         } else {
             logger.warn("Device command inserted without timestamp. Id: " + commandInsert.getId());
         }
@@ -117,7 +114,6 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
                 (COMMAND_MEMBER), DeviceCommand.class);
         hiveContext.getCommandUpdateQueue().put(commandUpdated);
-        hiveContext.getWebsocketSubManager().removeWsCommandUpdateSubscription(commandUpdated.getId());
         logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
                 commandUpdated.getStatus());
     }
@@ -128,8 +124,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
                 (NOTIFICATION_MEMBER), DeviceNotification.class);
         hiveContext.getNotificationQueue().put(ImmutablePair.of(deviceGuid, notification));
         if (notification.getTimestamp() != null) {
-            hiveContext.getWebsocketSubManager().updateWsDeviceLastNotificationTimestampAssociation(deviceGuid,
-                    notification.getTimestamp());
+            // TODO update timestamp
         } else {
             logger.warn("Device notification inserted without timestamp. Id: " + notification.getId());
         }

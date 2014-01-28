@@ -149,6 +149,6 @@ public class OAuthGrant implements HiveEntity {
             }
             return result;
         }
-        throw new HiveClientException("JSON array expected!", Response.Status.BAD_REQUEST.getStatusCode());
+        throw new IllegalArgumentException("JSON array expected!");
     }
 }

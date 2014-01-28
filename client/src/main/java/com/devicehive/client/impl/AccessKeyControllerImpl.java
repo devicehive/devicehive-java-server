@@ -5,6 +5,7 @@ import com.devicehive.client.AccessKeyController;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.model.AccessKey;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public List<AccessKey> listKeys(long userId) {
+    public List<AccessKey> listKeys(long userId) throws HiveException {
         logger.debug("AccessKey: list requested for user id {}", userId);
         String path = "/user/" + userId + "/accesskey";
         List<AccessKey> result = hiveContext.getHiveRestClient()
@@ -36,7 +37,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public List<AccessKey> listKeys() {
+    public List<AccessKey> listKeys() throws HiveException {
         logger.debug("AccessKey: list requested for current user");
         String path = "/user/current/accesskey";
         List<AccessKey> result = hiveContext.getHiveRestClient()
@@ -47,7 +48,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public AccessKey getKey(long userId, long keyId) {
+    public AccessKey getKey(long userId, long keyId) throws HiveException {
         logger.debug("AccessKey: get requested for user with id {} and key id {}", userId, keyId);
         String path = "/user/" + userId + "/accesskey/" + keyId;
         AccessKey result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, AccessKey.class,
@@ -57,7 +58,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public AccessKey getKey(long keyId) {
+    public AccessKey getKey(long keyId) throws HiveException {
         logger.debug("AccessKey: get requested for current user and key with id {}", keyId);
         String path = "/user/current/accesskey/" + keyId;
         AccessKey key = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, AccessKey.class,
@@ -67,7 +68,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public AccessKey insertKey(long userId, AccessKey key) throws HiveClientException {
+    public AccessKey insertKey(long userId, AccessKey key) throws HiveException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -82,7 +83,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public AccessKey insertKey(AccessKey key) throws HiveClientException {
+    public AccessKey insertKey(AccessKey key) throws HiveException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -98,7 +99,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public void updateKey(long userId, long keyId, AccessKey key) throws HiveClientException {
+    public void updateKey(long userId, long keyId, AccessKey key) throws HiveException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -111,7 +112,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public void updateKey(long keyId, AccessKey key) throws HiveClientException {
+    public void updateKey(long keyId, AccessKey key) throws HiveException {
         if (key == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -124,7 +125,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public void deleteKey(long userId, long keyId) {
+    public void deleteKey(long userId, long keyId) throws HiveException {
         logger.debug("AccessKey: delete requested for user with id {}. Key id {}", userId, keyId);
         String path = "/user/" + userId + "/accesskey/" + keyId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
@@ -132,7 +133,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public void deleteKey(long keyId) {
+    public void deleteKey(long keyId) throws HiveException {
         logger.debug("AccessKey: delete requested for current user. Key id {}", keyId);
         String path = "/user/current/accesskey/" + keyId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);

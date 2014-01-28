@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class RestSubManager implements AutoCloseable, SubManager {
+public class RestSubManager {
 
     private static Logger logger = LoggerFactory.getLogger(RestSubManager.class);
 
@@ -41,7 +41,6 @@ public class RestSubManager implements AutoCloseable, SubManager {
      * @param names     names of commands that defines
      * @param deviceIds devices identifiers of devices that should be subscribed
      */
-    @Override
     public synchronized void addCommandsSubscription(Map<String, String> headers, Timestamp timestamp,
                                                      Set<String> names, String... deviceIds) {
         if (deviceIds == null) {
@@ -70,7 +69,6 @@ public class RestSubManager implements AutoCloseable, SubManager {
      * @param commandId command identifier
      * @param deviceId  device identifier
      */
-    @Override
     public synchronized void addCommandUpdateSubscription(long commandId, String deviceId) {
         Future subscription = subscriptionExecutor.submit(new CommandUpdateRestSubscription(hiveContext, 60, Collections.<String, String>emptyMap(), deviceId, commandId));
         logger.debug("New subscription added for device with id: {} and command id: {}", deviceId, commandId);
@@ -84,7 +82,6 @@ public class RestSubManager implements AutoCloseable, SubManager {
      * @param names     set of command names
      * @param deviceIds device identifiers.
      */
-    @Override
     public synchronized void removeCommandSubscription(Set<String> names, String... deviceIds) {
         if (deviceIds == null) {
             Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
@@ -112,7 +109,6 @@ public class RestSubManager implements AutoCloseable, SubManager {
      * @param names     notifications names (statistics)
      * @param deviceIds device identifiers
      */
-    @Override
     public synchronized void addNotificationSubscription(Map<String, String> headers, Timestamp timestamp, Set<String> names,
                                                          String... deviceIds) {
         if (deviceIds == null) {
@@ -142,7 +138,6 @@ public class RestSubManager implements AutoCloseable, SubManager {
      * @param names     set of notification names
      * @param deviceIds device identifiers.
      */
-    @Override
     public synchronized void removeNotificationSubscription(Set<String> names, String... deviceIds) {
         if (deviceIds == null) {
             Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
@@ -161,13 +156,13 @@ public class RestSubManager implements AutoCloseable, SubManager {
         }
     }
 
-    @Override
+
     public synchronized void resubscribeAll() {
 
     }
 
-    @Override
-    public void close() throws Exception {
+
+    public void close() {
         subscriptionExecutor.shutdownNow();
     }
 }

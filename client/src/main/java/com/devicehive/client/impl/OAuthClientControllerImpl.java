@@ -5,6 +5,7 @@ import com.devicehive.client.OAuthClientController;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.model.OAuthClient;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
 
     @Override
     public List<OAuthClient> list(String name, String namePattern, String domain, String oauthId, String sortField,
-                                  String sortOrder, Integer take, Integer skip) {
+                                  String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthClient: list requested with following parameters: name {}, name pattern {}, domain {}, " +
                 "oauth id {}, sort field {}, sort order {}, take {}, skip {}", name, namePattern, domain, oauthId,
                 sortField, sortOrder, take, skip);
@@ -52,7 +53,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
     }
 
     @Override
-    public OAuthClient get(long id) {
+    public OAuthClient get(long id) throws HiveException {
         logger.debug("OAuthClient: get requested for id {}", id);
         String path = "/oauth/client/" + id;
         OAuthClient result = hiveContext.getHiveRestClient()
@@ -64,7 +65,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
     }
 
     @Override
-    public OAuthClient insert(OAuthClient client) throws HiveClientException {
+    public OAuthClient insert(OAuthClient client) throws HiveException {
         if (client == null) {
             throw new HiveClientException("OAuthClient cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -80,7 +81,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
     }
 
     @Override
-    public void update(long id, OAuthClient client) throws HiveClientException {
+    public void update(long id, OAuthClient client) throws HiveException {
         if (client == null) {
             throw new HiveClientException("OAuthClient cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -95,7 +96,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
     }
 
     @Override
-    public void delete(long id) {
+    public void delete(long id) throws HiveException {
         logger.debug("OAuthClient: delete requested for client with id {}", id);
         String path = "/oauth/client/" + id;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);

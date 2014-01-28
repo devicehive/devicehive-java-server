@@ -22,15 +22,6 @@ public enum AllowedAction {
         this.value = value;
     }
 
-    public static AllowedAction forName(String value) {
-        for (AllowedAction action : values()) {
-            if (action.value.equals(value)) {
-                return action;
-            }
-        }
-        throw new InternalHiveClientException("Illegal argument: " + value);
-
-    }
 
     public String getValue() {
         return value;

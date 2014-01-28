@@ -7,6 +7,7 @@ import com.devicehive.client.model.AccessType;
 import com.devicehive.client.model.OAuthGrant;
 import com.devicehive.client.model.OAuthType;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     @Override
     public List<OAuthGrant> list(long userId, Timestamp start, Timestamp end, String clientOauthId, OAuthType type,
                                  String scope, String redirectUri, AccessType accessType, String sortField,
-                                 String sortOrder, Integer take, Integer skip) {
+                                 String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthGrant: list requested with parameters: userId {}, start timestamp {], end timestamp {}, " +
                 "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
                 "access type {}, sort field {}, sort order {}, take {}, skip {}", userId, start, end, clientOauthId,
@@ -64,7 +65,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     @Override
     public List<OAuthGrant> list(Timestamp start, Timestamp end, String clientOauthId, OAuthType type, String scope,
                                  String redirectUri, AccessType accessType, String sortField, String sortOrder,
-                                 Integer take, Integer skip) {
+                                 Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthGrant: list requested for current user with parameters: start timestamp {], " +
                 "end timestamp {}, " +
                 "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
@@ -95,7 +96,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant get(long userId, long grantId) {
+    public OAuthGrant get(long userId, long grantId) throws HiveException {
         logger.debug("OAuthGrant: get requested for user id {} and grant id {}", userId, grantId);
         String path = "/user/" + userId + "/oauth/grant/" + grantId;
         OAuthGrant result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, OAuthGrant.class,
@@ -105,7 +106,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant get(long grantId) {
+    public OAuthGrant get(long grantId) throws HiveException {
         logger.debug("OAuthGrant: get requested for current user and grant id {}", grantId);
         String path = "/user/current/oauth/grant/" + grantId;
         OAuthGrant result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, OAuthGrant.class,
@@ -115,7 +116,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant insert(long userId, OAuthGrant grant) throws HiveClientException {
+    public OAuthGrant insert(long userId, OAuthGrant grant) throws HiveException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -138,7 +139,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant insert(OAuthGrant grant) throws HiveClientException {
+    public OAuthGrant insert(OAuthGrant grant) throws HiveException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -159,7 +160,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant update(long userId, long grantId, OAuthGrant grant) throws HiveClientException {
+    public OAuthGrant update(long userId, long grantId, OAuthGrant grant) throws HiveException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -174,7 +175,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant update(long grantId, OAuthGrant grant) throws HiveClientException {
+    public OAuthGrant update(long grantId, OAuthGrant grant) throws HiveException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -189,7 +190,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public void delete(long userId, long grantId) {
+    public void delete(long userId, long grantId) throws HiveException {
         logger.debug("OAuthGrant: delete requested for user id {} and grant id {}", userId, grantId);
         String path = "/user/" + userId + "/oauth/grant/" + grantId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
@@ -197,7 +198,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public void delete(long grantId) {
+    public void delete(long grantId) throws HiveException {
         logger.debug("OAuthGrant: delete requested for current user and grant id {}", grantId);
         String path = "/user/current/oauth/grant/" + grantId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);

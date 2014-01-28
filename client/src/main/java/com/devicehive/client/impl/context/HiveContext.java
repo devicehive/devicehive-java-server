@@ -33,12 +33,14 @@ import static com.devicehive.client.impl.context.Constants.REQUIRED_VERSION_OF_A
 public class HiveContext implements AutoCloseable {
     private static Logger logger = LoggerFactory.getLogger(HiveContext.class);
     private final HiveRestClient hiveRestClient;
+    private final RestSubManager restSubManager;
     private final HiveWebSocketClient hiveWebSocketClient;
+    private final WebsocketSubManager websocketSubManager;
+
+
     private final BlockingQueue<Pair<String, DeviceCommand>> commandQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
-    private final RestSubManager restSubManager;
-    private final WebsocketSubManager websocketSubManager;
 
 
     private HivePrincipal hivePrincipal;
@@ -47,13 +49,13 @@ public class HiveContext implements AutoCloseable {
      * Constructor. Creates rest client or websocket client based on specified transport. If this transport is not
      * available and it is not REST_ONLY switches to another one.
      *
-     * @param useWebsockets
+     * @param activateWebsockets
      * @param rest                          RESTful service URL
      * @param role                          auth. level
      * @param connectionEstablishedNotifier notifier for successful reconnection completion
      * @param connectionLostNotifier        notifier for lost connection
      */
-    public HiveContext(boolean useWebsockets, URI rest, Role role, ConnectionEstablishedNotifier
+    public HiveContext(boolean activateWebsockets, URI rest, Role role, ConnectionEstablishedNotifier
             connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) throws HiveException {
 
         try {
@@ -65,7 +67,7 @@ public class HiveContext implements AutoCloseable {
             }
 
             URI websocket = websocketUriBuilder(info.getWebSocketServerUrl(), role);
-            this.hiveWebSocketClient = useWebsockets ? new HiveWebSocketClient(websocket, this) : null;
+            this.hiveWebSocketClient = activateWebsockets ? new HiveWebSocketClient(websocket, this) : null;
 
             restSubManager = new RestSubManager(this);
 
@@ -141,6 +143,15 @@ public class HiveContext implements AutoCloseable {
      */
     public HiveRestClient getHiveRestClient() {
         return hiveRestClient;
+    }
+
+    /**
+     * Get websocket client.
+     *
+     * @return websocket client
+     */
+    public HiveWebSocketClient getHiveWebSocketClient() {
+        return hiveWebSocketClient;
     }
 
     /**
@@ -221,14 +232,6 @@ public class HiveContext implements AutoCloseable {
         return notificationQueue;
     }
 
-    /**
-     * Get websocket client.
-     *
-     * @return websocket client
-     */
-    public HiveWebSocketClient getHiveWebSocketClient() {
-        return hiveWebSocketClient;
-    }
 
     //Private methods------------------------------------------------------------------------------------------
     private URI websocketUriBuilder(String websocket, Role role) {

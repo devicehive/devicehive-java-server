@@ -6,6 +6,7 @@ import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.model.User;
 import com.devicehive.client.model.UserNetwork;
 import com.devicehive.client.model.exceptions.HiveClientException;
+import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ class UserControllerImpl implements UserController {
 
     @Override
     public List<User> listUsers(String login, String loginPattern, Integer role, Integer status, String sortField,
-                                String sortOrder, Integer take, Integer skip) {
+                                String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("User: list requested with following parameters: login {}, login pattern {}, role {}, status {}," +
                 " sort field {}, sort order {}, take {}, skip {}", login, loginPattern, role, status, sortField,
                 sortOrder, take, skip);
@@ -53,7 +54,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public User getUser(long id) {
+    public User getUser(long id) throws HiveException {
         logger.debug("User: get requested for user with id {}", id);
         String path = "/user/" + id;
         User result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, null, User.class,
@@ -63,7 +64,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public User getUser() {
+    public User getUser() throws HiveException {
         logger.debug("User: get requested for current user");
         String path = "/user/current";
         User result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, null, User.class,
@@ -73,7 +74,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public User insertUser(User user) throws HiveClientException {
+    public User insertUser(User user) throws HiveException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -88,7 +89,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void updateUser(long id, User user) throws HiveClientException {
+    public void updateUser(long id, User user) throws HiveException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -101,7 +102,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void updateUser(User user) throws HiveClientException {
+    public void updateUser(User user) throws HiveException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -114,7 +115,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void deleteUser(long id) {
+    public void deleteUser(long id) throws HiveException {
         logger.debug("User: delete requested for user with id {}", id);
         String path = "/user/" + id;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
@@ -122,7 +123,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public UserNetwork getNetwork(long userId, long networkId) {
+    public UserNetwork getNetwork(long userId, long networkId) throws HiveException {
         logger.debug("User: getNetwork requested for user with id {} and network with id {}", userId, networkId);
         String path = "/user/" + userId + "/network/" + networkId;
         UserNetwork result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, UserNetwork.class,
@@ -132,7 +133,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void assignNetwork(long userId, long networkId) {
+    public void assignNetwork(long userId, long networkId) throws HiveException {
         logger.debug("User: assignNetwork requested for user with id {} and network with id {}", userId, networkId);
         String path = "/user/" + userId + "/network/" + networkId;
         JsonObject stub = new JsonObject();
@@ -141,7 +142,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void unassignNetwork(long userId, long networkId) {
+    public void unassignNetwork(long userId, long networkId) throws HiveException {
         logger.debug("User: unassignNetwork requested for user with id {} and network with id {}", userId, networkId);
         String path = "/user/" + userId + "/network/" + networkId;
         hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);

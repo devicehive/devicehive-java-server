@@ -33,7 +33,7 @@ public class TimestampConverterProvider implements ParamConverterProvider {
             try {
                 return TimestampAdapter.parseTimestamp(value);
             } catch (IllegalArgumentException | UnsupportedOperationException e) {
-                throw new HiveClientException("Unpareasble timestamp.", e, BAD_REQUEST.getStatusCode());
+                throw new IllegalArgumentException("Incorrect timestamp " + value);
             }
         }
 

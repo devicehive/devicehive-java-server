@@ -3,6 +3,7 @@ package com.devicehive.client.impl;
 import com.devicehive.client.OAuthTokenController;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.model.AccessToken;
+import com.devicehive.client.model.exceptions.HiveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ class OAuthTokenControllerImpl implements OAuthTokenController {
 
     @Override
     public AccessToken requestAccessToken(String grantType, String code, String redirectUri, String clientId,
-                                          String scope, String login, String password) {
+                                          String scope, String login, String password) throws HiveException {
         logger.debug("Access token requested with params: grant type {}, code {}, redirect uri {}, client id {}, " +
                 "scope {}, login {}", grantType, code, redirectUri, clientId, scope, login);
         String path = "/oauth2/token";
