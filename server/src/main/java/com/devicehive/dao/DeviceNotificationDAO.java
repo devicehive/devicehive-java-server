@@ -1,9 +1,9 @@
 package com.devicehive.dao;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.User;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
+import com.devicehive.model.*;
 import com.devicehive.util.LogExecutionTime;
 
 import javax.ejb.Stateless;
@@ -16,8 +16,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Stateless
 @LogExecutionTime
@@ -37,32 +36,62 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotificationsForPolling(@NotNull Timestamp timestamp,
-                                                                List<Device> devices,
-                                                                List<String> names,
-                                                                User user) {
+    public List<DeviceNotification> findNotifications(Map<Device, List<String>> deviceNamesFilters, @NotNull Timestamp timestamp) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
         List<Predicate> predicates = new ArrayList<>();
-
-        if (devices != null && !devices.isEmpty()) {
-            predicates.add(from.get("device").in(devices));
-        }
-
         predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
 
-        if (user != null && !user.isAdmin()) {
-            Path<User> path = from.join("device").join("network").join("users");
-            predicates.add(path.in(user));
-        }
-
-        if (names != null && !names.isEmpty()) {
-            predicates.add(from.get("notification").in(names));
+        if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
+            List<Predicate> filterPredicates = new ArrayList<>();
+            for (Map.Entry<Device, List<String>> entry : deviceNamesFilters.entrySet())  {
+                if (entry.getValue() != null && entry.getValue().isEmpty()) {
+                    continue;
+                }
+                filterPredicates.add(
+                        criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()), from.get("notification").in(entry.getValue())));
+            }
+            predicates.add(criteriaBuilder.or(filterPredicates.toArray(new Predicate[filterPredicates.size()])));
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         return em.createQuery(criteria).getResultList();
     }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, List<String> names, User user, Set<AccessKeyPermission> permissions) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
+        Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
+        if (names != null) {
+            predicates.add(from.get("notification").in(names));
+        }
+        if (user != null && !user.isAdmin()) {
+            predicates.add(from.join("device").join("network").join("users").in(user));
+        }
+        Collection<AccessKeyBasedFilterForDevices> extraFilters =  AccessKeyBasedFilterForDevices
+                .createExtraFilters(permissions);
+
+        if (extraFilters != null) {
+            List<Predicate> extraPredicates = new ArrayList<>();
+            for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
+                List<Predicate> filter = new ArrayList<>();
+                if (extraFilter.getDeviceGuids() != null) {
+                    filter.add(from.join("device").get("guid").in(extraFilter.getDeviceGuids()));
+                }
+                if (extraFilter.getNetworkIds() != null) {
+                    filter.add(from.join("device").join("network").get("id").in(extraFilter.getNetworkIds()));
+                }
+                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+            }
+            predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+        }
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+        return em.createQuery(criteria).getResultList();
+    }
+
 
     @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

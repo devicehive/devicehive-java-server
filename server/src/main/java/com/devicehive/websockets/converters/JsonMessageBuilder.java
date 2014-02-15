@@ -16,7 +16,7 @@ public class JsonMessageBuilder {
     public static final String REQUEST_ID = "requestId";
     public static final String DEVICE_GUID = "deviceGuid";
     public static final String DEVICE_GUIDS = "deviceGuids";
-    public static final String NOTIFICATION_NAMES = "names";
+    public static final String SUB_FILTER = "filter";
     public static final String TIMESTAMP = "timestamp";
     public static final String COMMAND_ID = "commandId";
     public static final String NOTIFICATION = "notification";

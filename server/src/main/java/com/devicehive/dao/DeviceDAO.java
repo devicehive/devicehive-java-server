@@ -99,6 +99,7 @@ public class DeviceDAO {
         return query.executeUpdate();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public long getNumberOfAvailableDevices(User user, Set<AccessKeyPermission> permissions, List<String> guids){
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Long> criteria = criteriaBuilder.createQuery(Long.class);
@@ -109,6 +110,7 @@ public class DeviceDAO {
         return query.getSingleResult();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getDeviceList(User user, Set<AccessKeyPermission> permissions, List<String> guids){
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> criteria = criteriaBuilder.createQuery(Device.class);

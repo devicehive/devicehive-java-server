@@ -10,12 +10,14 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -324,8 +326,7 @@ public class DeviceService {
             if (!guids.contains(device.getGuid()))
                 return Collections.emptyList();
             else {
-                guids.clear();
-                guids.add(device.getGuid());
+                guids = Arrays.asList(device.getGuid());
             }
         }
         Set<AccessKeyPermission> permissions = null;
@@ -419,6 +420,7 @@ public class DeviceService {
                 extraFilters);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> guids) {
         User user = principal.getUser();
         Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
@@ -431,6 +433,38 @@ public class DeviceService {
             }
         }
         return deviceDAO.getNumberOfAvailableDevices(user, permissions, guids);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Map<Device, List<String>> createFilterMap(@NotNull List<DeviceMessageFilter> filterList, HivePrincipal principal) {
+        List<String> requestedDevices = new ArrayList<>(filterList.size());
+            for (DeviceMessageFilter deviceMessageFilter : filterList) {
+                requestedDevices.add(deviceMessageFilter.getDeviceUuid());
+            }
+        List<Device> allowedDevices = findByGuidWithPermissionsCheck(requestedDevices, principal);
+        Map<String, Device> uuidToDevice = new HashMap<>();
+        for (Device device : allowedDevices) {
+            uuidToDevice.put(device.getGuid(), device);
+        }
+
+        Set<String> noAccessUuid = new HashSet<>();
+
+        Map<Device, List<String>> result = new HashMap<>();
+        for (DeviceMessageFilter deviceMessageFilter : filterList) {
+            String uuid = deviceMessageFilter.getDeviceUuid();
+            if (uuidToDevice.containsKey(uuid)) {
+                result.put(uuidToDevice.get(uuid), deviceMessageFilter.getNames());
+            } else {
+                noAccessUuid.add(uuid);
+            }
+        }
+        if (!noAccessUuid.isEmpty()) {
+            StringBuilder message = new StringBuilder("No access to devices with guids: {").
+                    append(StringUtils.join(noAccessUuid, ",")).
+                    append("}");
+            throw new HiveException(message.toString(), Response.Status.FORBIDDEN.getStatusCode());
+        }
+        return result;
     }
 
 }

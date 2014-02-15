@@ -2,18 +2,23 @@ package com.devicehive.websockets.util;
 
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.messages.subscriptions.CommandSubscription;
+import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.google.gson.JsonElement;
 
 import javax.websocket.Session;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class WebsocketSession {
     private static final String PRINCIPAL = "HIVE_PRINCIPAL";
+    public static final String COMMANDS_SUBSCRIPTIONS = "COMMANDS_SUBSCRIPTIONS";
     public static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
     public static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
+    public static final String NOTIFICATIONS_SUBSCRIPTIONS = "NOTIFICATIONS_SUBSCRIPTIONS";
     private static final String QUEUE_LOCK = "QUEUE_LOCK";
     public static final String QUEUE = "QUEUE";
 
@@ -67,6 +72,30 @@ public class WebsocketSession {
         if (!session.getUserProperties().containsKey(QUEUE_LOCK)) {
             session.getUserProperties().put(QUEUE_LOCK, new ReentrantLock(true));
         }
+    }
+
+    public static List<CommandSubscription> getCommandSubscriptions(Session session) {
+        return (List<CommandSubscription>) session.getUserProperties().get(COMMANDS_SUBSCRIPTIONS);
+    }
+
+    public static void setCommandSubscriptions(Session session, List<CommandSubscription> subs) {
+        session.getUserProperties().put(COMMANDS_SUBSCRIPTIONS, subs);
+    }
+
+    public static List<CommandSubscription> removeCommandSubscriptions(Session session) {
+        return (List<CommandSubscription>) session.getUserProperties().remove(COMMANDS_SUBSCRIPTIONS)  ;
+    }
+
+    public static List<NotificationSubscription> getNotificationSubscriptions(Session session) {
+        return (List<NotificationSubscription>) session.getUserProperties().get(NOTIFICATIONS_SUBSCRIPTIONS);
+    }
+
+    public static void setNotificationSubscriptions(Session session, List<NotificationSubscription> subs) {
+        session.getUserProperties().put(NOTIFICATIONS_SUBSCRIPTIONS, subs);
+    }
+
+    public static List<NotificationSubscription>  removeNotificationSubscriptions(Session session) {
+        return (List<NotificationSubscription>) session.getUserProperties().remove(NOTIFICATIONS_SUBSCRIPTIONS);
     }
 
 

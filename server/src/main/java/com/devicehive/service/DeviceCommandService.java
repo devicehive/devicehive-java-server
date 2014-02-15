@@ -1,14 +1,13 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.Timer;
@@ -23,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
@@ -37,6 +37,7 @@ public class DeviceCommandService {
     private GlobalMessageBus globalMessageBus;
     private AsyncMessageSupplier asyncMessageDeliverer;
     private SubscriptionManager subscriptionManager;
+    private DeviceService deviceService;
 
     @EJB
     public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
@@ -83,9 +84,28 @@ public class DeviceCommandService {
         return commandDAO.findById(id);
     }
 
+    @EJB
+    public void setDeviceService(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getNewerThan(List<Device> devices, User user, Timestamp timestamp) {
-        return commandDAO.getCommandsListForPolling(devices, null, user, timestamp);
+    public List<DeviceCommand> getDeviceCommandsList(@NotNull SubscriptionFilter subscriptionFilter, HivePrincipal principal) {
+        if (subscriptionFilter.getDeviceFilters() != null) {
+            return commandDAO.findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp());
+        } else {
+            User authUser = principal.getUser();
+            Set<AccessKeyPermission> perms = null;
+            if (authUser == null && principal.getKey() != null) {
+                authUser = principal.getKey().getUser();
+                perms = principal.getKey().getPermissions();
+            }
+            return commandDAO.findCommands(
+                    subscriptionFilter.getTimestamp(),
+                    subscriptionFilter.getNames(),
+                    authUser,
+                    perms);
+        }
     }
 
 

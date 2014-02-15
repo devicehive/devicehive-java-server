@@ -1,24 +1,28 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.messages.bus.GlobalMessageBus;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.util.Timer;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Stateless
 @LogExecutionTime
@@ -28,6 +32,7 @@ public class DeviceNotificationService {
     private GlobalMessageBus globalMessageBus;
     private DeviceNotificationService self;
     private DeviceDAO deviceDAO;
+    private DeviceService deviceService;
 
     @EJB
     public void setDeviceNotificationDAO(DeviceNotificationDAO deviceNotificationDAO) {
@@ -54,10 +59,28 @@ public class DeviceNotificationService {
         this.deviceDAO = deviceDAO;
     }
 
+    @EJB
+    public void setDeviceService(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getDeviceNotificationList(List<Device> devices, List<String> names, User user,
-                                                              Timestamp timestamp) {
-        return deviceNotificationDAO.findNotificationsForPolling(timestamp, devices, names, user);
+    public List<DeviceNotification> getDeviceNotificationList(@NotNull SubscriptionFilter subscriptionFilter, HivePrincipal principal) {
+        if (subscriptionFilter.getDeviceFilters() != null) {
+            return deviceNotificationDAO.findNotifications(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp());
+        } else {
+            User authUser = principal.getUser();
+            Set<AccessKeyPermission> perms = null;
+            if (authUser == null && principal.getKey() != null) {
+                authUser = principal.getKey().getUser();
+                perms = principal.getKey().getPermissions();
+            }
+            return deviceNotificationDAO.findNotifications(
+                    subscriptionFilter.getTimestamp(),
+                    subscriptionFilter.getNames(),
+                    authUser,
+                    perms);
+        }
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
