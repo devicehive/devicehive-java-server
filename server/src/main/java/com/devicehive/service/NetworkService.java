@@ -56,7 +56,7 @@ public class NetworkService {
             if (found.isEmpty()) {
                 return null;
             }
-            List<Device> devices = deviceService.getList(networkId, principal.getUser(), null);
+            List<Device> devices = deviceService.getList(networkId, principal);
             Network result = found.get(0);
             result.setDevices(new HashSet<Device>(devices));
             return result;
@@ -79,7 +79,7 @@ public class NetworkService {
                 return result;
             }
             Set<Device> devices =
-                    new HashSet<>(deviceService.getList(result.getId(), key.getUser(), key.getPermissions()));
+                    new HashSet<>(deviceService.getList(result.getId(), principal));
             result.setDevices(devices);
             return result;
         }
@@ -125,9 +125,8 @@ public class NetworkService {
                               boolean sortOrder,
                               Integer take,
                               Integer skip,
-                              User user,
-                              Collection<AccessKeyBasedFilterForDevices> extraFilters) {
-        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, user, extraFilters);
+                              HivePrincipal principal) {
+        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, principal);
     }
 
     public Network createOrVeriryNetwork(NullableWrapper<Network> network) {

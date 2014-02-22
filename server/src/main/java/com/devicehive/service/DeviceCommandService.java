@@ -92,19 +92,12 @@ public class DeviceCommandService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> getDeviceCommandsList(@NotNull SubscriptionFilter subscriptionFilter, HivePrincipal principal) {
         if (subscriptionFilter.getDeviceFilters() != null) {
-            return commandDAO.findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp());
+            return commandDAO.findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp(), null);
         } else {
-            User authUser = principal.getUser();
-            Set<AccessKeyPermission> perms = null;
-            if (authUser == null && principal.getKey() != null) {
-                authUser = principal.getKey().getUser();
-                perms = principal.getKey().getPermissions();
-            }
             return commandDAO.findCommands(
                     subscriptionFilter.getTimestamp(),
                     subscriptionFilter.getNames(),
-                    authUser,
-                    perms);
+                    principal);
         }
     }
 

@@ -302,39 +302,13 @@ public class DeviceService {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByGuidWithPermissionsCheck(String guid, HivePrincipal principal) {
-        User authUser = principal.getUser();
-        AccessKey authKey = principal.getKey();
-        Device device = principal.getDevice();
-        if (device != null && !device.getGuid().equals(guid)) {
-            return null;
-        }
-        Set<AccessKeyPermission> permissions = null;
-        if (authUser == null && authKey != null) {
-            permissions = authKey.getPermissions();
-            authUser = authKey.getUser();
-        }
-        List<Device> result = deviceDAO.getDeviceList(authUser, permissions, Arrays.asList(guid));
+        List<Device> result = findByGuidWithPermissionsCheck(Arrays.asList(guid), principal);
         return result.isEmpty() ? null : result.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> findByGuidWithPermissionsCheck(List<String> guids, HivePrincipal principal) {
-        AccessKey authKey = principal.getKey();
-        User authUser = principal.getUser();
-        Device device = principal.getDevice();
-        if (device != null) {
-            if (!guids.contains(device.getGuid()))
-                return Collections.emptyList();
-            else {
-                guids = Arrays.asList(device.getGuid());
-            }
-        }
-        Set<AccessKeyPermission> permissions = null;
-        if (authUser == null && authKey != null) {
-            permissions = authKey.getPermissions();
-            authUser = authKey.getUser();
-        }
-        return deviceDAO.getDeviceList(authUser, permissions, guids);
+        return deviceDAO.getDeviceList(principal, guids);
     }
 
     /**
@@ -362,9 +336,9 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Device getDeviceWithNetworkAndDeviceClass(String deviceId, User currentUser, Device currentDevice) {
+    public Device getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
 
-        if (!userService.checkPermissions(deviceId, currentUser, currentDevice)) {
+        if (getAllowedDevicesCount(principal, Arrays.asList(deviceId)) == 0) {
             throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
         }
 
@@ -385,8 +359,8 @@ public class DeviceService {
         return device;
     }
 
-    public boolean deleteDevice(@NotNull String guid, @NotNull User user) {
-        List<Device> existing = deviceDAO.getDeviceList(user, null, Arrays.asList(guid));
+    public boolean deleteDevice(@NotNull String guid, HivePrincipal principal) {
+        List<Device> existing = deviceDAO.getDeviceList(principal, Arrays.asList(guid));
         return existing.isEmpty() || deviceDAO.deleteDevice(guid);
     }
 
@@ -403,36 +377,21 @@ public class DeviceService {
                                 Boolean sortOrderAsc,
                                 Integer take,
                                 Integer skip,
-                                User user,
-                                Collection<AccessKeyBasedFilterForDevices> extraFilters) {
+                                HivePrincipal principal) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                deviceClassVersion, sortField, sortOrderAsc, take, skip, user, extraFilters);
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(Long networkId,
-                                User user,
-                                Set<AccessKeyPermission> permissions) {
-        Collection<AccessKeyBasedFilterForDevices> extraFilters = AccessKeyBasedFilterForDevices.createExtraFilters
-                (permissions);
-        return deviceDAO.getList(null, null, null, networkId, null, null, null, null, null, null, null, null, user,
-                extraFilters);
+                                HivePrincipal principal) {
+        return deviceDAO.getList(null, null, null, networkId, null, null, null, null, null, null, null, null, principal);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> guids) {
-        User user = principal.getUser();
-        Set<AccessKeyPermission> permissions = principal.getKey() != null ? principal.getKey().getPermissions() : null;
-        Device device = principal.getDevice();
-        if (device != null) {
-            if (!guids.contains(device.getGuid()))
-                return 0;
-            else {
-                return 1;
-            }
-        }
-        return deviceDAO.getNumberOfAvailableDevices(user, permissions, guids);
+        return deviceDAO.getNumberOfAvailableDevices(principal, guids);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

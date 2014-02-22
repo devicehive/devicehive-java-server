@@ -103,13 +103,8 @@ public class NetworkController {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-
-        Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null
-                ? AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())
-                : null;
         List<Network> result = networkService
-                .list(name, namePattern, sortField, sortOrder, take, skip, user, extraFilters);
+                .list(name, namePattern, sortField, sortOrder, take, skip, principal);
 
         logger.debug("Network list request proceed successfully.");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);

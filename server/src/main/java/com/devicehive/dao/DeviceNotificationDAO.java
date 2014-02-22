@@ -36,13 +36,13 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(Map<Device, List<String>> deviceNamesFilters, @NotNull Timestamp timestamp) {
+    public List<DeviceNotification> findNotifications(Map<Device, List<String>> deviceNamesFilters, @NotNull Timestamp timestamp, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
-
+        appendPrincipalPredicates(predicates, principal, from);
         if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
             List<Predicate> filterPredicates = new ArrayList<>();
             for (Map.Entry<Device, List<String>> entry : deviceNamesFilters.entrySet())  {
@@ -59,7 +59,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, List<String> names, User user, Set<AccessKeyPermission> permissions) {
+    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, List<String> names, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -68,26 +68,7 @@ public class DeviceNotificationDAO {
         if (names != null) {
             predicates.add(from.get("notification").in(names));
         }
-        if (user != null && !user.isAdmin()) {
-            predicates.add(from.join("device").join("network").join("users").in(user));
-        }
-        Collection<AccessKeyBasedFilterForDevices> extraFilters =  AccessKeyBasedFilterForDevices
-                .createExtraFilters(permissions);
-
-        if (extraFilters != null) {
-            List<Predicate> extraPredicates = new ArrayList<>();
-            for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
-                List<Predicate> filter = new ArrayList<>();
-                if (extraFilter.getDeviceGuids() != null) {
-                    filter.add(from.join("device").get("guid").in(extraFilter.getDeviceGuids()));
-                }
-                if (extraFilter.getNetworkIds() != null) {
-                    filter.add(from.join("device").join("network").get("id").in(extraFilter.getNetworkIds()));
-                }
-                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
-            }
-            predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
-        }
+        appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         return em.createQuery(criteria).getResultList();
     }
@@ -174,4 +155,35 @@ public class DeviceNotificationDAO {
         return query.executeUpdate();
     }
 
+
+    private void  appendPrincipalPredicates( List<Predicate> predicates, HivePrincipal principal, Root<DeviceNotification> from) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        if (principal != null) {
+            User user = principal.getUser();
+            if (user == null && principal.getKey() != null) {
+                user = principal.getKey().getUser();
+            }
+            if (user != null && !user.isAdmin()) {
+                predicates.add(from.join("device").join("network").join("users").in(user));
+            }
+            if (principal.getDevice() != null) {
+                predicates.add(from.join("device").get("id").in(principal.getDevice().getId()));
+            }
+            if (principal.getKey() != null) {
+
+                List<Predicate> extraPredicates = new ArrayList<>();
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
+                    List<Predicate> filter = new ArrayList<>();
+                    if (extraFilter.getDeviceGuids() != null) {
+                        filter.add(from.join("device").get("guid").in(extraFilter.getDeviceGuids()));
+                    }
+                    if (extraFilter.getNetworkIds() != null) {
+                        filter.add(from.join("device").join("network").get("id").in(extraFilter.getNetworkIds()));
+                    }
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                }
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+            }
+        }
+    }
 }

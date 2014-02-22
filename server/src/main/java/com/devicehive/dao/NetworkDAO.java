@@ -1,8 +1,10 @@
 package com.devicehive.dao;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
 import com.devicehive.model.Network;
@@ -108,8 +110,7 @@ public class NetworkDAO {
                               Boolean sortOrderAsc,
                               Integer take,
                               Integer skip,
-                              User user,
-                              Collection<AccessKeyBasedFilterForDevices> extraFilters) {
+                              HivePrincipal principal) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Network> criteria = criteriaBuilder.createQuery(Network.class);
@@ -124,23 +125,7 @@ public class NetworkDAO {
             }
         }
 
-        if (!user.isAdmin()) {
-            Path<User> path = from.join("users");
-            predicates.add(path.in(user));
-        }
-
-        if (extraFilters != null) {
-            List<Predicate> extraPredicates = new ArrayList<>();
-            for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
-                List<Predicate> filter = new ArrayList<>();
-                if (extraFilter.getNetworkIds() != null) {
-                    filter.add(from.get("id").in(extraFilter.getNetworkIds()));
-                }
-                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
-            }
-            predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
-        }
-
+        appendPrincipalPredicates(predicates, principal, from);
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
 
@@ -189,4 +174,33 @@ public class NetworkDAO {
         return networksQuery.getResultList();
     }
 
+
+    private void  appendPrincipalPredicates( List<Predicate> predicates, HivePrincipal principal, Root<Network> from) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        if (principal != null) {
+            User user = principal.getUser();
+            if (user == null && principal.getKey() != null) {
+                user = principal.getKey().getUser();
+            }
+            if (user != null && !user.isAdmin()) {
+                Path<User> path = from.join("users");
+                predicates.add(path.in(user));
+            }
+            if (principal.getDevice() != null) {
+                throw  new HiveException("Can not get access to networks", 403);
+            }
+            if (principal.getKey() != null) {
+
+                List<Predicate> extraPredicates = new ArrayList<>();
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
+                    List<Predicate> filter = new ArrayList<>();
+                    if (extraFilter.getNetworkIds() != null) {
+                        filter.add(from.get("id").in(extraFilter.getNetworkIds()));
+                    }
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                }
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+            }
+        }
+    }
 }

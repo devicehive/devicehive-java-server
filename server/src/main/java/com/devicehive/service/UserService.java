@@ -262,6 +262,7 @@ public class UserService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Deprecated
     public boolean checkPermissions(String deviceId, User currentUser, Device currentDevice) {
         if (currentDevice != null) {
             return deviceId.equals(currentDevice.getGuid());

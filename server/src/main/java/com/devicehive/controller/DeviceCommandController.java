@@ -412,21 +412,8 @@ public class DeviceCommandController {
 
         sortField = sortField.toLowerCase();
 
-        Device device;
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-        }
-        device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-        if (user == null && principal.getKey() != null) {
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(),
-                    device) || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
-                logger.debug("Device command query failed. Device with guid {} not found for access key", guid);
-                return ResponseFactory.response(Response.Status.NOT_FOUND,
-                        new ErrorResponse("Device not found"));
-            }
-        }
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         List<DeviceCommand> commandList =
                 commandService.queryDeviceCommand(device, start, end, command, status, sortField, sortOrder, take,

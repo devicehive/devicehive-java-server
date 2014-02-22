@@ -114,16 +114,9 @@ public class DeviceController {
             sortField = StringUtils.uncapitalize(sortField);
         }
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-
-        Collection<AccessKeyBasedFilterForDevices> extraFilters = principal.getKey() != null
-                ? AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())
-                : null;
-
 
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, currentUser,
-                extraFilters);
+                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, principal);
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 
@@ -188,18 +181,9 @@ public class DeviceController {
         logger.debug("Device get requested. Guid {}", guid);
 
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser();
-        if (user == null && principal.getKey() != null) {
-            user = principal.getKey().getUser();
-        }
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-        if (principal.getKey() != null) {
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), device.getGuid())) {
-                logger.debug("Access denied. No permissions. Device get for device {}", guid);
-                return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(Response.Status
-                        .NOT_FOUND.getStatusCode(), "No device found with such guid"));
-            }
-        }
+
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+
         if (principal.getRole().equals(HiveRoles.DEVICE)) {
             logger.debug("Device get proceed successfully. Guid {}", guid);
             return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED_DEVICE_AUTH);
@@ -223,8 +207,7 @@ public class DeviceController {
 
         logger.debug("Device delete requested");
 
-        User currentUser = ThreadLocalVariablesKeeper.getPrincipal().getUser();
-        deviceService.deleteDevice(guid, currentUser);
+        deviceService.deleteDevice(guid, ThreadLocalVariablesKeeper.getPrincipal());
 
         logger.debug("Device with id = {} is deleted", guid);
 
@@ -273,17 +256,7 @@ public class DeviceController {
         logger.debug("Device equipment requested for device {}", guid);
 
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user,
-                principal.getDevice());
-        if (principal.getKey() != null) {
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
-                    || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
-                logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
-                return ResponseFactory.response(NOT_FOUND,
-                        new ErrorResponse(NOT_FOUND.getStatusCode(), "No device found with such guid"));
-            }
-        }
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully for device {}", guid);
@@ -311,16 +284,8 @@ public class DeviceController {
 
         logger.debug("Device equipment by code requested");
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-        if (principal.getKey() != null) {
-            if (!accessKeyService.hasAccessToDevice(principal.getKey(), device)
-                    || !accessKeyService.hasAccessToNetwork(principal.getKey(), device.getNetwork())) {
-                logger.debug("No access for device {} by key {}", guid, principal.getKey().getId());
-                return ResponseFactory.response(NOT_FOUND,
-                        new ErrorResponse(NOT_FOUND.getStatusCode(), "No device found with such guid"));
-            }
-        }
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);

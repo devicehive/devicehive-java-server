@@ -181,17 +181,7 @@ public class DeviceNotificationController {
         sortField = sortField.toLowerCase();
 
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, user, principal.getDevice());
-
-        if (principal.getKey() != null && (!accessKeyService.hasAccessToNetwork(principal.getKey(),
-                device.getNetwork()) || !accessKeyService.hasAccessToDevice(principal.getKey(), device))) {
-            logger.debug("Device notification query failed. No permissions to access device for key with id {}. Guid " +
-                    "{}, start {}, end {}, notification {}, sort field {}, sort order {}, take {}, skip {}",
-                    principal.getKey().getId(), guid, start, end, notification, sortField, sortOrder, take, skip);
-            return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "No accessible device found with such guid"));
-        }
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
                 notification, sortField, sortOrder, take, skip, gridInterval);

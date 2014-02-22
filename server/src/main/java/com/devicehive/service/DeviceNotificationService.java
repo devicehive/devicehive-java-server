@@ -67,19 +67,12 @@ public class DeviceNotificationService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> getDeviceNotificationList(@NotNull SubscriptionFilter subscriptionFilter, HivePrincipal principal) {
         if (subscriptionFilter.getDeviceFilters() != null) {
-            return deviceNotificationDAO.findNotifications(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp());
+            return deviceNotificationDAO.findNotifications(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp(), null);
         } else {
-            User authUser = principal.getUser();
-            Set<AccessKeyPermission> perms = null;
-            if (authUser == null && principal.getKey() != null) {
-                authUser = principal.getKey().getUser();
-                perms = principal.getKey().getPermissions();
-            }
             return deviceNotificationDAO.findNotifications(
                     subscriptionFilter.getTimestamp(),
                     subscriptionFilter.getNames(),
-                    authUser,
-                    perms);
+                    principal);
         }
     }
 

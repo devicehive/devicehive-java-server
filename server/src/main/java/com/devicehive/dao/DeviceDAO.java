@@ -1,5 +1,6 @@
 package com.devicehive.dao;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
@@ -100,64 +101,34 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public long getNumberOfAvailableDevices(User user, Set<AccessKeyPermission> permissions, List<String> guids){
+    public long getNumberOfAvailableDevices(HivePrincipal principal, List<String> guids){
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Long> criteria = criteriaBuilder.createQuery(Long.class);
         Root<Device> from = criteria.from(Device.class);
-        criteria = buildCriteriaQuery(criteria, criteriaBuilder, user, permissions, guids);
+        List<Predicate> predicates = new ArrayList<>();
+        appendPrincipalPredicates(predicates,principal, from);
+        if (guids != null && !guids.isEmpty()){
+            predicates.add(from.get("guid").in(guids));
+        }
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         criteria.select(criteriaBuilder.count(from));
         TypedQuery<Long> query = em.createQuery(criteria);
         return query.getSingleResult();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> getDeviceList(User user, Set<AccessKeyPermission> permissions, List<String> guids){
+    public List<Device> getDeviceList(HivePrincipal principal, List<String> guids){
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> criteria = criteriaBuilder.createQuery(Device.class);
-        criteria = buildCriteriaQuery(criteria, criteriaBuilder, user, permissions, guids);
-        TypedQuery<Device> query = em.createQuery(criteria);
-        return query.getResultList();
-    }
-
-    private <T> CriteriaQuery<T> buildCriteriaQuery(CriteriaQuery<T> criteria,
-                                                    CriteriaBuilder criteriaBuilder,
-                                                    User user,
-                                                    Set<AccessKeyPermission> permissions,
-                                                    List<String> guids){
         Root<Device> from = criteria.from(Device.class);
         List<Predicate> predicates = new ArrayList<>();
-
-        if (user != null && !user.isAdmin()){
-            Path<User> path = from.join("network", JoinType.LEFT).join("users");
-            predicates.add(path.in(user));
-        }
-
-        if (permissions != null){
-            Collection<AccessKeyBasedFilterForDevices> extraFilters =  AccessKeyBasedFilterForDevices
-                    .createExtraFilters(permissions);
-
-            if (extraFilters != null) {
-                List<Predicate> extraPredicates = new ArrayList<>();
-                for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
-                    List<Predicate> filter = new ArrayList<>();
-                    if (extraFilter.getDeviceGuids() != null) {
-                        filter.add(from.get("guid").in(extraFilter.getDeviceGuids()));
-                    }
-                    if (extraFilter.getNetworkIds() != null) {
-                        filter.add(from.get("network").get("id").in(extraFilter.getNetworkIds()));
-                    }
-                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
-                }
-                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
-            }
-        }
-
+        appendPrincipalPredicates(predicates,principal, from);
         if (guids != null && !guids.isEmpty()){
             predicates.add(from.get("guid").in(guids));
         }
-
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
-        return criteria;
+        TypedQuery<Device> query = em.createQuery(criteria);
+        return query.getResultList();
     }
 
 
@@ -174,8 +145,7 @@ public class DeviceDAO {
                                 Boolean sortOrderAsc,
                                 Integer take,
                                 Integer skip,
-                                User user,
-                                Collection<AccessKeyBasedFilterForDevices> extraFilters) {
+                                HivePrincipal principal) {
 
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
@@ -194,11 +164,6 @@ public class DeviceDAO {
         }
         if (status != null) {
             devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
-        }
-
-        if (user != null && !user.isAdmin()) {
-            Path<User> path = fromDevice.join("network").join("users");
-            devicePredicates.add(path.in(user));
         }
 
         if (networkId != null) {
@@ -221,22 +186,7 @@ public class DeviceDAO {
             devicePredicates.add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("version"), deviceClassVersion));
         }
 
-
-        if (extraFilters != null) {
-            List<Predicate> extraPredicates = new ArrayList<>();
-            for (AccessKeyBasedFilterForDevices extraFilter : extraFilters) {
-                List<Predicate> filter = new ArrayList<>();
-                if (extraFilter.getDeviceGuids() != null) {
-                    filter.add(fromDevice.get("guid").in(extraFilter.getDeviceGuids()));
-                }
-                if (extraFilter.getNetworkIds() != null) {
-                    filter.add(fromDevice.get("network").get("id").in(extraFilter.getNetworkIds()));
-                }
-                extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
-            }
-            devicePredicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
-        }
-
+        appendPrincipalPredicates(devicePredicates, principal, fromDevice);
 
 
         deviceCriteria.where(devicePredicates.toArray(new Predicate[devicePredicates.size()]));
@@ -256,5 +206,37 @@ public class DeviceDAO {
         }
         resultQuery.setMaxResults(take);
         return resultQuery.getResultList();
+    }
+
+    private void  appendPrincipalPredicates( List<Predicate> devicePredicates, HivePrincipal principal, Root<Device> fromDevice) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        if (principal != null) {
+            User user = principal.getUser();
+            if (user == null && principal.getKey() != null) {
+                user = principal.getKey().getUser();
+            }
+            if (user != null && !user.isAdmin()) {
+                Path<User> path = fromDevice.join("network").join("users");
+                devicePredicates.add(path.in(user));
+            }
+            if (principal.getDevice() != null) {
+                devicePredicates.add(criteriaBuilder.equal(fromDevice.get("id"), principal.getDevice().getId()));
+            }
+            if (principal.getKey() != null) {
+
+                List<Predicate> extraPredicates = new ArrayList<>();
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
+                    List<Predicate> filter = new ArrayList<>();
+                    if (extraFilter.getDeviceGuids() != null) {
+                        filter.add(fromDevice.get("guid").in(extraFilter.getDeviceGuids()));
+                    }
+                    if (extraFilter.getNetworkIds() != null) {
+                        filter.add(fromDevice.get("network").get("id").in(extraFilter.getNetworkIds()));
+                    }
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                }
+                devicePredicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+            }
+        }
     }
 }
