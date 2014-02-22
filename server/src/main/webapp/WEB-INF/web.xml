@@ -19,6 +19,26 @@
         <filter-name>cross-origin</filter-name>
         <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
         <async-supported>true</async-supported>
+        <init-param>
+            <param-name>allowedOrigins</param-name>
+            <param-value>*</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowedMethods</param-name>
+            <param-value>GET,POST,DELETE,PUT,OPTIONS,HEAD</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowedHeaders</param-name>
+            <param-value>X-Requested-With,Content-Type,Accept,Origin,Authorization</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowedCredentials</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>chainPreflight</param-name>
+            <param-value>false</param-value>
+        </init-param>
     </filter>
 
     <filter-mapping>
