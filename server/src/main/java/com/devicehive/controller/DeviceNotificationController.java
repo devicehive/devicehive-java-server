@@ -302,6 +302,42 @@ public class DeviceNotificationController {
     }
 
 
+    @GET
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @Path("/notification/poll")
+    public void pollMany(
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @QueryParam
+                    ("waitTimeout") final long timeout,
+            @QueryParam("timestamp") final Timestamp timestamp,
+            @QueryParam("deviceGuids") final String deviceGuids,
+            @Suspended final AsyncResponse asyncResponse) {
+        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug("Device notification poll many proceed successfully for devices: {}", deviceGuids);
+            }
+        });
+        asyncPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    SubscriptionFilter subscriptionFilter = SubscriptionFilter.createForManyDevices(ParseUtil.getList(deviceGuids), timestamp);
+                    List<DeviceNotification> list =
+                            getOrWaitForNotifications(principal, subscriptionFilter, timeout);
+                    List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
+                    for (DeviceNotification notification : list) {
+                        resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+                    }
+                    asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+                } catch (Exception e) {
+                    logger.error("Error: " + e.getMessage(), e);
+                    asyncResponse.resume(e);
+                }
+            }
+        });
+    }     
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
      *
@@ -310,10 +346,9 @@ public class DeviceNotificationController {
      * @param timeout           Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      */
 
-    @GET
+    @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
-    @Deprecated
     public void pollMany(
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @FormParam("waitTimeout") final long timeout,
