@@ -3,7 +3,9 @@ package com.devicehive.dao;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
 
 import javax.ejb.Stateless;
@@ -16,7 +18,9 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Stateless
 @LogExecutionTime
@@ -92,21 +96,24 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> findCommands(Map<Device, List<String>> deviceNamesFilters, @NotNull Timestamp timestamp, HivePrincipal principal) {
+    public List<DeviceCommand> findCommands(Map<Device, List<String>> deviceNamesFilters, @NotNull Timestamp timestamp,
+                                            HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
         Root<DeviceCommand> from = criteria.from(DeviceCommand.class);
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
-        appendPrincipalPredicates(predicates,principal,from);
+        appendPrincipalPredicates(predicates, principal, from);
         if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
             List<Predicate> filterPredicates = new ArrayList<>();
-            for (Map.Entry<Device, List<String>> entry : deviceNamesFilters.entrySet())  {
-                if (entry.getValue() != null && entry.getValue().isEmpty()) {
-                    continue;
-                }
-                filterPredicates.add(
-                        criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()), from.get("command").in(entry.getValue())));
+            for (Map.Entry<Device, List<String>> entry : deviceNamesFilters.entrySet()) {
+                if (entry.getValue() != null && !entry.getValue().isEmpty())
+                    filterPredicates.add(
+                            criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()),
+                                    from.get("command").in(entry.getValue())));
+                else if (entry.getValue() == null)
+                    filterPredicates.add(criteriaBuilder.equal(from.get("device"), entry.getKey()));
+
             }
             predicates.add(criteriaBuilder.or(filterPredicates.toArray(new Predicate[filterPredicates.size()])));
         }
@@ -124,7 +131,7 @@ public class DeviceCommandDAO {
         if (names != null) {
             predicates.add(from.get("command").in(names));
         }
-        appendPrincipalPredicates(predicates,principal,from);
+        appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         return em.createQuery(criteria).getResultList();
     }
@@ -202,7 +209,8 @@ public class DeviceCommandDAO {
         return timestampSubquery;
     }
 
-    private void  appendPrincipalPredicates( List<Predicate> predicates, HivePrincipal principal, Root<DeviceCommand> from) {
+    private void appendPrincipalPredicates(List<Predicate> predicates, HivePrincipal principal,
+                                           Root<DeviceCommand> from) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         if (principal != null) {
             User user = principal.getUser();
@@ -218,7 +226,8 @@ public class DeviceCommandDAO {
             if (principal.getKey() != null) {
 
                 List<Predicate> extraPredicates = new ArrayList<>();
-                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
+                        .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getDeviceGuids() != null) {
                         filter.add(from.join("device").get("guid").in(extraFilter.getDeviceGuids()));

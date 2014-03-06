@@ -46,11 +46,13 @@ public class DeviceNotificationDAO {
         if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
             List<Predicate> filterPredicates = new ArrayList<>();
             for (Map.Entry<Device, List<String>> entry : deviceNamesFilters.entrySet())  {
-                if (entry.getValue() != null && entry.getValue().isEmpty()) {
-                    continue;
-                }
-                filterPredicates.add(
-                        criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()), from.get("notification").in(entry.getValue())));
+                if (entry.getValue() != null && !entry.getValue().isEmpty())
+                    filterPredicates.add(
+                            criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()),
+                                    from.get("notification").in(entry.getValue())));
+                else if (entry.getValue() == null)
+                    filterPredicates.add(criteriaBuilder.equal(from.get("device"), entry.getKey()));
+
             }
             predicates.add(criteriaBuilder.or(filterPredicates.toArray(new Predicate[filterPredicates.size()])));
         }

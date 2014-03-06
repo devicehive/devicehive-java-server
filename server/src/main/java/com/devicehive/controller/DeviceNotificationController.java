@@ -14,9 +14,11 @@ import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.SubscriptionFilter;
 import com.devicehive.model.response.NotificationPollManyResponse;
-import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -67,7 +69,6 @@ public class DeviceNotificationController {
     private DeviceNotificationService deviceNotificationService;
     private DeviceService deviceService;
     private TimestampService timestampService;
-    private AccessKeyService accessKeyService;
     private ExecutorService asyncPool;
 
     @EJB
@@ -93,11 +94,6 @@ public class DeviceNotificationController {
     @EJB
     public void setTimestampService(TimestampService timestampService) {
         this.timestampService = timestampService;
-    }
-
-    @EJB
-    public void setAccessKeyService(AccessKeyService accessKeyService) {
-        this.accessKeyService = accessKeyService;
     }
 
     /**

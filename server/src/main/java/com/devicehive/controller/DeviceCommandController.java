@@ -7,7 +7,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.controller.util.SimpleWaiter;
-import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
@@ -15,7 +14,6 @@ import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.*;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.updates.DeviceCommandUpdate;
-import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -59,10 +57,9 @@ public class DeviceCommandController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
     private DeviceCommandService commandService;
     private DeviceService deviceService;
-    private DeviceCommandDAO deviceCommandDAO;
     private SubscriptionManager subscriptionManager;
     private TimestampService timestampService;
-    private AccessKeyService accessKeyService;
+
     private ExecutorService asyncPool;
 
     @EJB
@@ -76,11 +73,6 @@ public class DeviceCommandController {
     }
 
     @EJB
-    public void setDeviceCommandDAO(DeviceCommandDAO deviceCommandDAO) {
-        this.deviceCommandDAO = deviceCommandDAO;
-    }
-
-    @EJB
     public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
         this.subscriptionManager = subscriptionManager;
     }
@@ -88,11 +80,6 @@ public class DeviceCommandController {
     @EJB
     public void setTimestampService(TimestampService timestampService) {
         this.timestampService = timestampService;
-    }
-
-    @EJB
-    public void setAccessKeyService(AccessKeyService accessKeyService) {
-        this.accessKeyService = accessKeyService;
     }
 
     /**
@@ -126,9 +113,13 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    SubscriptionFilter subscriptionFilter = SubscriptionFilter.createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
+                    SubscriptionFilter subscriptionFilter = SubscriptionFilter
+                            .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
                     List<DeviceCommand> list = getOrWaitForCommands(principal, subscriptionFilter, timeout);
-                    Response response = ResponseFactory.response(OK, list, Policy.NOTIFICATION_TO_CLIENT);
+                    for (DeviceCommand dc : list) {
+                        logger.warn("Command: {}, id {}, status{}:", dc.getCommand(), dc.getId(), dc.getStatus());
+                    }
+                    Response response = ResponseFactory.response(OK, list, Policy.COMMAND_TO_DEVICE);
                     asyncResponse.resume(response);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
@@ -137,7 +128,6 @@ public class DeviceCommandController {
             }
         });
     }
-
 
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
@@ -149,21 +139,29 @@ public class DeviceCommandController {
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilter subscriptionFilter = SubscriptionFilter.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
+        SubscriptionFilter subscriptionFilter =
+                SubscriptionFilter.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
         pollMany(timeout, subscriptionFilter, asyncResponse);
     }
-
 
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void pollMany(
+    public void pollManyPost(
+            @QueryParam("deviceGuids") String deviceGuidsString,
+            @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @FormParam("waitTimeout") final long timeout,
-            final SubscriptionFilter subscriptionFilter,
+            @QueryParam("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
+        SubscriptionFilter subscriptionFilter =
+                SubscriptionFilter.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
+        pollMany(timeout, subscriptionFilter, asyncResponse);
+    }
 
+    private void pollMany(final long timeout,
+                          final SubscriptionFilter subscriptionFilter,
+                          final AsyncResponse asyncResponse) {
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -183,7 +181,9 @@ public class DeviceCommandController {
                     for (DeviceCommand command : list) {
                         resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
                     }
-                    asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+                    Response response = ResponseFactory
+                            .response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
+                    asyncResponse.resume(response);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -192,12 +192,10 @@ public class DeviceCommandController {
         });
     }
 
-
-
     private List<DeviceCommand> getOrWaitForCommands(HivePrincipal principal,
-                                                               SubscriptionFilter subscriptionFilter,
-                                                               long timeout) {
-        logger.debug("Device notification pollMany requested for : {}.  Timeout = {}",subscriptionFilter, timeout);
+                                                     SubscriptionFilter subscriptionFilter,
+                                                     long timeout) {
+        logger.debug("Device notification pollMany requested for : {}.  Timeout = {}", subscriptionFilter, timeout);
 
         if (subscriptionFilter.getTimestamp() == null) {
             subscriptionFilter.setTimestamp(timestampService.getTimestamp());
@@ -209,8 +207,9 @@ public class DeviceCommandController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
-            if (subscriptionFilter.getDeviceFilters() != null ) {
-                Map<Device, List<String>> filters = deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(), principal);
+            if (subscriptionFilter.getDeviceFilters() != null) {
+                Map<Device, List<String>> filters =
+                        deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(), principal);
                 for (Map.Entry<Device, List<String>> entry : filters.entrySet()) {
                     subscriptionSet
                             .add(new CommandSubscription(principal, entry.getKey().getId(), reqId, entry.getValue(),
@@ -232,8 +231,6 @@ public class DeviceCommandController {
         }
         return list;
     }
-
-
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/wait">DeviceHive RESTful API: DeviceCommand: wait</a>

@@ -12,7 +12,7 @@ import java.net.InetAddress;
 
 @WebFilter(urlPatterns = "/*", asyncSupported = true)
 public class IpDomainFilter implements Filter {
-    private static Logger logger = LoggerFactory.getLogger(IpDomainFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(IpDomainFilter.class);
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
