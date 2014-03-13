@@ -1,10 +1,6 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.client.model.exceptions.HiveClientException;
-
-import javax.ws.rs.core.Response;
-
 /**
  * OAuth grant type.
  * Code: Authorization Code grant

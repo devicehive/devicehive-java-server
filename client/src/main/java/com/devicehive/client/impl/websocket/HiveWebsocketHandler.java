@@ -46,7 +46,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     public HiveWebsocketHandler(HiveContext hiveContext,
                                 ConcurrentMap<String, SettableFuture<JsonObject>> responsesMap) {
         this.hiveContext = hiveContext;
-        this.websocketResponsesMap = responsesMap;;
+        this.websocketResponsesMap = responsesMap;
     }
 
     /**
@@ -58,7 +58,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
      */
     @Override
     public void onMessage(String message) {
-        JsonObject jsonMessage = null;
+        JsonObject jsonMessage;
         try {
             jsonMessage = new JsonParser().parse(message).getAsJsonObject();
             String deviceGuid = null;

@@ -4,7 +4,6 @@ package com.devicehive.client.impl.rest.subs;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.CommandPollManyResponse;
-import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.NotificationPollManyResponse;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -22,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
 
@@ -40,7 +38,8 @@ public class AllDeviceNotificationRestSubscription extends RestSubscription {
     private Timestamp timestamp;
 
 
-    public AllDeviceNotificationRestSubscription(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout, Set<String> names) {
+    public AllDeviceNotificationRestSubscription(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout,
+                                                 Set<String> names) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
         this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);
@@ -67,7 +66,8 @@ public class AllDeviceNotificationRestSubscription extends RestSubscription {
                             queryParams, null, new TypeToken<List<CommandPollManyResponse>>() {
                     }.getType(), null, COMMAND_LISTED);
             for (NotificationPollManyResponse response : responses) {
-                Pair<String, DeviceNotification> pair = ImmutablePair.of(response.getGuid(), response.getNotification());
+                Pair<String, DeviceNotification> pair =
+                        ImmutablePair.of(response.getGuid(), response.getNotification());
                 if (timestamp == null || timestamp.before(response.getNotification().getTimestamp())) {
                     timestamp = response.getNotification().getTimestamp();
                 }

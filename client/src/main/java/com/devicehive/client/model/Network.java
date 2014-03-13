@@ -15,7 +15,8 @@ public class Network implements HiveEntity {
             DEVICE_PUBLISHED_DEVICE_AUTH})
     private Long id;
 
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_UPDATE})
+    @JsonPolicyDef(
+            {DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_UPDATE})
     private NullableWrapper<String> key;
 
     @JsonPolicyDef(
@@ -24,7 +25,7 @@ public class Network implements HiveEntity {
     private NullableWrapper<String> name;
 
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED,
-            NETWORK_UPDATE,DEVICE_PUBLISHED_DEVICE_AUTH})
+            NETWORK_UPDATE, DEVICE_PUBLISHED_DEVICE_AUTH})
     private NullableWrapper<String> description;
 
 

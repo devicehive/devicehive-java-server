@@ -38,7 +38,7 @@ public class SingleDeviceNotificationRestSubscription extends RestSubscription {
 
 
     public SingleDeviceNotificationRestSubscription(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout,
-                                                     Set<String> names, String deviceGuid) {
+                                                    Set<String> names, String deviceGuid) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
         this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);

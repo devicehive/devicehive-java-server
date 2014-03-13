@@ -92,19 +92,19 @@ class NotificationsControllerRestImpl implements NotificationsController {
         logger.debug("Client: notification/subscribe requested. Params: timestamp {}, names {}, device ids {}",
                 timestamp, names, deviceIds);
 
-        hiveContext.getRestSubManager().addNotificationSubscription(null, timestamp, names, deviceIds);
+        hiveContext.getRestSubManager().addNotificationSubscription(timestamp, names, deviceIds);
 
         logger.debug("Client: notification/subscribe proceed. Params: timestamp {}, names {}, device ids {}",
                 timestamp, names, deviceIds);
     }
 
     @Override
-    public void unsubscribeFromNotification(Set<String> names, String... deviceIds) throws HiveException {
-        logger.debug("Client: notification/unsubscribe requested. Params: names {}, device ids {}", names, deviceIds);
+    public void unsubscribeFromNotification() throws HiveException {
+        logger.debug("Client: notification/unsubscribe requested.");
 
-        hiveContext.getRestSubManager().removeNotificationSubscription(names, deviceIds);
+        hiveContext.getRestSubManager().removeNotificationSubscription();
 
-        logger.debug("Client: notification/unsubscribe proceed. Params: names {}, device ids {}", names, deviceIds);
+        logger.debug("Client: notification/unsubscribe proceed.");
     }
 
     public Queue<Pair<String, DeviceNotification>> getNotificationsQueue() {

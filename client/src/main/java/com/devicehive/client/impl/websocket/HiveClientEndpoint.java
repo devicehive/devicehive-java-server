@@ -2,28 +2,10 @@ package com.devicehive.client.impl.websocket;
 
 
 import com.devicehive.client.impl.context.HiveContext;
-import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.model.exceptions.HiveClientException;
-import com.devicehive.client.model.exceptions.HiveException;
-import com.devicehive.client.model.exceptions.HiveServerException;
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
-import com.devicehive.client.impl.util.connection.ConnectionEvent;
-import com.devicehive.client.impl.util.connection.HiveConnectionEventHandler;
-import org.apache.commons.lang3.tuple.Pair;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.Utf8DecodingError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.URI;
-import java.sql.Timestamp;
-import java.util.concurrent.*;
-
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  * Client websocket endpoint.
@@ -35,9 +17,8 @@ public class HiveClientEndpoint extends Endpoint {
 
     /**
      * Creates new endpoint and trying to connect to server. Client or device endpoint should be already set.
-     *
      */
-    public HiveClientEndpoint( HiveContext hiveContext) {
+    public HiveClientEndpoint(HiveContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
@@ -62,7 +43,8 @@ public class HiveClientEndpoint extends Endpoint {
         logger.info("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
                 reason.getCloseCode
                         ().getCode());
-        SessionMonitor sessionMonitor = (SessionMonitor) userSession.getUserProperties().get(SessionMonitor.SESSION_MONITOR_KEY);
+        SessionMonitor sessionMonitor =
+                (SessionMonitor) userSession.getUserProperties().get(SessionMonitor.SESSION_MONITOR_KEY);
         if (sessionMonitor != null) {
             sessionMonitor.close();
         }

@@ -1,7 +1,8 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.*;
+import com.devicehive.client.CommandsController;
+import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.JsonObject;

@@ -68,13 +68,9 @@ public interface NotificationsController {
     void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException;
 
     /**
-     * Unsubscribes client from notifications. In case of websocket unsubscribe method will be used,
-     * otherwise polling thread must be terminated.
-     *
-     * @param names     names of the notifications
-     * @param deviceIds device identifiers
+     * Unsubscribes client from notifications.
      */
-    void unsubscribeFromNotification(Set<String> names, String... deviceIds) throws HiveException;
+    void unsubscribeFromNotification() throws HiveException;
 
     /**
      * Get notification queue.

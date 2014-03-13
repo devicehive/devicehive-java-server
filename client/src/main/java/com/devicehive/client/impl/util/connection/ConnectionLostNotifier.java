@@ -10,8 +10,9 @@ public interface ConnectionLostNotifier {
 
     /**
      * Notifies that device or key lost connection
+     *
      * @param timestamp timestamp of connection lost event
-     * @param id device or key identifier
+     * @param id        device or key identifier
      */
     void notify(Timestamp timestamp, String id, URI serviceURI);
 

@@ -2,9 +2,9 @@ package com.devicehive.client.impl.context;
 
 
 import com.devicehive.client.impl.rest.subs.RestSubManager;
-import com.devicehive.client.impl.websocket.WebsocketSubManager;
 import com.devicehive.client.impl.util.connection.ConnectionEstablishedNotifier;
 import com.devicehive.client.impl.util.connection.ConnectionLostNotifier;
+import com.devicehive.client.impl.websocket.WebsocketSubManager;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -36,13 +36,11 @@ public class HiveContext implements AutoCloseable {
     private final RestSubManager restSubManager;
     private final HiveWebSocketClient hiveWebSocketClient;
     private final WebsocketSubManager websocketSubManager;
-
-
     private final BlockingQueue<Pair<String, DeviceCommand>> commandQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
-
-
+    private Subscription lastCommandSubscription;
+    private Subscription lastNotificationSubscription;
     private HivePrincipal hivePrincipal;
 
     /**
@@ -57,9 +55,7 @@ public class HiveContext implements AutoCloseable {
      */
     public HiveContext(boolean activateWebsockets, URI rest, Role role, ConnectionEstablishedNotifier
             connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) throws HiveException {
-
         try {
-
             this.hiveRestClient = new HiveRestClient(rest, this, connectionEstablishedNotifier, connectionLostNotifier);
             ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
             if (!info.getApiVersion().equals(REQUIRED_VERSION_OF_API)) {
@@ -79,8 +75,22 @@ public class HiveContext implements AutoCloseable {
             close();
             throw new HiveException("Error creating Hive Context", ex);
         }
+    }
 
+    public Subscription getLastCommandSubscription() {
+        return lastCommandSubscription;
+    }
 
+    public void setLastCommandSubscription(Subscription lastCommandSubscription) {
+        this.lastCommandSubscription = lastCommandSubscription;
+    }
+
+    public Subscription getLastNotificationSubscription() {
+        return lastNotificationSubscription;
+    }
+
+    public void setLastNotificationSubscription(Subscription lastNotificationSubscription) {
+        this.lastNotificationSubscription = lastNotificationSubscription;
     }
 
     /**
@@ -231,7 +241,6 @@ public class HiveContext implements AutoCloseable {
     public BlockingQueue<Pair<String, DeviceNotification>> getNotificationQueue() {
         return notificationQueue;
     }
-
 
     //Private methods------------------------------------------------------------------------------------------
     private URI websocketUriBuilder(String websocket, Role role) {

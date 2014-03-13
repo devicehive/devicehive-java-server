@@ -115,11 +115,10 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public void unsubscribeFromCommands(Set<String> names, String... deviceIds) throws HiveException {
-        logger.debug("Device: command/unsubscribe requested for names {}, device ids {}", names, deviceIds);
-        hiveContext.getRestSubManager().removeCommandSubscription(names, deviceIds);
-        logger.debug("Device: command/unsubscribe request proceed successfully for names {}, device ids {}", names,
-                deviceIds);
+    public void unsubscribeFromCommands() throws HiveException {
+        logger.debug("Device: command/unsubscribe requested");
+        hiveContext.getRestSubManager().removeCommandSubscription();
+        logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 
     @Override

@@ -4,9 +4,12 @@ package com.devicehive.client.impl;
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.model.*;
-import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.impl.util.HiveValidator;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.tuple.Pair;
@@ -14,7 +17,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -64,7 +70,8 @@ public class HiveDeviceRestImpl implements HiveDevice {
     @SuppressWarnings("serial")
     @Override
     public List<DeviceCommand> queryCommands(Timestamp start, Timestamp end, String command, String status,
-                                             String sortBy, boolean sortAsc, Integer take, Integer skip) throws HiveException {
+                                             String sortBy, boolean sortAsc, Integer take, Integer skip)
+            throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command";
         Map<String, Object> queryParams = new HashMap<>();
@@ -112,8 +119,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
      */
     @Override
     public void unsubscribeFromCommands() throws HiveException {
-        Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.getRestSubManager().removeCommandSubscription(null, authenticated.getLeft());
+        hiveContext.getRestSubManager().removeCommandSubscription();
     }
 
 

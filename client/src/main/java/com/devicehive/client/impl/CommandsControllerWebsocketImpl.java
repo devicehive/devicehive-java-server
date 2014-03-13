@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Set;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -79,11 +79,10 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     }
 
     @Override
-    public void unsubscribeFromCommands(Set<String> names, String... deviceIds) throws HiveException {
-        logger.debug("Device: command/unsubscribe requested for names {}, device ids {}", names, deviceIds);
-        hiveContext.getWebsocketSubManager().removeCommandSubscription(names, deviceIds);
-        logger.debug("Device: command/unsubscribe request proceed successfully for names {}, device ids {}", names,
-                deviceIds);
+    public void unsubscribeFromCommands() throws HiveException {
+        logger.debug("Device: command/unsubscribe requested");
+        hiveContext.getWebsocketSubManager().removeCommandSubscriptions();
+        logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 
 }

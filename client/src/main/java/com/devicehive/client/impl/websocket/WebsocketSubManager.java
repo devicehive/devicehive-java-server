@@ -2,6 +2,7 @@ package com.devicehive.client.impl.websocket;
 
 
 import com.devicehive.client.impl.context.HiveContext;
+import com.devicehive.client.impl.context.Subscription;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -13,10 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.sql.Timestamp;
 import java.util.Set;
 
-public class WebsocketSubManager  {
+public class WebsocketSubManager {
 
     private static Logger logger = LoggerFactory.getLogger(WebsocketSubManager.class);
-
     private final HiveContext hiveContext;
 
     public WebsocketSubManager(HiveContext hiveContext) {
@@ -39,6 +39,7 @@ public class WebsocketSubManager  {
         Gson gson = GsonFactory.createGson();
         request.add("deviceGuids", gson.toJsonTree(deviceIds));
         request.add("names", gson.toJsonTree(names));
+        hiveContext.setLastCommandSubscription(new Subscription(timestamp, names, deviceIds));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
@@ -54,19 +55,11 @@ public class WebsocketSubManager  {
     }
 
     /**
-     * Remove command subscription for following command name and device identifier. In case when no device identifiers specified,
-     * surrogate subscription "for all available" will be removed. This subscription does not
-     * include subscriptions for specific device.
-     *
-     * @param names     set of command names
-     * @param deviceIds device identifiers.
+     * Remove command subscription for all previous commands.
      */
-    public synchronized void removeCommandSubscription(Set<String> names, String... deviceIds) throws HiveException {
+    public synchronized void removeCommandSubscriptions() throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
-        Gson gson = GsonFactory.createGson();
-        request.add("deviceGuids", gson.toJsonTree(deviceIds));
-        request.add("names", gson.toJsonTree(names));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
@@ -86,28 +79,29 @@ public class WebsocketSubManager  {
         Gson gson = GsonFactory.createGson();
         request.add("deviceGuids", gson.toJsonTree(deviceIds));
         request.add("names", gson.toJsonTree(names));
+        hiveContext.setLastCommandSubscription(new Subscription(timestamp, names, deviceIds));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
     /**
-     * Remove notification subscription for following notification name and device identifier. In case when no device
-     * identifiers specified, surrogate subscription "for all available" will be removed. This subscription does not
-     * include subscriptions for specific device.
-     *
-     * @param names     set of notification names
-     * @param deviceIds device identifiers.
+     * Remove notification subscription for all previous notifications.
      */
-    public synchronized void removeNotificationSubscription(Set<String> names, String... deviceIds) throws HiveException {
+    public synchronized void removeNotificationSubscription() throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/unsubscribe");
-        Gson gson = GsonFactory.createGson();
-        request.add("deviceGuids", gson.toJsonTree(deviceIds));
-        request.add("names", gson.toJsonTree(names));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
-    public synchronized void resubscribeAll() {
-        //TODO implement subscriptions restore
+    public synchronized void resubscribeAll() throws HiveException {
+        Subscription lastCommand = hiveContext.getLastCommandSubscription();
+        String[] commandsIds = new String[lastCommand.getDeviceIds().size()];
+        commandsIds = lastCommand.getDeviceIds().toArray(commandsIds);
+        addCommandsSubscription(lastCommand.getLastTimestamp(), lastCommand.getNames(), commandsIds);
+
+        Subscription lastNotification = hiveContext.getLastNotificationSubscription();
+        String[] notificationIds = new String[lastNotification.getDeviceIds().size()];
+        notificationIds = lastNotification.getDeviceIds().toArray(notificationIds);
+        addNotificationSubscription(lastNotification.getLastTimestamp(), lastNotification.getNames(), notificationIds);
     }
 
     public void close() {

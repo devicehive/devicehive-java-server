@@ -74,13 +74,9 @@ public interface CommandsController {
     void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException;
 
     /**
-     * Unsubscribes client or device from commands. In case of websocket unsubscribe method will be used,
-     * otherwise polling thread must be terminated.
-     *
-     * @param names     names of commands
-     * @param deviceIds device identifiers
+     * Unsubscribes client or device from commands.
      */
-    void unsubscribeFromCommands(Set<String> names, String... deviceIds) throws HiveException;
+    void unsubscribeFromCommands() throws HiveException;
 
     /**
      * Return commands queue

@@ -10,8 +10,9 @@ public interface ConnectionEstablishedNotifier {
 
     /**
      * Notifies that reconnection for device or key proceed successfully
+     *
      * @param timestamp timestamp of connection lost event
-     * @param id device or key identifier
+     * @param id        device or key identifier
      */
     void notify(Timestamp timestamp, String id, URI serviceURI);
 

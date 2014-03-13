@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,12 +19,12 @@ import java.util.concurrent.Future;
 public class RestSubManager {
 
     private static Logger logger = LoggerFactory.getLogger(RestSubManager.class);
-
     private final HiveContext hiveContext;
     private final ExecutorService subscriptionExecutor = Executors.newCachedThreadPool();
-
     private Map<Pair<String, Set<String>>, Future<?>> commandsSubscriptionsStorage = new HashMap<>();
     private Map<Pair<String, Set<String>>, Future<?>> notificationsSubscriptionsStorage = new HashMap<>();
+    private Timestamp commandsTimestamp;
+    private Timestamp notificationsTimestamp;
 
 
     public RestSubManager(HiveContext hiveContext) {
@@ -42,10 +41,12 @@ public class RestSubManager {
      */
     public synchronized void addCommandsSubscription(Timestamp timestamp,
                                                      Set<String> names, String... deviceIds) {
+        commandsTimestamp = timestamp == null ? new Timestamp(System.currentTimeMillis()) : timestamp;
         if (deviceIds == null) {
             Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
             if (!commandsSubscriptionsStorage.containsKey(key)) {
-                Future subscription = subscriptionExecutor.submit(new AllDeviceCommandRestSubscription(hiveContext, timestamp, 60, names));
+                Future subscription = subscriptionExecutor
+                        .submit(new AllDeviceCommandRestSubscription(hiveContext, timestamp, 60, names));
                 commandsSubscriptionsStorage.put(key, subscription);
                 logger.debug("New subscription added for: {}", Constants.FOR_ALL_SUBSTITUTE);
             }
@@ -53,7 +54,8 @@ public class RestSubManager {
             for (String id : deviceIds) {
                 Pair<String, Set<String>> key = ImmutablePair.of(id, names);
                 if (!commandsSubscriptionsStorage.containsKey(key)) {
-                    Future subscription = subscriptionExecutor.submit(new SingleDeviceCommandRestSubscription(hiveContext, timestamp, 60, names, id));
+                    Future subscription = subscriptionExecutor
+                            .submit(new SingleDeviceCommandRestSubscription(hiveContext, timestamp, 60, names, id));
                     commandsSubscriptionsStorage.put(key, subscription);
                     logger.debug("New subscription added for device with id: {}", id);
                 }
@@ -69,51 +71,37 @@ public class RestSubManager {
      * @param deviceId  device identifier
      */
     public synchronized void addCommandUpdateSubscription(long commandId, String deviceId) {
-        Future subscription = subscriptionExecutor.submit(new CommandUpdateRestSubscription(hiveContext, 60, deviceId, commandId));
+        subscriptionExecutor.submit(new CommandUpdateRestSubscription(hiveContext, 60, deviceId, commandId));
         logger.debug("New subscription added for device with id: {} and command id: {}", deviceId, commandId);
     }
 
     /**
-     * Remove command subscription for following command name and device identifier. In case when no device identifiers specified,
-     * surrogate subscription "for all available" will be removed. This subscription does not
-     * include subscriptions for specific device.
-     *
-     * @param names     set of command names
-     * @param deviceIds device identifiers.
+     * Remove command subscription for all available commands.
      */
-    public synchronized void removeCommandSubscription(Set<String> names, String... deviceIds) {
-        if (deviceIds == null) {
-            Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
-            Future subscription = commandsSubscriptionsStorage.remove(key);
-            if (subscription != null) {
-                subscription.cancel(true);
-            }
-        } else {
-            for (String id : deviceIds) {
-                Pair<String, Set<String>> key = ImmutablePair.of(id, names);
-                Future subscription = commandsSubscriptionsStorage.remove(key);
-                if (subscription != null) {
-                    subscription.cancel(true);
-                }
-            }
+    public synchronized void removeCommandSubscription() {
+        for (Map.Entry<Pair<String, Set<String>>, Future<?>> pair : commandsSubscriptionsStorage.entrySet()) {
+            pair.getValue().cancel(true);
         }
+        commandsSubscriptionsStorage.clear();
     }
 
     /**
      * Adds subscription for notifications with following set of notification's names from device with defined device
      * identifiers. In case when no device identifiers specified, subscription for all available devices will be added.
      *
-     * @param headers   headers that define the sample of commands
      * @param timestamp start timestamp
      * @param names     notifications names (statistics)
      * @param deviceIds device identifiers
      */
-    public synchronized void addNotificationSubscription(Map<String, String> headers, Timestamp timestamp, Set<String> names,
+    public synchronized void addNotificationSubscription(Timestamp timestamp,
+                                                         Set<String> names,
                                                          String... deviceIds) {
+        notificationsTimestamp = timestamp == null ? new Timestamp(System.currentTimeMillis()) : timestamp;
         if (deviceIds == null) {
             Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
             if (!notificationsSubscriptionsStorage.containsKey(key)) {
-                Future subscription = subscriptionExecutor.submit(new AllDeviceNotificationRestSubscription(hiveContext, timestamp, 60,  names));
+                Future subscription = subscriptionExecutor
+                        .submit(new AllDeviceNotificationRestSubscription(hiveContext, timestamp, 60, names));
                 notificationsSubscriptionsStorage.put(key, subscription);
                 logger.debug("New subscription added for: {}", Constants.FOR_ALL_SUBSTITUTE);
             }
@@ -121,7 +109,9 @@ public class RestSubManager {
             for (String id : deviceIds) {
                 Pair<String, Set<String>> key = ImmutablePair.of(id, names);
                 if (!notificationsSubscriptionsStorage.containsKey(key)) {
-                    Future subscription = subscriptionExecutor.submit(new SingleDeviceNotificationRestSubscription(hiveContext, timestamp, 60,  names, id));
+                    Future subscription = subscriptionExecutor
+                            .submit(new SingleDeviceNotificationRestSubscription(hiveContext, timestamp, 60, names,
+                                    id));
                     notificationsSubscriptionsStorage.put(key, subscription);
                     logger.debug("New subscription added for device with id: {}", id);
                 }
@@ -130,36 +120,25 @@ public class RestSubManager {
     }
 
     /**
-     * Remove notification subscription for following notification name and device identifier. In case when no device
-     * identifiers specified, surrogate subscription "for all available" will be removed. This subscription does not
-     * include subscriptions for specific device.
-     *
-     * @param names     set of notification names
-     * @param deviceIds device identifiers.
+     * Remove all previous notification subscriptions.
      */
-    public synchronized void removeNotificationSubscription(Set<String> names, String... deviceIds) {
-        if (deviceIds == null) {
-            Pair<String, Set<String>> key = ImmutablePair.of(Constants.FOR_ALL_SUBSTITUTE, names);
-            Future subscription = notificationsSubscriptionsStorage.remove(key);
-            if (subscription != null) {
-                subscription.cancel(true);
-            }
-        } else {
-            for (String id : deviceIds) {
-                Pair<String, Set<String>> key = ImmutablePair.of(id, names);
-                Future subscription = notificationsSubscriptionsStorage.remove(key);
-                if (subscription != null) {
-                    subscription.cancel(true);
-                }
-            }
+    public synchronized void removeNotificationSubscription() {
+        for (Map.Entry<Pair<String, Set<String>>, Future<?>> pair : notificationsSubscriptionsStorage.entrySet()) {
+            pair.getValue().cancel(true);
         }
+        notificationsSubscriptionsStorage.clear();
     }
-
 
     public synchronized void resubscribeAll() {
-
+        for (Map.Entry<Pair<String, Set<String>>, Future<?>> entry : commandsSubscriptionsStorage.entrySet()) {
+            Pair<String, Set<String>> pair = entry.getKey();
+            addCommandsSubscription(commandsTimestamp, pair.getRight(), pair.getLeft());
+        }
+        for (Map.Entry<Pair<String, Set<String>>, Future<?>> entry : notificationsSubscriptionsStorage.entrySet()) {
+            Pair<String, Set<String>> pair = entry.getKey();
+            addCommandsSubscription(notificationsTimestamp, pair.getRight(), pair.getLeft());
+        }
     }
-
 
     public void close() {
         subscriptionExecutor.shutdownNow();

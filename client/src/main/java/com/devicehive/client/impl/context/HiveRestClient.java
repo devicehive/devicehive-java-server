@@ -68,8 +68,10 @@ public class HiveRestClient implements Closeable {
      * @param connectionEstablishedNotifier notifier for successful reconnection completion
      * @param connectionLostNotifier        notifier for lost connection
      */
-    public HiveRestClient(URI uri, HiveContext hiveContext, ConnectionEstablishedNotifier
-            connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) {
+    public HiveRestClient(URI uri,
+                          HiveContext hiveContext,
+                          ConnectionEstablishedNotifier connectionEstablishedNotifier,
+                          ConnectionLostNotifier connectionLostNotifier) {
         this.uri = uri;
         this.hiveContext = hiveContext;
         restClient = HiveClientFactory.getClient();
@@ -118,7 +120,8 @@ public class HiveRestClient implements Closeable {
      * @param headers     custom headers (authorization headers are added during the request build)
      * @param queryParams query params that should be added to the url. Null-valued params are ignored.
      */
-    public void execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams) throws HiveException {
+    public void execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams)
+            throws HiveException {
         execute(path, method, headers, queryParams, null, null, null, null);
     }
 

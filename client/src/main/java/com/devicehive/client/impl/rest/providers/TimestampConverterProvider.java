@@ -1,7 +1,6 @@
 package com.devicehive.client.impl.rest.providers;
 
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
-import com.devicehive.client.model.exceptions.HiveClientException;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
@@ -9,8 +8,6 @@ import javax.ws.rs.ext.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
-
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 /**
  * Provider that converts timestamps into request URLs into parseable form

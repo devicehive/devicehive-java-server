@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class NotificationsControllerWebsocketImpl extends NotificationsControllerRestImpl {
@@ -62,10 +64,10 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
     }
 
     @Override
-    public void unsubscribeFromNotification(Set<String> names, String... deviceIds) throws HiveException {
-        logger.debug("Client: notification/unsubscribe requested. Params: names {}, device ids {}", names, deviceIds);
-        hiveContext.getWebsocketSubManager().removeNotificationSubscription(names, deviceIds);
-        logger.debug("Client: notification/unsubscribe proceed. Params: names {}, device ids {}", names, deviceIds);
+    public void unsubscribeFromNotification() throws HiveException {
+        logger.debug("Client: notification/unsubscribe requested.");
+        hiveContext.getWebsocketSubManager().removeNotificationSubscription();
+        logger.debug("Client: notification/unsubscribe proceed.");
     }
 
 }

@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
 
@@ -38,7 +37,8 @@ public class AllDeviceCommandRestSubscription extends RestSubscription {
     private Timestamp timestamp;
 
 
-    public AllDeviceCommandRestSubscription(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout, Set<String> names) {
+    public AllDeviceCommandRestSubscription(HiveContext hiveContext, Timestamp timestamp, Integer waitTimeout,
+                                            Set<String> names) {
         this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
         this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);
@@ -49,6 +49,7 @@ public class AllDeviceCommandRestSubscription extends RestSubscription {
     /**
      * Polling task performer. Put command or notification to the required queue.
      */
+    @SuppressWarnings("SerializableHasSerializationMethods")
     @Override
     public void execute() {
         try {

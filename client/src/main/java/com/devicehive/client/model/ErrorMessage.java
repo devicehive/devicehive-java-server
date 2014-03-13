@@ -4,7 +4,7 @@ package com.devicehive.client.model;
 /**
  * Entity that represents error message
  */
-public class ErrorMessage implements HiveEntity{
+public class ErrorMessage implements HiveEntity {
 
     private static final long serialVersionUID = -2691319929605273820L;
     private Integer code;

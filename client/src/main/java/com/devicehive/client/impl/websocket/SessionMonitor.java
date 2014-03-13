@@ -1,8 +1,6 @@
 package com.devicehive.client.impl.websocket;
 
 import com.devicehive.client.impl.context.Constants;
-import com.devicehive.client.model.exceptions.HiveException;
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +8,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;

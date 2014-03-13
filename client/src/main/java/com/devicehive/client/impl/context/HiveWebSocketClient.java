@@ -1,17 +1,15 @@
 package com.devicehive.client.impl.context;
 
 
-import com.devicehive.client.HiveClient;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.websocket.HiveClientEndpoint;
+import com.devicehive.client.impl.websocket.HiveWebsocketHandler;
+import com.devicehive.client.impl.websocket.SimpleWebsocketResponse;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
-import com.devicehive.client.impl.util.connection.*;
-import com.devicehive.client.impl.websocket.HiveClientEndpoint;
-import com.devicehive.client.impl.websocket.HiveWebsocketHandler;
-import com.devicehive.client.impl.websocket.SimpleWebsocketResponse;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -21,13 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
-import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -42,24 +36,21 @@ import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
  */
 public class HiveWebSocketClient implements AutoCloseable {
 
-    private static Logger logger = LoggerFactory.getLogger(HiveWebSocketClient.class);
-
     private static final String REQUEST_ID_MEMBER = "requestId";
     private static final Long WAIT_TIMEOUT = 1L;
-
     private static final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
-
+    private static Logger logger = LoggerFactory.getLogger(HiveWebSocketClient.class);
     private final HiveContext hiveContext;
     private final URI uri;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap = new ConcurrentHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock(true);
-
     private Session currentSession;
+
 
     /**
      * Creates client connected to the given websocket URL. All state is kept in the hive context.
      *
-     * @param uri      URI of websocket service
+     * @param uri         URI of websocket service
      * @param hiveContext context. Keeps state, for example credentials.
      */
     public HiveWebSocketClient(URI uri, HiveContext hiveContext) throws HiveException {
@@ -68,15 +59,12 @@ public class HiveWebSocketClient implements AutoCloseable {
         initSession();
     }
 
-
-
-
-
     private synchronized void initSession() throws HiveException {
         try {
             lock.writeLock().lock();
             HiveClientEndpoint endpoint = new HiveClientEndpoint(hiveContext);
-            currentSession = webSocketContainer.connectToServer(endpoint, ClientEndpointConfig.Builder.create().build(), uri);
+            currentSession =
+                    webSocketContainer.connectToServer(endpoint, ClientEndpointConfig.Builder.create().build(), uri);
             if (!websocketResponsesMap.isEmpty()) {
                 logger.error("There are requests without responses, they will be lost in new session");
                 websocketResponsesMap.clear();

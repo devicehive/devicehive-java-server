@@ -1,28 +1,17 @@
 package com.devicehive.test;
 
-import com.devicehive.client.*;
-import com.devicehive.client.impl.HiveClientRestImpl;
-import com.devicehive.client.impl.HiveDeviceRestImpl;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.JsonStringWrapper;
-import com.devicehive.client.model.exceptions.HiveException;
 import junit.framework.TestCase;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.Queue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 @RunWith(JUnit4.class)
 public class PollingTest {
+
+    @Test
+    public void dummyTest(){
+        TestCase.assertEquals(true, true);
+    }
     /*
     private final Lock lock = new ReentrantLock();
     private ScheduledExecutorService commandsInsertService = Executors.newSingleThreadScheduledExecutor();

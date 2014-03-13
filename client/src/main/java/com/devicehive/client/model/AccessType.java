@@ -1,10 +1,6 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.client.model.exceptions.HiveClientException;
-
-import javax.ws.rs.core.Response;
-
 /**
  * Grant access type. Available values:
  * Online: Access is requested to a limited period of time

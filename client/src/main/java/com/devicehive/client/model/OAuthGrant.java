@@ -1,14 +1,12 @@
 package com.devicehive.client.model;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
-import com.devicehive.client.model.exceptions.HiveClientException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.ObjectUtils;
 
-import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;

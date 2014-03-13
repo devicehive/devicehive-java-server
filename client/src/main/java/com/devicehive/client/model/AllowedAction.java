@@ -1,8 +1,6 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
-
 /**
  * Enumeration of all allowed actions for access keys
  */

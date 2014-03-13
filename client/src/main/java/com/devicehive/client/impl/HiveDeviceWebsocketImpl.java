@@ -3,7 +3,9 @@ package com.devicehive.client.impl;
 
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
-import com.devicehive.client.model.*;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -11,7 +13,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.UUID;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -97,8 +99,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
         hiveContext.getHiveWebSocketClient().sendMessage(request);
-        Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.getWebsocketSubManager().removeCommandSubscription(null, authenticated.getLeft());
+        hiveContext.getWebsocketSubManager().removeCommandSubscriptions();
     }
 
 
