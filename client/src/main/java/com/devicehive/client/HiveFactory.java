@@ -13,33 +13,36 @@ import java.net.URI;
 
 public class HiveFactory {
 
-    public HiveClient createClient(URI restUri, boolean useWebsockets) throws HiveException {
+    private HiveFactory() {
+    }
+
+    public static HiveClient createClient(URI restUri, boolean useWebsockets) throws HiveException {
         HiveContext context = new HiveContext(useWebsockets, restUri, Role.USER, null, null);
         return useWebsockets
                 ? new HiveClientWebsocketImpl(context)
                 : new HiveClientRestImpl(context);
     }
 
-    public HiveClient createClient(URI restUri) throws HiveException {
+    public static HiveClient createClient(URI restUri) throws HiveException {
         return createClient(restUri, true);
     }
 
-    public HiveClient createRESTOnlyClient(URI restUri) throws HiveException {
+    public static HiveClient createRESTOnlyClient(URI restUri) throws HiveException {
         return createClient(restUri, false);
     }
 
-    public HiveDevice createDevice(URI restUri, boolean useWebsockets) throws HiveException {
+    public static HiveDevice createDevice(URI restUri, boolean useWebsockets) throws HiveException {
         HiveContext context = new HiveContext(useWebsockets, restUri, Role.DEVICE, null, null);
         return useWebsockets
                 ? new HiveDeviceRestImpl(context)
                 : new HiveDeviceWebsocketImpl(context);
     }
 
-    public HiveDevice createDevice(URI restUri) throws HiveException {
+    public static HiveDevice createDevice(URI restUri) throws HiveException {
         return createDevice(restUri, true);
     }
 
-    public HiveDevice createRESTOnlyDevice(URI restUri) throws HiveException {
+    public static HiveDevice createRESTOnlyDevice(URI restUri) throws HiveException {
         return createDevice(restUri, false);
     }
 }
