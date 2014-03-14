@@ -1,13 +1,12 @@
 package com.devicehive.examples;
 
 
-import com.devicehive.client.impl.context.HiveContext;
-import com.devicehive.client.impl.context.HiveRestClient;
-import com.devicehive.client.impl.context.HiveWebSocketClient;
-import com.devicehive.client.model.Role;
 import com.devicehive.client.model.exceptions.HiveException;
+import com.devicehive.exceptions.ExampleException;
 import org.apache.commons.cli.*;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,33 +15,37 @@ import static com.devicehive.constants.Constants.*;
 
 public abstract class Example {
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
-    private final Options options = new Options();
-    private final HiveRestClient restClient;
-    private final HiveWebSocketClient wsClient;
+    private final Options options;
     private final PrintStream err;
+    private final CommandLine commandLine;
     private final PrintStream out;
+    private final URI serverUrl;
 
     protected Example(PrintStream err,
                       PrintStream out,
-                      Role role,
                       String... args)
-            throws HiveException, URISyntaxException {
+            throws HiveException {
         this.err = err;
         this.out = out;
+        options = makeOptionsSet();
         options.addOption(USE_SOCKETS, false, USE_SOCKETS_DESCRIPTION);
-        options.addOption(URL, true, URL_DESCRIPTION);
-//        addExtraOptions();
-        CommandLine commandLine = parse(err, args);
-        URI serverUrl = new URI(commandLine.getOptionValue(URL));
-        HiveContext context;
-        context = commandLine.hasOption(USE_SOCKETS)
-                ? new HiveContext(true, serverUrl, role, null, null)
-                : new HiveContext(false, serverUrl, role, null, null);
-        wsClient = new HiveWebSocketClient(serverUrl, context);
-        restClient = new HiveRestClient(serverUrl, context);
+        Option url = new Option(URL, true, URL_DESCRIPTION);
+        url.setRequired(true);
+        options.addOption(url);
+        commandLine = parse(args);
+        try {
+            serverUrl = new URI(commandLine.getOptionValue(URL));
+        } catch (URISyntaxException e) {
+            help();
+            throw new HiveException("Incorrect server URI", e);
+        }
     }
 
-    private CommandLine parse(PrintStream err, String... args) {
+    protected final URI getServerUrl() {
+        return serverUrl;
+    }
+
+    private CommandLine parse(String... args) {
         CommandLineParser parser = new BasicParser();
         try {
             return parser.parse(options, args);
@@ -53,13 +56,34 @@ public abstract class Example {
         return null;
     }
 
-    private void help() {
+    public final void help() {
         HELP_FORMATTER.printHelp(NAME, options);
     }
 
-    public void addExtraOptions(){
-        //nothing to add;
+
+    public abstract Options makeOptionsSet();
+
+    public final CommandLine getCommandLine() {
+        return commandLine;
     }
 
-    public abstract void run();
+    public final void print(String msg, Object... objects) {
+        String resultMessage;
+        if (objects != null && objects.length > 0) {
+            String[] replaceList = new String[objects.length];
+            for (String str : replaceList) {
+                str = "{}";
+            }
+            String[] replacement = new String[objects.length];
+            for (int i = 0; i < objects.length; i++) {
+                replacement[i] = objects[i].toString();
+            }
+            resultMessage = StringUtils.replaceEach(msg, replaceList, replacement);
+        } else
+            resultMessage = msg;
+        out.println(resultMessage);
+
+    }
+
+    public abstract void run() throws HiveException, ExampleException, IOException;
 }
