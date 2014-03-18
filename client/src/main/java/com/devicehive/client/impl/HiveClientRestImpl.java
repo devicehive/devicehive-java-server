@@ -5,9 +5,13 @@ import com.devicehive.client.*;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
+import java.util.Queue;
 
 public class HiveClientRestImpl implements HiveClient {
 
@@ -53,6 +57,16 @@ public class HiveClientRestImpl implements HiveClient {
 
     public UserController getUserController() {
         return new UserControllerImpl(hiveContext);
+    }
+
+    @Override
+    public Queue<Pair<String, DeviceNotification>> getNotificationsQueue() throws HiveException {
+        return hiveContext.getNotificationQueue();
+    }
+
+    @Override
+    public Queue<Pair<String, DeviceCommand>> getCommandsQueue() throws HiveException {
+        return hiveContext.getCommandQueue();
     }
 
     public OAuthClientController getOAuthClientController() {

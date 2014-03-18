@@ -34,8 +34,8 @@ public class HiveFactory {
     public static HiveDevice createDevice(URI restUri, boolean useWebsockets) throws HiveException {
         HiveContext context = new HiveContext(useWebsockets, restUri, Role.DEVICE, null, null);
         return useWebsockets
-                ? new HiveDeviceRestImpl(context)
-                : new HiveDeviceWebsocketImpl(context);
+                ? new HiveDeviceWebsocketImpl(context)
+                : new HiveDeviceRestImpl(context);
     }
 
     public static HiveDevice createDevice(URI restUri) throws HiveException {

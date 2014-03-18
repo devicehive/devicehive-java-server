@@ -73,7 +73,7 @@ public class HiveContext implements AutoCloseable {
             throw ex;
         } catch (Exception ex) {
             close();
-            throw new HiveException("Error creating Hive Context", ex);
+            throw new HiveException("Error creating Hive Context. Incorrect URL.", ex);
         }
     }
 

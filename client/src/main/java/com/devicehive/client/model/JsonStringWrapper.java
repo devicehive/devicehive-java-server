@@ -37,4 +37,11 @@ public class JsonStringWrapper implements HiveEntity {
     public int hashCode() {
         return jsonString != null ? jsonString.hashCode() : 0;
     }
+
+    @Override
+    public String toString() {
+        return "JsonStringWrapper{" +
+                "jsonString='" + jsonString + '\'' +
+                '}';
+    }
 }

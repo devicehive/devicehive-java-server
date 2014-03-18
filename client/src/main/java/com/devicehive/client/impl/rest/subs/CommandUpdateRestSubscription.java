@@ -45,7 +45,7 @@ public class CommandUpdateRestSubscription extends RestSubscription {
             Map<String, Object> queryParams = new HashMap<>();
             queryParams.put(WAIT_TIMEOUT_PARAM, waitTimeout);
             String path = new StringBuilder("/device/").append(deviceGuid).append("/command/").append(commandId)
-                    .append("poll").toString();
+                    .append("/poll").toString();
             DeviceCommand command =
                     hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null,
                             queryParams, null, new TypeToken<DeviceCommand>() {
