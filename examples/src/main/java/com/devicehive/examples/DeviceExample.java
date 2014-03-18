@@ -46,10 +46,20 @@ public class DeviceExample extends Example {
     private final HiveDevice hiveDevice;
     private final CommandLine commandLine;
 
-    public DeviceExample(PrintStream err, PrintStream out, String... args) throws HiveException{
-        super(err, out, args);
+    public DeviceExample(PrintStream err, PrintStream out, String... args) throws HiveException, ExampleException {
+        super(out, args);
         commandLine = getCommandLine();
         hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
+    }
+
+    public static void main(String... args) {
+        Example deviceExample;
+        try {
+            deviceExample = new DeviceExample(System.err, System.out, args);
+            deviceExample.run();
+        } catch (HiveException | ExampleException | IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     @Override
@@ -141,7 +151,9 @@ public class DeviceExample extends Example {
                         Queue<Pair<String, DeviceCommand>> commandQueue = hiveDevice.getCommandsQueue();
                         while (!commandQueue.isEmpty()) {
                             print("Processing command {}", commandQueue.poll().getRight());
-                            hiveDevice.insertNotification(createNotification());
+                            DeviceNotification notificationToSend = createNotification();
+                            print("Notification {} will be sent to client", notificationToSend.getParameters());
+                            hiveDevice.insertNotification(notificationToSend);
                         }
                     } catch (HiveException e) {
                         print(e.getMessage());
@@ -154,16 +166,6 @@ public class DeviceExample extends Example {
             throw new ExampleException(e.getMessage(), e);
         } finally {
             hiveDevice.close();
-        }
-    }
-
-    public static void main(String... args) {
-        Example deviceExample;
-        try {
-            deviceExample = new DeviceExample(System.err, System.out, args);
-            deviceExample.run();
-        } catch (HiveException | ExampleException | IOException e) {
-            System.err.println(e.getMessage() + ": " + e);
         }
     }
 }

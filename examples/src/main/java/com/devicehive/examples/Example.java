@@ -16,16 +16,13 @@ import static com.devicehive.constants.Constants.*;
 public abstract class Example {
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private final Options options;
-    private final PrintStream err;
     private final CommandLine commandLine;
     private final PrintStream out;
     private final URI serverUrl;
 
-    protected Example(PrintStream err,
-                      PrintStream out,
+    protected Example( PrintStream out,
                       String... args)
-            throws HiveException {
-        this.err = err;
+            throws ExampleException {
         this.out = out;
         options = makeOptionsSet();
         options.addOption(USE_SOCKETS, false, USE_SOCKETS_DESCRIPTION);
@@ -34,10 +31,13 @@ public abstract class Example {
         options.addOption(url);
         commandLine = parse(args);
         try {
-            serverUrl = new URI(commandLine.getOptionValue(URL));
+            String urlValue = commandLine == null ? null : commandLine.getOptionValue(URL);
+            if (urlValue == null)
+                throw new ExampleException("Incorrect server URI");
+            serverUrl = new URI(urlValue);
         } catch (URISyntaxException e) {
             help();
-            throw new HiveException("Incorrect server URI", e);
+            throw new ExampleException("Incorrect server URI", e);
         }
     }
 
@@ -45,18 +45,17 @@ public abstract class Example {
         return serverUrl;
     }
 
-    private CommandLine parse(String... args) {
+    private CommandLine parse(String... args) throws ExampleException {
         CommandLineParser parser = new BasicParser();
         try {
             return parser.parse(options, args);
         } catch (ParseException e) {
-            err.print(PARSE_EXCEPTION_MESSAGE);
             help();
+            throw new ExampleException(PARSE_EXCEPTION_MESSAGE);
         }
-        return null;
     }
 
-    public final void help() {
+    public final synchronized void help() {
         HELP_FORMATTER.printHelp(NAME, options);
     }
 
@@ -71,8 +70,8 @@ public abstract class Example {
         String resultMessage;
         if (objects != null && objects.length > 0) {
             String[] replaceList = new String[objects.length];
-            for (String str : replaceList) {
-                str = "{}";
+            for (int i = 0; i < objects.length; i++) {
+                replaceList[i] = "{}";
             }
             String[] replacement = new String[objects.length];
             for (int i = 0; i < objects.length; i++) {
