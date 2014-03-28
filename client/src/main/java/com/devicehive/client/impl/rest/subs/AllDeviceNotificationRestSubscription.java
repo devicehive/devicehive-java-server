@@ -4,14 +4,11 @@ package com.devicehive.client.impl.rest.subs;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.CommandPollManyResponse;
-import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.NotificationPollManyResponse;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,12 +63,10 @@ public class AllDeviceNotificationRestSubscription extends RestSubscription {
                             queryParams, null, new TypeToken<List<CommandPollManyResponse>>() {
                     }.getType(), null, COMMAND_LISTED);
             for (NotificationPollManyResponse response : responses) {
-                Pair<String, DeviceNotification> pair =
-                        ImmutablePair.of(response.getGuid(), response.getNotification());
                 if (timestamp == null || timestamp.before(response.getNotification().getTimestamp())) {
                     timestamp = response.getNotification().getTimestamp();
                 }
-                hiveContext.getNotificationQueue().add(pair);
+                hiveContext.getNotificationsHandler().handle(response.getNotification());
             }
         } catch (HiveException e) {
             logger.error(e.getMessage(), e);

@@ -37,4 +37,13 @@ public class CommandPollManyResponse implements HiveEntity {
     public void setCommand(DeviceCommand command) {
         this.command = command;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("CommandPollManyResponse{");
+        sb.append("command=").append(command);
+        sb.append(", guid='").append(guid).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -8,8 +8,6 @@ import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,11 +65,10 @@ public class SingleDeviceNotificationRestSubscription extends RestSubscription {
                             queryParams, null, new TypeToken<List<DeviceNotification>>() {
                     }.getType(), null, COMMAND_LISTED);
             for (DeviceNotification notification : notifications) {
-                Pair<String, DeviceNotification> pair = ImmutablePair.of(deviceGuid, notification);
                 if (timestamp == null || timestamp.before(notification.getTimestamp())) {
                     timestamp = notification.getTimestamp();
                 }
-                hiveContext.getNotificationQueue().add(pair);
+                hiveContext.getNotificationsHandler().handle(notification);
             }
         } catch (HiveException e) {
             logger.error(e.getMessage(), e);

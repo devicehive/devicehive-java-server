@@ -42,4 +42,6 @@ public class AccessToken implements HiveEntity {
     public void setExpiresIn(Long expiresIn) {
         this.expiresIn = expiresIn;
     }
+
+
 }

@@ -10,7 +10,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +98,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
         DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
                 DeviceCommand.class);
-        hiveContext.getCommandQueue().put(ImmutablePair.of(deviceGuid, commandInsert));
+        hiveContext.getCommandsHandler().handleCommandInsert(commandInsert);
         if (commandInsert.getTimestamp() != null) {
             // TODO update timestamp
         } else {
@@ -113,7 +112,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
         DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
                 (COMMAND_MEMBER), DeviceCommand.class);
-        hiveContext.getCommandUpdateQueue().put(commandUpdated);
+        hiveContext.getCommandsHandler().handleCommandUpdate(commandUpdated);
         logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
                 commandUpdated.getStatus());
     }
@@ -122,7 +121,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
         DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
                 (NOTIFICATION_MEMBER), DeviceNotification.class);
-        hiveContext.getNotificationQueue().put(ImmutablePair.of(deviceGuid, notification));
+        hiveContext.getNotificationsHandler().handle(notification);
         if (notification.getTimestamp() != null) {
             // TODO update timestamp
         } else {

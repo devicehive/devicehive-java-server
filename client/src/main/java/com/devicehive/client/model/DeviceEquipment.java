@@ -57,4 +57,15 @@ public class DeviceEquipment implements HiveEntity {
     public void setId(Long id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("DeviceEquipment{");
+        sb.append("id=").append(id);
+        sb.append(", code='").append(code).append('\'');
+        sb.append(", timestamp=").append(timestamp);
+        sb.append(", parameters=").append(parameters);
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -3,11 +3,9 @@ package com.devicehive.client;
 
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.exceptions.HiveException;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -77,18 +75,4 @@ public interface CommandsController {
      * Unsubscribes client or device from commands.
      */
     void unsubscribeFromCommands() throws HiveException;
-
-    /**
-     * Return commands queue
-     *
-     * @return commands queue
-     */
-    Queue<Pair<String, DeviceCommand>> getCommandQueue() throws HiveException;
-
-    /**
-     * Return command updates queue
-     *
-     * @return command updates queue
-     */
-    Queue<DeviceCommand> getCommandUpdatesQueue() throws HiveException;
 }

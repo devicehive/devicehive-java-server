@@ -40,8 +40,6 @@ public class JsonStringWrapper implements HiveEntity {
 
     @Override
     public String toString() {
-        return "JsonStringWrapper{" +
-                "jsonString='" + jsonString + '\'' +
-                '}';
+        return jsonString;
     }
 }

@@ -88,4 +88,17 @@ public class OAuthClient implements HiveEntity {
     public void setOauthSecret(String oauthSecret) {
         this.oauthSecret = NullableWrapper.create(oauthSecret);
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("OAuthClient{");
+        sb.append("oauthId=").append(oauthId);
+        sb.append(", id=").append(id);
+        sb.append(", name=").append(name);
+        sb.append(", domain=").append(domain);
+        sb.append(", subnet=").append(subnet);
+        sb.append(", redirectUri=").append(redirectUri);
+        sb.append('}');
+        return sb.toString();
+    }
 }

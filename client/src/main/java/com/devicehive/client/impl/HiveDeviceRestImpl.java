@@ -20,7 +20,6 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -131,13 +130,6 @@ public class HiveDeviceRestImpl implements HiveDevice {
         return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, deviceNotification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
     }
-
-
-    @Override
-    public Queue<Pair<String, DeviceCommand>> getCommandsQueue() {
-        return hiveContext.getCommandQueue();
-    }
-
 
     @Override
     public ApiInfo getInfo() throws HiveException {

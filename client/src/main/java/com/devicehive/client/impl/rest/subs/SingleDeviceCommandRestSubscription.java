@@ -62,6 +62,7 @@ public class SingleDeviceCommandRestSubscription extends RestSubscription {
                 queryParams.put(NAMES_PARAM, StringUtils.join(names, ","));
             }
             String path = new StringBuilder("/device/").append(deviceGuid).append("/command/poll").toString();
+            @SuppressWarnings("SerializableHasSerializationMethods")
             List<DeviceCommand> commands =
                     hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null,
                             queryParams, null, new TypeToken<List<DeviceCommand>>() {
@@ -71,7 +72,7 @@ public class SingleDeviceCommandRestSubscription extends RestSubscription {
                 if (timestamp == null || timestamp.before(command.getTimestamp())) {
                     timestamp = command.getTimestamp();
                 }
-                hiveContext.getCommandQueue().add(pair);
+                hiveContext.getCommandsHandler().handleCommandInsert(command);
             }
         } catch (HiveException e) {
             logger.error(e.getMessage(), e);

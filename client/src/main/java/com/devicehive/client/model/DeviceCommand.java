@@ -135,4 +135,20 @@ public class DeviceCommand implements HiveEntity {
     public void removeResult() {
         this.result = null;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("DeviceCommand{");
+        sb.append("id=").append(id);
+        sb.append(", timestamp=").append(timestamp);
+        sb.append(", userId=").append(userId);
+        sb.append(", command='").append(command).append('\'');
+        sb.append(", parameters=").append(parameters);
+        sb.append(", lifetime=").append(lifetime);
+        sb.append(", flags=").append(flags);
+        sb.append(", status=").append(status);
+        sb.append(", result=").append(result);
+        sb.append('}');
+        return sb.toString();
+    }
 }

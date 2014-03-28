@@ -23,4 +23,12 @@ public class UserNetwork implements HiveEntity {
     public void setNetwork(Network network) {
         this.network = network;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("UserNetwork{");
+        sb.append("network=").append(network);
+        sb.append('}');
+        return sb.toString();
+    }
 }

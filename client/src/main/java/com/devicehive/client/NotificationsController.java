@@ -3,11 +3,9 @@ package com.devicehive.client;
 
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -71,11 +69,4 @@ public interface NotificationsController {
      * Unsubscribes client from notifications.
      */
     void unsubscribeFromNotification() throws HiveException;
-
-    /**
-     * Get notification queue.
-     *
-     * @return notifications queue
-     */
-    Queue<Pair<String, DeviceNotification>> getNotificationsQueue() throws HiveException;
 }

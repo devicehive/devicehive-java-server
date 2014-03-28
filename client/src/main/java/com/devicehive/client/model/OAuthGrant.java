@@ -149,4 +149,20 @@ public class OAuthGrant implements HiveEntity {
         }
         throw new IllegalArgumentException("JSON array expected!");
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("OAuthGrant{");
+        sb.append("id=").append(id);
+        sb.append(", timestamp=").append(timestamp);
+        sb.append(", client=").append(client);
+        sb.append(", accessKey=").append(accessKey);
+        sb.append(", type=").append(type);
+        sb.append(", accessType=").append(accessType);
+        sb.append(", redirectUri=").append(redirectUri);
+        sb.append(", scope=").append(scope);
+        sb.append(", networkIds=").append(networkIds);
+        sb.append('}');
+        return sb.toString();
+    }
 }

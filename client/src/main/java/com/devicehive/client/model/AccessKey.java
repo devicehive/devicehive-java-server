@@ -81,4 +81,14 @@ public class AccessKey implements HiveEntity {
     public void removeKey() {
         this.key = null;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("AccessKey{");
+        sb.append("id=").append(id);
+        sb.append(", label=").append(label);
+        sb.append(", expirationDate=").append(expirationDate);
+        sb.append('}');
+        return sb.toString();
+    }
 }

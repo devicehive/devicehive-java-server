@@ -62,5 +62,14 @@ public class DeviceNotification implements HiveEntity {
         this.id = id;
     }
 
-
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("DeviceNotification{");
+        sb.append("id=").append(id);
+        sb.append(", timestamp=").append(timestamp);
+        sb.append(", notification='").append(notification).append('\'');
+        sb.append(", parameters=").append(parameters);
+        sb.append('}');
+        return sb.toString();
+    }
 }

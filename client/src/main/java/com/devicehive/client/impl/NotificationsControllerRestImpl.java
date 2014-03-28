@@ -8,13 +8,15 @@ import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -101,13 +103,8 @@ class NotificationsControllerRestImpl implements NotificationsController {
     @Override
     public void unsubscribeFromNotification() throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
-
         hiveContext.getRestSubManager().removeNotificationSubscription();
-
         logger.debug("Client: notification/unsubscribe proceed.");
     }
 
-    public Queue<Pair<String, DeviceNotification>> getNotificationsQueue() {
-        return hiveContext.getNotificationQueue();
-    }
 }

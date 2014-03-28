@@ -52,4 +52,15 @@ public class ApiInfo implements HiveEntity {
     public void setRestServerUrl(String restServerUrl) {
         this.restServerUrl = restServerUrl;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ApiInfo{");
+        sb.append("apiVersion='").append(apiVersion).append('\'');
+        sb.append(", serverTimestamp=").append(serverTimestamp);
+        sb.append(", webSocketServerUrl='").append(webSocketServerUrl).append('\'');
+        sb.append(", restServerUrl='").append(restServerUrl).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -79,4 +79,17 @@ public class AccessKeyPermission implements HiveEntity {
     public void setDevices(Set<String> devices) {
         this.devices = devices;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("AccessKeyPermission{");
+        sb.append("accessKey=").append(accessKey);
+        sb.append(", devices=").append(devices);
+        sb.append(", networks=").append(networks);
+        sb.append(", actions=").append(actions);
+        sb.append(", domains=").append(domains);
+        sb.append(", subnets=").append(subnets);
+        sb.append('}');
+        return sb.toString();
+    }
 }

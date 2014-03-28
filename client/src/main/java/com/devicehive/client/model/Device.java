@@ -131,4 +131,18 @@ public class Device implements HiveEntity {
     public void removeEquipment() {
         this.equipment = null;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Device{");
+        sb.append("name=").append(name);
+        sb.append(", status=").append(status);
+        sb.append(", data=").append(data);
+        sb.append(", network=").append(network);
+        sb.append(", deviceClass=").append(deviceClass);
+        sb.append(", equipment=").append(equipment);
+        sb.append(", id='").append(id).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -2,18 +2,17 @@ package com.devicehive.client.impl.context;
 
 
 import com.devicehive.client.impl.rest.subs.RestSubManager;
+import com.devicehive.client.impl.util.CommandsHandler;
+import com.devicehive.client.impl.util.NotificationsHandler;
 import com.devicehive.client.impl.util.connection.ConnectionEstablishedNotifier;
 import com.devicehive.client.impl.util.connection.ConnectionLostNotifier;
 import com.devicehive.client.impl.websocket.WebsocketSubManager;
 import com.devicehive.client.model.ApiInfo;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Role;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +21,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.devicehive.client.impl.context.Constants.REQUIRED_VERSION_OF_API;
 
@@ -36,9 +33,8 @@ public class HiveContext implements AutoCloseable {
     private final RestSubManager restSubManager;
     private final HiveWebSocketClient hiveWebSocketClient;
     private final WebsocketSubManager websocketSubManager;
-    private final BlockingQueue<Pair<String, DeviceCommand>> commandQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<DeviceCommand> commandUpdateQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<Pair<String, DeviceNotification>> notificationQueue = new LinkedBlockingQueue<>();
+    private final CommandsHandler commandsHandler;
+    private final NotificationsHandler notificationsHandler;
     private Subscription lastCommandSubscription;
     private Subscription lastNotificationSubscription;
     private HivePrincipal hivePrincipal;
@@ -52,10 +48,19 @@ public class HiveContext implements AutoCloseable {
      * @param role                          auth. level
      * @param connectionEstablishedNotifier notifier for successful reconnection completion
      * @param connectionLostNotifier        notifier for lost connection
+     * @param commandsHandler               handler for incoming commands and command updates
+     * @param notificationsHandler          handler for incoming notifications
      */
-    public HiveContext(boolean activateWebsockets, URI rest, Role role, ConnectionEstablishedNotifier
-            connectionEstablishedNotifier, ConnectionLostNotifier connectionLostNotifier) throws HiveException {
+    public HiveContext(boolean activateWebsockets,
+                       URI rest,
+                       Role role,
+                       ConnectionEstablishedNotifier connectionEstablishedNotifier,
+                       ConnectionLostNotifier connectionLostNotifier,
+                       CommandsHandler commandsHandler,
+                       NotificationsHandler notificationsHandler) throws HiveException {
         try {
+            this.commandsHandler = commandsHandler;
+            this.notificationsHandler = notificationsHandler;
             this.hiveRestClient = new HiveRestClient(rest, this, connectionEstablishedNotifier, connectionLostNotifier);
             ApiInfo info = hiveRestClient.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
             if (!info.getApiVersion().equals(REQUIRED_VERSION_OF_API)) {
@@ -215,31 +220,12 @@ public class HiveContext implements AutoCloseable {
         return apiInfo.getApiVersion();
     }
 
-    /**
-     * Get commands queue.
-     *
-     * @return commands queue
-     */
-    public BlockingQueue<Pair<String, DeviceCommand>> getCommandQueue() {
-        return commandQueue;
+    public CommandsHandler getCommandsHandler() {
+        return commandsHandler;
     }
 
-    /**
-     * Get command updates queue
-     *
-     * @return command updates queue
-     */
-    public BlockingQueue<DeviceCommand> getCommandUpdateQueue() {
-        return commandUpdateQueue;
-    }
-
-    /**
-     * Get notifications queue
-     *
-     * @return notifications queue
-     */
-    public BlockingQueue<Pair<String, DeviceNotification>> getNotificationQueue() {
-        return notificationQueue;
+    public NotificationsHandler getNotificationsHandler() {
+        return notificationsHandler;
     }
 
     //Private methods------------------------------------------------------------------------------------------

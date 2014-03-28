@@ -2,13 +2,9 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.ApiInfo;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Closeable;
-import java.util.Queue;
 
 /**
  * Hive client that represents the number of controller getters methods. Controllers are used only to delegate
@@ -80,18 +76,4 @@ public interface HiveClient extends Closeable {
      * @return user controller
      */
     UserController getUserController() throws HiveException;
-
-    /**
-     * Get notifications queue
-     *
-     * @return notifications queue
-     */
-    Queue<Pair<String, DeviceNotification>> getNotificationsQueue() throws HiveException;
-
-    /**
-     * Get commands queue
-     *
-     * @return commands queue
-     */
-    Queue<Pair<String, DeviceCommand>> getCommandsQueue() throws HiveException;
 }

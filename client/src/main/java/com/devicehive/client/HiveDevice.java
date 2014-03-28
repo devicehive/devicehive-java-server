@@ -5,12 +5,10 @@ import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.Closeable;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Queue;
 
 /**
  * HiveDevice represents a simple device in terms of DeviceHive.
@@ -95,13 +93,6 @@ public interface HiveDevice extends Closeable {
      * @return info about inserted notification
      */
     DeviceNotification insertNotification(DeviceNotification deviceNotification) throws HiveException;
-
-    /**
-     * Get commands queue
-     *
-     * @return commands queue
-     */
-    Queue<Pair<String, DeviceCommand>> getCommandsQueue() throws HiveException;
 
     /**
      * Requests API info from server

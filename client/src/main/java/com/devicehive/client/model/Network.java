@@ -76,4 +76,13 @@ public class Network implements HiveEntity {
         this.description = null;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Network{");
+        sb.append("id=").append(id);
+        sb.append(", name=").append(name);
+        sb.append(", description=").append(description);
+        sb.append('}');
+        return sb.toString();
+    }
 }

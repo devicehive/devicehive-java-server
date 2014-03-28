@@ -37,4 +37,13 @@ public class NotificationPollManyResponse implements HiveEntity {
     public void setNotification(DeviceNotification notification) {
         this.notification = notification;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("NotificationPollManyResponse{");
+        sb.append("notification=").append(notification);
+        sb.append(", guid='").append(guid).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

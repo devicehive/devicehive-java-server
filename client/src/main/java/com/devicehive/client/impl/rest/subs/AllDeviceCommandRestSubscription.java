@@ -4,13 +4,10 @@ package com.devicehive.client.impl.rest.subs;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.CommandPollManyResponse;
-import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +46,6 @@ public class AllDeviceCommandRestSubscription extends RestSubscription {
     /**
      * Polling task performer. Put command or notification to the required queue.
      */
-    @SuppressWarnings("SerializableHasSerializationMethods")
     @Override
     public void execute() {
         try {
@@ -61,16 +57,16 @@ public class AllDeviceCommandRestSubscription extends RestSubscription {
             if (names != null) {
                 queryParams.put(NAMES_PARAM, StringUtils.join(names, ","));
             }
+            @SuppressWarnings("SerializableHasSerializationMethods")
             List<CommandPollManyResponse> responses =
                     hiveContext.getHiveRestClient().execute("/device/command/poll", HttpMethod.GET, null,
                             queryParams, null, new TypeToken<List<CommandPollManyResponse>>() {
                     }.getType(), null, COMMAND_LISTED);
             for (CommandPollManyResponse response : responses) {
-                Pair<String, DeviceCommand> pair = ImmutablePair.of(response.getGuid(), response.getCommand());
                 if (timestamp == null || timestamp.before(response.getCommand().getTimestamp())) {
                     timestamp = response.getCommand().getTimestamp();
                 }
-                hiveContext.getCommandQueue().add(pair);
+                hiveContext.getCommandsHandler().handleCommandInsert(response.getCommand());
             }
         } catch (HiveException e) {
             logger.error(e.getMessage(), e);

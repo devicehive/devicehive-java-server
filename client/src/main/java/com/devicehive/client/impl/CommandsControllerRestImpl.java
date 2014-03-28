@@ -120,14 +120,4 @@ class CommandsControllerRestImpl implements CommandsController {
         hiveContext.getRestSubManager().removeCommandSubscription();
         logger.debug("Device: command/unsubscribe request proceed successfully");
     }
-
-    @Override
-    public Queue<Pair<String, DeviceCommand>> getCommandQueue() {
-        return hiveContext.getCommandQueue();
-    }
-
-    @Override
-    public Queue<DeviceCommand> getCommandUpdatesQueue() {
-        return hiveContext.getCommandUpdateQueue();
-    }
 }
