@@ -3,6 +3,7 @@ package com.devicehive.examples;
 
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
+import com.devicehive.impl.HandlerImpl;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,11 +20,11 @@ public abstract class Example {
     private final CommandLine commandLine;
     private final PrintStream out;
     private final URI serverUrl;
+    private final HandlerImpl handler;
 
-    protected Example( PrintStream out,
-                      String... args)
-            throws ExampleException {
+    protected Example(PrintStream out, String... args) throws ExampleException {
         this.out = out;
+        handler = new HandlerImpl(out);
         options = makeOptionsSet();
         options.addOption(USE_SOCKETS, false, USE_SOCKETS_DESCRIPTION);
         Option url = new Option(URL, true, URL_DESCRIPTION);
@@ -41,7 +42,11 @@ public abstract class Example {
         }
     }
 
-    protected final URI getServerUrl() {
+    final HandlerImpl getHandler() {
+        return handler;
+    }
+
+    final URI getServerUrl() {
         return serverUrl;
     }
 
@@ -58,7 +63,6 @@ public abstract class Example {
     public final synchronized void help() {
         HELP_FORMATTER.printHelp(NAME, options);
     }
-
 
     public abstract Options makeOptionsSet();
 

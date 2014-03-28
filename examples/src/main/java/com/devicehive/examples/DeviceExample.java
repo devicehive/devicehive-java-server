@@ -10,13 +10,13 @@ import com.google.gson.JsonObject;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.devicehive.constants.Constants.USE_SOCKETS;
@@ -49,7 +49,7 @@ public class DeviceExample extends Example {
     public DeviceExample(PrintStream err, PrintStream out, String... args) throws HiveException, ExampleException {
         super(out, args);
         commandLine = getCommandLine();
-        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
+        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS), getHandler(), getHandler());
     }
 
     public static void main(String... args) {
@@ -143,29 +143,15 @@ public class DeviceExample extends Example {
             Device registered = hiveDevice.getDevice();
             print("Device registered! Device {}:", registered);
             hiveDevice.subscribeForCommands(null);
-            ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
-            Runnable task = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Queue<Pair<String, DeviceCommand>> commandQueue = hiveDevice.getCommandsQueue();
-                        while (!commandQueue.isEmpty()) {
-                            print("Processing command {}", commandQueue.poll().getRight());
-                            DeviceNotification notificationToSend = createNotification();
-                            print("Notification {} will be sent to client", notificationToSend.getParameters());
-                            hiveDevice.insertNotification(notificationToSend);
-                        }
-                    } catch (HiveException e) {
-                        print(e.getMessage());
-                    }
-                }
-            };
-            ses.scheduleAtFixedRate(task, 10, 10, TimeUnit.SECONDS);
             Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
         } catch (InterruptedException e) {
             throw new ExampleException(e.getMessage(), e);
         } finally {
             hiveDevice.close();
         }
+    }
+
+    public final void createNetwork() {
+
     }
 }

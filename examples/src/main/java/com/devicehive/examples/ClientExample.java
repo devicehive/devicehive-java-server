@@ -10,12 +10,10 @@ import com.devicehive.exceptions.ExampleException;
 import com.google.gson.JsonObject;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,7 +34,7 @@ public class ClientExample extends Example {
     public ClientExample(PrintStream err, PrintStream out, String... args) throws HiveException, ExampleException {
         super(out, args);
         commandLine = getCommandLine();
-        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
+        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), getHandler(), getHandler());
     }
 
     public static void main(String... args) {
@@ -83,8 +81,6 @@ public class ClientExample extends Example {
             hiveClient.getNotificationsController().subscribeForNotifications(null, null);
             ScheduledExecutorService commandsExecutor = Executors.newSingleThreadScheduledExecutor();
             commandsExecutor.scheduleAtFixedRate(new CommandTask(), 10, 10, TimeUnit.SECONDS);
-            ScheduledExecutorService notificationsExecutor = Executors.newSingleThreadScheduledExecutor();
-            notificationsExecutor.scheduleAtFixedRate(new NotificationTask(), 10, 10, TimeUnit.SECONDS);
             Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
         } catch (InterruptedException e) {
             throw new ExampleException(e.getMessage(), e);
@@ -112,20 +108,6 @@ public class ClientExample extends Example {
                 }
             } catch (HiveException e) {
                 print("Unable to list devices");
-            }
-        }
-    }
-
-    private class NotificationTask implements Runnable {
-        @Override
-        public void run() {
-            try {
-                Queue<Pair<String, DeviceNotification>> notificationsQueue = hiveClient.getNotificationsQueue();
-                while (!notificationsQueue.isEmpty()) {
-                    print("Processing notification {}", notificationsQueue.poll().getRight());
-                }
-            } catch (HiveException e) {
-                print(e.getMessage());
             }
         }
     }
