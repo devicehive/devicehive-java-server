@@ -303,8 +303,7 @@ public class DeviceNotificationController {
     @Path("/notification/poll")
     public void pollMany(
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam
-                    ("waitTimeout") final long timeout,
+            @QueryParam("waitTimeout") final long timeout,
             @QueryParam("timestamp") final Timestamp timestamp,
             @QueryParam("deviceGuids") final String deviceGuids,
             @Suspended final AsyncResponse asyncResponse) {

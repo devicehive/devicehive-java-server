@@ -4,7 +4,6 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.NetworkDAO;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
@@ -131,13 +130,10 @@ public class NetworkService {
 
     public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
         Network stored;
-
         //case network is not defined
         if (network == null || network.getValue() == null) {
             return null;
         }
-
-
         Network update = network.getValue();
 
         if (update.getId() != null) {

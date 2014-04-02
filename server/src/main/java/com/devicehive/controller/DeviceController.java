@@ -5,12 +5,10 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
@@ -30,7 +28,6 @@ import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +47,6 @@ public class DeviceController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
     private DeviceEquipmentService deviceEquipmentService;
     private DeviceService deviceService;
-    private AccessKeyService accessKeyService;
 
     @EJB
     public void setDeviceEquipmentService(DeviceEquipmentService deviceEquipmentService) {
@@ -60,11 +56,6 @@ public class DeviceController {
     @EJB
     public void setDeviceService(DeviceService deviceService) {
         this.deviceService = deviceService;
-    }
-
-    @EJB
-    public void setAccessKeyService(AccessKeyService accessKeyService) {
-        this.accessKeyService = accessKeyService;
     }
 
     /**
