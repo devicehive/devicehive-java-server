@@ -77,7 +77,8 @@ public class UserService {
             }
             return null;
         } else {
-            user.setLoginAttempts(0);
+            if (user.getLoginAttempts() != 0)
+                user.setLoginAttempts(0);
             if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() >
                     configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT)) {
                 user.setLastLogin(timestampService.getTimestamp());
@@ -233,7 +234,7 @@ public class UserService {
 
     public User createUser(@NotNull User user, String password) {
         if (user.getId() != null) {
-            throw new HiveException("Id cannot be specified for new user",BAD_REQUEST.getStatusCode());
+            throw new HiveException("Id cannot be specified for new user", BAD_REQUEST.getStatusCode());
         }
         User existing = userDAO.findByLogin(user.getLogin());
         if (existing != null) {
