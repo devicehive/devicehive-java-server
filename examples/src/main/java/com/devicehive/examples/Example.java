@@ -14,6 +14,9 @@ import java.net.URISyntaxException;
 
 import static com.devicehive.constants.Constants.*;
 
+/**
+ * Base class for full examples set.
+ */
 public abstract class Example {
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private final Options options;
@@ -22,6 +25,14 @@ public abstract class Example {
     private final URI serverUrl;
     private final HandlerImpl handler;
 
+    /**
+     * Constructor. Initialize global parameter such as server URL and defines if sockets should be used. Creates
+     * handler for commands and notifications
+     *
+     * @param out  out print stream
+     * @param args command line arguments
+     * @throws ExampleException if server URL cannot be parsed
+     */
     protected Example(PrintStream out, String... args) throws ExampleException {
         this.out = out;
         handler = new HandlerImpl(out);
@@ -32,9 +43,7 @@ public abstract class Example {
         options.addOption(url);
         commandLine = parse(args);
         try {
-            String urlValue = commandLine == null ? null : commandLine.getOptionValue(URL);
-            if (urlValue == null)
-                throw new ExampleException("Incorrect server URI");
+            String urlValue = commandLine.getOptionValue(URL);
             serverUrl = new URI(urlValue);
         } catch (URISyntaxException e) {
             help();
@@ -42,14 +51,26 @@ public abstract class Example {
         }
     }
 
+    /**
+     * @return handler implementation of commands and notifications handler
+     */
     final HandlerImpl getHandler() {
         return handler;
     }
 
+    /**
+     * @return REST service URL
+     */
     final URI getServerUrl() {
         return serverUrl;
     }
 
+    /**
+     * Parses command line according to provided options
+     * @param args command line arguments
+     * @return parsed command line
+     * @throws ExampleException if unable to parse command line (in case of incorrect use of commands)
+     */
     private CommandLine parse(String... args) throws ExampleException {
         CommandLineParser parser = new BasicParser();
         try {
@@ -60,16 +81,31 @@ public abstract class Example {
         }
     }
 
+    /**
+     *  Prints help
+     */
     public final synchronized void help() {
         HELP_FORMATTER.printHelp(NAME, options);
     }
 
+    /**
+     * Make additional options set
+     * @return additional options
+     */
     public abstract Options makeOptionsSet();
 
+    /**
+     * @return command line
+     */
     public final CommandLine getCommandLine() {
         return commandLine;
     }
 
+    /**
+     * Prints message. Some objects will be placed instead of "{}" substring
+     * @param msg message
+     * @param objects objects to replace "{}"
+     */
     public final void print(String msg, Object... objects) {
         String resultMessage;
         if (objects != null && objects.length > 0) {
@@ -88,5 +124,11 @@ public abstract class Example {
 
     }
 
+    /**
+     * Main method. Represents example's logic
+     * @throws HiveException
+     * @throws ExampleException
+     * @throws IOException
+     */
     public abstract void run() throws HiveException, ExampleException, IOException;
 }
