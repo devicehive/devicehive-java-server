@@ -1,7 +1,6 @@
 package com.devicehive.client.impl.json.adapters;
 
-
-import com.devicehive.client.model.AccessType;
+import com.devicehive.client.model.UserRole;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -10,11 +9,12 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
 /**
- * Converter from JSON into AccessType, and AccessType into JSON
+ * Converter from JSON into UserRole, and UserRole into JSON
  */
-public class AccessTypeAdapter extends TypeAdapter<AccessType> {
+public class UserRoleAdapter extends TypeAdapter<UserRole> {
+
     @Override
-    public void write(JsonWriter out, AccessType value) throws IOException {
+    public void write(JsonWriter out, UserRole value) throws IOException {
         if (value == null) {
             out.nullValue();
         } else {
@@ -23,16 +23,16 @@ public class AccessTypeAdapter extends TypeAdapter<AccessType> {
     }
 
     @Override
-    public AccessType read(JsonReader in) throws IOException {
+    public UserRole read(JsonReader in) throws IOException {
         JsonToken jsonToken = in.peek();
         if (jsonToken == JsonToken.NULL) {
             in.nextNull();
             return null;
         } else {
             try {
-                return AccessType.forName(in.nextString());
+                return UserRole.values()[in.nextInt()];
             } catch (RuntimeException e) {
-                throw new IOException("Wrong access type", e);
+                throw new IOException("Wrong user role", e);
             }
         }
     }

@@ -25,10 +25,10 @@ public class User implements HiveEntity {
     private NullableWrapper<String> password;
 
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
-    private NullableWrapper<Integer> role;
+    private NullableWrapper<UserRole> role;
 
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_UPDATE})
-    private NullableWrapper<Integer> status;
+    private NullableWrapper<UserStatus> status;
 
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
@@ -72,11 +72,11 @@ public class User implements HiveEntity {
         this.password = null;
     }
 
-    public Integer getRole() {
+    public UserRole getRole() {
         return NullableWrapper.value(role);
     }
 
-    public void setRole(Integer role) {
+    public void setRole(UserRole role) {
         this.role = NullableWrapper.create(role);
     }
 
@@ -84,11 +84,11 @@ public class User implements HiveEntity {
         this.role = null;
     }
 
-    public Integer getStatus() {
+    public UserStatus getStatus() {
         return NullableWrapper.value(status);
     }
 
-    public void setStatus(Integer status) {
+    public void setStatus(UserStatus status) {
         this.status = NullableWrapper.create(status);
     }
 

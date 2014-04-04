@@ -5,6 +5,8 @@ import com.devicehive.client.impl.json.adapters.*;
 import com.devicehive.client.impl.json.strategies.AnnotatedStrategy;
 import com.devicehive.client.model.AccessType;
 import com.devicehive.client.model.OAuthType;
+import com.devicehive.client.model.UserRole;
+import com.devicehive.client.model.UserStatus;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -44,6 +46,8 @@ public class GsonFactory {
                 .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
                 .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
                 .registerTypeAdapter(OAuthType.class, new OAuthTypeAdapter())
+                .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
+                .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
                 .registerTypeAdapter(Timestamp.class, new TimestampAdapter());
     }
 

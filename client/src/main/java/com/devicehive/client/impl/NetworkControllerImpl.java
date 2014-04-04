@@ -41,7 +41,7 @@ class NetworkControllerImpl implements NetworkController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         List<Network> result = hiveContext.getHiveRestClient()
-                .execute(path, HttpMethod.GET, null, null, new TypeToken<List<Network>>() {
+                .execute(path, HttpMethod.GET, null, queryParams, new TypeToken<List<Network>>() {
                 }.getType(), NETWORKS_LISTED);
         logger.debug("Network: list request proceed with parameters: name {}, name pattern {}, sort field {}, " +
                 "sort order {}, take {}, skip {}", name, namePattern, sortField, sortOrder, take, skip);
