@@ -29,7 +29,7 @@ public class AccessTypeAdapter  extends TypeAdapter<AccessType> {
             try {
                 return AccessType.forName(in.nextString());
             } catch (RuntimeException e) {
-                throw new IOException("Wrong user role", e);
+                throw new IOException("Wrong access type", e);
             }
         }
     }

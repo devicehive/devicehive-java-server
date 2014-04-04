@@ -72,7 +72,7 @@ public class UserService {
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts() >=
-                    configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFALUT)) {
+                    configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
             return null;
@@ -248,7 +248,7 @@ public class UserService {
         String hash = passwordService.hashPassword(password, salt);
         user.setPasswordSalt(salt);
         user.setPasswordHash(hash);
-        user.setLoginAttempts(Constants.MAX_LOGIN_ATTEMPTS_DEFALUT);
+        user.setLoginAttempts(Constants.MAX_LOGIN_ATTEMPTS_DEFAULT);
         return userDAO.create(user);
     }
 
