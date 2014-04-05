@@ -36,7 +36,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(Map<Device, List<String>> deviceNamesFilters, @NotNull Timestamp timestamp, HivePrincipal principal) {
+    public List<DeviceNotification> findNotifications(Map<Device, Set<String>> deviceNamesFilters, @NotNull Timestamp timestamp, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -45,7 +45,7 @@ public class DeviceNotificationDAO {
         appendPrincipalPredicates(predicates, principal, from);
         if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
             List<Predicate> filterPredicates = new ArrayList<>();
-            for (Map.Entry<Device, List<String>> entry : deviceNamesFilters.entrySet())  {
+            for (Map.Entry<Device, Set<String>> entry : deviceNamesFilters.entrySet())  {
                 if (entry.getValue() != null && !entry.getValue().isEmpty())
                     filterPredicates.add(
                             criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()),
@@ -61,7 +61,7 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, List<String> names, HivePrincipal principal) {
+    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, Set<String> names, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);

@@ -3,7 +3,6 @@ package com.devicehive.service;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDAO;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
@@ -307,7 +306,7 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> findByGuidWithPermissionsCheck(List<String> guids, HivePrincipal principal) {
+    public List<Device> findByGuidWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
         return deviceDAO.getDeviceList(principal, guids);
     }
 
@@ -395,12 +394,9 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Map<Device, List<String>> createFilterMap(@NotNull List<DeviceMessageFilter> filterList, HivePrincipal principal) {
-        List<String> requestedDevices = new ArrayList<>(filterList.size());
-            for (DeviceMessageFilter deviceMessageFilter : filterList) {
-                requestedDevices.add(deviceMessageFilter.getDeviceUuid());
-            }
-        List<Device> allowedDevices = findByGuidWithPermissionsCheck(requestedDevices, principal);
+    public Map<Device, Set<String>> createFilterMap(@NotNull Map<String, Set<String>> requested, HivePrincipal principal) {
+
+        List<Device> allowedDevices = findByGuidWithPermissionsCheck(requested.keySet(), principal);
         Map<String, Device> uuidToDevice = new HashMap<>();
         for (Device device : allowedDevices) {
             uuidToDevice.put(device.getGuid(), device);
@@ -408,11 +404,11 @@ public class DeviceService {
 
         Set<String> noAccessUuid = new HashSet<>();
 
-        Map<Device, List<String>> result = new HashMap<>();
-        for (DeviceMessageFilter deviceMessageFilter : filterList) {
-            String uuid = deviceMessageFilter.getDeviceUuid();
+        Map<Device, Set<String>> result = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : requested.entrySet()) {
+            String uuid = entry.getKey();
             if (uuidToDevice.containsKey(uuid)) {
-                result.put(uuidToDevice.get(uuid), deviceMessageFilter.getNames());
+                result.put(uuidToDevice.get(uuid), entry.getValue());
             } else {
                 noAccessUuid.add(uuid);
             }

@@ -22,7 +22,6 @@ import javax.validation.constraints.NotNull;
 import javax.websocket.Session;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
@@ -90,9 +89,9 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getDeviceCommandsList(@NotNull SubscriptionFilter subscriptionFilter, HivePrincipal principal) {
-        if (subscriptionFilter.getDeviceFilters() != null) {
-            return commandDAO.findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp(), null);
+    public List<DeviceCommand> getDeviceCommandsList(@NotNull SubscriptionFilterInternal subscriptionFilter, HivePrincipal principal) {
+        if (subscriptionFilter.getDeviceNames() != null) {
+            return commandDAO.findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceNames(),principal), subscriptionFilter.getTimestamp(), null);
         } else {
             return commandDAO.findCommands(
                     subscriptionFilter.getTimestamp(),

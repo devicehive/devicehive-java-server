@@ -26,8 +26,6 @@ import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,16 +81,17 @@ public class CommandHandlers implements WebsocketHandlers {
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     public WebSocketResponse processCommandSubscribe(@WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                                      @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
-                                                     @WsParam(JsonMessageBuilder.SUB_FILTER) SubscriptionFilter subscriptionFilter,
+                                                     @WsParam(JsonMessageBuilder.SUB_FILTER) SubscriptionFilterExternal external,
                                                      @WsParam("deviceId") String deviceId,
                                                      Session session) throws IOException {
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Session: {}",
                 list, deviceId, timestamp, session);
-        if (subscriptionFilter == null) {
-            subscriptionFilter = SubscriptionFilter.createForManyDevices(prepareActualList(list, deviceId),
-                    timestamp != null ? timestamp : timestampService.getTimestamp());
-        }
-        commandsSubscribeAction(session, subscriptionFilter);
+        SubscriptionFilterInternal filter =
+                external == null
+                        ? SubscriptionFilterInternal.createForManyDevices(prepareActualList(list, deviceId),
+                        timestamp != null ? timestamp : timestampService.getTimestamp())
+                        : SubscriptionFilterInternal.create(external);
+        commandsSubscribeAction(session, filter);
         logger.debug("command/subscribe proceed successfully for devices: {}, {}. Timestamp: {}. Session: {}",
                 list, deviceId, timestamp, session);
 
@@ -114,15 +113,15 @@ public class CommandHandlers implements WebsocketHandlers {
     }
 
     private void commandsSubscribeAction(Session session,
-                                         SubscriptionFilter subscriptionFilter) throws IOException {
+                                         SubscriptionFilterInternal subscriptionFilter) throws IOException {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         try {
             logger.debug("command/subscribe action. Session {}", session.getId());
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             List<CommandSubscription> csList = new ArrayList<>();
-            if (subscriptionFilter.getDeviceFilters() != null ) {
-                Map<Device, List<String>> filters = deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(), ThreadLocalVariablesKeeper.getPrincipal());
-                for (Map.Entry<Device, List<String>> entry : filters.entrySet()) {
+            if (subscriptionFilter.getDeviceNames() != null ) {
+                Map<Device, Set<String>> filters = deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), ThreadLocalVariablesKeeper.getPrincipal());
+                for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {
                     CommandSubscription cs =
                             new CommandSubscription(principal, entry.getKey().getId(),
                                     session.getId(),

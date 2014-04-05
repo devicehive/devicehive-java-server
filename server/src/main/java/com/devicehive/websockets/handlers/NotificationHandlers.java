@@ -8,7 +8,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
-import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
@@ -25,8 +24,6 @@ import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +33,9 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
@@ -68,15 +65,17 @@ public class NotificationHandlers implements WebsocketHandlers {
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
                                                           @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
-                                                          @WsParam(JsonMessageBuilder.SUB_FILTER) SubscriptionFilter subscriptionFilter,
+                                                          @WsParam(JsonMessageBuilder.SUB_FILTER) SubscriptionFilterExternal external,
                                                           @WsParam("deviceId") String deviceId,
                                                           Session session) throws IOException {
         logger.debug("notification/subscribe action. Session {} ", session.getId());
-        if (subscriptionFilter == null) {
-            subscriptionFilter = SubscriptionFilter.createForManyDevices(prepareActualList(list, deviceId),
-                    timestamp != null ? timestamp : timestampService.getTimestamp());
-        }
-        notificationSubscribeAction(session, subscriptionFilter);
+        SubscriptionFilterInternal filter =
+                external == null
+                        ? SubscriptionFilterInternal.createForManyDevices(prepareActualList(list, deviceId),
+                        timestamp != null ? timestamp : timestampService.getTimestamp())
+                        : SubscriptionFilterInternal.create(external);
+
+        notificationSubscribeAction(session, filter);
         logger.debug("notification/subscribe action  finished");
         return new WebSocketResponse();
 
@@ -97,22 +96,23 @@ public class NotificationHandlers implements WebsocketHandlers {
     }
 
     private void notificationSubscribeAction(Session session,
-                                         SubscriptionFilter subscriptionFilter) throws IOException {
+                                             SubscriptionFilterInternal subscriptionFilter) throws IOException {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         try {
             logger.debug("notification/subscribe action. Session {}", session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             List<NotificationSubscription> nsList = new ArrayList<>();
-            if (subscriptionFilter.getDeviceFilters() != null ) {
-                Map<Device, List<String>> filters = deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(), ThreadLocalVariablesKeeper.getPrincipal());
-                for (Map.Entry<Device, List<String>> entry : filters.entrySet()) {
+            if (subscriptionFilter.getDeviceNames() != null) {
+                Map<Device, Set<String>> filters = deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), ThreadLocalVariablesKeeper.getPrincipal());
+                for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {
                     NotificationSubscription cs =
                             new NotificationSubscription(principal, entry.getKey().getId(),
                                     session.getId(),
                                     entry.getValue(),
                                     new WebsocketHandlerCreator(session,
                                             WebsocketSession.NOTIFICATIONS_LOCK,
-                                            asyncMessageDeliverer));
+                                            asyncMessageDeliverer)
+                            );
                     nsList.add(cs);
                 }
             } else {
@@ -122,7 +122,8 @@ public class NotificationHandlers implements WebsocketHandlers {
                                 session.getId(),
                                 subscriptionFilter.getNames(),
                                 new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
-                                        asyncMessageDeliverer));
+                                        asyncMessageDeliverer)
+                        );
                 nsList.add(forAll);
             }
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
@@ -149,13 +150,13 @@ public class NotificationHandlers implements WebsocketHandlers {
      *
      * @param session Current session
      * @return Json object with the following structure
-     *         <code>
-     *         {
-     *         "action": {string},
-     *         "status": {string},
-     *         "requestId": {object}
-     *         }
-     *         </code>
+     * <code>
+     * {
+     * "action": {string},
+     * "status": {string},
+     * "requestId": {object}
+     * }
+     * </code>
      */
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})

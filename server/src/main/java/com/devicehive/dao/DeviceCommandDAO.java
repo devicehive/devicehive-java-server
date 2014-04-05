@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Stateless
 @LogExecutionTime
@@ -96,7 +97,7 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> findCommands(Map<Device, List<String>> deviceNamesFilters, @NotNull Timestamp timestamp,
+    public List<DeviceCommand> findCommands(Map<Device, Set<String>> deviceNamesFilters, @NotNull Timestamp timestamp,
                                             HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
@@ -106,7 +107,7 @@ public class DeviceCommandDAO {
         appendPrincipalPredicates(predicates, principal, from);
         if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
             List<Predicate> filterPredicates = new ArrayList<>();
-            for (Map.Entry<Device, List<String>> entry : deviceNamesFilters.entrySet()) {
+            for (Map.Entry<Device, Set<String>> entry : deviceNamesFilters.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().isEmpty())
                     filterPredicates.add(
                             criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()),
@@ -122,7 +123,7 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> findCommands(@NotNull Timestamp timestamp, List<String> names, HivePrincipal principal) {
+    public List<DeviceCommand> findCommands(@NotNull Timestamp timestamp, Set<String> names, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
         Root<DeviceCommand> from = criteria.from(DeviceCommand.class);

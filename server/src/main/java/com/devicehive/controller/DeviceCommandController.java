@@ -102,31 +102,9 @@ public class DeviceCommandController {
             @QueryParam("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                logger.debug("DeviceCommand poll proceed successfully. deviceid = {}", deviceGuid);
-            }
-        });
-        asyncPool.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    SubscriptionFilter subscriptionFilter = SubscriptionFilter
-                            .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
-                    List<DeviceCommand> list = getOrWaitForCommands(principal, subscriptionFilter, timeout);
-                    for (DeviceCommand dc : list) {
-                        logger.warn("Command: {}, id {}, status{}:", dc.getCommand(), dc.getId(), dc.getStatus());
-                    }
-                    Response response = ResponseFactory.response(OK, list, Policy.COMMAND_TO_DEVICE);
-                    asyncResponse.resume(response);
-                } catch (Exception e) {
-                    logger.error("Error: " + e.getMessage(), e);
-                    asyncResponse.resume(e);
-                }
-            }
-        });
+        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal
+                .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
+        pollMany(timeout, subscriptionFilter, asyncResponse);
     }
 
     @GET
@@ -139,8 +117,8 @@ public class DeviceCommandController {
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilter subscriptionFilter =
-                SubscriptionFilter.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
+        SubscriptionFilterInternal subscriptionFilter =
+                SubscriptionFilterInternal.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
         pollMany(timeout, subscriptionFilter, asyncResponse);
     }
 
@@ -149,18 +127,16 @@ public class DeviceCommandController {
     @Path("/command/poll")
     @Consumes(MediaType.APPLICATION_JSON)
     public void pollManyPost(
-            @QueryParam("deviceGuids") String deviceGuidsString,
-            @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") final long timeout,
+            @FormParam("waitTimeout") final long timeout,
+            @FormParam("subscription") final SubscriptionFilterExternal external,
             @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilter subscriptionFilter =
-                SubscriptionFilter.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
+        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);
         pollMany(timeout, subscriptionFilter, asyncResponse);
     }
 
     private void pollMany(final long timeout,
-                          final SubscriptionFilter subscriptionFilter,
+                          final SubscriptionFilterInternal subscriptionFilter,
                           final AsyncResponse asyncResponse) {
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
@@ -193,7 +169,7 @@ public class DeviceCommandController {
     }
 
     private List<DeviceCommand> getOrWaitForCommands(HivePrincipal principal,
-                                                     SubscriptionFilter subscriptionFilter,
+                                                     SubscriptionFilterInternal subscriptionFilter,
                                                      long timeout) {
         logger.debug("Device notification pollMany requested for : {}.  Timeout = {}", subscriptionFilter, timeout);
 
@@ -207,10 +183,10 @@ public class DeviceCommandController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
-            if (subscriptionFilter.getDeviceFilters() != null) {
-                Map<Device, List<String>> filters =
-                        deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(), principal);
-                for (Map.Entry<Device, List<String>> entry : filters.entrySet()) {
+            if (subscriptionFilter.getDeviceNames()!= null) {
+                Map<Device, Set<String>> filters =
+                        deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal);
+                for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {
                     subscriptionSet
                             .add(new CommandSubscription(principal, entry.getKey().getId(), reqId, entry.getValue(),
                                     restHandlerCreator));

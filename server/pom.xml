@@ -15,8 +15,8 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>DEV</build.number>
-        <hibernate-version>4.3.1.Final</hibernate-version>
-        <hazelcast-version>3.1.3</hazelcast-version>
+        <hibernate-version>4.3.5.Final</hibernate-version>
+        <hazelcast-version>3.2</hazelcast-version>
     </properties>
 
     <dependencies>
@@ -55,9 +55,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.1</version>
+            <version>3.3.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.0</version>
+        </dependency>
 
 
         <dependency>
@@ -69,20 +74,15 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.3.2</version>
+            <version>4.3.3</version>
         </dependency>
 
         <dependency>
 			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast</artifactId>
+			<artifactId>hazelcast-all</artifactId>
 			<version>${hazelcast-version}</version>
 		</dependency>
 
-        <dependency>
-	        <groupId>com.hazelcast</groupId>
-	        <artifactId>hazelcast-hibernate4</artifactId>
-	        <version>${hazelcast-version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>9.1.0.RC2</version>
+            <version>9.1.4.v20140401</version>
         </dependency>
 
         <dependency>

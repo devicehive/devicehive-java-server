@@ -1,7 +1,6 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.messages.bus.GlobalMessageBus;
@@ -9,20 +8,14 @@ import com.devicehive.model.*;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.util.Timer;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.*;
-
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Stateless
 @LogExecutionTime
@@ -65,9 +58,9 @@ public class DeviceNotificationService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getDeviceNotificationList(@NotNull SubscriptionFilter subscriptionFilter, HivePrincipal principal) {
-        if (subscriptionFilter.getDeviceFilters() != null) {
-            return deviceNotificationDAO.findNotifications(deviceService.createFilterMap(subscriptionFilter.getDeviceFilters(),principal), subscriptionFilter.getTimestamp(), null);
+    public List<DeviceNotification> getDeviceNotificationList(@NotNull SubscriptionFilterInternal subscriptionFilter, HivePrincipal principal) {
+        if (subscriptionFilter.getDeviceNames() != null) {
+            return deviceNotificationDAO.findNotifications(deviceService.createFilterMap(subscriptionFilter.getDeviceNames(),principal), subscriptionFilter.getTimestamp(), null);
         } else {
             return deviceNotificationDAO.findNotifications(
                     subscriptionFilter.getTimestamp(),

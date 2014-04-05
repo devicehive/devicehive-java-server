@@ -117,7 +117,7 @@ public class DeviceDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Device> getDeviceList(HivePrincipal principal, List<String> guids){
+    public List<Device> getDeviceList(HivePrincipal principal, Collection<String> guids){
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<Device> criteria = criteriaBuilder.createQuery(Device.class);
         Root<Device> from = criteria.from(Device.class);
