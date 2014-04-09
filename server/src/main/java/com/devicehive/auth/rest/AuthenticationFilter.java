@@ -33,6 +33,7 @@ import static com.devicehive.configuration.Constants.UTF8;
 public class AuthenticationFilter implements ContainerRequestFilter {
 
     private static Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+    private static Charset UTF8_CHARSET = Charset.forName(UTF8);
     private DeviceService deviceService;
     private UserService userService;
     private AccessKeyService accessKeyService;
@@ -113,7 +114,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return null;
         }
         if (auth.substring(0, 5).equalsIgnoreCase("Basic")) {
-            String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), Charset.forName(UTF8));
+            String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), UTF8_CHARSET);
             int pos = decodedAuth.indexOf(":");
             if (pos <= 0) {
                 return null;
