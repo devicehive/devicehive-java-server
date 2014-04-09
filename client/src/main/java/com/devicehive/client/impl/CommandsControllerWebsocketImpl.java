@@ -4,6 +4,7 @@ package com.devicehive.client.impl;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
@@ -70,18 +71,19 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     }
 
     @Override
-    public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException {
-        logger.debug("Device: command/subscribe requested for timestamp {}, names {}, device ids {}", timestamp,
-                names, deviceIds);
-        hiveContext.getWebsocketSubManager().addCommandsSubscription(timestamp, names, deviceIds);
-        logger.debug("Device: command/subscribe request proceed successfully for timestamp {}, names {}, " +
-                "device ids {}", timestamp, names, deviceIds);
+    public void subscribeForCommands(SubscriptionFilter filter)
+            throws HiveException {
+        logger.debug("Client: notification/subscribe requested for filter {},", filter);
+
+        hiveContext.getWebsocketSubManager().addCommandsSubscription(filter);
+
+        logger.debug("Client: notification/subscribe proceed for filter {},", filter);
     }
 
     @Override
     public void unsubscribeFromCommands() throws HiveException {
         logger.debug("Device: command/unsubscribe requested");
-        hiveContext.getWebsocketSubManager().removeCommandSubscriptions();
+        hiveContext.getWebsocketSubManager().removeCommandSubscription();
         logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 

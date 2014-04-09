@@ -4,6 +4,7 @@ package com.devicehive.client.impl;
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
@@ -106,12 +107,10 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException {
-        logger.debug("Device: command/subscribe requested for timestamp {}, names {}, device ids {}", timestamp,
-                names, deviceIds);
-        hiveContext.getRestSubManager().addCommandsSubscription(timestamp, names, deviceIds);
-        logger.debug("Device: command/subscribe request proceed successfully for timestamp {}, names {}, " +
-                "device ids {}", timestamp, names, deviceIds);
+    public void subscribeForCommands(SubscriptionFilter filter) throws HiveException {
+        logger.debug("Device: command/subscribe requested for filter {},", filter);
+        hiveContext.getRestSubManager().addCommandsSubscription(filter);
+        logger.debug("Device: command/subscribe request proceed successfully for filter {},", filter);
     }
 
     @Override

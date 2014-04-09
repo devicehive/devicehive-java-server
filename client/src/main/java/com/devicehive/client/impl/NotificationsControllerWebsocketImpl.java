@@ -4,6 +4,7 @@ package com.devicehive.client.impl;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
@@ -54,13 +55,13 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
 
 
     @Override
-    public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds)
+    public void subscribeForNotifications(SubscriptionFilter filter)
             throws HiveException {
-        logger.debug("Client: notification/subscribe requested. Params: timestamp {}, names {}, device ids {}",
-                timestamp, names, deviceIds);
-        hiveContext.getWebsocketSubManager().addNotificationSubscription(timestamp, names, deviceIds);
-        logger.debug("Client: notification/subscribe proceed. Params: timestamp {}, names {}, device ids {}",
-                timestamp, names, deviceIds);
+        logger.debug("Client: notification/subscribe requested for filter {},", filter);
+
+        hiveContext.getWebsocketSubManager().addNotificationSubscription(filter);
+
+        logger.debug("Client: notification/subscribe proceed for filter {},", filter);
     }
 
     @Override

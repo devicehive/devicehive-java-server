@@ -5,10 +5,7 @@ import com.devicehive.client.HiveDevice;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.util.HiveValidator;
-import com.devicehive.client.model.ApiInfo;
-import com.devicehive.client.model.Device;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
@@ -108,9 +105,8 @@ public class HiveDeviceRestImpl implements HiveDevice {
 
     @Override
     public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
-        Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
-        hiveContext.getRestSubManager().addCommandsSubscription(timestamp, null,
-                authenticated.getLeft());
+        SubscriptionFilter filter = SubscriptionFilter.createForDevice(hiveContext.getHivePrincipal().getDevice().getLeft(), timestamp);
+        hiveContext.getRestSubManager().addCommandsSubscription(filter);
     }
 
     /**

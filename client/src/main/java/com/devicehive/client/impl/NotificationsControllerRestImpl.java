@@ -5,6 +5,7 @@ import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
@@ -89,15 +90,13 @@ class NotificationsControllerRestImpl implements NotificationsController {
     }
 
     @Override
-    public void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds)
+    public void subscribeForNotifications(SubscriptionFilter filter)
             throws HiveException {
-        logger.debug("Client: notification/subscribe requested. Params: timestamp {}, names {}, device ids {}",
-                timestamp, names, deviceIds);
+        logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        hiveContext.getRestSubManager().addNotificationSubscription(timestamp, names, deviceIds);
+        hiveContext.getRestSubManager().addNotificationSubscription(filter);
 
-        logger.debug("Client: notification/subscribe proceed. Params: timestamp {}, names {}, device ids {}",
-                timestamp, names, deviceIds);
+        logger.debug("Client: notification/subscribe proceed for filter {},", filter);
     }
 
     @Override

@@ -27,7 +27,7 @@ public class CommandUpdateRestSubscription extends RestSubscription {
 
     public CommandUpdateRestSubscription(HiveContext hiveContext, Integer waitTimeout, String deviceGuid,
                                          Long commandId) {
-        this.hiveContext = ObjectUtils.cloneIfPossible(hiveContext);
+        this.hiveContext = hiveContext;
         this.waitTimeout = ObjectUtils.cloneIfPossible(waitTimeout);
         this.commandId = commandId;
         this.deviceGuid = deviceGuid;

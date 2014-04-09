@@ -2,6 +2,7 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 
 import java.sql.Timestamp;
@@ -59,11 +60,9 @@ public interface NotificationsController {
     /**
      * Subscribes client to notifications. RESTful poll/pollMany or websocket subscribe will be used.
      *
-     * @param timestamp start timestamp
-     * @param names     names of the notifications
-     * @param deviceIds device identifiers
+     * @param filter
      */
-    void subscribeForNotifications(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException;
+    void subscribeForNotifications(SubscriptionFilter filter) throws HiveException;
 
     /**
      * Unsubscribes client from notifications.

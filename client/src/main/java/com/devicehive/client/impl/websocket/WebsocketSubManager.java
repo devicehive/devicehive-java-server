@@ -5,6 +5,7 @@ import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.Subscription;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -27,19 +28,14 @@ public class WebsocketSubManager {
      * Adds commands subscription to storage. Creates task that store commands in context's command queue. In case
      * when no device identifiers specified, subscription "for all available" will be added.
      *
-     * @param timestamp first command timestamp
-     * @param names     names of commands that defines
-     * @param deviceIds devices identifiers of devices that should be subscribed
      */
-    public synchronized void addCommandsSubscription(Timestamp timestamp,
-                                                     Set<String> names, String... deviceIds) throws HiveException {
+    public synchronized void addCommandsSubscription(SubscriptionFilter filter) throws HiveException {
+        removeCommandSubscription();
+        Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/subscribe");
-        request.addProperty("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-        Gson gson = GsonFactory.createGson();
-        request.add("deviceGuids", gson.toJsonTree(deviceIds));
-        request.add("names", gson.toJsonTree(names));
-        hiveContext.setLastCommandSubscription(new Subscription(timestamp, names, deviceIds));
+        request.add("filter", gson.toJsonTree(filter));
+        //hiveContext.setLastCommandSubscription(new Subscription(filter));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
@@ -57,7 +53,7 @@ public class WebsocketSubManager {
     /**
      * Remove command subscription for all previous commands.
      */
-    public synchronized void removeCommandSubscriptions() throws HiveException {
+    public synchronized void removeCommandSubscription() throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
         hiveContext.getHiveWebSocketClient().sendMessage(request);
@@ -67,19 +63,15 @@ public class WebsocketSubManager {
      * Adds subscription for notifications with following set of notification's names from device with defined device
      * identifiers. In case when no device identifiers specified, subscription for all available devices will be added.
      *
-     * @param timestamp start timestamp
-     * @param names     notifications names (statistics)
-     * @param deviceIds device identifiers
+
      */
-    public synchronized void addNotificationSubscription(Timestamp timestamp, Set<String> names,
-                                                         String... deviceIds) throws HiveException {
+    public synchronized void addNotificationSubscription(SubscriptionFilter filter) throws HiveException {
+        removeNotificationSubscription();
+        Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/subscribe");
-        request.addProperty("timestamp", TimestampAdapter.formatTimestamp(timestamp));
-        Gson gson = GsonFactory.createGson();
-        request.add("deviceGuids", gson.toJsonTree(deviceIds));
-        request.add("names", gson.toJsonTree(names));
-        hiveContext.setLastCommandSubscription(new Subscription(timestamp, names, deviceIds));
+        request.add("filter", gson.toJsonTree(filter));
+        //hiveContext.setLastCommandSubscription(new Subscription(filter));
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
@@ -92,6 +84,7 @@ public class WebsocketSubManager {
         hiveContext.getHiveWebSocketClient().sendMessage(request);
     }
 
+    /*
     public synchronized void resubscribeAll() throws HiveException {
         Subscription lastCommand = hiveContext.getLastCommandSubscription();
         String[] commandsIds = new String[lastCommand.getDeviceIds().size()];
@@ -103,6 +96,7 @@ public class WebsocketSubManager {
         notificationIds = lastNotification.getDeviceIds().toArray(notificationIds);
         addNotificationSubscription(lastNotification.getLastTimestamp(), lastNotification.getNames(), notificationIds);
     }
+    */
 
     public void close() {
         //nothing to do

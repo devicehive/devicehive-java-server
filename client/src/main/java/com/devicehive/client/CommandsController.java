@@ -2,6 +2,7 @@ package com.devicehive.client;
 
 
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 
 import java.sql.Timestamp;
@@ -65,11 +66,9 @@ public interface CommandsController {
      * Subscribes client or device to commands. RESTful poll/pollMany or websocket subscribe will be used. When
      * command proceed device will be notified by servers's command/update message.
      *
-     * @param timestamp start timestamp
-     * @param names     names of the commands
-     * @param deviceIds device identifiers
+     * @param filter
      */
-    void subscribeForCommands(Timestamp timestamp, Set<String> names, String... deviceIds) throws HiveException;
+    void subscribeForCommands(SubscriptionFilter filter) throws HiveException;
 
     /**
      * Unsubscribes client or device from commands.

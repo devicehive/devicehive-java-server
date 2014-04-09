@@ -2,10 +2,12 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.impl.context.HiveContext;
+import com.devicehive.client.impl.context.Subscription;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -86,8 +88,8 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
     @Override
     public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
-        hiveContext.getWebsocketSubManager().addCommandsSubscription(timestamp, null,
-                hiveContext.getHivePrincipal().getDevice().getLeft());
+        SubscriptionFilter filter = SubscriptionFilter.createForDevice(hiveContext.getHivePrincipal().getDevice().getLeft(), timestamp);
+        hiveContext.getWebsocketSubManager().addCommandsSubscription(filter);
 
     }
 
@@ -99,7 +101,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
         hiveContext.getHiveWebSocketClient().sendMessage(request);
-        hiveContext.getWebsocketSubManager().removeCommandSubscriptions();
+        hiveContext.getWebsocketSubManager().removeCommandSubscription();
     }
 
 

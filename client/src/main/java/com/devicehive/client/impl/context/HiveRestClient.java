@@ -11,8 +11,7 @@ import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.google.common.collect.Maps;
-import org.glassfish.jersey.internal.util.Base64;
-import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +26,7 @@ import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -42,6 +42,8 @@ public class HiveRestClient implements Closeable {
     private static final String USER_AUTH_SCHEMA = "Basic";
     private static final String KEY_AUTH_SCHEMA = "Bearer";
     private static Logger logger = LoggerFactory.getLogger(HiveRestClient.class);
+    private static Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
     private final URI uri;
     private final Client restClient;
     private final HiveContext hiveContext;
@@ -208,7 +210,7 @@ public class HiveRestClient implements Closeable {
                 default:
                     throw new HiveException("Unknown response");
             }
-        } catch (MessageBodyProviderNotFoundException e) {
+        } catch (ProcessingException e) {
             throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
         }
     }
@@ -364,7 +366,7 @@ public class HiveRestClient implements Closeable {
         if (principal != null) {
             if (principal.getUser() != null) {
                 String decodedAuth = principal.getUser().getLeft() + ":" + principal.getUser().getRight();
-                String encodedAuth = Base64.encodeAsString(decodedAuth);
+                String encodedAuth = Base64.encodeBase64String(decodedAuth.getBytes(UTF8_CHARSET));
                 headers.put(HttpHeaders.AUTHORIZATION, USER_AUTH_SCHEMA + " " + encodedAuth);
             }
             if (principal.getDevice() != null) {
