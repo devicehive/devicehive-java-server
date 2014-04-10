@@ -83,11 +83,16 @@
         </dependency>
 
         <dependency>
-			<groupId>com.hazelcast</groupId>
-			<artifactId>hazelcast-all</artifactId>
-			<version>${hazelcast-version}</version>
-		</dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast-version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-hibernate4</artifactId>
+            <version>${hazelcast-version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
@@ -159,7 +164,7 @@
                         </goals>
                     </execution>
                 </executions>
-             </plugin>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
