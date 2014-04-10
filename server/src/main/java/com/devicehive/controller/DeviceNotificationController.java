@@ -15,7 +15,6 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
-import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -303,10 +302,11 @@ public class DeviceNotificationController {
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public void pollManyPost(
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @FormParam("waitTimeout") final long timeout,
-            @FormParam("subscription") final SubscriptionFilterExternal external,
+            @QueryParam("waitTimeout") final long timeout,
+            final SubscriptionFilterExternal external,
             @Suspended final AsyncResponse asyncResponse) {
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);
         pollMany(timeout, subscriptionFilter, asyncResponse);

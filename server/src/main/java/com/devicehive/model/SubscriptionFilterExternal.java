@@ -4,8 +4,6 @@ package com.devicehive.model;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class SubscriptionFilterExternal implements HiveEntity {

@@ -59,7 +59,6 @@ public class DeviceCommandController {
     private DeviceService deviceService;
     private SubscriptionManager subscriptionManager;
     private TimestampService timestampService;
-
     private ExecutorService asyncPool;
 
     @EJB
@@ -128,10 +127,10 @@ public class DeviceCommandController {
     @Consumes(MediaType.APPLICATION_JSON)
     public void pollManyPost(
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @FormParam("waitTimeout") final long timeout,
-            @FormParam("subscription") final SubscriptionFilterExternal external,
+            @QueryParam("waitTimeout") final long timeout,
+            final SubscriptionFilterExternal external,
             @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);
+        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);//(external);
         pollMany(timeout, subscriptionFilter, asyncResponse);
     }
 
@@ -183,7 +182,7 @@ public class DeviceCommandController {
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
-            if (subscriptionFilter.getDeviceNames()!= null) {
+            if (subscriptionFilter.getDeviceNames() != null) {
                 Map<Device, Set<String>> filters =
                         deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal);
                 for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {

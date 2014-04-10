@@ -5,14 +5,10 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
-import com.devicehive.model.User;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.service.AccessKeyService;
-import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -23,7 +19,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
 import java.util.List;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_NETWORK;
@@ -35,23 +30,12 @@ public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
     private NetworkService networkService;
-    private AccessKeyService accessKeyService;
-    private DeviceService deviceService;
 
     @EJB
     public void setNetworkService(NetworkService networkService) {
         this.networkService = networkService;
     }
 
-    @EJB
-    public void setAccessKeyService(AccessKeyService accessKeyService) {
-        this.accessKeyService = accessKeyService;
-    }
-
-    @EJB
-    public void setDeviceService(DeviceService deviceService) {
-        this.deviceService = deviceService;
-    }
 
     /**
      * Produces following output:
