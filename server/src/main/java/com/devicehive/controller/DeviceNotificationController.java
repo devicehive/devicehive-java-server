@@ -273,9 +273,8 @@ public class DeviceNotificationController {
 
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal
                 .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
-        pollMany(timeout, subscriptionFilter, asyncResponse);
+        poll(timeout, subscriptionFilter, asyncResponse, false);
     }
-
 
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
@@ -289,14 +288,15 @@ public class DeviceNotificationController {
             @Suspended final AsyncResponse asyncResponse) {
         SubscriptionFilterInternal subscriptionFilter =
                 SubscriptionFilterInternal.createForManyDevices(ParseUtil.getList(deviceGuids), timestamp);
-        pollMany(timeout, subscriptionFilter, asyncResponse);
-    }     
+        poll(timeout, subscriptionFilter, asyncResponse, true);
+    }
+
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
      *
      * @param external Device unique identifiers with names and
-     *                          timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param timeout           Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     *                 timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
      */
 
     @POST
@@ -309,13 +309,13 @@ public class DeviceNotificationController {
             final SubscriptionFilterExternal external,
             @Suspended final AsyncResponse asyncResponse) {
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);
-        pollMany(timeout, subscriptionFilter, asyncResponse);
+        poll(timeout, subscriptionFilter, asyncResponse, true);
     }
 
-
-    private void pollMany(final long timeout,
-                          final SubscriptionFilterInternal subscriptionFilter,
-                          final AsyncResponse asyncResponse) {
+    private void poll(final long timeout,
+                      final SubscriptionFilterInternal subscriptionFilter,
+                      final AsyncResponse asyncResponse,
+                      final boolean isMany) {
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -330,11 +330,19 @@ public class DeviceNotificationController {
                 try {
                     List<DeviceNotification> list =
                             getOrWaitForNotifications(principal, subscriptionFilter, timeout);
-                    List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
-                    for (DeviceNotification notification : list) {
-                        resultList.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+                    Response response;
+                    if (isMany) {
+                        List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
+                        for (DeviceNotification notification : list) {
+                            resultList.add(new NotificationPollManyResponse(notification,
+                                    notification.getDevice().getGuid()));
+                        }
+                        response =
+                                ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT);
+                    } else {
+                        response = ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
                     }
-                    asyncResponse.resume(ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT));
+                    asyncResponse.resume(response);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);
                     asyncResponse.resume(e);
@@ -343,27 +351,29 @@ public class DeviceNotificationController {
         });
     }
 
-
     private List<DeviceNotification> getOrWaitForNotifications(HivePrincipal principal,
-                                                                 SubscriptionFilterInternal subscriptionFilter,
-                                                                 long timeout) {
-        logger.debug("Device notification pollMany requested for : {}.  Timeout = {}",subscriptionFilter, timeout);
+                                                               SubscriptionFilterInternal subscriptionFilter,
+                                                               long timeout) {
+        logger.debug("Device notification pollMany requested for : {}.  Timeout = {}", subscriptionFilter, timeout);
 
         if (subscriptionFilter.getTimestamp() == null) {
             subscriptionFilter.setTimestamp(timestampService.getTimestamp());
         }
-        List<DeviceNotification> list = deviceNotificationService.getDeviceNotificationList(subscriptionFilter, principal);
+        List<DeviceNotification> list =
+                deviceNotificationService.getDeviceNotificationList(subscriptionFilter, principal);
 
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             String reqId = UUID.randomUUID().toString();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-            if (subscriptionFilter.getDeviceNames() != null ) {
-                Map<Device, Set<String>> filters = deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal);
+            if (subscriptionFilter.getDeviceNames() != null) {
+                Map<Device, Set<String>> filters =
+                        deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal);
                 for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {
                     subscriptionSet
-                            .add(new NotificationSubscription(principal, entry.getKey().getId(), reqId, entry.getValue(),
+                            .add(new NotificationSubscription(principal, entry.getKey().getId(), reqId,
+                                    entry.getValue(),
                                     restHandlerCreator));
                 }
             } else {

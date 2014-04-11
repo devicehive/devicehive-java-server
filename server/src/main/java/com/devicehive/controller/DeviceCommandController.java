@@ -103,7 +103,7 @@ public class DeviceCommandController {
 
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal
                 .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
-        pollMany(timeout, subscriptionFilter, asyncResponse);
+        poll(timeout, subscriptionFilter, asyncResponse, false);
     }
 
     @GET
@@ -118,7 +118,7 @@ public class DeviceCommandController {
             @Suspended final AsyncResponse asyncResponse) {
         SubscriptionFilterInternal subscriptionFilter =
                 SubscriptionFilterInternal.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
-        pollMany(timeout, subscriptionFilter, asyncResponse);
+        poll(timeout, subscriptionFilter, asyncResponse, true);
     }
 
     @POST
@@ -131,12 +131,13 @@ public class DeviceCommandController {
             final SubscriptionFilterExternal external,
             @Suspended final AsyncResponse asyncResponse) {
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);//(external);
-        pollMany(timeout, subscriptionFilter, asyncResponse);
+        poll(timeout, subscriptionFilter, asyncResponse, true);
     }
 
-    private void pollMany(final long timeout,
-                          final SubscriptionFilterInternal subscriptionFilter,
-                          final AsyncResponse asyncResponse) {
+    private void poll(final long timeout,
+                      final SubscriptionFilterInternal subscriptionFilter,
+                      final AsyncResponse asyncResponse,
+                      final boolean isMany) {
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -152,12 +153,16 @@ public class DeviceCommandController {
                 try {
                     List<DeviceCommand> list =
                             getOrWaitForCommands(principal, subscriptionFilter, timeout);
-                    List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
-                    for (DeviceCommand command : list) {
-                        resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
+                    Response response;
+                    if (isMany) {
+                        List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
+                        for (DeviceCommand command : list) {
+                            resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
+                        }
+                        response = ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
+                    }  else {
+                        response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
                     }
-                    Response response = ResponseFactory
-                            .response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
                     asyncResponse.resume(response);
                 } catch (Exception e) {
                     logger.error("Error: " + e.getMessage(), e);

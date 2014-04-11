@@ -3,8 +3,12 @@ package com.devicehive.dao;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -36,7 +40,8 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(Map<Device, Set<String>> deviceNamesFilters, @NotNull Timestamp timestamp, HivePrincipal principal) {
+    public List<DeviceNotification> findNotifications(Map<Device, Set<String>> deviceNamesFilters,
+                                                      @NotNull Timestamp timestamp, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -45,7 +50,7 @@ public class DeviceNotificationDAO {
         appendPrincipalPredicates(predicates, principal, from);
         if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
             List<Predicate> filterPredicates = new ArrayList<>();
-            for (Map.Entry<Device, Set<String>> entry : deviceNamesFilters.entrySet())  {
+            for (Map.Entry<Device, Set<String>> entry : deviceNamesFilters.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().isEmpty())
                     filterPredicates.add(
                             criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()),
@@ -61,7 +66,8 @@ public class DeviceNotificationDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, Set<String> names, HivePrincipal principal) {
+    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, Set<String> names,
+                                                      HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -75,9 +81,9 @@ public class DeviceNotificationDAO {
         return em.createQuery(criteria).getResultList();
     }
 
-
     @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    //TODO fix me. Incorrect query
     public List<DeviceNotification> queryDeviceNotification(Device device,
                                                             Timestamp start,
                                                             Timestamp end,
@@ -127,7 +133,12 @@ public class DeviceNotificationDAO {
             take = Constants.DEFAULT_TAKE;
             resultQuery.setMaxResults(take);
         }
-        return resultQuery.getResultList();
+        try {
+            List<DeviceNotification> result = resultQuery.getResultList();
+            return result;
+        } catch (Exception e) {
+            return Collections.EMPTY_LIST;
+        }
     }
 
     private Subquery<Timestamp> gridIntervalFilter(CriteriaBuilder cb,
@@ -157,8 +168,8 @@ public class DeviceNotificationDAO {
         return query.executeUpdate();
     }
 
-
-    private void  appendPrincipalPredicates( List<Predicate> predicates, HivePrincipal principal, Root<DeviceNotification> from) {
+    private void appendPrincipalPredicates(List<Predicate> predicates, HivePrincipal principal,
+                                           Root<DeviceNotification> from) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         if (principal != null) {
             User user = principal.getUser();
@@ -174,7 +185,8 @@ public class DeviceNotificationDAO {
             if (principal.getKey() != null) {
 
                 List<Predicate> extraPredicates = new ArrayList<>();
-                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
+                        .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getDeviceGuids() != null) {
                         filter.add(from.join("device").get("guid").in(extraFilter.getDeviceGuids()));
