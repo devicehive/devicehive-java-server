@@ -69,51 +69,6 @@ DELETE CASCADE;
 ALTER TABLE oauth_grant ADD CONSTRAINT auth_code_unique UNIQUE (auth_code);
 CREATE UNIQUE INDEX oauth_grant_idx ON oauth_grant (auth_code);
 
---functions
--- select min(timestamp) from device_notification;
-CREATE FUNCTION get_Min_Timestamp_From_Notifications()
-  RETURNS TIMESTAMP WITH TIME ZONE
-AS 'SELECT
-      min(timestamp)
-    FROM device_notification;'
-LANGUAGE SQL
-STABLE;
-
-CREATE OR REPLACE FUNCTION get_First_Timestamp(interval_int    INTEGER,
-                                               timestamp_value TIMESTAMP WITH TIME ZONE DEFAULT
-                                               get_Min_Timestamp_From_Notifications())
-  RETURNS BIGINT
-AS 'WITH intervals AS (
-    SELECT
-      (SELECT
-      min(timestamp) :: DATE
-       FROM device_notification) + (n || '' seconds'') :: INTERVAL        start_time,
-      (SELECT
-      min(timestamp) :: DATE
-       FROM device_notification) + ((n + $1) || '' seconds'') :: INTERVAL end_time
-    FROM generate_series(0, ((SELECT
-                                max(timestamp) :: DATE - min(timestamp) :: DATE
-                              FROM device_notification) + 1) * 24 * 60 * 60, $1) n)
-SELECT
-  position
-FROM (
-SELECT
-  min(timestamp)  min,
-  row_number()
-  OVER (
-    ORDER BY f.start_time) as position,
-  f.start_time start_time,
-  f.end_time end_time
-FROM device_notification
-  LEFT JOIN intervals f
-    ON device_notification.timestamp >= f.start_time AND device_notification.timestamp < f.end_time
-
-GROUP BY f.start_time, f.end_time
-ORDER BY f.start_time) as min_timestamp
-WHERE min_timestamp.start_time <= $2 AND min_timestamp.end_time > $2;'
-LANGUAGE SQL
-STABLE;
-
 --default: debug features are enabled--
 INSERT INTO configuration (name, value)
   VALUES ('debugMode', 'true');
