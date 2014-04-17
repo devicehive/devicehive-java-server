@@ -7,8 +7,6 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -16,11 +14,16 @@ import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Stateless
 @LogExecutionTime
@@ -81,9 +84,38 @@ public class DeviceNotificationDAO {
         return em.createQuery(criteria).getResultList();
     }
 
+    /*
+     If grid interval is present query must looks like this:
+
+     select * from device_notification
+     where device_notification.timestamp in
+     (select min(rank_selection.timestamp)
+     from
+     (select device_notification.*,
+     rank() over (order by floor((extract(EPOCH FROM device_notification.timestamp)) / 30)) as rank
+     from device_notification
+     where device_notification.timestamp between '2013-04-14 14:23:00.775+04' and '2014-04-14 14:23:00.775+04'
+     ) as rank_selection
+     where rank_selection.device_id = 8038
+     and rank_selection.notification = 'equipment'
+     group by rank_selection.rank);
+
+     If gridInterval is null the query must looks like this:
+
+     select * from device_notification
+     where device_notification.timestamp between '2013-04-14 14:23:00.775+04' and '2014-04-14 14:23:00.775+04'
+     and  device_id = 8038
+     and  notification = 'equipment'
+
+     Order, take and skip parameters will be appended to the end of each query if any of them are present.
+
+     The building of this query contain to stages to avoid sql injection:
+     1) Creation query as a string with the wildcards as a parameters. The list of the parameters will be made
+     synchronously with the adding of the wildcards.
+     2) Query parameters are set with query.setParameter(int position, Object value) to avoid sql injection.
+     */
     @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    //TODO fix me. Incorrect query
     public List<DeviceNotification> queryDeviceNotification(Device device,
                                                             Timestamp start,
                                                             Timestamp end,
@@ -93,67 +125,78 @@ public class DeviceNotificationDAO {
                                                             Integer take,
                                                             Integer skip,
                                                             Integer gridInterval) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
-        Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
-        List<Predicate> predicates = new ArrayList<>();
-        //where
-        predicates.add(criteriaBuilder.equal(from.get("device"), device));
-        if (start != null) {
-            predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), start));
-        }
-        if (end != null) {
-            predicates.add(criteriaBuilder.lessThan(from.<Timestamp>get("timestamp"), end));
-        }
-        if (notification != null) {
-            predicates.add(criteriaBuilder.equal(from.get("notification"), notification));
-        }
-
-        //groupBy
+        List<Object> parameters = new ArrayList();
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT * FROM device_notification ");     //this part of query is immutable
         if (gridInterval != null) {
-            Subquery<Timestamp> timestampSubquery = gridIntervalFilter(criteriaBuilder, criteria,
-                    gridInterval, from.<Timestamp>get("timestamp"));
-            predicates.add(from.get("timestamp").in(timestampSubquery));
+            sb.append("WHERE device_notification.timestamp IN ")
+                    .append("  (SELECT min(rank_selection.timestamp) ")
+                    .append("  FROM ")
+                    .append("     (SELECT device_notification.*, ")
+                    .append("           rank() OVER (ORDER BY floor((extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank ")
+                    .append("      FROM device_notification ");
+            parameters.add(gridInterval);
+            //  rank() OVER (ORDER BY floor((extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank
+            //  doesn't contain any PARTITION BY clause because we have persistent grid and this grid doesn't depend on
+            // other parameters and extraction contains first suitable, it doesn't matter in which category it is.
         }
-
-        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
-        //orderBy
-        if (sortField != null) {
-            if (sortOrderAsc) {
-                criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
+        if (start != null && end != null) {
+            sb.append(" WHERE device_notification.timestamp BETWEEN ? AND ? ");
+            parameters.add(start);
+            parameters.add(end);
+        } else if (start != null) {
+            sb.append(" WHERE device_notification.timestamp >= ? ");
+            parameters.add(start);
+        } else if (end != null) {
+            sb.append(" WHERE device_notification.timestamp <= ? ");
+            parameters.add(end);
+        }
+        if (gridInterval != null) {
+            sb.append(" ) AS rank_selection ");
+            sb.append("  WHERE (rank_selection.device_id = ?) ");
+        } else {
+            if (start != null || end != null)
+                sb.append(" AND ");
+            else {
+                sb.append(" WHERE ");
+            }
+            sb.append(" device_notification.device_id = ? ");
+        }
+        parameters.add(device.getId());   //device id is required
+        if (notification != null) {
+            sb.append(" AND ");
+            if (gridInterval != null) {
+                sb.append(" (rank_selection.notification = ?) ");
             } else {
-                criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));
+                sb.append(" device_notification.notification = ? ");
+            }
+            parameters.add(notification);
+        }
+        if (gridInterval != null) {
+            sb.append("  GROUP BY rank_selection.rank) ");   //select min(timestamp),
+            // group by is required. Selection should contain first timestamp in the interval. Rank is stands for
+            // timestamp in seconds / interval length
+        }
+        if (sortField != null) {
+            sb.append(" ORDER BY ").append(sortField);
+            if (sortOrderAsc) {
+                sb.append(" ASC ");
+            } else {
+                sb.append(" DESC ");
             }
         }
-        TypedQuery<DeviceNotification> resultQuery = em.createQuery(criteria);
+        if (take != null) {
+            sb.append(" LIMIT ").append(take);
+        }
         if (skip != null) {
-            resultQuery.setFirstResult(skip);
+            sb.append(" OFFSET ").append(skip);
         }
-        if (take == null) {
-            take = Constants.DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
+        sb.append(";");
+        Query query = em.createNativeQuery(sb.toString(), DeviceNotification.class);
+        for (int i = 0; i < parameters.size(); i++) {
+            query.setParameter(i + 1, parameters.get(i));
         }
-        try {
-            List<DeviceNotification> result = resultQuery.getResultList();
-            return result;
-        } catch (Exception e) {
-            return Collections.EMPTY_LIST;
-        }
-    }
-
-    private Subquery<Timestamp> gridIntervalFilter(CriteriaBuilder cb,
-                                                   CriteriaQuery<DeviceNotification> criteria,
-                                                   Integer gridInterval,
-                                                   Expression<Timestamp> exp) {
-        Subquery<Timestamp> timestampSubquery = criteria.subquery(Timestamp.class);
-        Root<DeviceNotification> subqueryFrom = timestampSubquery.from(DeviceNotification.class);
-        timestampSubquery.select(cb.least(subqueryFrom.<Timestamp>get("timestamp")));
-        List<Expression<?>> groupExpressions = new ArrayList<>();
-        groupExpressions.add(cb.function("get_first_timestamp", Long.class, cb.literal(gridInterval), exp));
-        groupExpressions.add(subqueryFrom.get("device"));
-        groupExpressions.add(subqueryFrom.get("notification"));
-        timestampSubquery.groupBy(groupExpressions);
-        return timestampSubquery;
+        return query.getResultList();
     }
 
     public boolean deleteNotification(@NotNull long id) {
