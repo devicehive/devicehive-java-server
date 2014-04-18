@@ -133,7 +133,8 @@ public class DeviceNotificationDAO {
                     .append("  (SELECT min(rank_selection.timestamp) ")
                     .append("  FROM ")
                     .append("     (SELECT device_notification.*, ")
-                    .append("           rank() OVER (ORDER BY floor((extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank ")
+                    .append("           rank() OVER (PARTITION BY device_notification.notification ORDER BY floor(" +
+                            "(extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank ")
                     .append("      FROM device_notification ");
             parameters.add(gridInterval);
             //  rank() OVER (ORDER BY floor((extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank
@@ -173,7 +174,7 @@ public class DeviceNotificationDAO {
             parameters.add(notification);
         }
         if (gridInterval != null) {
-            sb.append("  GROUP BY rank_selection.rank) ");   //select min(timestamp),
+            sb.append("  GROUP BY rank_selection.rank, rank_selection.notification) ");   //select min(timestamp),
             // group by is required. Selection should contain first timestamp in the interval. Rank is stands for
             // timestamp in seconds / interval length
         }
