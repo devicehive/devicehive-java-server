@@ -88,17 +88,17 @@ public class DeviceNotificationDAO {
      If grid interval is present query must looks like this:
 
      select * from device_notification
-     where device_notification.timestamp in
-     (select min(rank_selection.timestamp)
-     from
-     (select device_notification.*,
-     rank() over (order by floor((extract(EPOCH FROM device_notification.timestamp)) / 30)) as rank
-     from device_notification
-     where device_notification.timestamp between '2013-04-14 14:23:00.775+04' and '2014-04-14 14:23:00.775+04'
-     ) as rank_selection
-     where rank_selection.device_id = 8038
-     and rank_selection.notification = 'equipment'
-     group by rank_selection.rank);
+        where device_notification.timestamp in
+	 (select min(rank_selection.timestamp)
+	 from
+		(select device_notification.*,
+		       rank() over (partition by device_notification.notification order by floor((extract(EPOCH FROM device_notification.timestamp)) / 30)) as rank
+			from device_notification
+			where device_notification.timestamp between '2013-04-14 14:23:00.775+04' and '2014-04-14 14:23:00.775+04'
+		) as rank_selection
+	 where rank_selection.device_id = 8038
+       and rank_selection.notification = 'equipment'
+	 group by rank_selection.rank, rank_selection.notification);
 
      If gridInterval is null the query must looks like this:
 
@@ -137,9 +137,6 @@ public class DeviceNotificationDAO {
                             "(extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank ")
                     .append("      FROM device_notification ");
             parameters.add(gridInterval);
-            //  rank() OVER (ORDER BY floor((extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank
-            //  doesn't contain any PARTITION BY clause because we have persistent grid and this grid doesn't depend on
-            // other parameters and extraction contains first suitable, it doesn't matter in which category it is.
         }
         if (start != null && end != null) {
             sb.append(" WHERE device_notification.timestamp BETWEEN ? AND ? ");
