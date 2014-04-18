@@ -11,7 +11,7 @@ abstract class RestSubscription implements Runnable {
     private static Logger logger = LoggerFactory.getLogger(RestSubscription.class);
 
     protected static final String WAIT_TIMEOUT_PARAM = "waitTimeout";
-    protected static final String FILTER_PARAM = "filter";
+    protected static final String FILTER_PARAM = "subscription";
 
     protected abstract void execute() throws HiveException;
 

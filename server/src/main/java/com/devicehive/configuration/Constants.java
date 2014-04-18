@@ -22,6 +22,8 @@ public class Constants {
 
     public static final String MAX_LOGIN_ATTEMPTS = "user.login.maxAttempts";
 
+    public static final int INITIAL_LOGIN_ATTEMPTS = 0;
+
     public static final int MAX_LOGIN_ATTEMPTS_DEFAULT = 10;
 
     public static final String LAST_LOGIN_TIMEOUT = "user.login.lastTimeout"; // 1 hour

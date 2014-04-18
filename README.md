@@ -151,3 +151,11 @@ Notice, that the all parameters set up for configuration of RESTful and websocke
 
  You can get access to this service using any of your administrative accounts.
  For more details see RELEASE_NOTES
+
+ DeviceHive Java server settings
+ ===============================
+ 1. rest.url - REST service URL. Required.
+ 2. websocket.url - Websocket service URL. Will be required if websockets used.
+ 3. user.login.maxAttempts - Keeps number of maximum login attempts. Default value: 10.
+ 4. user.login.lastTimeout - Defines when the user should be logged out if there is no user activity. Default value: 1 hour.
+ 5. websocket.ping.timeout - Defines when websocket session is invalid if there is no responses during the ping. Default value: 2 minutes.

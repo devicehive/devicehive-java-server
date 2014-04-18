@@ -248,7 +248,7 @@ public class UserService {
         String hash = passwordService.hashPassword(password, salt);
         user.setPasswordSalt(salt);
         user.setPasswordHash(hash);
-        user.setLoginAttempts(Constants.MAX_LOGIN_ATTEMPTS_DEFAULT);
+        user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
         return userDAO.create(user);
     }
 

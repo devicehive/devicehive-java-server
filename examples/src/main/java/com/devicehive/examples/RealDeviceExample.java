@@ -4,6 +4,7 @@ package com.devicehive.examples;
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
+import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.util.CommandsHandler;
 import com.devicehive.client.impl.util.NotificationsHandler;
 import com.devicehive.client.model.DeviceCommand;
@@ -55,7 +56,7 @@ public class RealDeviceExample extends Example implements NotificationsHandler, 
             hiveClient.authenticate(LOGIN, PASSWORD);
             hiveClient.getNotificationsController().subscribeForNotifications(null, null);
             ScheduledExecutorService commandsExecutor = Executors.newSingleThreadScheduledExecutor();
-            commandsExecutor.scheduleAtFixedRate(new CommandTask(), 3, 3, TimeUnit.SECONDS);
+            commandsExecutor.scheduleAtFixedRate(new CommandTask(), 1, 1, TimeUnit.SECONDS);
             Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
             commandsExecutor.shutdownNow();
         } catch (InterruptedException e) {
@@ -91,11 +92,13 @@ public class RealDeviceExample extends Example implements NotificationsHandler, 
         private volatile boolean isGreen = false;
         private volatile boolean isRed = false;
         private volatile boolean isItGreenTurn = true;
+        private static final String uuid  ="c73ccf23-8bf5-4c2c-b330-ead36f469d1a";
 
         @Override
         public void run() {
             try {
                 CommandsController cc = hiveClient.getCommandsController();
+                NotificationsController nc = hiveClient.getNotificationsController();
                 DeviceCommand command = new DeviceCommand();
                 command.setCommand(COMMAND);
                 JsonObject commandParams = new JsonObject();
@@ -113,10 +116,14 @@ public class RealDeviceExample extends Example implements NotificationsHandler, 
                     else commandParams.addProperty(LED_STATE, 1);
                     isRed = !isRed;
                     isItGreenTurn = true;
-                }
 
+                }
+                DeviceNotification notification = new DeviceNotification();
+                notification.setNotification("some");
+                notification.setParameters(new JsonStringWrapper("{\"p1\":\"val\"}"));
+                nc.insertNotification(uuid, notification);
                 command.setParameters(new JsonStringWrapper(commandParams.toString()));
-                cc.insertCommand("c73ccf23-8bf5-4c2c-b330-ead36f469d1a", command);
+                cc.insertCommand(uuid, command);
                 print("The command {} will be sent to all available devices");
 
             } catch (HiveException e) {
