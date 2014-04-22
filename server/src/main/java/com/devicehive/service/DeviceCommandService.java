@@ -7,7 +7,10 @@ import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.SubscriptionFilterInternal;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.Timer;
@@ -24,7 +27,6 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 
 @Stateless
@@ -89,9 +91,12 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getDeviceCommandsList(@NotNull SubscriptionFilterInternal subscriptionFilter, HivePrincipal principal) {
+    public List<DeviceCommand> getDeviceCommandsList(@NotNull SubscriptionFilterInternal subscriptionFilter,
+                                                     HivePrincipal principal) {
         if (subscriptionFilter.getDeviceNames() != null) {
-            return commandDAO.findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceNames(),principal), subscriptionFilter.getTimestamp(), null);
+            return commandDAO
+                    .findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal),
+                            subscriptionFilter.getTimestamp(), null);
         } else {
             return commandDAO.findCommands(
                     subscriptionFilter.getTimestamp(),
@@ -99,7 +104,6 @@ public class DeviceCommandService {
                     principal);
         }
     }
-
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
@@ -157,7 +161,9 @@ public class DeviceCommandService {
         }
 
         if (!cmd.getDevice().getId().equals(device.getId())) {
-            throw new HiveException("Device tries to update incorrect command", UNAUTHORIZED.getStatusCode());
+            throw new HiveException(
+                    "Command with id " + update.getId() + " wasn't found for device with id " + device.getGuid(),
+                    NOT_FOUND.getStatusCode());
         }
 
 
