@@ -414,10 +414,10 @@ public class DeviceService {
             }
         }
         if (!noAccessUuid.isEmpty()) {
-            StringBuilder message = new StringBuilder("No access to devices with guids: {").
+            StringBuilder message = new StringBuilder("Device with such guids wasn't found: {").
                     append(StringUtils.join(noAccessUuid, ",")).
                     append("}");
-            throw new HiveException(message.toString(), Response.Status.FORBIDDEN.getStatusCode());
+            throw new HiveException(message.toString(), Response.Status.NOT_FOUND.getStatusCode());
         }
         return result;
     }

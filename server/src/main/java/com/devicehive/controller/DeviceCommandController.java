@@ -10,7 +10,10 @@ import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
-import com.devicehive.messages.subscriptions.*;
+import com.devicehive.messages.handler.RestHandlerStorage;
+import com.devicehive.messages.subscriptions.CommandSubscription;
+import com.devicehive.messages.subscriptions.CommandSubscriptionStorage;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.updates.DeviceCommandUpdate;
@@ -160,7 +163,7 @@ public class DeviceCommandController {
                             resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
                         }
                         response = ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
-                    }  else {
+                    } else {
                         response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
                     }
                     asyncResponse.resume(response);
@@ -175,7 +178,7 @@ public class DeviceCommandController {
     private List<DeviceCommand> getOrWaitForCommands(HivePrincipal principal,
                                                      SubscriptionFilterInternal subscriptionFilter,
                                                      long timeout) {
-        logger.debug("Device notification pollMany requested for : {}.  Timeout = {}", subscriptionFilter, timeout);
+        logger.debug("Device command pollMany requested for : {}.  Timeout = {}", subscriptionFilter, timeout);
 
         if (subscriptionFilter.getTimestamp() == null) {
             subscriptionFilter.setTimestamp(timestampService.getTimestamp());
@@ -203,8 +206,7 @@ public class DeviceCommandController {
                                 restHandlerCreator));
             }
 
-            if (SimpleWaiter
-                    .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
+            if (SimpleWaiter.subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = commandService.getDeviceCommandsList(subscriptionFilter, principal);
             }
             return list;
@@ -295,20 +297,9 @@ public class DeviceCommandController {
         }
 
         if (command.getEntityVersion() == 0) {
-            CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
-            String reqId = UUID.randomUUID().toString();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
-            CommandUpdateSubscription commandSubscription =
-                    new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
-
-
-            if (SimpleWaiter
-                    .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
-                command = commandService.findById(commandId);
-            }
+            command = RestHandlerStorage.getCommand(commandId, timeout);
         }
-
-        DeviceCommand response = command.getEntityVersion() > 0 ? command : null;
+         DeviceCommand response = command;
         Response result = ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
         asyncResponse.resume(result);
     }

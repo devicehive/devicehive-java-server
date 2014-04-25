@@ -45,10 +45,6 @@ public class WebsocketSession {
         }
     }
 
-    public static Lock getCommandUpdatesSubscriptionsLock(Session session) {
-        return (Lock) session.getUserProperties().get(COMMAND_UPDATES_SUBSCRIPTION_LOCK);
-    }
-
     public static void createCommandUpdatesSubscriptionsLock(Session session) {
         if (!session.getUserProperties().containsKey(COMMAND_UPDATES_SUBSCRIPTION_LOCK)) {
             session.getUserProperties().put(COMMAND_UPDATES_SUBSCRIPTION_LOCK, new ReentrantLock(true));
