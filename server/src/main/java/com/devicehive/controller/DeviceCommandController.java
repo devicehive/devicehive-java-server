@@ -17,6 +17,7 @@ import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
+import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -51,7 +52,6 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Path("/device")
 @LogExecutionTime
-@Singleton
 public class DeviceCommandController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
@@ -59,7 +59,7 @@ public class DeviceCommandController {
     private DeviceService deviceService;
     private SubscriptionManager subscriptionManager;
     private TimestampService timestampService;
-    private ExecutorService asyncPool;
+    private AsynchronousExecutor executor;
 
     @EJB
     public void setCommandService(DeviceCommandService commandService) {
@@ -146,7 +146,7 @@ public class DeviceCommandController {
             }
         });
 
-        asyncPool.submit(new Runnable() {
+        executor.execute(new Runnable() {
             @Override
             public void run() {
 
@@ -239,7 +239,7 @@ public class DeviceCommandController {
             }
         });
 
-        asyncPool.submit(new Runnable() {
+        executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -548,15 +548,4 @@ public class DeviceCommandController {
         return ResponseFactory.response(NO_CONTENT);
     }
 
-    @PreDestroy
-    public void shutdownThreads() {
-        logger.debug("Try to shutdown device commands' pool");
-        asyncPool.shutdown();
-        logger.debug("Device commands' pool has been shut down");
-    }
-
-    @PostConstruct
-    public void initPool() {
-        asyncPool = Executors.newCachedThreadPool();
-    }
 }

@@ -19,6 +19,7 @@ import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
+import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -57,7 +58,6 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Path("/device")
 @LogExecutionTime
-@Singleton
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
@@ -66,7 +66,7 @@ public class DeviceNotificationController {
     private DeviceNotificationService deviceNotificationService;
     private DeviceService deviceService;
     private TimestampService timestampService;
-    private ExecutorService asyncPool;
+    private AsynchronousExecutor executor;
 
     @EJB
     public void setNotificationService(DeviceNotificationService notificationService) {
@@ -324,7 +324,7 @@ public class DeviceNotificationController {
             }
         });
 
-        asyncPool.submit(new Runnable() {
+        executor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -470,16 +470,5 @@ public class DeviceNotificationController {
         return ResponseFactory.response(CREATED, notification, NOTIFICATION_TO_DEVICE);
     }
 
-    @PreDestroy
-    public void shutdownThreads() {
-        logger.debug("Try to shutdown device notifications' pool");
-        asyncPool.shutdown();
-        logger.debug("Device notifications' pool has been shut down");
-    }
-
-    @PostConstruct
-    public void initPool() {
-        asyncPool = Executors.newCachedThreadPool();
-    }
 
 }
