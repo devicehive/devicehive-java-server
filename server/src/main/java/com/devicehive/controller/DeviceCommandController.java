@@ -59,6 +59,8 @@ public class DeviceCommandController {
     private DeviceService deviceService;
     private SubscriptionManager subscriptionManager;
     private TimestampService timestampService;
+
+    @EJB
     private AsynchronousExecutor executor;
 
     @EJB

@@ -66,6 +66,8 @@ public class DeviceNotificationController {
     private DeviceNotificationService deviceNotificationService;
     private DeviceService deviceService;
     private TimestampService timestampService;
+
+    @EJB
     private AsynchronousExecutor executor;
 
     @EJB
