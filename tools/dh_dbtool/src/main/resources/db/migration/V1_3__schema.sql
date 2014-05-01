@@ -72,3 +72,6 @@ CREATE UNIQUE INDEX oauth_grant_idx ON oauth_grant (auth_code);
 --default: debug features are enabled--
 INSERT INTO configuration (name, value)
   VALUES ('debugMode', 'true');
+
+ALTER TABLE device_command
+    ADD COLUMN origin_session_id varchar(64);
