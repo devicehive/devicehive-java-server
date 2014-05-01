@@ -1,6 +1,7 @@
 package com.devicehive.messages.bus;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
@@ -9,6 +10,9 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.SessionMonitor;
+import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.*;
+import javax.websocket.Session;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,6 +41,9 @@ public class LocalMessageBus {
     private ExecutorService handlersService;
     @EJB
     private DeviceService deviceService;
+
+    @EJB
+    private SessionMonitor sessionMonitor;
 
     @PostConstruct
     protected void postConstruct() {
@@ -99,6 +107,15 @@ public class LocalMessageBus {
                 logger.debug("Device command update was submitted: {}", deviceCommand.getId());
 
                 JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
+
+                if (deviceCommand.getOriginSessionId() != null) {
+                    Session session = sessionMonitor.getSession(deviceCommand.getOriginSessionId());
+                    if (session != null) {
+                        handlersService.submit(
+                            new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK).getHandler(jsonObject)
+                        );
+                    }
+                }
 
                 Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()
                         .getByCommandId(deviceCommand.getId());

@@ -110,8 +110,7 @@ public class NotificationHandlers implements WebsocketHandlers {
                                     session.getId(),
                                     entry.getValue(),
                                     new WebsocketHandlerCreator(session,
-                                            WebsocketSession.NOTIFICATIONS_LOCK,
-                                            asyncMessageDeliverer)
+                                            WebsocketSession.NOTIFICATIONS_LOCK)
                             );
                     nsList.add(cs);
                 }
@@ -121,8 +120,7 @@ public class NotificationHandlers implements WebsocketHandlers {
                                 Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
                                 session.getId(),
                                 subscriptionFilter.getNames(),
-                                new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK,
-                                        asyncMessageDeliverer)
+                                new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK)
                         );
                 nsList.add(forAll);
             }

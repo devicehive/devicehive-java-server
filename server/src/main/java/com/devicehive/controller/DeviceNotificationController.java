@@ -279,7 +279,6 @@ public class DeviceNotificationController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
-    @Deprecated
     public void pollMany(
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
@@ -290,6 +289,7 @@ public class DeviceNotificationController {
                 SubscriptionFilterInternal.createForManyDevices(ParseUtil.getList(deviceGuids), timestamp);
         poll(timeout, subscriptionFilter, asyncResponse, true);
     }
+
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>

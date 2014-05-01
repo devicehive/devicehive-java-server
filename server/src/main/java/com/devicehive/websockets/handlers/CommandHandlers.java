@@ -127,8 +127,7 @@ public class CommandHandlers implements WebsocketHandlers {
                                     session.getId(),
                                     entry.getValue(),
                                     new WebsocketHandlerCreator(session,
-                                            WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK,
-                                            asyncMessageDeliverer));
+                                            WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK));
                     csList.add(cs);
                 }
             } else {
@@ -137,8 +136,7 @@ public class CommandHandlers implements WebsocketHandlers {
                                 Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
                                 session.getId(),
                                 subscriptionFilter.getNames(),
-                                new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK,
-                                        asyncMessageDeliverer));
+                                new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK));
                 csList.add(forAll);
             }
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
@@ -201,7 +199,9 @@ public class CommandHandlers implements WebsocketHandlers {
         }
         deviceCommand.setUserId(user.getId());
 
-        commandService.submitDeviceCommand(deviceCommand, device, user, session);
+        deviceCommand.setOriginSessionId(session.getId());
+
+        commandService.submitDeviceCommand(deviceCommand, device, user);
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("command", deviceCommand, COMMAND_TO_CLIENT);
         return response;

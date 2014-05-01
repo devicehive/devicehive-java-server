@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.ConcurrencyManagement;
 import javax.ejb.EJB;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
@@ -26,17 +27,20 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.devicehive.configuration.Constants.UTF8;
+import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
+@ConcurrencyManagement(BEAN)
 @EJB(name = "SessionMonitor", beanInterface = SessionMonitor.class)
 public class SessionMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
     private static final String PING = "ping";
-    private Map<String, Session> sessionMap;
+    private ConcurrentMap<String, Session> sessionMap;
     @EJB
     private ConfigurationService configurationService;
     @EJB
@@ -80,7 +84,7 @@ public class SessionMonitor {
     }
 
     @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
-    public void ping() {
+    public synchronized void ping() {
         for (Session session : sessionMap.values()) {
             if (session.isOpen()) {
                 logger.debug("Pinging session " + session.getId());
@@ -99,7 +103,7 @@ public class SessionMonitor {
     }
 
     @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
-    public void monitor() {
+    public synchronized void monitor() {
         Long timeout = configurationService
                 .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);
         for (Session session : sessionMap.values()) {

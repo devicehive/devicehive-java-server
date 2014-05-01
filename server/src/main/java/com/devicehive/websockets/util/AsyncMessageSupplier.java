@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.ConcurrencyManagement;
+import javax.ejb.EJB;
+import javax.ejb.Local;
 import javax.ejb.Singleton;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -19,9 +21,13 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
 @ConcurrencyManagement(BEAN)
+@EJB(beanInterface = AsyncMessageSupplier.class, name=AsyncMessageSupplier.NAME)
+@Local
 public class AsyncMessageSupplier {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageSupplier.class);
+
+    public static final String NAME = "java:global/DeviceHive/AsyncMessageSupplier";
 
     private static final int RETRY_COUNT = 3;
     private static final int RETRY_DELAY = 10;

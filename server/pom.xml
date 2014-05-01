@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <build.number>DEV</build.number>
         <hibernate-version>4.3.5.Final</hibernate-version>
-        <hazelcast-version>3.2</hazelcast-version>
+        <hazelcast-version>3.1.5</hazelcast-version>
     </properties>
 
     <dependencies>
@@ -28,7 +28,7 @@
 
         <dependency>
             <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
+            <artifactId>javaee-api</artifactId>
             <version>7.0</version>
             <scope>provided</scope>
         </dependency>

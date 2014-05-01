@@ -96,6 +96,10 @@ public class DeviceCommand implements HiveEntity {
             POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
+
+    @Column(name = "origin_session_id")
+    private String originSessionId;
+
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -215,5 +219,13 @@ public class DeviceCommand implements HiveEntity {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getOriginSessionId() {
+        return originSessionId;
+    }
+
+    public void setOriginSessionId(String originSessionId) {
+        this.originSessionId = originSessionId;
     }
 }

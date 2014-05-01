@@ -500,7 +500,7 @@ public class DeviceCommandController {
                     new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
         }
 
-        commandService.submitDeviceCommand(deviceCommand, device, authUser, null);
+        commandService.submitDeviceCommand(deviceCommand, device, authUser);
         deviceCommand.setUserId(authUser.getId());
 
         logger.debug("Device command insertAll proceed successfully. deviceId = {} commandId = {}", guid,

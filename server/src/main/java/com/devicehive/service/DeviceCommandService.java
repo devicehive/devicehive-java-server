@@ -119,37 +119,20 @@ public class DeviceCommandService {
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
-        Timer timer = Timer.newInstance();
         DeviceCommand saved = self.saveDeviceCommandUpdate(update, device);
-        timer.logMethodExecuted("DeviceCommandService.self.saveDeviceCommandUpdate");
         globalMessageBus.publishDeviceCommandUpdate(saved);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void submitDeviceCommand(DeviceCommand command, Device device, User user, final Session session) {
-        Timer timer = Timer.newInstance();
-        self.saveDeviceCommand(command, device, user, session);
-        timer.logMethodExecuted("DeviceCommandService.self.saveDeviceCommand");
+    public void submitDeviceCommand(DeviceCommand command, Device device, User user) {
+        self.saveDeviceCommand(command, device, user);
         globalMessageBus.publishDeviceCommand(command);
     }
 
-    public void saveDeviceCommand(final DeviceCommand command, Device device, User user, final Session session) {
+    public void saveDeviceCommand(final DeviceCommand command, Device device, User user) {
         command.setDevice(device);
         command.setUser(user);
         commandDAO.createCommand(command);
-        if (session != null) {
-            Runnable removeHandler = new Runnable() {
-                @Override
-                public void run() {
-                    subscriptionManager.getCommandUpdateSubscriptionStorage().remove(command.getId(), session.getId());
-                }
-            };
-            CommandUpdateSubscription commandUpdateSubscription =
-                    new CommandUpdateSubscription(command.getId(), session.getId(),
-                            new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK,
-                                    asyncMessageDeliverer, removeHandler));
-            subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
-        }
     }
 
     public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
