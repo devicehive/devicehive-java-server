@@ -4,8 +4,6 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
-import com.devicehive.messages.handler.WebsocketHandlerCreator;
-import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
@@ -13,16 +11,13 @@ import com.devicehive.model.SubscriptionFilterInternal;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.Timer;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
-import com.devicehive.websockets.util.WebsocketSession;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import javax.websocket.Session;
 import java.sql.Timestamp;
 import java.util.List;
 

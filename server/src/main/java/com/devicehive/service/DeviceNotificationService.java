@@ -7,7 +7,6 @@ import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.*;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.util.Timer;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -100,9 +99,7 @@ public class DeviceNotificationService {
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
-        Timer timer = Timer.newInstance();
         List<DeviceNotification> proceedNotifications = self.processDeviceNotification(notification, device);
-        timer.logMethodExecuted("DeviceNotificationService.self.processDeviceNotification");
         for (DeviceNotification currentNotification : proceedNotifications) {
             globalMessageBus.publishDeviceNotification(currentNotification);
         }

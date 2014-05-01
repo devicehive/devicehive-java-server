@@ -9,23 +9,19 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
+import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.ejb.*;
 import javax.websocket.Session;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -37,139 +33,120 @@ public class LocalMessageBus {
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
     @EJB
     private SubscriptionManager subscriptionManager;
-    private ExecutorService primaryProcessingService;
-    private ExecutorService handlersService;
     @EJB
     private DeviceService deviceService;
 
     @EJB
     private SessionMonitor sessionMonitor;
 
-    @PostConstruct
-    protected void postConstruct() {
-        primaryProcessingService = Executors.newCachedThreadPool();
-        handlersService = Executors.newCachedThreadPool();
-    }
+    @EJB
+    private AsynchronousExecutor executor;
 
-    @PreDestroy
-    protected void preDestroy() {
-        primaryProcessingService.shutdown();
-        handlersService.shutdown();
-    }
 
+    @Asynchronous
     public void submitDeviceCommand(final DeviceCommand deviceCommand) {
-        primaryProcessingService.submit(new Runnable() {
-            @Override
-            public void run() {
-                logger.debug("Device command was submitted: {}", deviceCommand.getId());
+        logger.debug("Device command was submitted: {}", deviceCommand.getId());
 
-                JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
+        JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
 
-                Set<String> subscribersIds = new HashSet<>();
-                Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
-                        .getByDeviceId(deviceCommand.getDevice().getId());
-                for (CommandSubscription subscription : subs) {
-                    if (subscription.getCommandNames()!= null &&
-                            !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
-                        continue;
-                    }
-                    boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                            Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
-                    if (hasAccess) {
-                        handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
-                    }
-                    subscribersIds.add(subscription.getSessionId());
-                }
+        Set<String> subscribersIds = new HashSet<>();
+        Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
+                .getByDeviceId(deviceCommand.getDevice().getId());
+        for (CommandSubscription subscription : subs) {
+            if (subscription.getCommandNames() != null &&
+                    !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
+                continue;
+            }
+            boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
+                    Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
+            if (hasAccess) {
+                executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
+            }
+            subscribersIds.add(subscription.getSessionId());
+        }
 
-                Set<CommandSubscription> subsForAll = (subscriptionManager.getCommandSubscriptionStorage()
-                        .getByDeviceId(Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE));
+        Set<CommandSubscription> subsForAll = (subscriptionManager.getCommandSubscriptionStorage()
+                .getByDeviceId(Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE));
 
-                for (CommandSubscription subscription : subsForAll) {
-                    if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
-                         continue;
-                     }
-                    if (!subscribersIds.contains(subscription.getSessionId())) {
-                        boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                                Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
-                        if (hasAccess) {
-                            handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
-                        }
-                    }
+        for (CommandSubscription subscription : subsForAll) {
+            if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
+                continue;
+            }
+            if (!subscribersIds.contains(subscription.getSessionId())) {
+                boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
+                        Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
+                if (hasAccess) {
+                    executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
                 }
             }
-        });
+        }
     }
 
+    @Asynchronous
     public void submitDeviceCommandUpdate(final DeviceCommand deviceCommand) {
-        primaryProcessingService.submit(new Runnable() {
-            @Override
-            public void run() {
-                logger.debug("Device command update was submitted: {}", deviceCommand.getId());
 
-                JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
+        logger.debug("Device command update was submitted: {}", deviceCommand.getId());
 
-                if (deviceCommand.getOriginSessionId() != null) {
-                    Session session = sessionMonitor.getSession(deviceCommand.getOriginSessionId());
-                    if (session != null) {
-                        handlersService.submit(
-                            new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK).getHandler(jsonObject)
-                        );
-                    }
-                }
+        JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
 
-                Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()
-                        .getByCommandId(deviceCommand.getId());
-                for (CommandUpdateSubscription commandUpdateSubscription : subs) {
-                    handlersService.submit(commandUpdateSubscription.getHandlerCreator().getHandler(jsonObject));
-                }
+        if (deviceCommand.getOriginSessionId() != null) {
+            Session session = sessionMonitor.getSession(deviceCommand.getOriginSessionId());
+            if (session != null) {
+                executor.execute(
+                        new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK).getHandler(jsonObject)
+                );
             }
-        });
+        }
+
+        Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()
+                .getByCommandId(deviceCommand.getId());
+        for (CommandUpdateSubscription commandUpdateSubscription : subs) {
+            executor.execute(commandUpdateSubscription.getHandlerCreator().getHandler(jsonObject));
+        }
     }
 
+
+    @Asynchronous
     public void submitDeviceNotification(final DeviceNotification deviceNotification) {
-        primaryProcessingService.submit(new Runnable() {
-            @Override
-            public void run() {
-                logger.debug("Device notification was submitted: {}", deviceNotification.getId());
 
-                JsonObject jsonObject = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
+        logger.debug("Device notification was submitted: {}", deviceNotification.getId());
 
-                Set<String> subscribersIds = new HashSet<>();
-                Set<NotificationSubscription> subs =
-                        subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
-                                deviceNotification.getDevice().getId());
-                for (NotificationSubscription subscription : subs) {
-                    if (subscription.getNotificationNames() != null
-                            && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
-                        continue;
-                    }
-                    boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                            Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
-                    if (hasAccess) {
-                        handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
-                    }
-                    subscribersIds.add(subscription.getSessionId());
-                }
+        JsonObject jsonObject = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
 
-                Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
-                        .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
-
-                for (NotificationSubscription subscription : subsForAll) {
-                    if (subscription.getNotificationNames() != null
-                            && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
-                        continue;
-                    }
-                    if (!subscribersIds.contains(subscription.getSessionId())) {
-                        boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                                Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
-                        if (hasAccess) {
-                            handlersService.submit(subscription.getHandlerCreator().getHandler(jsonObject));
-                        }
-                    }
-                }
-
+        Set<String> subscribersIds = new HashSet<>();
+        Set<NotificationSubscription> subs =
+                subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
+                        deviceNotification.getDevice().getId());
+        for (NotificationSubscription subscription : subs) {
+            if (subscription.getNotificationNames() != null
+                    && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
+                continue;
             }
-        });
+            boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
+                    Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
+            if (hasAccess) {
+                executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
+            }
+            subscribersIds.add(subscription.getSessionId());
+        }
+
+        Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
+                .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
+
+        for (NotificationSubscription subscription : subsForAll) {
+            if (subscription.getNotificationNames() != null
+                    && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
+                continue;
+            }
+            if (!subscribersIds.contains(subscription.getSessionId())) {
+                boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
+                        Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
+                if (hasAccess) {
+                    executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
+                }
+            }
+        }
+
     }
 
 }
