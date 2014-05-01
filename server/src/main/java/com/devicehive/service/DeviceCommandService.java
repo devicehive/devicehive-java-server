@@ -4,6 +4,9 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
+import com.devicehive.messages.handler.WebsocketHandlerCreator;
+import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.SubscriptionFilterInternal;
@@ -11,6 +14,8 @@ import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.Timer;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.WebsocketSession;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -31,7 +36,19 @@ public class DeviceCommandService {
     private DeviceCommandDAO commandDAO;
     private DeviceCommandService self;
     private GlobalMessageBus globalMessageBus;
+    private AsyncMessageSupplier asyncMessageDeliverer;
+    private SubscriptionManager subscriptionManager;
     private DeviceService deviceService;
+
+    @EJB
+    public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
+        this.subscriptionManager = subscriptionManager;
+    }
+
+    @EJB
+    public void setAsyncMessageDeliverer(AsyncMessageSupplier asyncMessageDeliverer) {
+        this.asyncMessageDeliverer = asyncMessageDeliverer;
+    }
 
     @EJB
     public void setGlobalMessageBus(GlobalMessageBus globalMessageBus) {
@@ -119,11 +136,20 @@ public class DeviceCommandService {
     public void saveDeviceCommand(final DeviceCommand command, Device device, User user, final Session session) {
         command.setDevice(device);
         command.setUser(user);
-
-        if (session != null) {
-            command.setSessionId(session.getId());
-        }
         commandDAO.createCommand(command);
+        if (session != null) {
+            Runnable removeHandler = new Runnable() {
+                @Override
+                public void run() {
+                    subscriptionManager.getCommandUpdateSubscriptionStorage().remove(command.getId(), session.getId());
+                }
+            };
+            CommandUpdateSubscription commandUpdateSubscription =
+                    new CommandUpdateSubscription(command.getId(), session.getId(),
+                            new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK,
+                                    asyncMessageDeliverer, removeHandler));
+            subscriptionManager.getCommandUpdateSubscriptionStorage().insert(commandUpdateSubscription);
+        }
     }
 
     public DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {

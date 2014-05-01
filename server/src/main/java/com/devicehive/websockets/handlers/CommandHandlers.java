@@ -71,7 +71,7 @@ public class CommandHandlers implements WebsocketHandlers {
             }
         }
         StringBuilder message = new StringBuilder("No access to devices with guids: {");
-        message.append(StringUtils.join(guidsWithDeniedAccess, ", "));
+        message.append(StringUtils.join(guidsWithDeniedAccess.toArray(), ", "));
         message.append("}");
         return message.toString();
     }
@@ -86,10 +86,10 @@ public class CommandHandlers implements WebsocketHandlers {
                                                      Session session) throws IOException {
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Session: {}",
                 list, deviceId, timestamp, session);
-        Timestamp filterTimestamp =  timestamp != null ? timestamp : timestampService.getTimestamp();
         SubscriptionFilterInternal filter =
                 external == null
-                        ? SubscriptionFilterInternal.createForManyDevices(prepareActualList(list, deviceId),filterTimestamp)
+                        ? SubscriptionFilterInternal.createForManyDevices(prepareActualList(list, deviceId),
+                        timestamp != null ? timestamp : timestampService.getTimestamp())
                         : SubscriptionFilterInternal.create(external);
         commandsSubscribeAction(session, filter);
         logger.debug("command/subscribe proceed successfully for devices: {}, {}. Timestamp: {}. Session: {}",

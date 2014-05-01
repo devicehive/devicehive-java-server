@@ -38,29 +38,24 @@ public class DeviceCommand implements HiveEntity {
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
             COMMAND_LISTED})
     private Long id;
-
     @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
     @JsonPolicyDef(
             {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
-
     @SerializedName("user")
     @ManyToOne
     @JoinColumn(name = "user_id", updatable = false)
     private User user;
-
     @SerializedName("userId")
     @Transient
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
     private Long userId;
-
     @SerializedName("device")
     @ManyToOne
     @JoinColumn(name = "device_id", updatable = false)
     @NotNull(message = "device field cannot be null.")
     private Device device;
-
     @SerializedName("command")
     @Column
     @NotNull(message = "command field cannot be null.")
@@ -69,7 +64,6 @@ public class DeviceCommand implements HiveEntity {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String command;
-
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
@@ -78,7 +72,6 @@ public class DeviceCommand implements HiveEntity {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
-
     @SerializedName("lifetime")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
@@ -88,14 +81,12 @@ public class DeviceCommand implements HiveEntity {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer flags;
-
     @SerializedName("status")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private String status;
-
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
@@ -105,16 +96,9 @@ public class DeviceCommand implements HiveEntity {
             POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
-
-    @Column(name="session_id")
-    @Size(min = 1, max = 48,
-            message = "Field cannot be empty. The length of session_id should not be more than 48 symbols.")
-    private String sessionId;
-
 
     /**
      * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
@@ -231,13 +215,5 @@ public class DeviceCommand implements HiveEntity {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
     }
 }

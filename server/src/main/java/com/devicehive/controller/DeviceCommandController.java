@@ -10,10 +10,7 @@ import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
-import com.devicehive.messages.handler.RestHandlerStorage;
-import com.devicehive.messages.subscriptions.CommandSubscription;
-import com.devicehive.messages.subscriptions.CommandSubscriptionStorage;
-import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.*;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.updates.DeviceCommandUpdate;
@@ -163,7 +160,7 @@ public class DeviceCommandController {
                             resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
                         }
                         response = ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
-                    } else {
+                    }  else {
                         response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
                     }
                     asyncResponse.resume(response);
@@ -206,7 +203,8 @@ public class DeviceCommandController {
                                 restHandlerCreator));
             }
 
-            if (SimpleWaiter.subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
+            if (SimpleWaiter
+                    .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = commandService.getDeviceCommandsList(subscriptionFilter, principal);
             }
             return list;
@@ -297,9 +295,20 @@ public class DeviceCommandController {
         }
 
         if (command.getEntityVersion() == 0) {
-            command = RestHandlerStorage.getCommand(commandId, timeout);
+            CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
+            String reqId = UUID.randomUUID().toString();
+            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            CommandUpdateSubscription commandSubscription =
+                    new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
+
+
+            if (SimpleWaiter
+                    .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
+                command = commandService.findById(commandId);
+            }
         }
-         DeviceCommand response = command;
+
+        DeviceCommand response = command.getEntityVersion() > 0 ? command : null;
         Response result = ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
         asyncResponse.resume(result);
     }
