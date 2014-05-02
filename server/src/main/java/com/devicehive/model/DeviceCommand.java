@@ -98,6 +98,8 @@ public class DeviceCommand implements HiveEntity {
     private JsonStringWrapper result;
 
     @Column(name = "origin_session_id")
+    @Size(min = 1, max = 64,
+            message = "The length of origin_session_id should not be more than 64 symbols.")
     private String originSessionId;
 
     @Version

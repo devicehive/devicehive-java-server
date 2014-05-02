@@ -31,19 +31,8 @@ public class DeviceCommandService {
     private DeviceCommandDAO commandDAO;
     private DeviceCommandService self;
     private GlobalMessageBus globalMessageBus;
-    private AsyncMessageSupplier asyncMessageDeliverer;
-    private SubscriptionManager subscriptionManager;
     private DeviceService deviceService;
 
-    @EJB
-    public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
-        this.subscriptionManager = subscriptionManager;
-    }
-
-    @EJB
-    public void setAsyncMessageDeliverer(AsyncMessageSupplier asyncMessageDeliverer) {
-        this.asyncMessageDeliverer = asyncMessageDeliverer;
-    }
 
     @EJB
     public void setGlobalMessageBus(GlobalMessageBus globalMessageBus) {
