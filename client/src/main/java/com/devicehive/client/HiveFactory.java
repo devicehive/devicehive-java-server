@@ -6,8 +6,6 @@ import com.devicehive.client.impl.HiveClientWebsocketImpl;
 import com.devicehive.client.impl.HiveDeviceRestImpl;
 import com.devicehive.client.impl.HiveDeviceWebsocketImpl;
 import com.devicehive.client.impl.context.HiveContext;
-import com.devicehive.client.impl.util.CommandsHandler;
-import com.devicehive.client.impl.util.NotificationsHandler;
 import com.devicehive.client.model.Role;
 import com.devicehive.client.model.exceptions.HiveException;
 

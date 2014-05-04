@@ -11,7 +11,7 @@ import java.io.Closeable;
  * methods with similar logic to some container. The separation of client controllers is equal or similar to the
  * server's controller.
  */
-public interface HiveClient extends Closeable {
+public interface HiveClient {
 
     /**
      * Requests API information

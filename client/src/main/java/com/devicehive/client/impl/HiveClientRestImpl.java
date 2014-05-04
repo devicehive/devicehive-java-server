@@ -2,8 +2,8 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.*;
-import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.HivePrincipal;
+import com.devicehive.client.impl.context.RestHiveContext;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.exceptions.HiveException;
 
@@ -12,10 +12,10 @@ import java.io.IOException;
 public class HiveClientRestImpl implements HiveClient {
 
 
-    protected final HiveContext hiveContext;
+    private final RestHiveContext hiveContext;
 
 
-    public HiveClientRestImpl(HiveContext hiveContext) {
+    public HiveClientRestImpl(RestHiveContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
@@ -24,11 +24,11 @@ public class HiveClientRestImpl implements HiveClient {
     }
 
     public void authenticate(String login, String password) throws HiveException {
-        hiveContext.setHivePrincipal(HivePrincipal.createUser(login, password));
+        hiveContext.authenticate(HivePrincipal.createUser(login, password));
     }
 
     public void authenticate(String accessKey) throws HiveException {
-        hiveContext.setHivePrincipal(HivePrincipal.createAccessKey(accessKey));
+        hiveContext.authenticate(HivePrincipal.createAccessKey(accessKey));
     }
 
     public AccessKeyController getAccessKeyController() {
@@ -67,8 +67,8 @@ public class HiveClientRestImpl implements HiveClient {
         return new OAuthTokenControllerImpl(hiveContext);
     }
 
-    @Override
-    public void close() throws IOException {
+
+    public void close() {
         hiveContext.close();
     }
 

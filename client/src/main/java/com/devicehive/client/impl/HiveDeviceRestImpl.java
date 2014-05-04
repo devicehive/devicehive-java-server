@@ -2,8 +2,8 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.HiveDevice;
-import com.devicehive.client.impl.context.HiveContext;
 import com.devicehive.client.impl.context.HivePrincipal;
+import com.devicehive.client.impl.context.RestHiveContext;
 import com.devicehive.client.impl.util.HiveValidator;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveClientException;
@@ -23,9 +23,9 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
 public class HiveDeviceRestImpl implements HiveDevice {
 
-    protected HiveContext hiveContext;
+    protected RestHiveContext hiveContext;
 
-    public HiveDeviceRestImpl(HiveContext hiveContext) {
+    public HiveDeviceRestImpl(RestHiveContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
@@ -35,13 +35,13 @@ public class HiveDeviceRestImpl implements HiveDevice {
      * @throws IOException
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         hiveContext.close();
     }
 
     @Override
     public void authenticate(String deviceId, String deviceKey) throws HiveException {
-        hiveContext.setHivePrincipal(HivePrincipal.createDevice(deviceId, deviceKey));
+        hiveContext.authenticate(HivePrincipal.createDevice(deviceId, deviceKey));
     }
 
 
@@ -52,7 +52,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
             throw new HiveClientException("Device is not authenticated");
         }
         String path = "/device/" + deviceId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Device.class, null);
+        return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, Device.class, null);
     }
 
 
@@ -60,7 +60,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     public void registerDevice(Device device) throws HiveException {
         HiveValidator.validate(device);
         String path = "/device/" + device.getId();
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, device, null);
+        hiveContext.getRestConnector().execute(path, HttpMethod.PUT, null, device, null);
     }
 
     @SuppressWarnings("serial")
@@ -80,7 +80,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         queryParams.put("sortOrder", order);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, queryParams,
+        return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, queryParams,
                 new TypeToken<List<DeviceCommand>>() {
                 }.getType(), null);
     }
@@ -90,7 +90,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     public DeviceCommand getCommand(long commandId) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
+        return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
     }
 
 
@@ -98,7 +98,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     public void updateCommand(DeviceCommand deviceCommand) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + deviceCommand.getId();
-        hiveContext.getHiveRestClient()
+        hiveContext.getRestConnector()
                 .execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
     }
 
@@ -106,7 +106,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     @Override
     public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
         SubscriptionFilter filter = SubscriptionFilter.createForDevice(hiveContext.getHivePrincipal().getDevice().getLeft(), timestamp);
-        hiveContext.getRestSubManager().addCommandsSubscription(filter);
+        hiveContext.addCommandsSubscription(filter);
     }
 
     /**
@@ -114,7 +114,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
      */
     @Override
     public void unsubscribeFromCommands() throws HiveException {
-        hiveContext.getRestSubManager().removeCommandSubscription();
+        hiveContext.removeCommandsSubscription();
     }
 
 
@@ -123,7 +123,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         HiveValidator.validate(deviceNotification);
         String path = "/device/" + authenticated.getKey() + "/notification";
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, deviceNotification,
+        return hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, deviceNotification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
     }
 

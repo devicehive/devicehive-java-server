@@ -1,7 +1,6 @@
 package com.devicehive.client.impl.websocket;
 
 
-import com.devicehive.client.impl.context.HiveContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,13 +12,11 @@ import javax.websocket.*;
 @ClientEndpoint(encoders = {JsonEncoder.class})
 public class HiveClientEndpoint extends Endpoint {
     private static final Logger logger = LoggerFactory.getLogger(HiveClientEndpoint.class);
-    private HiveContext hiveContext;
 
     /**
      * Creates new endpoint and trying to connect to server. Client or device endpoint should be already set.
      */
-    public HiveClientEndpoint(HiveContext hiveContext) {
-        this.hiveContext = hiveContext;
+    public HiveClientEndpoint() {
     }
 
     /**

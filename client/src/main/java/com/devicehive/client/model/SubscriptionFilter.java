@@ -7,10 +7,10 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
-public class SubscriptionFilter implements HiveEntity{
-    private List<DevicesNamesFilter> devices;
-    private List<String> names;
-    private Timestamp timestamp;
+public class SubscriptionFilter implements HiveEntity {
+    private volatile List<DevicesNamesFilter> devices;
+    private volatile List<String> names;
+    private volatile Timestamp timestamp;
 
     private SubscriptionFilter() {
     }

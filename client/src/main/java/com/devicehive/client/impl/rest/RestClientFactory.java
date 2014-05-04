@@ -12,7 +12,7 @@ import javax.ws.rs.client.ClientBuilder;
 /**
  * RESTful client factory
  */
-public class HiveClientFactory {
+public class RestClientFactory {
 
     /**
      * @return Jersey client with entity body parse providers, parameters converters.

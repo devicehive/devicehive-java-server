@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.NotificationsController;
-import com.devicehive.client.impl.context.HiveContext;
+import com.devicehive.client.impl.context.RestHiveContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
@@ -17,7 +17,6 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -25,9 +24,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class NotificationsControllerRestImpl implements NotificationsController {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationsControllerRestImpl.class);
-    protected final HiveContext hiveContext;
+    private final RestHiveContext hiveContext;
 
-    public NotificationsControllerRestImpl(HiveContext hiveContext) {
+    public NotificationsControllerRestImpl(RestHiveContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
@@ -50,7 +49,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         queryParams.put("gridInterval", gridInterval);
-        List<DeviceNotification> result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null,
+        List<DeviceNotification> result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null,
                 queryParams, new TypeToken<List<DeviceNotification>>() {
         }.getType(), NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: query request proceed with parameters: device id {}, start timestamp {}, " +
@@ -69,7 +68,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 "{}", guid, notification.getNotification(), notification.getParameters());
         DeviceNotification result;
         String path = "/device/" + guid + "/notification";
-        result = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, notification,
+        result = hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, notification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
                 "params {}. Result id {} and timestamp {}", guid, notification.getNotification(),
@@ -82,7 +81,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
         logger.debug("DeviceNotification: get requested for device with id {} and notification id {}", guid,
                 notificationId);
         String path = "/device/" + guid + "/notification/" + notificationId;
-        DeviceNotification result = hiveContext.getHiveRestClient()
+        DeviceNotification result = hiveContext.getRestConnector()
                 .execute(path, HttpMethod.GET, null, DeviceNotification.class, NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: get request proceed for device with id {} and notification id {}", guid,
                 notificationId);
@@ -94,7 +93,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        hiveContext.getRestSubManager().addNotificationSubscription(filter);
+        hiveContext.addNotificationsSubscription(filter);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
     }
@@ -102,7 +101,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
     @Override
     public void unsubscribeFromNotification() throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
-        hiveContext.getRestSubManager().removeNotificationSubscription();
+        hiveContext.removeNotificationsSubscription();
         logger.debug("Client: notification/unsubscribe proceed.");
     }
 

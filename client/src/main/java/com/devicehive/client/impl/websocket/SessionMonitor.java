@@ -16,14 +16,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class SessionMonitor implements AutoCloseable {
+public class SessionMonitor {
     public static final String SESSION_MONITOR_KEY = "SESSION_MONITOR_KEY";
     private static final String PING_MESSAGE = "devicehive-client-ping";
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
     private final Date timeOfLastReceivedPong;
     private final Session userSession;
-    private ScheduledExecutorService serverMonitor = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledExecutorService pingsSender = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService monitor = Executors.newScheduledThreadPool(2);
 
     public SessionMonitor(Session userSession) {
         this.userSession = userSession;
@@ -44,7 +43,7 @@ public class SessionMonitor implements AutoCloseable {
     }
 
     private void sendPings() {
-        pingsSender.scheduleAtFixedRate(new Runnable() {
+        monitor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -58,7 +57,7 @@ public class SessionMonitor implements AutoCloseable {
     }
 
     private void startMonitoring() {
-        serverMonitor.scheduleAtFixedRate(new Runnable() {
+        monitor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 if (System.currentTimeMillis() - timeOfLastReceivedPong.getTime() > TimeUnit.MINUTES.toMillis
@@ -76,10 +75,8 @@ public class SessionMonitor implements AutoCloseable {
         }, 0, 1, TimeUnit.MINUTES);
     }
 
-    @Override
     public void close() {
-        serverMonitor.shutdown();
-        pingsSender.shutdown();
+        monitor.shutdownNow();
     }
 
 }

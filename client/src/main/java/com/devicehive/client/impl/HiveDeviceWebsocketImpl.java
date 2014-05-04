@@ -1,8 +1,7 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.impl.context.HiveContext;
-import com.devicehive.client.impl.context.Subscription;
+import com.devicehive.client.impl.context.WebsocketHiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
@@ -22,19 +21,11 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 
 public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
+    private WebsocketHiveContext hiveContext;
 
-    public HiveDeviceWebsocketImpl(HiveContext hiveContext) {
+    public HiveDeviceWebsocketImpl(WebsocketHiveContext hiveContext) {
         super(hiveContext);
-    }
-
-    @Override
-    public void authenticate(String deviceId, String deviceKey) throws HiveException {
-        super.authenticate(deviceId, deviceKey);
-        JsonObject request = new JsonObject();
-        request.addProperty("action", "authenticate");
-        request.addProperty("deviceId", deviceId);
-        request.addProperty("deviceKey", deviceKey);
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
+        this.hiveContext = hiveContext;
     }
 
 
@@ -42,7 +33,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     public Device getDevice() throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "device/get");
-        return hiveContext.getHiveWebSocketClient().sendMessage(request, "device", Device.class,
+        return hiveContext.getWebsocketConnector().sendMessage(request, "device", Device.class,
                 DEVICE_PUBLISHED_DEVICE_AUTH);
     }
 
@@ -61,7 +52,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
             request.addProperty("deviceId", device.getId());
             request.addProperty("deviceKey", device.getKey());
         }
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
+        hiveContext.getWebsocketConnector().sendMessage(request);
     }
 
 
@@ -69,7 +60,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     public DeviceCommand getCommand(long commandId) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
-        return hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
+        return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
     }
 
 
@@ -82,14 +73,14 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         request.addProperty("commandId", deviceCommand.getId());
         Gson gson = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE);
         request.add("command", gson.toJsonTree(deviceCommand));
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
+        hiveContext.getWebsocketConnector().sendMessage(request);
     }
 
 
     @Override
     public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
         SubscriptionFilter filter = SubscriptionFilter.createForDevice(hiveContext.getHivePrincipal().getDevice().getLeft(), timestamp);
-        hiveContext.getWebsocketSubManager().addCommandsSubscription(filter);
+        hiveContext.addCommandsSubscription(filter);
 
     }
 
@@ -98,10 +89,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
      */
     @Override
     public void unsubscribeFromCommands() throws HiveException {
-        JsonObject request = new JsonObject();
-        request.addProperty("action", "command/unsubscribe");
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
-        hiveContext.getWebsocketSubManager().removeCommandSubscription();
+        hiveContext.removeCommandsSubscription();
     }
 
 
@@ -111,7 +99,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         request.addProperty("action", "notification/insert");
         Gson gson = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE);
         request.add("notification", gson.toJsonTree(deviceNotification));
-        return hiveContext.getHiveWebSocketClient().sendMessage(request, "notification", DeviceNotification.class,
+        return hiveContext.getWebsocketConnector().sendMessage(request, "notification", DeviceNotification.class,
                 NOTIFICATION_TO_DEVICE);
     }
 

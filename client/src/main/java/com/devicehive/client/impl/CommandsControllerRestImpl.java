@@ -2,19 +2,20 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.CommandsController;
-import com.devicehive.client.impl.context.HiveContext;
+import com.devicehive.client.impl.context.RestHiveContext;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -22,9 +23,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class CommandsControllerRestImpl implements CommandsController {
 
     private static Logger logger = LoggerFactory.getLogger(CommandsControllerRestImpl.class);
-    protected final HiveContext hiveContext;
+    private final RestHiveContext hiveContext;
 
-    public CommandsControllerRestImpl(HiveContext hiveContext) {
+    public CommandsControllerRestImpl(RestHiveContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
@@ -48,7 +49,7 @@ class CommandsControllerRestImpl implements CommandsController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         queryParams.put("gridInterval", gridInterval);
-        List<DeviceCommand> result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, queryParams,
+        List<DeviceCommand> result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, queryParams,
                 new TypeToken<List<DeviceCommand>>() {
                 }.getType(), COMMAND_LISTED);
         logger.debug("DeviceCommand: query request proceed successfully for device id {}, start timestamp {], " +
@@ -62,7 +63,7 @@ class CommandsControllerRestImpl implements CommandsController {
     public DeviceCommand getCommand(String guid, long id) throws HiveException {
         logger.debug("DeviceCommand: get requested for device id {] and command id {}", guid, id);
         String path = "/device/" + guid + "/command/" + id;
-        DeviceCommand result = hiveContext.getHiveRestClient()
+        DeviceCommand result = hiveContext.getRestConnector()
                 .execute(path, HttpMethod.GET, null, DeviceCommand.class, COMMAND_TO_DEVICE);
         logger.debug("DeviceCommand: get request proceed successfully for device id {] and command id {}. Timestamp " +
                 "{}, userId {}, command {], parameters {}, lifetime {}, flags {}, status {}, result {}", guid, id,
@@ -81,9 +82,9 @@ class CommandsControllerRestImpl implements CommandsController {
                 command.getFlags());
         DeviceCommand toReturn;
         String path = "/device/" + guid + "/command";
-        toReturn = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, command,
+        toReturn = hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, command,
                 DeviceCommand.class, COMMAND_FROM_CLIENT, COMMAND_TO_CLIENT);
-        hiveContext.getRestSubManager().addCommandUpdateSubscription(toReturn.getId(), guid);
+        // TODO hiveContext.getRestSubManager().addCommandUpdateSubscription(toReturn.getId(), guid);
         logger.debug("DeviceCommand: insert request proceed successfully for device id {] and command: command {}, " +
                 "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
                 command.getCommand(), command.getParameters(), command.getLifetime(), command.getFlags(),
@@ -99,7 +100,7 @@ class CommandsControllerRestImpl implements CommandsController {
         logger.debug("DeviceCommand: update requested for device id {] and command: id {},  flags {}, status {}, " +
                 " result {}", deviceId, id, command.getFlags(), command.getStatus(), command.getResult());
         String path = "/device/" + deviceId + "/command/" + id;
-        hiveContext.getHiveRestClient()
+        hiveContext.getRestConnector()
                 .execute(path, HttpMethod.PUT, null, command, REST_COMMAND_UPDATE_FROM_DEVICE);
         logger.debug("DeviceCommand: update request proceed successfully for device id {] and command: id {},  " +
                 "flags {}, status {}, result {}", deviceId, id, command.getFlags(), command.getStatus(),
@@ -109,14 +110,14 @@ class CommandsControllerRestImpl implements CommandsController {
     @Override
     public void subscribeForCommands(SubscriptionFilter filter) throws HiveException {
         logger.debug("Device: command/subscribe requested for filter {},", filter);
-        hiveContext.getRestSubManager().addCommandsSubscription(filter);
+        hiveContext.addCommandsSubscription(filter);
         logger.debug("Device: command/subscribe request proceed successfully for filter {},", filter);
     }
 
     @Override
     public void unsubscribeFromCommands() throws HiveException {
         logger.debug("Device: command/unsubscribe requested");
-        hiveContext.getRestSubManager().removeCommandSubscription();
+        hiveContext.removeCommandsSubscription();
         logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 }

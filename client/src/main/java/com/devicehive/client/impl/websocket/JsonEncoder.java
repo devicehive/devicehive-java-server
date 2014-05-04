@@ -2,6 +2,7 @@ package com.devicehive.client.impl.websocket;
 
 
 import com.devicehive.client.impl.json.GsonFactory;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import javax.websocket.EncodeException;
@@ -15,9 +16,11 @@ import java.io.Writer;
  */
 public class JsonEncoder implements Encoder.TextStream<JsonObject> {
 
+    private final Gson gson = GsonFactory.createGson();
+
     @Override
     public void encode(JsonObject jsonObject, Writer writer) throws EncodeException, IOException {
-        GsonFactory.createGson().toJson(jsonObject, writer);
+        gson.toJson(jsonObject, writer);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.impl.context.HiveContext;
+import com.devicehive.client.impl.context.WebsocketHiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.SubscriptionFilter;
@@ -12,9 +12,6 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Timestamp;
-import java.util.Set;
-
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
@@ -22,8 +19,11 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
 
     private static Logger logger = LoggerFactory.getLogger(CommandsControllerWebsocketImpl.class);
 
-    public CommandsControllerWebsocketImpl(HiveContext hiveContext) {
+    private final WebsocketHiveContext hiveContext;
+
+    public CommandsControllerWebsocketImpl(WebsocketHiveContext hiveContext) {
         super(hiveContext);
+        this.hiveContext = hiveContext;
     }
 
 
@@ -41,9 +41,9 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.addProperty("deviceGuid", guid);
         Gson gson = GsonFactory.createGson(COMMAND_FROM_CLIENT);
         request.add("command", gson.toJsonTree(command));
-        DeviceCommand toReturn = hiveContext.getHiveWebSocketClient().sendMessage(request, "command",
+        DeviceCommand toReturn = hiveContext.getWebsocketConnector().sendMessage(request, "command",
                 DeviceCommand.class, COMMAND_TO_CLIENT);
-        hiveContext.getWebsocketSubManager().addCommandUpdateSubscription(toReturn.getId(), guid);
+        //hiveContext.getWebsocketSubManager().addCommandUpdateSubscription(toReturn.getId(), guid);
         logger.debug("DeviceCommand: insert request proceed successfully for device id {] and command: command {}, " +
                 "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
                 command.getCommand(), command.getParameters(), command.getLifetime(), command.getFlags(),
@@ -64,7 +64,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.addProperty("commandId", command.getId());
         Gson gson = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE);
         request.add("command", gson.toJsonTree(command));
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
+        hiveContext.getWebsocketConnector().sendMessage(request);
         logger.debug("DeviceCommand: update request proceed successfully for device id {] and command: id {},  " +
                 "flags {}, status {}, result {}", deviceId, id, command.getFlags(), command.getStatus(),
                 command.getResult());
@@ -75,7 +75,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        hiveContext.getWebsocketSubManager().addCommandsSubscription(filter);
+        hiveContext.addCommandsSubscription(filter);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
     }
@@ -83,7 +83,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     @Override
     public void unsubscribeFromCommands() throws HiveException {
         logger.debug("Device: command/unsubscribe requested");
-        hiveContext.getWebsocketSubManager().removeCommandSubscription();
+        hiveContext.removeCommandsSubscription();
         logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 

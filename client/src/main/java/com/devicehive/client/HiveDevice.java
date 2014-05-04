@@ -12,10 +12,10 @@ import java.util.List;
 
 /**
  * HiveDevice represents a simple device in terms of DeviceHive.
- * After connection is eshtablished, devices need to registered, perform authentication and then start sending notifications.
+ * After connection is established, devices need to registered, perform authentication and then start sending notifications.
  * Devices may also subscribe to commands and then start receiving server-originated messages about new commands.
  */
-public interface HiveDevice extends Closeable {
+public interface HiveDevice {
 
     /**
      * Authenticates a device.
@@ -100,4 +100,7 @@ public interface HiveDevice extends Closeable {
      * @return API info
      */
     ApiInfo getInfo() throws HiveException;
+
+
+    void close();
 }

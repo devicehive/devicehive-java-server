@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.DeviceController;
-import com.devicehive.client.impl.context.HiveContext;
+import com.devicehive.client.impl.context.RestHiveContext;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceClass;
 import com.devicehive.client.model.DeviceEquipment;
@@ -23,9 +23,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class DeviceControllerImpl implements DeviceController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceControllerImpl.class);
-    private final HiveContext hiveContext;
+    private final RestHiveContext hiveContext;
 
-    public DeviceControllerImpl(HiveContext hiveContext) {
+    public DeviceControllerImpl(RestHiveContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
@@ -53,7 +53,7 @@ class DeviceControllerImpl implements DeviceController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         String path = "/device";
-        List<Device> result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, queryParams,
+        List<Device> result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, queryParams,
                 new TypeToken<List<Device>>() {
                 }.getType(), DEVICE_PUBLISHED);
         logger.debug("Device: list request proceed successfully for following parameters: name {}, name pattern {}, " +
@@ -67,7 +67,7 @@ class DeviceControllerImpl implements DeviceController {
     public Device getDevice(String deviceId) throws HiveException {
         logger.debug("Device: get requested for device id {}", deviceId);
         String path = "/device/" + deviceId;
-        Device result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, Device.class,
+        Device result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, Device.class,
                 DEVICE_PUBLISHED);
         logger.debug("Device: get request proceed successfully for device id {}. Device name {}, status {}, data {}, " +
                 "network id {}, network name {}, device class id {}, device class name {}, device class verison {}",
@@ -93,7 +93,7 @@ class DeviceControllerImpl implements DeviceController {
                 device.getDeviceClass() != null ? device.getDeviceClass().getName() : null,
                 device.getDeviceClass() != null ? device.getDeviceClass().getVersion() : null);
         String path = "/device/" + deviceId;
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, device, DEVICE_PUBLISHED);
+        hiveContext.getRestConnector().execute(path, HttpMethod.PUT, null, device, DEVICE_PUBLISHED);
         logger.debug("Device: register request proceed successfully for device id {} Device name {}, status {}, " +
                 "data {}, network id {}, network name {}, device class id {}, device class name {}, device class verison {}",
                 deviceId, device.getName(), device.getStatus(), device.getData(),
@@ -108,7 +108,7 @@ class DeviceControllerImpl implements DeviceController {
     public void deleteDevice(String deviceId) throws HiveException {
         logger.debug("Device: delete requested for device with id {}", deviceId);
         String path = "/device/" + deviceId;
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
+        hiveContext.getRestConnector().execute(path, HttpMethod.DELETE);
         logger.debug("Device: delete request proceed successfully for device with id {}", deviceId);
     }
 
@@ -116,7 +116,7 @@ class DeviceControllerImpl implements DeviceController {
     public List<DeviceEquipment> getDeviceEquipment(String deviceId) throws HiveException {
         logger.debug("Device: equipment requested for device with id {}", deviceId);
         String path = "/device/" + deviceId + "/equipment";
-        List<DeviceEquipment> result = hiveContext.getHiveRestClient()
+        List<DeviceEquipment> result = hiveContext.getRestConnector()
                 .execute(path, HttpMethod.GET, null, null, null, new TypeToken<List<DeviceEquipment>>() {
                 }.getType(), null, DEVICE_EQUIPMENT_SUBMITTED);
         logger.debug("Device: equipment request proceed successfully for device with id {}", deviceId);
@@ -139,7 +139,7 @@ class DeviceControllerImpl implements DeviceController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        List<DeviceClass> result = hiveContext.getHiveRestClient().execute(path, HttpMethod.GET, null, queryParams,
+        List<DeviceClass> result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, queryParams,
                 new TypeToken<List<DeviceClass>>() {
                 }.getType(), DEVICECLASS_LISTED);
         logger.debug("DeviceClass: list request proceed for following params: name {}, name pattern {}, version {}, " +
@@ -152,7 +152,7 @@ class DeviceControllerImpl implements DeviceController {
     public DeviceClass getDeviceClass(long classId) throws HiveException {
         logger.debug("DeviceClass: get requested for class with id {}", classId);
         String path = "/device/class/" + classId;
-        DeviceClass result = hiveContext.getHiveRestClient()
+        DeviceClass result = hiveContext.getRestConnector()
                 .execute(path, HttpMethod.GET, null, DeviceClass.class, DEVICECLASS_PUBLISHED);
         logger.debug("DeviceClass: get request proceed for class with id {}", classId);
         return result;
@@ -166,7 +166,7 @@ class DeviceControllerImpl implements DeviceController {
         logger.debug("DeviceClass: insert requested for device class with name {}, version {}",
                 deviceClass.getName(), deviceClass.getVersion());
         String path = "/device/class";
-        DeviceClass inserted = hiveContext.getHiveRestClient().execute(path, HttpMethod.POST, null, null, deviceClass,
+        DeviceClass inserted = hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, deviceClass,
                 DeviceClass.class, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED);
         logger.debug("DeviceClass: insert request proceed for device class with name {}, version {}. Result id {}",
                 deviceClass.getName(), deviceClass.getVersion(), inserted.getId());
@@ -181,7 +181,7 @@ class DeviceControllerImpl implements DeviceController {
         logger.debug("DeviceClass: update requested for device class with id {}, name {}, version {}",
                 classId, deviceClass.getName(), deviceClass.getVersion());
         String path = "/device/class/" + classId;
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.PUT, null, deviceClass, DEVICECLASS_PUBLISHED);
+        hiveContext.getRestConnector().execute(path, HttpMethod.PUT, null, deviceClass, DEVICECLASS_PUBLISHED);
         logger.debug("DeviceClass: update request proceed for device class with id {}, name {}, version {}",
                 classId, deviceClass.getName(), deviceClass.getVersion());
     }
@@ -190,7 +190,7 @@ class DeviceControllerImpl implements DeviceController {
     public void deleteDeviceClass(long classId) throws HiveException {
         logger.debug("DeviceClass: delete requested for class with id {}", classId);
         String path = "/device/class" + classId;
-        hiveContext.getHiveRestClient().execute(path, HttpMethod.DELETE);
+        hiveContext.getRestConnector().execute(path, HttpMethod.DELETE);
         logger.debug("DeviceClass: delete request proceed for class with id {}", classId);
     }
 }

@@ -3,31 +3,25 @@ package com.devicehive.client.impl;
 
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.NotificationsController;
-import com.devicehive.client.impl.context.HiveContext;
+import com.devicehive.client.impl.context.HivePrincipal;
+import com.devicehive.client.impl.context.WebsocketHiveContext;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.google.gson.JsonObject;
 
 public class HiveClientWebsocketImpl extends HiveClientRestImpl {
 
-    public HiveClientWebsocketImpl(HiveContext hiveContext) {
+    private final WebsocketHiveContext hiveContext;
+
+    public HiveClientWebsocketImpl(WebsocketHiveContext hiveContext) {
         super(hiveContext);
+        this.hiveContext = hiveContext;
     }
 
     public void authenticate(String login, String password) throws HiveException {
-        super.authenticate(login, password);
-        JsonObject request = new JsonObject();
-        request.addProperty("action", "authenticate");
-        request.addProperty("login", login);
-        request.addProperty("password", password);
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
+        hiveContext.authenticate(HivePrincipal.createUser(login, password));
     }
 
     public void authenticate(String accessKey) throws HiveException {
-        super.authenticate(accessKey);
-        JsonObject request = new JsonObject();
-        request.addProperty("action", "authenticate");
-        request.addProperty("accessKey", accessKey);
-        hiveContext.getHiveWebSocketClient().sendMessage(request);
+        hiveContext.authenticate(HivePrincipal.createAccessKey(accessKey));
     }
 
 
