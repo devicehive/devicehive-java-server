@@ -22,6 +22,7 @@ import javax.websocket.Session;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -49,7 +50,7 @@ public class LocalMessageBus {
 
         JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
 
-        Set<String> subscribersIds = new HashSet<>();
+        Set<UUID> subscribersIds = new HashSet<>();
         Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
                 .getByDeviceId(deviceCommand.getDevice().getId());
         for (CommandSubscription subscription : subs) {
@@ -62,7 +63,7 @@ public class LocalMessageBus {
             if (hasAccess) {
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
-            subscribersIds.add(subscription.getSessionId());
+            subscribersIds.add(subscription.getSubscriptionId());
         }
 
         Set<CommandSubscription> subsForAll = (subscriptionManager.getCommandSubscriptionStorage()
@@ -72,7 +73,7 @@ public class LocalMessageBus {
             if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
                 continue;
             }
-            if (!subscribersIds.contains(subscription.getSessionId())) {
+            if (!subscribersIds.contains(subscription.getSubscriptionId())) {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
                 if (hasAccess) {
@@ -113,7 +114,7 @@ public class LocalMessageBus {
 
         JsonObject jsonObject = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
 
-        Set<String> subscribersIds = new HashSet<>();
+        Set<UUID> subscribersIds = new HashSet<>();
         Set<NotificationSubscription> subs =
                 subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
                         deviceNotification.getDevice().getId());
@@ -127,7 +128,7 @@ public class LocalMessageBus {
             if (hasAccess) {
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
-            subscribersIds.add(subscription.getSessionId());
+            subscribersIds.add(subscription.getSubscriptionId());
         }
 
         Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
@@ -138,7 +139,7 @@ public class LocalMessageBus {
                     && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
                 continue;
             }
-            if (!subscribersIds.contains(subscription.getSessionId())) {
+            if (!subscribersIds.contains(subscription.getSubscriptionId())) {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
                 if (hasAccess) {

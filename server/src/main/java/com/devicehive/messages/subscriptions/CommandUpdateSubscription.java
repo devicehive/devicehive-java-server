@@ -3,9 +3,11 @@ package com.devicehive.messages.subscriptions;
 
 import com.devicehive.messages.handler.HandlerCreator;
 
+import java.util.UUID;
+
 public class CommandUpdateSubscription extends Subscription<Long> {
 
-    public CommandUpdateSubscription(Long commandId, String subscriberId, HandlerCreator handlerCreator) {
+    public CommandUpdateSubscription(Long commandId, UUID subscriberId, HandlerCreator handlerCreator) {
         super(commandId, subscriberId, handlerCreator);
     }
 
@@ -13,7 +15,5 @@ public class CommandUpdateSubscription extends Subscription<Long> {
         return getEventSource();
     }
 
-    public String getSessionId() {
-        return getSubscriberId();
-    }
+
 }

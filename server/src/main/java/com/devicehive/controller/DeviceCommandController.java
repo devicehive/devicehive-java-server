@@ -105,24 +105,25 @@ public class DeviceCommandController {
 
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal
                 .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
-        poll(timeout, subscriptionFilter, asyncResponse, false);
+        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse, false);
     }
 
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
-    @Deprecated
-    public void pollManyGetDeprecated(
+    public void pollMany(
             @QueryParam("deviceGuids") String deviceGuidsString,
+            @QueryParam("names") final String namesString,
             @QueryParam("timestamp") final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
         SubscriptionFilterInternal subscriptionFilter =
                 SubscriptionFilterInternal.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
-        poll(timeout, subscriptionFilter, asyncResponse, true);
+        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
     }
 
+    /*
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
@@ -135,16 +136,19 @@ public class DeviceCommandController {
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);//(external);
         poll(timeout, subscriptionFilter, asyncResponse, true);
     }
+    */
 
     private void poll(final long timeout,
-                      final SubscriptionFilterInternal subscriptionFilter,
+                      final String deviceGuidsString,
+                      final String namesString,
+                      final Timestamp timestamp,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("Device notification poll many proceed successfully for devices: {}", subscriptionFilter);
+                logger.debug("Device command poll many proceed successfully for devices: {} with names, timestamp {}", deviceGuidsString, namesString, timestamp);
             }
         });
 
@@ -152,9 +156,11 @@ public class DeviceCommandController {
             @Override
             public void run() {
 
+                final List<String> devices = ParseUtil.getList(deviceGuidsString);
+                final List<String> names = ParseUtil.getList(namesString);
                 try {
                     List<DeviceCommand> list =
-                            getOrWaitForCommands(principal, subscriptionFilter, timeout);
+                            getOrWaitForCommands(principal, devices, names, timestamp, timeout);
                     Response response;
                     if (isMany) {
                         List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
@@ -162,7 +168,7 @@ public class DeviceCommandController {
                             resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
                         }
                         response = ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
-                    }  else {
+                    } else {
                         response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
                     }
                     asyncResponse.resume(response);
@@ -175,39 +181,39 @@ public class DeviceCommandController {
     }
 
     private List<DeviceCommand> getOrWaitForCommands(HivePrincipal principal,
-                                                     SubscriptionFilterInternal subscriptionFilter,
+                                                     List<String> devices,
+                                                     List<String> names,
+                                                     Timestamp timestamp,
                                                      long timeout) {
-        logger.debug("Device command pollMany requested for : {}.  Timeout = {}", subscriptionFilter, timeout);
+        logger.debug("Device command pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
 
-        if (subscriptionFilter.getTimestamp() == null) {
-            subscriptionFilter.setTimestamp(timestampService.getTimestamp());
+        if (timestamp == null) {
+            timestamp = timestampService.getTimestamp();
         }
-        List<DeviceCommand> list = commandService.getDeviceCommandsList(subscriptionFilter, principal);
+        List<DeviceCommand> list = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
 
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
-            String reqId = UUID.randomUUID().toString();
+            UUID reqId = UUID.randomUUID();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
-            if (subscriptionFilter.getDeviceNames() != null) {
-                Map<Device, Set<String>> filters =
-                        deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal);
-                for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {
+            if (devices != null) {
+                List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                for (Device d : actualDevices) {
                     subscriptionSet
-                            .add(new CommandSubscription(principal, entry.getKey().getId(), reqId, entry.getValue(),
-                                    restHandlerCreator));
+                            .add(new CommandSubscription(principal, d.getId(), reqId, names, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
                         .add(new CommandSubscription(principal, Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
                                 reqId,
-                                subscriptionFilter.getNames(),
+                                names,
                                 restHandlerCreator));
             }
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = commandService.getDeviceCommandsList(subscriptionFilter, principal);
+                list = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             }
             return list;
         }
@@ -298,7 +304,7 @@ public class DeviceCommandController {
 
         if (command.getEntityVersion() == 0) {
             CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
-            String reqId = UUID.randomUUID().toString();
+            UUID reqId = UUID.randomUUID();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             CommandUpdateSubscription commandSubscription =
                     new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);

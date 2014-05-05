@@ -4,18 +4,15 @@ package com.devicehive.messages.subscriptions;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class AbstractStorage<E, T extends Subscription<E>> {
 
     private ConcurrentMap<E, Set<T>> byEventSource = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, Set<T>> bySubscriber = new ConcurrentHashMap<>();
-    private ConcurrentMap<Pair<E, String>, T> byPair = new ConcurrentHashMap<>();
+    private ConcurrentMap<UUID, Set<T>> bySubscriptionId = new ConcurrentHashMap<>();
+    private ConcurrentMap<Pair<E, UUID>, T> byPair = new ConcurrentHashMap<>();
 
     public synchronized void insertAll(Collection<T> coll) {
         for (T t : coll) {
@@ -24,7 +21,7 @@ public class AbstractStorage<E, T extends Subscription<E>> {
     }
 
     public synchronized boolean insert(T subscription) {
-        if (byPair.containsKey(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriberId()))) {
+        if (byPair.containsKey(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriptionId()))) {
             return false;
         }
         Set<T> set = byEventSource.get(subscription.getEventSource());
@@ -34,14 +31,14 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         }
         set.add(subscription);
 
-        set = bySubscriber.get(subscription.getSubscriberId());
+        set = bySubscriptionId.get(subscription.getSubscriptionId());
         if (set == null) {
             set = Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>());
-            bySubscriber.put(subscription.getSubscriberId(), set);
+            bySubscriptionId.put(subscription.getSubscriptionId(), set);
         }
         set.add(subscription);
 
-        byPair.put(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriberId()), subscription);
+        byPair.put(ImmutablePair.of(subscription.getEventSource(), subscription.getSubscriptionId()), subscription);
         return true;
     }
 
@@ -50,13 +47,13 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         return set != null ? set : Collections.EMPTY_SET;
     }
 
-    public Set<T> get(String subscriberId) {
-        Set<T> set = bySubscriber.get(subscriberId);
+    public Set<T> get(UUID id) {
+        Set<T> set = bySubscriptionId.get(id);
         return set != null ? set : Collections.EMPTY_SET;
     }
 
     public synchronized void remove(T subscription) {
-        remove(subscription.getEventSource(), subscription.getSubscriberId());
+        remove(subscription.getEventSource(), subscription.getSubscriptionId());
     }
 
     public synchronized void removeAll(Collection<T> coll) {
@@ -65,13 +62,13 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         }
     }
 
-    public synchronized void removePairs(Collection<Pair<E, String>> coll) {
-        for (Pair<E, String> pair : coll) {
+    public synchronized void removePairs(Collection<Pair<E, UUID>> coll) {
+        for (Pair<E, UUID> pair : coll) {
             remove(pair.getKey(), pair.getValue());
         }
     }
 
-    public synchronized void remove(E eventSource, String subscriberId) {
+    public synchronized void remove(E eventSource, UUID subscriberId) {
         T sub = byPair.remove(ImmutablePair.of(eventSource, subscriberId));
         if (sub == null) {
             return;
@@ -83,10 +80,10 @@ public class AbstractStorage<E, T extends Subscription<E>> {
             byEventSource.remove(sub.getEventSource());
         }
 
-        subs = bySubscriber.get(sub.getSubscriberId());
+        subs = bySubscriptionId.get(sub.getSubscriptionId());
         subs.remove(sub);
         if (subs.isEmpty()) {
-            bySubscriber.remove(sub.getSubscriberId());
+            bySubscriptionId.remove(sub.getSubscriptionId());
         }
     }
 
@@ -96,17 +93,17 @@ public class AbstractStorage<E, T extends Subscription<E>> {
             return;
         }
         for (T sub : new ArrayList<T>(subs)) {
-            remove(sub.getEventSource(), sub.getSubscriberId());
+            remove(sub.getEventSource(), sub.getSubscriptionId());
         }
     }
 
-    protected synchronized void removeBySubscriber(String subscriberId) {
-        Set<T> subs = bySubscriber.get(subscriberId);
+    public synchronized void removeBySubscriptionId(UUID id) {
+        Set<T> subs = bySubscriptionId.get(id);
         if (subs == null) {
             return;
         }
         for (T sub : new ArrayList<T>(subs)) {
-            remove(sub.getEventSource(), sub.getSubscriberId());
+            remove(sub.getEventSource(), sub.getSubscriptionId());
         }
     }
 }

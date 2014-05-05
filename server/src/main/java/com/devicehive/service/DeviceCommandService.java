@@ -75,17 +75,12 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getDeviceCommandsList(@NotNull SubscriptionFilterInternal subscriptionFilter,
+    public List<DeviceCommand> getDeviceCommandsList(List<String> devices, List<String> names, Timestamp timestamp,
                                                      HivePrincipal principal) {
-        if (subscriptionFilter.getDeviceNames() != null) {
-            return commandDAO
-                    .findCommands(deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal),
-                            subscriptionFilter.getTimestamp(), null);
+        if (devices != null) {
+            return commandDAO.findCommands(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp, null);
         } else {
-            return commandDAO.findCommands(
-                    subscriptionFilter.getTimestamp(),
-                    subscriptionFilter.getNames(),
-                    principal);
+            return commandDAO.findCommands(null, names, timestamp, principal);
         }
     }
 

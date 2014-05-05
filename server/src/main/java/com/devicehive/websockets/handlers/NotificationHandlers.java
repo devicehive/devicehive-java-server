@@ -8,6 +8,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
+import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.*;
@@ -32,10 +33,7 @@ import javax.ejb.EJB;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
@@ -64,20 +62,19 @@ public class NotificationHandlers implements WebsocketHandlers {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
-                                                          @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> list,
-                                                          @WsParam(JsonMessageBuilder.SUB_FILTER) SubscriptionFilterExternal external,
-                                                          @WsParam("deviceId") String deviceId,
+                                                          @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> devices,
+                                                          @WsParam(JsonMessageBuilder.NAMES) List<String> names,
+                                                          @WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceId,
                                                           Session session) throws IOException {
-        logger.debug("notification/subscribe action. Session {} ", session.getId());
-        SubscriptionFilterInternal filter =
-                external == null
-                        ? SubscriptionFilterInternal.createForManyDevices(prepareActualList(list, deviceId),
-                        timestamp != null ? timestamp : timestampService.getTimestamp())
-                        : SubscriptionFilterInternal.create(external);
-
-        notificationSubscribeAction(session, filter);
-        logger.debug("notification/subscribe action  finished");
-        return new WebSocketResponse();
+        logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
+                devices, deviceId, timestamp, names, session);
+        devices = prepareActualList(devices, deviceId);
+        UUID subId = notificationSubscribeAction(session, devices, names, timestamp);
+        logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
+                devices, deviceId, timestamp, names, session);
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue(JsonMessageBuilder.SUBSCRIPTION, subId, null);
+        return response;
 
     }
 
@@ -95,31 +92,32 @@ public class NotificationHandlers implements WebsocketHandlers {
         return actualList;
     }
 
-    private void notificationSubscribeAction(Session session,
-                                             SubscriptionFilterInternal subscriptionFilter) throws IOException {
+    private UUID notificationSubscribeAction(Session session,
+                                             List<String> devices,
+                                             List<String> names,
+                                             Timestamp timestamp) throws IOException {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         try {
             logger.debug("notification/subscribe action. Session {}", session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             List<NotificationSubscription> nsList = new ArrayList<>();
-            if (subscriptionFilter.getDeviceNames() != null) {
-                Map<Device, Set<String>> filters = deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), ThreadLocalVariablesKeeper.getPrincipal());
-                for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {
-                    NotificationSubscription cs =
-                            new NotificationSubscription(principal, entry.getKey().getId(),
-                                    session.getId(),
-                                    entry.getValue(),
-                                    new WebsocketHandlerCreator(session,
-                                            WebsocketSession.NOTIFICATIONS_LOCK)
-                            );
-                    nsList.add(cs);
+            UUID reqId = UUID.randomUUID();
+            if (devices != null) {
+                List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                for (Device d : actualDevices) {
+                    nsList.add(new NotificationSubscription(principal, d.getId(),
+                            reqId,
+                            names,
+                            new WebsocketHandlerCreator(session,
+                                    WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK)
+                    ));
                 }
             } else {
                 NotificationSubscription forAll =
                         new NotificationSubscription(principal,
                                 Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
-                                session.getId(),
-                                subscriptionFilter.getNames(),
+                                reqId,
+                                names,
                                 new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK)
                         );
                 nsList.add(forAll);
@@ -127,13 +125,14 @@ public class NotificationHandlers implements WebsocketHandlers {
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             WebsocketSession.setNotificationSubscriptions(session, nsList);
 
-            List<DeviceNotification> notifications = deviceNotificationService.getDeviceNotificationList(subscriptionFilter, principal);
+            List<DeviceNotification> notifications = deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
             if (!notifications.isEmpty()) {
                 for (DeviceNotification notification : notifications) {
                     WebsocketSession.addMessagesToQueue(session,
                             ServerResponsesFactory.createNotificationInsertMessage(notification));
                 }
             }
+            return reqId;
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());

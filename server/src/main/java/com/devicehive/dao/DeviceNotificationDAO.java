@@ -20,10 +20,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Stateless
 @LogExecutionTime
@@ -42,35 +39,9 @@ public class DeviceNotificationDAO {
         return em.find(DeviceNotification.class, id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(Map<Device, Set<String>> deviceNamesFilters,
-                                                      @NotNull Timestamp timestamp, HivePrincipal principal) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
-        Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
-        appendPrincipalPredicates(predicates, principal, from);
-        if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
-            List<Predicate> filterPredicates = new ArrayList<>();
-            for (Map.Entry<Device, Set<String>> entry : deviceNamesFilters.entrySet()) {
-                if (entry.getValue() != null && !entry.getValue().isEmpty())
-                    filterPredicates.add(
-                            criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()),
-                                    from.get("notification").in(entry.getValue())));
-                else if (entry.getValue() == null)
-                    filterPredicates.add(criteriaBuilder.equal(from.get("device"), entry.getKey()));
-
-            }
-            predicates.add(criteriaBuilder.or(filterPredicates.toArray(new Predicate[filterPredicates.size()])));
-        }
-        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
-        return em.createQuery(criteria).getResultList();
-    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(@NotNull Timestamp timestamp, Set<String> names,
-                                                      HivePrincipal principal) {
+    public List<DeviceNotification> findNotifications(Collection<Device> devices, Collection<String> names, @NotNull Timestamp timestamp, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -78,6 +49,9 @@ public class DeviceNotificationDAO {
         predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
         if (names != null) {
             predicates.add(from.get("notification").in(names));
+        }
+        if (devices != null) {
+            predicates.add(from.join("device").in(devices));
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));

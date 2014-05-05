@@ -11,6 +11,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
+import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
@@ -273,9 +274,7 @@ public class DeviceNotificationController {
                     ("waitTimeout") final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
 
-        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal
-                .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
-        poll(timeout, subscriptionFilter, asyncResponse, false);
+        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse, false);
     }
 
     @GET
@@ -284,22 +283,21 @@ public class DeviceNotificationController {
     public void pollMany(
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout") final long timeout,
+            @QueryParam("deviceGuids") String deviceGuidsString,
+            @QueryParam("names") final String namesString,
             @QueryParam("timestamp") final Timestamp timestamp,
-            @QueryParam("deviceGuids") final String deviceGuids,
             @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilterInternal subscriptionFilter =
-                SubscriptionFilterInternal.createForManyDevices(ParseUtil.getList(deviceGuids), timestamp);
-        poll(timeout, subscriptionFilter, asyncResponse, true);
+
+        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
     }
 
 
-    /**
+    /*
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
      *
      * @param external Device unique identifiers with names and
      *                 timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
-     */
 
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
@@ -313,25 +311,34 @@ public class DeviceNotificationController {
         SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);
         poll(timeout, subscriptionFilter, asyncResponse, true);
     }
+    */
 
     private void poll(final long timeout,
-                      final SubscriptionFilterInternal subscriptionFilter,
+                      final String deviceGuidsString,
+                      final String namesString,
+                      final Timestamp timestamp,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("Device notification poll many proceed successfully for devices: {}", subscriptionFilter);
+                logger.debug("Device notification poll many proceed successfully for devices: {} with names, timestamp {}", deviceGuidsString, namesString, timestamp);
             }
         });
 
         executor.execute(new Runnable() {
+
+
             @Override
             public void run() {
+
+                final List<String> devices = ParseUtil.getList(deviceGuidsString);
+                final List<String> names = ParseUtil.getList(namesString);
+
                 try {
                     List<DeviceNotification> list =
-                            getOrWaitForNotifications(principal, subscriptionFilter, timeout);
+                            getOrWaitForNotifications(principal, devices, names, timestamp, timeout);
                     Response response;
                     if (isMany) {
                         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
@@ -354,41 +361,41 @@ public class DeviceNotificationController {
     }
 
     private List<DeviceNotification> getOrWaitForNotifications(HivePrincipal principal,
-                                                               SubscriptionFilterInternal subscriptionFilter,
+                                                               List<String> devices,
+                                                               List<String> names,
+                                                               Timestamp timestamp,
                                                                long timeout) {
-        logger.debug("Device notification pollMany requested for : {}.  Timeout = {}", subscriptionFilter, timeout);
+        logger.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
 
-        if (subscriptionFilter.getTimestamp() == null) {
-            subscriptionFilter.setTimestamp(timestampService.getTimestamp());
+
+        if (timestamp == null) {
+            timestamp = timestampService.getTimestamp();
         }
         List<DeviceNotification> list =
-                deviceNotificationService.getDeviceNotificationList(subscriptionFilter, principal);
+                deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
 
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
-            String reqId = UUID.randomUUID().toString();
+            UUID reqId = UUID.randomUUID();
             RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-            if (subscriptionFilter.getDeviceNames() != null) {
-                Map<Device, Set<String>> filters =
-                        deviceService.createFilterMap(subscriptionFilter.getDeviceNames(), principal);
-                for (Map.Entry<Device, Set<String>> entry : filters.entrySet()) {
+            if (devices != null) {
+                List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                for (Device d : actualDevices) {
                     subscriptionSet
-                            .add(new NotificationSubscription(principal, entry.getKey().getId(), reqId,
-                                    entry.getValue(),
-                                    restHandlerCreator));
+                            .add(new NotificationSubscription(principal, d.getId(), reqId, names, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
-                        .add(new NotificationSubscription(principal, Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE,
+                        .add(new NotificationSubscription(principal, Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
                                 reqId,
-                                subscriptionFilter.getNames(),
+                                names,
                                 restHandlerCreator));
             }
 
             if (SimpleWaiter
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = deviceNotificationService.getDeviceNotificationList(subscriptionFilter, principal);
+                list = deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
             }
             return list;
         }

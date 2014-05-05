@@ -18,10 +18,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Stateless
 @LogExecutionTime
@@ -123,7 +120,7 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> findCommands(@NotNull Timestamp timestamp, Set<String> names, HivePrincipal principal) {
+    public List<DeviceCommand> findCommands(Collection<Device> devices, Collection<String> names, @NotNull Timestamp timestamp, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
         Root<DeviceCommand> from = criteria.from(DeviceCommand.class);
@@ -131,6 +128,9 @@ public class DeviceCommandDAO {
         predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
         if (names != null) {
             predicates.add(from.get("command").in(names));
+        }
+        if (devices != null) {
+            predicates.add(from.join("device").in(devices));
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));

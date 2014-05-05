@@ -8,6 +8,8 @@ import com.google.gson.JsonElement;
 
 import javax.websocket.Session;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,29 +76,18 @@ public class WebsocketSession {
         }
     }
 
-    public static List<CommandSubscription> getCommandSubscriptions(Session session) {
-        return (List<CommandSubscription>) session.getUserProperties().get(COMMANDS_SUBSCRIPTIONS);
+    public static Set<UUID> getCommandSubscriptions(Session session) {
+        //TODO
+        return null;
     }
 
-    public static void setCommandSubscriptions(Session session, List<CommandSubscription> subs) {
-        session.getUserProperties().put(COMMANDS_SUBSCRIPTIONS, subs);
-    }
 
-    public static List<CommandSubscription> removeCommandSubscriptions(Session session) {
-        return (List<CommandSubscription>) session.getUserProperties().remove(COMMANDS_SUBSCRIPTIONS)  ;
-    }
 
     public static List<NotificationSubscription> getNotificationSubscriptions(Session session) {
-        return (List<NotificationSubscription>) session.getUserProperties().get(NOTIFICATIONS_SUBSCRIPTIONS);
+        //TODO
+        return null;
     }
 
-    public static void setNotificationSubscriptions(Session session, List<NotificationSubscription> subs) {
-        session.getUserProperties().put(NOTIFICATIONS_SUBSCRIPTIONS, subs);
-    }
-
-    public static List<NotificationSubscription>  removeNotificationSubscriptions(Session session) {
-        return (List<NotificationSubscription>) session.getUserProperties().remove(NOTIFICATIONS_SUBSCRIPTIONS);
-    }
 
 
     public static void addMessagesToQueue(Session session, JsonElement... jsons) {

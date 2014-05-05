@@ -7,6 +7,7 @@ import com.devicehive.messages.handler.HandlerCreator;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class NotificationSubscription extends Subscription<Long> {
 
@@ -14,7 +15,7 @@ public class NotificationSubscription extends Subscription<Long> {
 
     private final Set<String> notificationNames;
 
-    public NotificationSubscription(HivePrincipal principal, Long deviceId, String subscriberId, Collection<String> notificationNames,
+    public NotificationSubscription(HivePrincipal principal, Long deviceId, UUID subscriberId, Collection<String> notificationNames,
                                     HandlerCreator handlerCreator) {
         super(deviceId, subscriberId, handlerCreator);
         this.principal = principal;
@@ -25,9 +26,6 @@ public class NotificationSubscription extends Subscription<Long> {
         return getEventSource();
     }
 
-    public String getSessionId() {
-        return getSubscriberId();
-    }
 
     public HivePrincipal getPrincipal(){
         return principal;
