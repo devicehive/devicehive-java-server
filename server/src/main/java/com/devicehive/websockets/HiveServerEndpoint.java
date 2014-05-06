@@ -24,6 +24,7 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.Reader;
 import java.util.Set;
+import java.util.UUID;
 
 @ServerEndpoint(value = "/websocket/{endpoint}", encoders = {JsonEncoder.class})
 @LogExecutionTime
@@ -79,9 +80,12 @@ public class HiveServerEndpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id {}, close reason is {} ", session.getId(), closeReason);
-        subscriptionManager.getCommandUpdateSubscriptionStorage().removeBySession(session.getId());
-        subscriptionManager.getCommandSubscriptionStorage().removeBySession(session.getId());
-        subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
+        for (UUID subId : WebsocketSession.getCommandSubscriptions(session)) {
+            subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
+        }
+        for (UUID subId : WebsocketSession.getNotificationSubscriptions(session)) {
+            subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
+        }
     }
 
     @OnError

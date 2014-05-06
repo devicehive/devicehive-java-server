@@ -17,7 +17,7 @@ public class NotificationSubscription extends Subscription<Long> {
 
     public NotificationSubscription(HivePrincipal principal, Long deviceId, UUID subscriberId, Collection<String> notificationNames,
                                     HandlerCreator handlerCreator) {
-        super(deviceId, subscriberId.toString(), handlerCreator);
+        super(deviceId, subscriberId, handlerCreator);
         this.principal = principal;
         this.notificationNames = notificationNames != null ? new HashSet<>(notificationNames) : null;
     }

@@ -25,6 +25,7 @@ import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
+import com.devicehive.websockets.util.SubscriptionSessionMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,9 @@ public class NotificationHandlers implements WebsocketHandlers {
     private AsyncMessageSupplier asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
+    @EJB
+    private SubscriptionSessionMap subscriptionSessionMap;
+
 
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
@@ -126,8 +130,9 @@ public class NotificationHandlers implements WebsocketHandlers {
                         );
                 nsList.add(forAll);
             }
+            subscriptionSessionMap.put(reqId, session);
+            WebsocketSession.getCommandSubscriptions(session).add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
-            WebsocketSession.setNotificationSubscriptions(session, nsList);
             if (timestamp == null) {
                 timestamp = timestampService.getTimestamp();
             }
@@ -165,13 +170,16 @@ public class NotificationHandlers implements WebsocketHandlers {
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
-    public WebSocketResponse processNotificationUnsubscribe(Session session) {
+    public WebSocketResponse processNotificationUnsubscribe(Session session,
+                                                            @WsParam(JsonMessageBuilder.SUBSCRIPTION) UUID subId) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-//            List<NotificationSubscription> nsList = WebsocketSession.removeNotificationSubscriptions(session);
-//            subscriptionManager.getNotificationSubscriptionStorage().removeAll(nsList);
-            subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
+            if (WebsocketSession.getCommandSubscriptions(session).contains(subId)) {
+                WebsocketSession.getCommandSubscriptions(session).remove(subId);
+                subscriptionSessionMap.remove(subId);
+                subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
+            }
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());

@@ -27,6 +27,7 @@ import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
+import com.devicehive.websockets.util.SubscriptionSessionMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,8 @@ public class CommandHandlers implements WebsocketHandlers {
     private AsyncMessageSupplier asyncMessageDeliverer;
     @EJB
     private TimestampService timestampService;
+    @EJB
+    private SubscriptionSessionMap subscriptionSessionMap;
 
     public static String createAccessDeniedForGuidsMessage(List<String> guids,
                                                            List<Device> allowedDevices) {
@@ -145,8 +148,11 @@ public class CommandHandlers implements WebsocketHandlers {
                                 new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK));
                 csList.add(forAll);
             }
+            subscriptionSessionMap.put(reqId, session);
+            WebsocketSession.getCommandSubscriptions(session).add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
-            WebsocketSession.setCommandSubscriptions(session, csList);
+
+
 
             List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             if (!commands.isEmpty()) {
@@ -171,9 +177,11 @@ public class CommandHandlers implements WebsocketHandlers {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
-//            List<CommandSubscription> csList = WebsocketSession.removeCommandSubscriptions(session);
-//            subscriptionManager.getCommandSubscriptionStorage().removeAll(csList);
-            subscriptionManager.getCommandSubscriptionStorage().removeBySession(session.getId());
+            if (WebsocketSession.getCommandSubscriptions(session).contains(subId)) {
+                WebsocketSession.getCommandSubscriptions(session).remove(subId);
+                subscriptionSessionMap.remove(subId);
+                subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
+            }
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());

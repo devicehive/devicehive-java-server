@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 
 import javax.websocket.Session;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -82,8 +83,8 @@ public class WebsocketSession {
     }
 
     public static void createSubscriptions(Session session){
-        session.getUserProperties().put(COMMANDS_SUBSCRIPTIONS, new HashSet<UUID>());
-        session.getUserProperties().put(NOTIFICATIONS_SUBSCRIPTIONS, new HashSet<UUID>());
+        session.getUserProperties().put(COMMANDS_SUBSCRIPTIONS, Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>()));
+        session.getUserProperties().put(NOTIFICATIONS_SUBSCRIPTIONS, Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>()));
     }
 
     public static void addMessagesToQueue(Session session, JsonElement... jsons) {
@@ -92,21 +93,7 @@ public class WebsocketSession {
         Collections.addAll(queue, jsons);
     }
 
-    public static void setCommandSubscriptions(Session session, List<CommandSubscription> csList) {
-        Set<UUID> subs = getCommandSubscriptions(session);
-        for (CommandSubscription cs : csList) {
-            subs.add(UUID.fromString(cs.getSubscriptionId()));
-        }
-        session.getUserProperties().put(COMMANDS_SUBSCRIPTIONS, subs);
-    }
 
-    public static void setNotificationSubscriptions(Session session, List<NotificationSubscription> nsList) {
-        Set<UUID> subs = getNotificationSubscriptions(session);
-        for (NotificationSubscription ns : nsList) {
-            subs.add(UUID.fromString(ns.getSubscriptionId()));
-        }
-        session.getUserProperties().put(NOTIFICATIONS_SUBSCRIPTIONS, subs);
-    }
 }
 
 

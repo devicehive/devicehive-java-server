@@ -5,18 +5,20 @@ import com.devicehive.messages.handler.HandlerCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 public abstract class Subscription<EventSource> {
 
     private static final Logger logger = LoggerFactory.getLogger(Subscription.class);
 
     private EventSource eventSource;
 
-    private String subscriptionId;
+    private UUID subscriptionId;
 
     private HandlerCreator handlerCreator;
 
 
-    public Subscription(EventSource eventSource, String subscriptionId, HandlerCreator handlerCreator) {
+    public Subscription(EventSource eventSource, UUID subscriptionId, HandlerCreator handlerCreator) {
         this.eventSource = eventSource;
         this.subscriptionId = subscriptionId;
         this.handlerCreator = handlerCreator;
@@ -26,7 +28,7 @@ public abstract class Subscription<EventSource> {
         return eventSource;
     }
 
-    public String getSubscriptionId() {
+    public UUID getSubscriptionId() {
         return subscriptionId;
     }
 

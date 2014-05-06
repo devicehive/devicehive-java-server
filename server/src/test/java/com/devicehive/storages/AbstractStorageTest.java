@@ -14,6 +14,7 @@ import org.junit.runners.JUnit4;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -25,12 +26,12 @@ public class AbstractStorageTest {
     public void insertGetTest() {
         AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
 
-        String subscriberId1 = "subscriberId_1";
+        UUID subscriberId1 = UUID.randomUUID();
         Long eventSourceId = 1l;
         SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId1, null);
         storage.insert(subscription1);
 
-        String subscriberId2 = "subscriberId_2";
+        UUID subscriberId2 = UUID.randomUUID();
         SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId2, null);
         storage.insert(subscription2);
         storage.insert(subscription2);
@@ -52,17 +53,17 @@ public class AbstractStorageTest {
     public void insertRemoveTest() {
         AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
 
-        String subscriberId1 = "subscriberId_1";
+        UUID subscriberId1 = UUID.randomUUID();
         Long eventSourceId = 1l;
         SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId1, null);
         storage.insert(subscription1);
 
-        String subscriberId2 = "subscriberId_2";
+        UUID subscriberId2 = UUID.randomUUID();
         SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId2, null);
         storage.insert(subscription2);
         storage.insert(subscription2);
 
-        String subscriberId3 = "other_1";
+        UUID subscriberId3 = UUID.randomUUID();
         SubscriptionExtender subscription3 = new SubscriptionExtender(Constants
                 .DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, subscriberId3, null);
         storage.insert(subscription3);
@@ -82,7 +83,7 @@ public class AbstractStorageTest {
     public void insertRewriteTest() {
         AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
 
-        String subscriberId = "subscriberId";
+        UUID subscriberId = UUID.randomUUID();
         Long eventSourceId = 1l;
         SubscriptionExtender subscription1 =
                 new SubscriptionExtender(eventSourceId, subscriberId, new HandlerCreator() {
@@ -106,17 +107,17 @@ public class AbstractStorageTest {
     public void insertMultipleRemoveTest() {
         AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
 
-        String subscriberId = "subscriberId";
+        UUID subscriberId = UUID.randomUUID();
         Long eventSourceId = 1l;
         final SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId, null);
         storage.insert(subscription1);
 
-        String subscriberId2 = "subscriberId_2";
+        UUID subscriberId2 = UUID.randomUUID();
         final SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId2, null);
         storage.insert(subscription2);
         storage.insert(subscription2);
 
-        String subscriberId3 = "other_1";
+        UUID subscriberId3 = UUID.randomUUID();
         SubscriptionExtender subscription3 = new SubscriptionExtender(Constants
                 .DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, subscriberId3, null);
         storage.insert(subscription3);
@@ -137,7 +138,7 @@ public class AbstractStorageTest {
     public void nullInsertTest() {
         AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
         storage.insert(new SubscriptionExtender(null, null, null));
-        storage.insert(new SubscriptionExtender(null, "someId", null));
+        storage.insert(new SubscriptionExtender(null, UUID.randomUUID(), null));
         storage.insert(new SubscriptionExtender(1l, null, null));
         storage.removeAll(null);
     }
@@ -146,7 +147,7 @@ public class AbstractStorageTest {
     public void removeBySubscriberTest() {
         AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
 
-        final String subscriberId = "subscriberId_1";
+        final UUID subscriberId = UUID.randomUUID();
         final Long eventSourceId = 1l;
         SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId, null);
         storage.insert(subscription1);
@@ -155,12 +156,12 @@ public class AbstractStorageTest {
         SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId2, subscriberId, null);
         storage.insert(subscription2);
 
-        final String subscriberIdOther = "other_1";
+        final UUID subscriberIdOther = UUID.randomUUID();
         SubscriptionExtender subscription3 = new SubscriptionExtender(Constants
                 .DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, subscriberIdOther, null);
         storage.insert(subscription3);
 
-        Collection<Pair<Long, String>> pairsToRemove = new HashSet<Pair<Long, String>>() {
+        Collection<Pair<Long, UUID>> pairsToRemove = new HashSet<Pair<Long, UUID>>() {
             {
                 add(ImmutablePair.of(eventSourceId2, subscriberId));
                 add(ImmutablePair.of(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE, subscriberIdOther));
@@ -183,7 +184,7 @@ public class AbstractStorageTest {
 
     private class SubscriptionExtender extends Subscription<Long> {
 
-        public SubscriptionExtender(Long eventSourceId, String subscriberId, HandlerCreator handlerCreator) {
+        public SubscriptionExtender(Long eventSourceId, UUID subscriberId, HandlerCreator handlerCreator) {
             super(eventSourceId, subscriberId, handlerCreator);
         }
     }

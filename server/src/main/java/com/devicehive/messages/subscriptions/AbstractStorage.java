@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentMap;
 public class AbstractStorage<E, T extends Subscription<E>> {
 
     private ConcurrentMap<E, Set<T>> byEventSource = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, Set<T>> bySubscriptionId = new ConcurrentHashMap<>();
-    private ConcurrentMap<Pair<E, String>, T> byPair = new ConcurrentHashMap<>();
+    private ConcurrentMap<UUID, Set<T>> bySubscriptionId = new ConcurrentHashMap<>();
+    private ConcurrentMap<Pair<E, UUID>, T> byPair = new ConcurrentHashMap<>();
 
     public synchronized void insertAll(Collection<T> coll) {
         for (T t : coll) {
@@ -47,7 +47,7 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         return set != null ? set : Collections.EMPTY_SET;
     }
 
-    public Set<T> get(String id) {
+    public Set<T> get(UUID id) {
         Set<T> set = bySubscriptionId.get(id);
         return set != null ? set : Collections.EMPTY_SET;
     }
@@ -62,13 +62,13 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         }
     }
 
-    public synchronized void removePairs(Collection<Pair<E, String>> coll) {
-        for (Pair<E, String> pair : coll) {
+    public synchronized void removePairs(Collection<Pair<E, UUID>> coll) {
+        for (Pair<E, UUID> pair : coll) {
             remove(pair.getKey(), pair.getValue());
         }
     }
 
-    public synchronized void remove(E eventSource, String subscriberId) {
+    public synchronized void remove(E eventSource, UUID subscriberId) {
         T sub = byPair.remove(ImmutablePair.of(eventSource, subscriberId));
         if (sub == null) {
             return;
@@ -97,7 +97,7 @@ public class AbstractStorage<E, T extends Subscription<E>> {
         }
     }
 
-    public synchronized void removeBySubscriptionId(String id) {
+    public synchronized void removeBySubscriptionId(UUID id) {
         Set<T> subs = bySubscriptionId.get(id);
         if (subs == null) {
             return;

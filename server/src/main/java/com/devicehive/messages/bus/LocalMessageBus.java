@@ -63,7 +63,7 @@ public class LocalMessageBus {
             if (hasAccess) {
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
-            subscribersIds.add(UUID.fromString(subscription.getSubscriptionId()));
+            subscribersIds.add(subscription.getSubscriptionId());
         }
 
         Set<CommandSubscription> subsForAll = (subscriptionManager.getCommandSubscriptionStorage()
@@ -128,7 +128,7 @@ public class LocalMessageBus {
             if (hasAccess) {
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
-            subscribersIds.add(UUID.fromString(subscription.getSubscriptionId()));
+            subscribersIds.add(subscription.getSubscriptionId());
         }
 
         Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
