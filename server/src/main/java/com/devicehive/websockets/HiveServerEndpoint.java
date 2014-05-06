@@ -55,6 +55,7 @@ public class HiveServerEndpoint {
         WebsocketSession.createNotificationSubscriptionsLock(session);
         WebsocketSession.createCommandsSubscriptionsLock(session);
         WebsocketSession.createQueueLock(session);
+        WebsocketSession.createSubscriptions(session);
         sessionMonitor.registerSession(session);
     }
 

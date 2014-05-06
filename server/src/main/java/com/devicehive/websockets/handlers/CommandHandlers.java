@@ -10,13 +10,14 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.ParseUtil;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -106,7 +107,7 @@ public class CommandHandlers implements WebsocketHandlers {
             actualList.addAll(deviceIdList);
         }
         if (deviceId != null) {
-                actualList.add(deviceId);
+            actualList.add(deviceId);
         }
         return actualList;
     }
@@ -170,8 +171,9 @@ public class CommandHandlers implements WebsocketHandlers {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
-            List<CommandSubscription> csList = WebsocketSession.removeCommandSubscriptions(session);
-            subscriptionManager.getCommandSubscriptionStorage().removeAll(csList);
+//            List<CommandSubscription> csList = WebsocketSession.removeCommandSubscriptions(session);
+//            subscriptionManager.getCommandSubscriptionStorage().removeAll(csList);
+            subscriptionManager.getCommandSubscriptionStorage().removeBySession(session.getId());
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());

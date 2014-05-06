@@ -2,6 +2,7 @@ package com.devicehive.messages.subscriptions;
 
 
 import javax.ejb.ConcurrencyManagement;
+import javax.ejb.EJB;
 import javax.ejb.Singleton;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
@@ -9,15 +10,12 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @Singleton
 @ConcurrencyManagement(BEAN)
 public class SubscriptionManager {
-
-    private final CommandSubscriptionStorage commandSubscriptionStorage = new CommandSubscriptionStorage();
-
-    private final CommandUpdateSubscriptionStorage commandUpdateSubscriptionStorage =
-            new CommandUpdateSubscriptionStorage();
-
-    private final NotificationSubscriptionStorage notificationSubscriptionStorage =
-            new NotificationSubscriptionStorage();
-
+    @EJB
+    private CommandSubscriptionStorage commandSubscriptionStorage;
+    @EJB
+    private CommandUpdateSubscriptionStorage commandUpdateSubscriptionStorage;
+    @EJB
+    private NotificationSubscriptionStorage notificationSubscriptionStorage;
 
     public CommandSubscriptionStorage getCommandSubscriptionStorage() {
         return commandSubscriptionStorage;

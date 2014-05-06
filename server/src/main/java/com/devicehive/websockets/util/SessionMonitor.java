@@ -24,8 +24,7 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -74,7 +73,7 @@ public class SessionMonitor {
             deviceActivityService.update(authorizedDevice.getId());
         }
         String sessionId = session.getId();
-        Set<CommandSubscription> commandSubscriptions =
+        List<CommandSubscription> commandSubscriptions =
                 subscriptionManager.getCommandSubscriptionStorage().getBySession(sessionId);
         for (CommandSubscription subscription : commandSubscriptions) {
             if (subscription.getDeviceId() != Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE) {

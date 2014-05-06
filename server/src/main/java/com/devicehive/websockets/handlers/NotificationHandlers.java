@@ -8,10 +8,10 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
-import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -33,13 +33,16 @@ import javax.ejb.EJB;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static javax.servlet.http.HttpServletResponse.*;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 
 @WebsocketController
@@ -62,7 +65,8 @@ public class NotificationHandlers implements WebsocketHandlers {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationSubscribe(@WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
-                                                          @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> devices,
+                                                          @WsParam(JsonMessageBuilder.DEVICE_GUIDS)
+                                                          List<String> devices,
                                                           @WsParam(JsonMessageBuilder.NAMES) List<String> names,
                                                           @WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceId,
                                                           Session session) throws IOException {
@@ -124,8 +128,11 @@ public class NotificationHandlers implements WebsocketHandlers {
             }
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             WebsocketSession.setNotificationSubscriptions(session, nsList);
-
-            List<DeviceNotification> notifications = deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
+            if (timestamp == null) {
+                timestamp = timestampService.getTimestamp();
+            }
+            List<DeviceNotification> notifications =
+                    deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
             if (!notifications.isEmpty()) {
                 for (DeviceNotification notification : notifications) {
                     WebsocketSession.addMessagesToQueue(session,
@@ -147,13 +154,13 @@ public class NotificationHandlers implements WebsocketHandlers {
      *
      * @param session Current session
      * @return Json object with the following structure
-     * <code>
-     * {
-     * "action": {string},
-     * "status": {string},
-     * "requestId": {object}
-     * }
-     * </code>
+     *         <code>
+     *         {
+     *         "action": {string},
+     *         "status": {string},
+     *         "requestId": {object}
+     *         }
+     *         </code>
      */
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
@@ -162,8 +169,9 @@ public class NotificationHandlers implements WebsocketHandlers {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-            List<NotificationSubscription> nsList = WebsocketSession.removeNotificationSubscriptions(session);
-            subscriptionManager.getNotificationSubscriptionStorage().removeAll(nsList);
+//            List<NotificationSubscription> nsList = WebsocketSession.removeNotificationSubscriptions(session);
+//            subscriptionManager.getNotificationSubscriptionStorage().removeAll(nsList);
+            subscriptionManager.getNotificationSubscriptionStorage().removeBySession(session.getId());
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
             logger.debug("deliver messages process for session" + session.getId());

@@ -8,7 +8,7 @@ import java.util.UUID;
 public class CommandUpdateSubscription extends Subscription<Long> {
 
     public CommandUpdateSubscription(Long commandId, UUID subscriberId, HandlerCreator handlerCreator) {
-        super(commandId, subscriberId, handlerCreator);
+        super(commandId, subscriberId.toString(), handlerCreator);
     }
 
     public Long getCommandId() {

@@ -13,10 +13,10 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
-import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.util.WebsocketSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +33,7 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 public class CommonHandlers implements WebsocketHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonHandlers.class);
+    private static final String AUTH_ERROR = "Client authentication error: credentials are incorrect";
 
     @EJB
     private ConfigurationService configurationService;
@@ -116,7 +117,7 @@ public class CommonHandlers implements WebsocketHandlers {
                                                  Session session) {
         logger.debug("authenticate action for {} ", login);
         if (WebsocketSession.getPrincipal(session) != null) {
-            throw new HiveException("There is already active authentication");
+            throw new HiveException(AUTH_ERROR,SC_UNAUTHORIZED);
         }
         HivePrincipal hivePrincipal = null;
         if (login != null) {
@@ -124,21 +125,21 @@ public class CommonHandlers implements WebsocketHandlers {
             if (user != null) {
                 hivePrincipal = new HivePrincipal(user, null, null);
             } else {
-                throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
+                throw new HiveException(AUTH_ERROR, SC_UNAUTHORIZED);
             }
         } else if (key != null) {
             AccessKey accessKey = accessKeyService.authenticate(key);
             if (accessKey != null) {
                 hivePrincipal = new HivePrincipal(null, null, accessKey);
             } else {
-                throw new HiveException("Client authentication error: credentials are incorrect", SC_UNAUTHORIZED);
+                throw new HiveException(AUTH_ERROR, SC_UNAUTHORIZED);
             }
         } else if (deviceId != null) {
             Device device = deviceService.authenticate(deviceId, deviceKey);
             if (device != null) {
                 hivePrincipal = new HivePrincipal(null, device, null);
             } else {
-                throw new HiveException("Device authentication error: credentials are incorrect", SC_UNAUTHORIZED);
+                throw new HiveException(AUTH_ERROR, SC_UNAUTHORIZED);
             }
         }
         WebsocketSession.setPrincipal(session, hivePrincipal);

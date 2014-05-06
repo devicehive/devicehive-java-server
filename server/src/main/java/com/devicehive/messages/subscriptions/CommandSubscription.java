@@ -16,7 +16,7 @@ public class CommandSubscription extends Subscription<Long> {
 
     public CommandSubscription(HivePrincipal principal, Long deviceId, UUID subscriptionId, Collection<String> commandNames,
                                HandlerCreator handlerCreator) {
-        super(deviceId, subscriptionId, handlerCreator);
+        super(deviceId, subscriptionId.toString(), handlerCreator);
         this.principal = principal;
         this.commandNames = commandNames != null ? new HashSet<>(commandNames) : null;
     }
