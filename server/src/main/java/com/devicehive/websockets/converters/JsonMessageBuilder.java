@@ -23,6 +23,7 @@ public class JsonMessageBuilder {
     public static final String NOTIFICATION = "notification";
     public static final String COMMAND = "command";
     public static final String SUBSCRIPTION = "subscription";
+    public static final String SUBSCRIPTION_ID = "subscriptionId";
     private JsonObject jsonObject = new JsonObject();
 
 

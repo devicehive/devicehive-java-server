@@ -12,9 +12,7 @@ public class Constants {
 
     public static final String REST_SERVER_URL = "rest.url";
 
-    public static final long DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE = -1L;
-
-    public static final long DEVICE_COMMAND_NULL_ID_SUBSTITUTE = -1L;
+    public static final long NULL_ID_SUBSTITUTE = -1L;
 
     public static final String DEFAULT_WAIT_TIMEOUT = "30";
 

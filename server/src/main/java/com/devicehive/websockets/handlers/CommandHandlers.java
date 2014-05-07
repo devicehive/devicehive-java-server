@@ -97,7 +97,7 @@ public class CommandHandlers implements WebsocketHandlers {
                 devices, deviceId, timestamp, names, session);
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(JsonMessageBuilder.SUBSCRIPTION, subId, null);
+        response.addValue(JsonMessageBuilder.SUBSCRIPTION_ID, subId, null);
         return response;
     }
 
@@ -142,7 +142,7 @@ public class CommandHandlers implements WebsocketHandlers {
             } else {
                 CommandSubscription forAll =
                         new CommandSubscription(principal,
-                                Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
+                                Constants.NULL_ID_SUBSTITUTE,
                                 reqId,
                                 names,
                                 new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK));
@@ -151,8 +151,6 @@ public class CommandHandlers implements WebsocketHandlers {
             subscriptionSessionMap.put(reqId, session);
             WebsocketSession.getCommandSubscriptions(session).add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
-
-
 
             List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             if (!commands.isEmpty()) {
@@ -173,10 +171,12 @@ public class CommandHandlers implements WebsocketHandlers {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     public WebSocketResponse processCommandUnsubscribe(Session session,
-                                                       @WsParam(JsonMessageBuilder.SUBSCRIPTION) UUID subId) {
+                                                       @WsParam(JsonMessageBuilder.SUBSCRIPTION) UUID subId,
+                                                       @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> deviceGuids) {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
+            //todo subId is absent
             if (WebsocketSession.getCommandSubscriptions(session).contains(subId)) {
                 WebsocketSession.getCommandSubscriptions(session).remove(subId);
                 subscriptionSessionMap.remove(subId);

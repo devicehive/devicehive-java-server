@@ -11,6 +11,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonObject;
@@ -61,13 +62,14 @@ public class LocalMessageBus {
             boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                     Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
             if (hasAccess) {
+                jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
             subscribersIds.add(subscription.getSubscriptionId());
         }
 
         Set<CommandSubscription> subsForAll = (subscriptionManager.getCommandSubscriptionStorage()
-                .getByDeviceId(Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE));
+                .getByDeviceId(Constants.NULL_ID_SUBSTITUTE));
 
         for (CommandSubscription subscription : subsForAll) {
             if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
@@ -77,6 +79,7 @@ public class LocalMessageBus {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
                 if (hasAccess) {
+                    jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                     executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
                 }
             }
@@ -126,13 +129,14 @@ public class LocalMessageBus {
             boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                     Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
             if (hasAccess) {
+                jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
             subscribersIds.add(subscription.getSubscriptionId());
         }
 
         Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
-                .getByDeviceId(Constants.DEVICE_NOTIFICATION_NULL_ID_SUBSTITUTE));
+                .getByDeviceId(Constants.NULL_ID_SUBSTITUTE));
 
         for (NotificationSubscription subscription : subsForAll) {
             if (subscription.getNotificationNames() != null
@@ -143,6 +147,7 @@ public class LocalMessageBus {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
                 if (hasAccess) {
+                    jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                     executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
                 }
             }

@@ -11,11 +11,12 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
-import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -28,11 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -43,8 +41,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
@@ -387,7 +383,7 @@ public class DeviceNotificationController {
                 }
             } else {
                 subscriptionSet
-                        .add(new NotificationSubscription(principal, Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
+                        .add(new NotificationSubscription(principal, Constants.NULL_ID_SUBSTITUTE,
                                 reqId,
                                 names,
                                 restHandlerCreator));

@@ -81,7 +81,7 @@ public class NotificationHandlers implements WebsocketHandlers {
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(JsonMessageBuilder.SUBSCRIPTION, subId, null);
+        response.addValue(JsonMessageBuilder.SUBSCRIPTION_ID, subId, null);
         return response;
 
     }
@@ -117,21 +117,21 @@ public class NotificationHandlers implements WebsocketHandlers {
                             reqId,
                             names,
                             new WebsocketHandlerCreator(session,
-                                    WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK)
+                                    WebsocketSession.NOTIFICATION_SUBSCRIPTION_LOCK)
                     ));
                 }
             } else {
                 NotificationSubscription forAll =
                         new NotificationSubscription(principal,
-                                Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
+                                Constants.NULL_ID_SUBSTITUTE,
                                 reqId,
                                 names,
-                                new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATIONS_LOCK)
+                                new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATION_SUBSCRIPTION_LOCK)
                         );
                 nsList.add(forAll);
             }
             subscriptionSessionMap.put(reqId, session);
-            WebsocketSession.getCommandSubscriptions(session).add(reqId);
+            WebsocketSession.getNotificationSubscriptions(session).add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (timestamp == null) {
                 timestamp = timestampService.getTimestamp();
@@ -171,14 +171,14 @@ public class NotificationHandlers implements WebsocketHandlers {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationUnsubscribe(Session session,
-                                                            @WsParam(JsonMessageBuilder.SUBSCRIPTION) UUID subId) {
+                                                            @WsParam(JsonMessageBuilder.SUBSCRIPTION_ID) UUID subId) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-            if (WebsocketSession.getCommandSubscriptions(session).contains(subId)) {
-                WebsocketSession.getCommandSubscriptions(session).remove(subId);
+            if (WebsocketSession.getNotificationSubscriptions(session).contains(subId)) {
+                WebsocketSession.getNotificationSubscriptions(session).remove(subId);
                 subscriptionSessionMap.remove(subId);
-                subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
+                subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
             }
         } finally {
             WebsocketSession.getNotificationSubscriptionsLock(session).unlock();

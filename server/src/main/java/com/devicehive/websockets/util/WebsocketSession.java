@@ -2,8 +2,6 @@ package com.devicehive.websockets.util;
 
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.messages.subscriptions.CommandSubscription;
-import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.google.gson.JsonElement;
 
 import javax.websocket.Session;
@@ -17,7 +15,7 @@ public class WebsocketSession {
     public static final String COMMANDS_SUBSCRIPTIONS = "COMMANDS_SUBSCRIPTIONS";
     public static final String COMMANDS_SUBSCRIPTION_LOCK = "COMMANDS_SUBSCRIPTION_LOCK";
     public static final String COMMAND_UPDATES_SUBSCRIPTION_LOCK = "COMMAND_UPDATES_SUBSCRIPTION_LOCK";
-    public static final String NOTIFICATIONS_LOCK = "NOTIFICATIONS_LOCK";
+    public static final String NOTIFICATION_SUBSCRIPTION_LOCK = "NOTIFICATION_SUBSCRIPTION_LOCK";
     public static final String NOTIFICATIONS_SUBSCRIPTIONS = "NOTIFICATIONS_SUBSCRIPTIONS";
     public static final String QUEUE = "QUEUE";
     private static final String PRINCIPAL = "HIVE_PRINCIPAL";
@@ -56,12 +54,12 @@ public class WebsocketSession {
     }
 
     public static Lock getNotificationSubscriptionsLock(Session session) {
-        return (Lock) session.getUserProperties().get(NOTIFICATIONS_LOCK);
+        return (Lock) session.getUserProperties().get(NOTIFICATION_SUBSCRIPTION_LOCK);
     }
 
     public static void createNotificationSubscriptionsLock(Session session) {
-        if (!session.getUserProperties().containsKey(NOTIFICATIONS_LOCK)) {
-            session.getUserProperties().put(NOTIFICATIONS_LOCK, new ReentrantLock(true));
+        if (!session.getUserProperties().containsKey(NOTIFICATION_SUBSCRIPTION_LOCK)) {
+            session.getUserProperties().put(NOTIFICATION_SUBSCRIPTION_LOCK, new ReentrantLock(true));
         }
     }
 

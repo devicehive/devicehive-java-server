@@ -25,11 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -40,8 +37,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -205,7 +200,7 @@ public class DeviceCommandController {
                 }
             } else {
                 subscriptionSet
-                        .add(new CommandSubscription(principal, Constants.DEVICE_COMMAND_NULL_ID_SUBSTITUTE,
+                        .add(new CommandSubscription(principal, Constants.NULL_ID_SUBSTITUTE,
                                 reqId,
                                 names,
                                 restHandlerCreator));
