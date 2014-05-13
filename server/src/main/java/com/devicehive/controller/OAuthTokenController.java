@@ -1,6 +1,5 @@
 package com.devicehive.controller;
 
-import com.devicehive.configuration.Constants;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessToken;
@@ -22,8 +21,17 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
+import static com.devicehive.configuration.Constants.CLIENT_ID;
+import static com.devicehive.configuration.Constants.CODE;
+import static com.devicehive.configuration.Constants.GRANT_TYPE;
+import static com.devicehive.configuration.Constants.OAUTH_AUTH_SCEME;
+import static com.devicehive.configuration.Constants.REDIRECT_URI;
+import static com.devicehive.configuration.Constants.SCOPE;
+import static com.devicehive.configuration.Constants.USERNAME;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
@@ -31,6 +39,8 @@ import static javax.ws.rs.core.Response.Status.*;
 public class OAuthTokenController {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthTokenController.class);
+    private static final String AUTHORIZATION_CODE = "authorization_code";
+    private static final String PASSWORD = "password";
     @EJB
     private OAuthGrantService grantService;
     @EJB
@@ -38,19 +48,19 @@ public class OAuthTokenController {
 
     @POST
     @PermitAll
-    public Response accessTokenRequest(@FormParam("grant_type") @NotNull String grantType,
-                                       @FormParam("code") String code,
-                                       @FormParam("redirect_uri") String redirectUri,
-                                       @FormParam("client_id") String clientId,
-                                       @FormParam("scope") String scope,
-                                       @FormParam("username") String login,
-                                       @FormParam("password") String password) {
+    public Response accessTokenRequest(@FormParam(GRANT_TYPE) @NotNull String grantType,
+                                       @FormParam(CODE) String code,
+                                       @FormParam(REDIRECT_URI) String redirectUri,
+                                       @FormParam(CLIENT_ID) String clientId,
+                                       @FormParam(SCOPE) String scope,
+                                       @FormParam(USERNAME) String login,
+                                       @FormParam(PASSWORD) String password) {
         logger.debug("OAuthToken: token requested. Grant type: {}, code: {}, redirect URI: {}, client id: {}",
                 grantType, code, redirectUri, clientId);
         OAuthClient client = ThreadLocalVariablesKeeper.getOAuthClient();
         AccessKey key;
         switch (grantType) {
-            case "authorization_code":
+            case AUTHORIZATION_CODE:
                 if (clientId == null && client != null) {
                     clientId = client.getOauthId();
                 }
@@ -60,7 +70,7 @@ public class OAuthTokenController {
                 }
                 key = grantService.accessTokenRequestForCodeType(code, redirectUri, clientId);
                 break;
-            case "password":
+            case PASSWORD:
                 if (client == null) {
                     return ResponseFactory.response(UNAUTHORIZED,
                             new ErrorResponse(UNAUTHORIZED.getStatusCode(), "Not authorized!"));
@@ -72,7 +82,7 @@ public class OAuthTokenController {
                         new ErrorResponse(BAD_REQUEST.getStatusCode(), "Invalid grant type!"));
         }
         AccessToken token = new AccessToken();
-        token.setTokenType(Constants.KEY_AUTH);
+        token.setTokenType(OAUTH_AUTH_SCEME);
         token.setAccessToken(key.getKey());
         Long expiresIn = key.getExpirationDate() == null
                 ? null

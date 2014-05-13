@@ -3,8 +3,6 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -14,8 +12,15 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.List;
+
+import static com.devicehive.model.Equipment.Queries.Names.DELETE_BY_DEVICE_CLASS;
+import static com.devicehive.model.Equipment.Queries.Names.DELETE_BY_ID_AND_DEVICE_CLASS;
+import static com.devicehive.model.Equipment.Queries.Names.GET_BY_DEVICE_CLASS;
+import static com.devicehive.model.Equipment.Queries.Names.GET_BY_DEVICE_CLASS_AND_ID;
+import static com.devicehive.model.Equipment.Queries.Parameters.DEVICE_CLASS;
+import static com.devicehive.model.Equipment.Queries.Parameters.DEVICE_CLASS_ID;
+import static com.devicehive.model.Equipment.Queries.Parameters.ID;
 
 @Stateless
 public class EquipmentDAO {
@@ -36,38 +41,24 @@ public class EquipmentDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Equipment> getByDeviceClass(DeviceClass deviceClass) {
-        TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClass", Equipment.class);
-        query.setParameter("deviceClass", deviceClass);
-        return query.getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Equipment> getByDeviceClassAndCode(DeviceClass deviceClass) {
-        TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClass", Equipment.class);
-        query.setParameter("deviceClass", deviceClass);
+        TypedQuery<Equipment> query = em.createNamedQuery(GET_BY_DEVICE_CLASS, Equipment.class);
+        query.setParameter(DEVICE_CLASS, deviceClass);
         return query.getResultList();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        TypedQuery<Equipment> query = em.createNamedQuery("Equipment.getByDeviceClassAndId", Equipment.class);
-        query.setParameter("equipmentId", equipmentId);
-        query.setParameter("deviceClassId", deviceClassId);
+        TypedQuery<Equipment> query = em.createNamedQuery(GET_BY_DEVICE_CLASS_AND_ID, Equipment.class);
+        query.setParameter(ID, equipmentId);
+        query.setParameter(DEVICE_CLASS_ID, deviceClassId);
         List<Equipment> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
-
-    public boolean delete(@NotNull long equipmentId) {
-        Query query = em.createNamedQuery("Equipment.deleteById");
-        query.setParameter("id", equipmentId);
-        return query.executeUpdate() != 0;
-    }
-
     public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
-        Query query = em.createNamedQuery("Equipment.deleteByIdAndDeviceClass");
-        query.setParameter("id", equipmentId);
-        query.setParameter("deviceClassId", deviceClassId);
+        Query query = em.createNamedQuery(DELETE_BY_ID_AND_DEVICE_CLASS);
+        query.setParameter(ID, equipmentId);
+        query.setParameter(DEVICE_CLASS_ID, deviceClassId);
         return query.executeUpdate() != 0;
     }
 
@@ -80,19 +71,9 @@ public class EquipmentDAO {
         return em.find(Equipment.class, id);
     }
 
-    /**
-     * @param equipments equipments to remove
-     * @return
-     */
-    public int delete(Collection<Equipment> equipments) {
-        Query query = em.createNamedQuery("Equipment.deleteByEquipmentList");
-        query.setParameter("equipmentList", equipments);
-        return query.executeUpdate();
-    }
-
     public int deleteByDeviceClass(DeviceClass deviceClass) {
-        Query query = em.createNamedQuery("Equipment.deleteByDeviceClass");
-        query.setParameter("deviceClass", deviceClass);
+        Query query = em.createNamedQuery(DELETE_BY_DEVICE_CLASS);
+        query.setParameter(DEVICE_CLASS, deviceClass);
         return query.executeUpdate();
     }
 }

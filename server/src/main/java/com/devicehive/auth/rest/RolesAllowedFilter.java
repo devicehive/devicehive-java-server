@@ -16,6 +16,10 @@ import java.util.Set;
 @Priority(Priorities.AUTHORIZATION)
 public class RolesAllowedFilter implements ContainerRequestFilter {
 
+    private static final String wwwAuthHeader = "WWW-Authenticate";
+    private static final String oauthRealm = "Bearer realm=\"devicehive\"";
+    private static final String basicRealm = "Basic realm=\"devicehive\"";
+    private static final String notAuthorizedMessage = "{message:\"Not authorized\"}";
     private final Set<String> allowedRoles;
 
     public RolesAllowedFilter(Collection<String> allowedRoles) {
@@ -30,17 +34,17 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
                 return;
             }
         }
-        if (securityContext.getAuthenticationScheme().equals(Constants.KEY_AUTH)) {
+        if (securityContext.getAuthenticationScheme().equals(Constants.OAUTH_AUTH_SCEME)) {
             requestContext.abortWith(Response
                     .status(Response.Status.UNAUTHORIZED)
-                    .header("WWW-Authenticate", "Bearer realm=\"devicehive\"")
-                    .entity("{message:\"Not authorized\"}")
+                    .header(wwwAuthHeader, oauthRealm)
+                    .entity(notAuthorizedMessage)
                     .build());
         } else {
             requestContext.abortWith(Response
                     .status(Response.Status.UNAUTHORIZED)
-                    .header("WWW-Authenticate", "Basic realm=\"devicehive\"")
-                    .entity("{message:\"Not authorized\"}")
+                    .header(wwwAuthHeader, basicRealm)
+                    .entity(notAuthorizedMessage)
                     .build());
         }
     }

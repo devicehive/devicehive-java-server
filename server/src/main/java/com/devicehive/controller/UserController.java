@@ -20,12 +20,26 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.configuration.Constants.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/user")
 @LogExecutionTime
@@ -73,14 +87,14 @@ public class UserController {
      */
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response getUsersList(@QueryParam("login") String login,
-                                 @QueryParam("loginPattern") String loginPattern,
-                                 @QueryParam("role") Integer role,
-                                 @QueryParam("status") Integer status,
-                                 @QueryParam("sortField") String sortField,
-                                 @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
-                                 @QueryParam("take") Integer take,
-                                 @QueryParam("skip") Integer skip) {
+    public Response getUsersList(@QueryParam(LOGIN) String login,
+                                 @QueryParam(LOGIN_PATTERN) String loginPattern,
+                                 @QueryParam(ROLE) Integer role,
+                                 @QueryParam(STATUS) Integer status,
+                                 @QueryParam(SORT_FIELD) String sortField,
+                                 @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                                 @QueryParam(TAKE) Integer take,
+                                 @QueryParam(SKIP) Integer skip) {
         logger.debug("User list requested. Login = {}, loginPattern = {}, role = {}, status = {}, sortField = {}, " +
                 "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
                 take, skip);
@@ -89,7 +103,7 @@ public class UserController {
             sortOrder = true;
         }
 
-        if (!"ID".equalsIgnoreCase(sortField) && !"Login".equalsIgnoreCase(sortField) && sortField != null) {
+        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } else if (sortField != null) {
@@ -135,7 +149,7 @@ public class UserController {
     @GET
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response getUser(@PathParam("id") Long userId) {
+    public Response getUser(@PathParam(ID) Long userId) {
 
         User user = userService.findUserWithNetworks(userId);
 
@@ -267,7 +281,7 @@ public class UserController {
     @GET
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response getNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+    public Response getNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
             throw new HiveException("User not found.", NOT_FOUND.getStatusCode());
@@ -291,7 +305,7 @@ public class UserController {
     @PUT
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response assignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+    public Response assignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.assignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);
     }
@@ -306,7 +320,7 @@ public class UserController {
     @DELETE
     @Path("/{id}/network/{networkId}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response unassignNetwork(@PathParam("id") long id, @PathParam("networkId") long networkId) {
+    public Response unassignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.unassignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);
     }

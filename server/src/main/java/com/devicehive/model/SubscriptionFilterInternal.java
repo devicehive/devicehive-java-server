@@ -5,12 +5,12 @@ import com.devicehive.exceptions.HiveException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
-import static javax.ws.rs.core.Response.Status.*;
 import java.sql.Timestamp;
 import java.util.*;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 public class SubscriptionFilterInternal {
 
@@ -125,7 +125,7 @@ public class SubscriptionFilterInternal {
 
         if (deviceNames != null ? !deviceNames.equals(that.deviceNames) : that.deviceNames != null) return false;
         if (names != null ? !names.equals(that.names) : that.names != null) return false;
-        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
+//        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
 
         return true;
     }

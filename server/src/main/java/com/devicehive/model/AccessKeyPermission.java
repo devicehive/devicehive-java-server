@@ -3,20 +3,42 @@ package com.devicehive.model;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonParser;
 
-import javax.persistence.*;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED_ADMIN;
+import static com.devicehive.model.AccessKeyPermission.Queries.Names;
+import static com.devicehive.model.AccessKeyPermission.Queries.Values;
 
 @Entity
 @NamedQueries({
-        @NamedQuery(name = "AccessKeyPermission.deleteByAccessKey",
-                query = "delete from AccessKeyPermission akp where akp.accessKey = :accessKey")
+        @NamedQuery(name = Names.DELETE_BY_ACCESS_KEY, query = Values.DELETE_BY_ACCESS_KEY)
 })
 @Table(name = "access_key_permission")
 public class AccessKeyPermission implements HiveEntity {
@@ -124,9 +146,6 @@ public class AccessKeyPermission implements HiveEntity {
                     result.add(null);
                 }
             }
-//            if (result.isEmpty()) {
-//                result = null;
-//            }
             return result;
         }
         throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
@@ -221,5 +240,20 @@ public class AccessKeyPermission implements HiveEntity {
 
     public void setDeviceGuids(JsonStringWrapper deviceGuids) {
         this.deviceGuids = deviceGuids;
+    }
+
+    public static class Queries {
+        public static interface Names {
+            static final String DELETE_BY_ACCESS_KEY = "AccessKeyPermission.deleteByAccessKey";
+        }
+
+        static interface Values {
+            static final String DELETE_BY_ACCESS_KEY =
+                    "delete from AccessKeyPermission akp where akp.accessKey = :accessKey";
+        }
+
+        public static interface Parameters {
+            static final String ACCESS_KEY = "accessKey";
+        }
     }
 }

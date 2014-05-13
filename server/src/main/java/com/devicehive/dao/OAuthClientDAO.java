@@ -18,6 +18,15 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.devicehive.model.OAuthClient.Queries.Names.DELETE_BY_ID;
+import static com.devicehive.model.OAuthClient.Queries.Names.GET_BY_NAME;
+import static com.devicehive.model.OAuthClient.Queries.Names.GET_BY_OAUTH_ID;
+import static com.devicehive.model.OAuthClient.Queries.Names.GET_BY_OAUTH_ID_AND_SECRET;
+import static com.devicehive.model.OAuthClient.Queries.Parameters.ID;
+import static com.devicehive.model.OAuthClient.Queries.Parameters.NAME;
+import static com.devicehive.model.OAuthClient.Queries.Parameters.OAUTH_ID;
+import static com.devicehive.model.OAuthClient.Queries.Parameters.SECRET;
+
 @Stateless
 public class OAuthClientDAO {
 
@@ -36,24 +45,25 @@ public class OAuthClientDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient get(String oauthId) {
-        TypedQuery<OAuthClient> query = em.createNamedQuery("OAuthClient.getByOAuthId", OAuthClient.class);
-        query.setParameter("oauthId", oauthId);
+        TypedQuery<OAuthClient> query = em.createNamedQuery(GET_BY_OAUTH_ID,
+                OAuthClient.class);
+        query.setParameter(OAUTH_ID, oauthId);
         CacheHelper.cacheable(query);
         List<OAuthClient> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
 
     public OAuthClient get(String id, String secret) {
-        TypedQuery<OAuthClient> query = em.createNamedQuery("OAuthClient.getByOAuthIdAndSecret", OAuthClient.class);
-        query.setParameter("oauthId", id);
-        query.setParameter("secret", secret);
+        TypedQuery<OAuthClient> query = em.createNamedQuery(GET_BY_OAUTH_ID_AND_SECRET, OAuthClient.class);
+        query.setParameter(OAUTH_ID, id);
+        query.setParameter(SECRET, secret);
         List<OAuthClient> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
 
     public boolean delete(Long id) {
-        Query query = em.createNamedQuery("OAuthClient.deleteById");
-        query.setParameter("id", id);
+        Query query = em.createNamedQuery(DELETE_BY_ID);
+        query.setParameter(ID, id);
         return query.executeUpdate() != 0;
     }
 
@@ -72,18 +82,18 @@ public class OAuthClientDAO {
 
         List<Predicate> predicates = new ArrayList<>();
         if (namePattern != null) {
-            predicates.add(criteriaBuilder.like(from.<String>get("name"), namePattern));
+            predicates.add(criteriaBuilder.like(from.<String>get(OAuthClient.NAME_COLUMN), namePattern));
         } else {
             if (name != null) {
-                predicates.add(criteriaBuilder.equal(from.get("name"), name));
+                predicates.add(criteriaBuilder.equal(from.get(OAuthClient.NAME_COLUMN), name));
             }
         }
 
         if (domain != null) {
-            predicates.add(criteriaBuilder.equal(from.get("domain"), domain));
+            predicates.add(criteriaBuilder.equal(from.get(OAuthClient.DOMAIN_COLUMN), domain));
         }
         if (oauthId != null) {
-            predicates.add(criteriaBuilder.equal(from.get("oauthId"), oauthId));
+            predicates.add(criteriaBuilder.equal(from.get(OAuthClient.OAUTH_ID_COLUMN), oauthId));
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
 
@@ -109,8 +119,8 @@ public class OAuthClientDAO {
     }
 
     public OAuthClient getByName(String name) {
-        TypedQuery<OAuthClient> query = em.createNamedQuery("OAuthClient.getByName", OAuthClient.class);
-        query.setParameter("name", name);
+        TypedQuery<OAuthClient> query = em.createNamedQuery(GET_BY_NAME, OAuthClient.class);
+        query.setParameter(NAME, name);
         List<OAuthClient> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }

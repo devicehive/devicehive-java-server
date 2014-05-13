@@ -3,7 +3,21 @@ package com.devicehive.model;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.*;
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -11,7 +25,15 @@ import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
+import static com.devicehive.model.Network.Queries.Names;
+import static com.devicehive.model.Network.Queries.Values;
 
 /**
  * TODO JavaDoc
@@ -19,33 +41,29 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "network")
 @NamedQueries({
-        @NamedQuery(name = "Network.findByName", query = "select n from Network n where name = :name"),
-        @NamedQuery(name = "Network.findWithUsers",
-                query = "select n from Network n left join fetch n.users where n.id = :id"),
-        @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id"),
-        @NamedQuery(name = "Network.getWithDevicesAndDeviceClasses", query = "select n from Network n " +
-                "left join fetch n.devices where n.id = :id"),
-        @NamedQuery(name = "Network.getWithDevicesAndDeviceClassesForUser", query = "select n from Network n " +
-                "left join fetch n.devices inner join fetch n.users u where u.id = :userId and n.id = :id"),
-        @NamedQuery(name = "Network.getByDevice", query = "select d.network from Device d where d.guid = :guid")
+        @NamedQuery(name = Names.FIND_BY_NAME, query = Values.FIND_BY_NAME),
+        @NamedQuery(name = Names.FIND_WITH_USERS, query = Values.FIND_WITH_USERS),
+        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
+        @NamedQuery(name = Names.GET_WITH_DEVICES_AND_DEVICE_CLASSES,
+                query = Values.GET_WITH_DEVICES_AND_DEVICE_CLASSES)
 })
 @Cacheable
 public class Network implements HiveEntity {
-
+    public static final String USERS_ASSOCIATION = "users";
+    public static final String ID_COLUMN = "id";
+    public static final String NAME_COLUMN = "name";
     private static final long serialVersionUID = -4824259625517565076L;
     @SerializedName("id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({DEVICE_PUBLISHED_DEVICE_AUTH,DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED,
+    @JsonPolicyDef({DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED,
             NETWORK_PUBLISHED, NETWORK_SUBMITTED})
     private Long id;
-
     @SerializedName("key")
     @Column
     @Size(max = 64, message = "The length of key should not be more than 64 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String key;
-
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
@@ -54,24 +72,20 @@ public class Network implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, USER_PUBLISHED,
             NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
-
     @SerializedName("description")
     @Column
     @Size(max = 128, message = "The length of description should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, USER_PUBLISHED,
             NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
-
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_network", joinColumns = {@JoinColumn(name = "network_id", nullable = false,
             updatable = false)},
             inverseJoinColumns = {@JoinColumn(name = "user_id", nullable = false, updatable = false)})
     private Set<User> users;
-
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "network")
     @JsonPolicyDef({NETWORK_PUBLISHED})
     private Set<Device> devices;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -166,5 +180,29 @@ public class Network implements HiveEntity {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    public static interface Queries {
+        public static interface Names {
+            public static final String FIND_BY_NAME = "Network.findByName";
+            public static final String FIND_WITH_USERS = "Network.findWithUsers";
+            public static final String DELETE_BY_ID = "Network.deleteById";
+            public static final String GET_WITH_DEVICES_AND_DEVICE_CLASSES = "Network.getWithDevicesAndDeviceClasses";
+        }
+
+        static interface Values {
+            static final String FIND_BY_NAME = "select n from Network n where name = :name";
+            static final String FIND_WITH_USERS = "select n from Network n left join fetch n.users where n.id = :id";
+            static final String DELETE_BY_ID = "delete from Network n where n.id = :id";
+            static final String GET_WITH_DEVICES_AND_DEVICE_CLASSES =
+                    "select n from Network n " +
+                            "left join fetch n.devices " +
+                            "where n.id = :id";
+        }
+
+        public static interface Parameters {
+            public static final String NAME = "name";
+            public static final String ID = "id";
+        }
     }
 }

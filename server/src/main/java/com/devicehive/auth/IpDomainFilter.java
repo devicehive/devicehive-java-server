@@ -13,6 +13,7 @@ import java.net.InetAddress;
 @WebFilter(urlPatterns = "/*", asyncSupported = true)
 public class IpDomainFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(IpDomainFilter.class);
+    private static final String originHeader = "Origin";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -24,12 +25,12 @@ public class IpDomainFilter implements Filter {
         String address = request.getRemoteAddr();
         InetAddress inetAddress = InetAddress.getByName(address);
         ThreadLocalVariablesKeeper.setClientIP(inetAddress);
-        if (request instanceof HttpServletRequest){
-            String url = ((HttpServletRequest)request).getRequestURL().toString();
-            String method = ((HttpServletRequest)request).getMethod();
+        if (request instanceof HttpServletRequest) {
+            String url = ((HttpServletRequest) request).getRequestURL().toString();
+            String method = ((HttpServletRequest) request).getMethod();
             logger.debug("Current thread : {}. URI : {}, Method : {}", Thread.currentThread().getName(), url, method);
             HttpServletRequest httpServletRequest = HttpServletRequest.class.cast(request);
-            String canonicalHostName = httpServletRequest.getHeader("Origin");
+            String canonicalHostName = httpServletRequest.getHeader(originHeader);
             ThreadLocalVariablesKeeper.setHostName(canonicalHostName);
         }
         chain.doFilter(request, response);

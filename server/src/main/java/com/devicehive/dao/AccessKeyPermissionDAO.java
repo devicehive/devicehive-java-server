@@ -10,6 +10,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import static com.devicehive.model.AccessKeyPermission.Queries.Names.DELETE_BY_ACCESS_KEY;
+import static com.devicehive.model.AccessKeyPermission.Queries.Parameters.ACCESS_KEY;
+
 @Stateless
 public class AccessKeyPermissionDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
@@ -21,8 +24,8 @@ public class AccessKeyPermissionDAO {
     }
 
     public int deleteByAccessKey(AccessKey accessKey){
-        Query query = em.createNamedQuery("AccessKeyPermission.deleteByAccessKey");
-        query.setParameter("accessKey", accessKey);
+        Query query = em.createNamedQuery(DELETE_BY_ACCESS_KEY);
+        query.setParameter(ACCESS_KEY, accessKey);
         return query.executeUpdate();
     }
 }

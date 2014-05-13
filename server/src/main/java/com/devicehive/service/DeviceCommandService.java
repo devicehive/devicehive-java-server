@@ -4,14 +4,11 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
-import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.SubscriptionFilterInternal;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.websockets.util.AsyncMessageSupplier;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -47,16 +44,6 @@ public class DeviceCommandService {
     @EJB
     public void setCommandDAO(DeviceCommandDAO commandDAO) {
         this.commandDAO = commandDAO;
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceCommand getWithDevice(@NotNull long id) {
-        return commandDAO.getWithDevice(id);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
-        return commandDAO.getWithDeviceAndUser(id);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

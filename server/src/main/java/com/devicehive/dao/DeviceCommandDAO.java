@@ -5,6 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
 
@@ -15,10 +16,26 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_DEVICE_AND_USER;
+import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_FOREIGN_KEY;
+import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_ID;
+import static com.devicehive.model.DeviceCommand.Queries.Names.GET_BY_DEVICE_UUID_AND_ID;
+import static com.devicehive.model.DeviceCommand.Queries.Parameters.DEVICE;
+import static com.devicehive.model.DeviceCommand.Queries.Parameters.GUID;
+import static com.devicehive.model.DeviceCommand.Queries.Parameters.ID;
+import static com.devicehive.model.DeviceCommand.Queries.Parameters.USER;
 
 @Stateless
 @LogExecutionTime
@@ -34,21 +51,21 @@ public class DeviceCommandDAO {
     }
 
     public boolean deleteById(@NotNull Long id) {
-        Query query = em.createNamedQuery("DeviceCommand.deleteById");
-        query.setParameter("id", id);
+        Query query = em.createNamedQuery(DELETE_BY_ID);
+        query.setParameter(ID, id);
         return query.executeUpdate() != 0;
     }
 
     public int deleteByFK(@NotNull Device device) {
-        Query query = em.createNamedQuery("DeviceCommand.deleteByFK");
-        query.setParameter("device", device);
+        Query query = em.createNamedQuery(DELETE_BY_FOREIGN_KEY);
+        query.setParameter(DEVICE, device);
         return query.executeUpdate();
     }
 
     public int deleteCommand(@NotNull Device device, @NotNull User user) {
-        Query query = em.createNamedQuery("DeviceCommand.deleteByDeviceAndUser");
-        query.setParameter("user", user);
-        query.setParameter("device", device);
+        Query query = em.createNamedQuery(DELETE_BY_DEVICE_AND_USER);
+        query.setParameter(USER, user);
+        query.setParameter(DEVICE, device);
         return query.executeUpdate();
     }
 
@@ -58,23 +75,11 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceCommand getWithDevice(@NotNull long id) {
-
-        TypedQuery<DeviceCommand> query = em.createNamedQuery("DeviceCommand.getWithDeviceById", DeviceCommand.class);
-        query.setParameter("id", id);
-        CacheHelper.cacheable(query);
-        List<DeviceCommand> resultList = query.getResultList();
-
-        return resultList.isEmpty() ? null : resultList.get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {
-
         TypedQuery<DeviceCommand> query =
-                em.createNamedQuery("DeviceCommand.getByDeviceUuidAndId", DeviceCommand.class);
-        query.setParameter("id", id);
-        query.setParameter("guid", guid);
+                em.createNamedQuery(GET_BY_DEVICE_UUID_AND_ID, DeviceCommand.class);
+        query.setParameter(ID, id);
+        query.setParameter(GUID, guid);
         CacheHelper.cacheable(query);
         List<DeviceCommand> resultList = query.getResultList();
 
@@ -82,55 +87,18 @@ public class DeviceCommandDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceCommand getWithDeviceAndUser(@NotNull long id) {
-
-        TypedQuery<DeviceCommand> query =
-                em.createNamedQuery("DeviceCommand.getWithDeviceAndUserById", DeviceCommand.class);
-        query.setParameter("id", id);
-
-        List<DeviceCommand> resultList = query.getResultList();
-
-        return resultList.isEmpty() ? null : resultList.get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> findCommands(Map<Device, Set<String>> deviceNamesFilters, @NotNull Timestamp timestamp,
-                                            HivePrincipal principal) {
+    public List<DeviceCommand> findCommands(Collection<Device> devices, Collection<String> names,
+                                            @NotNull Timestamp timestamp, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
         Root<DeviceCommand> from = criteria.from(DeviceCommand.class);
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
-        appendPrincipalPredicates(predicates, principal, from);
-        if (deviceNamesFilters != null && !deviceNamesFilters.isEmpty()) {
-            List<Predicate> filterPredicates = new ArrayList<>();
-            for (Map.Entry<Device, Set<String>> entry : deviceNamesFilters.entrySet()) {
-                if (entry.getValue() != null && !entry.getValue().isEmpty())
-                    filterPredicates.add(
-                            criteriaBuilder.and(criteriaBuilder.equal(from.get("device"), entry.getKey()),
-                                    from.get("command").in(entry.getValue())));
-                else if (entry.getValue() == null)
-                    filterPredicates.add(criteriaBuilder.equal(from.get("device"), entry.getKey()));
-
-            }
-            predicates.add(criteriaBuilder.or(filterPredicates.toArray(new Predicate[filterPredicates.size()])));
-        }
-        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
-        return em.createQuery(criteria).getResultList();
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> findCommands(Collection<Device> devices, Collection<String> names, @NotNull Timestamp timestamp, HivePrincipal principal) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
-        Root<DeviceCommand> from = criteria.from(DeviceCommand.class);
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
+        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get(DeviceCommand.TIMESTAMP_COLUMN), timestamp));
         if (names != null) {
-            predicates.add(from.get("command").in(names));
+            predicates.add(from.get(DeviceCommand.COMMAND_COLUMN).in(names));
         }
         if (devices != null) {
-            predicates.add(from.join("device").in(devices));
+            predicates.add(from.join(DeviceCommand.DEVICE_COLUMN).in(devices));
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -152,26 +120,26 @@ public class DeviceCommandDAO {
         CriteriaQuery<DeviceCommand> criteria = criteriaBuilder.createQuery(DeviceCommand.class);
         Root<DeviceCommand> from = criteria.from(DeviceCommand.class);
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.equal(from.get("device"), device));
+        predicates.add(criteriaBuilder.equal(from.get(DeviceCommand.DEVICE_COLUMN), device));
         //where
         if (start != null) {
-            predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), start));
+            predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get(DeviceCommand.TIMESTAMP_COLUMN), start));
         }
         if (end != null) {
-            predicates.add(criteriaBuilder.lessThan(from.<Timestamp>get("timestamp"), end));
+            predicates.add(criteriaBuilder.lessThan(from.<Timestamp>get(DeviceCommand.TIMESTAMP_COLUMN), end));
         }
         if (command != null) {
-            predicates.add(criteriaBuilder.equal(from.get("command"), command));
+            predicates.add(criteriaBuilder.equal(from.get(DeviceCommand.COMMAND_COLUMN), command));
         }
         if (status != null) {
-            predicates.add(criteriaBuilder.equal(from.get("status"), status));
+            predicates.add(criteriaBuilder.equal(from.get(DeviceCommand.STATUS_COLUMN), status));
         }
 
         //groupBy
         if (gridInterval != null) {
             Subquery<Timestamp> timestampSubquery = gridIntervalFilter(criteriaBuilder, criteria,
-                    gridInterval, from.<Timestamp>get("timestamp"));
-            predicates.add(from.get("timestamp").in(timestampSubquery));
+                    gridInterval, from.<Timestamp>get(DeviceCommand.TIMESTAMP_COLUMN));
+            predicates.add(from.get(DeviceCommand.TIMESTAMP_COLUMN).in(timestampSubquery));
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         //orderBy
@@ -201,11 +169,11 @@ public class DeviceCommandDAO {
                                                    Expression<Timestamp> exp) {
         Subquery<Timestamp> timestampSubquery = criteria.subquery(Timestamp.class);
         Root<DeviceCommand> subqueryFrom = timestampSubquery.from(DeviceCommand.class);
-        timestampSubquery.select(cb.least(subqueryFrom.<Timestamp>get("timestamp")));
+        timestampSubquery.select(cb.least(subqueryFrom.<Timestamp>get(DeviceCommand.TIMESTAMP_COLUMN)));
         List<Expression<?>> groupExpressions = new ArrayList<>();
         groupExpressions.add(cb.function("get_first_timestamp", Long.class, cb.literal(gridInterval), exp));
-        groupExpressions.add(subqueryFrom.get("device"));
-        groupExpressions.add(subqueryFrom.get("command"));
+        groupExpressions.add(subqueryFrom.get(DeviceCommand.DEVICE_COLUMN));
+        groupExpressions.add(subqueryFrom.get(DeviceCommand.COMMAND_COLUMN));
         timestampSubquery.groupBy(groupExpressions);
         return timestampSubquery;
     }
@@ -219,10 +187,16 @@ public class DeviceCommandDAO {
                 user = principal.getKey().getUser();
             }
             if (user != null && !user.isAdmin()) {
-                predicates.add(from.join("device").join("network").join("users").in(user));
+                Predicate userPredicate = from.join(DeviceCommand.DEVICE_COLUMN)
+                        .join(Device.NETWORK_COLUMN)
+                        .join(Network.USERS_ASSOCIATION).in(user);
+                predicates.add(userPredicate);
             }
             if (principal.getDevice() != null) {
-                predicates.add(from.join("device").get("id").in(principal.getDevice().getId()));
+                Predicate devicePredicate = from.join(DeviceCommand.DEVICE_COLUMN)
+                        .get(DeviceCommand.ID_COLUMN)
+                        .in(principal.getDevice().getId());
+                predicates.add(devicePredicate);
             }
             if (principal.getKey() != null) {
 

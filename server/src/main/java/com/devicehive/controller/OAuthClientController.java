@@ -16,12 +16,33 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.configuration.Constants.DOMAIN;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.configuration.Constants.NAME_PATTERN;
+import static com.devicehive.configuration.Constants.OAUTH_ID;
+import static com.devicehive.configuration.Constants.SKIP;
+import static com.devicehive.configuration.Constants.SORT_FIELD;
+import static com.devicehive.configuration.Constants.SORT_ORDER;
+import static com.devicehive.configuration.Constants.TAKE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_LISTED_ADMIN;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_PUBLISHED;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/oauth/client")
 @LogExecutionTime
@@ -37,27 +58,24 @@ public class OAuthClientController {
 
     @GET
     @PermitAll
-    public Response list(@QueryParam("name") String name,
-                         @QueryParam("namePattern") String namePattern,
-                         @QueryParam("domain") String domain,
-                         @QueryParam("oauthId") String oauthId,
-                         @QueryParam("sortField") String sortField,
-                         @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
-                         @QueryParam("take") Integer take,
-                         @QueryParam("skip") Integer skip) {
+    public Response list(@QueryParam(NAME) String name,
+                         @QueryParam(NAME_PATTERN) String namePattern,
+                         @QueryParam(DOMAIN) String domain,
+                         @QueryParam(OAUTH_ID) String oauthId,
+                         @QueryParam(SORT_FIELD) String sortField,
+                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                         @QueryParam(TAKE) Integer take,
+                         @QueryParam(SKIP) Integer skip) {
         logger.debug("OAuthClient list requested. Params: name {}, namePattern {}, domain {}, oauthId {}, " +
                 "sortField {}, sortOrder {}, take {}, skip {}", name, namePattern, domain, oauthId, sortField,
                 sortOrder, take, skip);
 
-        if (sortField != null && !sortField.equalsIgnoreCase("ID") && !sortField.equalsIgnoreCase("Name") &&
-                !sortField.equalsIgnoreCase("Domain") && !sortField.equalsIgnoreCase("OAuthID")) {
+        if (sortField != null && !sortField.equalsIgnoreCase(ID) && !sortField.equalsIgnoreCase(NAME) &&
+                !sortField.equalsIgnoreCase(DOMAIN) && !sortField.equalsIgnoreCase(OAUTH_ID)) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
-            if (sortField.equalsIgnoreCase("OAuthID")) {
-                sortField = "oauthId";
-            }
         }
 
         List<OAuthClient> result =
@@ -76,7 +94,7 @@ public class OAuthClientController {
     @GET
     @Path("/{id}")
     @PermitAll
-    public Response get(@PathParam("id") long clientId) {
+    public Response get(@PathParam(ID) long clientId) {
         logger.debug("OAuthClient get requested. Client id: {}", clientId);
         OAuthClient existing = clientService.get(clientId);
         if (existing == null) {
@@ -108,7 +126,7 @@ public class OAuthClientController {
     @PUT
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response update(@PathParam("id") Long clientId, OAuthClientUpdate clientToUpdate) {
+    public Response update(@PathParam(ID) Long clientId, OAuthClientUpdate clientToUpdate) {
         logger.debug("OAuthClient update requested. Client id: {}", clientId);
         clientService.update(clientToUpdate, clientId);
         logger.debug("OAuthClient update proceed successfully. Client id: {}", clientId);
@@ -118,7 +136,7 @@ public class OAuthClientController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response delete(@PathParam("id") Long clientId) {
+    public Response delete(@PathParam(ID) Long clientId) {
         logger.debug("OAuthClient delete requested");
         clientService.delete(clientId);
         logger.debug("OAuthClient with id = {} is deleted", clientId);

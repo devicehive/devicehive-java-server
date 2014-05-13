@@ -15,6 +15,9 @@ import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import javax.websocket.Session;
 
+import static com.devicehive.configuration.Constants.DEVICE_ID;
+import static com.devicehive.configuration.Constants.DEVICE_KEY;
+
 @WebsocketController
 @Interceptor
 @Priority(Interceptor.Priority.APPLICATION)
@@ -31,11 +34,11 @@ public class AuthenticationInterceptor {
         } else {
             JsonObject request = ThreadLocalVariablesKeeper.getRequest();
             String deviceId = null, deviceKey = null;
-            if (request.get("deviceId") != null) {
-                deviceId = request.get("deviceId").getAsString();
+            if (request.get(DEVICE_ID) != null) {
+                deviceId = request.get(DEVICE_ID).getAsString();
             }
-            if (request.get("deviceKey") != null) {
-                deviceKey = request.get("deviceKey").getAsString();
+            if (request.get(DEVICE_KEY) != null) {
+                deviceKey = request.get(DEVICE_KEY).getAsString();
             }
             if (deviceId != null && deviceKey != null) {
                 Device device = deviceService.authenticate(deviceId, deviceKey);

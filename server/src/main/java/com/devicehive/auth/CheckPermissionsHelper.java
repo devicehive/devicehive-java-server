@@ -71,7 +71,7 @@ public class CheckPermissionsHelper {
     public static boolean checkDomains(Set<AccessKeyPermission> permissions) {
         boolean isDomainAllowed = false;
         String clientDomain = ThreadLocalVariablesKeeper.getHostName();
-        if (clientDomain == null) {    //???  cors only?
+        if (clientDomain == null) {
             return true;
         }
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();

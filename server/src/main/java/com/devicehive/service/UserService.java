@@ -220,18 +220,6 @@ public class UserService {
         return userDAO.findUserWithNetworks(id);
     }
 
-    /**
-     * Retrieves user with networks by id, if there is no networks user hass access to
-     * networks will be represented by empty set
-     *
-     * @param login user login
-     * @return User model with networks, or null, if there is no such user
-     */
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User findUserWithNetworksByLogin(@NotNull String login) {
-        return userDAO.findUserWithNetworksByLogin(login);
-    }
-
     public User createUser(@NotNull User user, String password) {
         if (user.getId() != null) {
             throw new HiveException("Id cannot be specified for new user", BAD_REQUEST.getStatusCode());
@@ -260,19 +248,6 @@ public class UserService {
      */
     public boolean deleteUser(long id) {
         return userDAO.delete(id);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    @Deprecated
-    public boolean checkPermissions(String deviceId, User currentUser, Device currentDevice) {
-        if (currentDevice != null) {
-            return deviceId.equals(currentDevice.getGuid());
-        } else {
-            if (currentUser.getRole().equals(UserRole.CLIENT)) {
-                return userDAO.hasAccessToDevice(currentUser, deviceId);
-            }
-        }
-        return true;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

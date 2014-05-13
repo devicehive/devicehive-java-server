@@ -1,8 +1,10 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.UserStatus;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.Stateless;
@@ -19,9 +21,18 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
+import static com.devicehive.model.User.Queries.Names.DELETE_BY_ID;
+import static com.devicehive.model.User.Queries.Names.FIND_BY_NAME;
+import static com.devicehive.model.User.Queries.Names.GET_WITH_NETWORKS_BY_ID;
+import static com.devicehive.model.User.Queries.Names.HAS_ACCESS_TO_DEVICE;
+import static com.devicehive.model.User.Queries.Names.HAS_ACCESS_TO_NETWORK;
+import static com.devicehive.model.User.Queries.Parameters.DEVICE;
+import static com.devicehive.model.User.Queries.Parameters.ID;
+import static com.devicehive.model.User.Queries.Parameters.LOGIN;
+import static com.devicehive.model.User.Queries.Parameters.NETWORK;
+import static com.devicehive.model.User.Queries.Parameters.USER;
 
 @Stateless
 public class UserDAO {
@@ -39,13 +50,12 @@ public class UserDAO {
      */
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findByLogin(String login) {
-        TypedQuery<User> query = em.createNamedQuery("User.findByName", User.class);
-        query.setParameter("login", login);
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_NAME, User.class);
+        query.setParameter(LOGIN, login);
         CacheHelper.cacheable(query);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
     }
-
 
     /**
      * @param login        user login ignored, when loginPattern is specified
@@ -69,19 +79,19 @@ public class UserDAO {
         List<Predicate> predicates = new ArrayList<>();
 
         if (loginPattern != null) {
-            predicates.add(criteriaBuilder.like(from.<String>get("login"), loginPattern));
+            predicates.add(criteriaBuilder.like(from.<String>get(User.LOGIN_COLUMN), loginPattern));
         } else {
             if (login != null) {
-                predicates.add(criteriaBuilder.equal(from.get("login"), login));
+                predicates.add(criteriaBuilder.equal(from.get(User.LOGIN_COLUMN), login));
             }
         }
 
         if (role != null) {
-            predicates.add(criteriaBuilder.equal(from.get("role"), role));
+            predicates.add(criteriaBuilder.equal(from.get(User.ROLE_COLUMN), role));
         }
 
         if (status != null) {
-            predicates.add(criteriaBuilder.equal(from.get("status"), status));
+            predicates.add(criteriaBuilder.equal(from.get(User.STATUS_COLUMN), status));
         }
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -115,59 +125,39 @@ public class UserDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User findUserWithNetworks(Long id) {
-        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworksById", User.class);
-        query.setParameter("id", id);
+        TypedQuery<User> query = em.createNamedQuery(GET_WITH_NETWORKS_BY_ID, User.class);
+        query.setParameter(ID, id);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
 
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User findUserWithNetworksByLogin(String login) {
-        TypedQuery<User> query = em.createNamedQuery("User.getWithNetworks", User.class);
-        query.setParameter("login", login);
-        List<User> users = query.getResultList();
-        return users.isEmpty() ? null : users.get(0);
-
-    }
-
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToNetwork(User user, Network network) {
-        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToNetwork", Long.class);
-        query.setParameter("user", user);
-        query.setParameter("network", network);
+        TypedQuery<Long> query = em.createNamedQuery(HAS_ACCESS_TO_NETWORK, Long.class);
+        query.setParameter(USER, user);
+        query.setParameter(NETWORK, network);
         Long count = query.getSingleResult();
         return count != null && count > 0;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToDevice(User user, Device device) {
-        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToDevice", Long.class);
-        query.setParameter("user", user);
-        query.setParameter("device", device);
+        TypedQuery<Long> query = em.createNamedQuery(HAS_ACCESS_TO_DEVICE, Long.class);
+        query.setParameter(USER, user);
+        query.setParameter(DEVICE, device);
         Long count = query.getSingleResult();
         return count != null && count > 0;
     }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean hasAccessToDevice(User user, String deviceId) {
-        TypedQuery<Long> query = em.createNamedQuery("User.hasAccessToDeviceByGuid", Long.class);
-        query.setParameter("user", user);
-        query.setParameter("guid", deviceId);
-        Long count = query.getSingleResult();
-        return count != null && count > 0;
-    }
-
 
     public boolean delete(@NotNull long id) {
-        Query query = em.createNamedQuery("User.deleteById");
-        query.setParameter("id", id);
+        Query query = em.createNamedQuery(DELETE_BY_ID);
+        query.setParameter(ID, id);
         return query.executeUpdate() != 0;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User create(User user){
+    public User create(User user) {
         em.persist(user);
         return user;
     }

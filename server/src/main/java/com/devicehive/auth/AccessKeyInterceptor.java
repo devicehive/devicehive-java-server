@@ -11,11 +11,12 @@ import javax.annotation.Priority;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
-import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
+
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Interceptor
 @AllowedKeyAction
@@ -34,18 +35,18 @@ public class AccessKeyInterceptor {
                 return context.proceed();
             }
             if (key.getUser() == null || !key.getUser().getStatus().equals(UserStatus.ACTIVE)) {
-                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+                throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }
             Timestamp expirationDate = key.getExpirationDate();
             if (expirationDate != null && expirationDate.before(new Timestamp(System.currentTimeMillis()))){
-                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+                throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }
             Method method = context.getMethod();
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
             List<AllowedKeyAction.Action> actions = Arrays.asList(allowedActionAnnotation.action());
             boolean isAllowed = CheckPermissionsHelper.checkAllPermissions(key, actions);
             if (!isAllowed) {
-                throw new HiveException("Not authorized!", Response.Status.UNAUTHORIZED.getStatusCode());
+                throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }
             return context.proceed();
         } finally {

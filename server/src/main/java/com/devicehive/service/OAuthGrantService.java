@@ -53,10 +53,6 @@ public class OAuthGrantService {
     public OAuthGrant save(@NotNull OAuthGrant grant, @NotNull User user) {
         validate(grant);
         OAuthClient client = clientService.getByOAuthID(grant.getClient().getOauthId());
-        //is it required?
-//        if (client != null && !client.getRedirectUri().equals(grant.getRedirectUri())) {
-//            throw new HiveException("Invalid redirect URI value!", SC_BAD_REQUEST);
-//        }
         grant.setClient(client);
         if (grant.getAccessType() == null) {
             grant.setAccessType(AccessType.ONLINE);

@@ -16,6 +16,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
+import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.configuration.Constants.VALUE;
+
 /**
  * Provide API information
  */
@@ -33,14 +36,14 @@ public class ConfigurationController {
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/set")
-    public Response setPropertyPost(@QueryParam("name") @NotNull String name, @QueryParam("value") String value) {
+    public Response setPropertyPost(@QueryParam(NAME) @NotNull String name, @QueryParam(VALUE) String value) {
         return setProperty(name, value);
     }
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/set")
-    public Response setPropertyGet(@QueryParam("name") @NotNull String name, @QueryParam("value") String value) {
+    public Response setPropertyGet(@QueryParam(NAME) @NotNull String name, @QueryParam(VALUE) String value) {
         return setProperty(name, value);
     }
 

@@ -5,6 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
 
@@ -20,7 +21,14 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static com.devicehive.model.DeviceNotification.Queries.Names.DELETE_BY_FK;
+import static com.devicehive.model.DeviceNotification.Queries.Names.DELETE_BY_ID;
+import static com.devicehive.model.DeviceNotification.Queries.Parameters.DEVICE;
+import static com.devicehive.model.DeviceNotification.Queries.Parameters.ID;
 
 @Stateless
 @LogExecutionTime
@@ -39,19 +47,20 @@ public class DeviceNotificationDAO {
         return em.find(DeviceNotification.class, id);
     }
 
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> findNotifications(Collection<Device> devices, Collection<String> names, @NotNull Timestamp timestamp, HivePrincipal principal) {
+    public List<DeviceNotification> findNotifications(Collection<Device> devices, Collection<String> names,
+                                                      @NotNull Timestamp timestamp, HivePrincipal principal) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get("timestamp"), timestamp));
+        predicates
+                .add(criteriaBuilder.greaterThan(from.<Timestamp>get(DeviceNotification.TIMESTAMP_COLUMN), timestamp));
         if (names != null) {
-            predicates.add(from.get("notification").in(names));
+            predicates.add(from.get(DeviceNotification.NOTIFICATION_COLUMN).in(names));
         }
         if (devices != null) {
-            predicates.add(from.join("device").in(devices));
+            predicates.add(from.join(DeviceNotification.DEVICE_COLUMN).in(devices));
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -172,14 +181,14 @@ public class DeviceNotificationDAO {
     }
 
     public boolean deleteNotification(@NotNull long id) {
-        Query query = em.createNamedQuery("DeviceNotification.deleteById");
-        query.setParameter("id", id);
+        Query query = em.createNamedQuery(DELETE_BY_ID);
+        query.setParameter(ID, id);
         return query.executeUpdate() != 0;
     }
 
     public int deleteNotificationByFK(@NotNull Device device) {
-        Query query = em.createNamedQuery("DeviceNotification.deleteByFK");
-        query.setParameter("device", device);
+        Query query = em.createNamedQuery(DELETE_BY_FK);
+        query.setParameter(DEVICE, device);
         return query.executeUpdate();
     }
 
@@ -192,10 +201,15 @@ public class DeviceNotificationDAO {
                 user = principal.getKey().getUser();
             }
             if (user != null && !user.isAdmin()) {
-                predicates.add(from.join("device").join("network").join("users").in(user));
+                Predicate userPredicate = from.join(DeviceNotification.DEVICE_COLUMN)
+                        .join(Device.NETWORK_COLUMN).join(Network.USERS_ASSOCIATION).in(user);
+                predicates.add(userPredicate);
             }
             if (principal.getDevice() != null) {
-                predicates.add(from.join("device").get("id").in(principal.getDevice().getId()));
+                Predicate devicePredicate = from.join(DeviceNotification.DEVICE_COLUMN)
+                        .get(DeviceNotification.ID_COLUMN)
+                        .in(principal.getDevice().getId());
+                predicates.add(devicePredicate);
             }
             if (principal.getKey() != null) {
 
@@ -204,10 +218,17 @@ public class DeviceNotificationDAO {
                         .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getDeviceGuids() != null) {
-                        filter.add(from.join("device").get("guid").in(extraFilter.getDeviceGuids()));
+                        filter.add(
+                                from.join(DeviceNotification.DEVICE_COLUMN).get(Device.GUID_COLUMN)
+                                        .in(extraFilter.getDeviceGuids()
+                                        ));
                     }
                     if (extraFilter.getNetworkIds() != null) {
-                        filter.add(from.join("device").join("network").get("id").in(extraFilter.getNetworkIds()));
+                        Predicate networkFilter =
+                                from.join(DeviceNotification.DEVICE_COLUMN)
+                                        .join(Device.NETWORK_COLUMN)
+                                        .get(Network.ID_COLUMN).in(extraFilter.getNetworkIds());
+                        filter.add(networkFilter);
                     }
                     extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
                 }

@@ -10,8 +10,15 @@ import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
-import com.devicehive.messages.subscriptions.*;
-import com.devicehive.model.*;
+import com.devicehive.messages.subscriptions.CommandSubscription;
+import com.devicehive.messages.subscriptions.CommandSubscriptionStorage;
+import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
+import com.devicehive.messages.subscriptions.CommandUpdateSubscriptionStorage;
+import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.User;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
@@ -21,7 +28,6 @@ import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,17 +35,34 @@ import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.*;
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_COMMAND;
+import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_COMMAND;
+import static com.devicehive.auth.AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND;
+import static com.devicehive.configuration.Constants.*;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -54,7 +77,6 @@ public class DeviceCommandController {
     private DeviceService deviceService;
     private SubscriptionManager subscriptionManager;
     private TimestampService timestampService;
-
     @EJB
     private AsynchronousExecutor executor;
 
@@ -72,6 +94,21 @@ public class DeviceCommandController {
     public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
         this.subscriptionManager = subscriptionManager;
     }
+
+    /*
+    @POST
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @Path("/command/poll")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void pollManyPost(
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @QueryParam("waitTimeout") final long timeout,
+            final SubscriptionFilterExternal external,
+            @Suspended final AsyncResponse asyncResponse) {
+        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);//(external);
+        poll(timeout, subscriptionFilter, asyncResponse, true);
+    }
+    */
 
     @EJB
     public void setTimestampService(TimestampService timestampService) {
@@ -91,15 +128,12 @@ public class DeviceCommandController {
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     @Path("/{deviceGuid}/command/poll")
     public void poll(
-            @PathParam("deviceGuid") final String deviceGuid,
-            @QueryParam("names") final String namesString,
-            @QueryParam("timestamp") final Timestamp timestamp,
+            @PathParam(DEVICE_GUID) final String deviceGuid,
+            @QueryParam(NAMES) final String namesString,
+            @QueryParam(TIMESTAMP) final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") final long timeout,
+            @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
-
-        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal
-                .createForSingleDevice(deviceGuid, ParseUtil.getList(namesString), timestamp);
         poll(timeout, deviceGuid, namesString, timestamp, asyncResponse, false);
     }
 
@@ -107,31 +141,14 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
     public void pollMany(
-            @QueryParam("deviceGuids") String deviceGuidsString,
-            @QueryParam("names") final String namesString,
-            @QueryParam("timestamp") final Timestamp timestamp,
+            @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
+            @QueryParam(NAMES) final String namesString,
+            @QueryParam(TIMESTAMP) final Timestamp timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") final long timeout,
+            @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilterInternal subscriptionFilter =
-                SubscriptionFilterInternal.createForManyDevices(ParseUtil.getList(deviceGuidsString), timestamp);
         poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
     }
-
-    /*
-    @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    @Path("/command/poll")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void pollManyPost(
-            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") final long timeout,
-            final SubscriptionFilterExternal external,
-            @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);//(external);
-        poll(timeout, subscriptionFilter, asyncResponse, true);
-    }
-    */
 
     private void poll(final long timeout,
                       final String deviceGuidsString,
@@ -143,7 +160,8 @@ public class DeviceCommandController {
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug("Device command poll many proceed successfully for devices: {} with names, timestamp {}", deviceGuidsString, namesString, timestamp);
+                logger.debug("Device command poll many proceed successfully for devices: {} with names, timestamp {}",
+                        deviceGuidsString, namesString, timestamp);
             }
         });
 
@@ -180,7 +198,8 @@ public class DeviceCommandController {
                                                      List<String> names,
                                                      Timestamp timestamp,
                                                      long timeout) {
-        logger.debug("Device command pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
+        logger.debug("Device command pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp,
+                timeout);
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
@@ -226,10 +245,10 @@ public class DeviceCommandController {
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     @Path("/{deviceGuid}/command/{commandId}/poll")
     public void wait(
-            @PathParam("deviceGuid") final String deviceGuid,
-            @PathParam("commandId") final Long commandId,
+            @PathParam(DEVICE_GUID) final String deviceGuid,
+            @PathParam(COMMAND_ID) final Long commandId,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") final long timeout,
+            @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
 
         final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
@@ -361,35 +380,29 @@ public class DeviceCommandController {
     @Path("/{deviceGuid}/command")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
-    public Response query(@PathParam("deviceGuid") String guid,
-                          @QueryParam("start") Timestamp start,
-                          @QueryParam("end") Timestamp end,
-                          @QueryParam("command") String command,
-                          @QueryParam("status") String status,
-                          @QueryParam("sortField") String sortField,
-                          @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
-                          @QueryParam("take") Integer take,
-                          @QueryParam("skip") Integer skip,
-                          @QueryParam("gridInterval") Integer gridInterval) {
+    public Response query(@PathParam(DEVICE_GUID) String guid,
+                          @QueryParam(START) Timestamp start,
+                          @QueryParam(END) Timestamp end,
+                          @QueryParam(COMMAND) String command,
+                          @QueryParam(STATUS) String status,
+                          @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
+                          @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                          @QueryParam(TAKE) Integer take,
+                          @QueryParam(SKIP) Integer skip,
+                          @QueryParam(GRID_INTERVAL) Integer gridInterval) {
 
         logger.debug("Device command query requested");
         if (sortOrder == null) {
             sortOrder = true;
         }
 
-        if (!"Timestamp".equals(sortField) && !"Command".equals(sortField) && !"Status".equals(sortField) &&
-                sortField != null) {
+        if (!TIMESTAMP.equalsIgnoreCase(sortField)
+                && !COMMAND.equalsIgnoreCase(sortField)
+                && !STATUS.equalsIgnoreCase(sortField)) {
             logger.debug("Device command query failed. Bad request for sortField.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
-        } else if (sortField != null) {
-            sortField = StringUtils.uncapitalize(sortField);
         }
-
-        if (sortField == null) {
-            sortField = "timestamp";
-        }
-
         sortField = sortField.toLowerCase();
 
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
@@ -426,8 +439,8 @@ public class DeviceCommandController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
-    @Path("/{deviceGuid}/command/{id}")
-    public Response get(@PathParam("deviceGuid") String guid, @PathParam("id") long id) {
+    @Path("/{deviceGuid}/command/{commandId}")
+    public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long id) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
 
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
@@ -483,15 +496,15 @@ public class DeviceCommandController {
      * }
      * </code>
      *
-     * @param guid
-     * @param deviceCommand
+     * @param guid          device guid
+     * @param deviceCommand device command resource
      */
     @POST
     @Path("/{deviceGuid}/command")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insert(@PathParam("deviceGuid") String guid,
+    public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand) {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
@@ -528,11 +541,11 @@ public class DeviceCommandController {
      * @return If successful, this method returns an empty response body.
      */
     @PUT
-    @Path("/{deviceGuid}/command/{id}")
+    @Path("/{deviceGuid}/command/{commandId}")
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = {UPDATE_DEVICE_COMMAND})
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("deviceGuid") String guid, @PathParam("id") long commandId,
+    public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command) {
 
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();

@@ -80,10 +80,10 @@ public class HiveServerEndpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id {}, close reason is {} ", session.getId(), closeReason);
-        for (UUID subId : WebsocketSession.getCommandSubscriptions(session)) {
+        for (UUID subId : WebsocketSession.getCommandSubscriptions(session).keySet()) {
             subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
         }
-        for (UUID subId : WebsocketSession.getNotificationSubscriptions(session)) {
+        for (UUID subId : WebsocketSession.getNotificationSubscriptions(session).keySet()) {
             subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
         }
     }

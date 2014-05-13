@@ -164,8 +164,6 @@ public class AbstractStorageTest {
                 add(ImmutablePair.of(eventSourceId2, subscriberId));
                 add(ImmutablePair.of(Constants.NULL_ID_SUBSTITUTE, subscriberIdOther));
             }
-
-            private static final long serialVersionUID = -3382403110218581241L;
         };
 
         storage.removePairs(pairsToRemove);

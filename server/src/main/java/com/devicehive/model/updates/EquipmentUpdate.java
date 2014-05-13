@@ -7,27 +7,27 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.NullableWrapper;
 import com.google.gson.annotations.SerializedName;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
 
 public class EquipmentUpdate implements HiveEntity {
     private static final long serialVersionUID = -1048095377970919818L;
-    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
+    @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     Long id;
 
     @SerializedName("name")
-    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
+    @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private NullableWrapper<String> name;
 
     @SerializedName("code")
-    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
+    @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private NullableWrapper<String> code;
 
     @SerializedName("type")
-    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
+    @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private NullableWrapper<String> type;
 
     @SerializedName("data")
-    @JsonPolicyDef(EQUIPMENTCLASS_PUBLISHED)
+    @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private NullableWrapper<JsonStringWrapper> data;
 
     public Long getId() {

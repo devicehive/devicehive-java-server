@@ -34,4 +34,6 @@ public class NotificationSubscription extends Subscription<Long> {
     public Set<String> getNotificationNames() {
         return notificationNames;
     }
+
+
 }

@@ -2,7 +2,14 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.*;
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -11,11 +18,14 @@ import java.sql.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.devicehive.model.Configuration.Queries.Names;
+import static com.devicehive.model.Configuration.Queries.Values;
+
 
 @Entity
 @Table(name = "configuration")
 @NamedQueries({
-        @NamedQuery(name = "Configuration.getAll", query = "select c from Configuration c")
+        @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL)
 })
 @Cacheable(false)
 public class Configuration implements HiveEntity {
@@ -27,13 +37,11 @@ public class Configuration implements HiveEntity {
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name should not be more than " +
             "32 symbols.")
     private String name;
-
     @Column
     @NotNull(message = "value field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of value should not be more than " +
             "128 symbols.")
     private String value;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -79,6 +87,9 @@ public class Configuration implements HiveEntity {
         return value;
     }
 
+    public void setValue(boolean value) {
+        this.value = Boolean.toString(value);
+    }
 
     public void setValue(String value) {
         this.value = value;
@@ -116,7 +127,13 @@ public class Configuration implements HiveEntity {
         this.value = Long.toString(value);
     }
 
-    public void setValue(boolean value) {
-        this.value = Boolean.toString(value);
+    public static class Queries {
+        public static interface Names {
+            static final String GET_ALL = "Configuration.getAll";
+        }
+
+        static interface Values {
+            public static final String GET_ALL = "select c from Configuration c";
+        }
     }
 }

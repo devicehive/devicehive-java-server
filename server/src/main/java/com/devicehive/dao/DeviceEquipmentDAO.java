@@ -14,6 +14,14 @@ import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+import static com.devicehive.model.DeviceEquipment.Queries.Names.DELETE_BY_FK;
+import static com.devicehive.model.DeviceEquipment.Queries.Names.DELETE_BY_ID;
+import static com.devicehive.model.DeviceEquipment.Queries.Names.GET_BY_DEVICE;
+import static com.devicehive.model.DeviceEquipment.Queries.Names.GET_BY_DEVICE_AND_CODE;
+import static com.devicehive.model.DeviceEquipment.Queries.Parameters.CODE;
+import static com.devicehive.model.DeviceEquipment.Queries.Parameters.DEVICE;
+import static com.devicehive.model.DeviceEquipment.Queries.Parameters.ID;
+
 @Stateless
 public class DeviceEquipmentDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
@@ -31,10 +39,9 @@ public class DeviceEquipmentDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceEquipment findByCodeAndDevice(String code, Device device) {
-        TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByDeviceAndCode",
-                DeviceEquipment.class);
-        query.setParameter("code", code);
-        query.setParameter("device", device);
+        TypedQuery<DeviceEquipment> query = em.createNamedQuery(GET_BY_DEVICE_AND_CODE, DeviceEquipment.class);
+        query.setParameter(CODE, code);
+        query.setParameter(DEVICE, device);
         CacheHelper.cacheable(query);
         List<DeviceEquipment> queryResult = query.getResultList();
         return queryResult.isEmpty() ? null : queryResult.get(0);
@@ -42,9 +49,8 @@ public class DeviceEquipmentDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceEquipment> findByFK(@NotNull Device device) {
-        TypedQuery<DeviceEquipment> query = em.createNamedQuery("DeviceEquipment.getByDevice",
-                DeviceEquipment.class);
-        query.setParameter("device", device);
+        TypedQuery<DeviceEquipment> query = em.createNamedQuery(GET_BY_DEVICE, DeviceEquipment.class);
+        query.setParameter(DEVICE, device);
         return query.getResultList();
     }
 
@@ -59,16 +65,14 @@ public class DeviceEquipmentDAO {
     }
 
     public boolean deleteDeviceEquipment(@NotNull Long id) {
-        Query query = em.createNamedQuery("DeviceEquipment.deleteById");
-        query.setParameter("id", id);
+        Query query = em.createNamedQuery(DELETE_BY_ID);
+        query.setParameter(ID, id);
         return query.executeUpdate() != 0;
     }
 
     public int deleteByFK(@NotNull Device device) {
-        Query query = em.createNamedQuery("DeviceEquipment.deleteByFK");
-        query.setParameter("device", device);
+        Query query = em.createNamedQuery(DELETE_BY_FK);
+        query.setParameter(DEVICE, device);
         return query.executeUpdate();
     }
-
-
 }

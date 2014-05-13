@@ -57,7 +57,7 @@ public class AuthorizationInterceptor {
                 allowed = method.isAnnotationPresent(PermitAll.class);
             }
             if (!allowed) {
-                throw new HiveException("Forbidden", Response.Status.FORBIDDEN.getStatusCode());
+                throw new HiveException(Response.Status.FORBIDDEN.getReasonPhrase(), Response.Status.FORBIDDEN.getStatusCode());
             }
             return context.proceed();
         } finally {

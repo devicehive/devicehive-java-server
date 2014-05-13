@@ -4,7 +4,22 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
-import javax.persistence.*;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -13,7 +28,16 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.model.DeviceCommand.Queries.Names;
+import static com.devicehive.model.DeviceCommand.Queries.Values;
 
 /**
  * TODO JavaDoc
@@ -21,16 +45,18 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device_command")
 @NamedQueries({
-        @NamedQuery(name = "DeviceCommand.deleteById", query = "delete from DeviceCommand dc where dc.id = :id"),
-        @NamedQuery(name = "DeviceCommand.deleteByDeviceAndUser", query = "delete from DeviceCommand dc where dc.user" +
-                " = :user and dc.device = :device"),
-        @NamedQuery(name = "DeviceCommand.deleteByFK",
-                query = "delete from DeviceCommand dc where dc.device = :device"),
-        @NamedQuery(name = "DeviceCommand.getByDeviceUuidAndId",
-                query = "select dc from DeviceCommand dc where dc.id = :id and dc.device.guid = :guid")
+        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
+        @NamedQuery(name = Names.DELETE_BY_DEVICE_AND_USER, query = Values.DELETE_BY_DEVICE_AND_USER),
+        @NamedQuery(name = Names.DELETE_BY_FOREIGN_KEY, query = Values.DELETE_BY_FOREIGN_KEY),
+        @NamedQuery(name = Names.GET_BY_DEVICE_UUID_AND_ID, query = Values.GET_BY_DEVICE_UUID_AND_ID)
 })
 @Cacheable
 public class DeviceCommand implements HiveEntity {
+    public static final String TIMESTAMP_COLUMN = "timestamp";
+    public static final String DEVICE_COLUMN = "device";
+    public static final String COMMAND_COLUMN = "command";
+    public static final String STATUS_COLUMN = "status";
+    public static final String ID_COLUMN = "id";
     private static final long serialVersionUID = -1062670903456135249L;
     @SerializedName("id")
     @Id
@@ -96,12 +122,10 @@ public class DeviceCommand implements HiveEntity {
             POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
-
     @Column(name = "origin_session_id")
     @Size(min = 1, max = 64,
             message = "The length of origin_session_id should not be more than 64 symbols.")
     private String originSessionId;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -229,5 +253,32 @@ public class DeviceCommand implements HiveEntity {
 
     public void setOriginSessionId(String originSessionId) {
         this.originSessionId = originSessionId;
+    }
+
+    public static class Queries {
+        public static interface Names {
+            static final String DELETE_BY_ID = "DeviceCommand.deleteById";
+            static final String DELETE_BY_DEVICE_AND_USER = "DeviceCommand.deleteByDeviceAndUser";
+            static final String DELETE_BY_FOREIGN_KEY = "DeviceCommand.deleteByFK";
+            static final String GET_BY_DEVICE_UUID_AND_ID = "DeviceCommand.getByDeviceUuidAndId";
+        }
+
+        static interface Values {
+            static final String DELETE_BY_ID = "delete from DeviceCommand dc where dc.id = :id";
+            static final String DELETE_BY_DEVICE_AND_USER =
+                    "delete from DeviceCommand dc " +
+                            "where dc.user = :user and dc.device = :device";
+            static final String DELETE_BY_FOREIGN_KEY = "delete from DeviceCommand dc where dc.device = :device";
+            static final String GET_BY_DEVICE_UUID_AND_ID =
+                    "select dc from DeviceCommand dc " +
+                            "where dc.id = :id and dc.device.guid = :guid";
+        }
+
+        public static interface Parameters {
+            static final String ID = "id";
+            static final String USER = "user";
+            static final String DEVICE = "device";
+            static final String GUID = "guid";
+        }
     }
 }

@@ -5,7 +5,18 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
-import javax.persistence.*;
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -14,44 +25,35 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_SUBMITTED;
+import static com.devicehive.model.User.Queries.Names;
+import static com.devicehive.model.User.Queries.Values;
 
 @Entity(name = "User")
 @Table(name = "\"user\"")
 @NamedQueries({
-        @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
-        @NamedQuery(name = "User.findByIdWithNetworks",
-                query = "select u from User u left join fetch u.networks where u.id = :id"),
-        @NamedQuery(name = "User.findActiveByName",
-                query = "select u from User u where u.login = :login and u.status = 0"),
-        @NamedQuery(name = "User.hasAccessToNetwork",
-                query = "select count(distinct u) from User u join u.networks n " +
-                        "where u = :user and n = :network"),
-        @NamedQuery(name = "User.hasAccessToDevice",
-                query = "select count(distinct n) from Network n join n.devices d join n.users u " +
-                        "where u = :user and d = :device"),
-        @NamedQuery(name = "User.hasAccessToDeviceByGuid", query = "select count(distinct n) " +
-                "from Network n " +
-                "join n.devices d " +
-                "join n.users u " +
-                "where u = :user and d.guid = :guid"),
-        @NamedQuery(name = "User.getWithNetworksById",
-                query = "select u from User u left join fetch u.networks where u.id = :id"),
-        @NamedQuery(name = "User.getWithNetworks",
-                query = "select u from User u left join fetch u.networks where u.login = :login"),
-
-        @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
+        @NamedQuery(name = Names.FIND_BY_NAME, query = Values.FIND_BY_NAME),
+        @NamedQuery(name = Names.HAS_ACCESS_TO_NETWORK, query = Values.HAS_ACCESS_TO_NETWORK),
+        @NamedQuery(name = Names.HAS_ACCESS_TO_DEVICE, query = Values.HAS_ACCESS_TO_DEVICE),
+        @NamedQuery(name = Names.GET_WITH_NETWORKS_BY_ID, query = Values.GET_WITH_NETWORKS_BY_ID),
+        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
 })
 @Cacheable
 public class User implements HiveEntity {
-
+    public static final String ID_COLUMN = "id";
+    public static final String LOGIN_COLUMN = "login";
+    public static final String ROLE_COLUMN = "role";
+    public static final String STATUS_COLUMN = "status";
     private static final long serialVersionUID = -8980491502416082011L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Long id;
-
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
@@ -59,44 +61,59 @@ public class User implements HiveEntity {
             "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
-
     @Column(name = "password_hash")
     @NotNull(message = "passwordHash field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of passwordHash should be 64 symbols.")
     private String passwordHash;
-
     @Column(name = "password_salt")
     @NotNull(message = "passwordSalt field cannot be null.")
     @Size(min = 1, max = 24, message = "Field cannot be empty. The length of passwordSalt should not be more than " +
             "24 symbols.")
     private String passwordSalt;
-
     @Column(name = "login_attempts")
     private Integer loginAttempts;
-
     @Column
     @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserRole role;
-
     @Column
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
-
-
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})
     private Set<Network> networks;
-
     @Column(name = "last_login")
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
-
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
+
+    /**
+     * Validates user representation. Returns set of strings which are represent constraint violations. Set will
+     * be empty if no constraint violations found.
+     *
+     * @param user      User that should be validated
+     * @param validator Validator
+     * @return Set of strings which are represent constraint violations
+     */
+    public static Set<String> validate(User user, Validator validator) {
+
+        Set<ConstraintViolation<User>> constraintViolations = validator.validate(user);
+        Set<String> result = new HashSet<>();
+
+        if (constraintViolations.size() > 0) {
+            for (ConstraintViolation<User> cv : constraintViolations) {
+                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
+                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+            }
+        }
+
+        return result;
+
+    }
 
     /**
      * @return true, if user is admin
@@ -104,7 +121,6 @@ public class User implements HiveEntity {
     public boolean isAdmin() {
         return UserRole.ADMIN.equals(role);
     }
-
 
     public Long getId() {
         return id;
@@ -186,30 +202,6 @@ public class User implements HiveEntity {
         this.entityVersion = entityVersion;
     }
 
-    /**
-     * Validates user representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
-     *
-     * @param user      User that should be validated
-     * @param validator Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(User user, Validator validator) {
-
-        Set<ConstraintViolation<User>> constraintViolations = validator.validate(user);
-        Set<String> result = new HashSet<>();
-
-        if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<User> cv : constraintViolations) {
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-            }
-        }
-
-        return result;
-
-    }
-
     @Override
     public boolean equals(Object o) {
 
@@ -229,5 +221,39 @@ public class User implements HiveEntity {
     @Override
     public int hashCode() {
         return id == null ? 0 : id.hashCode();
+    }
+
+    public static class Queries {
+        public static interface Names {
+            static final String FIND_BY_NAME = "User.findByName";
+            static final String HAS_ACCESS_TO_NETWORK = "User.hasAccessToNetwork";
+            static final String HAS_ACCESS_TO_DEVICE = "User.hasAccessToDevice";
+            static final String GET_WITH_NETWORKS_BY_ID = "User.getWithNetworksById";
+            static final String DELETE_BY_ID = "User.deleteById";
+        }
+
+        static interface Values {
+            static final String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
+            static final String HAS_ACCESS_TO_NETWORK =
+                    "select count(distinct u) from User u " +
+                            "join u.networks n " +
+                            "where u = :user and n = :network";
+            static final String HAS_ACCESS_TO_DEVICE =
+                    "select count(distinct n) from Network n " +
+                            "join n.devices d " +
+                            "join n.users u " +
+                            "where u = :user and d = :device";
+            static final String GET_WITH_NETWORKS_BY_ID =
+                    "select u from User u left join fetch u.networks where u.id = :id";
+            static final String DELETE_BY_ID = "delete from User u where u.id = :id";
+        }
+
+        public static interface Parameters {
+            static final String USER = "user";
+            static final String NETWORK = "network";
+            static final String DEVICE = "device";
+            static final String ID = "id";
+            static final String LOGIN = "login";
+        }
     }
 }

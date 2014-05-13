@@ -6,7 +6,6 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 
@@ -17,12 +16,23 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static com.devicehive.model.Network.Queries.Names.DELETE_BY_ID;
+import static com.devicehive.model.Network.Queries.Names.FIND_BY_NAME;
+import static com.devicehive.model.Network.Queries.Names.FIND_WITH_USERS;
+import static com.devicehive.model.Network.Queries.Names.GET_WITH_DEVICES_AND_DEVICE_CLASSES;
+import static com.devicehive.model.Network.Queries.Parameters.ID;
+import static com.devicehive.model.Network.Queries.Parameters.NAME;
 
 @Stateless
 public class NetworkDAO {
@@ -37,8 +47,8 @@ public class NetworkDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getWithDevicesAndDeviceClasses(@NotNull long id) {
-        TypedQuery<Network> query = em.createNamedQuery("Network.getWithDevicesAndDeviceClasses", Network.class);
-        query.setParameter("id", id);
+        TypedQuery<Network> query = em.createNamedQuery(GET_WITH_DEVICES_AND_DEVICE_CLASSES, Network.class);
+        query.setParameter(ID, id);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
@@ -51,7 +61,7 @@ public class NetworkDAO {
         Root<Network> from = criteria.from(Network.class);
         List<Predicate> predicates = new ArrayList<>();
         if (!user.isAdmin()) {
-            predicates.add(from.join("users").get("id").in(user.getId()));
+            predicates.add(from.join(Network.USERS_ASSOCIATION).get(User.ID_COLUMN).in(user.getId()));
         }
         if (permissions != null) {
             Collection<AccessKeyBasedFilterForNetworks> extraFilters = AccessKeyBasedFilterForNetworks
@@ -71,7 +81,7 @@ public class NetworkDAO {
         }
 
         if (networkIds != null && !networkIds.isEmpty()) {
-            predicates.add(from.get("id").in(networkIds));
+            predicates.add(from.get(Network.ID_COLUMN).in(networkIds));
         }
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -86,8 +96,8 @@ public class NetworkDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network findByName(@NotNull String name) {
-        TypedQuery<Network> query = em.createNamedQuery("Network.findByName", Network.class);
-        query.setParameter("name", name);
+        TypedQuery<Network> query = em.createNamedQuery(FIND_BY_NAME, Network.class);
+        query.setParameter(NAME, name);
         CacheHelper.cacheable(query);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
@@ -98,8 +108,8 @@ public class NetworkDAO {
     }
 
     public boolean delete(@NotNull Long id) {
-        Query query = em.createNamedQuery("Network.deleteById");
-        query.setParameter("id", id);
+        Query query = em.createNamedQuery(DELETE_BY_ID);
+        query.setParameter(ID, id);
         return query.executeUpdate() != 0;
     }
 
@@ -118,10 +128,10 @@ public class NetworkDAO {
 
         List<Predicate> predicates = new ArrayList<>();
         if (namePattern != null) {
-            predicates.add(criteriaBuilder.like(from.<String>get("name"), namePattern));
+            predicates.add(criteriaBuilder.like(from.<String>get(Network.NAME_COLUMN), namePattern));
         } else {
             if (name != null) {
-                predicates.add(criteriaBuilder.equal(from.get("name"), name));
+                predicates.add(criteriaBuilder.equal(from.get(Network.NAME_COLUMN), name));
             }
         }
 
@@ -151,31 +161,13 @@ public class NetworkDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network getByIdWithUsers(@NotNull long id) {
-        TypedQuery<Network> query = em.createNamedQuery("Network.findWithUsers", Network.class);
-        query.setParameter("id", id);
+        TypedQuery<Network> query = em.createNamedQuery(FIND_WITH_USERS, Network.class);
+        query.setParameter(ID, id);
         List<Network> networks = query.getResultList();
         return networks.isEmpty() ? null : networks.get(0);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Network> getByNameOrId(Long networkId, String networkName) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<Network> networkCriteria = criteriaBuilder.createQuery(Network.class);
-        Root fromNetwork = networkCriteria.from(Network.class);
-        List<Predicate> networkPredicates = new ArrayList<>();
-        if (networkId != null) {
-            networkPredicates.add(criteriaBuilder.equal(fromNetwork.get("id"), networkId));
-        }
-        if (networkName != null) {
-            networkPredicates.add(criteriaBuilder.equal(fromNetwork.get("name"), networkName));
-        }
-        networkCriteria.where(networkPredicates.toArray(new Predicate[networkPredicates.size()]));
-        TypedQuery<Network> networksQuery = em.createQuery(networkCriteria);
-        return networksQuery.getResultList();
-    }
-
-
-    private void  appendPrincipalPredicates( List<Predicate> predicates, HivePrincipal principal, Root<Network> from) {
+    private void appendPrincipalPredicates(List<Predicate> predicates, HivePrincipal principal, Root<Network> from) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         if (principal != null) {
             User user = principal.getUser();
@@ -183,16 +175,17 @@ public class NetworkDAO {
                 user = principal.getKey().getUser();
             }
             if (user != null && !user.isAdmin()) {
-                Path<User> path = from.join("users");
+                Path<User> path = from.join(Network.USERS_ASSOCIATION);
                 predicates.add(path.in(user));
             }
             if (principal.getDevice() != null) {
-                throw  new HiveException("Can not get access to networks", 403);
+                throw new HiveException("Can not get access to networks", 403);
             }
             if (principal.getKey() != null) {
 
                 List<Predicate> extraPredicates = new ArrayList<>();
-                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
+                        .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getNetworkIds() != null) {
                         filter.add(from.get("id").in(extraFilter.getNetworkIds()));

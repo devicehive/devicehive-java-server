@@ -20,12 +20,26 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.USER_ID;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * REST Controller for access keys: <i>/user/{userId}/accesskey</i>
@@ -35,6 +49,7 @@ import static javax.ws.rs.core.Response.Status.*;
 @Path("/user/{userId}/accesskey")
 @LogExecutionTime
 public class AccessKeyController {
+
     private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
     private UserService userService;
     private AccessKeyService accessKeyService;
@@ -49,7 +64,6 @@ public class AccessKeyController {
         this.accessKeyService = accessKeyService;
     }
 
-
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:
      * AccessKey: list</a>
@@ -61,7 +75,7 @@ public class AccessKeyController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response list(@PathParam("userId") String userId) {
+    public Response list(@PathParam(USER_ID) String userId) {
 
         logger.debug("Access key : list requested for userId : {}", userId);
 
@@ -86,7 +100,7 @@ public class AccessKeyController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response get(@PathParam("userId") String userId, @PathParam("id") long accessKeyId) {
+    public Response get(@PathParam(USER_ID) String userId, @PathParam(ID) long accessKeyId) {
 
         logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
 
@@ -97,7 +111,7 @@ public class AccessKeyController {
                     ".", userId, accessKeyId);
             return ResponseFactory
                     .response(NOT_FOUND,
-                            new ErrorResponse(NOT_FOUND.getStatusCode(),"Access key not found."));
+                            new ErrorResponse(NOT_FOUND.getStatusCode(), "Access key not found."));
         }
 
         logger.debug("Access key : insert proceed successfully for userId : {} and accessKeyId : {}", userId,
@@ -117,7 +131,7 @@ public class AccessKeyController {
      */
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response insert(@PathParam("userId") String userId,
+    public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKey key) {
 
         logger.debug("Access key : insert requested for userId : {}", userId);
@@ -140,7 +154,7 @@ public class AccessKeyController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response update(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId,
+    public Response update(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate) {
         logger.debug("Access key : update requested for userId : {}, access key id : {}, access key : {} ", userId,
                 accessKeyId, accessKeyUpdate);
@@ -170,7 +184,7 @@ public class AccessKeyController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response delete(@PathParam("userId") String userId, @PathParam("id") Long accessKeyId) {
+    public Response delete(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId) {
         logger.debug("Access key : delete requested for userId : {}", userId);
 
         Long id = getUser(userId).getId();
@@ -193,7 +207,7 @@ public class AccessKeyController {
             try {
                 id = Long.parseLong(userId);
             } catch (NumberFormatException e) {
-                throw new HiveException("Bad user identifier :" + userId, e,BAD_REQUEST.getStatusCode());
+                throw new HiveException("Bad user identifier :" + userId, e, BAD_REQUEST.getStatusCode());
             }
         }
 
@@ -201,13 +215,13 @@ public class AccessKeyController {
         if (!currentUser.getId().equals(id) && currentUser.isAdmin()) {
             result = userService.findById(id);
             if (result == null) {
-                throw new HiveException("Not authorized!",UNAUTHORIZED.getStatusCode());
+                throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }
             return result;
 
         }
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)) {
-            throw new HiveException("User not found", UNAUTHORIZED.getStatusCode());
+            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
         }
         result = currentUser;
         return result;

@@ -25,8 +25,6 @@ public class CommandSubscription extends Subscription<Long> {
         return getEventSource();
     }
 
-
-
     public HivePrincipal getPrincipal(){
         return  principal;
     }
@@ -34,5 +32,6 @@ public class CommandSubscription extends Subscription<Long> {
     public Set<String> getCommandNames() {
         return commandNames;
     }
+
 }
 

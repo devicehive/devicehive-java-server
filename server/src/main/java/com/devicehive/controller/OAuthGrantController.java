@@ -7,7 +7,11 @@ import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessType;
+import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.OAuthGrant;
+import com.devicehive.model.Type;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
@@ -19,13 +23,30 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.List;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED_ADMIN;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_SUBMITTED_CODE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_SUBMITTED_TOKEN;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/user/{userId}/oauth/grant")
 @LogExecutionTime
@@ -47,23 +68,23 @@ public class OAuthGrantController {
 
     @GET
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
-    public Response list(@PathParam("userId") String userId,
-                         @QueryParam("start") Timestamp start,
-                         @QueryParam("end") Timestamp end,
-                         @QueryParam("clientOAuthId") String clientOAuthId,
-                         @QueryParam("type") String type,
-                         @QueryParam("scope") String scope,
-                         @QueryParam("redirectUri") String redirectUri,
-                         @QueryParam("accessType") String accessType,
-                         @QueryParam("sortField") @DefaultValue("Timestamp") String sortField,
-                         @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
-                         @QueryParam("take") Integer take,
-                         @QueryParam("skip") Integer skip) {
+    public Response list(@PathParam(USER_ID) String userId,
+                         @QueryParam(START) Timestamp start,
+                         @QueryParam(END) Timestamp end,
+                         @QueryParam(CLIENT_OAUTH_ID) String clientOAuthId,
+                         @QueryParam(TYPE) String type,
+                         @QueryParam(SCOPE) String scope,
+                         @QueryParam(REDIRECT_URI) String redirectUri,
+                         @QueryParam(ACCESS_TYPE) String accessType,
+                         @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
+                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                         @QueryParam(TAKE) Integer take,
+                         @QueryParam(SKIP) Integer skip) {
         logger.debug("OAuthGrant: list requested. User id: {}, start: {}, end: {}, clientOAuthID: {}, type: {}, " +
                 "scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
                 userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
                 skip);
-        if (!sortField.equalsIgnoreCase("Timestamp")) {
+        if (!sortField.equalsIgnoreCase(TIMESTAMP)) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
         } else {
@@ -88,8 +109,8 @@ public class OAuthGrantController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
-    public Response get(@PathParam("userId") String userId,
-                        @PathParam("id") long grantId) {
+    public Response get(@PathParam(USER_ID) String userId,
+                        @PathParam(ID) long grantId) {
         logger.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         OAuthGrant grant = grantService.get(user, grantId);
@@ -105,7 +126,7 @@ public class OAuthGrantController {
 
     @POST
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
-    public Response insert(@PathParam("userId") String userId,
+    public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrant grant) {
         logger.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
         User user = getUser(userId);
@@ -121,8 +142,8 @@ public class OAuthGrantController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
-    public Response update(@PathParam("userId") String userId,
-                           @PathParam("id") Long grantId,
+    public Response update(@PathParam(USER_ID) String userId,
+                           @PathParam(ID) Long grantId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrantUpdate grant) {
         logger.debug("OAuthGrant: update requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
@@ -141,8 +162,8 @@ public class OAuthGrantController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
-    public Response delete(@PathParam("userId") String userId,
-                           @PathParam("id") Long grantId) {
+    public Response delete(@PathParam(USER_ID) String userId,
+                           @PathParam(ID) Long grantId) {
         logger.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         grantService.delete(user, grantId);

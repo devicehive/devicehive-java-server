@@ -2,6 +2,7 @@ package com.devicehive.auth.rest;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.OAuthClient;
@@ -38,14 +39,17 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     private UserService userService;
     private AccessKeyService accessKeyService;
     private OAuthClientService clientService;
-
+    private static final String jndiUserService = "java:comp/env/UserService";
+    private static final String jndiDeviceService = "java:comp/env/DeviceService";
+    private static final String jndiAccessKeyService = "java:comp/env/AccessKeyService";
+    private static final String jndiOAuthClientService = "java:comp/env/OAuthClientService";
 
     public AuthenticationFilter() throws NamingException {
         InitialContext initialContext = new InitialContext();
-        this.userService = (UserService) initialContext.lookup("java:comp/env/UserService");
-        this.deviceService = (DeviceService) initialContext.lookup("java:comp/env/DeviceService");
-        this.accessKeyService = (AccessKeyService) initialContext.lookup("java:comp/env/AccessKeyService");
-        this.clientService = (OAuthClientService) initialContext.lookup("java:comp/env/OAuthClientService");
+        this.userService = (UserService) initialContext.lookup(jndiUserService);
+        this.deviceService = (DeviceService) initialContext.lookup(jndiDeviceService);
+        this.accessKeyService = (AccessKeyService) initialContext.lookup(jndiAccessKeyService);
+        this.clientService = (OAuthClientService) initialContext.lookup(jndiOAuthClientService);
     }
 
     @Override
@@ -63,11 +67,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {
-        String deviceId = requestContext.getHeaderString("Auth-DeviceID");
+        String deviceId = requestContext.getHeaderString(Constants.AUTH_DEVICE_ID_HEADER);
         if (deviceId == null) {
             return null;
         }
-        String deviceKey = requestContext.getHeaderString("Auth-DeviceKey");
+        String deviceKey = requestContext.getHeaderString(Constants.AUTH_DEVICE_KEY_HEADER);
         return deviceService.authenticate(deviceId, deviceKey);
 
     }
@@ -77,7 +81,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (auth == null) {
             return null;
         }
-        if (auth.substring(0, 5).equalsIgnoreCase("Basic")) {
+        if (auth.substring(0, 5).equalsIgnoreCase(Constants.BASIC_AUTH_SCHEME)) {
             String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), Charset.forName(UTF8));
             int pos = decodedAuth.indexOf(":");
             if (pos <= 0) {
@@ -101,7 +105,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (auth == null) {
             return null;
         }
-        if (auth.substring(0, 6).equalsIgnoreCase("Bearer")) {
+        if (auth.substring(0, 6).equalsIgnoreCase(Constants.OAUTH_AUTH_SCEME)) {
             String key = auth.substring(6).trim();
             return accessKeyService.authenticate(key);
         }
@@ -113,7 +117,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (auth == null) {
             return null;
         }
-        if (auth.substring(0, 5).equalsIgnoreCase("Basic")) {
+        if (auth.substring(0, 5).equalsIgnoreCase(Constants.BASIC_AUTH_SCHEME)) {
             String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), UTF8_CHARSET);
             int pos = decodedAuth.indexOf(":");
             if (pos <= 0) {

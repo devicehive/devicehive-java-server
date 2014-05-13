@@ -16,13 +16,25 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED;
+import static com.devicehive.configuration.Constants.DEVICE_CLASS_ID;
+import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED;
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/device/class/{deviceClassId}/equipment")
 @RolesAllowed(HiveRoles.ADMIN)
@@ -66,7 +78,7 @@ public class EquipmentController {
      */
     @GET
     @Path("/{id}")
-    public Response getEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
+    public Response getEquipment(@PathParam(DEVICE_CLASS_ID) long classId, @PathParam(ID) long eqId) {
 
         logger.debug("Device class's equipment get requested");
         Equipment result = equipmentService.getByDeviceClass(classId, eqId);
@@ -78,7 +90,7 @@ public class EquipmentController {
         }
         logger.debug("Device class's equipment get proceed successfully");
 
-        return ResponseFactory.response(OK, result, EQUIPMENTCLASS_PUBLISHED);
+        return ResponseFactory.response(OK, result, EQUIPMENT_PUBLISHED);
     }
 
     /**
@@ -88,7 +100,7 @@ public class EquipmentController {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response insertEquipment(@PathParam("deviceClassId") long classId, Equipment equipment) {
+    public Response insertEquipment(@PathParam(DEVICE_CLASS_ID) long classId, Equipment equipment) {
 
         logger.debug("Insert device class's equipment requested");
         Equipment result = deviceClassService.createEquipment(classId, equipment);
@@ -126,9 +138,9 @@ public class EquipmentController {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateEquipment(
-            @PathParam("deviceClassId") long classId,
-            @PathParam("id") long eqId,
-            @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED) EquipmentUpdate equipmentUpdate) {
+            @PathParam(DEVICE_CLASS_ID) long classId,
+            @PathParam(ID) long eqId,
+            @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED) EquipmentUpdate equipmentUpdate) {
 
         logger.debug("Update device class's equipment requested");
 
@@ -156,7 +168,7 @@ public class EquipmentController {
     @DELETE
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteEquipment(@PathParam("deviceClassId") long classId, @PathParam("id") long eqId) {
+    public Response deleteEquipment(@PathParam(DEVICE_CLASS_ID) long classId, @PathParam(ID) long eqId) {
 
         logger.debug("Delete device class's equipment requested");
         equipmentService.delete(eqId, classId);
@@ -165,7 +177,7 @@ public class EquipmentController {
         return ResponseFactory.response(NO_CONTENT);
     }
 
-        /**
+    /**
      * Gets current state of device equipment.
      * <code>
      * [
@@ -182,7 +194,6 @@ public class EquipmentController {
      * ]
      * <p/>
      * </code>
-     *
      */
     @GET
     public Response getEquipment() {

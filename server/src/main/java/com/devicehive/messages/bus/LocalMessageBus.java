@@ -11,20 +11,25 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
+import javax.ejb.Asynchronous;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.websocket.Session;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 
@@ -62,7 +67,7 @@ public class LocalMessageBus {
             boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                     Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
             if (hasAccess) {
-                jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
+                jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
             subscribersIds.add(subscription.getSubscriptionId());
@@ -79,7 +84,7 @@ public class LocalMessageBus {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
                 if (hasAccess) {
-                    jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
+                    jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                     executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
                 }
             }
@@ -129,7 +134,7 @@ public class LocalMessageBus {
             boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                     Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
             if (hasAccess) {
-                jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
+                jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                 executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
             }
             subscribersIds.add(subscription.getSubscriptionId());
@@ -147,7 +152,7 @@ public class LocalMessageBus {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
                 if (hasAccess) {
-                    jsonObject.addProperty(JsonMessageBuilder.SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
+                    jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
                     executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
                 }
             }

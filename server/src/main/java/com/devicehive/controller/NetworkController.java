@@ -17,12 +17,28 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_NETWORK;
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.configuration.Constants.NAME_PATTERN;
+import static com.devicehive.configuration.Constants.SKIP;
+import static com.devicehive.configuration.Constants.SORT_FIELD;
+import static com.devicehive.configuration.Constants.SORT_ORDER;
+import static com.devicehive.configuration.Constants.TAKE;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/network")
 @LogExecutionTime
@@ -35,7 +51,6 @@ public class NetworkController {
     public void setNetworkService(NetworkService networkService) {
         this.networkService = networkService;
     }
-
 
     /**
      * Produces following output:
@@ -66,12 +81,12 @@ public class NetworkController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_NETWORK})
-    public Response getNetworkList(@QueryParam("name") String name,
-                                   @QueryParam("namePattern") String namePattern,
-                                   @QueryParam("sortField") String sortField,
-                                   @QueryParam("sortOrder") @SortOrder Boolean sortOrder,
-                                   @QueryParam("take") Integer take,
-                                   @QueryParam("skip") Integer skip) {
+    public Response getNetworkList(@QueryParam(NAME) String name,
+                                   @QueryParam(NAME_PATTERN) String namePattern,
+                                   @QueryParam(SORT_FIELD) String sortField,
+                                   @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                                   @QueryParam(TAKE) Integer take,
+                                   @QueryParam(SKIP) Integer skip) {
 
         logger.debug("Network list requested");
 
@@ -79,7 +94,7 @@ public class NetworkController {
             sortOrder = true;
         }
 
-        if (!"ID".equals(sortField) && !"Name".equals(sortField) && sortField != null) {
+        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.debug("Unable to proceed network list request. Invalid sortField");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
                     new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
@@ -111,7 +126,7 @@ public class NetworkController {
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_NETWORK})
-    public Response getNetwork(@PathParam("id") long id) {
+    public Response getNetwork(@PathParam(ID) long id) {
 
         logger.debug("Network get requested.");
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
@@ -187,7 +202,7 @@ public class NetworkController {
     @PUT
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response update(NetworkUpdate networkToUpdate, @PathParam("id") long id) {
+    public Response update(NetworkUpdate networkToUpdate, @PathParam(ID) long id) {
 
         logger.debug("Network update requested. Id : {}", id);
         networkService.update(id, networkToUpdate);
@@ -205,7 +220,7 @@ public class NetworkController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response delete(@PathParam("id") long id) {
+    public Response delete(@PathParam(ID) long id) {
 
         logger.debug("Network delete requested");
         networkService.delete(id);

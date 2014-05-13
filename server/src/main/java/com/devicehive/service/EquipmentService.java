@@ -10,7 +10,6 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,11 +38,6 @@ public class EquipmentService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
         return equipmentDAO.delete(equipmentId, deviceClassId);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public int delete(Collection<Equipment> equipments) {
-        return equipmentDAO.delete(equipments);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

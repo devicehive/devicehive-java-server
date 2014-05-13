@@ -12,6 +12,7 @@ import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.SubscriptionFilterInternal;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
@@ -20,14 +21,13 @@ import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
-import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
-import com.devicehive.websockets.util.WebsocketSession;
 import com.devicehive.websockets.util.SubscriptionSessionMap;
+import com.devicehive.websockets.util.WebsocketSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +37,26 @@ import javax.ejb.EJB;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_COMMAND;
+import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_COMMAND;
+import static com.devicehive.auth.AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND;
+import static com.devicehive.configuration.Constants.COMMAND;
+import static com.devicehive.configuration.Constants.COMMAND_ID;
+import static com.devicehive.configuration.Constants.DEVICE_GUID;
+import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
+import static com.devicehive.configuration.Constants.NAMES;
+import static com.devicehive.configuration.Constants.SUBSCRIPTION;
+import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
+import static com.devicehive.configuration.Constants.TIMESTAMP;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
@@ -84,10 +100,10 @@ public class CommandHandlers implements WebsocketHandlers {
     @Action("command/subscribe")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
-    public WebSocketResponse processCommandSubscribe(@WsParam(JsonMessageBuilder.TIMESTAMP) Timestamp timestamp,
-                                                     @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> devices,
-                                                     @WsParam(JsonMessageBuilder.NAMES) List<String> names,
-                                                     @WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceId,
+    public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
+                                                     @WsParam(DEVICE_GUIDS) List<String> devices,
+                                                     @WsParam(NAMES) List<String> names,
+                                                     @WsParam(DEVICE_GUID) String deviceId,
                                                      Session session) throws IOException {
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
@@ -97,7 +113,7 @@ public class CommandHandlers implements WebsocketHandlers {
                 devices, deviceId, timestamp, names, session);
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(JsonMessageBuilder.SUBSCRIPTION_ID, subId, null);
+        response.addValue(SUBSCRIPTION_ID, subId, null);
         return response;
     }
 
@@ -129,6 +145,7 @@ public class CommandHandlers implements WebsocketHandlers {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             List<CommandSubscription> csList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
+            SubscriptionFilterInternal sfi;
             if (devices != null) {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 for (Device d : actualDevices) {
@@ -139,6 +156,7 @@ public class CommandHandlers implements WebsocketHandlers {
                                     WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK)
                     ));
                 }
+                sfi = SubscriptionFilterInternal.createForManyDevices(devices, timestamp);
             } else {
                 CommandSubscription forAll =
                         new CommandSubscription(principal,
@@ -147,9 +165,11 @@ public class CommandHandlers implements WebsocketHandlers {
                                 names,
                                 new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK));
                 csList.add(forAll);
+                sfi = SubscriptionFilterInternal.createForAllDevices(names, timestamp);
             }
             subscriptionSessionMap.put(reqId, session);
-            WebsocketSession.getCommandSubscriptions(session).add(reqId);
+
+            WebsocketSession.getCommandSubscriptions(session).put(reqId, sfi);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
             List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
@@ -171,13 +191,13 @@ public class CommandHandlers implements WebsocketHandlers {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     public WebSocketResponse processCommandUnsubscribe(Session session,
-                                                       @WsParam(JsonMessageBuilder.SUBSCRIPTION) UUID subId,
-                                                       @WsParam(JsonMessageBuilder.DEVICE_GUIDS) List<String> deviceGuids) {
+                                                       @WsParam(SUBSCRIPTION) UUID subId,
+                                                       @WsParam(DEVICE_GUIDS) List<String> deviceGuids) {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             //todo subId is absent
-            if (WebsocketSession.getCommandSubscriptions(session).contains(subId)) {
+            if (WebsocketSession.getCommandSubscriptions(session).containsKey(subId)) {
                 WebsocketSession.getCommandSubscriptions(session).remove(subId);
                 subscriptionSessionMap.remove(subId);
                 subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
@@ -194,7 +214,7 @@ public class CommandHandlers implements WebsocketHandlers {
     @Action(value = "command/insert")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
-    public WebSocketResponse processCommandInsert(@WsParam(JsonMessageBuilder.DEVICE_GUID) String deviceGuid,
+    public WebSocketResponse processCommandInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                   @WsParam("command") @JsonPolicyApply(COMMAND_FROM_CLIENT)
                                                   DeviceCommand deviceCommand,
                                                   Session session) {
@@ -227,9 +247,9 @@ public class CommandHandlers implements WebsocketHandlers {
     @Action("command/update")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {UPDATE_DEVICE_COMMAND})
-    public WebSocketResponse processCommandUpdate(@WsParam(JsonMessageBuilder.DEVICE_GUID) String guid,
-                                                  @WsParam(JsonMessageBuilder.COMMAND_ID) Long id,
-                                                  @WsParam(JsonMessageBuilder.COMMAND)
+    public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
+                                                  @WsParam(COMMAND_ID) Long id,
+                                                  @WsParam(COMMAND)
                                                   @JsonPolicyApply(REST_COMMAND_UPDATE_FROM_DEVICE)
                                                   DeviceCommandUpdate commandUpdate,
                                                   Session session) {

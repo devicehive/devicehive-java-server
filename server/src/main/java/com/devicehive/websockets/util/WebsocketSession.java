@@ -2,10 +2,13 @@ package com.devicehive.websockets.util;
 
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.SubscriptionFilterInternal;
 import com.google.gson.JsonElement;
 
 import javax.websocket.Session;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.Lock;
@@ -72,17 +75,19 @@ public class WebsocketSession {
         }
     }
 
-    public static Set<UUID> getCommandSubscriptions(Session session) {
-        return (Set<UUID>) session.getUserProperties().get(COMMANDS_SUBSCRIPTIONS);
+    public static Map<UUID, SubscriptionFilterInternal> getCommandSubscriptions(Session session) {
+        return (Map<UUID, SubscriptionFilterInternal>) session.getUserProperties().get(COMMANDS_SUBSCRIPTIONS);
     }
 
-    public static Set<UUID> getNotificationSubscriptions(Session session) {
-        return (Set<UUID>) session.getUserProperties().get(NOTIFICATIONS_SUBSCRIPTIONS);
+    public static Map<UUID, SubscriptionFilterInternal > getNotificationSubscriptions(Session session) {
+        return (Map<UUID, SubscriptionFilterInternal>) session.getUserProperties().get(NOTIFICATIONS_SUBSCRIPTIONS);
     }
 
-    public static void createSubscriptions(Session session){
-        session.getUserProperties().put(COMMANDS_SUBSCRIPTIONS, Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>()));
-        session.getUserProperties().put(NOTIFICATIONS_SUBSCRIPTIONS, Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>()));
+    public static void createSubscriptions(Session session) {
+        session.getUserProperties().put(COMMANDS_SUBSCRIPTIONS,
+                new ConcurrentHashMap<UUID, SubscriptionFilterInternal>());
+        session.getUserProperties().put(NOTIFICATIONS_SUBSCRIPTIONS,
+                new ConcurrentHashMap<UUID, SubscriptionFilterInternal>());
     }
 
     public static void addMessagesToQueue(Session session, JsonElement... jsons) {

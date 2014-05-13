@@ -11,13 +11,15 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Properties;
 
+import static com.devicehive.configuration.Constants.VERSION;
+
 /**
  * Provides build information
  */
 @Path("/version")
 @LogExecutionTime
 public class VersionController {
-
+    private static final String propertiesPath = "/WEB-INF/classes/app.properties";
     @Context
     private ServletContext context;
 
@@ -26,8 +28,8 @@ public class VersionController {
     public Response getVersionInfo() {
         Properties properties = new Properties();
         try {
-            properties.load(context.getResourceAsStream("/WEB-INF/classes/app.properties"));
-            return Response.ok(properties.getProperty("version")).build();
+            properties.load(context.getResourceAsStream(propertiesPath));
+            return Response.ok(properties.getProperty(VERSION)).build();
         } catch (IOException e) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

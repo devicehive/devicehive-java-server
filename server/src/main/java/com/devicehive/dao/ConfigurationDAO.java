@@ -12,6 +12,7 @@ import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+import static com.devicehive.model.Configuration.Queries.Names.GET_ALL;
 
 @Stateless
 public class ConfigurationDAO {
@@ -26,7 +27,7 @@ public class ConfigurationDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Configuration> findAll() {
-        TypedQuery<Configuration> query = em.createNamedQuery("Configuration.getAll", Configuration.class);
+        TypedQuery<Configuration> query = em.createNamedQuery(GET_ALL, Configuration.class);
         return query.getResultList();
     }
 

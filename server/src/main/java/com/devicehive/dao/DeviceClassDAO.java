@@ -2,8 +2,6 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -20,6 +18,13 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.devicehive.model.DeviceClass.Queries.Names.DELETE_BY_ID;
+import static com.devicehive.model.DeviceClass.Queries.Names.FIND_BY_NAME_AND_VERSION;
+import static com.devicehive.model.DeviceClass.Queries.Names.GET_ALL;
+import static com.devicehive.model.DeviceClass.Queries.Names.GET_WITH_EQUIPMENT;
+import static com.devicehive.model.DeviceClass.Queries.Parameters.ID;
+import static com.devicehive.model.DeviceClass.Queries.Parameters.NAME;
+import static com.devicehive.model.DeviceClass.Queries.Parameters.VERSION;
 
 /**
  * TODO JavaDoc
@@ -31,7 +36,6 @@ public class DeviceClassDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
@@ -42,14 +46,14 @@ public class DeviceClassDAO {
         List<Predicate> predicates = new ArrayList<>();
 
         if (namePattern != null) {
-            predicates.add(criteriaBuilder.like(from.get("name"), namePattern));
+            predicates.add(criteriaBuilder.like(from.get(DeviceClass.NAME_COLUMN), namePattern));
         } else {
             if (name != null) {
-                predicates.add(criteriaBuilder.equal(from.get("name"), name));
+                predicates.add(criteriaBuilder.equal(from.get(DeviceClass.NAME_COLUMN), name));
             }
         }
         if (version != null) {
-            predicates.add(criteriaBuilder.equal(from.get("version"), version));
+            predicates.add(criteriaBuilder.equal(from.get(DeviceClass.VERSION_COLUMN), version));
         }
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -79,23 +83,23 @@ public class DeviceClassDAO {
     }
 
     public boolean delete(@NotNull Long id) {
-        Query query = em.createNamedQuery("DeviceClass.deleteById");
-        query.setParameter("id", id);
+        Query query = em.createNamedQuery(DELETE_BY_ID);
+        query.setParameter(ID, id);
         return query.executeUpdate() != 0;
 
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getWithEquipment(@NotNull long id) {
-        TypedQuery<DeviceClass> tq = em.createNamedQuery("DeviceClass.getWithEquipment", DeviceClass.class);
-        tq.setParameter("id", id);
+        TypedQuery<DeviceClass> tq = em.createNamedQuery(GET_WITH_EQUIPMENT, DeviceClass.class);
+        tq.setParameter(ID, id);
         List<DeviceClass> result = tq.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceClass> getList() {
-        return em.createQuery("select dc from DeviceClass dc").getResultList();
+        return em.createNamedQuery(GET_ALL, DeviceClass.class).getResultList();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -123,9 +127,9 @@ public class DeviceClassDAO {
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getDeviceClassByNameAndVersion(String name, String version) {
-        TypedQuery<DeviceClass> query = em.createNamedQuery("DeviceClass.findByNameAndVersion", DeviceClass.class);
-        query.setParameter("version", version);
-        query.setParameter("name", name);
+        TypedQuery<DeviceClass> query = em.createNamedQuery(FIND_BY_NAME_AND_VERSION, DeviceClass.class);
+        query.setParameter(VERSION, version);
+        query.setParameter(NAME, name);
         List<DeviceClass> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
@@ -138,13 +142,15 @@ public class DeviceClassDAO {
         Root fromDeviceClass = deviceClassCriteria.from(DeviceClass.class);
         List<Predicate> deviceClassPredicates = new ArrayList<>();
         if (deviceClassId != null) {
-            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("id"), deviceClassId));
+            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get(DeviceClass.ID_COLUMN), deviceClassId));
         }
         if (deviceClassName != null) {
-            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("name"), deviceClassName));
+            deviceClassPredicates
+                    .add(criteriaBuilder.equal(fromDeviceClass.get(DeviceClass.NAME_COLUMN), deviceClassName));
         }
         if (deviceClassVersion != null) {
-            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get("version"), deviceClassVersion));
+            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get(DeviceClass.VERSION_COLUMN),
+                    deviceClassVersion));
         }
         deviceClassCriteria.where(deviceClassPredicates.toArray(new Predicate[deviceClassPredicates.size()]));
         TypedQuery<DeviceClass> deviceClassQuery = em.createQuery(deviceClassCriteria);
