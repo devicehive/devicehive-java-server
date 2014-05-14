@@ -1,10 +1,10 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.ErrorResponse;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -79,9 +79,11 @@ public class WebsocketExecutor {
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage()).build();
         } catch (JsonParseException ex) {
-            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, ErrorResponse.JSON_SYNTAX_ERROR_MESSAGE).build();
+            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST,
+                    Messages.INVALID_REQUEST_PARAMETERS).build();
         } catch (OptimisticLockException ex) {
-            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ErrorResponse.CONFLICT_MESSAGE).build();
+            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT,
+                    Messages.CONFLICT_MESSAGE).build();
         } catch (PersistenceException ex) {
             if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException) {
                 response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage()).build();

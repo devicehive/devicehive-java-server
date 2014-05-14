@@ -1,8 +1,15 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.OAuthGrantDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessType;
+import com.devicehive.model.OAuthClient;
+import com.devicehive.model.OAuthGrant;
+import com.devicehive.model.Type;
+import com.devicehive.model.User;
+import com.devicehive.model.UserStatus;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import org.apache.commons.lang3.StringUtils;
 
@@ -96,12 +103,12 @@ public class OAuthGrantService {
         if (grantToUpdate.getClient() != null) {
             OAuthClient clientFromGrant = grantToUpdate.getClient().getValue();
             if (clientFromGrant == null) {
-                throw new HiveException("client cannot be null!");
+                throw new HiveException(Messages.CLIENT_IS_NULL);
             }
             if (clientFromGrant.getId() != null) {
                 client = clientService.get(clientFromGrant.getId());
             } else if (clientFromGrant.getName() != null) {
-                 client = clientService.getByName(clientFromGrant.getName());
+                client = clientService.getByName(clientFromGrant.getName());
             }
 
         }
@@ -117,10 +124,6 @@ public class OAuthGrantService {
         if (grantToUpdate.getScope() != null) {
             existing.setScope(grantToUpdate.getScope().getValue());
         }
-        //is it required?
-//        if (!existing.getRedirectUri().equals(existing.getClient().getRedirectUri())) {
-//            throw new HiveException("Invalid redirect URI value!", SC_BAD_REQUEST);
-//        }
         Timestamp now = timestampService.getTimestamp();
         existing.setTimestamp(now);
         AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(existing, user, now);
@@ -155,13 +158,13 @@ public class OAuthGrantService {
                                                    @NotNull String clientId) {
         OAuthGrant grant = get(code, clientId);
         if (grant == null || !grant.getType().equals(Type.CODE)) {
-            throw new HiveException("Invalid authorization code", SC_UNAUTHORIZED);
+            throw new HiveException(Messages.INVALID_AUTH_CODE, SC_UNAUTHORIZED);
         }
         if (redirectUri != null && !grant.getRedirectUri().equals(redirectUri)) {
-            throw new HiveException("Invalid \"redirect_uri\"!", SC_UNAUTHORIZED);
+            throw new HiveException(Messages.INVALID_URI, SC_UNAUTHORIZED);
         }
         if (grant.getTimestamp().getTime() - timestampService.getTimestamp().getTime() > 600_000)
-            throw new HiveException("Invalid authorization code", SC_UNAUTHORIZED);
+            throw new HiveException(Messages.EXPIRED_GRANT, SC_UNAUTHORIZED);
         invalidate(grant);
         return grant.getAccessKey();
     }
@@ -172,7 +175,7 @@ public class OAuthGrantService {
                                                        OAuthClient client) {
         User user = userService.authenticate(login, password);
         if (user == null || !user.getStatus().equals(UserStatus.ACTIVE)) {
-            throw new HiveException("Not authorized!", SC_UNAUTHORIZED);
+            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, SC_UNAUTHORIZED);
         }
         user.setLastLogin(timestampService.getTimestamp());
         List<OAuthGrant> found = grantDAO.get(user, null, null, client.getOauthId(), Type.PASSWORD.ordinal(), scope,
@@ -205,23 +208,23 @@ public class OAuthGrantService {
     private void validate(OAuthGrant grant) {
         List<String> violations = new ArrayList<>();
         if (grant.getClient() == null) {
-            violations.add("client field is required");
+            violations.add(Messages.CLIENT_REQUIRED);
         }
         if (grant.getType() == null) {
-            violations.add("type field is required");
+            violations.add(Messages.TYPE_REQUIRED);
         }
         if (grant.getType() != null && grant.getType().equals(Type.PASSWORD)) {
-            violations.add("Unexpected type: password");
+            violations.add(Messages.INVALID_GRANT_TYPE);
         }
         if (grant.getRedirectUri() == null) {
-            violations.add("redirect URI field is required");
+            violations.add(Messages.REDIRECT_URI_REQUIRED);
         }
         if (grant.getScope() == null) {
-            violations.add("scope fieald is required");
+            violations.add(Messages.SCOPE_REQUIRED);
         }
         if (!violations.isEmpty()) {
-            throw new HiveException("Validation failed with following violations: "
-                    + StringUtils.join(violations, "; "), Response.Status.BAD_REQUEST.getStatusCode());
+            throw new HiveException(String.format(Messages.VALIDATION_FAILED, StringUtils.join(violations, "; ")),
+                    Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
 }

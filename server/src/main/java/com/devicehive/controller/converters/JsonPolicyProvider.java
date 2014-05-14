@@ -1,6 +1,7 @@
 package com.devicehive.controller.converters;
 
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -72,7 +73,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
                 JsonPolicyApply jsonPolicyApply = (JsonPolicyApply) annotation;
                 policy = jsonPolicyApply.value();
                 if (++count > 1) {
-                    throw new IllegalArgumentException("Two or more active JSON policies");
+                    throw new IllegalArgumentException(Messages.TWO_OR_MORE_ACTIVE_JSON_POLICIES);
                 }
             }
         }

@@ -3,6 +3,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
@@ -86,7 +87,7 @@ public class OAuthGrantController {
                 skip);
         if (!sortField.equalsIgnoreCase(TIMESTAMP)) {
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         } else {
             sortField = sortField.toLowerCase();
         }
@@ -115,7 +116,7 @@ public class OAuthGrantController {
         User user = getUser(userId);
         OAuthGrant grant = grantService.get(user, grantId);
         if (grant == null) {
-            throw new HiveException("Grant with such id not found!", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }
         logger.debug("OAuthGrant: proceed successfully. User id: {}, grant id: {}", userId, grantId);
         if (user.isAdmin()) {
@@ -149,7 +150,7 @@ public class OAuthGrantController {
         User user = getUser(userId);
         OAuthGrant updated = grantService.update(user, grantId, grant);
         if (updated == null) {
-            throw new HiveException("Grant with such id not found!", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }
         logger.debug("OAuthGrant: update proceed successfully. User id: {}, grant id: {}", userId, grantId);
         if (updated.getType().equals(Type.TOKEN)) {
@@ -183,13 +184,13 @@ public class OAuthGrantController {
             } else if (current.isAdmin()) {
                 User result = userService.findById(id);
                 if (result == null) {
-                    throw new HiveException("User with such id not found!", NOT_FOUND.getStatusCode());
+                    throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
                 }
                 return result;
             }
-            throw new HiveException("Not authorized!", UNAUTHORIZED.getStatusCode());
+            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
-        throw new HiveException("Bad user identifier: " + userId, BAD_REQUEST.getStatusCode());
+        throw new HiveException(String.format(Messages.BAD_USER_IDENTIFIER, userId), BAD_REQUEST.getStatusCode());
     }
 
 }

@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -86,7 +87,8 @@ public class EquipmentController {
         if (result == null) {
             logger.debug("No equipment with id = {} for device class with id = {} found", eqId, classId);
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "Equipment with id = " + eqId + " not found"));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(),
+                            String.format(Messages.EQUIPMENT_NOT_FOUND, eqId, classId)));
         }
         logger.debug("Device class's equipment get proceed successfully");
 
@@ -149,7 +151,7 @@ public class EquipmentController {
                     eqId, classId);
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            "Equipment with id = " + eqId + " or DeviceClass id = " + classId + " not found"));
+                            String.format(Messages.EQUIPMENT_NOT_FOUND, eqId, classId)));
         }
 
         logger.debug("Update device class's equipment finished successfully");

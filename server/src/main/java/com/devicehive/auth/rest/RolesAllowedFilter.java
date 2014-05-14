@@ -1,6 +1,7 @@
 package com.devicehive.auth.rest;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -17,9 +18,8 @@ import java.util.Set;
 public class RolesAllowedFilter implements ContainerRequestFilter {
 
     private static final String wwwAuthHeader = "WWW-Authenticate";
-    private static final String oauthRealm = "Bearer realm=\"devicehive\"";
-    private static final String basicRealm = "Basic realm=\"devicehive\"";
-    private static final String notAuthorizedMessage = "{message:\"Not authorized\"}";
+
+
     private final Set<String> allowedRoles;
 
     public RolesAllowedFilter(Collection<String> allowedRoles) {
@@ -37,14 +37,14 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
         if (securityContext.getAuthenticationScheme().equals(Constants.OAUTH_AUTH_SCEME)) {
             requestContext.abortWith(Response
                     .status(Response.Status.UNAUTHORIZED)
-                    .header(wwwAuthHeader, oauthRealm)
-                    .entity(notAuthorizedMessage)
+                    .header(wwwAuthHeader, Messages.OAUTH_REALM)
+                    .entity(Messages.NOT_AUTHORIZED)
                     .build());
         } else {
             requestContext.abortWith(Response
                     .status(Response.Status.UNAUTHORIZED)
-                    .header(wwwAuthHeader, basicRealm)
-                    .entity(notAuthorizedMessage)
+                    .header(wwwAuthHeader, Messages.BASIC_REALM)
+                    .entity(Messages.NOT_AUTHORIZED)
                     .build());
         }
     }

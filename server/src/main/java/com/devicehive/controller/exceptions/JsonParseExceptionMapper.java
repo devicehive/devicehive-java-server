@@ -1,6 +1,7 @@
 package com.devicehive.controller.exceptions;
 
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.JsonParseException;
@@ -15,6 +16,6 @@ public class JsonParseExceptionMapper implements ExceptionMapper<JsonParseExcept
     @Override
     public Response toResponse(JsonParseException exception) {
         return ResponseFactory
-                .response(Response.Status.BAD_REQUEST, new ErrorResponse(ErrorResponse.JSON_SYNTAX_ERROR_MESSAGE));
+                .response(Response.Status.BAD_REQUEST, new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
     }
 }

@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
@@ -103,7 +104,7 @@ public class NetworkService {
     public Network update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
         Network existing = getById(networkId);
         if (existing == null) {
-            throw new HiveException(ErrorResponse.NETWORK_NOT_FOUND_MESSAGE, NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
         }
         if (networkUpdate.getKey() != null) {
             existing.setKey(networkUpdate.getKey().getValue());

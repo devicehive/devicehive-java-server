@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
@@ -88,7 +89,7 @@ public class DeviceClassService {
         } else {
             //create
             if (deviceClassFromMessage.getId() != null) {
-                throw new HiveException("Invalid request", BAD_REQUEST.getStatusCode());
+                throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
             }
             deviceClassDAO.createDeviceClass(deviceClassFromMessage);
             if (!useExistingEquipment) {
@@ -100,11 +101,10 @@ public class DeviceClassService {
 
     public DeviceClass addDeviceClass(DeviceClass deviceClass) {
         if (deviceClass.getId() != null) {
-            throw new HiveException("Invalid request. Id cannot be specified.", BAD_REQUEST.getStatusCode());
+            throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
         }
         if (deviceClassDAO.getDeviceClassByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
-            throw new HiveException("DeviceClass cannot be created. Device class with such name and version already " +
-                    "exists", FORBIDDEN.getStatusCode());
+            throw new HiveException(Messages.DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS, FORBIDDEN.getStatusCode());
         }
         DeviceClass createdDeviceClass = deviceClassDAO.createDeviceClass(deviceClass);
         if (deviceClass.getEquipment() != null) {
@@ -117,7 +117,7 @@ public class DeviceClassService {
     public void update(@NotNull Long id, DeviceClassUpdate update) {
         DeviceClass stored = deviceClassDAO.getDeviceClass(id);
         if (stored == null) {
-            throw new HiveException("device with id : " + id + " does not exists",
+            throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, id),
                     Response.Status.NOT_FOUND.getStatusCode());
         }
         if (update == null) {
@@ -150,8 +150,9 @@ public class DeviceClassService {
         Set<String> codes = new HashSet<>(equipmentsToReplace.size());
         for (Equipment newEquipment : equipmentsToReplace) {
             if (codes.contains(newEquipment.getCode())) {
-                throw new HiveException("Duplicate equipment entry with code = " + newEquipment.getCode() + " for " +
-                        "device class with id : " + deviceClass.getId(), FORBIDDEN.getStatusCode());
+                throw new HiveException(
+                        String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, newEquipment.getCode(), deviceClass.getId()),
+                        FORBIDDEN.getStatusCode());
             }
             codes.add(newEquipment.getCode());
             newEquipment.setDeviceClass(deviceClass);
@@ -164,8 +165,9 @@ public class DeviceClassService {
 
         for (Equipment equipment : equipments) {
             if (existingCodesSet.contains(equipment.getCode())) {
-                throw new HiveException("Duplicate equipment entry with code = " + equipment.getCode() + " for " +
-                        "device class with id : " + deviceClass.getId(), FORBIDDEN.getStatusCode());
+                throw new HiveException(
+                        String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, equipment.getCode(), deviceClass.getId()),
+                        FORBIDDEN.getStatusCode());
             }
             existingCodesSet.add(equipment.getCode());
             equipment.setDeviceClass(deviceClass);
@@ -178,19 +180,19 @@ public class DeviceClassService {
         DeviceClass deviceClass = deviceClassDAO.get(classId);
 
         if (deviceClass == null) {
-            throw new HiveException("No device class with id = " + classId + " found", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, classId), NOT_FOUND.getStatusCode());
         }
         if (deviceClass.getPermanent()) {
-            throw new HiveException("Unable to update equipment on permanent device class.",
-                    NOT_FOUND.getStatusCode());
+            throw new HiveException(Messages.UPDATE_PERMANENT_EQUIPMENT, NOT_FOUND.getStatusCode());
         }
         List<Equipment> equipments = equipmentService.getByDeviceClass(deviceClass);
         String newCode = equipment.getCode();
         if (equipments != null) {
             for (Equipment e : equipments) {
                 if (newCode.equals(e.getCode())) {
-                    throw new HiveException("Equipment with code = " + newCode + " and device class id = " + classId +
-                            " already exists", FORBIDDEN.getStatusCode());
+                    throw new HiveException(
+                            String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, e.getCode(), classId),
+                            FORBIDDEN.getStatusCode());
                 }
             }
         }

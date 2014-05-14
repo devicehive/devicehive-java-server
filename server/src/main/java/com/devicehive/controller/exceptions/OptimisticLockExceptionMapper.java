@@ -1,6 +1,7 @@
 package com.devicehive.controller.exceptions;
 
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
 
@@ -14,6 +15,6 @@ public class OptimisticLockExceptionMapper implements ExceptionMapper<Optimistic
 
     @Override
     public Response toResponse(OptimisticLockException exception) {
-        return ResponseFactory.response(Response.Status.CONFLICT, new ErrorResponse(ErrorResponse.CONFLICT_MESSAGE));
+        return ResponseFactory.response(Response.Status.CONFLICT, new ErrorResponse(Messages.CONFLICT_MESSAGE));
     }
 }

@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -97,7 +98,7 @@ public class DeviceClassController {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                            ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                            Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -130,7 +131,7 @@ public class DeviceClassController {
         if (result == null) {
             logger.info("No device class with id = {} found", id);
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "DeviceClass with id = " + id + " not found."));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_CLASS_NOT_FOUND, id)));
         }
 
         logger.debug("Requested device class found");

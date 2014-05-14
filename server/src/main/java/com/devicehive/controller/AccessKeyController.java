@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -164,7 +165,7 @@ public class AccessKeyController {
             logger.debug("Access key : update failed for userId : {} and accessKeyId : {}. Reason: No access key " +
                     "found.", userId, accessKeyId);
             return ResponseFactory
-                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "Access key not found."));
+                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.ACCESS_KEY_NOT_FOUND));
         }
 
         logger.debug("Access key : update proceed successfully for userId : {}, access key id : {}, access key : {} ",
@@ -207,7 +208,8 @@ public class AccessKeyController {
             try {
                 id = Long.parseLong(userId);
             } catch (NumberFormatException e) {
-                throw new HiveException("Bad user identifier :" + userId, e, BAD_REQUEST.getStatusCode());
+                throw new HiveException(String.format(Messages.BAD_USER_IDENTIFIER, userId), e,
+                        BAD_REQUEST.getStatusCode());
             }
         }
 
@@ -215,13 +217,13 @@ public class AccessKeyController {
         if (!currentUser.getId().equals(id) && currentUser.isAdmin()) {
             result = userService.findById(id);
             if (result == null) {
-                throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
+                throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
             }
             return result;
 
         }
         if (!currentUser.getId().equals(id) && currentUser.getRole().equals(UserRole.CLIENT)) {
-            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
+            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
         result = currentUser;
         return result;

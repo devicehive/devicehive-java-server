@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessToken;
@@ -66,20 +67,20 @@ public class OAuthTokenController {
                 }
                 if (clientId == null) {
                     return ResponseFactory.response(BAD_REQUEST,
-                            new ErrorResponse(BAD_REQUEST.getStatusCode(), "Client id is required!"));
+                            new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.CLIENT_ID_IS_REQUIRED));
                 }
                 key = grantService.accessTokenRequestForCodeType(code, redirectUri, clientId);
                 break;
             case PASSWORD:
                 if (client == null) {
                     return ResponseFactory.response(UNAUTHORIZED,
-                            new ErrorResponse(UNAUTHORIZED.getStatusCode(), "Not authorized!"));
+                            new ErrorResponse(UNAUTHORIZED.getStatusCode(), Messages.UNAUTHORIZED_REASON_PHRASE));
                 }
                 key = grantService.accessTokenRequestForPasswordType(scope, login, password, client);
                 break;
             default:
                 return ResponseFactory.response(BAD_REQUEST,
-                        new ErrorResponse(BAD_REQUEST.getStatusCode(), "Invalid grant type!"));
+                        new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_GRANT_TYPE));
         }
         AccessToken token = new AccessToken();
         token.setTokenType(OAUTH_AUTH_SCEME);

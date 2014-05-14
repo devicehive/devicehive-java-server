@@ -1,5 +1,6 @@
 package com.devicehive.controller.converters;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.adapters.TimestampAdapter;
 
@@ -31,7 +32,7 @@ public class TimestampConverterProvider implements ParamConverterProvider {
             try {
                 return TimestampAdapter.parseTimestamp(value);
             } catch (IllegalArgumentException | UnsupportedOperationException e) {
-                throw new HiveException("Unpareasble timestamp.", e, BAD_REQUEST.getStatusCode());
+                throw new HiveException(Messages.UNPARSEABLE_TIMESTAMP, e, BAD_REQUEST.getStatusCode());
             }
         }
 

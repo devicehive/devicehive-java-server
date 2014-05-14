@@ -4,6 +4,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.controller.util.SimpleWaiter;
@@ -401,7 +402,7 @@ public class DeviceCommandController {
                 && !STATUS.equalsIgnoreCase(sortField)) {
             logger.debug("Device command query failed. Bad request for sortField.");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
         }
         sortField = sortField.toLowerCase();
 
@@ -447,7 +448,8 @@ public class DeviceCommandController {
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(),
+                            String.format(Messages.DEVICE_NOT_FOUND,  guid)));
         }
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
@@ -455,7 +457,8 @@ public class DeviceCommandController {
             logger.debug("Device command get failed. No command with id = {} found for device with guid = {}", id,
                     guid);
             return ResponseFactory
-                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), "Command Not Found"));
+                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                            String.format(Messages.COMMAND_NOT_FOUND, id)));
         }
 
         if (result.getUser() != null) {
@@ -513,7 +516,8 @@ public class DeviceCommandController {
 
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "Device with such guid not found"));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(),
+                            String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
         commandService.submitDeviceCommand(deviceCommand, device, authUser);
@@ -551,10 +555,13 @@ public class DeviceCommandController {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
-        if (command == null || device == null) {
+        if (device == null){
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "command with id " + commandId + " for device with "
-                            + guid + " is not found"));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
+        }
+        if (command == null) {
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
         command.setId(commandId);
 

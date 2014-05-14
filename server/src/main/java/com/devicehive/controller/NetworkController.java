@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -97,7 +98,7 @@ public class NetworkController {
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.debug("Unable to proceed network list request. Invalid sortField");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -134,8 +135,8 @@ public class NetworkController {
         if (existing == null) {
             logger.debug("Network with id =  {} does not exists", id);
             return ResponseFactory
-                    .response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), ErrorResponse
-                            .NETWORK_NOT_FOUND_MESSAGE));
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                            String.format(Messages.NETWORK_NOT_FOUND, id)));
         }
         return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }

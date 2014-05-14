@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.AccessKeyPermissionDAO;
 import com.devicehive.dao.DeviceDAO;
@@ -60,10 +61,10 @@ public class AccessKeyService {
 
     public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
         if (accessKey.getLabel() == null) {
-            throw new HiveException("Label is required!", Response.Status.BAD_REQUEST.getStatusCode());
+            throw new HiveException(Messages.LABEL_IS_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
         }
         if (accessKey.getId() != null || accessKey.getPermissions() == null) {
-            throw new HiveException(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE,
+            throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                     Response.Status.BAD_REQUEST.getStatusCode());
         }
         validateActions(accessKey);
@@ -96,7 +97,7 @@ public class AccessKeyService {
         if (toUpdate.getPermissions() != null) {
             Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().getValue();
             if (permissionsToReplace == null) {
-                throw new HiveException(ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE,
+                throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                         Response.Status.BAD_REQUEST.getStatusCode());
             }
             AccessKey toValidate = toUpdate.convertTo();
@@ -122,12 +123,12 @@ public class AccessKeyService {
         Set<String> actions = new HashSet<>();
         for (AccessKeyPermission permission : accessKey.getPermissions()) {
             if (permission.getActions() == null) {
-                throw new HiveException("Actions is required!", Response.Status.BAD_REQUEST.getStatusCode());
+                throw new HiveException(Messages.ACTIONS_ARE_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
             }
             actions.addAll(permission.getActionsAsSet());
         }
         if (!AvailableActions.validate(actions)) {
-            throw new HiveException("Unknown action!", Response.Status.BAD_REQUEST.getStatusCode());
+            throw new HiveException(Messages.UNKNOWN_ACTION, Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
 
@@ -230,7 +231,7 @@ public class AccessKeyService {
             newKey.setExpirationDate(expirationDate);
         }
         newKey.setUser(user);
-        newKey.setLabel("OAuth token for: " + grant.getClient().getName());
+        newKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, grant.getClient().getName()));
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setDomains(grant.getClient().getDomain());
@@ -253,7 +254,7 @@ public class AccessKeyService {
         }  else{
             existing.setExpirationDate(null);
         }
-        existing.setLabel("OAuth token for: " + grant.getClient().getName());
+        existing.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, grant.getClient().getName()));
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setDomains(grant.getClient().getDomain());

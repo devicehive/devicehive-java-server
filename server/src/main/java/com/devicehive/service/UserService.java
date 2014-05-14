@@ -2,12 +2,17 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -18,7 +23,9 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * This class serves all requests to database from controller.
@@ -111,7 +118,7 @@ public class UserService {
         User existing = userDAO.findById(id);
 
         if (existing == null) {
-            throw new HiveException("User with such id cannot be found", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, id), NOT_FOUND.getStatusCode());
         }
         if (userToUpdate == null) {
             return existing;
@@ -119,14 +126,13 @@ public class UserService {
         if (userToUpdate.getLogin() != null) {
             User existingLogin = userDAO.findByLogin(userToUpdate.getLogin().getValue());
             if (existingLogin != null && !existingLogin.getId().equals(id)) {
-                throw new HiveException("User with such login already exists. Please, select another one",
-                        FORBIDDEN.getStatusCode());
+                throw new HiveException(Messages.DUPLICATE_LOGIN, FORBIDDEN.getStatusCode());
             }
             existing.setLogin(userToUpdate.getLogin().getValue());
         }
         if (userToUpdate.getPassword() != null) {
             if (userToUpdate.getPassword().getValue() == null || userToUpdate.getPassword().getValue().isEmpty()) {
-                throw new HiveException("Password is required!", BAD_REQUEST.getStatusCode());
+                throw new HiveException(Messages.PASSWORD_REQUIRED, BAD_REQUEST.getStatusCode());
             }
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(userToUpdate.getPassword().getValue(), salt);
@@ -151,11 +157,11 @@ public class UserService {
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
-            throw new HiveException("User with id : " + userId + " not found.", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
         if (existingNetwork == null) {
-            throw new HiveException("Network with id : " + networkId + " not found.", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
         }
         Set<User> usersSet = existingNetwork.getUsers();
         usersSet.add(existingUser);
@@ -172,7 +178,7 @@ public class UserService {
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
-            throw new HiveException("User with id : " + userId + " not found.", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
         if (existingNetwork != null) {
@@ -222,15 +228,15 @@ public class UserService {
 
     public User createUser(@NotNull User user, String password) {
         if (user.getId() != null) {
-            throw new HiveException("Id cannot be specified for new user", BAD_REQUEST.getStatusCode());
+            throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
         }
         User existing = userDAO.findByLogin(user.getLogin());
         if (existing != null) {
-            throw new HiveException("User with such login already exists. Please, select another one",
+            throw new HiveException(Messages.DUPLICATE_LOGIN,
                     FORBIDDEN.getStatusCode());
         }
-        if (password == null || password.isEmpty()) {
-            throw new HiveException("Password is required!", BAD_REQUEST.getStatusCode());
+        if (StringUtils.isBlank(password)) {
+            throw new HiveException(Messages.PASSWORD_REQUIRED, BAD_REQUEST.getStatusCode());
         }
         String salt = passwordService.generateSalt();
         String hash = passwordService.hashPassword(password, salt);

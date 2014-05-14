@@ -1,5 +1,6 @@
 package com.devicehive.controller.converters;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,14 +42,15 @@ public class SortOrderConverterProvider implements ParamConverterProvider {
             } else if (value.equalsIgnoreCase(SORT_ORDER_DESC)) {
                 return false;
             } else {
-                throw new HiveException("Unparseable sort order : " + value, BAD_REQUEST.getStatusCode());
+                throw new HiveException(String.format(Messages.UNPARSEABLE_SORT_ORDER, value),
+                        BAD_REQUEST.getStatusCode());
             }
         }
 
         @Override
         public String toString(Boolean value) {
             if (value == null) {
-                throw new HiveException("Sort order cannot be null.", INTERNAL_SERVER_ERROR.getStatusCode());
+                throw new HiveException(Messages.SORT_ORDER_IS_NULL, INTERNAL_SERVER_ERROR.getStatusCode());
             } else if (value) {
                 return SORT_ORDER_ASC;
             } else {

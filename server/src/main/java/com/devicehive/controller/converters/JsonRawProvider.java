@@ -1,6 +1,7 @@
 package com.devicehive.controller.converters;
 
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -39,7 +40,7 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
         if (element.isJsonObject()) {
             return element.getAsJsonObject();
         }
-        throw new IOException("Not a JSON object");
+        throw new IOException(Messages.NOT_A_JSON_OBJECT);
     }
 
     @Override

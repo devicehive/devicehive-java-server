@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
@@ -105,7 +106,7 @@ public class UserController {
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -154,8 +155,8 @@ public class UserController {
         User user = userService.findUserWithNetworks(userId);
 
         if (user == null) {
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                    "User not found."));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId)));
         }
 
         return ResponseFactory.response(OK,
@@ -172,8 +173,8 @@ public class UserController {
         User currentUser = userService.findUserWithNetworks(id);
 
         if (currentUser == null) {
-            return ResponseFactory
-                    .response(CONFLICT, new ErrorResponse(CONFLICT.getStatusCode(), "Could not get current user."));
+            return ResponseFactory.response(CONFLICT,
+                    new ErrorResponse(CONFLICT.getStatusCode(), Messages.CAN_NOT_GET_CURRENT_USER));
         }
 
         return ResponseFactory.response(OK, currentUser, JsonPolicyDef.Policy.USER_PUBLISHED);
@@ -284,7 +285,7 @@ public class UserController {
     public Response getNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
-            throw new HiveException("User not found.", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, id), NOT_FOUND.getStatusCode());
         }
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
@@ -293,7 +294,7 @@ public class UserController {
                         JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
-        throw new NotFoundException("User network not found.");
+        throw new NotFoundException(String.format(Messages.USER_NETWORK_NOT_FOUND, id, networkId));
     }
 
     /**

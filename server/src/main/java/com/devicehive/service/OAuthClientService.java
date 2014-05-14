@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.OAuthClientDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.OAuthClient;
@@ -39,11 +40,11 @@ public class OAuthClientService {
 
     public OAuthClient insert(OAuthClient client) {
         if (client.getId() != null) {
-            throw new HiveException("Invalid request. Id cannot be specified.", SC_BAD_REQUEST);
+            throw new HiveException(Messages.ID_NOT_ALLOWED, SC_BAD_REQUEST);
         }
         OAuthClient clientWithExistingID = clientDAO.get(client.getOauthId());
         if (clientWithExistingID != null) {
-            throw new HiveException("OAuth client with such OAuthID already exists!", SC_FORBIDDEN);
+            throw new HiveException(Messages.DUPLICATE_OAUTH_ID, SC_FORBIDDEN);
         }
         client.setOauthSecret(secretGenerator.generateSalt());
         clientDAO.insert(client);
@@ -53,7 +54,7 @@ public class OAuthClientService {
     public boolean update(OAuthClientUpdate client, Long clientId) {
         OAuthClient existing = clientDAO.get(clientId);
         if (existing == null) {
-            throw new HiveException("OAuth client not found!", SC_NOT_FOUND);
+            throw new HiveException(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, clientId), SC_NOT_FOUND);
         }
         if (client == null) {
             return true;
@@ -61,7 +62,7 @@ public class OAuthClientService {
         if (client.getOauthId() != null && !client.getOauthId().getValue().equals(existing.getOauthId())) {
             OAuthClient existingWithOAuthID = clientDAO.get(client.getOauthId().getValue());
             if (existingWithOAuthID != null) {
-                throw new HiveException("OAuth client with such OAuthID already exists!", SC_FORBIDDEN);
+                throw new HiveException(Messages.DUPLICATE_OAUTH_ID, SC_FORBIDDEN);
             }
         }
         if (client.getName() != null) {

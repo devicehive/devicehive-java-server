@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
@@ -106,13 +107,11 @@ public class DeviceCommandService {
         DeviceCommand cmd = commandDAO.findById(update.getId());
 
         if (cmd == null) {
-            throw new HiveException("Command not found!", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()), NOT_FOUND.getStatusCode());
         }
 
         if (!cmd.getDevice().getId().equals(device.getId())) {
-            throw new HiveException(
-                    "Command with id " + update.getId() + " wasn't found for device with id " + device.getGuid(),
-                    NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()), NOT_FOUND.getStatusCode());
         }
 
 

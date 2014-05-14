@@ -2,6 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
@@ -19,6 +20,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
@@ -135,7 +137,7 @@ public class DeviceService {
             return resultList.get(0);
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice)) {
-                throw new HiveException("Not authorized!", UNAUTHORIZED.getStatusCode());
+                throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
@@ -171,7 +173,9 @@ public class DeviceService {
 
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
-            throw new HiveException("No access to device with such guid", UNAUTHORIZED.getStatusCode());
+            throw new HiveException(
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
+                    UNAUTHORIZED.getStatusCode());
         }
         Network network = networkService.verifyNetworkByKey(deviceUpdate.getNetwork(), key);
         DeviceClass deviceClass = deviceClassService
@@ -187,7 +191,9 @@ public class DeviceService {
             return resultList.get(0);
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().getValue())) {
-                throw new HiveException("No access to device with such guid", UNAUTHORIZED.getStatusCode());
+                throw new HiveException(
+                        String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
+                        UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
                 existingDevice.setDeviceClass(deviceClass);
@@ -219,11 +225,15 @@ public class DeviceService {
                                                    Set<Equipment> equipmentSet,
                                                    Device device,
                                                    boolean useExistingEquipment) {
-        if (deviceUpdate.getGuid() == null || !device.getGuid().equals(deviceUpdate.getGuid().getValue())) {
-            throw new HiveException("No permissions to update another device!", UNAUTHORIZED.getStatusCode());
+        if (deviceUpdate.getGuid() == null){
+            throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
+        }
+        if (!device.getGuid().equals(deviceUpdate.getGuid().getValue())) {
+            throw new HiveException( String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
+                    UNAUTHORIZED.getStatusCode());
         }
         if (deviceUpdate.getKey() != null && !device.getKey().equals(deviceUpdate.getKey().getValue())) {
-            throw new HiveException("Unauthorized! Wrong key or guid!", UNAUTHORIZED.getStatusCode());
+            throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
         DeviceClass deviceClass = deviceClassService
                 .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
@@ -276,7 +286,7 @@ public class DeviceService {
             return resultList.get(0);
         } else {
             if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
-                throw new HiveException("Unauthorized! Wrong key or guid!", UNAUTHORIZED.getStatusCode());
+                throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
@@ -321,16 +331,16 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void validateDevice(DeviceUpdate device) throws HiveException {
         if (device == null) {
-            throw new HiveException("Device is empty");
+            throw new HiveException(Messages.EMPTY_DEVICE);
         }
         if (device.getName() != null && device.getName() == null) {
-            throw new HiveException("Device name is empty");
+            throw new HiveException(Messages.EMPTY_DEVICE_NAME);
         }
         if (device.getKey() != null && device.getKey() == null) {
-            throw new HiveException("Device key is empty");
+            throw new HiveException(Messages.EMPTY_DEVICE_KEY);
         }
         if (device.getDeviceClass() != null && device.getDeviceClass().getValue() == null) {
-            throw new HiveException("Device class is empty");
+            throw new HiveException(Messages.EMPTY_DEVICE_CLASS);
         }
     }
 

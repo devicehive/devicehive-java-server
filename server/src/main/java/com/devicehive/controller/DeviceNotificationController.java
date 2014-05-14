@@ -4,6 +4,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.controller.util.SimpleWaiter;
@@ -175,7 +176,7 @@ public class DeviceNotificationController {
                     " notification {}, sort field {}, sort order {}, take {}, skip {}", guid, start, end,
                     notification, sortField, sortOrder, take, skip);
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         }
         sortField = sortField.toLowerCase();
 
@@ -237,20 +238,20 @@ public class DeviceNotificationController {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
-            throw new HiveException("Device notification with id : " + notificationId + " not found",
+            throw new HiveException(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId),
                     NOT_FOUND.getStatusCode());
         }
         String deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
         if (!deviceGuidFromNotification.equals(guid)) {
             logger.debug("No device notifications found for device with guid : {}", guid);
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse("No device notifications " +
-                    "found for device with guid : " + guid));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(String.format(Messages.NO_NOTIFICATIONS_FROM_DEVICE, guid)));
         }
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             logger.debug("No permissions to get notifications for device with guid : {}", guid);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse("No device notifications " +
-                    "found for device with guid : " + guid));
+            return ResponseFactory.response(Response.Status.NOT_FOUND,
+                    new ErrorResponse(String.format(Messages.NO_NOTIFICATIONS_FROM_DEVICE, guid)));
         }
 
         logger.debug("Device notification proceed successfully");
@@ -467,17 +468,17 @@ public class DeviceNotificationController {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                            ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         }
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "No device with such guid : " + guid + " exists"));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(),String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         if (device.getNetwork() == null) {
             return ResponseFactory.response(FORBIDDEN,
-                    new ErrorResponse(FORBIDDEN.getStatusCode(), "No access to device"));
+                    new ErrorResponse(FORBIDDEN.getStatusCode(),
+                            String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
         }
         notificationService.submitDeviceNotification(notification, device);
 

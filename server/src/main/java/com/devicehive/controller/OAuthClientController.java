@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
@@ -73,7 +74,7 @@ public class OAuthClientController {
         if (sortField != null && !sortField.equalsIgnoreCase(ID) && !sortField.equalsIgnoreCase(NAME) &&
                 !sortField.equalsIgnoreCase(DOMAIN) && !sortField.equalsIgnoreCase(OAUTH_ID)) {
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -114,8 +115,8 @@ public class OAuthClientController {
     public Response insert(OAuthClient clientToInsert) {
         logger.debug("OAuthClient insert requested. Client to insert: {}", clientToInsert);
         if (clientToInsert == null) {
-            return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+            return ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         }
         OAuthClient created = clientService.insert(clientToInsert);
         logger.debug("OAuthClient insert procceed successfully. Client to insert: {}. New id: {}", clientToInsert,

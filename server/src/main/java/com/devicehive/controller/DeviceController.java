@@ -3,6 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.GsonFactory;
@@ -120,7 +121,7 @@ public class DeviceController {
                 && !NETWORK.equalsIgnoreCase(sortField)
                 && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), ErrorResponse.INVALID_REQUEST_PARAMETERS_MESSAGE));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -302,7 +303,8 @@ public class DeviceController {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
             return ResponseFactory
                     .response(NOT_FOUND,
-                            new ErrorResponse(NOT_FOUND.getStatusCode(), ErrorResponse.DEVICE_NOT_FOUND_MESSAGE));
+                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         logger.debug("Device equipment by code proceed successfully");
 
