@@ -6,7 +6,14 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.Network;
+import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
@@ -18,7 +25,13 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -225,11 +238,11 @@ public class DeviceService {
                                                    Set<Equipment> equipmentSet,
                                                    Device device,
                                                    boolean useExistingEquipment) {
-        if (deviceUpdate.getGuid() == null){
+        if (deviceUpdate.getGuid() == null) {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
         }
         if (!device.getGuid().equals(deviceUpdate.getGuid().getValue())) {
-            throw new HiveException( String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                     UNAUTHORIZED.getStatusCode());
         }
         if (deviceUpdate.getKey() != null && !device.getKey().equals(deviceUpdate.getKey().getValue())) {
@@ -395,7 +408,8 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(Long networkId,
                                 HivePrincipal principal) {
-        return deviceDAO.getList(null, null, null, networkId, null, null, null, null, null, null, null, null, principal);
+        return deviceDAO
+                .getList(null, null, null, networkId, null, null, null, null, null, null, null, null, principal);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -404,7 +418,8 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Map<Device, Set<String>> createFilterMap(@NotNull Map<String, Set<String>> requested, HivePrincipal principal) {
+    public Map<Device, Set<String>> createFilterMap(@NotNull Map<String, Set<String>> requested,
+                                                    HivePrincipal principal) {
 
         List<Device> allowedDevices = findByGuidWithPermissionsCheck(requested.keySet(), principal);
         Map<String, Device> uuidToDevice = new HashMap<>();

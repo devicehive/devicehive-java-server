@@ -13,7 +13,6 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.SubscriptionFilterInternal;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
@@ -112,11 +110,16 @@ public class NotificationHandlers implements WebsocketHandlers {
                                              List<String> names,
                                              Timestamp timestamp) throws IOException {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        if (timestamp == null) {
+            timestamp = timestampService.getTimestamp();
+        }
+        if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
+            throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
+        }
         try {
             logger.debug("notification/subscribe action. Session {}", session.getId());
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             List<NotificationSubscription> nsList = new ArrayList<>();
-            SubscriptionFilterInternal sfi;
             UUID reqId = UUID.randomUUID();
             if (devices != null) {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
@@ -128,7 +131,6 @@ public class NotificationHandlers implements WebsocketHandlers {
                                     WebsocketSession.NOTIFICATION_SUBSCRIPTION_LOCK)
                     ));
                 }
-                sfi = SubscriptionFilterInternal.createForManyDevices(devices, timestamp);
             } else {
                 NotificationSubscription forAll =
                         new NotificationSubscription(principal,
@@ -138,10 +140,9 @@ public class NotificationHandlers implements WebsocketHandlers {
                                 new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATION_SUBSCRIPTION_LOCK)
                         );
                 nsList.add(forAll);
-                sfi = SubscriptionFilterInternal.createForAllDevices(null, timestamp);
             }
             subscriptionSessionMap.put(reqId, session);
-            WebsocketSession.getNotificationSubscriptions(session).put(reqId, sfi);
+            WebsocketSession.getNotificationSubscriptions(session).add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (timestamp == null) {
                 timestamp = timestampService.getTimestamp();
@@ -189,23 +190,9 @@ public class NotificationHandlers implements WebsocketHandlers {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             if (subId == null) {
                 List<UUID> subIds = new ArrayList<>();
-                SubscriptionFilterInternal oldSubsriptionFormatToUnsubscribe;
-                if (deviceGuids != null) {
-                    oldSubsriptionFormatToUnsubscribe =
-                            SubscriptionFilterInternal.createForManyDevices(deviceGuids, null);
-                } else {
-                    oldSubsriptionFormatToUnsubscribe = SubscriptionFilterInternal.createForAllDevices(null, null);
-                }
-                for (Map.Entry<UUID, SubscriptionFilterInternal> currentSubscription :
-                        WebsocketSession.getNotificationSubscriptions(session).entrySet()) {
-                    if (currentSubscription.getValue().equals(oldSubsriptionFormatToUnsubscribe)) {
-                        subIds.add(currentSubscription.getKey());
-
-
-                    }
-                }
+                subIds.addAll(WebsocketSession.getNotificationSubscriptions(session));
             } else {
-                if (WebsocketSession.getNotificationSubscriptions(session).containsKey(subId)) {
+                if (WebsocketSession.getNotificationSubscriptions(session).contains(subId)) {
                     WebsocketSession.getNotificationSubscriptions(session).remove(subId);
                     subscriptionSessionMap.remove(subId);
                     subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);

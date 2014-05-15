@@ -17,6 +17,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -63,7 +64,8 @@ public class DeviceCommandService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceCommand> getDeviceCommandsList(List<String> devices, List<String> names, Timestamp timestamp,
+    public List<DeviceCommand> getDeviceCommandsList(Collection<String> devices, Collection<String> names,
+                                                     Timestamp timestamp,
                                                      HivePrincipal principal) {
         if (devices != null) {
             return commandDAO.findCommands(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp, null);

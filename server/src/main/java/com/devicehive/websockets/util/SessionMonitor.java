@@ -8,7 +8,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
-import com.devicehive.model.SubscriptionFilterInternal;
 import com.devicehive.service.DeviceActivityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,7 @@ import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -72,8 +71,8 @@ public class SessionMonitor {
         if (authorizedDevice != null) {
             deviceActivityService.update(authorizedDevice.getId());
         }
-        Map<UUID, SubscriptionFilterInternal> commandSubscriptions = WebsocketSession.getCommandSubscriptions(session);
-        for (UUID subId : commandSubscriptions.keySet()) {
+        Set<UUID> commandSubscriptions = WebsocketSession.getCommandSubscriptions(session);
+        for (UUID subId : commandSubscriptions) {
             for (CommandSubscription subscription : subscriptionManager.getCommandSubscriptionStorage().get(subId)) {
                 if (subscription.getDeviceId() != Constants.NULL_ID_SUBSTITUTE) {
                     deviceActivityService.update(subscription.getDeviceId());

@@ -13,7 +13,6 @@ import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.SubscriptionFilterInternal;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
@@ -59,6 +58,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_C
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 
@@ -100,8 +100,8 @@ public class CommandHandlers implements WebsocketHandlers {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
-                                                     @WsParam(DEVICE_GUIDS) List<String> devices,
-                                                     @WsParam(NAMES) List<String> names,
+                                                     @WsParam(DEVICE_GUIDS) Set<String> devices,
+                                                     @WsParam(NAMES) Set<String> names,
                                                      @WsParam(DEVICE_GUID) String deviceId,
                                                      Session session) throws IOException {
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
@@ -116,37 +116,43 @@ public class CommandHandlers implements WebsocketHandlers {
         return response;
     }
 
-    private List<String> prepareActualList(List<String> deviceIdList, String deviceId) {
-        if (deviceId == null && deviceIdList == null) {
+    private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
+        if (deviceId == null && deviceIdSet == null) {
             return null;
         }
-        List<String> actualList = new ArrayList<>();
-        if (deviceIdList != null) {
-            actualList.addAll(deviceIdList);
+        if (deviceIdSet != null && deviceId == null) {
+            deviceIdSet.remove(null);
+            return deviceIdSet;
         }
-        if (deviceId != null) {
-            actualList.add(deviceId);
+        if (deviceIdSet == null) {
+            return new HashSet<String>() {{
+                add(deviceId);
+            }};
         }
-        return actualList;
+        throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
+
     }
 
     private UUID commandsSubscribeAction(Session session,
-                                         List<String> devices,
-                                         List<String> names,
+                                         Set<String> devices,
+                                         Set<String> names,
                                          Timestamp timestamp) throws IOException {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-
+        if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
+            throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
+        }
         try {
             logger.debug("command/subscribe action. Session {}", session.getId());
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             List<CommandSubscription> csList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
-            SubscriptionFilterInternal sfi;
             if (devices != null) {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                if (actualDevices.size() != devices.size())
+                    throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
                 for (Device d : actualDevices) {
                     csList.add(new CommandSubscription(principal, d.getId(),
                             reqId,
@@ -155,7 +161,6 @@ public class CommandHandlers implements WebsocketHandlers {
                                     WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK)
                     ));
                 }
-                sfi = SubscriptionFilterInternal.createForManyDevices(devices, timestamp);
             } else {
                 CommandSubscription forAll =
                         new CommandSubscription(principal,
@@ -164,11 +169,12 @@ public class CommandHandlers implements WebsocketHandlers {
                                 names,
                                 new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK));
                 csList.add(forAll);
-                sfi = SubscriptionFilterInternal.createForAllDevices(names, timestamp);
             }
             subscriptionSessionMap.put(reqId, session);
-
-            WebsocketSession.getCommandSubscriptions(session).put(reqId, sfi);
+            if (names == null) {
+                WebsocketSession.addOldFormatCommandSubscription(session, devices, reqId);
+            }
+            WebsocketSession.getCommandSubscriptions(session).add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
             List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
@@ -191,15 +197,22 @@ public class CommandHandlers implements WebsocketHandlers {
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
     public WebSocketResponse processCommandUnsubscribe(Session session,
                                                        @WsParam(SUBSCRIPTION) UUID subId,
-                                                       @WsParam(DEVICE_GUIDS) List<String> deviceGuids) {
+                                                       @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
-            //todo subId is absent
-            if (WebsocketSession.getCommandSubscriptions(session).containsKey(subId)) {
-                WebsocketSession.getCommandSubscriptions(session).remove(subId);
-                subscriptionSessionMap.remove(subId);
-                subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
+            Set<UUID> subscriptions = new HashSet<>();
+            if (subId == null) {
+                subscriptions.addAll(WebsocketSession.removeOldFormatCommandSubscription(session, deviceGuids));
+            } else {
+                subscriptions.add(subId);
+            }
+            for (UUID toUnsubscribe : subscriptions) {
+                if (WebsocketSession.getCommandSubscriptions(session).contains(toUnsubscribe)) {
+                    WebsocketSession.getCommandSubscriptions(session).remove(toUnsubscribe);
+                    subscriptionSessionMap.remove(toUnsubscribe);
+                    subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
+                }
             }
         } finally {
             WebsocketSession.getCommandsSubscriptionsLock(session).unlock();

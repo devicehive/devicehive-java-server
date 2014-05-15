@@ -76,6 +76,7 @@ public class Messages {
     public static final String NETWORK_CREATION_NOT_ALLOWED = "No permissions to create network!";
     public static final String PARAMS_NOT_JSON = "\"parameters\" must be JSON Object!" ;
     public static final String UNKNOWN_ACTION_REQUESTED_WS = "Unknown action requested: %s";
+    public static final String EMPTY_NAMES = "Names field is required to be nonempty";
     public static final String COLUMN_CANNOT_BE_NULL = "%s cannot be null.";
     public static final String FIELD_LENGTH_CONSTRAINT =
             "Field cannot be empty. The length of %s should not be more than %s symbols.";
