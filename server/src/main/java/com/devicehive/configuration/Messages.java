@@ -21,6 +21,7 @@ public class Messages {
     public static final String GRANT_NOT_FOUND = "Grant with id = %s not found.";
     public static final String USER_NOT_FOUND = "User with id = %s not found";
     public static final String OAUTH_CLIENT_NOT_FOUND = "OAuth client with id = %s not found";
+    public static final String DEVICES_NOT_FOUND = "Device with such guids wasn't found: {%s}";
     public static final String NO_NOTIFICATIONS_FROM_DEVICE = "No device notifications " +
             "found from device with guid : %s";
     public static final String CONFLICT_MESSAGE = "Error occurred. Please, retry again.";
@@ -44,10 +45,13 @@ public class Messages {
             "Duplicate equipment entry with code = %s for device class with id : %s";
     public static final String UPDATE_PERMANENT_EQUIPMENT = "Unable to update equipment on permanent device class.";
     public static final String INCORRECT_CREDENTIALS = "Invalid credentials";
+    public static final String DEVICE_GUID_REQUIRED = "Device guid is required";
     public static final String EMPTY_DEVICE = "Device is empty";
     public static final String EMPTY_DEVICE_KEY = "Device key is required";
     public static final String EMPTY_DEVICE_NAME = "Device name is required";
     public static final String EMPTY_DEVICE_CLASS = "Device class is required";
+    public static final String EMPTY_COMMAND = "Command is required";
+    public static final String NOTIFICATION_REQUIRED = "Notification is required";
     public static final String DUPLICATE_OAUTH_ID = "OAuth client with such OAuthID already exists!";
     public static final String CLIENT_IS_NULL = "Client cannot be null!";
     public static final String INVALID_AUTH_CODE = "Invalid authorization code";
@@ -57,7 +61,25 @@ public class Messages {
     public static final String TYPE_REQUIRED = "Type field is required";
     public static final String REDIRECT_URI_REQUIRED = "Redirect URI field is required";
     public static final String SCOPE_REQUIRED = "Scope field is required";
+    public static final String COMMAND_ID_REQUIRED = "Command id is required";
     public static final String VALIDATION_FAILED = "Validation failed with following violations: %s";
     public static final String DUPLICATE_LOGIN = "User with such login already exists. Please, select another one";
     public static final String PASSWORD_REQUIRED = "Password is required!";
+    public static final String INTERNAL_SERVER_ERROR = "Internal server error";
+    public static final String INCORRECT_ACCESS_TYPE = "Invalid access type";
+    public static final String PARSING_MICROSECONDS_ERROR = "Error occurred during parsing microseconds";
+    public static final String INVALID_USER_ROLE = "Invalid user role";
+    public static final String INVALID_USER_STATUS = "Invalid user status";
+    public static final String DUPLICATE_NETWORK = "Network cannot be created. Network with such name already exists";
+    public static final String INVALID_NETWORK_KEY = "Incorrect network key value";
+    public static final String NO_ACCESS_TO_NETWORK = "No access to network!";
+    public static final String NETWORK_CREATION_NOT_ALLOWED = "No permissions to create network!";
+    public static final String PARAMS_NOT_JSON = "\"parameters\" must be JSON Object!" ;
+    public static final String UNKNOWN_ACTION_REQUESTED_WS = "Unknown action requested: %s";
+    public static final String COLUMN_CANNOT_BE_NULL = "%s cannot be null.";
+    public static final String FIELD_LENGTH_CONSTRAINT =
+            "Field cannot be empty. The length of %s should not be more than %s symbols.";
+    public static final String NO_PONGS_FOR_A_LONG_TIME = "No pongs for a long time";
+    public static final String SHUTDOWN = "Shutdown";
+
 }

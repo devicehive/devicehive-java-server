@@ -4,6 +4,7 @@ package com.devicehive.websockets.util;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
@@ -23,15 +24,12 @@ import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.devicehive.configuration.Constants.UTF8;
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
@@ -90,8 +88,7 @@ public class SessionMonitor {
             if (session.isOpen()) {
                 logger.debug("Pinging session " + session.getId());
                 try {
-                    session.getAsyncRemote()
-                            .sendPing(ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8))));
+                    session.getAsyncRemote().sendPing(Constants.PING);
                 } catch (IOException ex) {
                     logger.error("Error sending ping, closing the session", ex);
                     closePingPong(session);
@@ -123,7 +120,7 @@ public class SessionMonitor {
 
     private void closePingPong(Session session) {
         try {
-            session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "No pongs for a long time"));
+            session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, Messages.NO_PONGS_FOR_A_LONG_TIME));
         } catch (IOException ex) {
             logger.error("Error closing session", ex);
         }
@@ -138,7 +135,7 @@ public class SessionMonitor {
     public void closeAllSessions() {
         for (Session session : sessionMap.values()) {
             try {
-                session.close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, "Shutdown"));
+                session.close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, Messages.SHUTDOWN));
             } catch (IOException ex) {
                 logger.error("Error closing session", ex);
             }

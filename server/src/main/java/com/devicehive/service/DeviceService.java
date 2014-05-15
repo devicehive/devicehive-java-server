@@ -348,13 +348,13 @@ public class DeviceService {
     public Device getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
 
         if (getAllowedDevicesCount(principal, Arrays.asList(deviceId)) == 0) {
-            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
 
         Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceId);
 
         if (device == null) {
-            throw new HiveException("Device Not found", NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
         return device;
     }
@@ -424,10 +424,8 @@ public class DeviceService {
             }
         }
         if (!noAccessUuid.isEmpty()) {
-            StringBuilder message = new StringBuilder("Device with such guids wasn't found: {").
-                    append(StringUtils.join(noAccessUuid, ",")).
-                    append("}");
-            throw new HiveException(message.toString(), Response.Status.NOT_FOUND.getStatusCode());
+            String message = String.format(Messages.DEVICES_NOT_FOUND, StringUtils.join(noAccessUuid, ","));
+            throw new HiveException(message, Response.Status.NOT_FOUND.getStatusCode());
         }
         return result;
     }

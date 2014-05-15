@@ -1,6 +1,7 @@
 package com.devicehive.json.adapters;
 
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.model.AccessType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -29,7 +30,7 @@ public class AccessTypeAdapter  extends TypeAdapter<AccessType> {
             try {
                 return AccessType.forName(in.nextString());
             } catch (RuntimeException e) {
-                throw new IOException("Wrong access type", e);
+                throw new IOException(Messages.INCORRECT_ACCESS_TYPE, e);
             }
         }
     }

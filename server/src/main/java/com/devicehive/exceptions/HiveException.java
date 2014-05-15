@@ -1,6 +1,8 @@
 package com.devicehive.exceptions;
 
 
+import com.devicehive.configuration.Messages;
+
 import javax.ejb.ApplicationException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,7 +34,7 @@ public class HiveException extends RuntimeException {
     }
 
     public static HiveException fatal() {
-        return new HiveException("Internal server error");
+        return new HiveException(Messages.INTERNAL_SERVER_ERROR);
     }
 
 }

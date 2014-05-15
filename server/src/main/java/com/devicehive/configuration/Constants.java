@@ -1,5 +1,8 @@
 package com.devicehive.configuration;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+
 public class Constants {
     //Internal use
     public static final String UTF8 = "UTF-8";
@@ -24,6 +27,7 @@ public class Constants {
     public static final String OAUTH_AUTH_SCEME = "Bearer";
     public static final String AUTH_DEVICE_ID_HEADER = "Auth-DeviceID";
     public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
+    public static final ByteBuffer PING = ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8)));
     //API constants
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_GUID = "deviceGuid";
@@ -73,4 +77,6 @@ public class Constants {
     public static final String LOGIN = "login";
     public static final String LOGIN_PATTERN = "loginPattern";
     public static final String ROLE = "role";
+    public static final String DEVICE = "device";
+
 }

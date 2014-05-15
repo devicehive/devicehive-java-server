@@ -5,6 +5,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
@@ -233,7 +234,7 @@ public class NotificationHandlers implements WebsocketHandlers {
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");
-            throw new HiveException("Notification is required!", SC_BAD_REQUEST);
+            throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
         Device device;
         if (deviceGuid == null) {
@@ -244,7 +245,7 @@ public class NotificationHandlers implements WebsocketHandlers {
         if (device.getNetwork() == null) {
             logger.debug(
                     "notification/insert. No network specified for device with guid = {}", deviceGuid);
-            throw new HiveException("No access to device!", SC_FORBIDDEN);
+            throw new HiveException(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, SC_FORBIDDEN);
         }
         deviceNotificationService.submitDeviceNotification(notification, device);
         logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);

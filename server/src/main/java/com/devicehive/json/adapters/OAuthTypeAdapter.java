@@ -1,6 +1,7 @@
 package com.devicehive.json.adapters;
 
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.model.Type;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -29,7 +30,7 @@ public class OAuthTypeAdapter extends TypeAdapter<Type> {
             try {
                 return Type.forName(in.nextString());
             } catch (RuntimeException e) {
-                throw new IOException("Wrong oauth grant type", e);
+                throw new IOException(Messages.INVALID_GRANT_TYPE, e);
             }
         }
     }

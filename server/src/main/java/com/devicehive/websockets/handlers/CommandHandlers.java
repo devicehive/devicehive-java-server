@@ -5,6 +5,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
@@ -91,10 +92,8 @@ public class CommandHandlers implements WebsocketHandlers {
                 guidsWithDeniedAccess.add(deviceGuid);
             }
         }
-        StringBuilder message = new StringBuilder("No access to devices with guids: {");
-        message.append(StringUtils.join(guidsWithDeniedAccess.toArray(), ", "));
-        message.append("}");
-        return message.toString();
+        return String.format(Messages.DEVICES_NOT_FOUND,
+                StringUtils.join(guidsWithDeniedAccess.toArray(), ", "));
     }
 
     @Action("command/subscribe")
@@ -215,20 +214,20 @@ public class CommandHandlers implements WebsocketHandlers {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
     public WebSocketResponse processCommandInsert(@WsParam(DEVICE_GUID) String deviceGuid,
-                                                  @WsParam("command") @JsonPolicyApply(COMMAND_FROM_CLIENT)
+                                                  @WsParam(COMMAND) @JsonPolicyApply(COMMAND_FROM_CLIENT)
                                                   DeviceCommand deviceCommand,
                                                   Session session) {
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
         if (deviceGuid == null) {
-            throw new HiveException("Device ID is empty", SC_BAD_REQUEST);
+            throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         if (device == null) {
-            throw new HiveException("Device with such id not found", SC_NOT_FOUND);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceGuid), SC_NOT_FOUND);
         }
         if (deviceCommand == null) {
-            throw new HiveException("Command is empty", SC_BAD_REQUEST);
+            throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
         User user = principal.getUser();
         if (user == null) {
@@ -240,7 +239,7 @@ public class CommandHandlers implements WebsocketHandlers {
 
         commandService.submitDeviceCommand(deviceCommand, device, user);
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue("command", deviceCommand, COMMAND_TO_CLIENT);
+        response.addValue(COMMAND, deviceCommand, COMMAND_TO_CLIENT);
         return response;
     }
 
@@ -260,15 +259,18 @@ public class CommandHandlers implements WebsocketHandlers {
                 guid = principal.getDevice().getGuid();
             }
         }
-        if (guid == null || id == null) {
-            logger.debug("command/update canceled for session: {}. Guid or command id is not provided", session);
-            throw new HiveException("Device guid and command id are required parameters!", SC_BAD_REQUEST);
+        if (guid == null) {
+            logger.debug("command/update canceled for session: {}. Guid is not provided", session);
+            throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
+        }
+        if (id == null) {
+            logger.debug("command/update canceled for session: {}. Command id is not provided", session);
+            throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (commandUpdate == null || device == null) {
-            throw new HiveException("command with id " + id + " for device with " + guid + " is not found",
-                    SC_NOT_FOUND);
+            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
         commandUpdate.setId(id);
         commandService.submitDeviceCommandUpdate(commandUpdate, device);

@@ -91,12 +91,11 @@ public class NetworkService {
 
     public Network create(Network newNetwork) {
         if (newNetwork.getId() != null) {
-            throw new HiveException("Invalid request. Id cannot be specified.", BAD_REQUEST.getStatusCode());
+            throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
         }
         Network existing = networkDAO.findByName(newNetwork.getName());
         if (existing != null) {
-            throw new HiveException("Network cannot be created. Network with such name already exists",
-                    FORBIDDEN.getStatusCode());
+            throw new HiveException(Messages.DUPLICATE_NETWORK,  FORBIDDEN.getStatusCode());
         }
         return networkDAO.createNetwork(newNetwork);
     }
@@ -146,12 +145,12 @@ public class NetworkService {
         if (stored != null) {
             if (stored.getKey() != null) {
                 if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException("Wrong network key!", FORBIDDEN.getStatusCode());
+                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
                 }
             }
         } else {
             if (update.getId() != null) {
-                throw new HiveException("Invalid request", BAD_REQUEST.getStatusCode());
+                throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
             }
             stored = networkDAO.createNetwork(update);
         }
@@ -178,20 +177,20 @@ public class NetworkService {
         if (stored != null) {
             if (stored.getKey() != null) {
                 if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException("Wrong network key!", FORBIDDEN.getStatusCode());
+                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
                 }
             }
             if (!userService.hasAccessToNetwork(user, stored)) {
-                throw new HiveException("No access to network!", FORBIDDEN.getStatusCode());
+                throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
             }
         } else if (user.isAdmin()) {
             if (update.getId() != null) {
-                throw new HiveException("Invalid request", BAD_REQUEST.getStatusCode());
+                throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
             }
             stored = networkDAO.createNetwork(update);
 
         } else {
-            throw new HiveException("No permissions to create network!", FORBIDDEN.getStatusCode());
+            throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
         }
         return stored;
     }
@@ -214,10 +213,10 @@ public class NetworkService {
         if (stored != null) {
             if (stored.getKey() != null) {
                 if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException("Wrong network key!", FORBIDDEN.getStatusCode());
+                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
                 }
                 if (!accessKeyService.hasAccessToNetwork(key, stored)) {
-                    throw new HiveException("No permissions to access network!", FORBIDDEN.getStatusCode());
+                    throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
                 }
             }
         }

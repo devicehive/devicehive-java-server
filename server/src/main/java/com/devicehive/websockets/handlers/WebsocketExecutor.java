@@ -157,7 +157,8 @@ public class WebsocketExecutor {
             }
         }
         if (methodPair == null) {
-            throw new HiveException("Unknown action requested: " + action, HttpServletResponse.SC_BAD_REQUEST);
+            throw new HiveException(String.format(Messages.UNKNOWN_ACTION_REQUESTED_WS, action),
+                    HttpServletResponse.SC_BAD_REQUEST);
         }
         methodsCache.put(action, methodPair);
         return methodPair;

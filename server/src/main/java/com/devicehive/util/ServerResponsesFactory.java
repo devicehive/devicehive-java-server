@@ -1,5 +1,7 @@
 package com.devicehive.util;
 
+import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -19,8 +21,8 @@ public class ServerResponsesFactory {
                 GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
-        resultMessage.addProperty("deviceGuid", deviceNotification.getDevice().getGuid().toString());
-        resultMessage.add("notification", deviceNotificationJson);
+        resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDevice().getGuid().toString());
+        resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
         return resultMessage;
     }
 
@@ -30,9 +32,8 @@ public class ServerResponsesFactory {
                 DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
-        resultJsonObject.addProperty("action", "command/insert");
-        resultJsonObject.addProperty("deviceGuid", deviceCommand.getDevice().getGuid().toString());
-        resultJsonObject.add("command", deviceCommandJson);
+        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDevice().getGuid().toString());
+        resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         return resultJsonObject;
     }
 
@@ -44,7 +45,7 @@ public class ServerResponsesFactory {
                 GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/update");
-        resultJsonObject.add("command", deviceCommandJson);
+        resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         return resultJsonObject;
     }
 
@@ -56,9 +57,9 @@ public class ServerResponsesFactory {
         if (parametersJsonElement instanceof JsonObject) {
             statusJsonObject = (JsonObject) parametersJsonElement;
         } else {
-            throw new HiveException("\"parameters\" must be JSON Object!", HttpServletResponse.SC_BAD_REQUEST);
+            throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
         }
-        return statusJsonObject.get("status").getAsString();
+        return statusJsonObject.get(Constants.STATUS).getAsString();
     }
 
     public static DeviceNotification createNotificationForDevice(Device device, String notificationName) {
@@ -80,16 +81,16 @@ public class ServerResponsesFactory {
         if (parametersJsonElement instanceof JsonObject) {
             jsonEquipmentObject = (JsonObject) parametersJsonElement;
         } else {
-            throw new HiveException("\"parameters\" must be JSON Object!", HttpServletResponse.SC_BAD_REQUEST);
+            throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
         }
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
     }
 
     private static DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
         DeviceEquipment result = new DeviceEquipment();
-        String deviceEquipmentCode = jsonEquipmentObject.get("equipment").getAsString();
+        String deviceEquipmentCode = jsonEquipmentObject.get(Constants.EQUIPMENT).getAsString();
         result.setCode(deviceEquipmentCode);
-        jsonEquipmentObject.remove("equipment");
+        jsonEquipmentObject.remove(Constants.EQUIPMENT);
         result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));
         result.setDevice(device);
         return result;
