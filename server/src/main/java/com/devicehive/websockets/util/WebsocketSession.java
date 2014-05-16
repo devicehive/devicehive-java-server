@@ -2,6 +2,7 @@ package com.devicehive.websockets.util;
 
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Constants;
 import com.google.gson.JsonElement;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 
@@ -98,7 +99,10 @@ public class WebsocketSession {
     private static Set<UUID> removeOldFormatSubscription(Session session, Set<String> guids, String storageName) {
         Map<Set<String>, Set<UUID>> oldFormatSubscriptions =
                 (Map<Set<String>, Set<UUID>>) session.getUserProperties().get(storageName);
-        return oldFormatSubscriptions.remove(guids);
+        Set<String> toRemove = guids == null
+                ? new HashSet<String>() {{ add(Constants.NULL_SUBSTITUTE); }}
+                : guids;
+        return oldFormatSubscriptions.remove(toRemove);
     }
 
     public static Set<UUID> removeOldFormatCommandSubscription(Session session, Set<String> guids) {
@@ -113,14 +117,17 @@ public class WebsocketSession {
                                                  String storageName) {
         Map<Set<String>, Set<UUID>> oldFormatSubscriptions =
                 (Map<Set<String>, Set<UUID>>) session.getUserProperties().get(storageName);
-        if (oldFormatSubscriptions.containsKey(guids)) {
-            Set<UUID> existingSubscriptions = oldFormatSubscriptions.get(guids);
+        Set<String> toStore = guids == null
+                ? new HashSet<String>() {{ add(Constants.NULL_SUBSTITUTE); }}
+                : guids;
+        if (oldFormatSubscriptions.containsKey(toStore)) {
+            Set<UUID> existingSubscriptions = oldFormatSubscriptions.get(toStore);
             existingSubscriptions.add(subscriptionId);
-            oldFormatSubscriptions.put(guids, existingSubscriptions);
+            oldFormatSubscriptions.put(toStore, existingSubscriptions);
         } else {
             Set<UUID> subscriptions = new HashSet<>();
             subscriptions.add(subscriptionId);
-            oldFormatSubscriptions.put(guids, subscriptions);
+            oldFormatSubscriptions.put(toStore, subscriptions);
         }
     }
 

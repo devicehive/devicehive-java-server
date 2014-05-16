@@ -203,7 +203,13 @@ public class CommandHandlers implements WebsocketHandlers {
             WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             Set<UUID> subscriptions = new HashSet<>();
             if (subId == null) {
-                subscriptions.addAll(WebsocketSession.removeOldFormatCommandSubscription(session, deviceGuids));
+                if (deviceGuids == null) {
+                    Set<String> subForAll = new HashSet<String>() {{
+                        add(Constants.NULL_SUBSTITUTE);
+                    }};
+                    subscriptions.addAll(WebsocketSession.removeOldFormatCommandSubscription(session, subForAll));
+                } else
+                    subscriptions.addAll(WebsocketSession.removeOldFormatCommandSubscription(session, deviceGuids));
             } else {
                 subscriptions.add(subId);
             }
@@ -247,7 +253,7 @@ public class CommandHandlers implements WebsocketHandlers {
             user = principal.getKey().getUser();
         }
         deviceCommand.setUserId(user.getId());
-
+        deviceCommand.setTimestamp(timestampService.getTimestamp());
         deviceCommand.setOriginSessionId(session.getId());
 
         commandService.submitDeviceCommand(deviceCommand, device, user);

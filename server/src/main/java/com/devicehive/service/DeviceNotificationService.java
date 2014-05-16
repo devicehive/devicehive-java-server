@@ -57,7 +57,8 @@ public class DeviceNotificationService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> getDeviceNotificationList(List<String> devices, List<String> names, Timestamp timestamp,
+    public List<DeviceNotification> getDeviceNotificationList(Collection<String> devices, Collection<String> names,
+                                                              Timestamp timestamp,
                                                               HivePrincipal principal) {
         if (devices != null) {
             return deviceNotificationDAO.findNotifications(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp, null);

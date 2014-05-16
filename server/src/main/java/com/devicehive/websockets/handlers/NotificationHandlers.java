@@ -35,7 +35,9 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
@@ -75,8 +77,8 @@ public class NotificationHandlers implements WebsocketHandlers {
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
                                                           @WsParam(DEVICE_GUIDS)
-                                                          List<String> devices,
-                                                          @WsParam(NAMES) List<String> names,
+                                                          Set<String> devices,
+                                                          @WsParam(NAMES) Set<String> names,
                                                           @WsParam(DEVICE_GUID) String deviceId,
                                                           Session session) throws IOException {
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
@@ -91,23 +93,25 @@ public class NotificationHandlers implements WebsocketHandlers {
 
     }
 
-    private List<String> prepareActualList(List<String> deviceIdList, String deviceId) {
-        if (deviceId == null && deviceIdList == null) {
+    private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
+        if (deviceId == null && deviceIdSet == null) {
             return null;
         }
-        List<String> actualList = new ArrayList<>();
-        if (deviceIdList != null) {
-            actualList.addAll(deviceIdList);
+        if (deviceIdSet != null && deviceId == null) {
+            deviceIdSet.remove(null);
+            return deviceIdSet;
         }
-        if (deviceId != null) {
-            actualList.add(deviceId);
+        if (deviceIdSet == null) {
+            return new HashSet<String>() {{
+                add(deviceId);
+            }};
         }
-        return actualList;
+        throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
     private UUID notificationSubscribeAction(Session session,
-                                             List<String> devices,
-                                             List<String> names,
+                                             Set<String> devices,
+                                             Set<String> names,
                                              Timestamp timestamp) throws IOException {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         if (timestamp == null) {
@@ -142,6 +146,9 @@ public class NotificationHandlers implements WebsocketHandlers {
                 nsList.add(forAll);
             }
             subscriptionSessionMap.put(reqId, session);
+            if (names == null) {
+                WebsocketSession.addOldFormatNotificationSubscription(session, devices, reqId);
+            }
             WebsocketSession.getNotificationSubscriptions(session).add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (timestamp == null) {
@@ -188,14 +195,21 @@ public class NotificationHandlers implements WebsocketHandlers {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
+            Set<UUID> subIds = new HashSet<>();
             if (subId == null) {
-                List<UUID> subIds = new ArrayList<>();
                 subIds.addAll(WebsocketSession.getNotificationSubscriptions(session));
             } else {
                 if (WebsocketSession.getNotificationSubscriptions(session).contains(subId)) {
                     WebsocketSession.getNotificationSubscriptions(session).remove(subId);
                     subscriptionSessionMap.remove(subId);
                     subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
+                }
+            }
+            for (UUID toUnsubscribe : subIds) {
+                if (WebsocketSession.getCommandSubscriptions(session).contains(toUnsubscribe)) {
+                    WebsocketSession.getCommandSubscriptions(session).remove(toUnsubscribe);
+                    subscriptionSessionMap.remove(toUnsubscribe);
+                    subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
                 }
             }
         } finally {

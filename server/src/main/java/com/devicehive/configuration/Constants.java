@@ -11,6 +11,7 @@ public class Constants {
     public static final String WEBSOCKET_SERVER_URL = "websocket.url";
     public static final String REST_SERVER_URL = "rest.url";
     public static final long NULL_ID_SUBSTITUTE = -1L;
+    public static final String NULL_SUBSTITUTE = "";
     public static final String DEFAULT_WAIT_TIMEOUT = "30";
     public static final long MAX_WAIT_TIMEOUT = 60L;
     public static final String MAX_LOGIN_ATTEMPTS = "user.login.maxAttempts";
