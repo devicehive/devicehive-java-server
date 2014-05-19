@@ -6,7 +6,6 @@ import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
 
-import java.io.Closeable;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -39,7 +38,6 @@ public interface HiveDevice {
      */
     void registerDevice(Device device) throws HiveException;
 
-
     /**
      * Queries device commands.
      *
@@ -71,20 +69,19 @@ public interface HiveDevice {
      */
     void updateCommand(DeviceCommand deviceCommand) throws HiveException;
 
-
     /**
      * Subscribes the device to commands. After subscription is completed, the server will start to send commands to
      * the connected device.
      *
      * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      */
-    void subscribeForCommands(Timestamp timestamp) throws HiveException;
+    void subscribeForCommands(Timestamp timestamp, MessageHandler<DeviceCommand> commandsHandler)
+            throws HiveException;
 
     /**
      * Unsubscribes the device from commands.
      */
-    void unsubscribeFromCommands() throws HiveException;
-
+    void unsubscribeFromCommands(String subId) throws HiveException;
 
     /**
      * Creates new device notification on behalf of device.
@@ -101,6 +98,6 @@ public interface HiveDevice {
      */
     ApiInfo getInfo() throws HiveException;
 
-
     void close();
+
 }

@@ -2,23 +2,29 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.HiveDevice;
+import com.devicehive.client.MessageHandler;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.context.RestHiveContext;
 import com.devicehive.client.impl.util.HiveValidator;
-import com.devicehive.client.model.*;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.HttpMethod;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 
 
 public class HiveDeviceRestImpl implements HiveDevice {
@@ -31,8 +37,6 @@ public class HiveDeviceRestImpl implements HiveDevice {
 
     /**
      * Closes single hive device with associated context
-     *
-     * @throws IOException
      */
     @Override
     public void close() {
@@ -44,7 +48,6 @@ public class HiveDeviceRestImpl implements HiveDevice {
         hiveContext.authenticate(HivePrincipal.createDevice(deviceId, deviceKey));
     }
 
-
     @Override
     public Device getDevice() throws HiveException {
         String deviceId = hiveContext.getHivePrincipal().getDevice().getKey();
@@ -54,7 +57,6 @@ public class HiveDeviceRestImpl implements HiveDevice {
         String path = "/device/" + deviceId;
         return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, Device.class, null);
     }
-
 
     @Override
     public void registerDevice(Device device) throws HiveException {
@@ -85,14 +87,12 @@ public class HiveDeviceRestImpl implements HiveDevice {
                 }.getType(), null);
     }
 
-
     @Override
     public DeviceCommand getCommand(long commandId) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
         return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
     }
-
 
     @Override
     public void updateCommand(DeviceCommand deviceCommand) throws HiveException {
@@ -102,21 +102,21 @@ public class HiveDeviceRestImpl implements HiveDevice {
                 .execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
     }
 
-
     @Override
-    public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
-        SubscriptionFilter filter = SubscriptionFilter.createForDevice(hiveContext.getHivePrincipal().getDevice().getLeft(), timestamp);
-        hiveContext.addCommandsSubscription(filter);
+    public void subscribeForCommands(final Timestamp timestamp, final MessageHandler<DeviceCommand> commandsHandler)
+            throws HiveException {
+        SubscriptionFilter filter =
+                new SubscriptionFilter(hiveContext.getHivePrincipal().getDevice().getLeft(), null, timestamp);
+        hiveContext.addCommandsSubscription(filter, commandsHandler);
     }
 
     /**
      * Unsubscribes the device from commands.
      */
     @Override
-    public void unsubscribeFromCommands() throws HiveException {
-        hiveContext.removeCommandsSubscription();
+    public void unsubscribeFromCommands(String subId) throws HiveException {
+        hiveContext.removeCommandsSubscription(subId);
     }
-
 
     @Override
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) throws HiveException {

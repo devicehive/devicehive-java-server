@@ -7,7 +7,6 @@ import com.devicehive.client.model.exceptions.HiveException;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Client side controller for device notifications: <i>/device/{deviceGuid}/notification</i>.
@@ -62,10 +61,13 @@ public interface NotificationsController {
      *
      * @param filter
      */
-    void subscribeForNotifications(SubscriptionFilter filter) throws HiveException;
+
+    void subscribeForNotifications(SubscriptionFilter filter,
+                                   MessageHandler<DeviceNotification> notificationsHandler)
+            throws HiveException;
 
     /**
      * Unsubscribes client from notifications.
      */
-    void unsubscribeFromNotification() throws HiveException;
+    void unsubscribeFromNotification(String subId) throws HiveException;
 }

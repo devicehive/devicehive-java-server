@@ -1,6 +1,7 @@
 package com.devicehive.client.impl;
 
 
+import com.devicehive.client.MessageHandler;
 import com.devicehive.client.impl.context.WebsocketHiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.Device;
@@ -16,7 +17,10 @@ import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 
 
 public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
@@ -28,7 +32,6 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         this.hiveContext = hiveContext;
     }
 
-
     @Override
     public Device getDevice() throws HiveException {
         JsonObject request = new JsonObject();
@@ -36,7 +39,6 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         return hiveContext.getWebsocketConnector().sendMessage(request, "device", Device.class,
                 DEVICE_PUBLISHED_DEVICE_AUTH);
     }
-
 
     @Override
     public void registerDevice(Device device) throws HiveException {
@@ -55,14 +57,12 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         hiveContext.getWebsocketConnector().sendMessage(request);
     }
 
-
     @Override
     public DeviceCommand getCommand(long commandId) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
         return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
     }
-
 
     @Override
     public void updateCommand(DeviceCommand deviceCommand) throws HiveException {
@@ -76,11 +76,13 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         hiveContext.getWebsocketConnector().sendMessage(request);
     }
 
-
     @Override
-    public void subscribeForCommands(final Timestamp timestamp) throws HiveException {
-        SubscriptionFilter filter = SubscriptionFilter.createForDevice(hiveContext.getHivePrincipal().getDevice().getLeft(), timestamp);
-        hiveContext.addCommandsSubscription(filter);
+    public void subscribeForCommands(final Timestamp timestamp, MessageHandler<DeviceCommand> commandMessageHandler)
+            throws
+            HiveException {
+        SubscriptionFilter filter =
+                new SubscriptionFilter(hiveContext.getHivePrincipal().getDevice().getLeft(), null, timestamp);
+        hiveContext.addCommandsSubscription(filter, commandMessageHandler);
 
     }
 
@@ -88,10 +90,9 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
      * Unsubscribes the device from commands.
      */
     @Override
-    public void unsubscribeFromCommands() throws HiveException {
-        hiveContext.removeCommandsSubscription();
+    public void unsubscribeFromCommands(String subId) throws HiveException {
+        hiveContext.removeCommandsSubscription(subId);
     }
-
 
     @Override
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) throws HiveException {

@@ -1,48 +1,47 @@
 package com.devicehive.client.impl.context;
 
 import com.devicehive.client.MessageHandler;
-import com.devicehive.client.impl.json.GsonFactory;
-import com.devicehive.client.model.*;
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.CommandPollManyResponse;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.NotificationPollManyResponse;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
-import com.google.gson.JsonObject;
+import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
+import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import static com.devicehive.client.impl.context.Constants.REQUIRED_VERSION_OF_API;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class RestHiveContext extends AbstractHiveContext {
 
     private static final int TIMEOUT = 60;
-
-    private HiveRestConnector restConnector;
     private final ExecutorService subscriptionExecutor = Executors.newCachedThreadPool();
-    private Future commandsSubscription;
-    private Future notificationsSubscription;
+    private final AtomicInteger subscriptionId = new AtomicInteger(0);
+    private HiveRestConnector restConnector;
+    private Map<String, Future> commandSubscriptionsResults = new HashMap<>();
+    private Map<String, Future> notificationSubscriptionResults = new HashMap<>();
 
     /**
-
-     *
-     * @param commandsHandler       handler for incoming commands and command updates
      * @param commandUpdatesHandler
-     * @param notificationsHandler  handler for incoming notifications
      */
-    public RestHiveContext(ConnectionDescriptor connectionDescriptor, MessageHandler<DeviceCommand> commandsHandler, MessageHandler<DeviceCommand> commandUpdatesHandler, MessageHandler<DeviceNotification> notificationsHandler) {
-        super(commandsHandler, commandUpdatesHandler, notificationsHandler);
-        this.restConnector = new HiveRestConnector(connectionDescriptor.getRestURI(), this);
+    public RestHiveContext(URI restUri,
+                           MessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
+        super(commandUpdatesHandler);
+        this.restConnector = new HiveRestConnector(restUri, this);
     }
-
 
     public HiveRestConnector getRestConnector() {
         return restConnector;
@@ -55,92 +54,106 @@ public class RestHiveContext extends AbstractHiveContext {
         restConnector.close();
     }
 
-    public synchronized void addCommandsSubscription(final SubscriptionFilter newFilter) throws HiveException {
-        removeCommandsSubscription();
+    public synchronized String addCommandsSubscription(final SubscriptionFilter newFilter,
+                                                       final MessageHandler<DeviceCommand> handler) throws
+            HiveException {
+        final String subscriptionIdValue = String.valueOf(subscriptionId.incrementAndGet());
+        addCommandsSubscription(subscriptionIdValue, handler);
 
         RestSubscription sub = new RestSubscription() {
-
             private final SubscriptionFilter filter = newFilter;
 
             @Override
             protected void execute() throws HiveException {
-                Map<String, String> formParams = new HashMap<>();
-                formParams.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
-                formParams.put(FILTER_PARAM, GsonFactory.createGson().toJson(filter));
+                Map<String, Object> params = new HashMap<>();
+                params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                params.put(TIMESTAMP, newFilter.getTimestamp());
+                params.put(NAMES, newFilter.getNames());
+                params.put(DEVICE_GUIDS, newFilter.getUuids());
+
 
                 @SuppressWarnings("SerializableHasSerializationMethods")
-                List<CommandPollManyResponse> responses = null;
-                /*
-                            executeForm("/device/command/poll", formParams, new TypeToken<List<CommandPollManyResponse>>() {
-                            }.getType(), COMMAND_LISTED);
-                */
+                List<CommandPollManyResponse> responses =
+                        restConnector.execute("/device/command/poll", HttpMethod.GET, null,
+                                params, new TypeToken<List<CommandPollManyResponse>>() {
+                        }.getType(), JsonPolicyDef.Policy.COMMAND_LISTED);
                 for (CommandPollManyResponse response : responses) {
                     Timestamp timestamp = filter.getTimestamp();
                     if (timestamp == null || timestamp.before(response.getCommand().getTimestamp())) {
                         filter.setTimestamp(response.getCommand().getTimestamp());
                     }
-                    getCommandsHandler().handle(response.getCommand());
+                    getCommandsHandler(subscriptionIdValue).handle(response.getCommand());
                 }
             }
         };
-        commandsSubscription = subscriptionExecutor
-                .submit(sub);
+        Future commandsSubscription = subscriptionExecutor.submit(sub);
+        commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
+        return subscriptionIdValue;
     }
 
     /**
-     * Remove command subscription for all available commands.
+     * Remove command subscription.
      */
-    public synchronized void removeCommandsSubscription() throws HiveException {
+    @Override
+    public synchronized void removeCommandsSubscription(String subscriptionId) throws HiveException {
+        Future commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
         if (commandsSubscription != null) {
             commandsSubscription.cancel(true);
-            commandsSubscription = null;
         }
+        super.removeCommandsSubscription(subscriptionId);
     }
 
-
-    public synchronized void addNotificationsSubscription(final SubscriptionFilter newFilter) throws HiveException {
-        removeNotificationsSubscription();
+    public synchronized String addNotificationsSubscription(final SubscriptionFilter newFilter,
+                                                          final MessageHandler<DeviceNotification> handler) throws
+            HiveException {
+        final String subscriptionIdValue = String.valueOf(subscriptionId.incrementAndGet());
+        addNotificationsSubscription(subscriptionIdValue, handler);
         RestSubscription sub = new RestSubscription() {
 
             private final SubscriptionFilter filter = newFilter;
 
             @Override
             protected void execute() throws HiveException {
-                Map<String, String> formParams = new HashMap<>();
-                formParams.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
-                formParams.put(FILTER_PARAM, GsonFactory.createGson().toJson(filter));
-
-                @SuppressWarnings("SerializableHasSerializationMethods")
-                List<NotificationPollManyResponse> responses = null;
-                /*
-                        executeForm("/device/command/poll", formParams, new TypeToken<List<NotificationPollManyResponse>>() {
-                        }.getType(), COMMAND_LISTED);
-                */
+                Map<String, Object> params = new HashMap<>();
+                params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                params.put(TIMESTAMP, newFilter.getTimestamp());
+                params.put(NAMES, newFilter.getNames());
+                params.put(DEVICE_GUIDS, newFilter.getUuids());
+                @SuppressWarnings("SerializableHasSerializationMethods") TypeToken<List<NotificationPollManyResponse>> responseType = new
+                         TypeToken<List<NotificationPollManyResponse>>() {};
+                List<NotificationPollManyResponse> responses = restConnector.execute(
+                        "/device/command/poll",
+                        HttpMethod.GET,
+                        null,
+                        params,
+                        responseType.getType(),
+                        JsonPolicyDef.Policy.COMMAND_LISTED);
                 for (NotificationPollManyResponse response : responses) {
                     Timestamp timestamp = filter.getTimestamp();
 
                     if (timestamp == null || timestamp.before(response.getNotification().getTimestamp())) {
                         filter.setTimestamp(response.getNotification().getTimestamp());
                     }
-                    getNotificationsHandler().handle(response.getNotification());
+                    getNotificationsHandler(subscriptionIdValue).handle(response.getNotification());
                 }
             }
         };
-        notificationsSubscription = subscriptionExecutor
-                .submit(sub);
+        Future notificationsSubscription = subscriptionExecutor.submit(sub);
+        notificationSubscriptionResults.put(subscriptionIdValue, notificationsSubscription);
+        return subscriptionIdValue;
     }
 
     /**
      * Remove command subscription for all available commands.
      */
-    public synchronized void removeNotificationsSubscription() throws HiveException {
+    @Override
+    public synchronized void removeNotificationsSubscription(String subscriptionId) throws HiveException {
+        Future notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
         if (notificationsSubscription != null) {
             notificationsSubscription.cancel(true);
-            notificationsSubscription = null;
         }
+        super.removeNotificationsSubscription(subscriptionId);
     }
-
-
 
     /**
      * Get API info from server
@@ -150,7 +163,6 @@ public class RestHiveContext extends AbstractHiveContext {
     public ApiInfo getInfo() throws HiveException {
         return restConnector.execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
     }
-
 
     public Timestamp getServerTimestamp() throws HiveException {
         return getInfo().getServerTimestamp();
@@ -162,10 +174,11 @@ public class RestHiveContext extends AbstractHiveContext {
 
     private abstract static class RestSubscription implements Runnable {
 
-        private static Logger logger = LoggerFactory.getLogger(RestSubscription.class);
-
         protected static final String WAIT_TIMEOUT_PARAM = "waitTimeout";
-        protected static final String FILTER_PARAM = "subscription";
+        protected static final String DEVICE_GUIDS = "deviceGuids";
+        protected static final String NAMES = "names";
+        protected static final String TIMESTAMP = "timestamp";
+        private static Logger logger = LoggerFactory.getLogger(RestSubscription.class);
 
         protected abstract void execute() throws HiveException;
 

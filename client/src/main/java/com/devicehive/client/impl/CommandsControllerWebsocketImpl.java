@@ -1,6 +1,7 @@
 package com.devicehive.client.impl;
 
 
+import com.devicehive.client.MessageHandler;
 import com.devicehive.client.impl.context.WebsocketHiveContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
@@ -12,20 +13,20 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
 
     private static Logger logger = LoggerFactory.getLogger(CommandsControllerWebsocketImpl.class);
-
     private final WebsocketHiveContext hiveContext;
 
     public CommandsControllerWebsocketImpl(WebsocketHiveContext hiveContext) {
         super(hiveContext);
         this.hiveContext = hiveContext;
     }
-
 
     @Override
     public DeviceCommand insertCommand(String guid, DeviceCommand command) throws HiveException {
@@ -71,19 +72,19 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     }
 
     @Override
-    public void subscribeForCommands(SubscriptionFilter filter)
+    public void subscribeForCommands(SubscriptionFilter filter, MessageHandler<DeviceCommand> commandMessageHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        hiveContext.addCommandsSubscription(filter);
+        hiveContext.addCommandsSubscription(filter, commandMessageHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
     }
 
     @Override
-    public void unsubscribeFromCommands() throws HiveException {
+    public void unsubscribeFromCommands(String subId) throws HiveException {
         logger.debug("Device: command/unsubscribe requested");
-        hiveContext.removeCommandsSubscription();
+        hiveContext.removeCommandsSubscription(subId);
         logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 

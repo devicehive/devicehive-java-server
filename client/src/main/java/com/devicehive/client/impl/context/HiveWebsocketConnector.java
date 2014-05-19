@@ -39,10 +39,10 @@ public class HiveWebsocketConnector {
     private static final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
     private static Logger logger = LoggerFactory.getLogger(HiveWebsocketConnector.class);
 
-
     private final WebsocketHiveContext hiveContext;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap = new ConcurrentHashMap<>();
     private final Session session;
+    private final URI wsUri;
 
 
     /**
@@ -51,10 +51,25 @@ public class HiveWebsocketConnector {
      * @param uri         URI of websocket service
      * @param hiveContext context. Keeps state, for example credentials.
      */
-    public HiveWebsocketConnector(URI uri, WebsocketHiveContext hiveContext) throws IOException, DeploymentException {
+    private HiveWebsocketConnector(URI uri, WebsocketHiveContext hiveContext) throws IOException, DeploymentException {
         this.hiveContext = hiveContext;
         this.session = webSocketContainer.connectToServer(new HiveClientEndpoint(), ClientEndpointConfig.Builder.create().build(), uri);
         session.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
+        this.wsUri = uri;
+    }
+
+    protected static HiveWebsocketConnector open(URI uri, WebsocketHiveContext hiveContext) throws HiveException {
+        try {
+            return new HiveWebsocketConnector(uri, hiveContext);
+        } catch (IOException | DeploymentException e) {
+            throw new HiveException("Error occurred during creating context", e);
+        }
+
+    }
+    public synchronized HiveWebsocketConnector reconnect() throws HiveException {
+        close();
+       return open(wsUri, hiveContext);
+        //TODO
     }
 
     /**
@@ -104,7 +119,6 @@ public class HiveWebsocketConnector {
             logger.error("Error closing websocket session", e);
         }
     }
-
     //Private methods-----------------------------------------------------------------------------------------------
     private void processResponse(final String requestId) throws HiveException {
         try {

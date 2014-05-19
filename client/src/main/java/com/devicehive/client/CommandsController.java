@@ -7,7 +7,6 @@ import com.devicehive.client.model.exceptions.HiveException;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Client side controller for device commands: <i>/device/{deviceGuid}/command</i>.
@@ -65,13 +64,13 @@ public interface CommandsController {
     /**
      * Subscribes client or device to commands. RESTful poll/pollMany or websocket subscribe will be used. When
      * command proceed device will be notified by servers's command/update message.
-     *
-     * @param filter
      */
-    void subscribeForCommands(SubscriptionFilter filter) throws HiveException;
+    void subscribeForCommands(SubscriptionFilter filter, MessageHandler<DeviceCommand> commandMessageHandler)
+            throws HiveException;
 
     /**
      * Unsubscribes client or device from commands.
      */
-    void unsubscribeFromCommands() throws HiveException;
+
+    void unsubscribeFromCommands(String subscriptionId) throws HiveException;
 }

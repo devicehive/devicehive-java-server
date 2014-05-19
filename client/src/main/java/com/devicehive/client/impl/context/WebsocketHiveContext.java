@@ -9,56 +9,28 @@ import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.DeploymentException;
-import java.io.IOException;
+import java.net.URI;
 import java.util.UUID;
 
 
 public class WebsocketHiveContext extends RestHiveContext {
 
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
-
     private HiveWebsocketConnector websocketConnector;
-    private final ConnectionDescriptor connectionDescriptor;
 
-    private SubscriptionFilter commandsFilter;
-    private SubscriptionFilter notificationsFilter;
 
     /**
-     * @param commandsHandler       handler for incoming commands and command updates
      * @param commandUpdatesHandler
-     * @param notificationsHandler  handler for incoming notifications
      */
-    public WebsocketHiveContext(ConnectionDescriptor connectionDescriptor,
-                                MessageHandler<DeviceCommand> commandsHandler,
-                                MessageHandler<DeviceCommand> commandUpdatesHandler,
-                                MessageHandler<DeviceNotification> notificationsHandler) throws HiveException {
-        super(connectionDescriptor, commandsHandler, commandUpdatesHandler, notificationsHandler);
-        this.connectionDescriptor = connectionDescriptor;
-        open();
+    public WebsocketHiveContext(URI restUri,
+                                MessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
+        super(restUri, commandUpdatesHandler);
+        URI wsUri = URI.create(super.getInfo().getWebSocketServerUrl());
+        this.websocketConnector = HiveWebsocketConnector.open(wsUri, this);
     }
-
-    private void open() throws HiveException {
-        try {
-            this.websocketConnector = new HiveWebsocketConnector(connectionDescriptor.getWebsocketURI(), this);
-        } catch (IOException|DeploymentException e) {
-            throw new HiveException("Error creating context", e);
-        }
-    }
-
-
-    public synchronized void reconnect() throws HiveException {
-        this.websocketConnector.close();
-        open();
-        authenticate(getHivePrincipal());
-        addCommandsSubscription(null);
-        addNotificationsSubscription(null);
-    }
-
 
     public synchronized void close() {
         try {
@@ -87,41 +59,38 @@ public class WebsocketHiveContext extends RestHiveContext {
     }
 
     @Override
-    public synchronized void addCommandsSubscription(SubscriptionFilter newFilter) throws HiveException {
-        removeCommandsSubscription();
-        this.commandsFilter = ObjectUtils.cloneIfPossible(newFilter);
+    public synchronized String addCommandsSubscription(SubscriptionFilter newFilter,
+                                                       MessageHandler<DeviceCommand> handler) throws HiveException {
         Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/subscribe");
         request.add("filter", gson.toJsonTree(newFilter));
-        websocketConnector.sendMessage(request);
+        return websocketConnector.sendMessage(request, "subscriptionId", String.class, null);
     }
 
     @Override
-    public synchronized void addNotificationsSubscription(SubscriptionFilter newFilter) throws HiveException {
-        removeNotificationsSubscription();
-        this.notificationsFilter = ObjectUtils.cloneIfPossible(newFilter);
+    public synchronized String addNotificationsSubscription(SubscriptionFilter newFilter,
+                                                            MessageHandler<DeviceNotification> handler)
+            throws HiveException {
         Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/subscribe");
         request.add("filter", gson.toJsonTree(newFilter));
-        websocketConnector.sendMessage(request);
+        return websocketConnector.sendMessage(request, "subscriptionId", String.class, null);
     }
 
     @Override
-    public synchronized void removeCommandsSubscription() throws HiveException {
+    public synchronized void removeCommandsSubscription(String subId) throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
         websocketConnector.sendMessage(request);
-        this.commandsFilter = null;
     }
 
     @Override
-    public synchronized void removeNotificationsSubscription() throws HiveException {
+    public synchronized void removeNotificationsSubscription(String subId) throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/unsubscribe");
         websocketConnector.sendMessage(request);
-        this.notificationsFilter = null;
     }
 
     @Override

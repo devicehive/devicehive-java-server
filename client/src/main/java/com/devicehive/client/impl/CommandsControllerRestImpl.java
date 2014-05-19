@@ -2,6 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.CommandsController;
+import com.devicehive.client.MessageHandler;
 import com.devicehive.client.impl.context.RestHiveContext;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.SubscriptionFilter;
@@ -108,16 +109,16 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public void subscribeForCommands(SubscriptionFilter filter) throws HiveException {
+    public void subscribeForCommands(SubscriptionFilter filter, MessageHandler<DeviceCommand> commandMessageHandler) throws HiveException {
         logger.debug("Device: command/subscribe requested for filter {},", filter);
-        hiveContext.addCommandsSubscription(filter);
+        hiveContext.addCommandsSubscription(filter, commandMessageHandler);
         logger.debug("Device: command/subscribe request proceed successfully for filter {},", filter);
     }
 
     @Override
-    public void unsubscribeFromCommands() throws HiveException {
+    public void unsubscribeFromCommands(String subscriptionId) throws HiveException {
         logger.debug("Device: command/unsubscribe requested");
-        hiveContext.removeCommandsSubscription();
+        hiveContext.removeCommandsSubscription(subscriptionId);
         logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 }
