@@ -75,3 +75,5 @@ INSERT INTO configuration (name, value)
 
 ALTER TABLE device_command
     ADD COLUMN origin_session_id varchar(64);
+
+CREATE INDEX device_command_origin_session_id_idx ON device_command (origin_session_id);
