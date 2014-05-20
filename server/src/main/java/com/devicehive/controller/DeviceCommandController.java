@@ -96,21 +96,6 @@ public class DeviceCommandController {
         this.subscriptionManager = subscriptionManager;
     }
 
-    /*
-    @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    @Path("/command/poll")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void pollManyPost(
-            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") final long timeout,
-            final SubscriptionFilterExternal external,
-            @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);//(external);
-        poll(timeout, subscriptionFilter, asyncResponse, true);
-    }
-    */
-
     @EJB
     public void setTimestampService(TimestampService timestampService) {
         this.timestampService = timestampService;
@@ -449,7 +434,7 @@ public class DeviceCommandController {
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.DEVICE_NOT_FOUND,  guid)));
+                            String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
 
@@ -555,7 +540,7 @@ public class DeviceCommandController {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
-        if (device == null){
+        if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }

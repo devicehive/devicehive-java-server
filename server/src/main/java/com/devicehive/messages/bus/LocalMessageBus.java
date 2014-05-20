@@ -77,7 +77,8 @@ public class LocalMessageBus {
                 .getByDeviceId(Constants.NULL_ID_SUBSTITUTE));
 
         for (CommandSubscription subscription : subsForAll) {
-            if (subscription.getCommandNames() != null && !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
+            if (subscription.getCommandNames() != null &&
+                    !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
                 continue;
             }
             if (!subscribersIds.contains(subscription.getSubscriptionId())) {
@@ -102,7 +103,8 @@ public class LocalMessageBus {
             Session session = sessionMonitor.getSession(deviceCommand.getOriginSessionId());
             if (session != null) {
                 executor.execute(
-                        new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK).getHandler(jsonObject)
+                        new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK)
+                                .getHandler(jsonObject)
                 );
             }
         }

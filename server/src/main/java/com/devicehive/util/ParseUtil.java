@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ParseUtil {
 
-    public static List<String> getList(String csvString){
+    public static List<String> getList(String csvString) {
         return StringUtils.isEmpty(csvString) ? null : Arrays.asList(StringUtils.split(csvString, ","));
     }
 }

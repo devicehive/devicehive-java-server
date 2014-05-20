@@ -15,30 +15,31 @@ public class AvailableActions {
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
     public static final String UPDATE_DEVICE_COMMAND = "UpdateDeviceCommand";
 
-    private static Set KNOWN_ACTIONS = new HashSet() {{
-        add(GET_NETWORK.toUpperCase());
-        add(GET_DEVICE.toUpperCase());
-        add(GET_DEVICE_STATE.toUpperCase());
-        add(GET_DEVICE_NOTIFICATION.toUpperCase());
-        add(GET_DEVICE_COMMAND.toUpperCase());
-        add(REGISTER_DEVICE.toUpperCase());
-        add(CREATE_DEVICE_NOTIFICATION.toUpperCase());
-        add(CREATE_DEVICE_COMMAND.toUpperCase());
-        add(UPDATE_DEVICE_COMMAND.toUpperCase());
-    }
+    private static Set KNOWN_ACTIONS = new HashSet() {
+        {
+            add(GET_NETWORK.toUpperCase());
+            add(GET_DEVICE.toUpperCase());
+            add(GET_DEVICE_STATE.toUpperCase());
+            add(GET_DEVICE_NOTIFICATION.toUpperCase());
+            add(GET_DEVICE_COMMAND.toUpperCase());
+            add(REGISTER_DEVICE.toUpperCase());
+            add(CREATE_DEVICE_NOTIFICATION.toUpperCase());
+            add(CREATE_DEVICE_COMMAND.toUpperCase());
+            add(UPDATE_DEVICE_COMMAND.toUpperCase());
+        }
 
         private static final long serialVersionUID = -6981208010851957614L;
     };
 
-    public static boolean isAvailable(String action){
+    public static boolean isAvailable(String action) {
         String actionUpper = action.toUpperCase();
         return KNOWN_ACTIONS.contains(actionUpper);
     }
 
-    public static boolean validate(Set<String> actions){
-        for(String current : actions){
+    public static boolean validate(Set<String> actions) {
+        for (String current : actions) {
             String actionUpper = current.toUpperCase();
-            if (!KNOWN_ACTIONS.contains(actionUpper)){
+            if (!KNOWN_ACTIONS.contains(actionUpper)) {
                 return false;
             }
         }

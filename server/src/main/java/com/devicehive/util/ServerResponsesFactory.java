@@ -5,14 +5,20 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletResponse;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 
 public class ServerResponsesFactory {
 
@@ -38,7 +44,7 @@ public class ServerResponsesFactory {
     }
 
     public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
-        if (deviceCommand.getUserId() == null){
+        if (deviceCommand.getUserId() == null) {
             deviceCommand.setUserId(deviceCommand.getUser().getId());
         }
         JsonElement deviceCommandJson =

@@ -2,11 +2,19 @@ package com.devicehive.model.updates;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.NullableWrapper;
 
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
 
 public class DeviceClassUpdate implements HiveEntity {
     private static final long serialVersionUID = 967472386318199376L;

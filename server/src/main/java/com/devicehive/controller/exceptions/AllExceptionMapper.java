@@ -37,11 +37,11 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
             message = exception.getMessage();
         } else if (exception instanceof NotAllowedException) {
             responseCode = Response.Status.METHOD_NOT_ALLOWED;
-        } else if (exception instanceof WebApplicationException){
+        } else if (exception instanceof WebApplicationException) {
             WebApplicationException realException = (WebApplicationException) exception;
             int response = realException.getResponse().getStatus();
             responseCode = Response.Status.fromStatusCode(response);
-        } else if (exception instanceof EJBException){
+        } else if (exception instanceof EJBException) {
             message = ((EJBException) exception).getCausedByException().getLocalizedMessage();
         }
         return ResponseFactory.response(responseCode, new ErrorResponse(responseCode.getStatusCode(), message));

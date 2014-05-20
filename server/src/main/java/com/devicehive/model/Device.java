@@ -217,19 +217,19 @@ public class Device implements HiveEntity {
                             "left join fetch d.network " +
                             "left join fetch d.deviceClass dc " +
                             "left join fetch dc.equipment " +
-                    "where d.guid = :guid";
+                            "where d.guid = :guid";
             static final String FIND_BY_UUID_AND_KEY = "select d from Device d where d.guid = :guid and d.key = :key";
             static final String FIND_BY_NETWORK = "select d from Device d join d.network where d.network = :network";
             static final String FIND_BY_UUID_LIST_AND_NETWORK =
                     "select d from Device d " +
                             "join d.network " +
-                    "where d.network = :network and d.guid in :guidList";
+                            "where d.network = :network and d.guid in :guidList";
             static final String DELETE_BY_ID = "delete from Device d where d.id = :id";
             static final String DELETE_BY_UUID = "delete from Device d where d.guid = :guid";
             static final String DELETE_BY_NETWORK = "delete from Device d where d.network = :network";
         }
 
-        public static interface Parameters{
+        public static interface Parameters {
             static final String GUID = "guid";
             static final String KEY = "key";
             static final String NETWORK = "network";

@@ -39,7 +39,8 @@ public class AuthorizationInterceptor {
                 for (String role : roles) {
                     switch (role) {
                         case HiveRoles.ADMIN:
-                            allowed = allowed || (principal != null && principal.getUser() != null && principal.getUser().isAdmin());
+                            allowed = allowed ||
+                                    (principal != null && principal.getUser() != null && principal.getUser().isAdmin());
                             break;
                         case HiveRoles.CLIENT:
                             allowed = allowed || (principal != null && principal.getUser() != null);
@@ -57,7 +58,8 @@ public class AuthorizationInterceptor {
                 allowed = method.isAnnotationPresent(PermitAll.class);
             }
             if (!allowed) {
-                throw new HiveException(Response.Status.FORBIDDEN.getReasonPhrase(), Response.Status.FORBIDDEN.getStatusCode());
+                throw new HiveException(Response.Status.FORBIDDEN.getReasonPhrase(),
+                        Response.Status.FORBIDDEN.getStatusCode());
             }
             return context.proceed();
         } finally {

@@ -12,7 +12,7 @@ import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
 
-public class AccessKeyUpdate implements HiveEntity{
+public class AccessKeyUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -979668798467393194L;
 
@@ -51,15 +51,15 @@ public class AccessKeyUpdate implements HiveEntity{
         this.permissions = permissions;
     }
 
-    public AccessKey convertTo(){
-      AccessKey result = new AccessKey();
-        if (label != null){
+    public AccessKey convertTo() {
+        AccessKey result = new AccessKey();
+        if (label != null) {
             result.setLabel(label.getValue());
         }
-        if (expirationDate != null){
+        if (expirationDate != null) {
             result.setExpirationDate(expirationDate.getValue());
         }
-        if (permissions != null){
+        if (permissions != null) {
 
             result.setPermissions(permissions.getValue());
         }

@@ -196,7 +196,7 @@ public class Equipment implements HiveEntity {
                     "delete from Equipment e " +
                             "where e.id = :id " +
                             "and e.deviceClass in " +
-                                "(select dc from DeviceClass dc where dc.id = :deviceClassId)";
+                            "(select dc from DeviceClass dc where dc.id = :deviceClassId)";
         }
 
         public static interface Parameters {

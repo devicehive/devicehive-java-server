@@ -19,7 +19,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * @author Nikolay Loboda

@@ -14,7 +14,8 @@ public class CommandSubscription extends Subscription<Long> {
     private final HivePrincipal principal;
     private final Set<String> commandNames;
 
-    public CommandSubscription(HivePrincipal principal, Long deviceId, UUID subscriptionId, Collection<String> commandNames,
+    public CommandSubscription(HivePrincipal principal, Long deviceId, UUID subscriptionId,
+                               Collection<String> commandNames,
                                HandlerCreator handlerCreator) {
         super(deviceId, subscriptionId, handlerCreator);
         this.principal = principal;
@@ -25,8 +26,8 @@ public class CommandSubscription extends Subscription<Long> {
         return getEventSource();
     }
 
-    public HivePrincipal getPrincipal(){
-        return  principal;
+    public HivePrincipal getPrincipal() {
+        return principal;
     }
 
     public Set<String> getCommandNames() {

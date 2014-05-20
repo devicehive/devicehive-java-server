@@ -14,7 +14,9 @@ import javax.ejb.Stateless;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-import static javax.servlet.http.HttpServletResponse.*;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Stateless
 @EJB(beanInterface = OAuthClientService.class, name = "OAuthClientService")
@@ -87,11 +89,11 @@ public class OAuthClientService {
         return clientDAO.delete(id);
     }
 
-    public OAuthClient getByOAuthID(String oauthID){
+    public OAuthClient getByOAuthID(String oauthID) {
         return clientDAO.get(oauthID);
     }
 
-    public OAuthClient authenticate(@NotNull String id, @NotNull String secret){
+    public OAuthClient authenticate(@NotNull String id, @NotNull String secret) {
         return clientDAO.get(id, secret);
     }
 

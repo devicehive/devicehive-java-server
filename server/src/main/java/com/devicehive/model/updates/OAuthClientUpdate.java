@@ -81,22 +81,22 @@ public class OAuthClientUpdate implements HiveEntity {
         this.oauthId = oauthId;
     }
 
-    public OAuthClient convertTo(){
-        OAuthClient client  =  new OAuthClient();
+    public OAuthClient convertTo() {
+        OAuthClient client = new OAuthClient();
         client.setId(id);
-        if (name != null){
+        if (name != null) {
             client.setName(name.getValue());
         }
-        if (domain != null){
+        if (domain != null) {
             client.setDomain(domain.getValue());
         }
-        if (subnet != null){
+        if (subnet != null) {
             client.setSubnet(subnet.getValue());
         }
-        if (redirectUri != null){
+        if (redirectUri != null) {
             client.setRedirectUri(redirectUri.getValue());
         }
-        if (oauthId != null){
+        if (oauthId != null) {
             client.setOauthId(oauthId.getValue());
         }
         return client;

@@ -15,14 +15,14 @@ public class WebSocketResponse {
     public WebSocketResponse() {
     }
 
-    public void addValue(String key, Object object, JsonPolicyDef.Policy policy){
+    public void addValue(String key, Object object, JsonPolicyDef.Policy policy) {
         dataMap.put(key, object);
         policyMap.put(key, policy);
     }
 
-    public JsonObject getResponseAsJson(){
+    public JsonObject getResponseAsJson() {
         JsonMessageBuilder messageBuilder = JsonMessageBuilder.createSuccessResponseBuilder();
-        for (String currentKey : dataMap.keySet()){
+        for (String currentKey : dataMap.keySet()) {
             JsonPolicyDef.Policy currentPolicy = policyMap.get(currentKey);
             Gson gson = currentPolicy == null ? GsonFactory.createGson() : GsonFactory.createGson(currentPolicy);
             Object objectToJson = dataMap.get(currentKey);

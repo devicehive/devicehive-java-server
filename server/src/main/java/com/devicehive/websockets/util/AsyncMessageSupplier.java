@@ -5,13 +5,16 @@ import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
+import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
+import javax.ejb.Local;
+import javax.ejb.Stateless;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-@EJB(beanInterface = AsyncMessageSupplier.class, name=AsyncMessageSupplier.NAME)
+@EJB(beanInterface = AsyncMessageSupplier.class, name = AsyncMessageSupplier.NAME)
 @Local
 @Stateless
 public class AsyncMessageSupplier {

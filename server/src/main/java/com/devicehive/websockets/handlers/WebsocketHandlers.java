@@ -1,4 +1,5 @@
 package com.devicehive.websockets.handlers;
 
 
-public interface WebsocketHandlers {}
+public interface WebsocketHandlers {
+}

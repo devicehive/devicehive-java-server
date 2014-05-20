@@ -19,7 +19,12 @@ import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.*;
+import javax.websocket.CloseReason;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.Reader;
@@ -48,7 +53,6 @@ public class HiveServerEndpoint {
     private WebsocketExecutor executor;
 
 
-
     @OnOpen
     public void onOpen(Session session, @PathParam("endpoint") String endpoint) {
         logger.debug("[onOpen] session id {} ", session.getId());
@@ -61,18 +65,20 @@ public class HiveServerEndpoint {
     }
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
-    public JsonObject onMessage(Reader reader, Session session)  {
+    public JsonObject onMessage(Reader reader, Session session) {
         try {
             logger.debug("[onMessage] session id {} ", session.getId());
             JsonObject request = new JsonParser().parse(reader).getAsJsonObject();
             logger.debug("[onMessage] request is parsed correctly");
-            return executor.execute(request,session);
+            return executor.execute(request, session);
         } catch (JsonParseException ex) {
             logger.error("[onMessage] Incorrect message syntax ", ex);
-            return JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax")
+            return JsonMessageBuilder
+                    .createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax")
                     .build();
         } catch (Exception ex) {
-            return JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error")
+            return JsonMessageBuilder
+                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error")
                     .build();
         }
     }

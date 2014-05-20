@@ -18,12 +18,12 @@ public class AccessKeyPermissionDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    public AccessKeyPermission insert(AccessKeyPermission permission){
+    public AccessKeyPermission insert(AccessKeyPermission permission) {
         em.persist(permission);
         return permission;
     }
 
-    public int deleteByAccessKey(AccessKey accessKey){
+    public int deleteByAccessKey(AccessKey accessKey) {
         Query query = em.createNamedQuery(DELETE_BY_ACCESS_KEY);
         query.setParameter(ACCESS_KEY, accessKey);
         return query.executeUpdate();

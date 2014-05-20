@@ -74,7 +74,7 @@ public class Messages {
     public static final String INVALID_NETWORK_KEY = "Incorrect network key value";
     public static final String NO_ACCESS_TO_NETWORK = "No access to network!";
     public static final String NETWORK_CREATION_NOT_ALLOWED = "No permissions to create network!";
-    public static final String PARAMS_NOT_JSON = "\"parameters\" must be JSON Object!" ;
+    public static final String PARAMS_NOT_JSON = "\"parameters\" must be JSON Object!";
     public static final String UNKNOWN_ACTION_REQUESTED_WS = "Unknown action requested: %s";
     public static final String EMPTY_NAMES = "Names field is required to be nonempty";
     public static final String COLUMN_CANNOT_BE_NULL = "%s cannot be null.";

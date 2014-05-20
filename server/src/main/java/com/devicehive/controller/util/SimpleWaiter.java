@@ -25,7 +25,7 @@ public class SimpleWaiter {
             return true;
         } catch (InterruptedException | ExecutionException e) {
             throw new HiveException(e.getMessage(), e, 500);
-        }  catch (TimeoutException e) {
+        } catch (TimeoutException e) {
             logger.debug("Waiting timeout");
             return false;
         }

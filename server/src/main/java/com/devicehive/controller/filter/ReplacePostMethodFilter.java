@@ -16,7 +16,8 @@ public class ReplacePostMethodFilter implements ContainerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(ReplacePostMethodFilter.class);
 
-    private static final String[] allowedMethods = {HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.HEAD, HttpMethod.OPTIONS};
+    private static final String[] allowedMethods =
+            {HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.HEAD, HttpMethod.OPTIONS};
     private static final String overrideHeader = "X-HTTP-Method-Override";
 
     @Override

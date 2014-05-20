@@ -41,7 +41,7 @@ public class HiveSecurityContext implements SecurityContext {
 
     @Override
     public String getAuthenticationScheme() {
-        if (hivePrincipal.getKey() != null){
+        if (hivePrincipal.getKey() != null) {
             return Constants.OAUTH_AUTH_SCEME;
         }
         return BASIC_AUTH;

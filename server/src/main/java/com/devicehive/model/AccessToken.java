@@ -3,7 +3,7 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
-public class AccessToken implements HiveEntity{
+public class AccessToken implements HiveEntity {
 
     private static final long serialVersionUID = 663053837130392591L;
 

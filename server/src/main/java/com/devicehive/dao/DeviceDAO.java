@@ -34,7 +34,11 @@ import static com.devicehive.model.Device.Queries.Names.FIND_BY_NETWORK;
 import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_AND_KEY;
 import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_LIST_AND_NETWORK;
 import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS;
-import static com.devicehive.model.Device.Queries.Parameters.*;
+import static com.devicehive.model.Device.Queries.Parameters.GUID;
+import static com.devicehive.model.Device.Queries.Parameters.GUID_LIST;
+import static com.devicehive.model.Device.Queries.Parameters.ID;
+import static com.devicehive.model.Device.Queries.Parameters.KEY;
+import static com.devicehive.model.Device.Queries.Parameters.NETWORK;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")

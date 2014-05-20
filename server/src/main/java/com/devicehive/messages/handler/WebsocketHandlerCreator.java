@@ -44,7 +44,8 @@ public class WebsocketHandlerCreator implements HandlerCreator {
 
                 try {
                     InitialContext initialContext = new InitialContext();
-                    AsyncMessageSupplier supplier = (AsyncMessageSupplier) initialContext.lookup(AsyncMessageSupplier.NAME);
+                    AsyncMessageSupplier supplier =
+                            (AsyncMessageSupplier) initialContext.lookup(AsyncMessageSupplier.NAME);
                     supplier.deliverMessages(session);
                 } catch (NamingException e) {
                     logger.error("Can not get AsyncMessageSupplier bean", e);

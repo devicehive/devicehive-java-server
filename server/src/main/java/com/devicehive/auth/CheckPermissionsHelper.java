@@ -126,7 +126,7 @@ public class CheckPermissionsHelper {
         return !permissions.isEmpty();
     }
 
-    public static boolean checkAllPermissions(AccessKey key, List<AllowedKeyAction.Action> actions){
+    public static boolean checkAllPermissions(AccessKey key, List<AllowedKeyAction.Action> actions) {
         InetAddress clientIP = ThreadLocalVariablesKeeper.getClientIP();
         Set<AccessKeyPermission> permissions = key.getPermissions();
 

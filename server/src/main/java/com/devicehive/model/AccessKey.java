@@ -2,8 +2,6 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.persistence.Cacheable;
 import javax.persistence.Column;

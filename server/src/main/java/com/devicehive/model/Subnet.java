@@ -25,10 +25,10 @@ public class Subnet {
         try {
 
             this.inetAddress = InetAddress.getByName(parts[0]);
-            if (parts.length == 1){
-              mask = IPv4_MASK_MAX_VALUE;
+            if (parts.length == 1) {
+                mask = IPv4_MASK_MAX_VALUE;
                 this.subnet = subnet + "/32";
-            } else{
+            } else {
                 this.mask = Integer.parseInt(parts[1]);
                 this.subnet = subnet;
             }
@@ -45,10 +45,10 @@ public class Subnet {
             //TODO support for IPv6
             return false;
         }
-        if (inetAddress.getHostAddress().equalsIgnoreCase(ip.getHostAddress()) && mask == 32){
+        if (inetAddress.getHostAddress().equalsIgnoreCase(ip.getHostAddress()) && mask == 32) {
             return true;
         }
-        if (mask == 0){
+        if (mask == 0) {
             return true;
         }
         SubnetUtils utils = new SubnetUtils(subnet);
@@ -63,7 +63,7 @@ public class Subnet {
         return mask;
     }
 
-    public String getSubnet(){
+    public String getSubnet() {
         return subnet;
     }
 

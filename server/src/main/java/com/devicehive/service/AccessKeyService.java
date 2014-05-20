@@ -5,7 +5,14 @@ import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.AccessKeyPermissionDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.AccessType;
+import com.devicehive.model.AvailableActions;
+import com.devicehive.model.Device;
+import com.devicehive.model.Network;
+import com.devicehive.model.OAuthGrant;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.util.LogExecutionTime;
@@ -251,7 +258,7 @@ public class AccessKeyService {
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
             Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
             existing.setExpirationDate(expirationDate);
-        }  else{
+        } else {
             existing.setExpirationDate(null);
         }
         existing.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, grant.getClient().getName()));

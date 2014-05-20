@@ -68,7 +68,9 @@ public class DeviceCommandService {
                                                      Timestamp timestamp,
                                                      HivePrincipal principal) {
         if (devices != null) {
-            return commandDAO.findCommands(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp, null);
+            return commandDAO
+                    .findCommands(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp,
+                            null);
         } else {
             return commandDAO.findCommands(null, names, timestamp, principal);
         }
@@ -109,11 +111,13 @@ public class DeviceCommandService {
         DeviceCommand cmd = commandDAO.findById(update.getId());
 
         if (cmd == null) {
-            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()), NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
+                    NOT_FOUND.getStatusCode());
         }
 
         if (!cmd.getDevice().getId().equals(device.getId())) {
-            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()), NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
+                    NOT_FOUND.getStatusCode());
         }
 
 

@@ -473,7 +473,7 @@ public class DeviceNotificationController {
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(),String.format(Messages.DEVICE_NOT_FOUND, guid)));
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         if (device.getNetwork() == null) {
             return ResponseFactory.response(FORBIDDEN,

@@ -9,7 +9,6 @@ public class CommandUpdateSubscriptionStorage extends AbstractStorage<Long, Comm
     }
 
 
-
     public synchronized void removeByCommandId(Long commandId) {
         removeByEventSource(commandId);
     }

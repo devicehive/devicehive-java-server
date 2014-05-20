@@ -1,7 +1,11 @@
 package com.devicehive.model.response;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -10,7 +14,10 @@ import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
 /**
  * @author Nikolay Loboda

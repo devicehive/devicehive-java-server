@@ -100,7 +100,9 @@ public class WebsocketSession {
         Map<Set<String>, Set<UUID>> oldFormatSubscriptions =
                 (Map<Set<String>, Set<UUID>>) session.getUserProperties().get(storageName);
         Set<String> toRemove = guids == null
-                ? new HashSet<String>() {{ add(Constants.NULL_SUBSTITUTE); }}
+                ? new HashSet<String>() {{
+            add(Constants.NULL_SUBSTITUTE);
+        }}
                 : guids;
         return oldFormatSubscriptions.remove(toRemove);
     }
@@ -118,7 +120,9 @@ public class WebsocketSession {
         Map<Set<String>, Set<UUID>> oldFormatSubscriptions =
                 (Map<Set<String>, Set<UUID>>) session.getUserProperties().get(storageName);
         Set<String> toStore = guids == null
-                ? new HashSet<String>() {{ add(Constants.NULL_SUBSTITUTE); }}
+                ? new HashSet<String>() {{
+            add(Constants.NULL_SUBSTITUTE);
+        }}
                 : guids;
         if (oldFormatSubscriptions.containsKey(toStore)) {
             Set<UUID> existingSubscriptions = oldFormatSubscriptions.get(toStore);

@@ -75,9 +75,12 @@ public class WebsocketExecutor {
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createError(ex).build();
         } catch (ConstraintViolationException ex) {
-            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage()).build();
+            response =
+                    JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage())
+                            .build();
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
-            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage()).build();
+            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage())
+                    .build();
         } catch (JsonParseException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST,
                     Messages.INVALID_REQUEST_PARAMETERS).build();
@@ -86,12 +89,17 @@ public class WebsocketExecutor {
                     Messages.CONFLICT_MESSAGE).build();
         } catch (PersistenceException ex) {
             if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException) {
-                response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage()).build();
+                response =
+                        JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage())
+                                .build();
             } else {
-                response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
+                response = JsonMessageBuilder
+                        .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
+                        .build();
             }
         } catch (Exception ex) {
-            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
+            response = JsonMessageBuilder
+                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
         } finally {
             ThreadLocalVariablesKeeper.setRequest(null);
             ThreadLocalVariablesKeeper.setSession(null);
@@ -129,7 +137,8 @@ public class WebsocketExecutor {
 
     private WebsocketHandlers getBean(Class<WebsocketHandlers> clazz) {
         Bean bean = beanManager.getBeans(clazz).iterator().next();
-        return (WebsocketHandlers) beanManager.getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean));
+        return (WebsocketHandlers) beanManager
+                .getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean));
     }
 
     private Pair<Class<WebsocketHandlers>, Method> getMethod(JsonObject request) {
@@ -145,7 +154,8 @@ public class WebsocketExecutor {
             for (final Method method : currentClass.getMethods()) {
                 if (method.isAnnotationPresent(Action.class)) {
                     if (method.getAnnotation(Action.class).value().equals(action)) {
-                        Preconditions.checkState(method.getReturnType().equals(WebSocketResponse.class), "Method should have %s return type", WebSocketResponse.class);
+                        Preconditions.checkState(method.getReturnType().equals(WebSocketResponse.class),
+                                "Method should have %s return type", WebSocketResponse.class);
                         methodPair = ImmutablePair.of(currentClass, method);
                         found = true;
                         break;

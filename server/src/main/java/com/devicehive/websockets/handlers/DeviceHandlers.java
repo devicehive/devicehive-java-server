@@ -52,31 +52,31 @@ public class DeviceHandlers implements WebsocketHandlers {
      *
      * @return Json object with the following structure
      *         <pre>
-     *                                                         {
-     *                                                           "action": {string},
-     *                                                           "status": {string},
-     *                                                           "requestId": {object},
-     *                                                           "device": {
-     *                                                             "id": {guid},
-     *                                                             "name": {string},
-     *                                                             "status": {string},
-     *                                                             "data": {object},
-     *                                                             "network": {
-     *                                                               "id": {integer},
-     *                                                               "name": {string},
-     *                                                               "description": {string}
-     *                                                             },
-     *                                                             "deviceClass": {
-     *                                                               "id": {integer},
-     *                                                               "name": {string},
-     *                                                               "version": {string},
-     *                                                               "isPermanent": {boolean},
-     *                                                               "offlineTimeout": {integer},
-     *                                                               "data": {object}
-     *                                                              }
-     *                                                            }
-     *                                                         }
-     *                                                         </pre>
+     *                                                                 {
+     *                                                                   "action": {string},
+     *                                                                   "status": {string},
+     *                                                                   "requestId": {object},
+     *                                                                   "device": {
+     *                                                                     "id": {guid},
+     *                                                                     "name": {string},
+     *                                                                     "status": {string},
+     *                                                                     "data": {object},
+     *                                                                     "network": {
+     *                                                                       "id": {integer},
+     *                                                                       "name": {string},
+     *                                                                       "description": {string}
+     *                                                                     },
+     *                                                                     "deviceClass": {
+     *                                                                       "id": {integer},
+     *                                                                       "name": {string},
+     *                                                                       "version": {string},
+     *                                                                       "isPermanent": {boolean},
+     *                                                                       "offlineTimeout": {integer},
+     *                                                                       "data": {object}
+     *                                                                      }
+     *                                                                    }
+     *                                                                 }
+     *                                                                 </pre>
      */
     @Action(value = "device/get")
     @RolesAllowed({HiveRoles.DEVICE})
@@ -96,38 +96,38 @@ public class DeviceHandlers implements WebsocketHandlers {
      *
      * @param message Json object with the following structure
      *                <pre>
-     *                                                                                                          {
-     *                                                                                                            "action": {string},
-     *                                                                                                            "requestId": {object},
-     *                                                                                                            "deviceId": {guid},
-     *                                                                                                            "deviceKey": {string},
-     *                                                                                                            "device": {
-     *                                                                                                              "key": {string},
-     *                                                                                                              "name": {string},
-     *                                                                                                              "status": {string},
-     *                                                                                                              "data": {object},
-     *                                                                                                              "network": {integer or object},
-     *                                                                                                              "deviceClass": {integer or object},
-     *                                                                                                              "equipment": [
-     *                                                                                                              {
-     *                                                                                                               "name": {string},
-     *                                                                                                               "code": {string},
-     *                                                                                                               "type": {string},
-     *                                                                                                               "data": {object}
-     *                                                                                                              }
-     *                                                                                                              ]
-     *                                                                                                            }
-     *                                                                                                          }
-     *                                                                                                          </pre>
+     *                                                                                                                         {
+     *                                                                                                                           "action": {string},
+     *                                                                                                                           "requestId": {object},
+     *                                                                                                                           "deviceId": {guid},
+     *                                                                                                                           "deviceKey": {string},
+     *                                                                                                                           "device": {
+     *                                                                                                                             "key": {string},
+     *                                                                                                                             "name": {string},
+     *                                                                                                                             "status": {string},
+     *                                                                                                                             "data": {object},
+     *                                                                                                                             "network": {integer or object},
+     *                                                                                                                             "deviceClass": {integer or object},
+     *                                                                                                                             "equipment": [
+     *                                                                                                                             {
+     *                                                                                                                              "name": {string},
+     *                                                                                                                              "code": {string},
+     *                                                                                                                              "type": {string},
+     *                                                                                                                              "data": {object}
+     *                                                                                                                             }
+     *                                                                                                                             ]
+     *                                                                                                                           }
+     *                                                                                                                         }
+     *                                                                                                                         </pre>
      * @param session Current session
      * @return Json object with the following structure
      *         <pre>
-     *                                                         {
-     *                                                           "action": {string},
-     *                                                           "status": {string},
-     *                                                           "requestId": {object}
-     *                                                         }
-     *                                                         </pre>
+     *                                                                 {
+     *                                                                   "action": {string},
+     *                                                                   "status": {string},
+     *                                                                   "requestId": {object}
+     *                                                                 }
+     *                                                                 </pre>
      */
     @Action(value = "device/save")
     @PermitAll

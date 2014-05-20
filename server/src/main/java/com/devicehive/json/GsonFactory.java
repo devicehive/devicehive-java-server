@@ -1,12 +1,18 @@
 package com.devicehive.json;
 
 
-import com.devicehive.json.adapters.*;
+import com.devicehive.json.adapters.AccessTypeAdapter;
+import com.devicehive.json.adapters.JsonStringWrapperAdapterFactory;
+import com.devicehive.json.adapters.NullableWrapperAdapterFactory;
+import com.devicehive.json.adapters.OAuthTypeAdapter;
+import com.devicehive.json.adapters.TimestampAdapter;
+import com.devicehive.json.adapters.UserRoleAdapter;
+import com.devicehive.json.adapters.UserStatusAdapter;
 import com.devicehive.json.strategies.AnnotatedStrategy;
 import com.devicehive.model.AccessType;
+import com.devicehive.model.Type;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
-import com.devicehive.model.Type;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 

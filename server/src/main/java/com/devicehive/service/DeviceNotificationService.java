@@ -4,7 +4,9 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.messages.bus.GlobalMessageBus;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.SpecialNotifications;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 
@@ -14,7 +16,9 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Stateless
 @LogExecutionTime
@@ -61,7 +65,8 @@ public class DeviceNotificationService {
                                                               Timestamp timestamp,
                                                               HivePrincipal principal) {
         if (devices != null) {
-            return deviceNotificationDAO.findNotifications(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp, null);
+            return deviceNotificationDAO.findNotifications(
+                    deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp, null);
         } else {
             return deviceNotificationDAO.findNotifications(null, names, timestamp, principal);
         }
@@ -83,7 +88,8 @@ public class DeviceNotificationService {
                                                             Integer skip,
                                                             Integer gridInterval) {
         return deviceNotificationDAO
-                .queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip, gridInterval);
+                .queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip,
+                        gridInterval);
     }
 
 

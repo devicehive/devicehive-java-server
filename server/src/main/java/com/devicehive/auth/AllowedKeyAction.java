@@ -21,7 +21,7 @@ public @interface AllowedKeyAction {
     @Nonbinding
     public Action[] action() default Action.NONE;
 
-    public static enum Action{
+    public static enum Action {
         GET_NETWORK(AvailableActions.GET_NETWORK),
         GET_DEVICE(AvailableActions.GET_DEVICE),
         GET_DEVICE_STATE(AvailableActions.GET_DEVICE_STATE),
@@ -35,11 +35,11 @@ public @interface AllowedKeyAction {
 
         private String value;
 
-        private Action(String value){
+        private Action(String value) {
             this.value = value;
         }
 
-        public String getValue(){
+        public String getValue() {
             return value;
         }
     }
