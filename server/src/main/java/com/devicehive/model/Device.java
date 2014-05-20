@@ -35,15 +35,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 query = "select d from Device d  join d.network.users u where u.id = :userid and d.key = :key"),
         @NamedQuery(name = "Device.findByUUIDListAndUser",
                 query = "select d from Device d join d.network.users u where u = :user and d.guid in :guidList"),
-        @NamedQuery(name = "Device.findByUUIDAndUser",
-                query = "select d from Device d join d.network n join n.users u where d.guid = :guid and u = :user"),
-        @NamedQuery(name = "Device.findByUUIDAndUserAndTimestamp",
-                query = "select distinct d from DeviceNotification dn " +
-                        "inner join dn.device d " +
-                        "inner join d.network.users u " +
-                        "where dn.timestamp > :timestamp " +
-                        "and d.guid in :guidList " +
-                        "and u = :user"),
         @NamedQuery(name = "Device.findByListUUID", query = "select d from Device d where d.guid in :guidList"),
         @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.id = :id"),
         @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid"),
