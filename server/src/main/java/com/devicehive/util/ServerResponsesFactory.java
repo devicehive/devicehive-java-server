@@ -38,6 +38,7 @@ public class ServerResponsesFactory {
                 DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
+        resultJsonObject.addProperty("action", "command/insert");
         resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDevice().getGuid());
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         return resultJsonObject;
