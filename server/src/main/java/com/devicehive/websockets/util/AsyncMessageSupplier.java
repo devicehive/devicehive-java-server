@@ -1,6 +1,7 @@
 package com.devicehive.websockets.util;
 
 import com.devicehive.json.GsonFactory;
+import com.devicehive.util.LogExecutionTime;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +52,13 @@ public class AsyncMessageSupplier {
         }
     }
 
-
+    @LogExecutionTime
     private void doDeliverMessages(Session session) throws IOException {
         @SuppressWarnings("unchecked")
         ConcurrentLinkedQueue<JsonElement> queue =
                 (ConcurrentLinkedQueue) session.getUserProperties().get(WebsocketSession.QUEUE);
         boolean acquired = false;
-        do {
+//        do {
             try {
                 acquired = WebsocketSession.getQueueLock(session).tryLock();
                 if (acquired) {
@@ -78,15 +79,15 @@ public class AsyncMessageSupplier {
                         }
                         logger.debug("Session {}: {} messages left", session.getId(), queue.size());
                     }
-                } else {
-                    return;
-                }
+                } //else {
+//                    return;
+//                }
             } finally {
                 if (acquired) {
                     WebsocketSession.getQueueLock(session).unlock();
                 }
             }
-        } while (!queue.isEmpty());
+//        } while (!queue.isEmpty());
     }
 }
 

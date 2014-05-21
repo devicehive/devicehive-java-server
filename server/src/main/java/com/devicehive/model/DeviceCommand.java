@@ -100,11 +100,12 @@ public class DeviceCommand implements HiveEntity {
     private JsonStringWrapper parameters;
     @SerializedName("lifetime")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            COMMAND_LISTED})
     private Integer lifetime;
     @SerializedName("flags")
     @Column
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer flags;
     @SerializedName("status")

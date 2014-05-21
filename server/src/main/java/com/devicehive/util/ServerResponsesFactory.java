@@ -27,7 +27,7 @@ public class ServerResponsesFactory {
                 GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
-        resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDevice().getGuid().toString());
+        resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDevice().getGuid());
         resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
         return resultMessage;
     }
@@ -38,7 +38,7 @@ public class ServerResponsesFactory {
                 DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
-        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDevice().getGuid().toString());
+        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDevice().getGuid());
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         return resultJsonObject;
     }

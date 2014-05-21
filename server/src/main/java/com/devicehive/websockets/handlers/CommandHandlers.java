@@ -141,7 +141,9 @@ public class CommandHandlers implements WebsocketHandlers {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
+        if (names != null)
+            names.remove(null);
+        if (names != null && names.isEmpty()) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
         try {

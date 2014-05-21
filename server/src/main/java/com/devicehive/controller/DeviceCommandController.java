@@ -215,7 +215,9 @@ public class DeviceCommandController {
                     .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             }
-            return list;
+        }
+        for (DeviceCommand dc : list){
+            dc.setUserId(dc.getUser().getId());
         }
         return list;
     }

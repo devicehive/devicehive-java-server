@@ -1,5 +1,6 @@
 package com.devicehive.messages.handler;
 
+import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonElement;
@@ -26,6 +27,7 @@ public class WebsocketHandlerCreator implements HandlerCreator {
 
 
     @Override
+    @LogExecutionTime
     public Runnable getHandler(final JsonElement message) {
         logger.debug("Websocket subscription notified");
         return new Runnable() {
