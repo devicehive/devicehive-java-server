@@ -90,7 +90,6 @@ public class NotificationHandlers implements WebsocketHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(SUBSCRIPTION_ID, subId, null);
         return response;
-
     }
 
     private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
@@ -190,26 +189,27 @@ public class NotificationHandlers implements WebsocketHandlers {
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationUnsubscribe(Session session,
                                                             @WsParam(SUBSCRIPTION_ID) UUID subId,
-                                                            @WsParam(DEVICE_GUIDS) List<String>
-                                                                    deviceGuids) {
+                                                            @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         try {
             WebsocketSession.getNotificationSubscriptionsLock(session).lock();
-            Set<UUID> subIds = new HashSet<>();
+            Set<UUID> subscriptions = new HashSet<>();
             if (subId == null) {
-                subIds.addAll(WebsocketSession.getNotificationSubscriptions(session));
+                if (deviceGuids == null) {
+                    Set<String> subForAll = new HashSet<String>() {{
+                        add(Constants.NULL_SUBSTITUTE);
+                    }};
+                    subscriptions.addAll(WebsocketSession.removeOldFormatNotificationSubscription(session, subForAll));
+                } else
+                    subscriptions.addAll(WebsocketSession.removeOldFormatNotificationSubscription(session, deviceGuids));
             } else {
-                if (WebsocketSession.getNotificationSubscriptions(session).contains(subId)) {
-                    WebsocketSession.getNotificationSubscriptions(session).remove(subId);
-                    subscriptionSessionMap.remove(subId);
-                    subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
-                }
+                subscriptions.add(subId);
             }
-            for (UUID toUnsubscribe : subIds) {
-                if (WebsocketSession.getCommandSubscriptions(session).contains(toUnsubscribe)) {
-                    WebsocketSession.getCommandSubscriptions(session).remove(toUnsubscribe);
+            for (UUID toUnsubscribe : subscriptions) {
+                if (WebsocketSession.getNotificationSubscriptions(session).contains(toUnsubscribe)) {
+                    WebsocketSession.getNotificationSubscriptions(session).remove(toUnsubscribe);
                     subscriptionSessionMap.remove(toUnsubscribe);
-                    subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
+                    subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
                 }
             }
         } finally {
@@ -217,7 +217,6 @@ public class NotificationHandlers implements WebsocketHandlers {
             logger.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }
-
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
         return new WebSocketResponse();
     }

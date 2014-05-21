@@ -21,7 +21,7 @@ public class Messages {
     public static final String GRANT_NOT_FOUND = "Grant with id = %s not found.";
     public static final String USER_NOT_FOUND = "User with id = %s not found";
     public static final String OAUTH_CLIENT_NOT_FOUND = "OAuth client with id = %s not found";
-    public static final String DEVICES_NOT_FOUND = "Device with such guids wasn't found: {%s}";
+    public static final String DEVICES_NOT_FOUND = "Devices with such guids wasn't found: {%s}";
     public static final String NO_NOTIFICATIONS_FROM_DEVICE = "No device notifications " +
             "found from device with guid : %s";
     public static final String CONFLICT_MESSAGE = "Error occurred. Please, retry again.";

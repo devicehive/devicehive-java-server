@@ -23,6 +23,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.devicehive.model.DeviceNotification.Queries.Names.DELETE_BY_FK;
@@ -50,6 +51,8 @@ public class DeviceNotificationDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> findNotifications(Collection<Device> devices, Collection<String> names,
                                                       @NotNull Timestamp timestamp, HivePrincipal principal) {
+        if (devices != null && devices.isEmpty())
+            return Collections.<DeviceNotification>emptyList();
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
