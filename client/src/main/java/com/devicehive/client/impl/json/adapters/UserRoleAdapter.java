@@ -1,5 +1,6 @@
 package com.devicehive.client.impl.json.adapters;
 
+import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.UserRole;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -32,7 +33,7 @@ public class UserRoleAdapter extends TypeAdapter<UserRole> {
             try {
                 return UserRole.values()[in.nextInt()];
             } catch (RuntimeException e) {
-                throw new IOException("Wrong user role", e);
+                throw new IOException(Messages.INVALID_USER_ROLE, e);
             }
         }
     }

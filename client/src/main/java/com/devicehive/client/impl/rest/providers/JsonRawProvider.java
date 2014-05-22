@@ -3,6 +3,7 @@ package com.devicehive.client.impl.rest.providers;
 
 import com.devicehive.client.impl.context.Constants;
 import com.devicehive.client.impl.json.GsonFactory;
+import com.devicehive.client.impl.util.Messages;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -41,7 +42,7 @@ public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBo
         if (element.isJsonObject()) {
             return element.getAsJsonObject();
         }
-        throw new IOException("Not a JSON object");
+        throw new IOException(Messages.NOT_A_JSON);
     }
 
     @Override

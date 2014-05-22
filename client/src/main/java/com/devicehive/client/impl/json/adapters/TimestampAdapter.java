@@ -1,6 +1,7 @@
 package com.devicehive.client.impl.json.adapters;
 
 
+import com.devicehive.client.impl.util.Messages;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -35,13 +36,13 @@ public class TimestampAdapter extends TypeAdapter<Timestamp> {
         if (pos >= 0) {
             String micro = input.substring(pos + 1);
             if (micro.isEmpty() || micro.length() > 6) {
-                throw new IllegalArgumentException("Error parsing microseconds");
+                throw new IllegalArgumentException(Messages.PARSING_MICROSECONDS_ERROR);
             }
             micro += "000000".substring(0, 6 - micro.length());
             try {
                 microseconds = Integer.parseInt(micro);
             } catch (NumberFormatException ex) {
-                throw new IllegalArgumentException("Error parsing microseconds", ex);
+                throw new IllegalArgumentException(Messages.PARSING_MICROSECONDS_ERROR, ex);
             }
         }
 
@@ -88,10 +89,11 @@ public class TimestampAdapter extends TypeAdapter<Timestamp> {
             in.nextNull();
             return null;
         } else {
+            String timestampString = in.nextString();
             try {
-                return parseTimestamp(in.nextString());
+                return parseTimestamp(timestampString);
             } catch (RuntimeException e) {
-                throw new IOException("Wrong timestamp format", e);
+                throw new IOException(String.format(Messages.INCORRECT_TIMESTAMP_FORMAT, timestampString), e);
             }
         }
     }

@@ -1,9 +1,11 @@
 package com.devicehive.client.impl.context;
 
 
+import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.rest.RestClientFactory;
+import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.ErrorMessage;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -20,11 +22,15 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.ConnectException;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.Map;
 
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
@@ -37,13 +43,11 @@ public class HiveRestConnector {
     private static final String USER_AUTH_SCHEMA = "Basic";
     private static final String KEY_AUTH_SCHEMA = "Bearer";
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
-    private static Charset UTF8_CHARSET = Charset.forName("UTF-8");
-
-
-
     private final URI uri;
     private final Client restClient;
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
+    private final HiveConnectionEventHandler connectionEventHandler;
+    private boolean isConnected = false;
 
 
     /**
@@ -52,12 +56,12 @@ public class HiveRestConnector {
      * @param uri         URI of RESTful service
      * @param hiveContext context. Keeps state, for example credentials.
      */
-    public HiveRestConnector(URI uri, RestHiveContext hiveContext) {
+    public HiveRestConnector(URI uri, HiveRestContext hiveContext, HiveConnectionEventHandler connectionEventHandler) {
         this.uri = uri;
         this.hiveContext = hiveContext;
         restClient = RestClientFactory.getClient();
+        this.connectionEventHandler = connectionEventHandler;
     }
-
 
     public void close() {
         restClient.close();
@@ -147,9 +151,9 @@ public class HiveRestConnector {
     public <S, R> R execute(String path, String method, Map<String, String> headers, Map<String, Object> queryParams,
                             S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
-        Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
         try {
+            Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
+            Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
             switch (statusFamily) {
                 case SERVER_ERROR:
                     throw new HiveServerException(response.getStatus());
@@ -174,11 +178,18 @@ public class HiveRestConnector {
                     throw new HiveException("Unknown response");
             }
         } catch (ProcessingException e) {
-            throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
+            if (e.getCause() instanceof ConnectException) {
+                isConnected = false;
+            } else {
+                throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
+            }
         }
+        return null;
     }
 
-
+    public boolean isConnected() {
+        return isConnected;
+    }
 
     /**
      * Executes request with following params using forms
@@ -233,7 +244,7 @@ public class HiveRestConnector {
         if (principal != null) {
             if (principal.getUser() != null) {
                 String decodedAuth = principal.getUser().getLeft() + ":" + principal.getUser().getRight();
-                String encodedAuth = Base64.encodeBase64String(decodedAuth.getBytes(UTF8_CHARSET));
+                String encodedAuth = Base64.encodeBase64String(decodedAuth.getBytes(Constants.UTF8_CHARSET));
                 headers.put(HttpHeaders.AUTHORIZATION, USER_AUTH_SCHEMA + " " + encodedAuth);
             }
             if (principal.getDevice() != null) {
@@ -308,7 +319,7 @@ public class HiveRestConnector {
             entity = Entity.entity(f, MediaType.APPLICATION_FORM_URLENCODED_TYPE);
             return invocationBuilder.build(HttpMethod.POST, entity);
         }
-        throw new InternalHiveClientException("form params cannot be null!");
+        throw new InternalHiveClientException(Messages.FORM_PARAMS_ARE_NULL);
     }
 
 

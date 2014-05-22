@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.OAuthClientController;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.OAuthClient;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -20,9 +20,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class OAuthClientControllerImpl implements OAuthClientController {
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientControllerImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public OAuthClientControllerImpl(RestHiveContext hiveContext) {
+    public OAuthClientControllerImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

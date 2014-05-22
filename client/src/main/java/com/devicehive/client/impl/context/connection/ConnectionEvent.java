@@ -1,5 +1,6 @@
-package com.devicehive.client.impl.util.connection;
+package com.devicehive.client.impl.context.connection;
 
+import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -17,10 +18,16 @@ public class ConnectionEvent {
     private String id;
     private URI serviceUri;
 
-    public ConnectionEvent(URI serviceUri, Timestamp timestamp, String id) {
+    public ConnectionEvent(URI serviceUri, Timestamp timestamp, HivePrincipal principal) {
         this.serviceUri = serviceUri;
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
-        this.id = id;
+        if (principal.getDevice() != null) {
+            id = principal.getDevice().getLeft();
+        } else if (principal.getAccessKey() != null) {
+            id = principal.getAccessKey();
+        } else if (principal.getUser() != null) {
+            id = principal.getUser().getLeft();
+        }
     }
 
     public URI getServiceUri() {

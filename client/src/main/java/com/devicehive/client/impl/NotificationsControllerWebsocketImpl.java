@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.MessageHandler;
-import com.devicehive.client.impl.context.WebsocketHiveContext;
+import com.devicehive.client.impl.context.HiveWebsocketContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
@@ -22,9 +22,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class NotificationsControllerWebsocketImpl extends NotificationsControllerRestImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationsControllerWebsocketImpl.class);
-    private final WebsocketHiveContext hiveContext;
+    private final HiveWebsocketContext hiveContext;
 
-    public NotificationsControllerWebsocketImpl(WebsocketHiveContext hiveContext) {
+    public NotificationsControllerWebsocketImpl(HiveWebsocketContext hiveContext) {
         super(hiveContext);
         this.hiveContext = hiveContext;
     }

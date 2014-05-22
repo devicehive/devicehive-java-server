@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.UserController;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.User;
 import com.devicehive.client.model.UserNetwork;
 import com.devicehive.client.model.exceptions.HiveClientException;
@@ -22,9 +22,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class UserControllerImpl implements UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserControllerImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public UserControllerImpl(RestHiveContext hiveContext) {
+    public UserControllerImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

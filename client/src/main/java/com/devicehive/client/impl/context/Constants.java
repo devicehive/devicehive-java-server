@@ -1,5 +1,7 @@
 package com.devicehive.client.impl.context;
 
+import java.nio.charset.Charset;
+
 public class Constants {
     /**
      * Should not be changed. Defines request and responses encoding.
@@ -43,5 +45,13 @@ public class Constants {
      * Required version of server API
      */
     public static final String REQUIRED_VERSION_OF_API = "1.3.0";
-
+    public static final String WAIT_TIMEOUT_PARAM = "waitTimeout";
+    public static final String DEVICE_GUIDS = "deviceGuids";
+    public static final String NAMES = "names";
+    public static final String TIMESTAMP = "timestamp";
+    public static final String EXPECTED_RESPONSE_STATUS = "success";
+    public static final String STATUS = "status";
+    public static final String CODE = "code";
+    public static final String ERROR = "error";
+    public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 }

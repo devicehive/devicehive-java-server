@@ -2,6 +2,8 @@ package com.devicehive.client.impl.context;
 
 import com.devicehive.client.MessageHandler;
 import com.devicehive.client.impl.json.GsonFactory;
+import com.devicehive.client.impl.util.Messages;
+import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -16,20 +18,17 @@ import java.net.URI;
 import java.util.UUID;
 
 
-public class WebsocketHiveContext extends RestHiveContext {
+public class HiveWebsocketContext extends HiveRestContext {
 
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
     private HiveWebsocketConnector websocketConnector;
 
-
-    /**
-     * @param commandUpdatesHandler
-     */
-    public WebsocketHiveContext(URI restUri,
-                                MessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
-        super(restUri, commandUpdatesHandler);
+    public HiveWebsocketContext(URI restUri,
+                                MessageHandler<DeviceCommand> commandUpdatesHandler,
+                                HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+        super(restUri, commandUpdatesHandler, connectionEventHandler);
         URI wsUri = URI.create(super.getInfo().getWebSocketServerUrl());
-        this.websocketConnector = HiveWebsocketConnector.open(wsUri, this);
+        this.websocketConnector = HiveWebsocketConnector.open(wsUri, this, connectionEventHandler);
     }
 
     public synchronized void close() {
@@ -107,7 +106,7 @@ public class WebsocketHiveContext extends RestHiveContext {
         } else if (principal.getAccessKey() != null) {
             request.addProperty("accessKey", principal.getAccessKey());
         } else {
-            throw new IllegalArgumentException("Incorrect HivePrincipal was passed");
+            throw new IllegalArgumentException(Messages.INVALID_HIVE_PRINCIPAL);
         }
         websocketConnector.sendMessage(request);
     }

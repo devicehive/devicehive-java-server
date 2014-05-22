@@ -1,7 +1,7 @@
 package com.devicehive.client.impl.websocket;
 
 
-import com.devicehive.client.impl.context.WebsocketHiveContext;
+import com.devicehive.client.impl.context.HiveWebsocketContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -33,7 +33,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     private final static String DEVICE_GUID_MEMBER = "deviceGuid";
     private final static String SUBSCRIPTION_ID =  "subscriptionId";
     private final static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
-    private final WebsocketHiveContext hiveContext;
+    private final HiveWebsocketContext hiveContext;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap;
 
 
@@ -43,7 +43,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
      * @param hiveContext  hive context
      * @param responsesMap map that contains request id and response association.
      */
-    public HiveWebsocketHandler(WebsocketHiveContext hiveContext,
+    public HiveWebsocketHandler(HiveWebsocketContext hiveContext,
                                 ConcurrentMap<String, SettableFuture<JsonObject>> responsesMap) {
         this.hiveContext = hiveContext;
         this.websocketResponsesMap = responsesMap;

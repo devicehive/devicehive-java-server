@@ -3,7 +3,7 @@ package com.devicehive.client.impl;
 
 import com.devicehive.client.MessageHandler;
 import com.devicehive.client.NotificationsController;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
@@ -25,9 +25,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class NotificationsControllerRestImpl implements NotificationsController {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationsControllerRestImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public NotificationsControllerRestImpl(RestHiveContext hiveContext) {
+    public NotificationsControllerRestImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.NetworkController;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.Network;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -21,9 +21,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class NetworkControllerImpl implements NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkControllerImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public NetworkControllerImpl(RestHiveContext hiveContext) {
+    public NetworkControllerImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

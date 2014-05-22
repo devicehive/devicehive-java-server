@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.MessageHandler;
-import com.devicehive.client.impl.context.WebsocketHiveContext;
+import com.devicehive.client.impl.context.HiveWebsocketContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
@@ -25,9 +25,9 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NO
 
 public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
-    private WebsocketHiveContext hiveContext;
+    private HiveWebsocketContext hiveContext;
 
-    public HiveDeviceWebsocketImpl(WebsocketHiveContext hiveContext) {
+    public HiveDeviceWebsocketImpl(HiveWebsocketContext hiveContext) {
         super(hiveContext);
         this.hiveContext = hiveContext;
     }

@@ -3,7 +3,7 @@ package com.devicehive.client.impl;
 
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.MessageHandler;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
@@ -24,9 +24,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class CommandsControllerRestImpl implements CommandsController {
 
     private static Logger logger = LoggerFactory.getLogger(CommandsControllerRestImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public CommandsControllerRestImpl(RestHiveContext hiveContext) {
+    public CommandsControllerRestImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

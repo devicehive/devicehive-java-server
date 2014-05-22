@@ -4,14 +4,14 @@ package com.devicehive.client.impl;
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.impl.context.WebsocketHiveContext;
+import com.devicehive.client.impl.context.HiveWebsocketContext;
 import com.devicehive.client.model.exceptions.HiveException;
 
 public class HiveClientWebsocketImpl extends HiveClientRestImpl {
 
-    private final WebsocketHiveContext hiveContext;
+    private final HiveWebsocketContext hiveContext;
 
-    public HiveClientWebsocketImpl(WebsocketHiveContext hiveContext) {
+    public HiveClientWebsocketImpl(HiveWebsocketContext hiveContext) {
         super(hiveContext);
         this.hiveContext = hiveContext;
     }

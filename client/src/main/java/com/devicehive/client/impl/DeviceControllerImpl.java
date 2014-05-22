@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.DeviceController;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceClass;
 import com.devicehive.client.model.DeviceEquipment;
@@ -23,9 +23,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class DeviceControllerImpl implements DeviceController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceControllerImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public DeviceControllerImpl(RestHiveContext hiveContext) {
+    public DeviceControllerImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

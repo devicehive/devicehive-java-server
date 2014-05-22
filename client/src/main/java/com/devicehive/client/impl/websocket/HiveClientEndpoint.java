@@ -45,6 +45,7 @@ public class HiveClientEndpoint extends Endpoint {
         if (sessionMonitor != null) {
             sessionMonitor.close();
         }
+
     }
     public void onError(Throwable exception, Session session) {
         logger.error("[onError] ", exception);

@@ -5,6 +5,7 @@ import com.devicehive.client.impl.context.Constants;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.util.Messages;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
@@ -76,7 +77,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
                 JsonPolicyApply jsonPolicyApply = (JsonPolicyApply) annotation;
                 policy = jsonPolicyApply.value();
                 if (++count > 1) {
-                    throw new IllegalArgumentException("Two or more active JSON policies");
+                    throw new IllegalArgumentException(Messages.SEVERAL_ACTIVE_JSON_POLICIES);
                 }
             }
         }

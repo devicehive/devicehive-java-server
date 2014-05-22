@@ -2,6 +2,7 @@ package com.devicehive.client.impl.context;
 
 
 import com.devicehive.client.MessageHandler;
+import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -74,7 +75,7 @@ public class AbstractHiveContext {
      */
     public synchronized void authenticate(HivePrincipal hivePrincipal) throws HiveException {
         if (this.hivePrincipal != null && !this.hivePrincipal.equals(hivePrincipal)) {
-            throw new IllegalStateException("Already authenticated");
+            throw new IllegalStateException(Messages.ALREADY_AUTHENTICATED);
         }
         this.hivePrincipal = hivePrincipal;
 

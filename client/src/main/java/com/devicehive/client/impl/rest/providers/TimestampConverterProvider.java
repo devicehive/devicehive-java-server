@@ -1,6 +1,7 @@
 package com.devicehive.client.impl.rest.providers;
 
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
+import com.devicehive.client.impl.util.Messages;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
@@ -30,7 +31,7 @@ public class TimestampConverterProvider implements ParamConverterProvider {
             try {
                 return TimestampAdapter.parseTimestamp(value);
             } catch (IllegalArgumentException | UnsupportedOperationException e) {
-                throw new IllegalArgumentException("Incorrect timestamp " + value);
+                throw new IllegalArgumentException(String.format(Messages.INCORRECT_TIMESTAMP_FORMAT, value));
             }
         }
 

@@ -1,7 +1,9 @@
 package com.devicehive.client.impl.context;
 
 import com.devicehive.client.MessageHandler;
+import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.util.HiveTypeToken;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.CommandPollManyResponse;
 import com.devicehive.client.model.DeviceCommand;
@@ -9,11 +11,11 @@ import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.NotificationPollManyResponse;
 import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.google.common.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -25,7 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class RestHiveContext extends AbstractHiveContext {
+public class HiveRestContext extends AbstractHiveContext {
 
     private static final int TIMEOUT = 60;
     private final ExecutorService subscriptionExecutor = Executors.newCachedThreadPool();
@@ -37,10 +39,11 @@ public class RestHiveContext extends AbstractHiveContext {
     /**
      * @param commandUpdatesHandler
      */
-    public RestHiveContext(URI restUri,
-                           MessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
+    public HiveRestContext(URI restUri,
+                           MessageHandler<DeviceCommand> commandUpdatesHandler,
+                           HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         super(commandUpdatesHandler);
-        this.restConnector = new HiveRestConnector(restUri, this);
+        this.restConnector = new HiveRestConnector(restUri, this, connectionEventHandler);
     }
 
     public HiveRestConnector getRestConnector() {
@@ -66,17 +69,14 @@ public class RestHiveContext extends AbstractHiveContext {
             @Override
             protected void execute() throws HiveException {
                 Map<String, Object> params = new HashMap<>();
-                params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
-                params.put(TIMESTAMP, newFilter.getTimestamp());
-                params.put(NAMES, newFilter.getNames());
-                params.put(DEVICE_GUIDS, newFilter.getUuids());
-
-
-                @SuppressWarnings("SerializableHasSerializationMethods")
+                params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
+                params.put(Constants.NAMES, newFilter.getNames());
+                params.put(Constants.DEVICE_GUIDS, newFilter.getUuids());
+                Type responseType = new HiveTypeToken<List<CommandPollManyResponse>>().getType();
                 List<CommandPollManyResponse> responses =
                         restConnector.execute("/device/command/poll", HttpMethod.GET, null,
-                                params, new TypeToken<List<CommandPollManyResponse>>() {
-                        }.getType(), JsonPolicyDef.Policy.COMMAND_LISTED);
+                                params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
                 for (CommandPollManyResponse response : responses) {
                     Timestamp timestamp = filter.getTimestamp();
                     if (timestamp == null || timestamp.before(response.getCommand().getTimestamp())) {
@@ -104,7 +104,7 @@ public class RestHiveContext extends AbstractHiveContext {
     }
 
     public synchronized String addNotificationsSubscription(final SubscriptionFilter newFilter,
-                                                          final MessageHandler<DeviceNotification> handler) throws
+                                                            final MessageHandler<DeviceNotification> handler) throws
             HiveException {
         final String subscriptionIdValue = String.valueOf(subscriptionId.incrementAndGet());
         addNotificationsSubscription(subscriptionIdValue, handler);
@@ -115,18 +115,17 @@ public class RestHiveContext extends AbstractHiveContext {
             @Override
             protected void execute() throws HiveException {
                 Map<String, Object> params = new HashMap<>();
-                params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
-                params.put(TIMESTAMP, newFilter.getTimestamp());
-                params.put(NAMES, newFilter.getNames());
-                params.put(DEVICE_GUIDS, newFilter.getUuids());
-                @SuppressWarnings("SerializableHasSerializationMethods") TypeToken<List<NotificationPollManyResponse>> responseType = new
-                         TypeToken<List<NotificationPollManyResponse>>() {};
+                params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
+                params.put(Constants.NAMES, newFilter.getNames());
+                params.put(Constants.DEVICE_GUIDS, newFilter.getUuids());
+                Type responseType = new HiveTypeToken<List<NotificationPollManyResponse>>().getType();
                 List<NotificationPollManyResponse> responses = restConnector.execute(
                         "/device/command/poll",
                         HttpMethod.GET,
                         null,
                         params,
-                        responseType.getType(),
+                        responseType,
                         JsonPolicyDef.Policy.COMMAND_LISTED);
                 for (NotificationPollManyResponse response : responses) {
                     Timestamp timestamp = filter.getTimestamp();
@@ -173,11 +172,6 @@ public class RestHiveContext extends AbstractHiveContext {
     }
 
     private abstract static class RestSubscription implements Runnable {
-
-        protected static final String WAIT_TIMEOUT_PARAM = "waitTimeout";
-        protected static final String DEVICE_GUIDS = "deviceGuids";
-        protected static final String NAMES = "names";
-        protected static final String TIMESTAMP = "timestamp";
         private static Logger logger = LoggerFactory.getLogger(RestSubscription.class);
 
         protected abstract void execute() throws HiveException;

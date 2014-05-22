@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.AccessKeyController;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.AccessKey;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -19,9 +19,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class AccessKeyControllerImpl implements AccessKeyController {
 
     private static final Logger logger = LoggerFactory.getLogger(AccessKeyControllerImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public AccessKeyControllerImpl(RestHiveContext hiveContext) {
+    public AccessKeyControllerImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

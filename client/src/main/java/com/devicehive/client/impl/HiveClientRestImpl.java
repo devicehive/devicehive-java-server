@@ -1,21 +1,28 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.*;
+import com.devicehive.client.AccessKeyController;
+import com.devicehive.client.CommandsController;
+import com.devicehive.client.DeviceController;
+import com.devicehive.client.HiveClient;
+import com.devicehive.client.NetworkController;
+import com.devicehive.client.NotificationsController;
+import com.devicehive.client.OAuthClientController;
+import com.devicehive.client.OAuthGrantController;
+import com.devicehive.client.OAuthTokenController;
+import com.devicehive.client.UserController;
 import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.exceptions.HiveException;
-
-import java.io.IOException;
 
 public class HiveClientRestImpl implements HiveClient {
 
 
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
 
-    public HiveClientRestImpl(RestHiveContext hiveContext) {
+    public HiveClientRestImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
@@ -66,7 +73,6 @@ public class HiveClientRestImpl implements HiveClient {
     public OAuthTokenController getOAuthTokenController() {
         return new OAuthTokenControllerImpl(hiveContext);
     }
-
 
     public void close() {
         hiveContext.close();

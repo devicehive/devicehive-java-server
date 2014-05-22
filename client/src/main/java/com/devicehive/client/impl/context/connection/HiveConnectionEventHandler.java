@@ -1,6 +1,5 @@
-package com.devicehive.client.impl.util.connection;
+package com.devicehive.client.impl.context.connection;
 
-import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
     }
 
     @Override
-    public void handle(final ConnectionEvent event) throws InternalHiveClientException {
+    public void handle(final ConnectionEvent event)  {
         logger.info("Connection event info. Timestamp : {}, id : {}, is lost : {}, service uri:",
                 event.getTimestamp(), event.getId(), event.isLost(), event.getServiceUri());
         if (event.isLost()) {
@@ -44,7 +43,6 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
                             "No responses from server!"));
             } catch (IOException ioe) {
                 logger.debug("unable to close session");
-                throw new InternalHiveClientException("Unable to close session. No pings", ioe);
             }
             //will send message in a new thread
             //what priority should have this task?

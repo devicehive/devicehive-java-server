@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.OAuthGrantController;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.model.AccessType;
 import com.devicehive.client.model.OAuthGrant;
 import com.devicehive.client.model.OAuthType;
@@ -24,9 +24,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class OAuthGrantControllerImpl implements OAuthGrantController {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthGrantControllerImpl.class);
-    private final RestHiveContext hiveContext;
+    private final HiveRestContext hiveContext;
 
-    public OAuthGrantControllerImpl(RestHiveContext hiveContext) {
+    public OAuthGrantControllerImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 

@@ -3,6 +3,9 @@ package com.devicehive.client.impl.context;
 
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+import com.devicehive.client.impl.util.Messages;
+import com.devicehive.client.impl.context.connection.ConnectionEvent;
+import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.impl.websocket.HiveClientEndpoint;
 import com.devicehive.client.impl.websocket.HiveWebsocketHandler;
 import com.devicehive.client.impl.websocket.SimpleWebsocketResponse;
@@ -18,12 +21,26 @@ import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.*;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
+import javax.websocket.ContainerProvider;
+import javax.websocket.DeploymentException;
+import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static javax.ws.rs.core.Response.Status.Family;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
@@ -38,11 +55,12 @@ public class HiveWebsocketConnector {
     private static final Long WAIT_TIMEOUT = 1L;
     private static final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
     private static Logger logger = LoggerFactory.getLogger(HiveWebsocketConnector.class);
-
-    private final WebsocketHiveContext hiveContext;
+    private final HiveWebsocketContext hiveContext;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap = new ConcurrentHashMap<>();
     private final Session session;
     private final URI wsUri;
+    private final HiveConnectionEventHandler connectionEventHandler;
+    private ExecutorService establishConnectionExecutor = Executors.newSingleThreadExecutor();
 
 
     /**
@@ -51,25 +69,64 @@ public class HiveWebsocketConnector {
      * @param uri         URI of websocket service
      * @param hiveContext context. Keeps state, for example credentials.
      */
-    private HiveWebsocketConnector(URI uri, WebsocketHiveContext hiveContext) throws IOException, DeploymentException {
+    private HiveWebsocketConnector(URI uri, HiveWebsocketContext hiveContext,
+                                   HiveConnectionEventHandler connectionEventHandler) throws
+            IOException,
+            DeploymentException {
         this.hiveContext = hiveContext;
-        this.session = webSocketContainer.connectToServer(new HiveClientEndpoint(), ClientEndpointConfig.Builder.create().build(), uri);
+        this.session = webSocketContainer
+                .connectToServer(new HiveClientEndpoint(), ClientEndpointConfig.Builder.create().build(), uri);
         session.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
         this.wsUri = uri;
+        this.connectionEventHandler = connectionEventHandler;
     }
 
-    protected static HiveWebsocketConnector open(URI uri, WebsocketHiveContext hiveContext) throws HiveException {
+    protected static HiveWebsocketConnector open(URI uri, HiveWebsocketContext hiveContext,
+                                                 HiveConnectionEventHandler connectionEventHandler)
+            throws HiveException {
         try {
-            return new HiveWebsocketConnector(uri, hiveContext);
+            return new HiveWebsocketConnector(uri, hiveContext, connectionEventHandler);
         } catch (IOException | DeploymentException e) {
             throw new HiveException("Error occurred during creating context", e);
         }
 
     }
-    public synchronized HiveWebsocketConnector reconnect() throws HiveException {
-        close();
-       return open(wsUri, hiveContext);
-        //TODO
+
+    public synchronized HiveWebsocketConnector reconnect()
+            throws HiveException, ExecutionException, InterruptedException {
+        Future<HiveWebsocketConnector> futureConnector =
+                establishConnectionExecutor.submit(new Callable<HiveWebsocketConnector>() {
+                    @Override
+                    public HiveWebsocketConnector call() throws InternalHiveClientException {
+                        if (connectionEventHandler != null) {
+                            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+                            ConnectionEvent connectionLostEvent =
+                                    new ConnectionEvent(wsUri, currentTime, hiveContext.getHivePrincipal());
+                            connectionLostEvent.setLost(true);
+                            connectionEventHandler.setUserSession(session);
+                            connectionEventHandler.handle(connectionLostEvent);
+                        }
+                        close();
+                        HiveWebsocketConnector connector = null;
+                        while (connector == null) {
+                            try {
+                                connector = open(wsUri, hiveContext, connectionEventHandler);
+                            } catch (HiveException e) {
+                                logger.debug("Unable to establish connection.. Will try once again");
+                            }
+                        }
+                        if (connectionEventHandler != null) {
+                            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+                            ConnectionEvent connectionEstablishedEvent = new ConnectionEvent(wsUri, currentTime,
+                                    hiveContext.getHivePrincipal());
+                            connectionEstablishedEvent.setLost(false);
+                            connectionEventHandler.setUserSession(connector.session);
+                            connectionEventHandler.handle(connectionEstablishedEvent);
+                        }
+                        return connector;
+                    }
+                });
+        return futureConnector.get();
     }
 
     /**
@@ -119,6 +176,7 @@ public class HiveWebsocketConnector {
             logger.error("Error closing websocket session", e);
         }
     }
+
     //Private methods-----------------------------------------------------------------------------------------------
     private void processResponse(final String requestId) throws HiveException {
         try {
@@ -130,9 +188,9 @@ public class HiveWebsocketConnector {
                 try {
                     response = gson.fromJson(result, SimpleWebsocketResponse.class);
                 } catch (JsonSyntaxException e) {
-                    throw new HiveServerException("Wrong type of response!", 500);
+                    throw new HiveServerException(Messages.INCORRECT_RESPONSE_TYPE, 500);
                 }
-                if (response.getStatus().equals("success")) {
+                if (response.getStatus().equals(Constants.EXPECTED_RESPONSE_STATUS)) {
                     logger.debug("Request with id:" + requestId + "proceed successfully");
                     return;
                 }
@@ -169,16 +227,16 @@ public class HiveWebsocketConnector {
         try {
             JsonObject result = websocketResponsesMap.get(requestId).get(WAIT_TIMEOUT, TimeUnit.MINUTES);
             if (result != null) {
-                if (result.get("status").getAsString().equals("success")) {
+                if (result.get(Constants.STATUS).getAsString().equals(Constants.EXPECTED_RESPONSE_STATUS)) {
                     logger.debug("Request with id:" + requestId + "proceed successfully");
                 } else {
-                    Family errorFamily = Family.familyOf(result.get("code").getAsInt());
+                    Family errorFamily = Family.familyOf(result.get(Constants.CODE).getAsInt());
                     String error = null;
-                    if (result.get("error") instanceof JsonPrimitive)
-                        error = result.get("error").getAsString();
+                    if (result.get(Constants.ERROR) instanceof JsonPrimitive)
+                        error = result.get(Constants.ERROR).getAsString();
                     Integer code = null;
-                    if (result.get("code") instanceof JsonPrimitive)
-                        result.get("code").getAsInt();
+                    if (result.get(Constants.CODE) instanceof JsonPrimitive)
+                        result.get(Constants.CODE).getAsInt();
                     switch (errorFamily) {
                         case SERVER_ERROR:
                             logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
@@ -215,6 +273,6 @@ public class HiveWebsocketConnector {
     }
 
     private void noResponseAction() throws HiveServerException {
-        throw new HiveServerException("Server does not respond!", SERVICE_UNAVAILABLE.getStatusCode());
+        throw new HiveServerException(Messages.NO_RESPONSES_FROM_SERVER, SERVICE_UNAVAILABLE.getStatusCode());
     }
 }

@@ -4,7 +4,7 @@ package com.devicehive.client.impl;
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.MessageHandler;
 import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.impl.context.RestHiveContext;
+import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.impl.util.HiveValidator;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.Device;
@@ -29,9 +29,9 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NO
 
 public class HiveDeviceRestImpl implements HiveDevice {
 
-    protected RestHiveContext hiveContext;
+    protected HiveRestContext hiveContext;
 
-    public HiveDeviceRestImpl(RestHiveContext hiveContext) {
+    public HiveDeviceRestImpl(HiveRestContext hiveContext) {
         this.hiveContext = hiveContext;
     }
 
