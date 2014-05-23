@@ -1,7 +1,7 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.MessageHandler;
+import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.context.HiveWebsocketContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
@@ -72,7 +72,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     }
 
     @Override
-    public void subscribeForCommands(SubscriptionFilter filter, MessageHandler<DeviceCommand> commandMessageHandler)
+    public void subscribeForCommands(SubscriptionFilter filter, HiveMessageHandler<DeviceCommand> commandMessageHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 

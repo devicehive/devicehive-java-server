@@ -42,7 +42,8 @@ class OAuthClientControllerImpl implements OAuthClientController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        List<OAuthClient> result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, queryParams,
+        List<OAuthClient> result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+                queryParams,
                 new TypeToken<List<OAuthClient>>() {
                 }.getType(), OAUTH_CLIENT_LISTED);
         logger.debug(
@@ -57,7 +58,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
         logger.debug("OAuthClient: get requested for id {}", id);
         String path = "/oauth/client/" + id;
         OAuthClient result = hiveContext.getRestConnector()
-                .execute(path, HttpMethod.GET, null, OAuthClient.class, OAUTH_CLIENT_LISTED);
+                .executeWithConnectionCheck(path, HttpMethod.GET, null, OAuthClient.class, OAUTH_CLIENT_LISTED);
         logger.debug("OAuthClient: get request proceed for id {}. Result name {], domain {}, subnet {}, " +
                 "redirect uri {} ", id, result.getName(), result.getDomain(), result.getSubnet(),
                 result.getRedirectUri());
@@ -72,7 +73,8 @@ class OAuthClientControllerImpl implements OAuthClientController {
         logger.debug("OAuthClient: insert requested for client with name {}, domain {], subnet {}, redirect uri {}",
                 client.getName(), client.getDomain(), client.getSubnet(), client.getRedirectUri());
         String path = "/oauth/client";
-        OAuthClient result = hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, client,
+        OAuthClient result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null,
+                null, client,
                 OAuthClient.class, OAUTH_CLIENT_SUBMITTED, OAUTH_CLIENT_PUBLISHED);
         logger.debug("OAuthClient: insert proceed for client with name {}, domain {], subnet {}, " +
                 "redirect uri {}. Result id {}", client.getName(), client.getDomain(), client.getSubnet(),
@@ -89,7 +91,8 @@ class OAuthClientControllerImpl implements OAuthClientController {
                 "redirect uri {}", id, client.getName(), client.getDomain(), client.getSubnet(),
                 client.getRedirectUri());
         String path = "/oauth/client/" + id;
-        hiveContext.getRestConnector().execute(path, HttpMethod.PUT, null, client, OAUTH_CLIENT_SUBMITTED);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, client,
+                OAUTH_CLIENT_SUBMITTED);
         logger.debug("OAuthClient: update proceed for client with id {}, name {}, domain {], subnet {}, " +
                 "redirect uri {}", id, client.getName(), client.getDomain(), client.getSubnet(),
                 client.getRedirectUri());
@@ -99,7 +102,7 @@ class OAuthClientControllerImpl implements OAuthClientController {
     public void delete(long id) throws HiveException {
         logger.debug("OAuthClient: delete requested for client with id {}", id);
         String path = "/oauth/client/" + id;
-        hiveContext.getRestConnector().execute(path, HttpMethod.DELETE);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
         logger.debug("OAuthClient: delete proceed for client with id {}", id);
     }
 }

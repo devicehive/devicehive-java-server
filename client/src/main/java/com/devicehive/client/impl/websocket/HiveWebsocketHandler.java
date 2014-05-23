@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.MessageHandler;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 
 /**
  * Class that is used to handle messages from server.
@@ -31,7 +33,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     private final static String COMMAND_MEMBER = "command";
     private final static String NOTIFICATION_MEMBER = "notification";
     private final static String DEVICE_GUID_MEMBER = "deviceGuid";
-    private final static String SUBSCRIPTION_ID =  "subscriptionId";
+    private final static String SUBSCRIPTION_ID = "subscriptionId";
     private final static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
     private final HiveWebsocketContext hiveContext;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap;
@@ -110,7 +112,8 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
         DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
                 (COMMAND_MEMBER), DeviceCommand.class);
-        hiveContext.getCommandUpdatesHandler().handle(commandUpdated);
+        if (hiveContext.getCommandUpdatesHandler() != null)
+            hiveContext.getCommandUpdatesHandler().handle(commandUpdated);
         logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
                 commandUpdated.getStatus());
     }

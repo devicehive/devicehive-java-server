@@ -30,7 +30,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
         logger.debug("AccessKey: list requested for user id {}", userId);
         String path = "/user/" + userId + "/accesskey";
         List<AccessKey> result = hiveContext.getRestConnector()
-                .execute(path, HttpMethod.GET, null, null, new TypeToken<List<AccessKey>>() {
+                .executeWithConnectionCheck(path, HttpMethod.GET, null, null, new TypeToken<List<AccessKey>>() {
                 }.getType(), ACCESS_KEY_LISTED);
         logger.debug("AccessKey: list request for user id {} proceed successfully.", userId);
         return result;
@@ -41,7 +41,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
         logger.debug("AccessKey: list requested for current user");
         String path = "/user/current/accesskey";
         List<AccessKey> result = hiveContext.getRestConnector()
-                .execute(path, HttpMethod.GET, null, null, new TypeToken<List<AccessKey>>() {
+                .executeWithConnectionCheck(path, HttpMethod.GET, null, null, new TypeToken<List<AccessKey>>() {
                 }.getType(), ACCESS_KEY_LISTED);
         logger.debug("AccessKey: list request for current user proceed successfully.");
         return result;
@@ -51,7 +51,8 @@ class AccessKeyControllerImpl implements AccessKeyController {
     public AccessKey getKey(long userId, long keyId) throws HiveException {
         logger.debug("AccessKey: get requested for user with id {} and key id {}", userId, keyId);
         String path = "/user/" + userId + "/accesskey/" + keyId;
-        AccessKey result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, AccessKey.class,
+        AccessKey result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+                AccessKey.class,
                 ACCESS_KEY_LISTED);
         logger.debug("AccessKey: get request proceed successfully for user with id {} and key id {}", userId, keyId);
         return result;
@@ -61,7 +62,8 @@ class AccessKeyControllerImpl implements AccessKeyController {
     public AccessKey getKey(long keyId) throws HiveException {
         logger.debug("AccessKey: get requested for current user and key with id {}", keyId);
         String path = "/user/current/accesskey/" + keyId;
-        AccessKey key = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, AccessKey.class,
+        AccessKey key = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+                AccessKey.class,
                 ACCESS_KEY_LISTED);
         logger.debug("AccessKey: get request proceed successfully for current user and key with id {}", keyId);
         return key;
@@ -75,7 +77,8 @@ class AccessKeyControllerImpl implements AccessKeyController {
         logger.debug("AccessKey: insert requested for user with id {}. Key params: label {}, " +
                 "expiration date {}", userId, key.getLabel(), key.getExpirationDate());
         String path = "/user/" + userId + "/accesskey";
-        AccessKey result = hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, key,
+        AccessKey result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
+                key,
                 AccessKey.class, ACCESS_KEY_PUBLISHED, ACCESS_KEY_SUBMITTED);
         logger.debug("AccessKey: insert request proceed successfully for user with id {}. Key params: id {}, " +
                 "label {}, expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
@@ -91,7 +94,8 @@ class AccessKeyControllerImpl implements AccessKeyController {
                 "expiration date {}", key.getLabel(), key.getExpirationDate());
         String path = "/user/current/accesskey";
         AccessKey result =
-                hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, key, AccessKey.class,
+                hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null, key,
+                        AccessKey.class,
                         ACCESS_KEY_PUBLISHED, ACCESS_KEY_SUBMITTED);
         logger.debug("AccessKey: insert request proceed successfully for current user. Key params: id {}, " +
                 "label {}, expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
@@ -106,7 +110,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
         logger.debug("AccessKey: update requested for user with id {}. Key params: id {}, label {}, " +
                 "expiration date {}", userId, keyId, key.getLabel(), key.getExpirationDate());
         String path = "/user/" + userId + "/accesskey/" + keyId;
-        hiveContext.getRestConnector().execute(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
         logger.debug("AccessKey: update request proceed successfully for user with id {}. Key params: id {}, " +
                 "label {}, expiration date {}", userId, keyId, key.getLabel(), key.getExpirationDate());
     }
@@ -119,7 +123,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
         logger.debug("AccessKey: update requested for current user. Key params: id{}, label {}, " +
                 "expiration date {}", keyId, key.getLabel(), key.getExpirationDate());
         String path = "/user/current/accesskey/" + keyId;
-        hiveContext.getRestConnector().execute(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
         logger.debug("AccessKey: update request proceed successfully for current user. Key params: id {}, " +
                 "label {}, expiration date {}", keyId, key.getLabel(), key.getExpirationDate());
     }
@@ -128,7 +132,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     public void deleteKey(long userId, long keyId) throws HiveException {
         logger.debug("AccessKey: delete requested for user with id {}. Key id {}", userId, keyId);
         String path = "/user/" + userId + "/accesskey/" + keyId;
-        hiveContext.getRestConnector().execute(path, HttpMethod.DELETE);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
         logger.debug("AccessKey: delete request proceed successfully for user with id {}. Key id {}", userId, keyId);
     }
 
@@ -136,7 +140,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
     public void deleteKey(long keyId) throws HiveException {
         logger.debug("AccessKey: delete requested for current user. Key id {}", keyId);
         String path = "/user/current/accesskey/" + keyId;
-        hiveContext.getRestConnector().execute(path, HttpMethod.DELETE);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
         logger.debug("AccessKey: delete request proceed successfully for current user. Key id {}", keyId);
     }
 }

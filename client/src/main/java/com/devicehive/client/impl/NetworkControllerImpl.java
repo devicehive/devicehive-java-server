@@ -41,7 +41,7 @@ class NetworkControllerImpl implements NetworkController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         List<Network> result = hiveContext.getRestConnector()
-                .execute(path, HttpMethod.GET, null, queryParams, new TypeToken<List<Network>>() {
+                .executeWithConnectionCheck(path, HttpMethod.GET, null, queryParams, new TypeToken<List<Network>>() {
                 }.getType(), NETWORKS_LISTED);
         logger.debug("Network: list request proceed with parameters: name {}, name pattern {}, sort field {}, " +
                 "sort order {}, take {}, skip {}", name, namePattern, sortField, sortOrder, take, skip);
@@ -52,7 +52,8 @@ class NetworkControllerImpl implements NetworkController {
     public Network getNetwork(long id) throws HiveException {
         logger.debug("Network: get requested for network with id {}", id);
         String path = "/network/" + id;
-        Network result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, Network.class,
+        Network result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+                Network.class,
                 NETWORK_PUBLISHED);
         logger.debug("Network: get requested for network with id {}. Network name {}", id, result.getName());
         return result;
@@ -65,7 +66,7 @@ class NetworkControllerImpl implements NetworkController {
         }
         logger.debug("Network: insert requested for network with name {}", network.getName());
         String path = "/network";
-        Network returned = hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null,
+        Network returned = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
                 network, Network.class, NETWORK_UPDATE, NETWORK_SUBMITTED);
         logger.debug("Network: insert request proceed for network with name {}. Result id {}", network.getName(),
                 returned.getId());
@@ -79,7 +80,7 @@ class NetworkControllerImpl implements NetworkController {
         }
         logger.debug("Network: update requested for network with name {} and id {}", network.getName(), id);
         String path = "/network/" + id;
-        hiveContext.getRestConnector().execute(path, HttpMethod.PUT, null, network, NETWORK_UPDATE);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, network, NETWORK_UPDATE);
         logger.debug("Network: update request proceed for network with name {} and id {}", network.getName(), id);
     }
 
@@ -87,7 +88,7 @@ class NetworkControllerImpl implements NetworkController {
     public void deleteNetwork(long id) throws HiveException {
         logger.debug("Network: delete requested for network with id {}", id);
         String path = "/network/" + id;
-        hiveContext.getRestConnector().execute(path, HttpMethod.DELETE);
+        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
         logger.debug("Network: delete request proceed for network with id {}", id);
     }
 }

@@ -1,7 +1,7 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.MessageHandler;
+import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.HiveRestContext;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
@@ -50,7 +50,8 @@ class NotificationsControllerRestImpl implements NotificationsController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         queryParams.put("gridInterval", gridInterval);
-        List<DeviceNotification> result = hiveContext.getRestConnector().execute(path, HttpMethod.GET, null,
+        List<DeviceNotification> result = hiveContext.getRestConnector().executeWithConnectionCheck(path,
+                HttpMethod.GET, null,
                 queryParams, new TypeToken<List<DeviceNotification>>() {
         }.getType(), NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: query request proceed with parameters: device id {}, start timestamp {}, " +
@@ -69,7 +70,8 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 "{}", guid, notification.getNotification(), notification.getParameters());
         DeviceNotification result;
         String path = "/device/" + guid + "/notification";
-        result = hiveContext.getRestConnector().execute(path, HttpMethod.POST, null, null, notification,
+        result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
+                notification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
                 "params {}. Result id {} and timestamp {}", guid, notification.getNotification(),
@@ -83,21 +85,23 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 notificationId);
         String path = "/device/" + guid + "/notification/" + notificationId;
         DeviceNotification result = hiveContext.getRestConnector()
-                .execute(path, HttpMethod.GET, null, DeviceNotification.class, NOTIFICATION_TO_CLIENT);
+                .executeWithConnectionCheck(path, HttpMethod.GET, null, DeviceNotification.class,
+                        NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: get request proceed for device with id {} and notification id {}", guid,
                 notificationId);
         return result;
     }
 
     @Override
-    public void subscribeForNotifications(SubscriptionFilter filter,
-                                          MessageHandler<DeviceNotification>  notificationsHandler)
+    public String subscribeForNotifications(SubscriptionFilter filter,
+                                          HiveMessageHandler<DeviceNotification> notificationsHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        hiveContext.addNotificationsSubscription(filter, notificationsHandler);
+        String subId = hiveContext.addNotificationsSubscription(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
+        return subId;
     }
 
     @Override

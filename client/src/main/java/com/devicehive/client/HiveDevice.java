@@ -75,13 +75,13 @@ public interface HiveDevice {
      *
      * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      */
-    void subscribeForCommands(Timestamp timestamp, MessageHandler<DeviceCommand> commandsHandler)
+    void subscribeForCommands(Timestamp timestamp, HiveMessageHandler<DeviceCommand> commandsHandler)
             throws HiveException;
 
     /**
      * Unsubscribes the device from commands.
      */
-    void unsubscribeFromCommands(String subId) throws HiveException;
+    void unsubscribeFromCommands() throws HiveException;
 
     /**
      * Creates new device notification on behalf of device.

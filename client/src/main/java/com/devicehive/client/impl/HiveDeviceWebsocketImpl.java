@@ -1,7 +1,7 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.MessageHandler;
+import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.context.HiveWebsocketContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.Device;
@@ -15,6 +15,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
@@ -61,7 +63,8 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     public DeviceCommand getCommand(long commandId) throws HiveException {
         Pair<String, String> authenticated = hiveContext.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
-        return hiveContext.getRestConnector().execute(path, HttpMethod.GET, null, DeviceCommand.class, null);
+        return hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+                DeviceCommand.class, null);
     }
 
     @Override
@@ -77,21 +80,23 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     }
 
     @Override
-    public void subscribeForCommands(final Timestamp timestamp, MessageHandler<DeviceCommand> commandMessageHandler)
+    public void subscribeForCommands(final Timestamp timestamp, HiveMessageHandler<DeviceCommand>
+            commandMessageHandler)
             throws
             HiveException {
+        Set<String> uuids = new HashSet<>();
+        uuids.add(hiveContext.getHivePrincipal().getDevice().getLeft());
         SubscriptionFilter filter =
-                new SubscriptionFilter(hiveContext.getHivePrincipal().getDevice().getLeft(), null, timestamp);
+                new SubscriptionFilter(uuids, null, timestamp);
         hiveContext.addCommandsSubscription(filter, commandMessageHandler);
-
     }
 
     /**
      * Unsubscribes the device from commands.
      */
     @Override
-    public void unsubscribeFromCommands(String subId) throws HiveException {
-        hiveContext.removeCommandsSubscription(subId);
+    public void unsubscribeFromCommands() throws HiveException {
+        hiveContext.removeCommandsSubscription();
     }
 
     @Override
