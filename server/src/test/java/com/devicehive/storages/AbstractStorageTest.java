@@ -4,7 +4,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.messages.handler.HandlerCreator;
 import com.devicehive.messages.subscriptions.AbstractStorage;
 import com.devicehive.messages.subscriptions.Subscription;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
@@ -88,7 +88,7 @@ public class AbstractStorageTest {
         SubscriptionExtender subscription1 =
                 new SubscriptionExtender(eventSourceId, subscriberId, new HandlerCreator() {
                     @Override
-                    public Runnable getHandler(JsonElement message) {
+                    public Runnable getHandler(JsonObject message) {
                         return null;
                     }
                 });
