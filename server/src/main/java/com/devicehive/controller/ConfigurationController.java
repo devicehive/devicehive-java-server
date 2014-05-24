@@ -11,10 +11,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
 import static com.devicehive.configuration.Constants.NAME;
@@ -35,7 +32,7 @@ public class ConfigurationController {
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/set")
-    public Response setPropertyPost(@QueryParam(NAME) @NotNull String name, @QueryParam(VALUE) String value) {
+    public Response setPropertyPost(@FormParam(NAME) @NotNull String name, @FormParam(VALUE) String value) {
         return setProperty(name, value);
     }
 
@@ -57,7 +54,6 @@ public class ConfigurationController {
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/reload")
     public Response reloadConfig() {
-        configurationService.notifyUpdateAll();
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 }

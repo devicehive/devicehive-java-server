@@ -27,7 +27,7 @@ import static com.devicehive.model.Configuration.Queries.Values;
 @NamedQueries({
         @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL)
 })
-@Cacheable(false)
+@Cacheable(true)
 public class Configuration implements HiveEntity {
 
 
