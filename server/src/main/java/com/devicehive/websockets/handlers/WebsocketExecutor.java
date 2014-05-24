@@ -9,6 +9,7 @@ import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
+import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -21,6 +22,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
@@ -34,10 +37,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 @Singleton
@@ -45,26 +45,16 @@ public class WebsocketExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(WebsocketExecutor.class);
 
-    private static Set<Class<WebsocketHandlers>> HANDLERS_SET = new HashSet() {
-        {
-            add(CommonHandlers.class);
-            add(CommandHandlers.class);
-            add(NotificationHandlers.class);
-            add(DeviceHandlers.class);
-        }
-
-        private static final long serialVersionUID = -7417770184838061839L;
-    };
-
     @Inject
-    private BeanManager beanManager;
+    @WebsocketController
+    @Any
+    private Instance<WebsocketHandlers> handlers;
 
-    private ConcurrentMap<String, Pair<Class<WebsocketHandlers>, Method>> methodsCache = Maps.newConcurrentMap();
+    private ConcurrentMap<String, Pair<WebsocketHandlers, Method>> methodsCache = Maps.newConcurrentMap();
     private ConcurrentMap<Method, List<WebsocketParameterDescriptor>> parametersCache = Maps.newConcurrentMap();
 
 
     public JsonObject execute(JsonObject request, Session session) {
-
         JsonObject response = null;
         try {
             logger.debug("[execute] ");
@@ -114,11 +104,11 @@ public class WebsocketExecutor {
     }
 
     public JsonObject tryExecute(JsonObject request, Session session) {
-        Pair<Class<WebsocketHandlers>, Method> methodPair = getMethod(request);
+        Pair<WebsocketHandlers, Method> methodPair = getMethod(request);
         List<Object> args = prepareArgumentValues(methodPair.getRight(), request, session);
         WebSocketResponse response = null;
         try {
-            response = (WebSocketResponse) methodPair.getRight().invoke(getBean(methodPair.getLeft()), args.toArray());
+            response = (WebSocketResponse) methodPair.getRight().invoke(methodPair.getLeft(), args.toArray());
         } catch (InvocationTargetException ex) {
             Throwable target = ex.getTargetException();
             Throwables.propagateIfPossible(target);
@@ -135,28 +125,25 @@ public class WebsocketExecutor {
     }
 
 
-    private WebsocketHandlers getBean(Class<WebsocketHandlers> clazz) {
-        Bean bean = beanManager.getBeans(clazz).iterator().next();
-        return (WebsocketHandlers) beanManager
-                .getReference(bean, bean.getBeanClass(), beanManager.createCreationalContext(bean));
-    }
 
-    private Pair<Class<WebsocketHandlers>, Method> getMethod(JsonObject request) {
+    private Pair<WebsocketHandlers, Method> getMethod(JsonObject request) {
         String action = request.getAsJsonPrimitive("action").getAsString();
 
-        Pair<Class<WebsocketHandlers>, Method> methodPair = methodsCache.get(action);
+        Pair<WebsocketHandlers, Method> methodPair = methodsCache.get(action);
         if (methodPair != null) {
             return methodPair;
         }
 
-        for (Class<WebsocketHandlers> currentClass : HANDLERS_SET) {
+        for (Iterator<WebsocketHandlers> iter = handlers.iterator(); iter.hasNext();) {
+            WebsocketHandlers current = iter.next();
+            Class<? extends WebsocketHandlers> currentClass = current.getClass();
             boolean found = false;
             for (final Method method : currentClass.getMethods()) {
                 if (method.isAnnotationPresent(Action.class)) {
                     if (method.getAnnotation(Action.class).value().equals(action)) {
                         Preconditions.checkState(method.getReturnType().equals(WebSocketResponse.class),
                                 "Method should have %s return type", WebSocketResponse.class);
-                        methodPair = ImmutablePair.of(currentClass, method);
+                        methodPair = ImmutablePair.of(current, method);
                         found = true;
                         break;
                     }
