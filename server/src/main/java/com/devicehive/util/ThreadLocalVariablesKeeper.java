@@ -37,18 +37,18 @@ public final class ThreadLocalVariablesKeeper {
     }
 
     public static HivePrincipal getPrincipal() {
-        logger.debug("GetPrincipal. ThreadName : {}. Principal : {}. Principal value : {}",
-                Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get());
+        //logger.debug("GetPrincipal. ThreadName : {}. Principal : {}. Principal value : {}",
+        //        Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get());
         return PRINCIPAL_KEEPER.get();
     }
 
     public static void setPrincipal(HivePrincipal principal) {
-        logger.debug("SetPrincipal : ThreadName : {}. Principal : {}. Principal current value : {}. Principal new " +
-                "value : {}",
-                Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get(), principal);
+        //logger.debug("SetPrincipal : ThreadName : {}. Principal : {}. Principal current value : {}. Principal new " +
+        //        "value : {}",
+        //        Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get(), principal);
         PRINCIPAL_KEEPER.set(principal);
-        logger.info("SetPrincipal : ThreadName : {}. Principal : {}. Principal current value : {}.",
-                Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get());
+        //logger.info("SetPrincipal : ThreadName : {}. Principal : {}. Principal current value : {}.",
+        //        Thread.currentThread().getName(), PRINCIPAL_KEEPER, PRINCIPAL_KEEPER.get());
     }
 
     public static InetAddress getClientIP() {
