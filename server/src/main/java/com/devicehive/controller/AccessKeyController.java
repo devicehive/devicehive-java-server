@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -52,18 +53,12 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 public class AccessKeyController {
 
     private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
+
+    @EJB
     private UserService userService;
+
+    @EJB
     private AccessKeyService accessKeyService;
-
-    @EJB
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @EJB
-    public void setAccessKeyService(AccessKeyService accessKeyService) {
-        this.accessKeyService = accessKeyService;
-    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:

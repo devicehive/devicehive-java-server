@@ -11,6 +11,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -46,6 +47,7 @@ public class DeviceDAO {
 
     @EJB
     private NetworkDAO networkDAO;
+
     @EJB
     private DeviceClassDAO deviceClassDAO;
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)

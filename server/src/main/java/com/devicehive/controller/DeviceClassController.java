@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
@@ -55,12 +56,10 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class DeviceClassController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
-    private DeviceClassService deviceClassService;
 
     @EJB
-    public void setDeviceClassService(DeviceClassService deviceClassService) {
-        this.deviceClassService = deviceClassService;
-    }
+    private DeviceClassService deviceClassService;
+
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/list"> DeviceHive RESTful API:

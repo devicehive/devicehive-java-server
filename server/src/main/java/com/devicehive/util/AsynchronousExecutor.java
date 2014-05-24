@@ -10,7 +10,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 @Stateless
-@Local
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class AsynchronousExecutor {
 

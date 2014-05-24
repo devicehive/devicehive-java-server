@@ -18,6 +18,7 @@ import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
+import com.devicehive.util.ExecutionTimeLoggerInterceptor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -34,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -254,10 +257,7 @@ public class CommandHandlers implements WebsocketHandlers {
         if (user == null) {
             user = principal.getKey().getUser();
         }
-        deviceCommand.setUserId(user.getId());
-        deviceCommand.setTimestamp(timestampService.getTimestamp());
         deviceCommand.setOriginSessionId(session.getId());
-
         commandService.submitDeviceCommand(deviceCommand, device, user);
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(COMMAND, deviceCommand, COMMAND_TO_CLIENT);

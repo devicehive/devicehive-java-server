@@ -23,6 +23,8 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
@@ -41,62 +43,25 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 @LogExecutionTime
 @EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
+    @EJB
     private DeviceNotificationService deviceNotificationService;
+    @EJB
     private DeviceDAO deviceDAO;
+    @EJB
     private NetworkService networkService;
+    @EJB
     private UserService userService;
+    @EJB
     private DeviceClassService deviceClassService;
-    private GlobalMessageBus globalMessageBus;
-    private DeviceService self;
+    @EJB
     private DeviceActivityService deviceActivityService;
+    @EJB
     private AccessKeyService accessKeyService;
 
-    @EJB
-    public void setDeviceNotificationService(DeviceNotificationService deviceNotificationService) {
-        this.deviceNotificationService = deviceNotificationService;
-    }
 
-    @EJB
-    public void setDeviceDAO(DeviceDAO deviceDAO) {
-        this.deviceDAO = deviceDAO;
-    }
+    @Inject
+    private Event<DeviceNotification> event;
 
-    @EJB
-    public void setNetworkService(NetworkService networkService) {
-        this.networkService = networkService;
-    }
-
-    @EJB
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @EJB
-    public void setDeviceClassService(DeviceClassService deviceClassService) {
-        this.deviceClassService = deviceClassService;
-    }
-
-    @EJB
-    public void setGlobalMessageBus(GlobalMessageBus globalMessageBus) {
-        this.globalMessageBus = globalMessageBus;
-    }
-
-    @EJB
-    public void setSelf(DeviceService self) {
-        this.self = self;
-    }
-
-    @EJB
-    public void setAccessKeyService(AccessKeyService accessKeyService) {
-        this.accessKeyService = accessKeyService;
-    }
-
-    @EJB
-    public void setDeviceActivityService(DeviceActivityService deviceActivityService) {
-        this.deviceActivityService = deviceActivityService;
-    }
-
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal, boolean useExistingEquipment) {
         validateDevice(device);
@@ -104,25 +69,25 @@ public class DeviceService {
         if (principal != null && principal.isAuthenticated()) {
             switch (principal.getRole()) {
                 case HiveRoles.ADMIN:
-                    dn = self.deviceSaveByUser(device, equipmentSet, principal.getUser(), useExistingEquipment);
+                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser(), useExistingEquipment);
                     break;
                 case HiveRoles.CLIENT:
-                    dn = self.deviceSaveByUser(device, equipmentSet, principal.getUser(), useExistingEquipment);
+                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser(), useExistingEquipment);
                     break;
                 case HiveRoles.DEVICE:
-                    dn = self.deviceUpdateByDevice(device, equipmentSet, principal.getDevice(), useExistingEquipment);
+                    dn = deviceUpdateByDevice(device, equipmentSet, principal.getDevice(), useExistingEquipment);
                     break;
                 case HiveRoles.KEY:
-                    dn = self.deviceSaveByKey(device, equipmentSet, principal.getKey(), useExistingEquipment);
+                    dn = deviceSaveByKey(device, equipmentSet, principal.getKey(), useExistingEquipment);
                     break;
                 default:
-                    dn = self.deviceSave(device, equipmentSet, useExistingEquipment);
+                    dn = deviceSave(device, equipmentSet, useExistingEquipment);
                     break;
             }
         } else {
-            dn = self.deviceSave(device, equipmentSet, useExistingEquipment);
+            dn = deviceSave(device, equipmentSet, useExistingEquipment);
         }
-        globalMessageBus.publishDeviceNotification(dn);
+        event.fire(dn);
         deviceActivityService.update(dn.getDevice().getId());
     }
 

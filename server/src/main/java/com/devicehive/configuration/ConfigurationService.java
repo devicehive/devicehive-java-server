@@ -20,6 +20,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +39,7 @@ public class ConfigurationService {
 
     @EJB
     private ConfigurationDAO configurationDAO;
+
     @EJB
     private HazelcastService hazelcastService;
 

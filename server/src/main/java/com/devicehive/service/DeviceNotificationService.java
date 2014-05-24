@@ -7,6 +7,7 @@ import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.util.LogExecutionTime;
@@ -17,6 +18,8 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -29,42 +32,17 @@ import java.util.Set;
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationService {
+    @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
+    @EJB
     private DeviceEquipmentService deviceEquipmentService;
-    private GlobalMessageBus globalMessageBus;
-    private DeviceNotificationService self;
+    @EJB
     private DeviceDAO deviceDAO;
+    @EJB
     private DeviceService deviceService;
+    @Inject
+    private Event<DeviceNotification> event;
 
-    @EJB
-    public void setDeviceNotificationDAO(DeviceNotificationDAO deviceNotificationDAO) {
-        this.deviceNotificationDAO = deviceNotificationDAO;
-    }
-
-    @EJB
-    public void setDeviceEquipmentService(DeviceEquipmentService deviceEquipmentService) {
-        this.deviceEquipmentService = deviceEquipmentService;
-    }
-
-    @EJB
-    public void setGlobalMessageBus(GlobalMessageBus globalMessageBus) {
-        this.globalMessageBus = globalMessageBus;
-    }
-
-    @EJB
-    public void setSelf(DeviceNotificationService self) {
-        this.self = self;
-    }
-
-    @EJB
-    public void setDeviceDAO(DeviceDAO deviceDAO) {
-        this.deviceDAO = deviceDAO;
-    }
-
-    @EJB
-    public void setDeviceService(DeviceService deviceService) {
-        this.deviceService = deviceService;
-    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> getDeviceNotificationList(Collection<String> devices, Collection<String> names,
@@ -121,11 +99,10 @@ public class DeviceNotificationService {
         return notifications;
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
-        List<DeviceNotification> proceedNotifications = self.processDeviceNotification(notification, device);
+        List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
         for (DeviceNotification currentNotification : proceedNotifications) {
-            globalMessageBus.publishDeviceNotification(currentNotification);
+            event.fire(currentNotification);
         }
     }
 

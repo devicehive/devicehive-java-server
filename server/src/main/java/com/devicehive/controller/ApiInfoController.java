@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -23,18 +24,13 @@ import javax.ws.rs.core.Response;
 @Path("/info")
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
+
+    @EJB
     private TimestampService timestampService;
+
+    @EJB
     private ConfigurationService configurationService;
 
-    @EJB
-    public void setTimestampService(TimestampService timestampService) {
-        this.timestampService = timestampService;
-    }
-
-    @EJB
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
 
     @GET
     @PermitAll

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -50,12 +51,10 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class OAuthClientController {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientController.class);
-    private OAuthClientService clientService;
 
     @EJB
-    public void setClientDAO(OAuthClientService clientService) {
-        this.clientService = clientService;
-    }
+    private OAuthClientService clientService;
+
 
     @GET
     @PermitAll

@@ -22,6 +22,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -35,36 +36,17 @@ import java.util.Set;
 public class AccessKeyService {
 
 
+    @EJB
     private AccessKeyDAO accessKeyDAO;
+    @EJB
     private AccessKeyPermissionDAO permissionDAO;
+    @EJB
     private UserService userService;
+    @EJB
     private DeviceDAO deviceDAO;
+    @EJB
     private AccessKeyService self;
 
-    @EJB
-    public void setSelf(AccessKeyService self) {
-        this.self = self;
-    }
-
-    @EJB
-    public void setAccessKeyDAO(AccessKeyDAO accessKeyDAO) {
-        this.accessKeyDAO = accessKeyDAO;
-    }
-
-    @EJB
-    public void setPermissionDAO(AccessKeyPermissionDAO permissionDAO) {
-        this.permissionDAO = permissionDAO;
-    }
-
-    @EJB
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @EJB
-    public void setDeviceDAO(DeviceDAO deviceDAO) {
-        this.deviceDAO = deviceDAO;
-    }
 
     public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
         if (accessKey.getLabel() == null) {

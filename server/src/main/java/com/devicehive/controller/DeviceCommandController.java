@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
@@ -74,32 +75,22 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class DeviceCommandController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
+
+    @EJB
     private DeviceCommandService commandService;
+
+    @EJB
     private DeviceService deviceService;
+
+    @EJB
     private SubscriptionManager subscriptionManager;
+
+    @EJB
     private TimestampService timestampService;
+
     @EJB
     private AsynchronousExecutor executor;
 
-    @EJB
-    public void setCommandService(DeviceCommandService commandService) {
-        this.commandService = commandService;
-    }
-
-    @EJB
-    public void setDeviceService(DeviceService deviceService) {
-        this.deviceService = deviceService;
-    }
-
-    @EJB
-    public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
-        this.subscriptionManager = subscriptionManager;
-    }
-
-    @EJB
-    public void setTimestampService(TimestampService timestampService) {
-        this.timestampService = timestampService;
-    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>

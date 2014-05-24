@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.websocket.Session;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;

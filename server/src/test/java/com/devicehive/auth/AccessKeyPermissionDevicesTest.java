@@ -10,6 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,13 +35,16 @@ public class AccessKeyPermissionDevicesTest {
         setStatus(UserStatus.ACTIVE);
     }};
     private AccessKey key = new AccessKey();
+
+    @InjectMocks
     private AccessKeyService accessKeyService = new AccessKeyService();
+
+    @Mock
     private UserService userService;
 
     @Before
     public void initAccessKeyService() {
-        userService = mock(UserService.class);
-        accessKeyService.setUserService(userService);
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test

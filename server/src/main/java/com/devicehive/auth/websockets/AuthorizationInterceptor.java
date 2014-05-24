@@ -12,6 +12,7 @@ import javax.annotation.Priority;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
@@ -23,7 +24,7 @@ import java.lang.reflect.Method;
 @Priority(Interceptor.Priority.APPLICATION + 200)
 public class AuthorizationInterceptor {
 
-    @EJB
+    @Inject
     private AccessKeyService accessKeyService;
 
 

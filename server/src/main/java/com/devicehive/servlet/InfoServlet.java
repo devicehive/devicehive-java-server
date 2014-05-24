@@ -4,6 +4,7 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,7 +18,7 @@ public class InfoServlet extends HttpServlet {
 
     private static final long serialVersionUID = -4886819685195322L;
 
-    @EJB
+    @Inject
     private transient ConfigurationService configurationService;
 
     private static final String INFO_PAGE = "info_page.jsp";

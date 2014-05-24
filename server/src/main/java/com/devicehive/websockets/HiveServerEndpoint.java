@@ -40,13 +40,12 @@ public class HiveServerEndpoint {
 
     private static final Logger logger = LoggerFactory.getLogger(HiveServerEndpoint.class);
 
-    private static final Set<String> allowedEndpoints = Sets.newHashSet("client", "device");
 
 
-    @EJB
+    @Inject
     private SessionMonitor sessionMonitor;
 
-    @EJB
+    @Inject
     private SubscriptionManager subscriptionManager;
 
     @Inject

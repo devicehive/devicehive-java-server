@@ -11,24 +11,19 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
 //TODO:javadoc
 @Stateless
 public class DeviceEquipmentService {
+    @EJB
     private DeviceEquipmentDAO deviceEquipmentDAO;
+    @EJB
     private TimestampService timestampService;
 
-    @EJB
-    public void setDeviceEquipmentDAO(DeviceEquipmentDAO deviceEquipmentDAO) {
-        this.deviceEquipmentDAO = deviceEquipmentDAO;
-    }
 
-    @EJB
-    public void setTimestampService(TimestampService timestampService) {
-        this.timestampService = timestampService;
-    }
 
     /**
      * find Device equipment by device

@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
@@ -74,38 +75,25 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
+
+    @EJB
     private DeviceNotificationService notificationService;
+
+    @EJB
     private SubscriptionManager subscriptionManager;
+
+    @EJB
     private DeviceNotificationService deviceNotificationService;
+
+    @EJB
     private DeviceService deviceService;
+
+    @EJB
     private TimestampService timestampService;
+
     @EJB
     private AsynchronousExecutor executor;
 
-    @EJB
-    public void setNotificationService(DeviceNotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
-
-    @EJB
-    public void setSubscriptionManager(SubscriptionManager subscriptionManager) {
-        this.subscriptionManager = subscriptionManager;
-    }
-
-    @EJB
-    public void setDeviceNotificationService(DeviceNotificationService deviceNotificationService) {
-        this.deviceNotificationService = deviceNotificationService;
-    }
-
-    @EJB
-    public void setDeviceService(DeviceService deviceService) {
-        this.deviceService = deviceService;
-    }
-
-    @EJB
-    public void setTimestampService(TimestampService timestampService) {
-        this.timestampService = timestampService;
-    }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive

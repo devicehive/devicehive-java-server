@@ -12,6 +12,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
@@ -29,18 +30,12 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  */
 @Stateless
 public class DeviceClassService {
+
+    @EJB
     private DeviceClassDAO deviceClassDAO;
+    @EJB
     private EquipmentService equipmentService;
 
-    @EJB
-    public void setDeviceClassDAO(DeviceClassDAO deviceClassDAO) {
-        this.deviceClassDAO = deviceClassDAO;
-    }
-
-    @EJB
-    public void setEquipmentService(EquipmentService equipmentService) {
-        this.equipmentService = equipmentService;
-    }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass get(@NotNull long id) {

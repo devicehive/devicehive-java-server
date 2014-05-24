@@ -14,10 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Schedule;
-import javax.ejb.Singleton;
+import javax.ejb.*;
+import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
@@ -34,6 +32,7 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 @Singleton
 @ConcurrencyManagement(BEAN)
 @EJB(name = "SessionMonitor", beanInterface = SessionMonitor.class)
+@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class SessionMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);

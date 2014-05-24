@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -43,18 +44,14 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class EquipmentController {
 
     private static final Logger logger = LoggerFactory.getLogger(EquipmentController.class);
+
+    @EJB
     private DeviceClassService deviceClassService;
+
+    @EJB
     private EquipmentService equipmentService;
 
-    @EJB
-    public void setDeviceClassService(DeviceClassService deviceClassService) {
-        this.deviceClassService = deviceClassService;
-    }
 
-    @EJB
-    public void setEquipmentService(EquipmentService equipmentService) {
-        this.equipmentService = equipmentService;
-    }
 
     /**
      * Gets current state of device equipment.

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -42,8 +43,10 @@ public class OAuthTokenController {
     private static final Logger logger = LoggerFactory.getLogger(OAuthTokenController.class);
     private static final String AUTHORIZATION_CODE = "authorization_code";
     private static final String PASSWORD = "password";
+
     @EJB
     private OAuthGrantService grantService;
+
     @EJB
     private TimestampService timestampService;
 

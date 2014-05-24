@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -47,12 +48,10 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    private UserService userService;
 
     @EJB
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
+    private UserService userService;
+
 
     /**
      * This method will generate following output

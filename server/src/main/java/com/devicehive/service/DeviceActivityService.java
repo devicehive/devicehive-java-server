@@ -19,6 +19,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 
 @Singleton
 @Startup
@@ -28,10 +29,12 @@ import javax.ejb.TransactionAttributeType;
 public class DeviceActivityService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceActivityService.class);
+
     @EJB
     private HazelcastService hazelcastService;
     @EJB
     private DeviceDAO deviceDAO;
+
     private HazelcastInstance hazelcast;
     private IMap<Long, Long> deviceTimestampMap;
 

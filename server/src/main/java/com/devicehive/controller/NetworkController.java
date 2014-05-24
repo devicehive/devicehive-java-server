@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -46,12 +47,10 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
-    private NetworkService networkService;
 
     @EJB
-    public void setNetworkService(NetworkService networkService) {
-        this.networkService = networkService;
-    }
+    private NetworkService networkService;
+
 
     /**
      * Produces following output:

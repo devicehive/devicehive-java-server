@@ -8,6 +8,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +24,10 @@ import static org.mockito.Mockito.when;
 public class AccessKeyPermissionsNetworkTest {
 
     private AccessKey key = new AccessKey();
+    @InjectMocks
     private AccessKeyService accessKeyService = new AccessKeyService();
+
+    @Mock
     private UserService userService;
 
     private static final User CLIENT = new User() {{
@@ -33,8 +39,7 @@ public class AccessKeyPermissionsNetworkTest {
 
     @Before
     public void initAccessKeyService() {
-        userService = mock(UserService.class);
-        accessKeyService.setUserService(userService);
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test

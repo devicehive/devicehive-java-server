@@ -10,6 +10,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.AsynchronousExecutor;
+import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.devicehive.websockets.util.WebsocketSession;
@@ -23,6 +24,7 @@ import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.websocket.Session;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,9 +37,11 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
 @ConcurrencyManagement(BEAN)
+@LogExecutionTime
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class LocalMessageBus {
     private static final Logger logger = LoggerFactory.getLogger(LocalMessageBus.class);
+
     @EJB
     private SubscriptionManager subscriptionManager;
     @EJB

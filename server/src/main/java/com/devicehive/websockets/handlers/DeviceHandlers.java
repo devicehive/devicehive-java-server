@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.websocket.Session;
 import java.util.HashSet;
 import java.util.Set;

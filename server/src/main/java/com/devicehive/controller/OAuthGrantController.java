@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -54,18 +55,13 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 public class OAuthGrantController {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthGrantController.class);
+
+    @EJB
     private OAuthGrantService grantService;
+
+    @EJB
     private UserService userService;
 
-    @EJB
-    public void setGrantService(OAuthGrantService grantService) {
-        this.grantService = grantService;
-    }
-
-    @EJB
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 
     @GET
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})

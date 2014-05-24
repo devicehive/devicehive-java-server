@@ -17,6 +17,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import javax.interceptor.InvocationContext;
 import javax.ws.rs.core.Response;
@@ -45,33 +48,34 @@ public class AccessKeyIntegrationTest {
         setStatus(UserStatus.ACTIVE);
     }};
     List<Method> allAvailableMethods;
+
+    @InjectMocks
     private AccessKeyService accessKeyService;
+
+    @InjectMocks
     private UserService userService;
+
+    @Mock
     private AccessKeyDAO accessKeyDAO;
+
+    @Mock
     private DeviceDAO deviceDAO;
+
+    @Mock
     private AccessKeyPermissionDAO permissionDAO;
+
+    @Mock
     private UserDAO userDAO;
+
     private AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
+
+    @Mock
     private InvocationContext context;
     private int methodCalls;
 
     @Before
     public void initializeDependencies() {
-        accessKeyService = new AccessKeyService();
-        accessKeyDAO = mock(AccessKeyDAO.class);
-        accessKeyService.setAccessKeyDAO(accessKeyDAO);
-        deviceDAO = mock(DeviceDAO.class);
-        accessKeyService.setDeviceDAO(deviceDAO);
-        permissionDAO = mock(AccessKeyPermissionDAO.class);
-        accessKeyService.setPermissionDAO(permissionDAO);
-        userService = new UserService();
-        accessKeyService.setUserService(userService);
-        userService.setConfigurationService(mock(ConfigurationService.class));
-        userService.setNetworkDAO(mock(NetworkDAO.class));
-        userService.setPasswordService(mock(PasswordProcessor.class));
-        userDAO = mock(UserDAO.class);
-        userService.setUserDAO(userDAO);
-        context = mock(InvocationContext.class);
+        MockitoAnnotations.initMocks(this);
 
         Method[] deviceControllerMethods = DeviceController.class.getMethods();
         Method[] notificationControllerMethods = DeviceNotificationController.class.getMethods();

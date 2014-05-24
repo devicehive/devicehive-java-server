@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -26,12 +27,10 @@ import static com.devicehive.configuration.Constants.VALUE;
 @Path("/config")
 public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
-    private ConfigurationService configurationService;
 
     @EJB
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
+    private ConfigurationService configurationService;
+
 
     @POST
     @RolesAllowed(HiveRoles.ADMIN)

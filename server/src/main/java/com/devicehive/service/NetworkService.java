@@ -17,6 +17,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,30 +31,15 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Stateless
 public class NetworkService {
+    @EJB
     private NetworkDAO networkDAO;
+    @EJB
     private UserService userService;
+    @EJB
     private AccessKeyService accessKeyService;
+    @EJB
     private DeviceService deviceService;
 
-    @EJB
-    public void setDeviceService(DeviceService deviceService) {
-        this.deviceService = deviceService;
-    }
-
-    @EJB
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @EJB
-    public void setNetworkDAO(NetworkDAO networkDAO) {
-        this.networkDAO = networkDAO;
-    }
-
-    @EJB
-    public void setAccessKeyService(AccessKeyService accessKeyService) {
-        this.accessKeyService = accessKeyService;
-    }
 
     public Network getById(long id) {
         return networkDAO.getById(id);

@@ -2,6 +2,7 @@ package com.devicehive.messages.bus;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.util.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
@@ -12,12 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import javax.annotation.PreDestroy;
+import javax.ejb.*;
+import javax.enterprise.event.Observes;
+import javax.enterprise.event.TransactionPhase;
+import javax.inject.Inject;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -43,6 +43,10 @@ public class GlobalMessageBus {
 
     private HazelcastInstance hazelcast;
 
+    private String commandListener;
+    private String commandUpdateListener;
+    private String notificationListener;
+
 
     @PostConstruct
     protected void postConstruct() {
@@ -50,48 +54,54 @@ public class GlobalMessageBus {
 
         logger.debug("Initializing topic {}...", DEVICE_COMMAND);
         ITopic<DeviceCommand> deviceCommandTopic = hazelcast.getTopic(DEVICE_COMMAND);
-        deviceCommandTopic.addMessageListener(new DeviceCommandListener(localMessageBus));
+        commandListener = deviceCommandTopic.addMessageListener(new DeviceCommandListener());
         logger.debug("Done {}", DEVICE_COMMAND);
 
         logger.debug("Initializing topic {}...", DEVICE_COMMAND_UPDATE);
         ITopic<DeviceCommand> deviceCommandUpdateTopic = hazelcast.getTopic(DEVICE_COMMAND_UPDATE);
-        deviceCommandUpdateTopic.addMessageListener(new DeviceCommandUpdateListener(localMessageBus));
+        commandUpdateListener = deviceCommandUpdateTopic.addMessageListener(new DeviceCommandUpdateListener());
         logger.debug("Done {}", DEVICE_COMMAND_UPDATE);
 
         logger.debug("Initializing topic {}...", DEVICE_NOTIFICATION);
         ITopic<DeviceNotification> deviceNotificationTopic = hazelcast.getTopic(DEVICE_NOTIFICATION);
-        deviceNotificationTopic.addMessageListener(new DeviceNotificationListener(localMessageBus));
+        notificationListener = deviceNotificationTopic.addMessageListener(new DeviceNotificationListener());
         logger.debug("Done {}", DEVICE_NOTIFICATION);
     }
 
-    public void publishDeviceCommand(DeviceCommand deviceCommand) {
+    @PreDestroy
+    protected void preDestroy() {
+        hazelcast.getTopic(DEVICE_COMMAND).removeMessageListener(commandListener);
+        hazelcast.getTopic(DEVICE_COMMAND_UPDATE).removeMessageListener(commandUpdateListener);
+        hazelcast.getTopic(DEVICE_NOTIFICATION).removeMessageListener(notificationListener);
+    }
+
+    @Asynchronous
+    public void publishDeviceCommand(@Observes(during = TransactionPhase.AFTER_SUCCESS) @DeviceCommandService.Create DeviceCommand deviceCommand) {
         logger.debug("Sending device command {}", deviceCommand.getId());
         localMessageBus.submitDeviceCommand(deviceCommand);
         hazelcast.getTopic(DEVICE_COMMAND).publish(deviceCommand);
         logger.debug("Sent");
     }
 
-    public void publishDeviceCommandUpdate(DeviceCommand deviceCommandUpdate) {
+    @Asynchronous
+    public void publishDeviceCommandUpdate(@Observes(during = TransactionPhase.AFTER_SUCCESS) @DeviceCommandService.Update DeviceCommand deviceCommandUpdate) {
         logger.debug("Sending device command update {}", deviceCommandUpdate.getId());
         localMessageBus.submitDeviceCommandUpdate(deviceCommandUpdate);
         hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommandUpdate);
         logger.debug("Sent");
     }
 
-    public void publishDeviceNotification(DeviceNotification deviceNotification) {
+    @Asynchronous
+    public void publishDeviceNotification(@Observes(during = TransactionPhase.AFTER_SUCCESS) DeviceNotification deviceNotification) {
         logger.debug("Sending device notification {}", deviceNotification.getId());
         localMessageBus.submitDeviceNotification(deviceNotification);
         hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
         logger.debug("Sent");
     }
 
-    private static class DeviceCommandListener implements MessageListener<DeviceCommand> {
+    private  class DeviceCommandListener implements MessageListener<DeviceCommand> {
 
-        private final LocalMessageBus localMessageBus;
 
-        private DeviceCommandListener(LocalMessageBus localMessageBus) {
-            this.localMessageBus = localMessageBus;
-        }
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
@@ -102,13 +112,9 @@ public class GlobalMessageBus {
         }
     }
 
-    private static class DeviceCommandUpdateListener implements MessageListener<DeviceCommand> {
+    private class DeviceCommandUpdateListener implements MessageListener<DeviceCommand> {
 
-        private final LocalMessageBus localMessageBus;
 
-        private DeviceCommandUpdateListener(LocalMessageBus localMessageBus) {
-            this.localMessageBus = localMessageBus;
-        }
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
@@ -120,13 +126,8 @@ public class GlobalMessageBus {
     }
 
 
-    private static class DeviceNotificationListener implements MessageListener<DeviceNotification> {
+    private  class DeviceNotificationListener implements MessageListener<DeviceNotification> {
 
-        private final LocalMessageBus localMessageBus;
-
-        private DeviceNotificationListener(LocalMessageBus localMessageBus) {
-            this.localMessageBus = localMessageBus;
-        }
 
         @Override
         public void onMessage(Message<DeviceNotification> deviceNotificationMessage) {

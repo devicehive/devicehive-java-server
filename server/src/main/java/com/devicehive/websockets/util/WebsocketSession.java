@@ -3,8 +3,8 @@ package com.devicehive.websockets.util;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import javax.websocket.Session;
 import java.util.Collections;
@@ -137,8 +137,8 @@ public class WebsocketSession {
 
     public static void createSubscriptions(Session session) {
         Map<String, Object> userProperties = session.getUserProperties();
-        userProperties.put(COMMANDS_SUBSCRIPTIONS, new ConcurrentHashSet<UUID>());
-        userProperties.put(NOTIFICATIONS_SUBSCRIPTIONS, new ConcurrentHashSet<UUID>());
+        userProperties.put(COMMANDS_SUBSCRIPTIONS, Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>()));
+        userProperties.put(NOTIFICATIONS_SUBSCRIPTIONS, Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>()));
         userProperties.put(OLD_FORMAT_COMMAND_SUBSCRIPTIONS, new ConcurrentHashMap<Set<String>, Set<UUID>>());
         userProperties.put(OLD_FORMAT_NOTIFICATION_SUBSCRIPTIONS, new ConcurrentHashMap<Set<String>, Set<UUID>>());
     }
