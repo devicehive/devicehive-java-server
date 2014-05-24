@@ -18,7 +18,7 @@ public class InfoServlet extends HttpServlet {
 
     private static final long serialVersionUID = -4886819685195322L;
 
-    @Inject
+    @EJB
     private transient ConfigurationService configurationService;
 
     private static final String INFO_PAGE = "info_page.jsp";
