@@ -4,6 +4,7 @@ package com.devicehive.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Priority;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
@@ -18,11 +19,11 @@ public class ExecutionTimeLoggerInterceptor {
     public Object log(InvocationContext ctx) throws Exception {
         Method method = ctx.getMethod();
         String name = method.getDeclaringClass().getSimpleName() + "." + method.getName();
-        Timer t = Timer.newInstance();
+        Timer t = new Timer(name);
         try {
             return ctx.proceed();
         } finally {
-            t.logMethodExecuted(name);
+            t.logExecuted();
         }
     }
 
@@ -35,46 +36,42 @@ public class ExecutionTimeLoggerInterceptor {
 
         private static final int MAX_METHOD_EXECUTION_TIME = 50000; // 50ms
 
+        private final String methodName;
+
         /**
          * Creates new instance
          */
-        public static Timer newInstance() {
-            return new Timer();
+        public static Timer newInstance(String methodName) {
+            return new Timer(methodName);
         }
 
-        private Timer() {
+        private Timer(String methodName) {
+            this.methodName = methodName;
+            logger.debug("Execution of {} is started", methodName);
             start = System.nanoTime();
         }
+
 
         /**
          * @return number of milliseconds, passed from creation, or reset call
          */
-        public long click() {
+        private long click() {
             return System.nanoTime() - start;
         }
 
-        /**
-         * reset counter
-         */
-        public long reset() {
-            long end = Calendar.getInstance().getTimeInMillis() - start;
-            start = Calendar.getInstance().getTimeInMillis();
-            return end;
-        }
 
         /**
          * logs message like "Execution of methodName  took 100 milliseconds"
          * if execution time is less or equal MAX_METHOD_EXECUTION_TIME will log with debug priority,
          * Will log with warning priority otherwise
          *
-         * @param methodName executed method name
          */
-        public void logMethodExecuted(String methodName) {
+        public void logExecuted() {
             long time = click() / 1000;
             if (time > MAX_METHOD_EXECUTION_TIME) {
                 logger.warn("Execution of {} took {} microseconds", methodName, time);
             } else {
-                logger.info("Execution of {} took {} microseconds", methodName, time);
+                logger.debug("Execution of {} took {} microseconds", methodName, time);
             }
 
         }
