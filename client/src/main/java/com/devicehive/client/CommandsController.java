@@ -65,7 +65,7 @@ public interface CommandsController {
      * Subscribes client or device to commands. RESTful poll/pollMany or websocket subscribe will be used. When
      * command proceed device will be notified by servers's command/update message.
      */
-    void subscribeForCommands(SubscriptionFilter filter, MessageHandler<DeviceCommand> commandMessageHandler)
+    void subscribeForCommands(SubscriptionFilter filter, HiveMessageHandler<DeviceCommand> commandMessageHandler)
             throws HiveException;
 
     /**

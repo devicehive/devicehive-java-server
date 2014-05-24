@@ -20,7 +20,7 @@ public class HiveFactory {
 
     public static HiveClient createClient(URI restUri,
                                           boolean preferWebsockets,
-                                          MessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
+                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
         if (preferWebsockets) {
             HiveWebsocketContext context = new HiveWebsocketContext(restUri, commandUpdatesHandler, null);
             return new HiveClientWebsocketImpl(context);
@@ -32,7 +32,7 @@ public class HiveFactory {
 
     public static HiveClient createClient(URI restUri,
                                           boolean preferWebsockets,
-                                          MessageHandler<DeviceCommand> commandUpdatesHandler,
+                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler,
                                           HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         if (preferWebsockets) {
             HiveWebsocketContext context =
@@ -46,7 +46,7 @@ public class HiveFactory {
 
     public static HiveDevice createDevice(URI restUri,
                                           boolean preferWebsockets,
-                                          MessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
+                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
         if (preferWebsockets) {
             HiveWebsocketContext context =
                     new HiveWebsocketContext(restUri, commandUpdatesHandler, null);
@@ -59,7 +59,7 @@ public class HiveFactory {
 
     public static HiveDevice createDevice(URI restUri,
                                           boolean preferWebsockets,
-                                          MessageHandler<DeviceCommand> commandUpdatesHandler,
+                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler,
                                           HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         if (preferWebsockets) {
             HiveWebsocketContext context =

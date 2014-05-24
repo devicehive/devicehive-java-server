@@ -6,7 +6,7 @@
 
     <groupId>examples</groupId>
     <artifactId>examples</artifactId>
-    <version>1.3.0.0-SNAPSHOT</version>
+    <version>1.3.0.0</version>
 
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-client</artifactId>
-            <version>1.3.0.0-SNAPSHOT</version>
+            <version>1.3.0.0</version>
         </dependency>
     </dependencies>
 

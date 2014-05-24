@@ -1,6 +1,6 @@
 package com.devicehive.client.impl.context;
 
-import com.devicehive.client.MessageHandler;
+import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
@@ -24,7 +24,7 @@ public class HiveWebsocketContext extends HiveRestContext {
     private HiveWebsocketConnector websocketConnector;
 
     public HiveWebsocketContext(URI restUri,
-                                MessageHandler<DeviceCommand> commandUpdatesHandler,
+                                HiveMessageHandler<DeviceCommand> commandUpdatesHandler,
                                 HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         super(restUri, commandUpdatesHandler, connectionEventHandler);
         URI wsUri = URI.create(super.getInfo().getWebSocketServerUrl());
@@ -59,7 +59,7 @@ public class HiveWebsocketContext extends HiveRestContext {
 
     @Override
     public synchronized String addCommandsSubscription(SubscriptionFilter newFilter,
-                                                       MessageHandler<DeviceCommand> handler) throws HiveException {
+                                                       HiveMessageHandler<DeviceCommand> handler) throws HiveException {
         Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/subscribe");
@@ -69,7 +69,7 @@ public class HiveWebsocketContext extends HiveRestContext {
 
     @Override
     public synchronized String addNotificationsSubscription(SubscriptionFilter newFilter,
-                                                            MessageHandler<DeviceNotification> handler)
+                                                            HiveMessageHandler<DeviceNotification> handler)
             throws HiveException {
         Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
@@ -80,6 +80,13 @@ public class HiveWebsocketContext extends HiveRestContext {
 
     @Override
     public synchronized void removeCommandsSubscription(String subId) throws HiveException {
+        JsonObject request = new JsonObject();
+        request.addProperty("action", "command/unsubscribe");
+        request.addProperty("subscriptionId", subId);
+        websocketConnector.sendMessage(request);
+    }
+
+    public synchronized void removeCommandsSubscription() throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/unsubscribe");
         websocketConnector.sendMessage(request);

@@ -4,7 +4,6 @@ package com.devicehive.client.model;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.Set;
 
 public class SubscriptionFilter {
@@ -14,13 +13,6 @@ public class SubscriptionFilter {
 
     public SubscriptionFilter(Set<String> uuids, Set<String> names, Timestamp timestamp) {
         this.uuids = ObjectUtils.cloneIfPossible(uuids);
-        this.names = ObjectUtils.cloneIfPossible(names);
-        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
-    }
-
-    public SubscriptionFilter(String guid,  Set<String> names, Timestamp timestamp) {
-        this.uuids = new HashSet<>();
-        uuids.add(guid);
         this.names = ObjectUtils.cloneIfPossible(names);
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }

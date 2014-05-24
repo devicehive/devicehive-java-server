@@ -1,8 +1,8 @@
 package com.devicehive.messages.handler;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public interface HandlerCreator {
 
-    Runnable getHandler(JsonElement message);
+    Runnable getHandler(JsonObject message);
 }

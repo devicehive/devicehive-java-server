@@ -21,12 +21,14 @@ public class ConnectionEvent {
     public ConnectionEvent(URI serviceUri, Timestamp timestamp, HivePrincipal principal) {
         this.serviceUri = serviceUri;
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
-        if (principal.getDevice() != null) {
-            id = principal.getDevice().getLeft();
-        } else if (principal.getAccessKey() != null) {
-            id = principal.getAccessKey();
-        } else if (principal.getUser() != null) {
-            id = principal.getUser().getLeft();
+        if (principal != null) {
+            if (principal.getDevice() != null) {
+                id = principal.getDevice().getLeft();
+            } else if (principal.getAccessKey() != null) {
+                id = principal.getAccessKey();
+            } else if (principal.getUser() != null) {
+                id = principal.getUser().getLeft();
+            }
         }
     }
 

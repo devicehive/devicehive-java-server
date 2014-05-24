@@ -3,7 +3,13 @@ package com.devicehive.examples;
 
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.HiveFactory;
-import com.devicehive.client.model.*;
+import com.devicehive.client.HiveMessageHandler;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceClass;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.Equipment;
+import com.devicehive.client.model.JsonStringWrapper;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import com.google.gson.JsonObject;
@@ -13,6 +19,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,7 +56,8 @@ public class DeviceExample extends Example {
     public DeviceExample(PrintStream err, PrintStream out, String... args) throws HiveException, ExampleException {
         super(out, args);
         commandLine = getCommandLine();
-        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS), getHandler(), getHandler());
+        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null,
+                Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     public static void main(String... args) {
@@ -142,7 +150,14 @@ public class DeviceExample extends Example {
             hiveDevice.authenticate(device.getId(), device.getKey());
             Device registered = hiveDevice.getDevice();
             print("Device registered! Device {}:", registered);
-            hiveDevice.subscribeForCommands(null);
+            Timestamp serverTimestamp = hiveDevice.getInfo().getServerTimestamp();
+            HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
+                @Override
+                public void handle(DeviceCommand command) {
+                    print("Command received: {}", command.getCommand());
+                }
+            };
+            hiveDevice.subscribeForCommands(serverTimestamp, commandsHandler);
             Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
         } catch (InterruptedException e) {
             throw new ExampleException(e.getMessage(), e);

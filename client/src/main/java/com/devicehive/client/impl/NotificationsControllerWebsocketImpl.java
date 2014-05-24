@@ -1,7 +1,7 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.MessageHandler;
+import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.context.HiveWebsocketContext;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceNotification;
@@ -56,14 +56,15 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
 
 
     @Override
-    public void subscribeForNotifications(SubscriptionFilter filter,
-                                          MessageHandler<DeviceNotification> notificationsHandler)
+    public String subscribeForNotifications(SubscriptionFilter filter,
+                                          HiveMessageHandler<DeviceNotification> notificationsHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        hiveContext.addNotificationsSubscription(filter, notificationsHandler);
+      String subId =  hiveContext.addNotificationsSubscription(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
+        return subId;
     }
 
     @Override

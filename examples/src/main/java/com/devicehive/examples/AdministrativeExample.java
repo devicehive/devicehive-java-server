@@ -1,7 +1,17 @@
 package com.devicehive.examples;
 
-import com.devicehive.client.*;
-import com.devicehive.client.model.*;
+import com.devicehive.client.AccessKeyController;
+import com.devicehive.client.HiveClient;
+import com.devicehive.client.HiveFactory;
+import com.devicehive.client.NetworkController;
+import com.devicehive.client.UserController;
+import com.devicehive.client.model.AccessKey;
+import com.devicehive.client.model.AccessKeyPermission;
+import com.devicehive.client.model.AllowedAction;
+import com.devicehive.client.model.Network;
+import com.devicehive.client.model.User;
+import com.devicehive.client.model.UserRole;
+import com.devicehive.client.model.UserStatus;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import org.apache.commons.cli.CommandLine;
@@ -47,8 +57,10 @@ public class AdministrativeExample extends Example {
     public AdministrativeExample(PrintStream out, String... args) throws ExampleException, HiveException {
         super(out, args);
         commandLine = getCommandLine();
-        hiveClient = HiveFactory
-                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), getHandler(), getHandler());
+        hiveClient = HiveFactory.createClient(getServerUrl(),
+                commandLine.hasOption(USE_SOCKETS),
+                null,
+                Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     /**
@@ -139,6 +151,7 @@ public class AdministrativeExample extends Example {
 
     /**
      * performs set of user operations. Lists all available users. If there is found a user with provided name,
+     *
      * @param network
      * @return
      * @throws HiveException
@@ -194,7 +207,7 @@ public class AdministrativeExample extends Example {
             accessKey.setId(created.getId());
             accessKey.setKey(created.getKey());
             HiveClient newUserHC = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
-                    getHandler(), getHandler());
+                    null, Example.HIVE_CONNECTION_EVENT_HANDLER);
             newUserHC.authenticate(accessKey.getKey());
             List<Network> allowedNetworks = newUserHC.getNetworkController().listNetworks(null, null, null, null,
                     null, null);

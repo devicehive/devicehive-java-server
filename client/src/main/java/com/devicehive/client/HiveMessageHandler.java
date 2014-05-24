@@ -1,7 +1,7 @@
 package com.devicehive.client;
 
 
-public interface MessageHandler<M> {
+public interface HiveMessageHandler<M> {
 
     void handle(M message);
 }

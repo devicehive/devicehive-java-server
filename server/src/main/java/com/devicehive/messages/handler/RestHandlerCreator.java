@@ -1,6 +1,6 @@
 package com.devicehive.messages.handler;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public class RestHandlerCreator implements HandlerCreator {
     }
 
     @Override
-    public Runnable getHandler(final JsonElement message) {
+    public Runnable getHandler(final JsonObject message) {
         logger.debug("REST subscription notified");
         return futureTask;
     }

@@ -4,12 +4,12 @@ package com.devicehive.examples;
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
+import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.NotificationsController;
-import com.devicehive.client.impl.util.CommandsHandler;
-import com.devicehive.client.impl.util.NotificationsHandler;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.JsonStringWrapper;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import com.google.gson.JsonObject;
@@ -18,22 +18,29 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.sql.Timestamp;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.devicehive.constants.Constants.USE_SOCKETS;
 
-public class RealDeviceExample extends Example implements NotificationsHandler, CommandsHandler {
+public class RealDeviceExample extends Example {
     private static final String LOGIN = "dhadmin";
     private static final String PASSWORD = "dhadmin_#911";
     private final HiveClient hiveClient;
+    private final HiveMessageHandler<DeviceCommand> commandUpdatesHandler = new HiveMessageHandler<DeviceCommand>() {
+        @Override
+        public void handle(DeviceCommand command) {
+            print("Command derived and proceed: {}" + command);
+        }
+    };
 
     public RealDeviceExample(PrintStream out, String... args) throws ExampleException, HiveException {
         super(out, args);
         CommandLine commandLine = getCommandLine();
-        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), getHandler(),
-                getHandler());
+        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null,
+                Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     public static void main(String... args) {
@@ -54,9 +61,18 @@ public class RealDeviceExample extends Example implements NotificationsHandler, 
     public void run() throws HiveException, ExampleException, IOException {
         try {
             hiveClient.authenticate(LOGIN, PASSWORD);
-            hiveClient.getNotificationsController().subscribeForNotifications(null, null);
+            HiveMessageHandler<DeviceNotification> notificationsHandler = new HiveMessageHandler<DeviceNotification>() {
+                @Override
+                public void handle(DeviceNotification notification) {
+                    print("Notification received: {}" + notification);
+                }
+            };
+            Timestamp serverTimestamp = hiveClient.getInfo().getServerTimestamp();
+            SubscriptionFilter notificationSubscriptionFilter = new SubscriptionFilter(null, null, serverTimestamp);
+            hiveClient.getNotificationsController().subscribeForNotifications(notificationSubscriptionFilter,
+                    notificationsHandler);
             ScheduledExecutorService commandsExecutor = Executors.newSingleThreadScheduledExecutor();
-            commandsExecutor.scheduleAtFixedRate(new CommandTask(), 1, 1, TimeUnit.SECONDS);
+            commandsExecutor.scheduleAtFixedRate(new CommandTask(), 3, 3, TimeUnit.SECONDS);
             Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
             commandsExecutor.shutdownNow();
         } catch (InterruptedException e) {
@@ -66,33 +82,16 @@ public class RealDeviceExample extends Example implements NotificationsHandler, 
         }
     }
 
-    @Override
-    public boolean handleCommandInsert(DeviceCommand command) {
-        return false;
-    }
-
-    @Override
-    public boolean handleCommandUpdate(DeviceCommand command) {
-        print("Command derived and proceed: {}" + command);
-        return true;
-    }
-
-    @Override
-    public boolean handle(DeviceNotification notification) {
-        print("Notification received: {}" + notification);
-        return true;
-    }
-
     private class CommandTask implements Runnable {
         private static final String LED_GREEN = "LED_G";
         private static final String LED_RED = "LED_R";
         private static final String LED_TYPE = "equipment";
         private static final String LED_STATE = "state";
         private static final String COMMAND = "UpdateLedState";
+        private static final String uuid = "c73ccf23-8bf5-4c2c-b330-ead36f469d1a";
         private volatile boolean isGreen = false;
         private volatile boolean isRed = false;
         private volatile boolean isItGreenTurn = true;
-        private static final String uuid  ="c73ccf23-8bf5-4c2c-b330-ead36f469d1a";
 
         @Override
         public void run() {

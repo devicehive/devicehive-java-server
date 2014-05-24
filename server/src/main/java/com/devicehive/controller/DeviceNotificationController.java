@@ -283,28 +283,6 @@ public class DeviceNotificationController {
         poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
     }
 
-
-    /*
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/pollMany">DeviceHive RESTful API: DeviceNotification: pollMany</a>
-     *
-     * @param external Device unique identifiers with names and
-     *                 timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param timeout  Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
-
-    @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @Path("/notification/poll")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public void pollManyPost(
-            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam("waitTimeout") final long timeout,
-            final SubscriptionFilterExternal external,
-            @Suspended final AsyncResponse asyncResponse) {
-        SubscriptionFilterInternal subscriptionFilter = SubscriptionFilterInternal.create(external);
-        poll(timeout, subscriptionFilter, asyncResponse, true);
-    }
-    */
-
     private void poll(final long timeout,
                       final String deviceGuidsString,
                       final String namesString,

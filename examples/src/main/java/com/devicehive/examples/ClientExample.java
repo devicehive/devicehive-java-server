@@ -46,7 +46,7 @@ public class ClientExample extends Example {
         super(out, args);
         commandLine = getCommandLine();
         hiveClient = HiveFactory
-                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), getHandler(), getHandler());
+                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null, Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     /**

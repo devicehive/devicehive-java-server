@@ -1,9 +1,11 @@
 package com.devicehive.messages.handler;
 
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Constants;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.WebsocketSession;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ public class WebsocketHandlerCreator implements HandlerCreator {
 
     @Override
     @LogExecutionTime
-    public Runnable getHandler(final JsonElement message) {
+    public Runnable getHandler(final JsonObject message) {
         logger.debug("Websocket subscription notified");
         return new Runnable() {
             @Override
@@ -39,6 +41,10 @@ public class WebsocketHandlerCreator implements HandlerCreator {
                 try {
                     lock.lock();
                     logger.debug("Add messages to queue process for session " + session.getId());
+                    HivePrincipal principal = WebsocketSession.getPrincipal(session);
+                    if (principal.getDevice() != null){
+                        message.remove(Constants.SUBSCRIPTION_ID);
+                    }
                     WebsocketSession.addMessagesToQueue(session, message);
                 } finally {
                     lock.unlock();

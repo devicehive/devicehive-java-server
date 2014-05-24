@@ -60,10 +60,12 @@ public interface NotificationsController {
      * Subscribes client to notifications. RESTful poll/pollMany or websocket subscribe will be used.
      *
      * @param filter
+     * @param notificationsHandler
+     * @return subscription id
      */
 
-    void subscribeForNotifications(SubscriptionFilter filter,
-                                   MessageHandler<DeviceNotification> notificationsHandler)
+    String subscribeForNotifications(SubscriptionFilter filter,
+                                     HiveMessageHandler<DeviceNotification> notificationsHandler)
             throws HiveException;
 
     /**

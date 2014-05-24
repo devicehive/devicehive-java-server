@@ -1,7 +1,7 @@
 package com.devicehive.client.impl.context;
 
 
-import com.devicehive.client.MessageHandler;
+import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -15,40 +15,40 @@ import java.util.Map;
 /**
  * Entity that keeps all state, i.e. rest and websocket client, subscriptions info, transport to use.
  */
-public class AbstractHiveContext {
+class AbstractHiveContext {
     private static Logger logger = LoggerFactory.getLogger(AbstractHiveContext.class);
-    private final MessageHandler<DeviceCommand> commandUpdatesHandler;
-    private final Map<String, MessageHandler<DeviceCommand>> commandSubscriptionsStorage;
-    private final Map<String, MessageHandler<DeviceNotification>> notificationSubscriptionsStorage;
+    private final HiveMessageHandler<DeviceCommand> commandUpdatesHandler;
+    private final Map<String, HiveMessageHandler<DeviceCommand>> commandSubscriptionsStorage;
+    private final Map<String, HiveMessageHandler<DeviceNotification>> notificationSubscriptionsStorage;
     private HivePrincipal hivePrincipal;
 
     /**
      * @param commandUpdatesHandler handler for incoming command updates
      */
 
-    public AbstractHiveContext(MessageHandler<DeviceCommand> commandUpdatesHandler) {
+    public AbstractHiveContext(HiveMessageHandler<DeviceCommand> commandUpdatesHandler) {
         this.commandUpdatesHandler = commandUpdatesHandler;
         commandSubscriptionsStorage = new HashMap<>();
         notificationSubscriptionsStorage = new HashMap<>();
     }
 
-    public MessageHandler<DeviceCommand> getCommandUpdatesHandler() {
+    public HiveMessageHandler<DeviceCommand> getCommandUpdatesHandler() {
         return commandUpdatesHandler;
     }
 
-    public MessageHandler<DeviceCommand> getCommandsHandler(String subscriptionId) {
+    public HiveMessageHandler<DeviceCommand> getCommandsHandler(String subscriptionId) {
         return commandSubscriptionsStorage.get(subscriptionId);
     }
 
-    public MessageHandler<DeviceNotification> getNotificationsHandler(String subscriptionId) {
+    public HiveMessageHandler<DeviceNotification> getNotificationsHandler(String subscriptionId) {
         return notificationSubscriptionsStorage.get(subscriptionId);
     }
 
-    public void addCommandsSubscription(String subscriptionId, MessageHandler<DeviceCommand> commandsHandler) {
+    public void addCommandsSubscription(String subscriptionId, HiveMessageHandler<DeviceCommand> commandsHandler) {
         commandSubscriptionsStorage.put(subscriptionId, commandsHandler);
     }
 
-    public void addNotificationsSubscription(String subscriptionId, MessageHandler<DeviceNotification>
+    public void addNotificationsSubscription(String subscriptionId, HiveMessageHandler<DeviceNotification>
             notificationsHandler) {
         notificationSubscriptionsStorage.put(subscriptionId, notificationsHandler);
     }
