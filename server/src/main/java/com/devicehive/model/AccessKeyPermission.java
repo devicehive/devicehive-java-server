@@ -9,21 +9,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Version;
+import javax.persistence.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -41,6 +27,7 @@ import static com.devicehive.model.AccessKeyPermission.Queries.Values;
         @NamedQuery(name = Names.DELETE_BY_ACCESS_KEY, query = Values.DELETE_BY_ACCESS_KEY)
 })
 @Table(name = "access_key_permission")
+@Cacheable
 public class AccessKeyPermission implements HiveEntity {
 
     private static final long serialVersionUID = 728578066176830685L;

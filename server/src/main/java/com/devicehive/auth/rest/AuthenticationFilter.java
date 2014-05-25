@@ -59,7 +59,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         boolean secure = requestContext.getSecurityContext().isSecure();
         HivePrincipal principal = new HivePrincipal(authUser(requestContext), authDevice(requestContext),
                 authKey(requestContext));
-        logger.info("Thread name : {}. principal : {}", Thread.currentThread().getName(), principal);
+        logger.debug("Thread name : {}. principal : {}", Thread.currentThread().getName(), principal);
         ThreadLocalVariablesKeeper.setPrincipal(principal);
         ThreadLocalVariablesKeeper.setOAuthClient(authClient(requestContext));
         requestContext.setSecurityContext(
