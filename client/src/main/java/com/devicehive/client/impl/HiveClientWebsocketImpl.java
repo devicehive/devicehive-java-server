@@ -4,34 +4,37 @@ package com.devicehive.client.impl;
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.impl.context.HiveWebsocketContext;
+import com.devicehive.client.impl.context.WebsocketAgent;
+import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.model.exceptions.HiveException;
+
+import java.net.URI;
 
 public class HiveClientWebsocketImpl extends HiveClientRestImpl {
 
-    private final HiveWebsocketContext hiveContext;
+    private final WebsocketAgent websocketAgent;
 
-    public HiveClientWebsocketImpl(HiveWebsocketContext hiveContext) {
-        super(hiveContext);
-        this.hiveContext = hiveContext;
+    public HiveClientWebsocketImpl(WebsocketAgent websocketAgent) {
+        super(websocketAgent);
+        this.websocketAgent = websocketAgent;
     }
 
     public void authenticate(String login, String password) throws HiveException {
-        hiveContext.authenticate(HivePrincipal.createUser(login, password));
+        websocketAgent.authenticate(HivePrincipal.createUser(login, password));
     }
 
     public void authenticate(String accessKey) throws HiveException {
-        hiveContext.authenticate(HivePrincipal.createAccessKey(accessKey));
+        websocketAgent.authenticate(HivePrincipal.createAccessKey(accessKey));
     }
 
 
     public CommandsController getCommandsController() {
-        return new CommandsControllerWebsocketImpl(hiveContext);
+        return new CommandsControllerWebsocketImpl(websocketAgent);
     }
 
 
     public NotificationsController getNotificationsController() {
-        return new NotificationsControllerWebsocketImpl(hiveContext);
+        return new NotificationsControllerWebsocketImpl(websocketAgent);
     }
 
 

@@ -2,7 +2,8 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.impl.context.HiveWebsocketContext;
+import com.devicehive.client.impl.context.RestAgent;
+import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
@@ -22,13 +23,12 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class NotificationsControllerWebsocketImpl extends NotificationsControllerRestImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationsControllerWebsocketImpl.class);
-    private final HiveWebsocketContext hiveContext;
+    private final WebsocketAgent websocketAgent;
 
-    public NotificationsControllerWebsocketImpl(HiveWebsocketContext hiveContext) {
-        super(hiveContext);
-        this.hiveContext = hiveContext;
+    NotificationsControllerWebsocketImpl(WebsocketAgent websocketAgent) {
+        super(websocketAgent);
+        this.websocketAgent = websocketAgent;
     }
-
 
     @Override
     public DeviceNotification insertNotification(String guid, DeviceNotification notification) throws HiveException {
@@ -45,7 +45,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
         request.addProperty("deviceGuid", guid);
         Gson gson = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE);
         request.add("notification", gson.toJsonTree(notification));
-        result = hiveContext.getWebsocketConnector().sendMessage(request, "notification",
+        result = websocketAgent.getWebsocketConnector().sendMessage(request, "notification",
                 DeviceNotification.class, NOTIFICATION_TO_DEVICE);
 
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
@@ -61,7 +61,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-      String subId =  hiveContext.addNotificationsSubscription(filter, notificationsHandler);
+      String subId =  websocketAgent.addNotificationsSubscription(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
         return subId;
@@ -70,7 +70,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
     @Override
     public void unsubscribeFromNotification(String subscriptionId) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
-        hiveContext.removeNotificationsSubscription(subscriptionId);
+        websocketAgent.removeNotificationsSubscription(subscriptionId);
         logger.debug("Client: notification/unsubscribe proceed.");
     }
 

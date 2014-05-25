@@ -51,8 +51,8 @@ public class HiveRestConnector {
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
     private final URI uri;
     private final Client restClient;
-    private final HiveRestContext hiveContext;
     private final HiveConnectionEventHandler connectionEventHandler;
+    private volatile HivePrincipal hivePrincipal;
     private volatile boolean isConnected = false;
     private final ExecutorService connectionChecker = Executors.newSingleThreadExecutor();
 
@@ -61,15 +61,18 @@ public class HiveRestConnector {
      * Creates client connected to the given REST URL. All state is kept in the hive context.
      *
      * @param uri         URI of RESTful service
-     * @param hiveContext context. Keeps state, for example credentials.
      */
-    public HiveRestConnector(URI uri, HiveRestContext hiveContext, HiveConnectionEventHandler connectionEventHandler) {
+    public HiveRestConnector(URI uri, HiveConnectionEventHandler connectionEventHandler) {
         this.uri = uri;
-        this.hiveContext = hiveContext;
         restClient = RestClientFactory.getClient();
         this.connectionEventHandler = connectionEventHandler;
         checkConnection();
     }
+
+    public void setHivePrincipal(HivePrincipal hivePrincipal) {
+        this.hivePrincipal = hivePrincipal;
+    }
+
     public void close() {
         shutdownAndAwaitTermination();
         restClient.close();
@@ -84,7 +87,7 @@ public class HiveRestConnector {
         }
         if (isConnected) {
             ConnectionEvent connectionEstablishedEvent = new ConnectionEvent(uri,
-                    new Timestamp(System.currentTimeMillis()), hiveContext.getHivePrincipal());
+                    new Timestamp(System.currentTimeMillis()), hivePrincipal);
             connectionEstablishedEvent.setLost(false);
             connectionEventHandler.handle(connectionEstablishedEvent);
         }
@@ -293,7 +296,7 @@ public class HiveRestConnector {
     private void onConnectionLost(){
         isConnected = false;
         ConnectionEvent connectionLostEvent = new ConnectionEvent(uri, new Timestamp(System.currentTimeMillis
-                ()), hiveContext.getHivePrincipal());
+                ()), hivePrincipal);
         connectionLostEvent.setLost(true);
         connectionEventHandler.handle(connectionLostEvent);
         connectionChecker.submit(new Runnable() {
@@ -308,22 +311,18 @@ public class HiveRestConnector {
 
     private Map<String, String> getAuthHeaders() {
         Map<String, String> headers = Maps.newHashMap();
-        if (hiveContext == null) {
-            return headers;
-        }
-        HivePrincipal principal = hiveContext.getHivePrincipal();
-        if (principal != null) {
-            if (principal.getUser() != null) {
-                String decodedAuth = principal.getUser().getLeft() + ":" + principal.getUser().getRight();
+        if (hivePrincipal != null) {
+            if (hivePrincipal.getUser() != null) {
+                String decodedAuth = hivePrincipal.getUser().getLeft() + ":" + hivePrincipal.getUser().getRight();
                 String encodedAuth = Base64.encodeBase64String(decodedAuth.getBytes(Constants.UTF8_CHARSET));
                 headers.put(HttpHeaders.AUTHORIZATION, USER_AUTH_SCHEMA + " " + encodedAuth);
             }
-            if (principal.getDevice() != null) {
-                headers.put(Constants.DEVICE_ID_HEADER, principal.getDevice().getLeft());
-                headers.put(Constants.DEVICE_KEY_HEADER, principal.getDevice().getRight());
+            if (hivePrincipal.getDevice() != null) {
+                headers.put(Constants.DEVICE_ID_HEADER, hivePrincipal.getDevice().getLeft());
+                headers.put(Constants.DEVICE_KEY_HEADER, hivePrincipal.getDevice().getRight());
             }
-            if (principal.getAccessKey() != null) {
-                headers.put(HttpHeaders.AUTHORIZATION, KEY_AUTH_SCHEMA + " " + principal.getAccessKey());
+            if (hivePrincipal.getAccessKey() != null) {
+                headers.put(HttpHeaders.AUTHORIZATION, KEY_AUTH_SCHEMA + " " + hivePrincipal.getAccessKey());
             }
         }
         return headers;

@@ -2,7 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.NetworkController;
-import com.devicehive.client.impl.context.HiveRestContext;
+import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.model.Network;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -21,11 +21,12 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class NetworkControllerImpl implements NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkControllerImpl.class);
-    private final HiveRestContext hiveContext;
+    private final RestAgent restAgent;
 
-    public NetworkControllerImpl(HiveRestContext hiveContext) {
-        this.hiveContext = hiveContext;
+    NetworkControllerImpl(RestAgent restAgent) {
+        this.restAgent = restAgent;
     }
+
 
     @Override
     public List<Network> listNetworks(String name, String namePattern, String sortField, String sortOrder, Integer take,
@@ -40,7 +41,7 @@ class NetworkControllerImpl implements NetworkController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        List<Network> result = hiveContext.getRestConnector()
+        List<Network> result = restAgent.getRestConnector()
                 .executeWithConnectionCheck(path, HttpMethod.GET, null, queryParams, new TypeToken<List<Network>>() {
                 }.getType(), NETWORKS_LISTED);
         logger.debug("Network: list request proceed with parameters: name {}, name pattern {}, sort field {}, " +
@@ -52,7 +53,7 @@ class NetworkControllerImpl implements NetworkController {
     public Network getNetwork(long id) throws HiveException {
         logger.debug("Network: get requested for network with id {}", id);
         String path = "/network/" + id;
-        Network result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+        Network result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
                 Network.class,
                 NETWORK_PUBLISHED);
         logger.debug("Network: get requested for network with id {}. Network name {}", id, result.getName());
@@ -66,7 +67,7 @@ class NetworkControllerImpl implements NetworkController {
         }
         logger.debug("Network: insert requested for network with name {}", network.getName());
         String path = "/network";
-        Network returned = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
+        Network returned = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
                 network, Network.class, NETWORK_UPDATE, NETWORK_SUBMITTED);
         logger.debug("Network: insert request proceed for network with name {}. Result id {}", network.getName(),
                 returned.getId());
@@ -80,7 +81,7 @@ class NetworkControllerImpl implements NetworkController {
         }
         logger.debug("Network: update requested for network with name {} and id {}", network.getName(), id);
         String path = "/network/" + id;
-        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, network, NETWORK_UPDATE);
+        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, network, NETWORK_UPDATE);
         logger.debug("Network: update request proceed for network with name {} and id {}", network.getName(), id);
     }
 
@@ -88,7 +89,7 @@ class NetworkControllerImpl implements NetworkController {
     public void deleteNetwork(long id) throws HiveException {
         logger.debug("Network: delete requested for network with id {}", id);
         String path = "/network/" + id;
-        hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
+        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
         logger.debug("Network: delete request proceed for network with id {}", id);
     }
 }

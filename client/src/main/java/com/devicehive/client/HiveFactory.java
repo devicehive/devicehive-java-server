@@ -5,8 +5,8 @@ import com.devicehive.client.impl.HiveClientRestImpl;
 import com.devicehive.client.impl.HiveClientWebsocketImpl;
 import com.devicehive.client.impl.HiveDeviceRestImpl;
 import com.devicehive.client.impl.HiveDeviceWebsocketImpl;
-import com.devicehive.client.impl.context.HiveRestContext;
-import com.devicehive.client.impl.context.HiveWebsocketContext;
+import com.devicehive.client.impl.context.RestAgent;
+import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.exceptions.HiveException;
@@ -19,42 +19,24 @@ public class HiveFactory {
     }
 
     public static HiveClient createClient(URI restUri,
-                                          boolean preferWebsockets,
-                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
-        if (preferWebsockets) {
-            HiveWebsocketContext context = new HiveWebsocketContext(restUri, commandUpdatesHandler, null);
-            return new HiveClientWebsocketImpl(context);
-        } else {
-            HiveRestContext hiveContext = new HiveRestContext(restUri, commandUpdatesHandler, null);
-            return new HiveClientRestImpl(hiveContext);
-        }
+                                          boolean preferWebsockets) throws HiveException {
+        return createClient(restUri, preferWebsockets, null);
     }
 
     public static HiveClient createClient(URI restUri,
                                           boolean preferWebsockets,
-                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler,
                                           HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         if (preferWebsockets) {
-            HiveWebsocketContext context =
-                    new HiveWebsocketContext(restUri, commandUpdatesHandler, connectionEventHandler);
-            return new HiveClientWebsocketImpl(context);
+            return new HiveClientWebsocketImpl(createWebsocketCleintAgent(restUri, connectionEventHandler));
         } else {
-            HiveRestContext hiveContext = new HiveRestContext(restUri, commandUpdatesHandler, connectionEventHandler);
-            return new HiveClientRestImpl(hiveContext);
+            return new HiveClientRestImpl(createRestAgent(restUri, connectionEventHandler));
         }
     }
 
     public static HiveDevice createDevice(URI restUri,
                                           boolean preferWebsockets,
                                           HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
-        if (preferWebsockets) {
-            HiveWebsocketContext context =
-                    new HiveWebsocketContext(restUri, commandUpdatesHandler, null);
-            return new HiveDeviceWebsocketImpl(context);
-        } else {
-            HiveRestContext hiveContext = new HiveRestContext(restUri, commandUpdatesHandler, null);
-            return new HiveDeviceRestImpl(hiveContext);
-        }
+        return createDevice(restUri, preferWebsockets, null);
     }
 
     public static HiveDevice createDevice(URI restUri,
@@ -62,12 +44,28 @@ public class HiveFactory {
                                           HiveMessageHandler<DeviceCommand> commandUpdatesHandler,
                                           HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         if (preferWebsockets) {
-            HiveWebsocketContext context =
-                    new HiveWebsocketContext(restUri, commandUpdatesHandler, connectionEventHandler);
-            return new HiveDeviceWebsocketImpl(context);
+            return new HiveDeviceWebsocketImpl(createWebsocketCleintAgent(restUri, connectionEventHandler));
         } else {
-            HiveRestContext hiveContext = new HiveRestContext(restUri, commandUpdatesHandler, connectionEventHandler);
-            return new HiveDeviceRestImpl(hiveContext);
+            return new HiveDeviceRestImpl(createRestAgent(restUri, connectionEventHandler));
         }
+    }
+
+
+    private static RestAgent createRestAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+        RestAgent agent  = new RestAgent(restUri, connectionEventHandler);
+        agent.connect();
+        return agent;
+    }
+
+    private static WebsocketAgent createWebsocketCleintAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+        WebsocketAgent agent = new WebsocketAgent(restUri, "client", connectionEventHandler);
+        agent.connect();
+        return agent;
+    }
+
+    private static WebsocketAgent createWebsocketDeviceAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+        WebsocketAgent agent = new WebsocketAgent(restUri, "device", connectionEventHandler);
+        agent.connect();
+        return agent;
     }
 }

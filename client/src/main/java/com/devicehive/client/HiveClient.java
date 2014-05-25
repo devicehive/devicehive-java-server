@@ -75,5 +75,5 @@ public interface HiveClient {
      */
     UserController getUserController() throws HiveException;
 
-    void close();
+    void close() throws HiveException;
 }

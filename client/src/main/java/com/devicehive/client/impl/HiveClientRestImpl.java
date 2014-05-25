@@ -12,70 +12,72 @@ import com.devicehive.client.OAuthGrantController;
 import com.devicehive.client.OAuthTokenController;
 import com.devicehive.client.UserController;
 import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.impl.context.HiveRestContext;
+import com.devicehive.client.impl.context.RestAgent;
+import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.exceptions.HiveException;
 
+import java.net.URI;
+
 public class HiveClientRestImpl implements HiveClient {
 
+    private final RestAgent restAgent;
 
-    private final HiveRestContext hiveContext;
-
-
-    public HiveClientRestImpl(HiveRestContext hiveContext) {
-        this.hiveContext = hiveContext;
+    public HiveClientRestImpl(RestAgent restAgent) {
+        this.restAgent = restAgent;
     }
 
+    @Override
     public ApiInfo getInfo() throws HiveException {
-        return hiveContext.getInfo();
+        return restAgent.getInfo();
     }
 
     public void authenticate(String login, String password) throws HiveException {
-        hiveContext.authenticate(HivePrincipal.createUser(login, password));
+        restAgent.authenticate(HivePrincipal.createUser(login, password));
     }
 
     public void authenticate(String accessKey) throws HiveException {
-        hiveContext.authenticate(HivePrincipal.createAccessKey(accessKey));
+        restAgent.authenticate(HivePrincipal.createAccessKey(accessKey));
     }
 
     public AccessKeyController getAccessKeyController() {
-        return new AccessKeyControllerImpl(hiveContext);
+        return new AccessKeyControllerImpl(restAgent);
     }
 
     public CommandsController getCommandsController() {
-        return new CommandsControllerRestImpl(hiveContext);
+        return new CommandsControllerRestImpl(restAgent);
     }
 
     public DeviceController getDeviceController() {
-        return new DeviceControllerImpl(hiveContext);
+        return new DeviceControllerImpl(restAgent);
     }
 
     public NetworkController getNetworkController() {
-        return new NetworkControllerImpl(hiveContext);
+        return new NetworkControllerImpl(restAgent);
     }
 
     public NotificationsController getNotificationsController() {
-        return new NotificationsControllerRestImpl(hiveContext);
+        return new NotificationsControllerRestImpl(restAgent);
     }
 
     public UserController getUserController() {
-        return new UserControllerImpl(hiveContext);
+        return new UserControllerImpl(restAgent);
     }
 
     public OAuthClientController getOAuthClientController() {
-        return new OAuthClientControllerImpl(hiveContext);
+        return new OAuthClientControllerImpl(restAgent);
     }
 
     public OAuthGrantController getOAuthGrantController() {
-        return new OAuthGrantControllerImpl(hiveContext);
+        return new OAuthGrantControllerImpl(restAgent);
     }
 
     public OAuthTokenController getOAuthTokenController() {
-        return new OAuthTokenControllerImpl(hiveContext);
+        return new OAuthTokenControllerImpl(restAgent);
     }
 
-    public void close() {
-        hiveContext.close();
+    public void close() throws HiveException {
+        restAgent.close();
     }
 
 }

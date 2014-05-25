@@ -1,9 +1,13 @@
 package com.devicehive.client.impl.context;
 
 import com.devicehive.client.HiveMessageHandler;
+import com.devicehive.client.impl.context.HivePrincipal;
+import com.devicehive.client.impl.context.HiveRestConnector;
+import com.devicehive.client.impl.context.HiveWebsocketConnector;
+import com.devicehive.client.impl.context.RestAgent;
+import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.util.Messages;
-import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -14,34 +18,55 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.websocket.DeploymentException;
+import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
 
-public class HiveWebsocketContext extends HiveRestContext {
+public class WebsocketAgent extends RestAgent {
 
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
+
+    private final String role;
+
     private HiveWebsocketConnector websocketConnector;
 
-    public HiveWebsocketContext(URI restUri,
-                                HiveMessageHandler<DeviceCommand> commandUpdatesHandler,
-                                HiveConnectionEventHandler connectionEventHandler) throws HiveException {
-        super(restUri, commandUpdatesHandler, connectionEventHandler);
-        URI wsUri = URI.create(super.getInfo().getWebSocketServerUrl());
-        this.websocketConnector = HiveWebsocketConnector.open(wsUri, this, connectionEventHandler);
-    }
-
-    public synchronized void close() {
-        try {
-            websocketConnector.close();
-        } catch (Exception ex) {
-            logger.error("Error closing Websocket client", ex);
-        }
-        super.close();
+    public WebsocketAgent(URI restUri, String role, HiveConnectionEventHandler connectionEventHandler) {
+        super(restUri, connectionEventHandler);
+        this.role = role;
     }
 
     public synchronized HiveWebsocketConnector getWebsocketConnector() {
         return websocketConnector;
+    }
+
+    @Override
+    protected void doConnect() throws HiveException {
+        super.doConnect();
+        URI wsUri = URI.create(super.getInfo().getWebSocketServerUrl() + "/" + role);
+        try {
+            this.websocketConnector = new HiveWebsocketConnector(wsUri, this, connectionEventHandler);
+        } catch (IOException | DeploymentException e) {
+            throw new HiveException("Can not connect to websockets",  e);
+        }
+    }
+
+    @Override
+    protected void doDisconnect() {
+        websocketConnector.close();
+        super.doDisconnect();
+    }
+
+    @Override
+    protected void afterConnect() throws HiveException {
+        super.afterConnect();
+        //TODO reauthenticate and recreate subscriptions if there are some
+    }
+
+    @Override
+    public synchronized void close() throws HiveException {
+        super.close();
     }
 
     @Override

@@ -98,6 +98,6 @@ public interface HiveDevice {
      */
     ApiInfo getInfo() throws HiveException;
 
-    void close();
+    void close() throws HiveException;
 
 }

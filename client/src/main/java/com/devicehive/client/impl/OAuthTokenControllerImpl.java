@@ -1,7 +1,7 @@
 package com.devicehive.client.impl;
 
 import com.devicehive.client.OAuthTokenController;
-import com.devicehive.client.impl.context.HiveRestContext;
+import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.model.AccessToken;
 import com.devicehive.client.model.exceptions.HiveException;
 import org.slf4j.Logger;
@@ -13,10 +13,10 @@ import java.util.Map;
 class OAuthTokenControllerImpl implements OAuthTokenController {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthTokenControllerImpl.class);
-    private final HiveRestContext hiveContext;
+    private final RestAgent restAgent;
 
-    public OAuthTokenControllerImpl(HiveRestContext hiveContext) {
-        this.hiveContext = hiveContext;
+    OAuthTokenControllerImpl(RestAgent restAgent) {
+        this.restAgent = restAgent;
     }
 
     @Override
@@ -33,7 +33,7 @@ class OAuthTokenControllerImpl implements OAuthTokenController {
         formParams.put("scope", scope);
         formParams.put("username", login);
         formParams.put("password", password);
-        AccessToken result = hiveContext.getRestConnector().executeFormWithConnectionCheck(path, formParams,
+        AccessToken result = restAgent.getRestConnector().executeFormWithConnectionCheck(path, formParams,
                 AccessToken.class, null);
         logger.debug("Access token request proceed for params: grant type {}, code {}, redirect uri {}, " +
                 "client id {}, scope {}, login {}", grantType, code, redirectUri, clientId, scope, login);

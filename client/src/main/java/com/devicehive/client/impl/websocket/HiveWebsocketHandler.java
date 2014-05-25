@@ -1,7 +1,7 @@
 package com.devicehive.client.impl.websocket;
 
 
-import com.devicehive.client.impl.context.HiveWebsocketContext;
+import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -35,19 +35,19 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     private final static String DEVICE_GUID_MEMBER = "deviceGuid";
     private final static String SUBSCRIPTION_ID = "subscriptionId";
     private final static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
-    private final HiveWebsocketContext hiveContext;
+    private final WebsocketAgent websocketAgent;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap;
 
 
     /**
      * Constructor.
      *
-     * @param hiveContext  hive context
+     * @param websocketAgent
      * @param responsesMap map that contains request id and response association.
      */
-    public HiveWebsocketHandler(HiveWebsocketContext hiveContext,
+    public HiveWebsocketHandler(WebsocketAgent websocketAgent,
                                 ConcurrentMap<String, SettableFuture<JsonObject>> responsesMap) {
-        this.hiveContext = hiveContext;
+        this.websocketAgent = websocketAgent;
         this.websocketResponsesMap = responsesMap;
     }
 
@@ -98,9 +98,9 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
                 DeviceCommand.class);
         String subId = jsonMessage.get(SUBSCRIPTION_ID).getAsString();
-        hiveContext.getCommandsHandler(subId).handle(commandInsert);
+        websocketAgent.getCommandsHandler(subId).getHandler().handle(commandInsert);
         if (commandInsert.getTimestamp() != null) {
-            // TODO update timestamp
+            websocketAgent.getCommandsHandler(subId).updateTimestamp(commandInsert.getTimestamp());
         } else {
             logger.warn("Device command inserted without timestamp. Id: " + commandInsert.getId());
         }
@@ -112,8 +112,10 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
         DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
                 (COMMAND_MEMBER), DeviceCommand.class);
-        if (hiveContext.getCommandUpdatesHandler() != null)
-            hiveContext.getCommandUpdatesHandler().handle(commandUpdated);
+        if (websocketAgent.getCommandUpdatesHandler(commandUpdated.getId()) != null) {
+            websocketAgent.getCommandUpdatesHandler(commandUpdated.getId()).handle(commandUpdated);
+            websocketAgent.removeCommandUpdatesHandler(commandUpdated.getId());
+        }
         logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
                 commandUpdated.getStatus());
     }
@@ -123,9 +125,9 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
                 (NOTIFICATION_MEMBER), DeviceNotification.class);
         String subId = jsonMessage.get(SUBSCRIPTION_ID).getAsString();
-        hiveContext.getNotificationsHandler(subId).handle(notification);
+        websocketAgent.getNotificationsHandler(subId).getHandler().handle(notification);
         if (notification.getTimestamp() != null) {
-            // TODO update timestamp
+            websocketAgent.getNotificationsHandler(subId).updateTimestamp(notification.getTimestamp());
         } else {
             logger.warn("Device notification inserted without timestamp. Id: " + notification.getId());
         }

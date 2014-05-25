@@ -3,7 +3,7 @@ package com.devicehive.client.impl;
 
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.NotificationsController;
-import com.devicehive.client.impl.context.HiveRestContext;
+import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
@@ -25,10 +25,10 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 class NotificationsControllerRestImpl implements NotificationsController {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationsControllerRestImpl.class);
-    private final HiveRestContext hiveContext;
+    private final RestAgent restAgent;
 
-    public NotificationsControllerRestImpl(HiveRestContext hiveContext) {
-        this.hiveContext = hiveContext;
+    NotificationsControllerRestImpl(RestAgent restAgent) {
+        this.restAgent = restAgent;
     }
 
     @SuppressWarnings("serial")
@@ -50,7 +50,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         queryParams.put("gridInterval", gridInterval);
-        List<DeviceNotification> result = hiveContext.getRestConnector().executeWithConnectionCheck(path,
+        List<DeviceNotification> result = restAgent.getRestConnector().executeWithConnectionCheck(path,
                 HttpMethod.GET, null,
                 queryParams, new TypeToken<List<DeviceNotification>>() {
         }.getType(), NOTIFICATION_TO_CLIENT);
@@ -70,7 +70,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 "{}", guid, notification.getNotification(), notification.getParameters());
         DeviceNotification result;
         String path = "/device/" + guid + "/notification";
-        result = hiveContext.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
+        result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
                 notification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
@@ -84,7 +84,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
         logger.debug("DeviceNotification: get requested for device with id {} and notification id {}", guid,
                 notificationId);
         String path = "/device/" + guid + "/notification/" + notificationId;
-        DeviceNotification result = hiveContext.getRestConnector()
+        DeviceNotification result = restAgent.getRestConnector()
                 .executeWithConnectionCheck(path, HttpMethod.GET, null, DeviceNotification.class,
                         NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: get request proceed for device with id {} and notification id {}", guid,
@@ -98,7 +98,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        String subId = hiveContext.addNotificationsSubscription(filter, notificationsHandler);
+        String subId = restAgent.addNotificationsSubscription(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
         return subId;
@@ -107,7 +107,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
     @Override
     public void unsubscribeFromNotification(String subId) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
-        hiveContext.removeNotificationsSubscription(subId);
+        restAgent.removeNotificationsSubscription(subId);
         logger.debug("Client: notification/unsubscribe proceed.");
     }
 

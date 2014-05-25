@@ -4,7 +4,6 @@ package com.devicehive.client.impl.context;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.util.Messages;
-import com.devicehive.client.impl.context.connection.ConnectionEvent;
 import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.impl.websocket.HiveClientEndpoint;
 import com.devicehive.client.impl.websocket.HiveWebsocketHandler;
@@ -30,15 +29,12 @@ import javax.websocket.WebSocketContainer;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.sql.Timestamp;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -55,7 +51,7 @@ public class HiveWebsocketConnector {
     private static final Long WAIT_TIMEOUT = 1L;
     private static final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
     private static Logger logger = LoggerFactory.getLogger(HiveWebsocketConnector.class);
-    private final HiveWebsocketContext hiveContext;
+    private final WebsocketAgent websocketAgent;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap = new ConcurrentHashMap<>();
     private final Session session;
     private final URI wsUri;
@@ -67,25 +63,25 @@ public class HiveWebsocketConnector {
      * Creates client connected to the given websocket URL. All state is kept in the hive context.
      *
      * @param uri         URI of websocket service
-     * @param hiveContext context. Keeps state, for example credentials.
      */
-    private HiveWebsocketConnector(URI uri, HiveWebsocketContext hiveContext,
+    public HiveWebsocketConnector(URI uri, WebsocketAgent websocketAgent,
                                    HiveConnectionEventHandler connectionEventHandler) throws
             IOException,
             DeploymentException {
-        this.hiveContext = hiveContext;
+        this.websocketAgent = websocketAgent;
         this.session = webSocketContainer
                 .connectToServer(new HiveClientEndpoint(), ClientEndpointConfig.Builder.create().build(), uri);
-        session.addMessageHandler(new HiveWebsocketHandler(hiveContext, websocketResponsesMap));
+        session.addMessageHandler(new HiveWebsocketHandler(websocketAgent, websocketResponsesMap));
         this.wsUri = uri;
         this.connectionEventHandler = connectionEventHandler;
     }
 
-    protected static HiveWebsocketConnector open(URI uri, HiveWebsocketContext hiveContext,
+    /*
+    protected static HiveWebsocketConnector open(URI uri, WebsocketAgent websocketAgent,
                                                  HiveConnectionEventHandler connectionEventHandler)
             throws HiveException {
         try {
-            return new HiveWebsocketConnector(uri, hiveContext, connectionEventHandler);
+            return new HiveWebsocketConnector(uri, websocketAgent, connectionEventHandler);
         } catch (IOException | DeploymentException e) {
             throw new HiveException("Error occurred during creating context", e);
         }
@@ -128,6 +124,7 @@ public class HiveWebsocketConnector {
                 });
         return futureConnector.get();
     }
+    */
 
     /**
      * Sends message to server
