@@ -21,7 +21,7 @@ import static com.devicehive.configuration.Constants.VALUE;
  * Provide API information
  */
 @LogExecutionTime
-@Path("/config")
+@Path("/configuration")
 public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
 
@@ -31,22 +31,31 @@ public class ConfigurationController {
 
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/set")
-    public Response setPropertyPost(@FormParam(NAME) @NotNull String name, @FormParam(VALUE) String value) {
-        return setProperty(name, value);
+    @Path("/{"+NAME+"}")
+    public void setProperty(@PathParam(NAME) String name, String value) {
+        configurationService.save(name, value);
     }
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/set")
-    public Response setPropertyGet(@QueryParam(NAME) @NotNull String name, @QueryParam(VALUE) String value) {
-        return setProperty(name, value);
+    @Path("/{"+NAME+"}")
+    public void setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
+        configurationService.save(name, value);
     }
 
-    private Response setProperty(String name, String value) {
-        logger.debug("Configuration will be set. Property's name : {} value : {} ", name, value);
-        configurationService.save(name, value);
-        logger.debug("Configuration has been set. Property's name : {} value : {} ", name, value);
+    @GET
+    @RolesAllowed(HiveRoles.ADMIN)
+    @Path("/{"+NAME+"}")
+    public String get(@PathParam(NAME) String name) {
+        return configurationService.get(name);
+    }
+
+
+    @DELETE
+    @RolesAllowed(HiveRoles.ADMIN)
+    @Path("/{"+NAME+"}")
+    public Response deleteProperty(@PathParam(NAME) String name) {
+
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 

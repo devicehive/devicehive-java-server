@@ -119,11 +119,11 @@ password: dhadmin_#911
 Example:
 * For rest server URL:
 
-http://localhost:8080/hive/rest/config/set?name=rest.url&value=http://localhost:8080/hive/rest
+http://localhost:8080/DeviceHiveJava/rest/configuration/rest.url?value=http://localhost:8080/devicehive /rest
 
 * For web socket server URL:
 
-http://localhost:8080/hive/rest/config/set?name=websocket.url&value=ws://localhost:8080/hive/websocket
+http://localhost:8080/DeviceHiveJava/rest/configuration/websocket.url?value=ws://localhost:8080/devicehive/websocket
 
 * Use it.
 
@@ -147,7 +147,7 @@ https://github.com/devicehive/devicehive-java.git`. After that you can switch to
 Notice, that the all parameters set up for configuration of RESTful and websocket services will be the same. If it is
  required to change these parameters use:
 
- http://${yourServerName}:${port}/DeviceHiveJava/rest/config/set?name=${name}&value=${value}
+ http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}?value=${value}
 
  You can get access to this service using any of your administrative accounts.
  For more details see RELEASE_NOTES
