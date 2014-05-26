@@ -10,9 +10,7 @@ import org.junit.runners.JUnit4;
 import java.util.HashSet;
 import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class AccessKeyPermissionDomainsTest {
