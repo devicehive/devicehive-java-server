@@ -12,10 +12,7 @@ import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class AccessKeyPermissionsSubnetsTest {
