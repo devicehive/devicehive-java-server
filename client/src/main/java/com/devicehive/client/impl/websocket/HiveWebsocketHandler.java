@@ -43,7 +43,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
      * Constructor.
      *
      * @param websocketAgent
-     * @param responsesMap map that contains request id and response association.
+     * @param responsesMap   map that contains request id and response association.
      */
     public HiveWebsocketHandler(WebsocketAgent websocketAgent,
                                 ConcurrentMap<String, SettableFuture<JsonObject>> responsesMap) {
@@ -112,10 +112,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
         DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
                 (COMMAND_MEMBER), DeviceCommand.class);
-        if (websocketAgent.getCommandUpdatesHandler(commandUpdated.getId()) != null) {
-            websocketAgent.getCommandUpdatesHandler(commandUpdated.getId()).handle(commandUpdated);
-            websocketAgent.removeCommandUpdatesHandler(commandUpdated.getId());
-        }
+        websocketAgent.proccessCommandUpdate(commandUpdated);
         logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
                 commandUpdated.getStatus());
     }

@@ -2,7 +2,6 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceCommand;
@@ -30,7 +29,9 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     }
 
     @Override
-    public DeviceCommand insertCommand(String guid, DeviceCommand command) throws HiveException {
+    public DeviceCommand insertCommand(String guid,
+                                       DeviceCommand command,
+                                       HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -45,7 +46,10 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.add("command", gson.toJsonTree(command));
         DeviceCommand toReturn = websocketAgent.getWebsocketConnector().sendMessage(request, "command",
                 DeviceCommand.class, COMMAND_TO_CLIENT);
-        //hiveContext.getWebsocketSubManager().addCommandUpdateSubscription(toReturn.getId(), guid);
+        if (commandUpdatesHandler != null){
+
+        }
+        //TODO command update
         logger.debug("DeviceCommand: insert request proceed successfully for device id {] and command: command {}, " +
                 "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
                 command.getCommand(), command.getParameters(), command.getLifetime(), command.getFlags(),

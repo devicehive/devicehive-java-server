@@ -49,7 +49,8 @@ public interface CommandsController {
      * @param command command to be inserted
      * @return inserted command resource
      */
-    DeviceCommand insertCommand(String guid, DeviceCommand command) throws HiveException;
+    DeviceCommand insertCommand(String guid, DeviceCommand command, HiveMessageHandler<DeviceCommand>
+            commandUpdateMessageHandler) throws HiveException;
 
     /**
      * Updates command with specified id by device with specified identifier. Notifies client who sent this command

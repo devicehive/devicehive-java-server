@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 public class WebsocketAgent extends RestAgent {
@@ -27,6 +29,8 @@ public class WebsocketAgent extends RestAgent {
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
     private final String role;
     private HiveWebsocketConnector websocketConnector;
+    private final ConcurrentMap<Long, HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage =
+            new ConcurrentHashMap<>();
 
     public WebsocketAgent(URI restUri, String role, HiveConnectionEventHandler connectionEventHandler) {
         super(restUri, connectionEventHandler);
@@ -168,5 +172,12 @@ public class WebsocketAgent extends RestAgent {
             throw new IllegalArgumentException(Messages.INVALID_HIVE_PRINCIPAL);
         }
         websocketConnector.sendMessage(request);
+    }
+
+    public synchronized void proccessCommandUpdate(DeviceCommand commandUpdated){
+        if (commandUpdatesHandlerStorage.get(commandUpdated.getId()) != null) {
+            commandUpdatesHandlerStorage.get(commandUpdated.getId()).handle(commandUpdated);
+            commandUpdatesHandlerStorage.remove(commandUpdated.getId());
+        }
     }
 }

@@ -16,8 +16,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public abstract class AbstractHiveAgent {
 
     private final ReadWriteLock statusLock = new ReentrantReadWriteLock(true);
-    private final ConcurrentMap<Long, HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage =
-            new ConcurrentHashMap<>();
     private final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptionsStorage =
             new ConcurrentHashMap<>();
     private final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage =
@@ -35,13 +33,7 @@ public abstract class AbstractHiveAgent {
         return notificationSubscriptionsStorage;
     }
 
-    public HiveMessageHandler<DeviceCommand> getCommandUpdatesHandler(Long commandId) {
-        return commandUpdatesHandlerStorage.get(commandId);
-    }
 
-    public void removeCommandUpdatesHandler(Long commandId) {
-        commandUpdatesHandlerStorage.remove(commandId);
-    }
 
     public SubscriptionDescriptor<DeviceCommand> getCommandsSubscriptionDescriptor(String subscriptionId) {
         return commandSubscriptionsStorage.get(oldNewSubIds.get(subscriptionId));
