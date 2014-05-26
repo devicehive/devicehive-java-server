@@ -198,7 +198,7 @@ public class RestAgent extends AbstractHiveAgent {
         return subscriptionIdValue;
     }
 
-    public final synchronized void addCommandUpdateSubscription(final Long commandId,
+    public synchronized void addCommandUpdateSubscription(final Long commandId,
                                                          final String guid,
                                                          final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {

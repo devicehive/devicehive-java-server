@@ -46,10 +46,9 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.add("command", gson.toJsonTree(command));
         DeviceCommand toReturn = websocketAgent.getWebsocketConnector().sendMessage(request, "command",
                 DeviceCommand.class, COMMAND_TO_CLIENT);
-        if (commandUpdatesHandler != null){
-
+        if (commandUpdatesHandler != null) {
+            websocketAgent.addCommandUpdateSubscription(toReturn.getId(), guid, commandUpdatesHandler);
         }
-        //TODO command update
         logger.debug("DeviceCommand: insert request proceed successfully for device id {] and command: command {}, " +
                 "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
                 command.getCommand(), command.getParameters(), command.getLifetime(), command.getFlags(),

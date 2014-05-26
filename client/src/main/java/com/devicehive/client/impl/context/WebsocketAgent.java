@@ -28,9 +28,9 @@ public class WebsocketAgent extends RestAgent {
 
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
     private final String role;
-    private HiveWebsocketConnector websocketConnector;
     private final ConcurrentMap<Long, HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage =
             new ConcurrentHashMap<>();
+    private HiveWebsocketConnector websocketConnector;
 
     public WebsocketAgent(URI restUri, String role, HiveConnectionEventHandler connectionEventHandler) {
         super(restUri, connectionEventHandler);
@@ -174,7 +174,12 @@ public class WebsocketAgent extends RestAgent {
         websocketConnector.sendMessage(request);
     }
 
-    public synchronized void proccessCommandUpdate(DeviceCommand commandUpdated){
+    @Override
+    public synchronized void addCommandUpdateSubscription(Long commandId,String guid, HiveMessageHandler<DeviceCommand> handler) {
+        commandUpdatesHandlerStorage.put(commandId, handler);
+    }
+
+    public synchronized void proccessCommandUpdate(DeviceCommand commandUpdated) {
         if (commandUpdatesHandlerStorage.get(commandUpdated.getId()) != null) {
             commandUpdatesHandlerStorage.get(commandUpdated.getId()).handle(commandUpdated);
             commandUpdatesHandlerStorage.remove(commandUpdated.getId());
