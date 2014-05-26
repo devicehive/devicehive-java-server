@@ -98,9 +98,9 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
                 DeviceCommand.class);
         String subId = jsonMessage.get(SUBSCRIPTION_ID).getAsString();
-        websocketAgent.getCommandsHandler(subId).getHandler().handle(commandInsert);
+        websocketAgent.getCommandsSubscriptionDescriptor(subId).getHandler().handle(commandInsert);
         if (commandInsert.getTimestamp() != null) {
-            websocketAgent.getCommandsHandler(subId).updateTimestamp(commandInsert.getTimestamp());
+            websocketAgent.getCommandsSubscriptionDescriptor(subId).updateTimestamp(commandInsert.getTimestamp());
         } else {
             logger.warn("Device command inserted without timestamp. Id: " + commandInsert.getId());
         }
@@ -125,9 +125,9 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
                 (NOTIFICATION_MEMBER), DeviceNotification.class);
         String subId = jsonMessage.get(SUBSCRIPTION_ID).getAsString();
-        websocketAgent.getNotificationsHandler(subId).getHandler().handle(notification);
+        websocketAgent.getNotificationsSubscriptionDescriptor(subId).getHandler().handle(notification);
         if (notification.getTimestamp() != null) {
-            websocketAgent.getNotificationsHandler(subId).updateTimestamp(notification.getTimestamp());
+            websocketAgent.getNotificationsSubscriptionDescriptor(subId).updateTimestamp(notification.getTimestamp());
         } else {
             logger.warn("Device notification inserted without timestamp. Id: " + notification.getId());
         }

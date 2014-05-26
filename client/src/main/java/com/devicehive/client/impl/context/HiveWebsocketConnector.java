@@ -1,6 +1,7 @@
 package com.devicehive.client.impl.context;
 
 
+import com.devicehive.client.impl.context.connection.ConnectionEvent;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.util.Messages;
@@ -29,6 +30,7 @@ import javax.websocket.WebSocketContainer;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -75,6 +77,8 @@ public class HiveWebsocketConnector {
         this.wsUri = uri;
         this.connectionEventHandler = connectionEventHandler;
     }
+
+
 
     /*
     protected static HiveWebsocketConnector open(URI uri, WebsocketAgent websocketAgent,

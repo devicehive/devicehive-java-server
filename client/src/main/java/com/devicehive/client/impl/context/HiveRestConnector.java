@@ -56,7 +56,6 @@ public class HiveRestConnector {
     private volatile boolean isConnected = false;
     private final ExecutorService connectionChecker = Executors.newSingleThreadExecutor();
 
-
     /**
      * Creates client connected to the given REST URL. All state is kept in the hive context.
      *

@@ -116,7 +116,7 @@
                         </manifest>
                     </archive>
                     <appendAssemblyId>false</appendAssemblyId>
-                    <finalName>dhclient-${version}</finalName>
+                    <finalName>dhclient-${project.version}</finalName>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
@@ -129,8 +129,8 @@
                 <configuration>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-client</artifactId>
-                    <version>${version}</version>
-                    <file>dhclient-${version}.jar</file>
+                    <version>${project.version}</version>
+                    <file>dhclient-${project.version}.jar</file>
                 </configuration>
                 <executions>
                     <execution>

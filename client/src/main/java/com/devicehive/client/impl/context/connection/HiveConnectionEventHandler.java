@@ -3,9 +3,6 @@ package com.devicehive.client.impl.context.connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.CloseReason;
-import javax.websocket.Session;
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,7 +14,6 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
     private static final Logger logger = LoggerFactory.getLogger(HiveConnectionEventHandler.class);
     private ConnectionLostNotifier connectionLostNotifier;
     private ConnectionEstablishedNotifier connectionEstablishedNotifier;
-    private Session userSession;
 
     public HiveConnectionEventHandler(ConnectionLostNotifier connectionLostNotifier) {
         this.connectionLostNotifier = connectionLostNotifier;
@@ -37,13 +33,6 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
         logger.info("Connection event info. Timestamp : {}, id : {}, is lost : {}, service uri:",
                 event.getTimestamp(), event.getId(), event.isLost(), event.getServiceUri());
         if (event.isLost()) {
-            try {
-                if (userSession != null && userSession.isOpen())
-                    userSession.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY,
-                            "No responses from server!"));
-            } catch (IOException ioe) {
-                logger.debug("unable to close session");
-            }
             //will send message in a new thread
             //what priority should have this task?
             if (connectionLostNotifier != null) {
@@ -51,6 +40,7 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
                 notificationSender.submit(new Runnable() {
                     @Override
                     public void run() {
+                        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                         connectionLostNotifier.notify(event.getTimestamp(), event.getId(), event.getServiceUri());
                     }
                 });
@@ -63,13 +53,10 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
             notificationSender.submit(new Runnable() {
                 @Override
                 public void run() {
+                    Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                     connectionEstablishedNotifier.notify(event.getTimestamp(), event.getId(), event.getServiceUri());
                 }
             });
         }
-    }
-
-    public void setUserSession(Session userSession) {
-        this.userSession = userSession;
     }
 }

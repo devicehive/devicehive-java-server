@@ -1,10 +1,6 @@
 package com.devicehive.client.impl.context;
 
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.impl.context.HiveRestConnector;
-import com.devicehive.client.impl.context.HiveWebsocketConnector;
-import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.util.Messages;
@@ -15,21 +11,21 @@ import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.DeploymentException;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
 
 public class WebsocketAgent extends RestAgent {
 
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
-
     private final String role;
-
     private HiveWebsocketConnector websocketConnector;
 
     public WebsocketAgent(URI restUri, String role, HiveConnectionEventHandler connectionEventHandler) {
@@ -42,26 +38,57 @@ public class WebsocketAgent extends RestAgent {
     }
 
     @Override
-    protected void doConnect() throws HiveException {
+    protected synchronized void doConnect() throws HiveException {
         super.doConnect();
         URI wsUri = URI.create(super.getInfo().getWebSocketServerUrl() + "/" + role);
         try {
             this.websocketConnector = new HiveWebsocketConnector(wsUri, this, connectionEventHandler);
         } catch (IOException | DeploymentException e) {
-            throw new HiveException("Can not connect to websockets",  e);
+            throw new HiveException("Can not connect to websockets", e);
         }
     }
 
     @Override
-    protected void doDisconnect() {
+    protected synchronized void doDisconnect() {
         websocketConnector.close();
         super.doDisconnect();
     }
 
     @Override
+    protected void afterDisconnect() throws HiveException {
+        super.afterDisconnect();
+    }
+
+    @Override
     protected void afterConnect() throws HiveException {
+        HivePrincipal principal = getHivePrincipal();
+        if (principal != null) {
+            authenticate(principal);
+        }
         super.afterConnect();
-        //TODO reauthenticate and recreate subscriptions if there are some
+    }
+
+    @Override
+    synchronized protected void resubscribe() throws HiveException {
+        Map<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptions =
+                ObjectUtils.cloneIfPossible(getCommandSubscriptionsStorage());
+        getCommandSubscriptionsStorage().clear();
+        for (Map.Entry<String, SubscriptionDescriptor<DeviceCommand>> subscription : commandSubscriptions.entrySet()) {
+            SubscriptionDescriptor<DeviceCommand> subscriptionValue = subscription.getValue();
+            addCommandsSubscription(subscriptionValue.getFilter(),
+                    subscriptionValue.getHandler(),
+                    subscription.getKey());
+        }
+        Map<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptions =
+                ObjectUtils.cloneIfPossible(getNotificationSubscriptionsStorage());
+        getNotificationSubscriptionsStorage().clear();
+        for (Map.Entry<String, SubscriptionDescriptor<DeviceNotification>> subscription :
+                notificationSubscriptions.entrySet()) {
+            SubscriptionDescriptor<DeviceNotification> subscriptionValue = subscription.getValue();
+            addNotificationsSubscription(subscriptionValue.getFilter(),
+                    subscriptionValue.getHandler(),
+                    subscription.getKey());
+        }
     }
 
     @Override

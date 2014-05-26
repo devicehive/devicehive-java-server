@@ -3,8 +3,6 @@ package com.devicehive.client.impl.context;
 
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.Status;
-import com.devicehive.client.impl.context.HivePrincipal;
-import com.devicehive.client.impl.context.SubscriptionDescriptor;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -17,15 +15,25 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public abstract class AbstractHiveAgent {
 
-    private volatile Status status;
     private final ReadWriteLock statusLock = new ReentrantReadWriteLock(true);
-
-    private final ConcurrentMap<Long,HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptionsStorage = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage = new ConcurrentHashMap<>();
-
+    private final ConcurrentMap<Long, HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage =
+            new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptionsStorage =
+            new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage =
+            new ConcurrentHashMap<>();
+    //the first String stands for old subscription identifier, the second one stands for new subscription identifier
+    private final ConcurrentMap<String, String> oldNewSubIds = new ConcurrentHashMap<>();
+    private volatile Status status;
     private HivePrincipal hivePrincipal;
 
+    public ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> getCommandSubscriptionsStorage() {
+        return commandSubscriptionsStorage;
+    }
+
+    public ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> getNotificationSubscriptionsStorage() {
+        return notificationSubscriptionsStorage;
+    }
 
     public HiveMessageHandler<DeviceCommand> getCommandUpdatesHandler(Long commandId) {
         return commandUpdatesHandlerStorage.get(commandId);
@@ -35,20 +43,38 @@ public abstract class AbstractHiveAgent {
         commandUpdatesHandlerStorage.remove(commandId);
     }
 
-    public SubscriptionDescriptor<DeviceCommand> getCommandsHandler(String subscriptionId) {
-        return commandSubscriptionsStorage.get(subscriptionId);
+    public SubscriptionDescriptor<DeviceCommand> getCommandsSubscriptionDescriptor(String subscriptionId) {
+        return commandSubscriptionsStorage.get(oldNewSubIds.get(subscriptionId));
     }
 
-    public SubscriptionDescriptor<DeviceNotification> getNotificationsHandler(String subscriptionId) {
-        return notificationSubscriptionsStorage.get(subscriptionId);
+    public SubscriptionDescriptor<DeviceNotification> getNotificationsSubscriptionDescriptor(String subscriptionId) {
+        return notificationSubscriptionsStorage.get(oldNewSubIds.get(subscriptionId));
     }
 
-    public void addCommandsSubscription(String subscriptionId, SubscriptionDescriptor<DeviceCommand> commandsHandler) {
-        commandSubscriptionsStorage.put(subscriptionId, commandsHandler);
+    public void addCommandsSubscription(String newSubscriptionId,
+                                        SubscriptionDescriptor<DeviceCommand> commandsHandler) {
+        commandSubscriptionsStorage.put(newSubscriptionId, commandsHandler);
+        oldNewSubIds.putIfAbsent(newSubscriptionId, newSubscriptionId);
     }
 
-    public void addNotificationsSubscription(String subscriptionId, SubscriptionDescriptor<DeviceNotification>
-            notificationsHandler) {
+    protected void replaceCommandSubscription(String oldSubscriptionId,
+                                              String newSubscriptionId,
+                                              SubscriptionDescriptor<DeviceCommand> commandsHandler) {
+        commandSubscriptionsStorage.remove(oldSubscriptionId);
+        commandSubscriptionsStorage.put(newSubscriptionId, commandsHandler);
+        oldNewSubIds.replace(oldSubscriptionId, newSubscriptionId);
+    }
+
+    protected void replaceNotificationSubscription(String oldSubscriptionId,
+                                                   String newSubscriptionId,
+                                                   SubscriptionDescriptor<DeviceNotification> notificationsHandler) {
+        notificationSubscriptionsStorage.remove(oldSubscriptionId);
+        notificationSubscriptionsStorage.put(newSubscriptionId, notificationsHandler);
+        oldNewSubIds.replace(oldSubscriptionId, newSubscriptionId);
+    }
+
+    public void addNotificationsSubscription(String subscriptionId,
+                                             SubscriptionDescriptor<DeviceNotification> notificationsHandler) {
         notificationSubscriptionsStorage.put(subscriptionId, notificationsHandler);
     }
 
@@ -86,8 +112,9 @@ public abstract class AbstractHiveAgent {
 
     protected abstract void doDisconnect() throws HiveException;
 
-    protected abstract void afterDisonnect() throws HiveException;
+    protected abstract void afterDisconnect() throws HiveException;
 
+    protected abstract void resubscribe() throws HiveException;
 
     public synchronized final void connect() throws HiveException {
         beforeConnect();
@@ -97,12 +124,11 @@ public abstract class AbstractHiveAgent {
         afterConnect();
     }
 
-
     public synchronized final void disconnect() throws HiveException {
         beforeDisconnect();
         doDisconnect();
         setStatus(Status.NOT_CONNECTED);
-        afterDisonnect();
+        afterDisconnect();
     }
 
     public synchronized final void reconnect() throws HiveException {
@@ -116,7 +142,6 @@ public abstract class AbstractHiveAgent {
         }
         this.hivePrincipal = hivePrincipal;
     }
-
 
     public synchronized void close() throws HiveException {
         disconnect();
