@@ -34,17 +34,15 @@ public class HiveFactory {
     }
 
     public static HiveDevice createDevice(URI restUri,
-                                          boolean preferWebsockets,
-                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
+                                          boolean preferWebsockets) throws HiveException {
         return createDevice(restUri, preferWebsockets, null);
     }
 
     public static HiveDevice createDevice(URI restUri,
                                           boolean preferWebsockets,
-                                          HiveMessageHandler<DeviceCommand> commandUpdatesHandler,
                                           HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         if (preferWebsockets) {
-            return new HiveDeviceWebsocketImpl(createWebsocketCleintAgent(restUri, connectionEventHandler));
+            return new HiveDeviceWebsocketImpl(createWebsocketDeviceAgent(restUri, connectionEventHandler));
         } else {
             return new HiveDeviceRestImpl(createRestAgent(restUri, connectionEventHandler));
         }
