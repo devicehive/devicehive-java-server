@@ -47,7 +47,7 @@ public class DeviceEquipment implements HiveEntity {
     private static final long serialVersionUID = 479737367629574073L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @SerializedName("sid")//TODO: dirty hack, remove it
+    @SerializedName("sid")
     private Long id;
     @Column
     @NotNull(message = "code field cannot be null.")

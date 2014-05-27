@@ -4,24 +4,24 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.util.LogExecutionTime;
-import org.apache.commons.lang3.ObjectUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.inject.Qualifier;
 import javax.validation.constraints.NotNull;
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -35,22 +35,16 @@ public class DeviceCommandService {
 
     @EJB
     private DeviceCommandDAO commandDAO;
-
     @EJB
     private DeviceService deviceService;
-
     @EJB
     private TimestampService timestampService;
-
     @Inject
     @Create
     private Event<DeviceCommand> commandEvent;
-
     @Inject
     @Update
     private Event<DeviceCommand> updateEvent;
-
-
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getByGuidAndId(@NotNull String guid, @NotNull long id) {
@@ -61,7 +55,6 @@ public class DeviceCommandService {
     public DeviceCommand findById(Long id) {
         return commandDAO.findById(id);
     }
-
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceCommand> getDeviceCommandsList(Collection<String> devices, Collection<String> names,
@@ -93,7 +86,6 @@ public class DeviceCommandService {
         updateEvent.fire(saved);
     }
 
-
     public void submitDeviceCommand(DeviceCommand command, Device device, User user) {
         command.setDevice(device);
         command.setUser(user);
@@ -101,7 +93,6 @@ public class DeviceCommandService {
         commandDAO.createCommand(command);
         commandEvent.fire(command);
     }
-
 
     private DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
 
@@ -145,10 +136,12 @@ public class DeviceCommandService {
     @Qualifier
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE})
-    public static @interface Create{}
+    public static @interface Create {
+    }
 
     @Qualifier
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE})
-    public static @interface Update{}
+    public static @interface Update {
+    }
 }

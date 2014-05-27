@@ -54,6 +54,7 @@ public class DeviceEquipmentDAO {
         return query.getResultList();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean update(DeviceEquipment deviceEquipment) {
         DeviceEquipment equipment = findByCodeAndDevice(deviceEquipment.getCode(), deviceEquipment.getDevice());
         if (equipment == null) {

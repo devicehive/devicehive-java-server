@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -74,7 +73,7 @@ public class NotificationHandlers implements WebsocketHandlers {
     private SubscriptionSessionMap subscriptionSessionMap;
 
     @Action(value = "notification/subscribe")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT,  HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
                                                           @WsParam(DEVICE_GUIDS)
@@ -186,7 +185,7 @@ public class NotificationHandlers implements WebsocketHandlers {
      *         </code>
      */
     @Action(value = "notification/unsubscribe")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.KEY})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
     public WebSocketResponse processNotificationUnsubscribe(Session session,
                                                             @WsParam(SUBSCRIPTION_ID) UUID subId,

@@ -143,7 +143,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.3</version>
                 <configuration>
-                    <warName>DeviceHiveJava-${version}</warName>
+                    <warName>DeviceHiveJava-${project.version}</warName>
                 </configuration>
             </plugin>
             <plugin>
