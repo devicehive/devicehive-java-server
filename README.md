@@ -106,7 +106,7 @@ When server is installed and all the required properties are configured, you hav
 * Launch DeviceHiveJava
 * Set up web socket server URL and rest server URL. To do that you have to use link:
 
-http://${yourServerName}:${port}/DeviceHiveJava/rest/config/set?name=${name}&value=${value}
+http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}/set?value=${value}
 
 The parameter “name” can be either “websocket.url” or “rest.url” 
 The parameter “value” is associated URL for web socket and rest services.
@@ -119,11 +119,11 @@ password: dhadmin_#911
 Example:
 * For rest server URL:
 
-http://localhost:8080/DeviceHiveJava/rest/configuration/rest.url?value=http://localhost:8080/devicehive /rest
+http://localhost:8080/DeviceHiveJava/rest/configuration/rest.url/set?value=http://localhost:8080/devicehive /rest
 
 * For web socket server URL:
 
-http://localhost:8080/DeviceHiveJava/rest/configuration/websocket.url?value=ws://localhost:8080/devicehive/websocket
+http://localhost:8080/DeviceHiveJava/rest/configuration/websocket.url/set?value=ws://localhost:8080/devicehive/websocket
 
 * Use it.
 
@@ -147,7 +147,7 @@ https://github.com/devicehive/devicehive-java.git`. After that you can switch to
 Notice, that the all parameters set up for configuration of RESTful and websocket services will be the same. If it is
  required to change these parameters use:
 
- http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}?value=${value}
+ http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}/set?value=${value}
 
  You can get access to this service using any of your administrative accounts.
  For more details see RELEASE_NOTES

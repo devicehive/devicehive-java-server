@@ -38,7 +38,7 @@ public class ConfigurationController {
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{"+NAME+"}")
+    @Path("/{"+NAME+"}/set")
     public void setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
         configurationService.save(name, value);
     }
