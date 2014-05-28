@@ -59,7 +59,6 @@ public class AdministrativeExample extends Example {
         commandLine = getCommandLine();
         hiveClient = HiveFactory.createClient(getServerUrl(),
                 commandLine.hasOption(USE_SOCKETS),
-                null,
                 Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
@@ -206,8 +205,9 @@ public class AdministrativeExample extends Example {
             AccessKey created = akc.insertKey(user.getId(), accessKey);
             accessKey.setId(created.getId());
             accessKey.setKey(created.getKey());
-            HiveClient newUserHC = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
-                    null, Example.HIVE_CONNECTION_EVENT_HANDLER);
+            HiveClient newUserHC = HiveFactory.createClient(getServerUrl(),
+                    commandLine.hasOption(USE_SOCKETS),
+                    Example.HIVE_CONNECTION_EVENT_HANDLER);
             newUserHC.authenticate(accessKey.getKey());
             List<Network> allowedNetworks = newUserHC.getNetworkController().listNetworks(null, null, null, null,
                     null, null);

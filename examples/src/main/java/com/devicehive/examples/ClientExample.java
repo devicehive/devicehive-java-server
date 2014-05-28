@@ -46,7 +46,7 @@ public class ClientExample extends Example {
         super(out, args);
         commandLine = getCommandLine();
         hiveClient = HiveFactory
-                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null, Example.HIVE_CONNECTION_EVENT_HANDLER);
+                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     /**
@@ -148,7 +148,7 @@ public class ClientExample extends Example {
         public void run() {
             try{
                 for (Device device : allAvailableDevices) {
-                    cc.insertCommand(device.getId(), command);
+                    cc.insertCommand(device.getId(), command, null);
                     print("The command {} will be sent to device {}", command.getParameters(), device.getId());
                 }
             } catch (HiveException e) {
