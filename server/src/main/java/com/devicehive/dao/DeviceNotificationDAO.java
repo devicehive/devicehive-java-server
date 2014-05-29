@@ -73,20 +73,19 @@ public class DeviceNotificationDAO {
     /*
      If grid interval is present query must looks like this:
 
-     select * from device_notification
-        where device_notification.timestamp in
-	 (select min(rank_selection.timestamp)
-	 from
-		(select device_notification.*,
-		       rank() over (partition by device_notification.notification order by floor((extract(EPOCH FROM device_notification.timestamp)) / 30)) as rank
-			from device_notification
-			where device_notification.timestamp between '2013-04-14 14:23:00.775+04' and '2014-04-14 14:23:00.775+04'
-		) as rank_selection
-	 where rank_selection.device_id = 8038
-       and rank_selection.notification = 'equipment'
-	 group by rank_selection.rank, rank_selection.notification);
+     select *
+     from device_notification
+     inner join (
+          select min(device_notification.timestamp) as timestamp from device_notification
+          where device_notification.timestamp between '2013-04-14 14:23:00.775+04' and '2014-05-14 14:23:00.775+04'
+                and device_notification.device_id = 10732
+                and device_notification.notification = 'notificationFromDevice'
+          group by (floor((extract(EPOCH FROM device_notification.timestamp)) / 30))) n3
+     on device_notification.timestamp = n3.timestamp
+     where device_notification.device_id = 10732
+     order by device_notification.id;
 
-     If gridInterval is null the query must looks like this:
+     or like this, if grid interval is not present
 
      select * from device_notification
      where device_notification.timestamp between '2013-04-14 14:23:00.775+04' and '2014-04-14 14:23:00.775+04'
@@ -102,7 +101,7 @@ public class DeviceNotificationDAO {
      */
     @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceNotification> queryDeviceNotification(Device device,
+    public List<DeviceNotification> queryDeviceNotification(Long deviceId,
                                                             Timestamp start,
                                                             Timestamp end,
                                                             String notification,
@@ -113,53 +112,42 @@ public class DeviceNotificationDAO {
                                                             Integer gridInterval) {
         List<Object> parameters = new ArrayList();
         StringBuilder sb = new StringBuilder();
-        sb.append("SELECT * FROM device_notification ");     //this part of query is immutable
+        sb.append("SELECT device_notification.* FROM device_notification");     //this part of query is immutable
         if (gridInterval != null) {
-            sb.append("WHERE device_notification.timestamp IN ")
-                    .append("  (SELECT min(rank_selection.timestamp) ")
-                    .append("  FROM ")
-                    .append("     (SELECT device_notification.*, ")
-                    .append("           rank() OVER (PARTITION BY device_notification.notification ORDER BY floor(" +
-                            "(extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank ")
-                    .append("      FROM device_notification ");
-            parameters.add(gridInterval);
+            sb.append(" INNER JOIN ( ")
+                    .append("  SELECT min(device_notification.timestamp) AS timestamp FROM device_notification  ");
+        }
+        if (start != null || end != null || notification != null || deviceId != null) {
+            sb.append(" WHERE ");
+        }
+        if (deviceId != null) {      //device id is required
+            sb.append(" device_notification.device_id = ? ");
+            parameters.add(deviceId);
         }
         if (start != null && end != null) {
-            sb.append(" WHERE device_notification.timestamp BETWEEN ? AND ? ");
+            sb.append(" AND device_notification.timestamp BETWEEN ? AND ? ");
             parameters.add(start);
             parameters.add(end);
         } else if (start != null) {
-            sb.append(" WHERE device_notification.timestamp >= ? ");
+            sb.append(" AND device_notification.timestamp >= ? ");
             parameters.add(start);
         } else if (end != null) {
-            sb.append(" WHERE device_notification.timestamp <= ? ");
+            sb.append(" AND device_notification.timestamp <= ? ");
             parameters.add(end);
         }
-        if (gridInterval != null) {
-            sb.append(" ) AS rank_selection ");
-            sb.append("  WHERE (rank_selection.device_id = ?) ");
-        } else {
-            if (start != null || end != null)
-                sb.append(" AND ");
-            else {
-                sb.append(" WHERE ");
-            }
-            sb.append(" device_notification.device_id = ? ");
-        }
-        parameters.add(device.getId());   //device id is required
         if (notification != null) {
-            sb.append(" AND ");
-            if (gridInterval != null) {
-                sb.append(" (rank_selection.notification = ?) ");
-            } else {
-                sb.append(" device_notification.notification = ? ");
-            }
+            sb.append(" AND device_notification.notification = ? ");
             parameters.add(notification);
         }
+
         if (gridInterval != null) {
-            sb.append("  GROUP BY rank_selection.rank, rank_selection.notification) ");   //select min(timestamp),
-            // group by is required. Selection should contain first timestamp in the interval. Rank is stands for
-            // timestamp in seconds / interval length
+            //select min(timestamp),
+            // group by is required. Selection should contain first timestamp in the interval.
+            sb.append(" GROUP BY (floor((extract(EPOCH FROM device_notification.timestamp)) / ?))) n3 ");
+            parameters.add(gridInterval);
+            sb.append("  ON device_notification.timestamp = n3.timestamp ");
+            sb.append("  WHERE device_notification.device_id = ? ");
+            parameters.add(deviceId);
         }
         if (sortField != null) {
             sb.append(" ORDER BY ").append(sortField);
