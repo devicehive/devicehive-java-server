@@ -18,7 +18,9 @@
     <filter>
         <filter-name>cross-origin</filter-name>
         <filter-class>org.ebaysf.web.cors.CORSFilter</filter-class>
+
         <async-supported>true</async-supported>
+
         <init-param>
             <param-name>cors.allowed.origins</param-name>
             <param-value>*</param-value>

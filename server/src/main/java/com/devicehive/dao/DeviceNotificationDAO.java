@@ -143,7 +143,8 @@ public class DeviceNotificationDAO {
         if (gridInterval != null) {
             //select min(timestamp),
             // group by is required. Selection should contain first timestamp in the interval.
-            sb.append(" GROUP BY (floor((extract(EPOCH FROM device_notification.timestamp)) / ?))) n3 ");
+            sb.append(" GROUP BY device_notification.notification, ");
+            sb.append(" (floor((extract(EPOCH FROM device_notification.timestamp)) / ?))) n3 ");
             parameters.add(gridInterval);
             sb.append("  ON device_notification.timestamp = n3.timestamp ");
             sb.append("  WHERE device_notification.device_id = ? ");

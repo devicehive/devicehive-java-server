@@ -9,6 +9,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.service.OAuthClientService;
+import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -25,6 +25,9 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -51,44 +54,59 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class OAuthClientController {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientController.class);
-
     @EJB
     private OAuthClientService clientService;
-
+    @EJB
+    private AsynchronousExecutor executor;
 
     @GET
     @PermitAll
-    public Response list(@QueryParam(NAME) String name,
-                         @QueryParam(NAME_PATTERN) String namePattern,
-                         @QueryParam(DOMAIN) String domain,
-                         @QueryParam(OAUTH_ID) String oauthId,
-                         @QueryParam(SORT_FIELD) String sortField,
-                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
-                         @QueryParam(TAKE) Integer take,
-                         @QueryParam(SKIP) Integer skip) {
+    public void list(@QueryParam(NAME) final String name,
+                     @QueryParam(NAME_PATTERN) final String namePattern,
+                     @QueryParam(DOMAIN) final String domain,
+                     @QueryParam(OAUTH_ID) final String oauthId,
+                     @QueryParam(SORT_FIELD) final String sortField,
+                     @QueryParam(SORT_ORDER) final @SortOrder Boolean sortOrder,
+                     @QueryParam(TAKE) final Integer take,
+                     @QueryParam(SKIP) final Integer skip,
+                     @Suspended final AsyncResponse asyncResponse) {
         logger.debug("OAuthClient list requested. Params: name {}, namePattern {}, domain {}, oauthId {}, " +
                 "sortField {}, sortOrder {}, take {}, skip {}", name, namePattern, domain, oauthId, sortField,
                 sortOrder, take, skip);
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug("OAuthClient list procced. Params: name {}, namePattern {}, domain {}, oauthId {}, " +
+                        "sortField {}, sortOrder {}, take {}, skip {}.", name, namePattern,
+                        domain, oauthId, sortField, sortOrder, take, skip);
+            }
+        });
+        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (sortField != null && !sortField.equalsIgnoreCase(ID) && !sortField.equalsIgnoreCase(NAME) &&
+                            !sortField.equalsIgnoreCase(DOMAIN) && !sortField.equalsIgnoreCase(OAUTH_ID)) {
+                        asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,
+                                new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS)));
+                    }
+                    boolean sortOrderRes = sortOrder == null ? true : sortOrder;
+                    String sortFieldLower = sortField == null ? null : sortField.toLowerCase();
+                    List<OAuthClient> result =
+                            clientService
+                                    .get(name, namePattern, domain, oauthId, sortFieldLower, sortOrderRes, take, skip);
 
-        if (sortField != null && !sortField.equalsIgnoreCase(ID) && !sortField.equalsIgnoreCase(NAME) &&
-                !sortField.equalsIgnoreCase(DOMAIN) && !sortField.equalsIgnoreCase(OAUTH_ID)) {
-            return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
-        }
+                    if (principal != null && principal.getUser() != null && principal.getUser().isAdmin()) {
+                        asyncResponse.resume(ResponseFactory.response(OK, result, OAUTH_CLIENT_LISTED_ADMIN));
+                    }
+                    asyncResponse.resume(ResponseFactory.response(OK, result, OAUTH_CLIENT_LISTED));
+                } catch (Exception e) {
+                    asyncResponse.resume(e);
+                }
+            }
+        });
 
-        List<OAuthClient> result =
-                clientService.get(name, namePattern, domain, oauthId, sortField, sortOrder, take, skip);
-        logger.debug("OAuthClient list procced. Params: name {}, namePattern {}, domain {}, oauthId {}, " +
-                "sortField {}, sortOrder {}, take {}, skip {}. Result list contains {} elems", name, namePattern,
-                domain, oauthId, sortField, sortOrder, take, skip, result.size());
-
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        if (principal != null && principal.getUser() != null && principal.getUser().isAdmin()) {
-            return ResponseFactory.response(OK, result, OAUTH_CLIENT_LISTED_ADMIN);
-        }
-        return ResponseFactory.response(OK, result, OAUTH_CLIENT_LISTED);
     }
 
     @GET

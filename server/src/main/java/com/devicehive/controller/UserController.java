@@ -14,6 +14,7 @@ import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.UserService;
+import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
@@ -21,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,6 +31,9 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -48,10 +51,10 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
     @EJB
     private UserService userService;
-
+    @EJB
+    private AsynchronousExecutor executor;
 
     /**
      * This method will generate following output
@@ -87,37 +90,49 @@ public class UserController {
      */
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    public Response getUsersList(@QueryParam(LOGIN) String login,
-                                 @QueryParam(LOGIN_PATTERN) String loginPattern,
-                                 @QueryParam(ROLE) Integer role,
-                                 @QueryParam(STATUS) Integer status,
-                                 @QueryParam(SORT_FIELD) String sortField,
-                                 @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
-                                 @QueryParam(TAKE) Integer take,
-                                 @QueryParam(SKIP) Integer skip) {
+    public void getUsersList(@QueryParam(LOGIN) final String login,
+                             @QueryParam(LOGIN_PATTERN) final String loginPattern,
+                             @QueryParam(ROLE) final Integer role,
+                             @QueryParam(STATUS) final Integer status,
+                             @QueryParam(SORT_FIELD) final String sortField,
+                             @QueryParam(SORT_ORDER) final @SortOrder Boolean sortOrder,
+                             @QueryParam(TAKE) final Integer take,
+                             @QueryParam(SKIP) final Integer skip,
+                             @Suspended final AsyncResponse asyncResponse) {
         logger.debug("User list requested. Login = {}, loginPattern = {}, role = {}, status = {}, sortField = {}, " +
                 "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
                 take, skip);
+        final boolean sortOrderRes = sortOrder == null ? true : sortOrder;
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                logger.debug(
+                        "User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
+                                "sortField = {}, " +
+                                "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField,
+                        sortOrder,
+                        take, skip);
+            }
+        });
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
+                        asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,
+                                new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS)));
+                    }
+                    final String sortFieldLower = sortField == null ? null : sortField.toLowerCase();
 
-        if (sortOrder == null) {
-            sortOrder = true;
-        }
+                    List<User> result = userService.getList(login, loginPattern, role, status, sortFieldLower,
+                            sortOrderRes, take, skip);
+                    asyncResponse.resume(ResponseFactory.response(OK, result, JsonPolicyDef.Policy.USERS_LISTED));
+                } catch (Exception e) {
+                    asyncResponse.resume(e);
+                }
+            }
+        });
 
-        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
-            return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
-        }
-
-        List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
-
-        logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
-                "sortField = {}, " +
-                "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
-                take, skip);
-
-        return ResponseFactory.response(OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
 
     /**
