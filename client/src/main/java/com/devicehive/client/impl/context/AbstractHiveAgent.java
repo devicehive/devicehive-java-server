@@ -1,7 +1,6 @@
 package com.devicehive.client.impl.context;
 
 
-import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.Status;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
@@ -68,6 +67,7 @@ public abstract class AbstractHiveAgent {
     public void addNotificationsSubscription(String subscriptionId,
                                              SubscriptionDescriptor<DeviceNotification> notificationsHandler) {
         notificationSubscriptionsStorage.put(subscriptionId, notificationsHandler);
+        oldNewSubIds.putIfAbsent(subscriptionId, subscriptionId);
     }
 
     public void removeCommandsSubscription(String subscriptionId) throws HiveException {
