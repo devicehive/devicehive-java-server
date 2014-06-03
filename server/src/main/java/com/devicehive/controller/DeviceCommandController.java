@@ -372,7 +372,7 @@ public class DeviceCommandController {
             }
         });
 
-        final Boolean sortOrderRes = sortOrder == null ? true : sortOrder;
+        final boolean sortOrderRes = sortOrder == null ? true : sortOrder;
         executor.execute(new Runnable() {
             @Override
             public void run() {
