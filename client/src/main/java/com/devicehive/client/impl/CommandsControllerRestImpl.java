@@ -51,7 +51,6 @@ class CommandsControllerRestImpl implements CommandsController {
                     String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "DeviceGuid"),
                     BAD_REQUEST.getStatusCode());
         }
-
         String path = "/device/" + deviceGuid + "/command";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("start", start);
@@ -81,7 +80,7 @@ class CommandsControllerRestImpl implements CommandsController {
         logger.debug("DeviceCommand: get requested for device id {] and command id {}", guid, id);
         if (StringUtils.isBlank(guid)) {
             throw new HiveClientException(
-                    String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, guid),
+                    String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "guid"),
                     BAD_REQUEST.getStatusCode());
         }
         String path = "/device/" + guid + "/command/" + id;
