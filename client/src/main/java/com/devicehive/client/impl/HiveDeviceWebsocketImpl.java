@@ -5,10 +5,12 @@ import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
+import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
+import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -24,7 +26,7 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.CO
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
@@ -45,6 +47,10 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
     @Override
     public void registerDevice(Device device) throws HiveException {
+        if (device == null) {
+            throw new HiveClientException(
+                    String.format(Messages.PARAMETER_IS_NULL, "device"), BAD_REQUEST.getStatusCode());
+        }
         JsonObject request = new JsonObject();
         request.addProperty("action", "device/save");
         Gson gson = GsonFactory.createGson();
@@ -70,6 +76,10 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
     @Override
     public void updateCommand(DeviceCommand deviceCommand) throws HiveException {
+        if (deviceCommand == null){
+            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL, "deviceCommand"),
+                    BAD_REQUEST.getStatusCode());
+        }
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/update");
         String requestId = UUID.randomUUID().toString();
@@ -81,15 +91,18 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     }
 
     @Override
-    public void subscribeForCommands(final Timestamp timestamp, HiveMessageHandler<DeviceCommand>
-            commandMessageHandler)
+    public void subscribeForCommands(final Timestamp timestamp, HiveMessageHandler<DeviceCommand> commandHandler)
             throws
             HiveException {
+        if (commandHandler == null){
+            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL, "commandsHandler"),
+                    BAD_REQUEST.getStatusCode()) ;
+        }
         Set<String> uuids = new HashSet<>();
         uuids.add(websocketAgent.getHivePrincipal().getDevice().getLeft());
         SubscriptionFilter filter =
                 new SubscriptionFilter(uuids, null, timestamp);
-        websocketAgent.addCommandsSubscription(filter, commandMessageHandler);
+        websocketAgent.addCommandsSubscription(filter, commandHandler);
     }
 
     /**
@@ -102,6 +115,10 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
     @Override
     public DeviceNotification insertNotification(DeviceNotification deviceNotification) throws HiveException {
+        if (deviceNotification == null){
+            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL, "deviceNotification"),
+                    BAD_REQUEST.getStatusCode()) ;
+        }
         JsonObject request = new JsonObject();
         request.addProperty("action", "notification/insert");
         Gson gson = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE);
