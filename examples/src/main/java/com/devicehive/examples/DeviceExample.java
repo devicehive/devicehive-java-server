@@ -4,12 +4,7 @@ package com.devicehive.examples;
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.HiveFactory;
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.model.Device;
-import com.devicehive.client.model.DeviceClass;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
-import com.devicehive.client.model.Equipment;
-import com.devicehive.client.model.JsonStringWrapper;
+import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import com.google.gson.JsonObject;
@@ -37,9 +32,9 @@ public class DeviceExample extends Example {
     private static final String NAME_DESCRIPTION = "Device name";
     private static final String STATUS = "status";
     private static final String STATUS_DESCRIPTION = "Device operation status";
-    private static final String NETWORK = "hasNetwork";
-    private static final String NETWORK_DESCRIPTION = "An option that indicates if the device should have an network" +
-            ". Default is false. In case of true the network with the random data will be created";
+    private static final String NETWORK_ID = "NetworkId";
+    private static final String NETWORK_ID_DESCRIPTION = "If provided then the following networkId will be used." +
+            " In other cases the custom network id will be used";
     private static final String DC_NAME = "dcName";
     private static final String DC_NAME_DESCRIPTION = "Device class name.";
     private static final String DC_VERSION = "dcVersion";
@@ -84,7 +79,7 @@ public class DeviceExample extends Example {
         nameOption.setRequired(true);
         options.addOption(nameOption);
         options.addOption(STATUS, true, STATUS_DESCRIPTION);
-        options.addOption(NETWORK, false, NETWORK_DESCRIPTION);
+        options.addOption(NETWORK_ID, false, NETWORK_ID_DESCRIPTION);
         Option dcName = new Option(DC_NAME, true, DC_NAME_DESCRIPTION);
         dcName.setRequired(true);
         options.addOption(dcName);
@@ -106,9 +101,6 @@ public class DeviceExample extends Example {
         JsonObject dataJson = new JsonObject();
         dataJson.addProperty("data", "some_example_data");
         device.setData(new JsonStringWrapper(dataJson.toString()));
-        if (commandLine.hasOption(NETWORK))
-            //todo create network
-            ;
         DeviceClass dc = new DeviceClass();
         dc.setName(commandLine.getOptionValue(DC_NAME));
         dc.setVersion(commandLine.getOptionValue(DC_VERSION));
@@ -147,6 +139,7 @@ public class DeviceExample extends Example {
     public void run() throws HiveException, ExampleException, IOException {
         Device device = createDevice();
         try {
+
             hiveDevice.registerDevice(device);
             hiveDevice.authenticate(device.getId(), device.getKey());
             Device registered = hiveDevice.getDevice();
@@ -156,6 +149,12 @@ public class DeviceExample extends Example {
                 @Override
                 public void handle(DeviceCommand command) {
                     print("Command received: {}", command.getCommand());
+                    DeviceNotification notification = createNotification();
+                    try{
+                    hiveDevice.insertNotification(notification);
+                    } catch (Exception e){
+                        System.err.println(e);
+                    }
                 }
             };
             hiveDevice.subscribeForCommands(serverTimestamp, commandsHandler);
@@ -167,7 +166,4 @@ public class DeviceExample extends Example {
         }
     }
 
-    public final void createNetwork() {
-
-    }
 }
