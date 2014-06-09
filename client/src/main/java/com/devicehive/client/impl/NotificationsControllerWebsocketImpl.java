@@ -5,12 +5,14 @@ import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
+import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,10 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
 
     @Override
     public DeviceNotification insertNotification(String guid, DeviceNotification notification) throws HiveException {
+        if (StringUtils.isBlank(guid)){
+            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "guid"),
+                    BAD_REQUEST.getStatusCode());
+        }
         if (notification == null) {
             throw new HiveClientException("Notification cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -60,8 +66,12 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
                                           HiveMessageHandler<DeviceNotification> notificationsHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
-
-      String subId =  websocketAgent.addNotificationsSubscription(filter, notificationsHandler);
+        if (filter == null) {
+            throw new HiveClientException(
+                    String.format(Messages.PARAMETER_IS_NULL, "SubscriptionFiler"),
+                    BAD_REQUEST.getStatusCode());
+        }
+        String subId =  websocketAgent.addNotificationsSubscription(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
         return subId;
@@ -70,6 +80,10 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
     @Override
     public void unsubscribeFromNotification(String subscriptionId) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
+        if (StringUtils.isBlank(subscriptionId)){
+            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "subscriptionId"),
+                    BAD_REQUEST.getStatusCode());
+        }
         websocketAgent.removeNotificationsSubscription(subscriptionId);
         logger.debug("Client: notification/unsubscribe proceed.");
     }
