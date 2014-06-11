@@ -14,15 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.Asynchronous;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import javax.ejb.*;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.TransactionPhase;
+import javax.inject.Inject;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -35,17 +30,23 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 public class GlobalMessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalMessageBus.class);
+
     private static final String DEVICE_COMMAND = "DEVICE_COMMAND";
     private static final String DEVICE_COMMAND_UPDATE = "DEVICE_COMMAND_UPDATE";
     private static final String DEVICE_NOTIFICATION = "DEVICE_NOTIFICATION";
+
     @EJB
     private HazelcastService hazelcastService;
+
     @EJB
     private LocalMessageBus localMessageBus;
+
     private HazelcastInstance hazelcast;
+
     private String commandListener;
     private String commandUpdateListener;
     private String notificationListener;
+
 
     @PostConstruct
     protected void postConstruct() {
@@ -75,9 +76,7 @@ public class GlobalMessageBus {
     }
 
     @Asynchronous
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void publishDeviceCommand(@Observes(during = TransactionPhase.AFTER_SUCCESS) @DeviceCommandService.Create
-                                     DeviceCommand deviceCommand) {
+    public void publishDeviceCommand(@Observes(during = TransactionPhase.AFTER_SUCCESS) @DeviceCommandService.Create DeviceCommand deviceCommand) {
         logger.debug("Sending device command {}", deviceCommand.getId());
         localMessageBus.submitDeviceCommand(deviceCommand);
         hazelcast.getTopic(DEVICE_COMMAND).publish(deviceCommand);
@@ -85,10 +84,7 @@ public class GlobalMessageBus {
     }
 
     @Asynchronous
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void publishDeviceCommandUpdate(
-            @Observes(during = TransactionPhase.AFTER_SUCCESS) @DeviceCommandService.Update
-            DeviceCommand deviceCommandUpdate) {
+    public void publishDeviceCommandUpdate(@Observes(during = TransactionPhase.AFTER_SUCCESS) @DeviceCommandService.Update DeviceCommand deviceCommandUpdate) {
         logger.debug("Sending device command update {}", deviceCommandUpdate.getId());
         localMessageBus.submitDeviceCommandUpdate(deviceCommandUpdate);
         hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommandUpdate);
@@ -96,16 +92,15 @@ public class GlobalMessageBus {
     }
 
     @Asynchronous
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void publishDeviceNotification(
-            @Observes(during = TransactionPhase.AFTER_SUCCESS) DeviceNotification deviceNotification) {
+    public void publishDeviceNotification(@Observes(during = TransactionPhase.AFTER_SUCCESS) DeviceNotification deviceNotification) {
         logger.debug("Sending device notification {}", deviceNotification.getId());
         localMessageBus.submitDeviceNotification(deviceNotification);
         hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
         logger.debug("Sent");
     }
 
-    private class DeviceCommandListener implements MessageListener<DeviceCommand> {
+    private  class DeviceCommandListener implements MessageListener<DeviceCommand> {
+
 
 
         @Override
@@ -120,6 +115,7 @@ public class GlobalMessageBus {
     private class DeviceCommandUpdateListener implements MessageListener<DeviceCommand> {
 
 
+
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
             if (!deviceCommandMessage.getPublishingMember().localMember()) {
@@ -129,7 +125,8 @@ public class GlobalMessageBus {
         }
     }
 
-    private class DeviceNotificationListener implements MessageListener<DeviceNotification> {
+
+    private  class DeviceNotificationListener implements MessageListener<DeviceNotification> {
 
 
         @Override

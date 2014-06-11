@@ -4,7 +4,6 @@ package com.devicehive.client.impl.context;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.context.connection.ConnectionEvent;
 import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
-import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.ApiInfo;
@@ -43,7 +42,6 @@ public class RestAgent extends AbstractHiveAgent {
     private ConcurrentMap<Long, Future> commandUpdatesResults = new ConcurrentHashMap<>();
     private ConcurrentMap<String, Future> notificationSubscriptionResults = new ConcurrentHashMap<>();
     private HiveRestConnector restConnector;
-    private static final Logger logger = LoggerFactory.getLogger(AbstractHiveAgent.class);
 
     public RestAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler) {
         this.restUri = restUri;
@@ -177,12 +175,9 @@ public class RestAgent extends AbstractHiveAgent {
 
             @Override
             protected void execute() throws HiveException {
-                logger.debug("Command subscription execution started");
                 Map<String, Object> params = new HashMap<>();
                 params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
-                if (newFilter.getTimestamp() != null) {
-                    params.put(Constants.TIMESTAMP, TimestampAdapter.formatTimestamp(newFilter.getTimestamp()));
-                }
+                params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
                 params.put(Constants.NAMES, newFilter.getNames());
                 params.put(Constants.DEVICE_GUIDS, newFilter.getUuids());
                 Type responseType = new TypeToken<List<CommandPollManyResponse>>() {
@@ -196,7 +191,6 @@ public class RestAgent extends AbstractHiveAgent {
                     descriptor.updateTimestamp(response.getCommand().getTimestamp());
                     descriptor.getHandler().handle(response.getCommand());
                 }
-                logger.debug("Command subscription execution finished");
             }
         };
         Future commandsSubscription = subscriptionExecutor.submit(sub);
@@ -205,8 +199,8 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     public synchronized void addCommandUpdateSubscription(final Long commandId,
-                                                          final String guid,
-                                                          final HiveMessageHandler<DeviceCommand> handler)
+                                                         final String guid,
+                                                         final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
         RestSubscription sub = new RestSubscription() {
             @Override
@@ -267,12 +261,9 @@ public class RestAgent extends AbstractHiveAgent {
         RestSubscription sub = new RestSubscription() {
             @Override
             protected void execute() throws HiveException {
-                logger.debug("Notification subscription execution started");
                 Map<String, Object> params = new HashMap<>();
                 params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
-                if (newFilter.getTimestamp() != null) {
-                    params.put(Constants.TIMESTAMP, TimestampAdapter.formatTimestamp(newFilter.getTimestamp()));
-                }
+                params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
                 params.put(Constants.NAMES, newFilter.getNames());
                 params.put(Constants.DEVICE_GUIDS, newFilter.getUuids());
                 Type responseType = new TypeToken<List<NotificationPollManyResponse>>() {
@@ -290,7 +281,6 @@ public class RestAgent extends AbstractHiveAgent {
                     descriptor.updateTimestamp(response.getNotification().getTimestamp());
                     descriptor.getHandler().handle(response.getNotification());
                 }
-                logger.debug("Notification subscription execution finished");
             }
         };
         Future notificationsSubscription = subscriptionExecutor.submit(sub);

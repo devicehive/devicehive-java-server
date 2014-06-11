@@ -6,7 +6,7 @@
 
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-client</artifactId>
-    <version>1.3.0.0</version>
+    <version>1.3.0-SNAPSHOT</version>
     <name>DeviceHive Client Library</name>
     <packaging>jar</packaging>
 

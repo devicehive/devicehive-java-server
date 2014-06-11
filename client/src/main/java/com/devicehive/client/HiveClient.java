@@ -1,5 +1,6 @@
 package com.devicehive.client;
 
+
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.exceptions.HiveException;
 
@@ -73,27 +74,6 @@ public interface HiveClient {
      * @return user controller
      */
     UserController getUserController() throws HiveException;
-
-    /**
-     * Return new instance of OAuthClient controller
-     *
-     * @return oauthclient controller
-     */
-    OAuthClientController getOAuthClientController() throws HiveException;
-
-    /**
-     * Return new instance of OAuthGrant controller
-     *
-     * @return oauthgrant controller
-     */
-    OAuthGrantController getOAuthGrantController() throws HiveException;
-
-    /**
-     * Return new instance of OAuthToken controller
-     *
-     * @return oauth token controller
-     */
-    OAuthTokenController getOAuthTokenController() throws HiveException;
 
     void close() throws HiveException;
 }

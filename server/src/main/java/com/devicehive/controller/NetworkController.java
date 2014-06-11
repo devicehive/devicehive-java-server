@@ -11,7 +11,6 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.NetworkService;
-import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -26,9 +26,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.CompletionCallback;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -50,10 +47,10 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class NetworkController {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
+
     @EJB
     private NetworkService networkService;
-    @EJB
-    private AsynchronousExecutor executor;
+
 
     /**
      * Produces following output:
@@ -84,46 +81,32 @@ public class NetworkController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_NETWORK})
-    public void getNetworkList(@QueryParam(NAME) final String name,
-                               @QueryParam(NAME_PATTERN) final String namePattern,
-                               @QueryParam(SORT_FIELD) final String sortField,
-                               @QueryParam(SORT_ORDER) @SortOrder final Boolean sortOrder,
-                               @QueryParam(TAKE) final Integer take,
-                               @QueryParam(SKIP) final Integer skip,
-                               @Suspended final AsyncResponse asyncResponse) {
+    public Response getNetworkList(@QueryParam(NAME) String name,
+                                   @QueryParam(NAME_PATTERN) String namePattern,
+                                   @QueryParam(SORT_FIELD) String sortField,
+                                   @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                                   @QueryParam(TAKE) Integer take,
+                                   @QueryParam(SKIP) Integer skip) {
 
         logger.debug("Network list requested");
 
-        final boolean sortOrderRes = sortOrder == null ? true : sortOrder;
+        if (sortOrder == null) {
+            sortOrder = true;
+        }
 
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                logger.debug("Network list request proceed. Name {}, namePattern {}, sortField {}, sortOrder {}, " +
-                        "take {}, skip {}", name, namePattern, sortField, sortOrder, take, skip);
-            }
-        });
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
-                        logger.debug("Unable to proceed network list request. Invalid sortField");
-                        asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST,
-                                new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS)));
-                    }
-                    final String sortFieldLower = sortField == null ? null : sortField.toLowerCase();
-                    List<Network> result = networkService
-                            .list(name, namePattern, sortFieldLower, sortOrderRes, take, skip, principal);
-                    asyncResponse.resume(ResponseFactory
-                            .response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED));
-                } catch (Exception e) {
-                    asyncResponse.resume(e);
-                }
-            }
-        });
+        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
+            logger.debug("Unable to proceed network list request. Invalid sortField");
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
+        }
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        List<Network> result = networkService
+                .list(name, namePattern, sortField, sortOrder, take, skip, principal);
 
+        logger.debug("Network list request proceed successfully.");
+        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
 
     /**

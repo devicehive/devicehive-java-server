@@ -1,9 +1,9 @@
 package com.devicehive.examples;
 
+
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
-import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.model.*;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
@@ -46,8 +46,7 @@ public class ClientExample extends Example {
         super(out, args);
         commandLine = getCommandLine();
         hiveClient = HiveFactory
-                .createClient(
-                        getServerUrl(), commandLine.hasOption(USE_SOCKETS), Example.HIVE_CONNECTION_EVENT_HANDLER);
+                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null, Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     /**
@@ -114,14 +113,7 @@ public class ClientExample extends Example {
                 User user = createUser();
                 hiveClient.authenticate(user.getLogin(), user.getPassword());
             }
-            SubscriptionFilter filter = new SubscriptionFilter(null, null, hiveClient.getInfo().getServerTimestamp());
-            HiveMessageHandler<DeviceNotification> notificationsHandler = new HiveMessageHandler<DeviceNotification>() {
-                @Override
-                public void handle(DeviceNotification notification) {
-                    print("Notification received: {}" + notification);
-                }
-            };
-            hiveClient.getNotificationsController().subscribeForNotifications(filter, notificationsHandler);
+            hiveClient.getNotificationsController().subscribeForNotifications(null, null);
             ScheduledExecutorService commandsExecutor = Executors.newSingleThreadScheduledExecutor();
             CommandTask commandTask = new CommandTask();
             commandsExecutor.scheduleAtFixedRate(commandTask, 10, 10, TimeUnit.SECONDS);
@@ -148,16 +140,15 @@ public class ClientExample extends Example {
             commandParams.addProperty("command_param_2", "val.2: " + UUID.randomUUID());
             command.setParameters(new JsonStringWrapper(commandParams.toString()));
             cc = hiveClient.getCommandsController();
-            allAvailableDevices = hiveClient.getDeviceController().listDevices(
-                    null, null, null,
+            allAvailableDevices = hiveClient.getDeviceController().listDevices(null, null, null,
                     null, null, null, null, null, null, null, null, null);
         }
 
         @Override
         public void run() {
-            try {
+            try{
                 for (Device device : allAvailableDevices) {
-                    cc.insertCommand(device.getId(), command, null);
+                    cc.insertCommand(device.getId(), command);
                     print("The command {} will be sent to device {}", command.getParameters(), device.getId());
                 }
             } catch (HiveException e) {

@@ -5,13 +5,11 @@ import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
-import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +37,6 @@ class NotificationsControllerRestImpl implements NotificationsController {
                                                        String notificationName, String sortOrder, String sortField,
                                                        Integer take, Integer skip, Integer gridInterval)
             throws HiveException {
-        if (StringUtils.isBlank(guid)) {
-            throw new HiveClientException(
-                    String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "DeviceGuid"),
-                    BAD_REQUEST.getStatusCode());
-        }
         logger.debug("DeviceNotification: query requested with parameters: device id {}, start timestamp {}, " +
                 "end timestamp {}, notification name {}, sort order {}, sort field {}, take {}, skip {}, " +
                 "grid interval {}", guid, start, end, notificationName, sortOrder, sortField, take, skip, gridInterval);
@@ -70,10 +63,6 @@ class NotificationsControllerRestImpl implements NotificationsController {
     @Override
     public DeviceNotification insertNotification(String guid, DeviceNotification notification)
             throws HiveException {
-        if (StringUtils.isBlank(guid)){
-           throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "guid"),
-                   BAD_REQUEST.getStatusCode());
-        }
         if (notification == null) {
             throw new HiveClientException("Notification cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -94,10 +83,6 @@ class NotificationsControllerRestImpl implements NotificationsController {
     public DeviceNotification getNotification(String guid, long notificationId) throws HiveException {
         logger.debug("DeviceNotification: get requested for device with id {} and notification id {}", guid,
                 notificationId);
-        if (StringUtils.isBlank(guid)){
-            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "guid"),
-                    BAD_REQUEST.getStatusCode());
-        }
         String path = "/device/" + guid + "/notification/" + notificationId;
         DeviceNotification result = restAgent.getRestConnector()
                 .executeWithConnectionCheck(path, HttpMethod.GET, null, DeviceNotification.class,
@@ -112,11 +97,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
                                           HiveMessageHandler<DeviceNotification> notificationsHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
-        if (filter == null) {
-            throw new HiveClientException(
-                    String.format(Messages.PARAMETER_IS_NULL, "SubscriptionFiler"),
-                    BAD_REQUEST.getStatusCode());
-        }
+
         String subId = restAgent.addNotificationsSubscription(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
@@ -126,10 +107,6 @@ class NotificationsControllerRestImpl implements NotificationsController {
     @Override
     public void unsubscribeFromNotification(String subId) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
-        if (StringUtils.isBlank(subId)){
-            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "subscriptionId"),
-                    BAD_REQUEST.getStatusCode());
-        }
         restAgent.removeNotificationsSubscription(subId);
         logger.debug("Client: notification/unsubscribe proceed.");
     }

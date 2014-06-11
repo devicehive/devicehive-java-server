@@ -16,7 +16,6 @@ import com.devicehive.model.User;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
-import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -33,9 +33,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.CompletionCallback;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.List;
@@ -58,69 +55,52 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 public class OAuthGrantController {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthGrantController.class);
+
     @EJB
     private OAuthGrantService grantService;
+
     @EJB
     private UserService userService;
-    @EJB
-    private AsynchronousExecutor executor;
+
 
     @GET
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
-    public void list(@PathParam(USER_ID) final String userId,
-                     @QueryParam(START) final Timestamp start,
-                     @QueryParam(END) final Timestamp end,
-                     @QueryParam(CLIENT_OAUTH_ID) final String clientOAuthId,
-                     @QueryParam(TYPE) final String type,
-                     @QueryParam(SCOPE) final String scope,
-                     @QueryParam(REDIRECT_URI) final String redirectUri,
-                     @QueryParam(ACCESS_TYPE) final String accessType,
-                     @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) final String sortField,
-                     @QueryParam(SORT_ORDER) @SortOrder final Boolean sortOrder,
-                     @QueryParam(TAKE) final Integer take,
-                     @QueryParam(SKIP) final Integer skip,
-                     @Suspended final AsyncResponse asyncResponse) {
+    public Response list(@PathParam(USER_ID) String userId,
+                         @QueryParam(START) Timestamp start,
+                         @QueryParam(END) Timestamp end,
+                         @QueryParam(CLIENT_OAUTH_ID) String clientOAuthId,
+                         @QueryParam(TYPE) String type,
+                         @QueryParam(SCOPE) String scope,
+                         @QueryParam(REDIRECT_URI) String redirectUri,
+                         @QueryParam(ACCESS_TYPE) String accessType,
+                         @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
+                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                         @QueryParam(TAKE) Integer take,
+                         @QueryParam(SKIP) Integer skip) {
         logger.debug("OAuthGrant: list requested. User id: {}, start: {}, end: {}, clientOAuthID: {}, type: {}, " +
                 "scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
                 userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
                 skip);
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                logger.debug(
-                        "OAuthGrant: list proceed successfully. User id: {}, start: {}, end: {}, clientOAuthID: {}, " +
-                                "type: {}, scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
-                        userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
-                        skip);
-            }
-        });
-        final User user = getUser(userId);
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                if (!sortField.equalsIgnoreCase(TIMESTAMP)) {
-                    asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,
-                            new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS)));
-                }
-                final String sortFieldLower = sortField.toLowerCase();
-                final boolean sortOrderRes = sortOrder == null ? true : sortOrder;
-
-                List<OAuthGrant> result = grantService.list(user, start, end, clientOAuthId,
-                        type == null ? null : Type.forName(type).ordinal(), scope,
-                        redirectUri, accessType == null ? null : AccessType.forName(accessType).ordinal(), sortFieldLower,
-                        sortOrderRes, take, skip);
-
-                if (user.isAdmin()) {
-                    asyncResponse.resume(ResponseFactory.response(OK, result, OAUTH_GRANT_LISTED_ADMIN));
-                }
-                asyncResponse.resume(ResponseFactory.response(OK, result, OAUTH_GRANT_LISTED));
-                } catch (Exception e){
-                    asyncResponse.resume(e);
-                }
-            }
-        }) ;
-
+        if (!sortField.equalsIgnoreCase(TIMESTAMP)) {
+            return ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+        } else {
+            sortField = sortField.toLowerCase();
+        }
+        User user = getUser(userId);
+        List<OAuthGrant> result = grantService.list(user, start, end, clientOAuthId,
+                type == null ? null : Type.forName(type).ordinal(), scope,
+                redirectUri, accessType == null ? null : AccessType.forName(accessType).ordinal(), sortField,
+                sortOrder, take, skip);
+        logger.debug(
+                "OAuthGrant: list proceed successfully. User id: {}, start: {}, end: {}, clientOAuthID: {}, " +
+                        "type: {}, scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
+                userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
+                skip);
+        if (user.isAdmin()) {
+            return ResponseFactory.response(OK, result, OAUTH_GRANT_LISTED_ADMIN);
+        }
+        return ResponseFactory.response(OK, result, OAUTH_GRANT_LISTED);
     }
 
     @GET

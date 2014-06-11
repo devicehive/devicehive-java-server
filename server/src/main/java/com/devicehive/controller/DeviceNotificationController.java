@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
@@ -141,51 +142,42 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
-    public void query(@PathParam(DEVICE_GUID) final String guid,
-                          @QueryParam(START) final Timestamp start,
-                          @QueryParam(END) final Timestamp end,
-                          @QueryParam(NOTIFICATION) final String notification,
-                          @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) final String sortField,
-                          @QueryParam(SORT_ORDER) @SortOrder final Boolean sortOrder,
-                          @QueryParam(TAKE) final Integer take,
-                          @QueryParam(SKIP) final Integer skip,
-                          @QueryParam(GRID_INTERVAL) final Integer gridInterval,
-                          @Suspended final AsyncResponse asyncResponse) {
+    public Response query(@PathParam(DEVICE_GUID) String guid,
+                          @QueryParam(START) Timestamp start,
+                          @QueryParam(END) Timestamp end,
+                          @QueryParam(NOTIFICATION) String notification,
+                          @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
+                          @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                          @QueryParam(TAKE) Integer take,
+                          @QueryParam(SKIP) Integer skip,
+                          @QueryParam(GRID_INTERVAL) Integer gridInterval) {
 
         logger.debug("Device notification query requested. Guid {}, start {}, end {}, notification {}, sort field {}," +
                 "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
 
-        final boolean sortOrderRes = sortOrder == null ? true : sortOrder;
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                logger.debug("Device notification query succeed. Guid {}, start {}, end {}, notification {}, sort field {}," +
-                        "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
-            }
-        });
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (!TIMESTAMP.equalsIgnoreCase(sortField) && !NOTIFICATION.equalsIgnoreCase(sortField)) {
-                    logger.debug("Device notification query request failed Bad request sort field. Guid {}, start {}, end {}," +
-                            " notification {}, sort field {}, sort order {}, take {}, skip {}", guid, start, end,
-                            notification, sortField, sortOrder, take, skip);
-                    asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST,
-                            new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS)));
-                }
-                final String sortFieldLower = sortField.toLowerCase();
+        if (sortOrder == null) {
+            sortOrder = true;
+        }
 
+        if (!TIMESTAMP.equalsIgnoreCase(sortField) && !NOTIFICATION.equalsIgnoreCase(sortField)) {
+            logger.debug("Device notification query request failed Bad request sort field. Guid {}, start {}, end {}," +
+                    " notification {}, sort field {}, sort order {}, take {}, skip {}", guid, start, end,
+                    notification, sortField, sortOrder, take, skip);
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+        }
+        sortField = sortField.toLowerCase();
 
-                Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-                List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
-                        notification, sortFieldLower, sortOrderRes, take, skip, gridInterval);
-                asyncResponse.resume(ResponseFactory.response(Response.Status.OK, result,
-                        Policy.NOTIFICATION_TO_CLIENT));
-            }
-        });
+        List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
+                notification, sortField, sortOrder, take, skip, gridInterval);
 
+        logger.debug("Device notification query succeed. Guid {}, start {}, end {}, notification {}, sort field {}," +
+                "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
+
+        return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**

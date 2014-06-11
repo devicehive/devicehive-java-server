@@ -17,8 +17,6 @@ public final class Messages {
     public static final String INCORRECT_SERVER_URL = "Incorrect server URL!";
     public static final String UNKNOWN_RESPONSE = "Unknown response";
     public static final String CONNECTION_LOST = "Try to send request when connection is lost";
-    public static final String PARAMETER_IS_NULL_OR_EMPTY = "%s cannot be null or empty";
-    public static final String PARAMETER_IS_NULL = "%s cannot be null";
     private Messages() {
     }
 }

@@ -39,8 +39,7 @@ public class RealDeviceExample extends Example {
     public RealDeviceExample(PrintStream out, String... args) throws ExampleException, HiveException {
         super(out, args);
         CommandLine commandLine = getCommandLine();
-        hiveClient = HiveFactory.createClient(getServerUrl(),
-                commandLine.hasOption(USE_SOCKETS),
+        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null,
                 Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
@@ -123,7 +122,7 @@ public class RealDeviceExample extends Example {
                 notification.setParameters(new JsonStringWrapper("{\"p1\":\"val\"}"));
                 nc.insertNotification(uuid, notification);
                 command.setParameters(new JsonStringWrapper(commandParams.toString()));
-                cc.insertCommand(uuid, command, null);
+                cc.insertCommand(uuid, command);
                 print("The command {} will be sent to all available devices");
 
             } catch (HiveException e) {

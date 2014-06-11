@@ -3,14 +3,12 @@ package com.devicehive.client.impl;
 
 import com.devicehive.client.DeviceController;
 import com.devicehive.client.impl.context.RestAgent;
-import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceClass;
 import com.devicehive.client.model.DeviceEquipment;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.reflect.TypeToken;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +67,6 @@ class DeviceControllerImpl implements DeviceController {
     @Override
     public Device getDevice(String deviceId) throws HiveException {
         logger.debug("Device: get requested for device id {}", deviceId);
-        if (StringUtils.isBlank(deviceId)) {
-            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "DeviceGuid"));
-        }
         String path = "/device/" + deviceId;
         Device result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
                 Device.class,
@@ -88,9 +83,6 @@ class DeviceControllerImpl implements DeviceController {
 
     @Override
     public void registerDevice(String deviceId, Device device) throws HiveException {
-        if (StringUtils.isBlank(deviceId)) {
-            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "DeviceGuid"));
-        }
         if (device == null) {
             throw new HiveClientException("Device cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -117,9 +109,6 @@ class DeviceControllerImpl implements DeviceController {
     @Override
     public void deleteDevice(String deviceId) throws HiveException {
         logger.debug("Device: delete requested for device with id {}", deviceId);
-        if (StringUtils.isBlank(deviceId)) {
-            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "DeviceGuid"));
-        }
         String path = "/device/" + deviceId;
         restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
         logger.debug("Device: delete request proceed successfully for device with id {}", deviceId);
@@ -128,9 +117,6 @@ class DeviceControllerImpl implements DeviceController {
     @Override
     public List<DeviceEquipment> getDeviceEquipment(String deviceId) throws HiveException {
         logger.debug("Device: equipment requested for device with id {}", deviceId);
-        if (StringUtils.isBlank(deviceId)) {
-            throw new HiveClientException(String.format(Messages.PARAMETER_IS_NULL_OR_EMPTY, "DeviceGuid"));
-        }
         String path = "/device/" + deviceId + "/equipment";
         List<DeviceEquipment> result = restAgent.getRestConnector()
                 .executeWithConnectionCheck(path, HttpMethod.GET, null, null, null,

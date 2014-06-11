@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
@@ -74,16 +75,22 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class DeviceCommandController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandController.class);
+
     @EJB
     private DeviceCommandService commandService;
+
     @EJB
     private DeviceService deviceService;
+
     @EJB
     private SubscriptionManager subscriptionManager;
+
     @EJB
     private TimestampService timestampService;
+
     @EJB
     private AsynchronousExecutor executor;
+
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful API: DeviceCommand: poll</a>
@@ -200,7 +207,7 @@ public class DeviceCommandController {
                 list = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             }
         }
-        for (DeviceCommand dc : list) {
+        for (DeviceCommand dc : list){
             dc.setUserId(dc.getUser().getId());
         }
         return list;
@@ -352,55 +359,40 @@ public class DeviceCommandController {
     @Path("/{deviceGuid}/command")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
-    public void query(@PathParam(DEVICE_GUID) final String guid,
-                      @QueryParam(START) final Timestamp start,
-                      @QueryParam(END) final Timestamp end,
-                      @QueryParam(COMMAND) final String command,
-                      @QueryParam(STATUS) final String status,
-                      @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) final String sortField,
-                      @QueryParam(SORT_ORDER) @SortOrder final Boolean sortOrder,
-                      @QueryParam(TAKE) final Integer take,
-                      @QueryParam(SKIP) final Integer skip,
-                      @QueryParam(GRID_INTERVAL) final Integer gridInterval,
-                      @Suspended final AsyncResponse asyncResponse) {
+    public Response query(@PathParam(DEVICE_GUID) String guid,
+                          @QueryParam(START) Timestamp start,
+                          @QueryParam(END) Timestamp end,
+                          @QueryParam(COMMAND) String command,
+                          @QueryParam(STATUS) String status,
+                          @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
+                          @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                          @QueryParam(TAKE) Integer take,
+                          @QueryParam(SKIP) Integer skip,
+                          @QueryParam(GRID_INTERVAL) Integer gridInterval) {
 
         logger.debug("Device command query requested");
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                logger.debug("Device command query request proceed successfully");
-            }
-        });
+        if (sortOrder == null) {
+            sortOrder = true;
+        }
 
-        final boolean sortOrderRes = sortOrder == null ? true : sortOrder;
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (!TIMESTAMP.equalsIgnoreCase(sortField)
-                            && !COMMAND.equalsIgnoreCase(sortField)
-                            && !STATUS.equalsIgnoreCase(sortField)) {
-                        logger.debug("Device command query failed. Bad request for sortField.");
-                        asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST,
-                                new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS)));
-                    }
-                    String sortFieldLower = sortField.toLowerCase();
+        if (!TIMESTAMP.equalsIgnoreCase(sortField)
+                && !COMMAND.equalsIgnoreCase(sortField)
+                && !STATUS.equalsIgnoreCase(sortField)) {
+            logger.debug("Device command query failed. Bad request for sortField.");
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
+        }
+        sortField = sortField.toLowerCase();
 
-                    HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-                    Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-                    List<DeviceCommand> commandList =
-                            commandService
-                                    .queryDeviceCommand(device, start, end, command, status, sortFieldLower,
-                                            sortOrderRes, take, skip, gridInterval);
-                    asyncResponse.resume(ResponseFactory.response(Response.Status.OK, commandList,
-                            Policy.COMMAND_LISTED));
-                } catch (Exception e) {
-                    asyncResponse.resume(e);
-                }
-            }
-        });
+        List<DeviceCommand> commandList =
+                commandService.queryDeviceCommand(device, start, end, command, status, sortField, sortOrder, take,
+                        skip, gridInterval);
 
+        logger.debug("Device command query request proceed successfully");
+        return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);
     }
 
     /**

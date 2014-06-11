@@ -3,8 +3,8 @@
     <title>DeviceHive OAuth Authorization</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="text/javascript" src="./scripts/jquery-1.7.2.js"></script>
-    <script type="text/javascript" src="./scripts/oauth.utils.js"></script>
+    <script type="text/javascript" src="oauth2/scripts/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="oauth2/scripts/oauth.utils.js"></script>
     <style type="text/css">
         html, body { margin: 0px auto; padding: 0; font-family: Verdana; font-size: 12pt; }
         input[type=text], input[type=password] { width: 200px; }
@@ -61,7 +61,7 @@
 
             var viewModel = {
 
-                serviceUrl: 'http://localhost/hive/rest',
+                serviceUrl: 'http://devicehive-java/DeviceHiveJava/rest',
 
                 getClientInfo: function () {
 
@@ -253,7 +253,7 @@
 
             // parse URL parameters
             viewModel.oauthClientId = getUrlParam("client_id");
-            viewModel.oauthRedirectUrl = getUrlParam("redirect_uri");
+            viewModel.oauthRedirectUrl = getUrlParam("redirect_uri")
             viewModel.oauthResponseType = getUrlParam("response_type");
             viewModel.oauthScope = getUrlParam("scope");
             viewModel.oauthState = getUrlParam("state");

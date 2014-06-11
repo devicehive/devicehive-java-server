@@ -16,7 +16,6 @@ import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.google.gson.Gson;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
@@ -37,9 +37,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.CompletionCallback;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
@@ -67,12 +64,13 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class DeviceController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
+
     @EJB
     private DeviceEquipmentService deviceEquipmentService;
+
     @EJB
     private DeviceService deviceService;
-    @EJB
-    private AsynchronousExecutor executor;
+
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -95,59 +93,42 @@ public class DeviceController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = {GET_DEVICE})
-    public void list(@QueryParam(NAME) final String name,
-                     @QueryParam(NAME_PATTERN) final String namePattern,
-                     @QueryParam(STATUS) final String status,
-                     @QueryParam(NETWORK_ID) final Long networkId,
-                     @QueryParam(NETWORK_NAME) final String networkName,
-                     @QueryParam(DEVICE_CLASS_ID) final Long deviceClassId,
-                     @QueryParam(DEVICE_CLASS_NAME) final String deviceClassName,
-                     @QueryParam(DEVICE_CLASS_VERSION) final String deviceClassVersion,
-                     @QueryParam(SORT_FIELD) final String sortField,
-                     @QueryParam(SORT_ORDER) @SortOrder final Boolean sortOrder,
-                     @QueryParam(TAKE) @Min(0) @Max(Integer.MAX_VALUE) final Integer take,
-                     @QueryParam(SKIP) @Min(0) @Max(Integer.MAX_VALUE) final Integer skip,
-                     @Suspended final AsyncResponse asyncResponse) {
+    public Response list(@QueryParam(NAME) String name,
+                         @QueryParam(NAME_PATTERN) String namePattern,
+                         @QueryParam(STATUS) String status,
+                         @QueryParam(NETWORK_ID) Long networkId,
+                         @QueryParam(NETWORK_NAME) String networkName,
+                         @QueryParam(DEVICE_CLASS_ID) Long deviceClassId,
+                         @QueryParam(DEVICE_CLASS_NAME) String deviceClassName,
+                         @QueryParam(DEVICE_CLASS_VERSION) String deviceClassVersion,
+                         @QueryParam(SORT_FIELD) String sortField,
+                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                         @QueryParam(TAKE) @Min(0) @Max(Integer.MAX_VALUE) Integer take,
+                         @QueryParam(SKIP) @Min(0) @Max(Integer.MAX_VALUE) Integer skip) {
 
         logger.debug("Device list requested");
 
-        final boolean sortOrderRes = sortOrder == null ? true : sortOrder;
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                logger.debug("Device list proceed for name {}, namePattern {}, status {}, networkId {}, " +
-                        "networkName {}, deviceClassId {}, deviceClassName {}, deviceClassversion {}, sortField {}, " +
-                        "sortOrder {}, take {}, skip {}", namePattern, status, networkId, networkName, deviceClassId,
-                        deviceClassName, deviceClassVersion, sortOrder, take, skip);
-            }
-        });
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (sortField != null
-                            && !NAME.equalsIgnoreCase(sortField)
-                            && !STATUS.equalsIgnoreCase(sortField)
-                            && !NETWORK.equalsIgnoreCase(sortField)
-                            && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
-                        asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST,
-                                new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS)));
-                    }
-                    final String sortFieldLower = sortField == null ? null : sortField.toLowerCase();
+        if (sortOrder == null) {
+            sortOrder = true;
+        }
+        if (sortField != null
+                && !NAME.equalsIgnoreCase(sortField)
+                && !STATUS.equalsIgnoreCase(sortField)
+                && !NETWORK.equalsIgnoreCase(sortField)
+                && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
+            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
+        }
+        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
 
-                    List<Device> result =
-                            deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                                    deviceClassName, deviceClassVersion, sortFieldLower, sortOrderRes, take, skip,
-                                    principal);
-                    asyncResponse.resume(ResponseFactory.response(Response.Status.OK, result,
-                            JsonPolicyDef.Policy.DEVICE_PUBLISHED));
-                } catch (Exception e) {
-                    asyncResponse.resume(e);
-                }
-            }
-        });
+        List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
+                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, principal);
 
+        logger.debug("Device list proceed result. Result list contains {} elems", result.size());
+
+        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
     /**

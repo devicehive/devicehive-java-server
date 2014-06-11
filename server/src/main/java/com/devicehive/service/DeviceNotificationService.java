@@ -83,12 +83,13 @@ public class DeviceNotificationService {
                                                             Integer skip,
                                                             Integer gridInterval) {
         return deviceNotificationDAO
-                .queryDeviceNotification(device.getId(), start, end, notification, sortField, sortOrderAsc, take, skip,
+                .queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip,
                         gridInterval);
     }
 
 
     //device should be already set
+
     public List<DeviceNotification> saveDeviceNotification(List<DeviceNotification> notifications) {
         for (DeviceNotification notification : notifications) {
             deviceNotificationDAO.createNotification(notification);

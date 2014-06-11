@@ -14,7 +14,6 @@ import com.devicehive.model.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
-import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
@@ -22,15 +21,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.CompletionCallback;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -56,12 +53,12 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 public class AccessKeyController {
 
     private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
+
     @EJB
     private UserService userService;
+
     @EJB
     private AccessKeyService accessKeyService;
-    @EJB
-    private AsynchronousExecutor executor;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:
@@ -74,28 +71,16 @@ public class AccessKeyController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public void list(@PathParam(USER_ID) final String userId, @Suspended final AsyncResponse asyncResponse) {
+    public Response list(@PathParam(USER_ID) String userId) {
 
         logger.debug("Access key : list requested for userId : {}", userId);
 
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                logger.debug("Access key : insert proceed successfully for userId : {}", userId);
-            }
-        });
-        final Long id = getUser(userId).getId();
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    List<AccessKey> keyList = accessKeyService.list(id);
-                    asyncResponse.resume(ResponseFactory.response(OK, keyList, ACCESS_KEY_LISTED));
-                } catch (Exception e) {
-                    asyncResponse.resume(e);
-                }
-            }
-        });
+        Long id = getUser(userId).getId();
+        List<AccessKey> keyList = accessKeyService.list(id);
+
+        logger.debug("Access key : insert proceed successfully for userId : {}", userId);
+
+        return ResponseFactory.response(OK, keyList, ACCESS_KEY_LISTED);
     }
 
     /**
