@@ -25,7 +25,8 @@ import static com.devicehive.model.Configuration.Queries.Values;
 @Entity
 @Table(name = "configuration")
 @NamedQueries({
-        @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL)
+        @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL),
+        @NamedQuery(name = Names.DELETE, query = Values.DELETE)
 })
 @Cacheable(true)
 public class Configuration implements HiveEntity {
@@ -87,6 +88,10 @@ public class Configuration implements HiveEntity {
         return value;
     }
 
+    public void setValue(long value) {
+        this.value = Long.toString(value);
+    }
+
     public void setValue(boolean value) {
         this.value = Boolean.toString(value);
     }
@@ -123,17 +128,19 @@ public class Configuration implements HiveEntity {
         this.value = Integer.toString(value);
     }
 
-    public void setValue(long value) {
-        this.value = Long.toString(value);
-    }
-
     public static class Queries {
         public static interface Names {
             static final String GET_ALL = "Configuration.getAll";
+            static final String DELETE = "Configuration.delete";
         }
 
         static interface Values {
             public static final String GET_ALL = "select c from Configuration c";
+            public static final String DELETE = "delete from Configuration c where c.name = :name";
+        }
+
+        public static interface Parameters {
+            static final String NAME = "name";
         }
     }
 }

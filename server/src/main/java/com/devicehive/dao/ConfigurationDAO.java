@@ -9,11 +9,14 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+import static com.devicehive.model.Configuration.Queries.Names.DELETE;
 import static com.devicehive.model.Configuration.Queries.Names.GET_ALL;
+import static com.devicehive.model.Configuration.Queries.Parameters.NAME;
 
 @Stateless
 @LogExecutionTime
@@ -44,5 +47,12 @@ public class ConfigurationDAO {
             configuration.setValue(value);
             em.persist(configuration);
         }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public void delete(@NotNull String name) {
+        Query query = em.createNamedQuery(DELETE);
+        query.setParameter(NAME, name);
+        query.executeUpdate();
     }
 }
