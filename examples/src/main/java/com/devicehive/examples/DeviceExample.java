@@ -56,7 +56,7 @@ public class DeviceExample extends Example {
     public DeviceExample(PrintStream err, PrintStream out, String... args) throws HiveException, ExampleException {
         super(out, args);
         commandLine = getCommandLine();
-        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null,
+        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
                 Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 

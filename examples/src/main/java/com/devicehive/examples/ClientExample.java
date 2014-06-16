@@ -4,7 +4,12 @@ package com.devicehive.examples;
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
-import com.devicehive.client.model.*;
+import com.devicehive.client.HiveMessageHandler;
+import com.devicehive.client.model.AccessKey;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.JsonStringWrapper;
+import com.devicehive.client.model.User;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import com.google.gson.JsonObject;
@@ -46,7 +51,7 @@ public class ClientExample extends Example {
         super(out, args);
         commandLine = getCommandLine();
         hiveClient = HiveFactory
-                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null, Example.HIVE_CONNECTION_EVENT_HANDLER);
+                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     /**
@@ -132,6 +137,12 @@ public class ClientExample extends Example {
         private final DeviceCommand command = new DeviceCommand();
         private final CommandsController cc;
         private final List<Device> allAvailableDevices;
+        private final HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
+            @Override
+            public void handle(DeviceCommand message) {
+                print("Command proceed: %s. Id: %s", message.getCommand(), message.getId());
+            }
+        };
 
         private CommandTask() throws HiveException {
             command.setCommand("example_command");
@@ -148,7 +159,7 @@ public class ClientExample extends Example {
         public void run() {
             try{
                 for (Device device : allAvailableDevices) {
-                    cc.insertCommand(device.getId(), command);
+                    cc.insertCommand(device.getId(), command, commandsHandler);
                     print("The command {} will be sent to device {}", command.getParameters(), device.getId());
                 }
             } catch (HiveException e) {

@@ -32,15 +32,14 @@ public class RealDeviceExample extends Example {
     private final HiveMessageHandler<DeviceCommand> commandUpdatesHandler = new HiveMessageHandler<DeviceCommand>() {
         @Override
         public void handle(DeviceCommand command) {
-            print("Command derived and proceed: {}" + command);
+            print("Command derived and proceed: {}", command);
         }
     };
 
     public RealDeviceExample(PrintStream out, String... args) throws ExampleException, HiveException {
         super(out, args);
         CommandLine commandLine = getCommandLine();
-        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), null,
-                Example.HIVE_CONNECTION_EVENT_HANDLER);
+        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), Example.HIVE_CONNECTION_EVENT_HANDLER);
     }
 
     public static void main(String... args) {
@@ -96,6 +95,7 @@ public class RealDeviceExample extends Example {
         @Override
         public void run() {
             try {
+
                 CommandsController cc = hiveClient.getCommandsController();
                 NotificationsController nc = hiveClient.getNotificationsController();
                 DeviceCommand command = new DeviceCommand();
@@ -122,8 +122,8 @@ public class RealDeviceExample extends Example {
                 notification.setParameters(new JsonStringWrapper("{\"p1\":\"val\"}"));
                 nc.insertNotification(uuid, notification);
                 command.setParameters(new JsonStringWrapper(commandParams.toString()));
-                cc.insertCommand(uuid, command);
-                print("The command {} will be sent to all available devices");
+                cc.insertCommand(uuid, command, commandUpdatesHandler);
+                print("The command {} will be sent to all available devices", command.getCommand());
 
             } catch (HiveException e) {
                 print(e.getMessage());
