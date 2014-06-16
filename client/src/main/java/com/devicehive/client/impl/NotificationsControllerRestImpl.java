@@ -4,7 +4,6 @@ package com.devicehive.client.impl;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.RestAgent;
-import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
@@ -19,7 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class NotificationsControllerRestImpl implements NotificationsController {
@@ -42,8 +43,8 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 "grid interval {}", guid, start, end, notificationName, sortOrder, sortField, take, skip, gridInterval);
         String path = "/device/" + guid + "/notification";
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("start", TimestampAdapter.formatTimestamp(start));
-        queryParams.put("end", TimestampAdapter.formatTimestamp(end));
+        queryParams.put("start",start);
+        queryParams.put("end", end);
         queryParams.put("notification", notificationName);
         queryParams.put("sortField", sortField);
         queryParams.put("sortOrder", sortOrder);

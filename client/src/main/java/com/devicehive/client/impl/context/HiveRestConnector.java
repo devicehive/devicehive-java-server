@@ -3,6 +3,7 @@ package com.devicehive.client.impl.context;
 
 import com.devicehive.client.impl.context.connection.ConnectionEvent;
 import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
+import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.rest.RestClientFactory;
@@ -331,7 +332,10 @@ public class HiveRestConnector {
         WebTarget target = restClient.target(uri).path(path);
         if (queryParams != null) {
             for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
-                target = target.queryParam(entry.getKey(), entry.getValue());
+                Object value = entry.getValue() instanceof Timestamp
+                        ? TimestampAdapter.formatTimestamp((Timestamp) entry.getValue())
+                        : entry.getValue();
+                target = target.queryParam(entry.getKey(), value);
             }
         }
         return target;
@@ -339,10 +343,10 @@ public class HiveRestConnector {
 
     private <S> Invocation buildInvocation(String path, String method, Map<String, String> headers, Map<String,
             Object> queryParams, S objectToSend, JsonPolicyDef.Policy sendPolicy) {
-        Invocation.Builder invocationBuilder = createTarget(path, queryParams).
-                request().
-                accept(MediaType.APPLICATION_JSON_TYPE).
-                header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_TYPE);
+        Invocation.Builder invocationBuilder = createTarget(path, queryParams)
+                .request()
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_TYPE);
         for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
         }
