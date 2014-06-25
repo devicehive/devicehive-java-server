@@ -28,6 +28,7 @@ CREATE TABLE access_key_permission (
 ALTER TABLE access_key_permission ADD CONSTRAINT access_key_permission_pk PRIMARY KEY (id);
 ALTER TABLE access_key_permission ADD CONSTRAINT access_key_permission_access_key_fk FOREIGN KEY (access_key_id) REFERENCES
 access_key (id) ON DELETE CASCADE;
+CREATE INDEX access_key_permission_access_key_id_idx ON access_key_permission(access_key_id);
 
 CREATE TABLE oauth_client (
   id BIGSERIAL NOT NULL,
@@ -42,7 +43,7 @@ CREATE TABLE oauth_client (
 
 ALTER TABLE oauth_client ADD CONSTRAINT oauth_client_pk PRIMARY KEY (id);
 ALTER TABLE oauth_client ADD CONSTRAINT oauth_id_unique UNIQUE (oauth_id);
-CREATE UNIQUE INDEX oauth_client_idx ON oauth_client (oauth_id);
+CREATE UNIQUE INDEX oauth_client_oauth_id_idx ON oauth_client (oauth_id);
 
 CREATE TABLE oauth_grant (
   id BIGSERIAL NOT NULL,
@@ -67,7 +68,10 @@ CASCADE;
 ALTER TABLE oauth_grant ADD CONSTRAINT oauth_grant_access_key_fk FOREIGN KEY (key_id) REFERENCES access_key (id) ON
 DELETE CASCADE;
 ALTER TABLE oauth_grant ADD CONSTRAINT auth_code_unique UNIQUE (auth_code);
-CREATE UNIQUE INDEX oauth_grant_idx ON oauth_grant (auth_code);
+CREATE UNIQUE INDEX oauth_grant_auth_code_idx ON oauth_grant (auth_code);
+CREATE INDEX oauth_grant_key_id_idx ON oauth_grant(key_id);
+CREATE INDEX oauth_grant_client_id_idx ON oauth_grant(client_id);
+CREATE INDEX oauth_grant_user_id_idx ON oauth_grant(user_id);
 
 --default: debug features are enabled--
 INSERT INTO configuration (name, value)
@@ -76,4 +80,20 @@ INSERT INTO configuration (name, value)
 ALTER TABLE device_command
     ADD COLUMN origin_session_id varchar(64);
 
+--Indexes
+CREATE INDEX device_notification_timestamp_device_id_idx ON device_notification(timestamp, device_id);
+CREATE INDEX device_command_timestamp_device_id_idx ON device_command(timestamp, device_id);
 CREATE INDEX device_command_origin_session_id_idx ON device_command (origin_session_id);
+CREATE UNIQUE INDEX device_guid_idx ON device(guid);
+CREATE INDEX device_network_id_idx ON device(network_id);
+CREATE UNIQUE INDEX device_class_name_version_idx ON device_class(name, version);
+CREATE INDEX device_equipment_device_id_code_idx ON device_equipment(device_id, code);
+CREATE INDEX equipment_device_class_id_idx ON equipment(device_class_id);
+CREATE UNIQUE INDEX network_name_idx ON network(name);
+CREATE UNIQUE INDEX user_login_idx ON "user"(login);
+CREATE INDEX user_network_user_id_network_id_idx ON user_network(user_id, network_id);
+CREATE INDEX user_network_network_id_user_id_idx ON user_network(network_id, user_id);
+
+
+
+
