@@ -28,7 +28,7 @@ public class AccessKeyInterceptor {
     @AroundInvoke
     public Object checkPermissions(InvocationContext context) throws Exception {
         try {
-            logger.debug(Thread.currentThread().getName());
+            logger.trace(Thread.currentThread().getName());
             HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
             AccessKey key = principal.getKey();
             if (key == null) {

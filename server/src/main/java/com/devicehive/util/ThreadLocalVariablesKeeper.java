@@ -76,7 +76,7 @@ public final class ThreadLocalVariablesKeeper {
     }
 
     public static void clean() {
-        logger.debug("Clean : ThreadName : {}.", Thread.currentThread().getName());
+        logger.trace("Clean : ThreadName : {}.", Thread.currentThread().getName());
         REQUEST.set(null);
         PRINCIPAL_KEEPER.set(null);
         SESSION.set(null);
