@@ -71,8 +71,8 @@ Glassfish configuration
 * Navigate to Resources -> JDBC -> JDBC Connection Pools. You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
 
 Pool Name: Specify some pool name, e.g. DeviceHivePool 
-Resource Type: javax.sql.XADataSource
-Datasource Classname: org.postgresql.xa.PGXADataSource
+Resource Type: javax.sql.ConnectionPoolDataSource 
+Datasource Classname: org.postgresql.ds.PGConnectionPoolDataSource
 
 Specify pool settings at your convenience.
 
