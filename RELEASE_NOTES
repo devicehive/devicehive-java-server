@@ -16,6 +16,7 @@ NEW FEATURES
 * Websocket client endpoint extended to support device actions
 * Equipment list made a part of DeviceClass
 * String identifiers can be used for devices instead of UUID
+* Multiple subscriptions added: every subscribe action create one new subscription, unsubscribe action is performed now using subscription's identifier
 
 NOTES
 =====
