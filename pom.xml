@@ -21,12 +21,8 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>1.1.2</version>
-            </dependency>
 
+            <!-- Java EE -->
             <dependency>
                 <groupId>javax</groupId>
                 <artifactId>javaee-api</artifactId>
@@ -34,25 +30,51 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- Logging -->
             <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>2.2.4</version>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.1.2</version>
             </dependency>
 
+            <!-- Hibernate ORM -->
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-entitymanager</artifactId>
                 <version>${hibernate-version}</version>
             </dependency>
 
+            <!-- Hazelcast -->
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.11</version>
-                <scope>test</scope>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+                <version>${hazelcast-version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast-hibernate4</artifactId>
+                <version>${hazelcast-version}</version>
+            </dependency>
+
+
+            <!-- Google Guava libraries -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>17.0</version>
+            </dependency>
+
+
+            <!-- Gson for JSON processing -->
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>2.2.4</version>
+            </dependency>
+
+
+            <!-- Apache Commons -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
@@ -78,58 +100,60 @@
             </dependency>
 
             <dependency>
+                <groupId>commons-cli</groupId>
+                <artifactId>commons-cli</artifactId>
+                <version>1.2</version>
+            </dependency>
+
+            <!-- Apache HTTP Components -->
+            <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>4.3.3</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${hazelcast-version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast-hibernate4</artifactId>
-                <version>${hazelcast-version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-all</artifactId>
-                <version>1.9.5</version>
-            </dependency>
-
+            <!-- Joda Time -->
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>2.3</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.ebaysf.web</groupId>
-                <artifactId>cors-filter</artifactId>
-                <version>1.0.1</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>17.0</version>
-            </dependency>
-
+            <!-- JQuery -->
             <dependency>
                 <groupId>org.webjars</groupId>
                 <artifactId>jquery</artifactId>
                 <version>1.11.1</version>
             </dependency>
 
+            <!-- Cross-Origin Resource Sharing servlet filter -->
+            <dependency>
+                <groupId>org.ebaysf.web</groupId>
+                <artifactId>cors-filter</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+
+            <!-- Postgresql JDBC driiver -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>9.3-1100-jdbc41</version>
+            </dependency>
 
             <dependency>
-                <groupId>commons-cli</groupId>
-                <artifactId>commons-cli</artifactId>
-                <version>1.2</version>
+                <groupId>com.googlecode.flyway</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>2.3.1</version>
+            </dependency>
+
+
+
+
+
+            <dependency>
+                <groupId>javax.websocket</groupId>
+                <artifactId>javax.websocket-client-api</artifactId>
+                <version>1.0</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
@@ -153,21 +177,19 @@
                 <artifactId>jersey-client</artifactId>
                 <version>2.9.1</version>
             </dependency>
+
             <dependency>
-                <groupId>javax.websocket</groupId>
-                <artifactId>javax.websocket-client-api</artifactId>
-                <version>1.0</version>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
-                <groupId>com.googlecode.flyway</groupId>
-                <artifactId>flyway-core</artifactId>
-                <version>2.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>9.3-1100-jdbc41</version>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>1.9.5</version>
+                <scope>test</scope>
             </dependency>
 
         </dependencies>
