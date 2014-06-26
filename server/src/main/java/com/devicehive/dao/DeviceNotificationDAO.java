@@ -63,7 +63,7 @@ public class DeviceNotificationDAO {
             predicates.add(from.get(DeviceNotification.NOTIFICATION_COLUMN).in(names));
         }
         if (devices != null) {
-            predicates.add(from.join(DeviceNotification.DEVICE_COLUMN).in(devices));
+            predicates.add(from.get(DeviceNotification.DEVICE_COLUMN).in(devices));
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -209,9 +209,7 @@ public class DeviceNotificationDAO {
                 predicates.add(userPredicate);
             }
             if (principal.getDevice() != null) {
-                Predicate devicePredicate = from.join(DeviceNotification.DEVICE_COLUMN)
-                        .get(DeviceNotification.ID_COLUMN)
-                        .in(principal.getDevice().getId());
+                Predicate devicePredicate = from.get(DeviceNotification.DEVICE_COLUMN).in(principal.getDevice());
                 predicates.add(devicePredicate);
             }
             if (principal.getKey() != null) {

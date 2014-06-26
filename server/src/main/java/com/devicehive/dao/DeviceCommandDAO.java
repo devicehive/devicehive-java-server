@@ -98,7 +98,7 @@ public class DeviceCommandDAO {
             predicates.add(from.get(DeviceCommand.COMMAND_COLUMN).in(names));
         }
         if (devices != null) {
-            predicates.add(from.join(DeviceCommand.DEVICE_COLUMN).in(devices));
+            predicates.add(from.get(DeviceCommand.DEVICE_COLUMN).in(devices));
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -193,9 +193,7 @@ public class DeviceCommandDAO {
                 predicates.add(userPredicate);
             }
             if (principal.getDevice() != null) {
-                Predicate devicePredicate = from.join(DeviceCommand.DEVICE_COLUMN)
-                        .get(DeviceCommand.ID_COLUMN)
-                        .in(principal.getDevice().getId());
+                Predicate devicePredicate = from.get(DeviceCommand.DEVICE_COLUMN).in(principal.getDevice());
                 predicates.add(devicePredicate);
             }
             if (principal.getKey() != null) {
