@@ -81,11 +81,6 @@
                 <version>3.3.2</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>4.0</version>
-            </dependency>
 
             <dependency>
                 <groupId>commons-net</groupId>
