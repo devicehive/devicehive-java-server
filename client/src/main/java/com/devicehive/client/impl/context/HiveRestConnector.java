@@ -78,7 +78,7 @@ public class HiveRestConnector {
         restClient.close();
     }
 
-    public synchronized boolean checkConnection() {
+    public synchronized boolean checkConnection(){
         try {
             execute("/info", HttpMethod.GET, null, null, null, ApiInfo.class, null, null);
             isConnected = true;
@@ -104,7 +104,7 @@ public class HiveRestConnector {
      * @param sendPolicy   policy that declares exclusion strategy for sending object
      */
     public <S> void executeWithConnectionCheck(String path, String method, Map<String, String> headers, S objectToSend,
-                                               JsonPolicyDef.Policy sendPolicy) throws HiveException {
+                                               JsonPolicyDef.Policy sendPolicy) throws HiveException{
         executeWithConnectionCheck(path, method, headers, null, objectToSend, null, sendPolicy, null);
     }
 
@@ -185,11 +185,6 @@ public class HiveRestConnector {
             throw new HiveClientException(Messages.CONNECTION_LOST);
         return execute(path, method, headers, queryParams, objectToSend, typeOfR, sendPolicy, receivePolicy);
     }
-
-    public synchronized boolean isConnected() {
-        return isConnected;
-    }
-
     /**
      * Executes request with following params using forms
      *

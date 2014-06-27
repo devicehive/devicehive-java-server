@@ -117,10 +117,6 @@ public class RealDeviceExample extends Example {
                     isItGreenTurn = true;
 
                 }
-                DeviceNotification notification = new DeviceNotification();
-                notification.setNotification("some");
-                notification.setParameters(new JsonStringWrapper("{\"p1\":\"val\"}"));
-                nc.insertNotification(uuid, notification);
                 command.setParameters(new JsonStringWrapper(commandParams.toString()));
                 cc.insertCommand(uuid, command, commandUpdatesHandler);
                 print("The command {} will be sent to all available devices", command.getCommand());
