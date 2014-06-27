@@ -4,7 +4,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.UserStatus;
 import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.Stateless;
@@ -160,10 +159,5 @@ public class UserDAO {
     public User create(User user) {
         em.persist(user);
         return user;
-    }
-
-    public void deleteUser(@NotNull long id) {
-        User user = this.findById(id);
-        user.setStatus(UserStatus.DELETED);
     }
 }

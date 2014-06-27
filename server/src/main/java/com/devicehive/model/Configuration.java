@@ -84,7 +84,6 @@ public class Configuration implements HiveEntity {
     }
 
     public String getValue() {
-
         return value;
     }
 
