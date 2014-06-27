@@ -30,12 +30,7 @@ import static com.devicehive.constants.Constants.USE_SOCKETS_DESCRIPTION;
  * Base class for full examples set.
  */
 public abstract class Example {
-    public static final HiveConnectionEventHandler HIVE_CONNECTION_EVENT_HANDLER;
-
-    static {
-        ConnectionEventHandlerImpl impl = new ConnectionEventHandlerImpl();
-        HIVE_CONNECTION_EVENT_HANDLER = new HiveConnectionEventHandler(impl, impl);
-    }
+    public static final ConnectionEventHandlerImpl impl = new ConnectionEventHandlerImpl();
 
     private final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private final Options options;

@@ -57,7 +57,7 @@ public class DeviceExample extends Example {
         super(out, args);
         commandLine = getCommandLine();
         hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
-                Example.HIVE_CONNECTION_EVENT_HANDLER);
+                Example.impl, Example.impl);
     }
 
     public static void main(String... args) {

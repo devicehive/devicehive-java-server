@@ -1,5 +1,7 @@
 package com.devicehive.client.impl.context.connection;
 
+import com.devicehive.client.ConnectionEstablishedNotifier;
+import com.devicehive.client.ConnectionLostNotifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +11,7 @@ import java.util.concurrent.Executors;
 /**
  * Handler for connections events delegates processing of connection lost/est
  */
-public class HiveConnectionEventHandler implements ConnectionEventHandler {
+public class HiveConnectionEventHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(HiveConnectionEventHandler.class);
     private ConnectionLostNotifier connectionLostNotifier;
@@ -28,7 +30,6 @@ public class HiveConnectionEventHandler implements ConnectionEventHandler {
     public HiveConnectionEventHandler() {
     }
 
-    @Override
     public void handle(final ConnectionEvent event)  {
         logger.info("Connection event info. Timestamp : {}, id : {}, is lost : {}, service uri:",
                 event.getTimestamp(), event.getId(), event.isLost(), event.getServiceUri());

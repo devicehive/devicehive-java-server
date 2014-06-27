@@ -8,7 +8,6 @@ import com.devicehive.client.impl.HiveDeviceWebsocketImpl;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
-import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.exceptions.HiveException;
 
 import java.net.URI;
@@ -20,12 +19,14 @@ public class HiveFactory {
 
     public static HiveClient createClient(URI restUri,
                                           boolean preferWebsockets) throws HiveException {
-        return createClient(restUri, preferWebsockets, null);
+        return createClient(restUri, preferWebsockets, null, null);
     }
 
     public static HiveClient createClient(URI restUri,
                                           boolean preferWebsockets,
-                                          HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+                                          ConnectionEstablishedNotifier connectionEstablishedNotifier,
+                                          ConnectionLostNotifier connectionLostNotifier) throws HiveException {
+        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
         if (preferWebsockets) {
             return new HiveClientWebsocketImpl(createWebsocketCleintAgent(restUri, connectionEventHandler));
         } else {
@@ -35,12 +36,14 @@ public class HiveFactory {
 
     public static HiveDevice createDevice(URI restUri,
                                           boolean preferWebsockets) throws HiveException {
-        return createDevice(restUri, preferWebsockets, null);
+        return createDevice(restUri, preferWebsockets, null, null);
     }
 
     public static HiveDevice createDevice(URI restUri,
                                           boolean preferWebsockets,
-                                          HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+                                          ConnectionEstablishedNotifier connectionEstablishedNotifier,
+                                          ConnectionLostNotifier connectionLostNotifier) throws HiveException {
+        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
         if (preferWebsockets) {
             return new HiveDeviceWebsocketImpl(createWebsocketDeviceAgent(restUri, connectionEventHandler));
         } else {

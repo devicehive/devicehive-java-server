@@ -1,4 +1,4 @@
-package com.devicehive.client.impl.context.connection;
+package com.devicehive.client;
 
 import java.net.URI;
 import java.sql.Timestamp;

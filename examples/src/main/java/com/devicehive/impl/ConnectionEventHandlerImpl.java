@@ -1,8 +1,8 @@
 package com.devicehive.impl;
 
 
-import com.devicehive.client.impl.context.connection.ConnectionEstablishedNotifier;
-import com.devicehive.client.impl.context.connection.ConnectionLostNotifier;
+import com.devicehive.client.ConnectionEstablishedNotifier;
+import com.devicehive.client.ConnectionLostNotifier;
 
 import java.net.URI;
 import java.sql.Timestamp;
