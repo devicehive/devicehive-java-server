@@ -26,36 +26,35 @@ import static com.devicehive.configuration.Constants.VALUE;
 @Path("/configuration")
 public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
-
     @EJB
     private ConfigurationService configurationService;
 
-
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{"+NAME+"}")
-    public void setProperty(@PathParam(NAME) String name, String value) {
+    @Path("/{" + NAME + "}")
+    public Response setProperty(@PathParam(NAME) String name, String value) {
         configurationService.save(name, value);
+        return Response.ok().build();
     }
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{"+NAME+"}/set")
-    public void setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
+    @Path("/{" + NAME + "}/set")
+    public Response setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
         configurationService.save(name, value);
+        return Response.ok().build();
     }
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{"+NAME+"}")
-    public String get(@PathParam(NAME) String name) {
-        return configurationService.get(name);
+    @Path("/{" + NAME + "}")
+    public Response get(@PathParam(NAME) String name) {
+        return Response.ok().entity(configurationService.get(name)).build();
     }
-
 
     @DELETE
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{"+NAME+"}")
+    @Path("/{" + NAME + "}")
     public Response deleteProperty(@PathParam(NAME) String name) {
         configurationService.delete(name);
         return Response.noContent().build();
