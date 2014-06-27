@@ -53,20 +53,24 @@ public class HiveRestConnector {
     private final URI uri;
     private final Client restClient;
     private final HiveConnectionEventHandler connectionEventHandler;
+    private final ExecutorService connectionChecker = Executors.newSingleThreadExecutor();
     private volatile HivePrincipal hivePrincipal;
     private volatile boolean isConnected = false;
-    private final ExecutorService connectionChecker = Executors.newSingleThreadExecutor();
 
     /**
      * Creates client connected to the given REST URL. All state is kept in the hive context.
      *
-     * @param uri         URI of RESTful service
+     * @param uri URI of RESTful service
      */
     public HiveRestConnector(URI uri, HiveConnectionEventHandler connectionEventHandler) {
         this.uri = uri;
         restClient = RestClientFactory.getClient();
         this.connectionEventHandler = connectionEventHandler;
         checkConnection();
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 
     public void setHivePrincipal(HivePrincipal hivePrincipal) {
@@ -78,7 +82,7 @@ public class HiveRestConnector {
         restClient.close();
     }
 
-    public synchronized boolean checkConnection(){
+    public synchronized boolean checkConnection() {
         try {
             execute("/info", HttpMethod.GET, null, null, null, ApiInfo.class, null, null);
             isConnected = true;
@@ -104,7 +108,7 @@ public class HiveRestConnector {
      * @param sendPolicy   policy that declares exclusion strategy for sending object
      */
     public <S> void executeWithConnectionCheck(String path, String method, Map<String, String> headers, S objectToSend,
-                                               JsonPolicyDef.Policy sendPolicy) throws HiveException{
+                                               JsonPolicyDef.Policy sendPolicy) throws HiveException {
         executeWithConnectionCheck(path, method, headers, null, objectToSend, null, sendPolicy, null);
     }
 
@@ -178,13 +182,15 @@ public class HiveRestConnector {
      * @return instance of TypeOfR or null
      */
     public synchronized <S, R> R executeWithConnectionCheck(String path, String method, Map<String, String> headers,
-                                               Map<String, Object> queryParams,
-                                               S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
-                                               JsonPolicyDef.Policy receivePolicy) throws HiveException {
+                                                            Map<String, Object> queryParams,
+                                                            S objectToSend, Type typeOfR,
+                                                            JsonPolicyDef.Policy sendPolicy,
+                                                            JsonPolicyDef.Policy receivePolicy) throws HiveException {
         if (!isConnected)
             throw new HiveClientException(Messages.CONNECTION_LOST);
         return execute(path, method, headers, queryParams, objectToSend, typeOfR, sendPolicy, receivePolicy);
     }
+
     /**
      * Executes request with following params using forms
      *
@@ -195,7 +201,7 @@ public class HiveRestConnector {
      * @return instance of TypeOfR or null
      */
     public synchronized <R> R executeFormWithConnectionCheck(String path, Map<String, String> formParams, Type typeOfR,
-                                                JsonPolicyDef.Policy receivePolicy) throws HiveException {
+                                                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
         try {
             Response response = buildFormInvocation(path, formParams).invoke();
             Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
@@ -224,7 +230,7 @@ public class HiveRestConnector {
             }
         } catch (ProcessingException e) {
             if (e.getCause() instanceof ConnectException) {
-               onConnectionLost();
+                onConnectionLost();
             } else {
                 throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
             }
@@ -248,9 +254,9 @@ public class HiveRestConnector {
      * @return instance of TypeOfR or null
      */
     private synchronized <S, R> R execute(String path, String method, Map<String, String> headers,
-                             Map<String, Object> queryParams,
-                             S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
-                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
+                                          Map<String, Object> queryParams,
+                                          S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
+                                          JsonPolicyDef.Policy receivePolicy) throws HiveException {
         try {
             Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
             isConnected = true;
@@ -288,7 +294,7 @@ public class HiveRestConnector {
         return null;
     }
 
-    private void onConnectionLost(){
+    private void onConnectionLost() {
         isConnected = false;
         ConnectionEvent connectionLostEvent = new ConnectionEvent(uri, new Timestamp(System.currentTimeMillis
                 ()), hivePrincipal);
@@ -297,9 +303,9 @@ public class HiveRestConnector {
         connectionChecker.submit(new Runnable() {
             @Override
             public void run() {
-                  while (!isConnected && !Thread.currentThread().isInterrupted()){
-                      checkConnection();
-                  }
+                while (!isConnected && !Thread.currentThread().isInterrupted()) {
+                    checkConnection();
+                }
             }
         });
     }
@@ -389,7 +395,6 @@ public class HiveRestConnector {
         }
         throw new InternalHiveClientException(Messages.FORM_PARAMS_ARE_NULL);
     }
-
 
     private void shutdownAndAwaitTermination() {
         connectionChecker.shutdown(); // Disable new tasks from being submitted
