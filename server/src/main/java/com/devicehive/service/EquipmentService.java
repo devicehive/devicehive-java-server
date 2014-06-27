@@ -5,7 +5,6 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -16,9 +15,6 @@ import java.util.List;
 /**
  * This class manages equipment in database. EquipmentDAO shouldn't
  * be used directly from controller, please use this class instead
- *
- * @author Nikolay Loboda
- * @since 06.08.2013
  */
 @Stateless
 public class EquipmentService {

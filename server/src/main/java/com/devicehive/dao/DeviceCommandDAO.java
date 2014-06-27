@@ -82,7 +82,6 @@ public class DeviceCommandDAO {
         query.setParameter(GUID, guid);
         CacheHelper.cacheable(query);
         List<DeviceCommand> resultList = query.getResultList();
-
         return resultList.isEmpty() ? null : resultList.get(0);
     }
 
@@ -102,7 +101,9 @@ public class DeviceCommandDAO {
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
-        return em.createQuery(criteria).getResultList();
+        TypedQuery<DeviceCommand> query = em.createQuery(criteria);
+        CacheHelper.cacheable(query);
+        return query.getResultList();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -208,9 +209,9 @@ public class DeviceCommandDAO {
                     if (extraFilter.getNetworkIds() != null) {
                         filter.add(from.join("device").join("network").get("id").in(extraFilter.getNetworkIds()));
                     }
-                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[filter.size()])));
                 }
-                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[extraPredicates.size()])));
             }
         }
     }

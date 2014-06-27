@@ -22,7 +22,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -46,7 +45,6 @@ public class AccessKeyService {
     private DeviceDAO deviceDAO;
     @EJB
     private AccessKeyService self;
-
 
     public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
         if (accessKey.getLabel() == null) {
@@ -100,10 +98,12 @@ public class AccessKeyService {
         return true;
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public AccessKey authenticate(@NotNull String key) {
         return accessKeyDAO.get(key);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public AccessKey find(@NotNull Long keyId, @NotNull Long userId) {
         return accessKeyDAO.get(userId, keyId);
     }
@@ -121,6 +121,7 @@ public class AccessKeyService {
         }
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToNetwork(AccessKey accessKey, Network targetNetwork) {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
         Set<Long> allowedNetworks = new HashSet<>();
@@ -146,29 +147,7 @@ public class AccessKeyService {
                 (user.isAdmin() || user.getNetworks().contains(targetNetwork));
     }
 
-    public boolean hasAccessToDevice(AccessKey accessKey, Device device) {
-        Set<AccessKeyPermission> permissions = accessKey.getPermissions();
-        Set<String> allowedDevices = new HashSet<>();
-        User user = accessKey.getUser();
-        Set<AccessKeyPermission> toRemove = new HashSet<>();
-        for (AccessKeyPermission currentPermission : permissions) {
-            if (currentPermission.getDeviceGuidsAsSet() == null) {
-                allowedDevices.add(null);
-            } else {
-                if (currentPermission.getDeviceGuidsAsSet().contains(device.getGuid())) {
-                    allowedDevices.addAll(currentPermission.getDeviceGuidsAsSet());
-                } else {
-                    toRemove.add(currentPermission);
-                }
-            }
-        }
-        permissions.removeAll(toRemove);
-        if (allowedDevices.contains(null)) {
-            return userService.hasAccessToDevice(user, device);
-        }
-        return allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(user, device);
-    }
-
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToDevice(AccessKey accessKey, String deviceGuid) {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
         Set<String> allowedDevices = new HashSet<>();
@@ -192,10 +171,12 @@ public class AccessKeyService {
             if (currentPermission.getNetworkIdsAsSet() == null) {
                 allowedNetworks.add(null);
             } else {
-                if (!currentPermission.getNetworkIdsAsSet().contains(device.getNetwork().getId())) {
-                    toRemove.add(currentPermission);
-                } else {
-                    allowedNetworks.addAll(currentPermission.getNetworkIdsAsSet());
+                if (device.getNetwork() != null) {
+                    if (!currentPermission.getNetworkIdsAsSet().contains(device.getNetwork().getId())) {
+                        toRemove.add(currentPermission);
+                    } else {
+                        allowedNetworks.addAll(currentPermission.getNetworkIdsAsSet());
+                    }
                 }
             }
         }
@@ -233,7 +214,6 @@ public class AccessKeyService {
         return newKey;
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
         AccessKey existing = self.get(user.getId(), grant.getAccessKey().getId());
         permissionDAO.deleteByAccessKey(existing);
@@ -262,6 +242,7 @@ public class AccessKeyService {
         return existing;
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<AccessKey> list(@NotNull Long userId) {
         return accessKeyDAO.list(userId);
     }
@@ -270,6 +251,7 @@ public class AccessKeyService {
         return accessKeyDAO.get(userId, keyId);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean delete(Long userId, @NotNull Long keyId) {
         if (userId == null) {
             return accessKeyDAO.delete(keyId);

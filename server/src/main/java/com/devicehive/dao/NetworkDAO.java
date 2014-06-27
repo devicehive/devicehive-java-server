@@ -53,6 +53,7 @@ public class NetworkDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Network> getNetworkList(@NotNull User user,
                                         Set<AccessKeyPermission> permissions,
                                         List<Long> networkIds) {
@@ -74,9 +75,9 @@ public class NetworkDAO {
                     if (extraFilter.getNetworkIds() != null) {
                         filter.add(from.get("id").in(extraFilter.getNetworkIds()));
                     }
-                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[filter.size()])));
                 }
-                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[extraPredicates.size()])));
             }
         }
 
@@ -190,9 +191,9 @@ public class NetworkDAO {
                     if (extraFilter.getNetworkIds() != null) {
                         filter.add(from.get("id").in(extraFilter.getNetworkIds()));
                     }
-                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[filter.size()])));
                 }
-                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[extraPredicates.size()])));
             }
         }
     }

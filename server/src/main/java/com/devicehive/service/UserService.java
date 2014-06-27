@@ -74,26 +74,6 @@ public class UserService {
         }
     }
 
-    /**
-     * updates password for user
-     *
-     * @param id       user id
-     * @param password password
-     * @return User with updated parameters
-     */
-    public User updatePassword(@NotNull long id, String password) {
-
-        User u = userDAO.findById(id);
-
-        if (password != null) {
-            String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(password, salt);
-            u.setPasswordHash(hash);
-            u.setPasswordSalt(salt);
-        }
-        return u;
-    }
-
     public User updateUser(@NotNull Long id, UserUpdate userToUpdate) {
         User existing = userDAO.findById(id);
 
@@ -134,6 +114,7 @@ public class UserService {
      * @param userId    id of user
      * @param networkId id of network
      */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
@@ -155,6 +136,7 @@ public class UserService {
      * @param userId    id of user
      * @param networkId id of network
      */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
@@ -167,20 +149,10 @@ public class UserService {
         }
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
         return userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
-    }
-
-    /**
-     * retrieves user by login
-     *
-     * @param login user login
-     * @return User model, or null if there is no such user
-     */
-    public User findByLogin(String login) {
-        return userDAO.findByLogin(login);
     }
 
     /**
@@ -189,7 +161,7 @@ public class UserService {
      * @param id user id
      * @return User model without networks, or null if there is no such user
      */
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public User findById(@NotNull long id) {
         return userDAO.findById(id);
     }
@@ -206,6 +178,7 @@ public class UserService {
         return userDAO.findUserWithNetworks(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public User createUser(@NotNull User user, String password) {
         if (user.getId() != null) {
             throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
@@ -232,6 +205,7 @@ public class UserService {
      * @param id user id
      * @return true in case of success, false otherwise
      */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean deleteUser(long id) {
         return userDAO.delete(id);
     }

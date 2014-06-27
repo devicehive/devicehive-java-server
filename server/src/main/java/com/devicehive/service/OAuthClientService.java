@@ -11,6 +11,8 @@ import com.devicehive.service.helpers.PasswordProcessor;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -25,10 +27,12 @@ public class OAuthClientService {
     private OAuthClientDAO clientDAO;
     private PasswordProcessor secretGenerator = new DefaultPasswordProcessor();
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient get(@NotNull Long id) {
         return clientDAO.get(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<OAuthClient> get(String name,
                                  String namePattern,
                                  String domain,
@@ -40,6 +44,7 @@ public class OAuthClientService {
         return clientDAO.list(name, namePattern, domain, oauthId, sortField, sortOrderAsc, take, skip);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public OAuthClient insert(OAuthClient client) {
         if (client.getId() != null) {
             throw new HiveException(Messages.ID_NOT_ALLOWED, SC_BAD_REQUEST);
@@ -85,18 +90,22 @@ public class OAuthClientService {
         return true;
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean delete(@NotNull Long id) {
         return clientDAO.delete(id);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient getByOAuthID(String oauthID) {
         return clientDAO.get(oauthID);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public OAuthClient authenticate(@NotNull String id, @NotNull String secret) {
         return clientDAO.get(id, secret);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient getByName(String name) {
         return clientDAO.getByName(name);
     }

@@ -15,6 +15,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -26,16 +27,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.devicehive.model.DeviceNotification.Queries.Names.DELETE_BY_FK;
-import static com.devicehive.model.DeviceNotification.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.DeviceNotification.Queries.Parameters.DEVICE;
-import static com.devicehive.model.DeviceNotification.Queries.Parameters.ID;
-
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
+
 
     public DeviceNotification createNotification(DeviceNotification deviceNotification) {
         em.persist(deviceNotification);
@@ -52,7 +49,7 @@ public class DeviceNotificationDAO {
     public List<DeviceNotification> findNotifications(Collection<Device> devices, Collection<String> names,
                                                       @NotNull Timestamp timestamp, HivePrincipal principal) {
         if (devices != null && devices.isEmpty())
-            return Collections.<DeviceNotification>emptyList();
+            return Collections.emptyList();
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
@@ -67,7 +64,9 @@ public class DeviceNotificationDAO {
         }
         appendPrincipalPredicates(predicates, principal, from);
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
-        return em.createQuery(criteria).getResultList();
+        TypedQuery<DeviceNotification> query = em.createQuery(criteria);
+        CacheHelper.cacheable(query);
+        return query.getResultList();
     }
 
     /*
@@ -100,7 +99,6 @@ public class DeviceNotificationDAO {
      synchronously with the adding of the wildcards.
      2) Query parameters are set with query.setParameter(int position, Object value) to avoid sql injection.
      */
-    @SuppressWarnings("unchecked")
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> queryDeviceNotification(Device device,
                                                             Timestamp start,
@@ -111,7 +109,7 @@ public class DeviceNotificationDAO {
                                                             Integer take,
                                                             Integer skip,
                                                             Integer gridInterval) {
-        List<Object> parameters = new ArrayList();
+        List<Object> parameters = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT * FROM device_notification ");     //this part of query is immutable
         if (gridInterval != null) {
@@ -180,19 +178,9 @@ public class DeviceNotificationDAO {
         for (int i = 0; i < parameters.size(); i++) {
             query.setParameter(i + 1, parameters.get(i));
         }
-        return query.getResultList();
-    }
-
-    public boolean deleteNotification(@NotNull long id) {
-        Query query = em.createNamedQuery(DELETE_BY_ID);
-        query.setParameter(ID, id);
-        return query.executeUpdate() != 0;
-    }
-
-    public int deleteNotificationByFK(@NotNull Device device) {
-        Query query = em.createNamedQuery(DELETE_BY_FK);
-        query.setParameter(DEVICE, device);
-        return query.executeUpdate();
+        // Result list will contain only DeviceNotifications according to the query creation
+        @SuppressWarnings("unchecked") List<DeviceNotification> result =  query.getResultList();
+        return result;
     }
 
     private void appendPrincipalPredicates(List<Predicate> predicates, HivePrincipal principal,
@@ -231,9 +219,9 @@ public class DeviceNotificationDAO {
                                         .get(Network.ID_COLUMN).in(extraFilter.getNetworkIds());
                         filter.add(networkFilter);
                     }
-                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[filter.size()])));
                 }
-                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+                predicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[extraPredicates.size()])));
             }
         }
     }

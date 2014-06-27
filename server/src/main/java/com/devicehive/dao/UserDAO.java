@@ -5,6 +5,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.helpers.PasswordProcessor;
+import com.devicehive.util.LogExecutionTime;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -34,6 +35,7 @@ import static com.devicehive.model.User.Queries.Parameters.NETWORK;
 import static com.devicehive.model.User.Queries.Parameters.USER;
 
 @Stateless
+@LogExecutionTime
 public class UserDAO {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
@@ -155,7 +157,6 @@ public class UserDAO {
         return query.executeUpdate() != 0;
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User create(User user) {
         em.persist(user);
         return user;

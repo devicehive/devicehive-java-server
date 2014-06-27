@@ -17,7 +17,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,11 +39,6 @@ public class NetworkService {
     @EJB
     private DeviceService deviceService;
 
-
-    public Network getById(long id) {
-        return networkDAO.getById(id);
-    }
-
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HivePrincipal principal) {
         if (principal.getUser() != null) {
@@ -54,7 +48,7 @@ public class NetworkService {
             }
             List<Device> devices = deviceService.getList(networkId, principal);
             Network result = found.get(0);
-            result.setDevices(new HashSet<Device>(devices));
+            result.setDevices(new HashSet<>(devices));
             return result;
         } else {
             AccessKey key = principal.getKey();
@@ -81,6 +75,7 @@ public class NetworkService {
         }
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean delete(long id) {
         return networkDAO.delete(id);
     }
@@ -113,7 +108,7 @@ public class NetworkService {
         return existing;
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<Network> list(String name,
                               String namePattern,
                               String sortField,
@@ -124,6 +119,7 @@ public class NetworkService {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, principal);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
         Network stored;
         //case network is not defined
@@ -154,6 +150,7 @@ public class NetworkService {
         return stored;
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network createOrUpdateNetworkByUser(NullableWrapper<Network> network, User user) {
         Network stored;
 
@@ -191,6 +188,7 @@ public class NetworkService {
         return stored;
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network verifyNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
         Network stored;
 
@@ -217,5 +215,9 @@ public class NetworkService {
             }
         }
         return stored;
+    }
+
+    private Network getById(long id) {
+        return networkDAO.getById(id);
     }
 }

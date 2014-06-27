@@ -53,6 +53,7 @@ public class OAuthClientDAO {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient get(String id, String secret) {
         TypedQuery<OAuthClient> query = em.createNamedQuery(GET_BY_OAUTH_ID_AND_SECRET, OAuthClient.class);
         query.setParameter(OAUTH_ID, id);
@@ -118,6 +119,7 @@ public class OAuthClientDAO {
 
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient getByName(String name) {
         TypedQuery<OAuthClient> query = em.createNamedQuery(GET_BY_NAME, OAuthClient.class);
         query.setParameter(NAME, name);

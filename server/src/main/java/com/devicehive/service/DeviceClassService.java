@@ -12,7 +12,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
@@ -24,10 +23,6 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
-/**
- * @author Nikolay Loboda
- * @since 19.07.13
- */
 @Stateless
 public class DeviceClassService {
 
@@ -36,17 +31,11 @@ public class DeviceClassService {
     @EJB
     private EquipmentService equipmentService;
 
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceClass get(@NotNull long id) {
-        return deviceClassDAO.get(id);
-    }
-
     public boolean delete(@NotNull long id) {
         return deviceClassDAO.delete(id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public DeviceClass getWithEquipment(@NotNull long id) {
         return deviceClassDAO.getWithEquipment(id);
     }
@@ -174,7 +163,7 @@ public class DeviceClassService {
     }
 
     public Equipment createEquipment(Long classId, Equipment equipment) {
-        DeviceClass deviceClass = deviceClassDAO.get(classId);
+        DeviceClass deviceClass = deviceClassDAO.getDeviceClass(classId);
 
         if (deviceClass == null) {
             throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, classId), NOT_FOUND.getStatusCode());
@@ -197,7 +186,7 @@ public class DeviceClassService {
         return equipmentService.create(equipment);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
         return deviceClassDAO.getDeviceClassList(name, namePattern, version, sortField, sortOrderAsc, take, skip);

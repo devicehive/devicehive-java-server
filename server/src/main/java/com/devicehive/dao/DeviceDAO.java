@@ -4,14 +4,12 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.Device;
-import com.devicehive.model.Network;
 import com.devicehive.model.User;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -25,21 +23,13 @@ import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import static com.devicehive.model.Device.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.Device.Queries.Names.DELETE_BY_NETWORK;
 import static com.devicehive.model.Device.Queries.Names.DELETE_BY_UUID;
-import static com.devicehive.model.Device.Queries.Names.FIND_BY_NETWORK;
 import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_AND_KEY;
-import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_LIST_AND_NETWORK;
 import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS;
 import static com.devicehive.model.Device.Queries.Parameters.GUID;
-import static com.devicehive.model.Device.Queries.Parameters.GUID_LIST;
-import static com.devicehive.model.Device.Queries.Parameters.ID;
 import static com.devicehive.model.Device.Queries.Parameters.KEY;
-import static com.devicehive.model.Device.Queries.Parameters.NETWORK;
 
 @Stateless
 @EJB(beanInterface = DeviceDAO.class, name = "DeviceDAO")
@@ -50,6 +40,7 @@ public class DeviceDAO {
 
     @EJB
     private DeviceClassDAO deviceClassDAO;
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -76,29 +67,8 @@ public class DeviceDAO {
         return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
     }
 
-    public List<Device> findByUUIDListAndNetwork(Collection<String> list, Network network) {
-        if (list == null || list.isEmpty()) {
-            return Collections.emptyList();
-        }
-        TypedQuery<Device> query = em.createNamedQuery(FIND_BY_UUID_LIST_AND_NETWORK, Device.class);
-        query.setParameter(NETWORK, network);
-        query.setParameter(GUID_LIST, list);
-        return query.getResultList();
-    }
-
-    public List<Device> findByNetwork(Network network) {
-        TypedQuery<Device> query = em.createNamedQuery(FIND_BY_NETWORK, Device.class);
-        query.setParameter(NETWORK, network);
-        return query.getResultList();
-    }
-
     public Device createDevice(Device device) {
         em.persist(device);
-        return device;
-    }
-
-    public Device mergeDevice(Device device) {
-        em.merge(device);
         return device;
     }
 
@@ -108,22 +78,10 @@ public class DeviceDAO {
         return device;
     }
 
-    public boolean deleteDevice(@NotNull Long id) {
-        Query query = em.createNamedQuery(DELETE_BY_ID);
-        query.setParameter(ID, id);
-        return query.executeUpdate() != 0;
-    }
-
     public boolean deleteDevice(@NotNull String guid) {
         Query query = em.createNamedQuery(DELETE_BY_UUID);
         query.setParameter(GUID, guid);
         return query.executeUpdate() != 0;
-    }
-
-    public int deleteDeviceByFK(@NotNull Network network) {
-        Query query = em.createNamedQuery(DELETE_BY_NETWORK);
-        query.setParameter(NETWORK, network);
-        return query.executeUpdate();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -261,9 +219,9 @@ public class DeviceDAO {
                     if (extraFilter.getNetworkIds() != null) {
                         filter.add(fromDevice.get("network").get("id").in(extraFilter.getNetworkIds()));
                     }
-                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[0])));
+                    extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[filter.size()])));
                 }
-                devicePredicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[0])));
+                devicePredicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[extraPredicates.size()])));
             }
         }
     }

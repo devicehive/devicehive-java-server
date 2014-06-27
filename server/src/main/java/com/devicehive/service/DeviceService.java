@@ -5,7 +5,6 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.messages.bus.GlobalMessageBus;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
@@ -57,7 +56,6 @@ public class DeviceService {
     private DeviceActivityService deviceActivityService;
     @EJB
     private AccessKeyService accessKeyService;
-
 
     @Inject
     private Event<DeviceNotification> event;
@@ -322,7 +320,7 @@ public class DeviceService {
         }
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public Device getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
 
         if (getAllowedDevicesCount(principal, Arrays.asList(deviceId)) == 0) {
@@ -337,7 +335,7 @@ public class DeviceService {
         return device;
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public Device authenticate(String uuid, String key) {
         Device device = deviceDAO.findByUUIDAndKey(uuid, key);
         if (device != null) {
@@ -351,7 +349,7 @@ public class DeviceService {
         return existing.isEmpty() || deviceDAO.deleteDevice(guid);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<Device> getList(String name,
                                 String namePattern,
                                 String status,

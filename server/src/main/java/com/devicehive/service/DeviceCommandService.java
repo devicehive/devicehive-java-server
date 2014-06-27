@@ -46,17 +46,17 @@ public class DeviceCommandService {
     @Update
     private Event<DeviceCommand> updateEvent;
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public DeviceCommand getByGuidAndId(@NotNull String guid, @NotNull long id) {
         return commandDAO.getByDeviceGuidAndId(guid, id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public DeviceCommand findById(Long id) {
         return commandDAO.findById(id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<DeviceCommand> getDeviceCommandsList(Collection<String> devices, Collection<String> names,
                                                      Timestamp timestamp,
                                                      HivePrincipal principal) {
@@ -69,7 +69,7 @@ public class DeviceCommandService {
         }
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip, Integer gridInterval) {

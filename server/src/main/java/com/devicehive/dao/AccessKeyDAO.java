@@ -47,6 +47,7 @@ public class AccessKeyDAO {
     public AccessKey get(String accessKey) {
         TypedQuery<AccessKey> query = em.createNamedQuery(GET_BY_KEY, AccessKey.class);
         query.setParameter(KEY, accessKey);
+        CacheHelper.cacheable(query);
         List<AccessKey> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }

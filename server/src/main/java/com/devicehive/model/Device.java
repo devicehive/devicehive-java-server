@@ -44,11 +44,7 @@ import static com.devicehive.model.Device.Queries.Values;
         @NamedQuery(name = Names.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS,
                 query = Values.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS),
         @NamedQuery(name = Names.FIND_BY_UUID_AND_KEY, query = Values.FIND_BY_UUID_AND_KEY),
-        @NamedQuery(name = Names.FIND_BY_NETWORK, query = Values.FIND_BY_NETWORK),
-        @NamedQuery(name = Names.FIND_BY_UUID_LIST_AND_NETWORK, query = Values.FIND_BY_UUID_LIST_AND_NETWORK),
-        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-        @NamedQuery(name = Names.DELETE_BY_UUID, query = Values.DELETE_BY_UUID),
-        @NamedQuery(name = Names.DELETE_BY_NETWORK, query = Values.DELETE_BY_NETWORK)
+        @NamedQuery(name = Names.DELETE_BY_UUID, query = Values.DELETE_BY_UUID)
 })
 @Cacheable
 public class Device implements HiveEntity {
@@ -204,11 +200,7 @@ public class Device implements HiveEntity {
             static final String FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS =
                     "Device.findByUUIDWithNetworkAndDeviceClass";
             static final String FIND_BY_UUID_AND_KEY = "Device.findByUUIDAndKey";
-            static final String FIND_BY_NETWORK = "Device.findByNetwork";
-            static final String FIND_BY_UUID_LIST_AND_NETWORK = "Device.findByUUIDListAndNetwork";
-            static final String DELETE_BY_ID = "Device.deleteById";
             static final String DELETE_BY_UUID = "Device.deleteByUUID";
-            static final String DELETE_BY_NETWORK = "Device.deleteByNetwork";
         }
 
         static interface Values {
@@ -219,21 +211,12 @@ public class Device implements HiveEntity {
                             "left join fetch dc.equipment " +
                             "where d.guid = :guid";
             static final String FIND_BY_UUID_AND_KEY = "select d from Device d where d.guid = :guid and d.key = :key";
-            static final String FIND_BY_NETWORK = "select d from Device d join d.network where d.network = :network";
-            static final String FIND_BY_UUID_LIST_AND_NETWORK =
-                    "select d from Device d " +
-                            "join d.network " +
-                            "where d.network = :network and d.guid in :guidList";
-            static final String DELETE_BY_ID = "delete from Device d where d.id = :id";
             static final String DELETE_BY_UUID = "delete from Device d where d.guid = :guid";
-            static final String DELETE_BY_NETWORK = "delete from Device d where d.network = :network";
         }
 
         public static interface Parameters {
             static final String GUID = "guid";
             static final String KEY = "key";
-            static final String NETWORK = "network";
-            static final String GUID_LIST = "guidList";
             static final String ID = "id";
         }
     }

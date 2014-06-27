@@ -77,16 +77,10 @@ public class DeviceClassDAO {
         return resultQuery.getResultList();
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public DeviceClass get(@NotNull long id) {
-        return em.find(DeviceClass.class, id);
-    }
-
     public boolean delete(@NotNull Long id) {
         Query query = em.createNamedQuery(DELETE_BY_ID);
         query.setParameter(ID, id);
         return query.executeUpdate() != 0;
-
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -132,29 +126,6 @@ public class DeviceClassDAO {
         query.setParameter(NAME, name);
         List<DeviceClass> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<DeviceClass> getByIdOrNameOrVersion(Long deviceClassId, String deviceClassName,
-                                                    String deviceClassVersion) {
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<DeviceClass> deviceClassCriteria = criteriaBuilder.createQuery(DeviceClass.class);
-        Root fromDeviceClass = deviceClassCriteria.from(DeviceClass.class);
-        List<Predicate> deviceClassPredicates = new ArrayList<>();
-        if (deviceClassId != null) {
-            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get(DeviceClass.ID_COLUMN), deviceClassId));
-        }
-        if (deviceClassName != null) {
-            deviceClassPredicates
-                    .add(criteriaBuilder.equal(fromDeviceClass.get(DeviceClass.NAME_COLUMN), deviceClassName));
-        }
-        if (deviceClassVersion != null) {
-            deviceClassPredicates.add(criteriaBuilder.equal(fromDeviceClass.get(DeviceClass.VERSION_COLUMN),
-                    deviceClassVersion));
-        }
-        deviceClassCriteria.where(deviceClassPredicates.toArray(new Predicate[deviceClassPredicates.size()]));
-        TypedQuery<DeviceClass> deviceClassQuery = em.createQuery(deviceClassCriteria);
-        return deviceClassQuery.getResultList();
     }
 
 }

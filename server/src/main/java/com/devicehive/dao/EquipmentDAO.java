@@ -32,8 +32,9 @@ public class EquipmentDAO {
      * Inserts new record
      *
      * @param equipment Equipment instance to save
-     * @Return managed instance of Equipment
+     * @return managed instance of Equipment
      */
+
     public Equipment create(@NotNull Equipment equipment) {
         em.persist(equipment);
         return equipment;
@@ -64,7 +65,7 @@ public class EquipmentDAO {
 
     /**
      * @param id Equipment Id
-     * @returns Equipment
+     * @return Equipment
      */
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment get(@NotNull long id) {

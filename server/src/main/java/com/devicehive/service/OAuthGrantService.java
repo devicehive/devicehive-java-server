@@ -15,6 +15,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -50,6 +52,7 @@ public class OAuthGrantService {
         this.clientService = clientService;
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public OAuthGrant get(@NotNull User user, @NotNull Long grantId) {
         if (user.isAdmin()) {
             return grantDAO.get(grantId);
@@ -133,6 +136,7 @@ public class OAuthGrantService {
         return existing;
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public List<OAuthGrant> list(@NotNull User user,
                                  Timestamp start,
                                  Timestamp end,
@@ -149,9 +153,11 @@ public class OAuthGrantService {
                 sortOrder, take, skip);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthGrant get(@NotNull String authCode, @NotNull String clientOAuthID) {
         return grantDAO.getByCodeAndOauthID(authCode, clientOAuthID);
     }
+
 
     public AccessKey accessTokenRequestForCodeType(@NotNull String code,
                                                    String redirectUri,
@@ -201,10 +207,12 @@ public class OAuthGrantService {
         return grant.getAccessKey();
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     private void invalidate(OAuthGrant grant) {
         grant.setAuthCode(null);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     private void validate(OAuthGrant grant) {
         List<String> violations = new ArrayList<>();
         if (grant.getClient() == null) {

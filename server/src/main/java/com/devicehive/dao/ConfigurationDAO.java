@@ -25,7 +25,6 @@ public class ConfigurationDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Configuration findByName(@NotNull String name) {
         return em.find(Configuration.class, name);
     }
@@ -49,7 +48,6 @@ public class ConfigurationDAO {
         }
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public void delete(@NotNull String name) {
         Query query = em.createNamedQuery(DELETE);
         query.setParameter(NAME, name);
