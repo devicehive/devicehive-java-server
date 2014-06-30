@@ -46,10 +46,9 @@ public interface OAuthClientController {
     /**
      * Updates an existing OAuth client.
      *
-     * @param id     OAuth client identifier.
      * @param client OAuth client resource update info.
      */
-    void update(long id, OAuthClient client) throws HiveException;
+    void update(OAuthClient client) throws HiveException;
 
     /**
      * Deletes an existing OAuth client.

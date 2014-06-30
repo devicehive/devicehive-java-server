@@ -93,20 +93,18 @@ public interface OAuthGrantController {
      * Updates an existing OAuth grant.
      *
      * @param userId  User identifier
-     * @param grantId Grant identifier
      * @param grant   grant resource providing update info
      * @return update OAuth grant
      */
-    OAuthGrant update(long userId, long grantId, OAuthGrant grant) throws HiveException;
+    OAuthGrant update(long userId, OAuthGrant grant) throws HiveException;
 
     /**
      * Updates an existing OAuth grant of current user
      *
-     * @param grantId Grant identifier
      * @param grant   grant resource providing update info
      * @return update OAuth grant
      */
-    OAuthGrant update(long grantId, OAuthGrant grant) throws HiveException;
+    OAuthGrant update(OAuthGrant grant) throws HiveException;
 
     /**
      * Deletes an existing OAuth grant.

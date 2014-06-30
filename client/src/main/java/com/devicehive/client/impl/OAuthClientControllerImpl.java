@@ -83,18 +83,21 @@ class OAuthClientControllerImpl implements OAuthClientController {
     }
 
     @Override
-    public void update(long id, OAuthClient client) throws HiveException {
+    public void update(OAuthClient client) throws HiveException {
         if (client == null) {
             throw new HiveClientException("OAuthClient cannot be null!", BAD_REQUEST.getStatusCode());
         }
+        if (client.getId() == null) {
+            throw new HiveClientException("OAuthClient id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
         logger.debug("OAuthClient: update requested for client with id {}, name {}, domain {], subnet {}, " +
-                "redirect uri {}", id, client.getName(), client.getDomain(), client.getSubnet(),
+                "redirect uri {}", client.getId(), client.getName(), client.getDomain(), client.getSubnet(),
                 client.getRedirectUri());
-        String path = "/oauth/client/" + id;
+        String path = "/oauth/client/" + client.getId();
         restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, client,
                 OAUTH_CLIENT_SUBMITTED);
         logger.debug("OAuthClient: update proceed for client with id {}, name {}, domain {], subnet {}, " +
-                "redirect uri {}", id, client.getName(), client.getDomain(), client.getSubnet(),
+                "redirect uri {}", client.getId(), client.getName(), client.getDomain(), client.getSubnet(),
                 client.getRedirectUri());
     }
 

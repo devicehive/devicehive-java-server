@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.HttpMethod;
 import java.util.List;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class AccessKeyControllerImpl implements AccessKeyController {
@@ -103,29 +105,29 @@ class AccessKeyControllerImpl implements AccessKeyController {
     }
 
     @Override
-    public void updateKey(long userId, long keyId, AccessKey key) throws HiveException {
-        if (key == null) {
+    public void updateKey(long userId, AccessKey key) throws HiveException {
+        if (key == null || key.getId() == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("AccessKey: update requested for user with id {}. Key params: id {}, label {}, " +
-                "expiration date {}", userId, keyId, key.getLabel(), key.getExpirationDate());
-        String path = "/user/" + userId + "/accesskey/" + keyId;
+                "expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
+        String path = "/user/" + userId + "/accesskey/" + key.getId();
         restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
         logger.debug("AccessKey: update request proceed successfully for user with id {}. Key params: id {}, " +
-                "label {}, expiration date {}", userId, keyId, key.getLabel(), key.getExpirationDate());
+                "label {}, expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
     }
 
     @Override
-    public void updateKey(long keyId, AccessKey key) throws HiveException {
-        if (key == null) {
+    public void updateKey(AccessKey key) throws HiveException {
+        if (key == null || key.getId() == null) {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("AccessKey: update requested for current user. Key params: id{}, label {}, " +
-                "expiration date {}", keyId, key.getLabel(), key.getExpirationDate());
-        String path = "/user/current/accesskey/" + keyId;
+                "expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
+        String path = "/user/current/accesskey/" + key.getId();
         restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
         logger.debug("AccessKey: update request proceed successfully for current user. Key params: id {}, " +
-                "label {}, expiration date {}", keyId, key.getLabel(), key.getExpirationDate());
+                "label {}, expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
     }
 
     @Override

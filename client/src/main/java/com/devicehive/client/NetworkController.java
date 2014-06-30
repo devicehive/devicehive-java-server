@@ -57,10 +57,9 @@ public interface NetworkController {
      * See: <a href="http://www.devicehive.com/restful#Reference/Network/update">DeviceHive RESTful
      * API: Network: update</a> for more details.
      *
-     * @param id      network identifier
      * @param network network to be updated
      */
-    void updateNetwork(long id, Network network) throws HiveException;
+    void updateNetwork(Network network) throws HiveException;
 
     /**
      * Deletes network by its identifier.

@@ -57,12 +57,15 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
     }
 
     @Override
-    public void updateCommand(String deviceId, long id, DeviceCommand command) throws HiveException {
+    public void updateCommand(String deviceId, DeviceCommand command) throws HiveException {
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
+        if (command.getId() == null){
+            throw new HiveClientException("Command id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
         logger.debug("DeviceCommand: update requested for device id {] and command: id {},  flags {}, status {}, " +
-                " result {}", deviceId, id, command.getFlags(), command.getStatus(), command.getResult());
+                " result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(), command.getResult());
         JsonObject request = new JsonObject();
         request.addProperty("action", "command/update");
         request.addProperty("deviceGuid", deviceId);
@@ -71,7 +74,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.add("command", gson.toJsonTree(command));
         websocketAgent.getWebsocketConnector().sendMessage(request);
         logger.debug("DeviceCommand: update request proceed successfully for device id {] and command: id {},  " +
-                "flags {}, status {}, result {}", deviceId, id, command.getFlags(), command.getStatus(),
+                "flags {}, status {}, result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(),
                 command.getResult());
     }
 

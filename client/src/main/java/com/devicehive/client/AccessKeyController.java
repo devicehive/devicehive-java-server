@@ -83,20 +83,18 @@ public interface AccessKeyController {
      * Updates an existing access key.
      *
      * @param userId User identifier.
-     * @param keyId  Access key identifier.
      * @param key    Key to be updated
      */
-    void updateKey(long userId, long keyId, AccessKey key) throws HiveException;
+    void updateKey(long userId, AccessKey key) throws HiveException;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/update">DeviceHive RESTful
      * API: AccessKey: update</a>
      * Updates an existing access key. Use the 'current' keyword to update access key of the current user.
      *
-     * @param keyId Access key identifier.
      * @param key   Key to be updated
      */
-    void updateKey(long keyId, AccessKey key) throws HiveException;
+    void updateKey(AccessKey key) throws HiveException;
 
     /**
      * <a href="http://www.devicehive.com/restful#Reference/AccessKey/delete">DeviceHive RESTful API: AccessKey: delete</a>

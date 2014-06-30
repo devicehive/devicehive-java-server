@@ -51,7 +51,7 @@ public interface UserController {
      *
      * @return current user
      */
-    User getUser() throws HiveException;
+    User getCurrent() throws HiveException;
 
     /**
      * Creates new user.
@@ -68,10 +68,9 @@ public interface UserController {
      * See: <a href="http://www.devicehive.com/restful#Reference/User/update">DeviceHive RESTful
      * API: User: update</a> for more details.
      *
-     * @param id   user identifier
      * @param user user resource with update info
      */
-    void updateUser(long id, User user) throws HiveException;
+    void updateUser(User user) throws HiveException;
 
     /**
      * Updates current user.
@@ -80,7 +79,7 @@ public interface UserController {
      *
      * @param user user resource with update info
      */
-    void updateUser(User user) throws HiveException;
+    void updateCurrent(User user) throws HiveException;
 
     /**
      * Deletes an existing user.

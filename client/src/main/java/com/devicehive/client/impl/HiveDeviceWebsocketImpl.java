@@ -2,7 +2,6 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.Device;
@@ -83,8 +82,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     @Override
     public void subscribeForCommands(final Timestamp timestamp, HiveMessageHandler<DeviceCommand>
             commandMessageHandler)
-            throws
-            HiveException {
+            throws  HiveException {
         Set<String> uuids = new HashSet<>();
         uuids.add(websocketAgent.getHivePrincipal().getDevice().getLeft());
         SubscriptionFilter filter =

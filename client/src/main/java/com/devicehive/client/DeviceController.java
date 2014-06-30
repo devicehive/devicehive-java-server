@@ -134,10 +134,9 @@ public interface DeviceController {
      * See <a href="http://www.devicehive.com/restful#Reference/DeviceClass/update">DeviceHive RESTful
      * API: DeviceClass: update</a> for more details
      *
-     * @param classId     device class identifier
      * @param deviceClass device class to be updated
      */
-    void updateDeviceClass(long classId, DeviceClass deviceClass) throws HiveException;
+    void updateDeviceClass(DeviceClass deviceClass) throws HiveException;
 
     /**
      * Deletes an existing device class by id.

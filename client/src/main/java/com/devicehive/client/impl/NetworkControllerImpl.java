@@ -15,7 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORK_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORK_UPDATE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class NetworkControllerImpl implements NetworkController {
@@ -26,7 +29,6 @@ class NetworkControllerImpl implements NetworkController {
     NetworkControllerImpl(RestAgent restAgent) {
         this.restAgent = restAgent;
     }
-
 
     @Override
     public List<Network> listNetworks(String name, String namePattern, String sortField, String sortOrder, Integer take,
@@ -75,14 +77,19 @@ class NetworkControllerImpl implements NetworkController {
     }
 
     @Override
-    public void updateNetwork(long id, Network network) throws HiveException {
+    public void updateNetwork(Network network) throws HiveException {
         if (network == null) {
             throw new HiveClientException("Network cannot be null!", BAD_REQUEST.getStatusCode());
         }
-        logger.debug("Network: update requested for network with name {} and id {}", network.getName(), id);
-        String path = "/network/" + id;
+        if (network.getId() == null) {
+            throw new HiveClientException("Network id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
+        logger.debug("Network: update requested for network with name {} and id {}", network.getName(),
+                network.getId());
+        String path = "/network/" + network.getId();
         restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, network, NETWORK_UPDATE);
-        logger.debug("Network: update request proceed for network with name {} and id {}", network.getName(), id);
+        logger.debug("Network: update request proceed for network with name {} and id {}", network.getName(),
+                network.getId());
     }
 
     @Override

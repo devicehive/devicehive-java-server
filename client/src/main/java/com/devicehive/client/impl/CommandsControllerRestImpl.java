@@ -103,17 +103,20 @@ class CommandsControllerRestImpl implements CommandsController {
     }
 
     @Override
-    public void updateCommand(String deviceId, long id, DeviceCommand command) throws HiveException {
+    public void updateCommand(String deviceId, DeviceCommand command) throws HiveException {
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
+        if (command.getId() == null) {
+            throw new HiveClientException("Command id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
         logger.debug("DeviceCommand: update requested for device id {] and command: id {},  flags {}, status {}, " +
-                " result {}", deviceId, id, command.getFlags(), command.getStatus(), command.getResult());
-        String path = "/device/" + deviceId + "/command/" + id;
+                " result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(), command.getResult());
+        String path = "/device/" + deviceId + "/command/" + command.getId();
         restAgent.getRestConnector()
                 .executeWithConnectionCheck(path, HttpMethod.PUT, null, command, REST_COMMAND_UPDATE_FROM_DEVICE);
         logger.debug("DeviceCommand: update request proceed successfully for device id {] and command: id {},  " +
-                "flags {}, status {}, result {}", deviceId, id, command.getFlags(), command.getStatus(),
+                "flags {}, status {}, result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(),
                 command.getResult());
     }
 

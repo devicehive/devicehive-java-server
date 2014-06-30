@@ -179,17 +179,20 @@ class DeviceControllerImpl implements DeviceController {
     }
 
     @Override
-    public void updateDeviceClass(long classId, DeviceClass deviceClass) throws HiveException {
+    public void updateDeviceClass(DeviceClass deviceClass) throws HiveException {
         if (deviceClass == null) {
             throw new HiveClientException("Device class cannot be null!", BAD_REQUEST.getStatusCode());
         }
+        if (deviceClass.getId() == null){
+            throw new HiveClientException("Device class id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
         logger.debug("DeviceClass: update requested for device class with id {}, name {}, version {}",
-                classId, deviceClass.getName(), deviceClass.getVersion());
-        String path = "/device/class/" + classId;
+                deviceClass.getId(), deviceClass.getName(), deviceClass.getVersion());
+        String path = "/device/class/" + deviceClass.getId();
         restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, deviceClass,
                 DEVICECLASS_PUBLISHED);
         logger.debug("DeviceClass: update request proceed for device class with id {}, name {}, version {}",
-                classId, deviceClass.getName(), deviceClass.getVersion());
+                deviceClass.getId(), deviceClass.getName(), deviceClass.getVersion());
     }
 
     @Override

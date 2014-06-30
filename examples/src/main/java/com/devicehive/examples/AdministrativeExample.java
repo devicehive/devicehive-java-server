@@ -140,7 +140,7 @@ public class AdministrativeExample extends Example {
                 long nId = nc.insertNetwork(network);
                 network.setId(nId);
                 network.setDescription("updated network");
-                nc.updateNetwork(nId, network);
+                nc.updateNetwork(network);
             }
             return network;
         }
@@ -174,7 +174,7 @@ public class AdministrativeExample extends Example {
             } else
                 user = usersWithSuchName.get(0);
             user.setPassword(password);
-            uc.updateUser(user.getId(), user);
+            uc.updateUser(user);
             if (network != null)
                 uc.assignNetwork(user.getId(), network.getId());
             return user;

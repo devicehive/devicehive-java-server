@@ -57,10 +57,9 @@ public interface CommandsController {
      * by command/update message.
      *
      * @param deviceGuid device identifier
-     * @param id         command identifier
      * @param command    command resource
      */
-    void updateCommand(String deviceGuid, long id, DeviceCommand command) throws HiveException;
+    void updateCommand(String deviceGuid, DeviceCommand command) throws HiveException;
 
     /**
      * Subscribes client or device to commands. RESTful poll/pollMany or websocket subscribe will be used. When

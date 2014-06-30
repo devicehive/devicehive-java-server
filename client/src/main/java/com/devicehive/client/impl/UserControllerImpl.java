@@ -17,7 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_UPDATE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class UserControllerImpl implements UserController {
@@ -66,7 +70,7 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public User getUser() throws HiveException {
+    public User getCurrent() throws HiveException {
         logger.debug("User: get requested for current user");
         String path = "/user/current";
         User result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null, null,
@@ -93,20 +97,23 @@ class UserControllerImpl implements UserController {
     }
 
     @Override
-    public void updateUser(long id, User user) throws HiveException {
+    public void updateUser(User user) throws HiveException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }
+        if (user.getId() == null) {
+            throw new HiveClientException("User id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
         logger.debug("User: update requested for user with params: id {}, login {}, role {}, status {}",
-                id, user.getLogin(), user.getRole(), user.getStatus());
-        String path = "/user/" + id;
+                user.getId(), user.getLogin(), user.getRole(), user.getStatus());
+        String path = "/user/" + user.getId();
         restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, user, USER_UPDATE);
         logger.debug("User: update proceed for user with params: id {}, login {}, role {}, status {}",
-                id, user.getLogin(), user.getRole(), user.getStatus());
+                user.getId(), user.getLogin(), user.getRole(), user.getStatus());
     }
 
     @Override
-    public void updateUser(User user) throws HiveException {
+    public void updateCurrent(User user) throws HiveException {
         if (user == null) {
             throw new HiveClientException("User cannot be null!", BAD_REQUEST.getStatusCode());
         }

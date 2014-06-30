@@ -164,34 +164,39 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     }
 
     @Override
-    public OAuthGrant update(long userId, long grantId, OAuthGrant grant) throws HiveException {
+    public OAuthGrant update(long userId, OAuthGrant grant) throws HiveException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
+        if (grant.getId() == null){
+            throw new HiveClientException("OAuthGrant id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
         logger.debug("OAuthGrant: update requested for user with id {}, grant id {} and grant with scope {} and type " +
-                "{}", userId, grantId, grant.getScope(), grant.getType());
-        String path = "/user/" + userId + "/oauth/grant/" + grantId;
+                "{}", userId, grant.getId(), grant.getScope(), grant.getType());
+        String path = "/user/" + userId + "/oauth/grant/" + grant.getId();
         OAuthGrant result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, null,
                 grant,
                 OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
         logger.debug("OAuthGrant: update proceed for user with id {}, grant id {} and grant with scope {} and type " +
-                "{}", userId, grantId, grant.getScope(), grant.getType());
+                "{}", userId, grant.getId(), grant.getScope(), grant.getType());
         return result;
     }
 
     @Override
-    public OAuthGrant update(long grantId, OAuthGrant grant) throws HiveException {
+    public OAuthGrant update(OAuthGrant grant) throws HiveException {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
+        if (grant.getId() == null) {
+            throw new HiveClientException("OAuthGrant id cannot be null!", BAD_REQUEST.getStatusCode());
+        }
         logger.debug("OAuthGrant: update requested for current user, grant id {} and grant with scope {} and type {}",
-                grantId, grant.getScope(), grant.getType());
-        String path = "/user/current/oauth/grant/" + grantId;
+                grant.getId(), grant.getScope(), grant.getType());
+        String path = "/user/current/oauth/grant/" + grant.getId();
         OAuthGrant result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, null,
-                grant,
-                OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
+                grant,  OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
         logger.debug("OAuthGrant: update proceed for current user, grant id {} and grant with scope {} and type {}",
-                grantId, grant.getScope(), grant.getType());
+                grant.getId(), grant.getScope(), grant.getType());
         return result;
     }
 
