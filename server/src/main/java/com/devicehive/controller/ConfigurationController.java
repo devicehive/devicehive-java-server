@@ -10,7 +10,6 @@ import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -28,14 +27,6 @@ public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
     @EJB
     private ConfigurationService configurationService;
-
-    @POST
-    @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{" + NAME + "}")
-    public Response setProperty(@PathParam(NAME) String name, String value) {
-        configurationService.save(name, value);
-        return Response.ok().build();
-    }
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
