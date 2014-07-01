@@ -7,57 +7,51 @@ import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceClass;
 import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Equipment;
 import com.devicehive.client.model.JsonStringWrapper;
+import com.devicehive.client.model.Network;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
+import com.devicehive.view.DeviceView;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.devicehive.constants.Constants.USE_SOCKETS;
 
 public class DeviceExample extends Example {
-    private static final String ID = "id";
-    private static final String ID_DESCRIPTION = "Device unique identifier.";
-    private static final String KEY = "key";
-    private static final String KEY_DESCRIPTION = "Device authentication key";
-    private static final String NAME = "name";
-    private static final String NAME_DESCRIPTION = "Device name";
-    private static final String STATUS = "status";
-    private static final String STATUS_DESCRIPTION = "Device operation status";
-    private static final String NETWORK = "hasNetwork";
-    private static final String NETWORK_DESCRIPTION = "An option that indicates if the device should have an network" +
-            ". Default is false. In case of true the network with the random data will be created";
-    private static final String DC_NAME = "dcName";
-    private static final String DC_NAME_DESCRIPTION = "Device class name.";
-    private static final String DC_VERSION = "dcVersion";
-    private static final String DC_VERSION_DESCRIPTION = "Device class version.";
-    private static final String DC_PERMANENT = "isPermanent";
-    private static final String DC_PERMANENT_DESCRIPTION = "Indicates whether device class is permanent. Permanent " +
-            "device classes could not be modified by devices during registration.";
-    private static final String DC_OFFLINE_TIMEOUT = "dcTimeout";
-    private static final String DC_OFFLINE_TIMEOUT_DESCRIPTION = "If set, specifies inactivity timeout in seconds " +
-            "before the framework changes device status to 'Offline'.";
+    private static final String ID = "3d77f31c-bddd-443b-b11c-640946b0581a";
+    private static final String KEY = "example_key";
+    private static final String NAME = "Graphical Example Device";
+    private static final String STATUS = "ONLINE";
+    private static final String NETWORK_NAME = "VirtualLed Sample Network";
+    private static final String DC_NAME = "Graphical";
+    private static final String DC_VERSION = "1.0";
+    private static final int DC_OFFLINE_TIMEOUT = 10;
+    private static final String EQUIPMENT_NAME = "LED";
+    private static final String EQUIPMENT_TYPE = "Controllable LED";
+    private static final String LED_COMMAND = "LED";
+    private static final String LED_STATE = "state";
     private final HiveDevice hiveDevice;
-    private final CommandLine commandLine;
+    private final DeviceView view;
+    private volatile boolean deviceState = false;
 
-    public DeviceExample(PrintStream err, PrintStream out, String... args) throws HiveException, ExampleException {
+
+    public DeviceExample(PrintStream err, PrintStream out, String... args)
+            throws HiveException, ExampleException, IOException {
         super(out, args);
-        commandLine = getCommandLine();
+        CommandLine commandLine = getCommandLine();
         hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
                 Example.impl, Example.impl);
+        view = new DeviceView();
     }
 
     public static void main(String... args) {
@@ -72,74 +66,33 @@ public class DeviceExample extends Example {
 
     @Override
     public Options makeOptionsSet() {
-        Options options = new Options();
-        Option id = new Option(ID, true, ID_DESCRIPTION);
-        id.setRequired(true);
-        options.addOption(id);
-        Option keyOpt = new Option(KEY, true, KEY_DESCRIPTION);
-        keyOpt.setRequired(true);
-        options.addOption(keyOpt);
-        Option nameOption = new Option(NAME, true, NAME_DESCRIPTION);
-        nameOption.setRequired(true);
-        options.addOption(nameOption);
-        options.addOption(STATUS, true, STATUS_DESCRIPTION);
-        options.addOption(NETWORK, false, NETWORK_DESCRIPTION);
-        Option dcName = new Option(DC_NAME, true, DC_NAME_DESCRIPTION);
-        dcName.setRequired(true);
-        options.addOption(dcName);
-        Option dcVersion = new Option(DC_VERSION, true, DC_VERSION_DESCRIPTION);
-        dcVersion.setRequired(true);
-        options.addOption(dcVersion);
-        options.addOption(DC_PERMANENT, false, DC_PERMANENT_DESCRIPTION);
-        options.addOption(DC_OFFLINE_TIMEOUT, true, DC_OFFLINE_TIMEOUT_DESCRIPTION);
-        return options;
+        return new Options();
     }
 
     private Device createDevice() throws ExampleException {
         Device device = new Device();
-        device.setId(commandLine.getOptionValue(ID));
-        device.setKey(commandLine.getOptionValue(KEY));
-        device.setName(commandLine.getOptionValue(NAME));
-        if (commandLine.hasOption(STATUS))
-            device.setStatus(commandLine.getOptionValue(STATUS));
-        JsonObject dataJson = new JsonObject();
-        dataJson.addProperty("data", "some_example_data");
-        device.setData(new JsonStringWrapper(dataJson.toString()));
-        if (commandLine.hasOption(NETWORK))
-            //todo create network
-            ;
+        device.setId(ID);
+        device.setKey(KEY);
+        device.setName(NAME);
+        device.setStatus(STATUS);
+        Network existing = new Network();
+        existing.setName(NETWORK_NAME);
+        device.setNetwork(existing);
         DeviceClass dc = new DeviceClass();
-        dc.setName(commandLine.getOptionValue(DC_NAME));
-        dc.setVersion(commandLine.getOptionValue(DC_VERSION));
-        if (commandLine.hasOption(DC_PERMANENT))
-            dc.setPermanent(true);
-        else dc.setPermanent(false);
-        if (commandLine.hasOption(DC_OFFLINE_TIMEOUT))
-            try {
-                dc.setOfflineTimeout(Integer.parseInt(commandLine.getOptionValue(DC_OFFLINE_TIMEOUT)));
-            } catch (NumberFormatException e) {
-                throw new ExampleException("Unable to parse offline timeout value!", e);
-            }
-        Set<Equipment> dummyEquipmentSet = new HashSet<Equipment>() {{
-            Equipment dummyEquipment = new Equipment();
-            dummyEquipment.setName("example_equipment_name");
-            dummyEquipment.setType("example_equipment_type");
-            dummyEquipment.setCode(UUID.randomUUID().toString());
-            add(dummyEquipment);
+        dc.setName(DC_NAME);
+        dc.setVersion(DC_VERSION);
+        dc.setPermanent(true);
+        dc.setOfflineTimeout(DC_OFFLINE_TIMEOUT);
+
+        Set<Equipment> equipmentSet = new HashSet<Equipment>() {{
+            Equipment equipment = new Equipment();
+            equipment.setName(EQUIPMENT_NAME);
+            equipment.setType(EQUIPMENT_TYPE);
+            equipment.setCode(LED_COMMAND);
         }};
-        dc.setEquipment(dummyEquipmentSet);
+        dc.setEquipment(equipmentSet);
         device.setDeviceClass(dc);
         return device;
-    }
-
-    private DeviceNotification createNotification() {
-        DeviceNotification dn = new DeviceNotification();
-        dn.setNotification("new state");
-        JsonObject parametersJson = new JsonObject();
-        parametersJson.addProperty("time", new Date().toString());
-        parametersJson.addProperty("example", "there can be every info you would like to see");
-        dn.setParameters(new JsonStringWrapper(parametersJson.toString()));
-        return dn;
     }
 
     @Override
@@ -149,12 +102,37 @@ public class DeviceExample extends Example {
             hiveDevice.registerDevice(device);
             hiveDevice.authenticate(device.getId(), device.getKey());
             Device registered = hiveDevice.getDevice();
-            print("Device registered! Device {}:", registered);
+            print("Device registered! Device {}:", registered.getId());
             Timestamp serverTimestamp = hiveDevice.getInfo().getServerTimestamp();
             HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
                 @Override
                 public void handle(DeviceCommand command) {
-                    print("Command received: {}", command.getCommand());
+                    if (command.getCommand().equals(LED_COMMAND)) {
+                        JsonStringWrapper jsonString = command.getParameters();
+                        JsonObject json = (JsonObject) new JsonParser().parse(jsonString.toString());
+                        int state = json.get("state").getAsInt();
+                        if (state == 0) {
+                            view.setRed();
+                            deviceState = false;
+                        } else {
+                            view.setGreen();
+                            deviceState = true;
+                        }
+                        command.setStatus("Proceed");
+                        command.setResult(new JsonStringWrapper("{status: \"Ok\"}"));
+                        try {
+                            hiveDevice.updateCommand(command);
+                        } catch (HiveException e) {
+                            if (state == 0) {
+                                view.setGreen();
+                                deviceState = true;
+                            } else {
+                                view.setRed();
+                                deviceState = false;
+                            }
+                        }
+                    }
+
                 }
             };
             hiveDevice.subscribeForCommands(serverTimestamp, commandsHandler);
@@ -164,9 +142,5 @@ public class DeviceExample extends Example {
         } finally {
             hiveDevice.close();
         }
-    }
-
-    public final void createNetwork() {
-
     }
 }

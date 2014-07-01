@@ -5,7 +5,6 @@ import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.NotificationsController;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.JsonStringWrapper;
@@ -97,7 +96,6 @@ public class RealDeviceExample extends Example {
             try {
 
                 CommandsController cc = hiveClient.getCommandsController();
-                NotificationsController nc = hiveClient.getNotificationsController();
                 DeviceCommand command = new DeviceCommand();
                 command.setCommand(COMMAND);
                 JsonObject commandParams = new JsonObject();
@@ -107,16 +105,14 @@ public class RealDeviceExample extends Example {
                         commandParams.addProperty(LED_STATE, 0);
                     else commandParams.addProperty(LED_STATE, 1);
                     isGreen = !isGreen;
-                    isItGreenTurn = false;
                 } else {
                     commandParams.addProperty(LED_TYPE, LED_RED);
                     if (isRed)
                         commandParams.addProperty(LED_STATE, 0);
                     else commandParams.addProperty(LED_STATE, 1);
                     isRed = !isRed;
-                    isItGreenTurn = true;
-
                 }
+                isItGreenTurn = !isItGreenTurn;
                 command.setParameters(new JsonStringWrapper(commandParams.toString()));
                 cc.insertCommand(uuid, command, commandUpdatesHandler);
                 print("The command {} will be sent to all available devices", command.getCommand());

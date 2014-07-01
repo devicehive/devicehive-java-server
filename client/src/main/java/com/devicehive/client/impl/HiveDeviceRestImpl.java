@@ -113,7 +113,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         uuids.add(restAgent.getHivePrincipal().getDevice().getLeft());
         SubscriptionFilter filter =
                 new SubscriptionFilter(uuids, null, timestamp);
-        restAgent.addCommandsSubscription(filter, commandsHandler);
+        restAgent.pollSubscription(filter, commandsHandler);
     }
 
     @Override

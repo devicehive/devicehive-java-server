@@ -74,12 +74,13 @@ public class WebsocketAgent extends RestAgent {
 
     @Override
     synchronized protected void resubscribe() throws HiveException {
+        //TODO! (resubscribe using socket methods)
         Map<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptions =
                 ObjectUtils.cloneIfPossible(getCommandSubscriptionsStorage());
         getCommandSubscriptionsStorage().clear();
         for (Map.Entry<String, SubscriptionDescriptor<DeviceCommand>> subscription : commandSubscriptions.entrySet()) {
             SubscriptionDescriptor<DeviceCommand> subscriptionValue = subscription.getValue();
-            addCommandsSubscription(subscriptionValue.getFilter(),
+            pollManySubscription(subscriptionValue.getFilter(),
                     subscriptionValue.getHandler(),
                     subscription.getKey());
         }
