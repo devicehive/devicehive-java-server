@@ -182,7 +182,7 @@ public class WebsocketAgent extends RestAgent {
     public synchronized void proccessCommandUpdate(DeviceCommand commandUpdated) {
         if (commandUpdatesHandlerStorage.get(commandUpdated.getId()) != null) {
             commandUpdatesHandlerStorage.get(commandUpdated.getId()).handle(commandUpdated);
-            commandUpdatesHandlerStorage.remove(commandUpdated.getId());
         }
+        commandUpdatesHandlerStorage.remove(commandUpdated.getId());
     }
 }

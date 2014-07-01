@@ -39,7 +39,6 @@ public class RestAgent extends AbstractHiveAgent {
     protected final HiveConnectionEventHandler connectionEventHandler;
     private final ExecutorService subscriptionExecutor = Executors.newCachedThreadPool();
     private ConcurrentMap<String, Future> commandSubscriptionsResults = new ConcurrentHashMap<>();
-    private ConcurrentMap<Long, Future> commandUpdatesResults = new ConcurrentHashMap<>();
     private ConcurrentMap<String, Future> notificationSubscriptionResults = new ConcurrentHashMap<>();
     private HiveRestConnector restConnector;
 
@@ -135,12 +134,8 @@ public class RestAgent extends AbstractHiveAgent {
         for (Future notificationTask : notificationSubscriptionResults.values()) {
             notificationTask.cancel(true);
         }
-        for (Future commandUpdateTask : commandUpdatesResults.values()) {
-            commandUpdateTask.cancel(true);
-        }
         commandSubscriptionsResults.clear();
         notificationSubscriptionResults.clear();
-        commandUpdatesResults.clear();
     }
 
     @Override
@@ -222,8 +217,7 @@ public class RestAgent extends AbstractHiveAgent {
                 handler.handle(result);
             }
         };
-        Future result = subscriptionExecutor.submit(sub);
-        commandUpdatesResults.put(commandId, result);
+        subscriptionExecutor.submit(sub);
     }
 
     /**
