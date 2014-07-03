@@ -5,7 +5,6 @@ import com.devicehive.client.model.SubscriptionFilter;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 
 public class SubscriptionDescriptor<T> {
@@ -28,7 +27,9 @@ public class SubscriptionDescriptor<T> {
     }
 
     public synchronized void updateTimestamp(Timestamp newTimestamp) {
-        if (newTimestamp.after(filter.getTimestamp())) {
+        if (filter.getTimestamp() == null && newTimestamp != null) {
+            filter.setTimestamp(newTimestamp);
+        } else if (newTimestamp != null && newTimestamp.after(filter.getTimestamp())) {
             filter.setTimestamp(ObjectUtils.cloneIfPossible(newTimestamp));
         }
     }

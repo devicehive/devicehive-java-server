@@ -36,6 +36,7 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -186,6 +187,7 @@ public class HiveRestConnector {
                                                             S objectToSend, Type typeOfR,
                                                             JsonPolicyDef.Policy sendPolicy,
                                                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
+        Thread.currentThread().setName("REST_request"+ UUID.randomUUID());
         if (!isConnected)
             throw new HiveClientException(Messages.CONNECTION_LOST);
         return execute(path, method, headers, queryParams, objectToSend, typeOfR, sendPolicy, receivePolicy);

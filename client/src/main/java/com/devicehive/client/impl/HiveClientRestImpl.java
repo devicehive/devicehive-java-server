@@ -13,11 +13,8 @@ import com.devicehive.client.OAuthTokenController;
 import com.devicehive.client.UserController;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.context.RestAgent;
-import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.exceptions.HiveException;
-
-import java.net.URI;
 
 public class HiveClientRestImpl implements HiveClient {
 
@@ -78,6 +75,10 @@ public class HiveClientRestImpl implements HiveClient {
 
     public void close() throws HiveException {
         restAgent.close();
+    }
+
+    public boolean checkConnection(){
+       return restAgent.checkConnection();
     }
 
 }

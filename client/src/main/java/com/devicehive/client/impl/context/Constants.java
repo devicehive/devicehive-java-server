@@ -38,4 +38,6 @@ public class Constants {
     public static final String CODE = "code";
     public static final String ERROR = "error";
     public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
+    public static final String SEPARATOR = ",";
 }

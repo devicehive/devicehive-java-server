@@ -82,6 +82,7 @@ class CommandsControllerRestImpl implements CommandsController {
     public DeviceCommand insertCommand(String guid,
                                        DeviceCommand command,
                                        HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
+        Thread.currentThread().setName("insertCommand");
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
@@ -92,6 +93,7 @@ class CommandsControllerRestImpl implements CommandsController {
         String path = "/device/" + guid + "/command";
         toReturn = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null, command,
                 DeviceCommand.class, COMMAND_FROM_CLIENT, COMMAND_TO_CLIENT);
+
         if (commandUpdatesHandler != null) {
             restAgent.addCommandUpdateSubscription(toReturn.getId(), guid, commandUpdatesHandler);
         }

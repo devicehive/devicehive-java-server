@@ -107,7 +107,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
 
     @Override
     public void subscribeForCommands(final Timestamp timestamp,
-                                       final HiveMessageHandler<DeviceCommand> commandsHandler)
+                                     final HiveMessageHandler<DeviceCommand> commandsHandler)
             throws HiveException {
         Set<String> uuids = new HashSet<>();
         uuids.add(restAgent.getHivePrincipal().getDevice().getLeft());
@@ -132,7 +132,11 @@ public class HiveDeviceRestImpl implements HiveDevice {
     }
 
     @Override
-    public void unsubscribeFromCommands() throws HiveException{
+    public void unsubscribeFromCommands() throws HiveException {
         restAgent.removeCommandsSubscription();
+    }
+
+    public boolean checkConnection() {
+        return restAgent.checkConnection();
     }
 }

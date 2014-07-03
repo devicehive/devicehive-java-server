@@ -100,4 +100,5 @@ public interface HiveDevice {
 
     void close() throws HiveException;
 
+    boolean checkConnection();
 }
