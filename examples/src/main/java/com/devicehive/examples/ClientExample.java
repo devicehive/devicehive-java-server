@@ -5,53 +5,55 @@ import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.model.AccessKey;
-import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.JsonStringWrapper;
-import com.devicehive.client.model.User;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
+import com.devicehive.view.ClientView;
 import com.google.gson.JsonObject;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.List;
-import java.util.UUID;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static com.devicehive.constants.Constants.USE_SOCKETS;
 
 /**
  * Client example represents base client features. It sends commands and receive notifications.
  */
-public class ClientExample extends Example {
-    private static final String LOGIN = "login";
-    private static final String LOGIN_DESCRIPTION = "User login.";
-    private static final String PASSWORD = "password";
-    private static final String PASSWORD_DESCRIPTION = "User password.";
-    private static final String ACCESS_KEY = "ak";
-    private static final String ACCESS_KEY_DESCRIPTION = "User access key.";
-    private final CommandLine commandLine;
-    private final HiveClient hiveClient;
+public class ClientExample {
+    private static final String LOGIN = "dhadmin";
+    private static final String PASSWORD = "dhadmin_#911";
+    private static final String LED_COMMAND = "LED";
+    private static final String LED_STATE = "state";
+    private static final String DEVICE_ID = "3d77f31c-bddd-443b-b11c-640946b0581a";
+    private static final DeviceCommand TURN_ON = new DeviceCommand();
+    private static final DeviceCommand TURN_OFF = new DeviceCommand();
+    private final ClientView view;
+    private HiveClient hiveClient;
+    private ExecutorService main = Executors.newSingleThreadExecutor();
+
+    static {
+        TURN_ON.setCommand(LED_COMMAND);
+        TURN_OFF.setCommand(LED_COMMAND);
+        JsonObject params = new JsonObject();
+        params.addProperty(LED_STATE, true);
+        TURN_ON.setParameters(new JsonStringWrapper(params.toString()));
+        params.remove(LED_STATE);
+        params.addProperty(LED_STATE, false);
+        TURN_OFF.setParameters(new JsonStringWrapper(params.toString()));
+    }
 
     /**
      * Constructor. Creates hiveClient instance.
-     *
-     * @param out  out PrintStream
-     * @param args commandLine arguments
-     * @throws HiveException    if unable to create hiveClient instance
-     * @throws ExampleException if server URL cannot be parsed
      */
-    public ClientExample(PrintStream out, String... args) throws HiveException, ExampleException {
-        super(out, args);
-        commandLine = getCommandLine();
-        hiveClient = HiveFactory
-                .createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), Example.impl, Example.impl);
+    public ClientExample() {
+        view = new ClientView(this);
     }
 
     /**
@@ -60,46 +62,8 @@ public class ClientExample extends Example {
      * @param args command line arguments
      */
     public static void main(String... args) {
-        try {
-            Example clientExample = new ClientExample(System.out, args);
-            clientExample.run();
-        } catch (HiveException | ExampleException | IOException e) {
-            System.err.println(e.getMessage());
-        }
+        ClientExample clientExample = new ClientExample();
     }
-
-    @Override
-    public Options makeOptionsSet() {
-        Options options = new Options();
-        options.addOption(LOGIN, true, LOGIN_DESCRIPTION);
-        options.addOption(PASSWORD, true, PASSWORD_DESCRIPTION);
-        options.addOption(ACCESS_KEY, true, ACCESS_KEY_DESCRIPTION);
-        return options;
-    }
-
-    /**
-     * Creates user with provided login and password to authorize
-     *
-     * @return user with provided login and password
-     */
-    private User createUser() {
-        User user = new User();
-        user.setLogin(commandLine.getOptionValue(LOGIN));
-        user.setPassword(commandLine.getOptionValue(PASSWORD));
-        return user;
-    }
-
-    /**
-     * Creates access key with provided key to authorize
-     *
-     * @return access key with provided key
-     */
-    private AccessKey createKey() {
-        AccessKey key = new AccessKey();
-        key.setKey(commandLine.getOptionValue(ACCESS_KEY));
-        return key;
-    }
-
     /**
      * Shows how to authorize using access key or user. Subscribes for the notifications. Sends a dummy command to
      * all available devices every 10 seconds. The task runs for 10 minutes.
@@ -108,63 +72,65 @@ public class ClientExample extends Example {
      * @throws ExampleException
      * @throws IOException
      */
-    @Override
-    public void run() throws HiveException, ExampleException, IOException {
-        try {
-            if (commandLine.hasOption(ACCESS_KEY)) {
-                AccessKey key = createKey();
-                hiveClient.authenticate(key.getKey());
-            } else {
-                User user = createUser();
-                hiveClient.authenticate(user.getLogin(), user.getPassword());
-            }
-            hiveClient.getNotificationsController().subscribeForNotifications(null, null);
-            ScheduledExecutorService commandsExecutor = Executors.newSingleThreadScheduledExecutor();
-            CommandTask commandTask = new CommandTask();
-            commandsExecutor.scheduleAtFixedRate(commandTask, 10, 10, TimeUnit.SECONDS);
-            Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
-        } catch (InterruptedException e) {
-            throw new ExampleException(e.getMessage(), e);
-        } finally {
-            hiveClient.close();
-        }
-    }
+    public void run(URI url, boolean useSockets) throws HiveException, ExampleException, IOException {
 
-    /**
-     * Commands creator. Sends commands to all available devices.
-     */
-    private class CommandTask implements Runnable {
-        private final DeviceCommand command = new DeviceCommand();
-        private final CommandsController cc;
-        private final List<Device> allAvailableDevices;
-        private final HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
+//        main.submit(new Callable<Void>() {
+//            @Override
+//            public Void call() throws Exception {
+        hiveClient = HiveFactory
+                .createClient(url, useSockets, Example.impl, Example.impl);
+        Thread.currentThread().setName("run");
+        hiveClient.authenticate(LOGIN, PASSWORD);
+        HiveMessageHandler<DeviceNotification> notificationsHandler = new HiveMessageHandler<DeviceNotification>() {
             @Override
-            public void handle(DeviceCommand message) {
-                print("Command proceed: %s. Id: %s", message.getCommand(), message.getId());
+            public void handle(DeviceNotification notification) {
+                System.out.print("Notification received: {}" + notification);
             }
         };
+        Set<String> uuids = new HashSet<String>() {{
+                    add(DEVICE_ID);
+                }};
+        SubscriptionFilter filter = new SubscriptionFilter(uuids, null, null);
+        hiveClient.getNotificationsController().subscribeForNotifications(filter, notificationsHandler);
+//                return null;
+//            }
+//        });
+    }
 
-        private CommandTask() throws HiveException {
-            command.setCommand("example_command");
-            JsonObject commandParams = new JsonObject();
-            commandParams.addProperty("command_param_1", "val.1: " + UUID.randomUUID());
-            commandParams.addProperty("command_param_2", "val.2: " + UUID.randomUUID());
-            command.setParameters(new JsonStringWrapper(commandParams.toString()));
-            cc = hiveClient.getCommandsController();
-            allAvailableDevices = hiveClient.getDeviceController().listDevices(null, null, null,
-                    null, null, null, null, null, null, null, null, null);
-        }
-
-        @Override
-        public void run() {
-            try{
-                for (Device device : allAvailableDevices) {
-                    cc.insertCommand(device.getId(), command, commandsHandler);
-                    print("The command {} will be sent to device {}", command.getParameters(), device.getId());
+    public ActionListener createTurnOnListener() {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    CommandsController cc = hiveClient.getCommandsController();
+                    cc.insertCommand(DEVICE_ID, TURN_ON, null);
+                } catch (HiveException e1) {
+                    //TODO
                 }
-            } catch (HiveException e) {
-                print("Unable to send a command to device");
             }
+        };
+    }
+
+    public ActionListener createTurnOffListener() {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    CommandsController cc = hiveClient.getCommandsController();
+                    cc.insertCommand(DEVICE_ID, TURN_OFF, null);
+                } catch (HiveException e1) {
+                    //TODO
+                }
+            }
+        };
+    }
+
+    public void close() {
+        try {
+            main.shutdownNow();
+            hiveClient.close();
+        } catch (HiveException e) {
+            //TODO
         }
     }
 }

@@ -11,7 +11,7 @@ public class ConnectionEventHandlerImpl implements ConnectionEstablishedNotifier
 
     @Override
     public void notify(Timestamp timestamp, String s, URI uri) {
-        String message = String.format("Lost at: %s, id: %s, uri: %s", timestamp.toString(), s, uri);
-        System.out.print(message);
+        String message = String.format("Connection event happend: %s, id: %s, uri: %s", timestamp.toString(), s, uri);
+        System.out.println(message);
     }
 }

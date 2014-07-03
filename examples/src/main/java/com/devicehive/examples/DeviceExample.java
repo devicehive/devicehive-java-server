@@ -7,6 +7,7 @@ import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceClass;
 import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Equipment;
 import com.devicehive.client.model.JsonStringWrapper;
 import com.devicehive.client.model.Network;
@@ -23,7 +24,6 @@ import java.io.PrintStream;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static com.devicehive.constants.Constants.USE_SOCKETS;
 
@@ -35,11 +35,12 @@ public class DeviceExample extends Example {
     private static final String NETWORK_NAME = "VirtualLed Sample Network";
     private static final String DC_NAME = "Graphical";
     private static final String DC_VERSION = "1.0";
-    private static final int DC_OFFLINE_TIMEOUT = 10;
+    private static final int DC_OFFLINE_TIMEOUT = 60 * 10;
     private static final String EQUIPMENT_NAME = "LED";
     private static final String EQUIPMENT_TYPE = "Controllable LED";
     private static final String LED_COMMAND = "LED";
     private static final String LED_STATE = "state";
+    private static final String SPECIAL_EQUIPMENT_NOTIFICATION = "equipment";
     private final HiveDevice hiveDevice;
     private final DeviceView view;
     private volatile boolean deviceState = false;
@@ -51,17 +52,17 @@ public class DeviceExample extends Example {
         CommandLine commandLine = getCommandLine();
         hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
                 Example.impl, Example.impl);
-        view = new DeviceView();
+        view = new DeviceView(hiveDevice);
     }
 
     public static void main(String... args) {
-        Example deviceExample;
         try {
-            deviceExample = new DeviceExample(System.err, System.out, args);
+            Example deviceExample = new DeviceExample(System.err, System.out, args);
             deviceExample.run();
         } catch (HiveException | ExampleException | IOException e) {
-            System.err.println(e.getMessage());
+            System.err.print(e);
         }
+
     }
 
     @Override
@@ -98,49 +99,64 @@ public class DeviceExample extends Example {
     @Override
     public void run() throws HiveException, ExampleException, IOException {
         Device device = createDevice();
-        try {
-            hiveDevice.registerDevice(device);
-            hiveDevice.authenticate(device.getId(), device.getKey());
-            Device registered = hiveDevice.getDevice();
-            print("Device registered! Device {}:", registered.getId());
-            Timestamp serverTimestamp = hiveDevice.getInfo().getServerTimestamp();
-            HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
-                @Override
-                public void handle(DeviceCommand command) {
-                    if (command.getCommand().equals(LED_COMMAND)) {
-                        JsonStringWrapper jsonString = command.getParameters();
-                        JsonObject json = (JsonObject) new JsonParser().parse(jsonString.toString());
-                        int state = json.get("state").getAsInt();
-                        if (state == 0) {
+        hiveDevice.registerDevice(device);
+        hiveDevice.authenticate(device.getId(), device.getKey());
+        Device registered = hiveDevice.getDevice();
+        System.out.println("Device registered! Device " + registered.getId());
+        Timestamp serverTimestamp = hiveDevice.getInfo().getServerTimestamp();
+        HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
+            @Override
+            public void handle(DeviceCommand command) {
+                if (command.getCommand().equals(LED_COMMAND)) {
+                    JsonStringWrapper jsonString = command.getParameters();
+                    JsonObject json = (JsonObject) new JsonParser().parse(jsonString.toString());
+                    boolean state = json.get(LED_STATE).getAsBoolean();
+                    DeviceNotification equipment = null;
+                    if (state != deviceState) {
+                        equipment = new DeviceNotification();
+                        equipment.setNotification(SPECIAL_EQUIPMENT_NOTIFICATION);
+                        JsonObject equipmentJson = new JsonObject();
+                        equipmentJson.addProperty(SPECIAL_EQUIPMENT_NOTIFICATION, LED_COMMAND);
+                        equipmentJson.addProperty(LED_STATE, state);
+                        equipment.setParameters(new JsonStringWrapper(equipmentJson.toString()));
+                    }
+                    if (state) {
+                        view.setGreen();
+                    } else {
+                        view.setRed();
+                    }
+                    deviceState = state;
+
+                    try {
+                        if (equipment != null) {
+                            hiveDevice.insertNotification(equipment);
+                        }
+                    } catch (HiveException e) {
+                        if (state) {
                             view.setRed();
-                            deviceState = false;
                         } else {
                             view.setGreen();
-                            deviceState = true;
                         }
+                        deviceState = !state;
+                        while (!hiveDevice.checkConnection() && !Thread.currentThread().isInterrupted()) {
+                        }
+                    } finally {
                         command.setStatus("Proceed");
                         command.setResult(new JsonStringWrapper("{status: \"Ok\"}"));
-                        try {
-                            hiveDevice.updateCommand(command);
-                        } catch (HiveException e) {
-                            if (state == 0) {
-                                view.setGreen();
-                                deviceState = true;
-                            } else {
-                                view.setRed();
-                                deviceState = false;
+                        boolean sent = false;
+                        while (!sent) {
+                            try {
+                                hiveDevice.updateCommand(command);
+                                sent = true;
+                            } catch (HiveException e) {
+                                while (!hiveDevice.checkConnection() && !Thread.currentThread().isInterrupted()) {
+                                }
                             }
                         }
                     }
-
                 }
-            };
-            hiveDevice.subscribeForCommands(serverTimestamp, commandsHandler);
-            Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
-        } catch (InterruptedException e) {
-            throw new ExampleException(e.getMessage(), e);
-        } finally {
-            hiveDevice.close();
-        }
+            }
+        };
+        hiveDevice.subscribeForCommands(serverTimestamp, commandsHandler);
     }
 }
