@@ -36,7 +36,6 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -63,11 +62,13 @@ public class HiveRestConnector {
      *
      * @param uri URI of RESTful service
      */
-    public HiveRestConnector(URI uri, HiveConnectionEventHandler connectionEventHandler) {
+    public HiveRestConnector(URI uri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
         this.uri = uri;
         restClient = RestClientFactory.getClient();
         this.connectionEventHandler = connectionEventHandler;
         checkConnection();
+        if (!isConnected)
+            throw new HiveException("Unable to connect");
     }
 
     public boolean isConnected() {
@@ -85,10 +86,10 @@ public class HiveRestConnector {
 
     public synchronized boolean checkConnection() {
         try {
-            execute("/info", HttpMethod.GET, null, null, null, ApiInfo.class, null, null);
-            isConnected = true;
+            Response response = buildInvocation("/info", HttpMethod.GET, null, null, null, null).invoke();
+            getEntity(response, ApiInfo.class, null);
         } catch (HiveException e) {
-            return false;
+            isConnected = false;
         }
         if (isConnected) {
             ConnectionEvent connectionEstablishedEvent = new ConnectionEvent(uri,
@@ -187,7 +188,6 @@ public class HiveRestConnector {
                                                             S objectToSend, Type typeOfR,
                                                             JsonPolicyDef.Policy sendPolicy,
                                                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        Thread.currentThread().setName("REST_request"+ UUID.randomUUID());
         if (!isConnected)
             throw new HiveClientException(Messages.CONNECTION_LOST);
         return execute(path, method, headers, queryParams, objectToSend, typeOfR, sendPolicy, receivePolicy);
@@ -204,32 +204,11 @@ public class HiveRestConnector {
      */
     public synchronized <R> R executeFormWithConnectionCheck(String path, Map<String, String> formParams, Type typeOfR,
                                                              JsonPolicyDef.Policy receivePolicy) throws HiveException {
+        if (!isConnected)
+            throw new HiveClientException(Messages.CONNECTION_LOST);
         try {
             Response response = buildFormInvocation(path, formParams).invoke();
-            Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
-            switch (statusFamily) {
-                case SERVER_ERROR:
-                    throw new HiveServerException(response.getStatus());
-                case CLIENT_ERROR:
-                    if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
-                        throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
-                                response.getStatus());
-                    }
-                    ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
-                    throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
-                case SUCCESSFUL:
-                    if (typeOfR == null) {
-                        return null;
-                    }
-                    if (receivePolicy == null) {
-                        return response.readEntity(new GenericType<R>(typeOfR));
-                    } else {
-                        Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
-                        return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
-                    }
-                default:
-                    throw new HiveException("Unknown response");
-            }
+            return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             if (e.getCause() instanceof ConnectException) {
                 onConnectionLost();
@@ -261,31 +240,7 @@ public class HiveRestConnector {
                                           JsonPolicyDef.Policy receivePolicy) throws HiveException {
         try {
             Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
-            isConnected = true;
-            Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
-            switch (statusFamily) {
-                case SERVER_ERROR:
-                    throw new HiveServerException(response.getStatus());
-                case CLIENT_ERROR:
-                    if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
-                        throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
-                                response.getStatus());
-                    }
-                    ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
-                    throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
-                case SUCCESSFUL:
-                    if (typeOfR == null) {
-                        return null;
-                    }
-                    if (receivePolicy == null) {
-                        return response.readEntity(new GenericType<R>(typeOfR));
-                    } else {
-                        Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
-                        return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
-                    }
-                default:
-                    throw new HiveException(Messages.UNKNOWN_RESPONSE);
-            }
+            return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             if (e.getCause() instanceof ConnectException) {
                 onConnectionLost();
@@ -296,10 +251,38 @@ public class HiveRestConnector {
         return null;
     }
 
+    private <R> R getEntity(Response response, Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
+        isConnected = true;
+        Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
+        switch (statusFamily) {
+            case SERVER_ERROR:
+                throw new HiveServerException(response.getStatus());
+            case CLIENT_ERROR:
+                if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
+                    throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
+                            response.getStatus());
+                }
+                ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
+            case SUCCESSFUL:
+                if (typeOfR == null) {
+                    return null;
+                }
+                if (receivePolicy == null) {
+                    return response.readEntity(new GenericType<R>(typeOfR));
+                } else {
+                    Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
+                    return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
+                }
+            default:
+                throw new HiveException(Messages.UNKNOWN_RESPONSE);
+        }
+    }
+
     private void onConnectionLost() {
         isConnected = false;
-        ConnectionEvent connectionLostEvent = new ConnectionEvent(uri, new Timestamp(System.currentTimeMillis
-                ()), hivePrincipal);
+        ConnectionEvent connectionLostEvent = new ConnectionEvent(uri,
+                new Timestamp(System.currentTimeMillis()), hivePrincipal);
         connectionLostEvent.setLost(true);
         connectionEventHandler.handle(connectionLostEvent);
         connectionChecker.submit(new Runnable() {

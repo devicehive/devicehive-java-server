@@ -26,9 +26,10 @@ public class HiveFactory {
                                           boolean preferWebsockets,
                                           ConnectionEstablishedNotifier connectionEstablishedNotifier,
                                           ConnectionLostNotifier connectionLostNotifier) throws HiveException {
-        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
+        HiveConnectionEventHandler connectionEventHandler =
+                new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
         if (preferWebsockets) {
-            return new HiveClientWebsocketImpl(createWebsocketCleintAgent(restUri, connectionEventHandler));
+            return new HiveClientWebsocketImpl(createWebsocketClientAgent(restUri, connectionEventHandler));
         } else {
             return new HiveClientRestImpl(createRestAgent(restUri, connectionEventHandler));
         }
@@ -43,7 +44,8 @@ public class HiveFactory {
                                           boolean preferWebsockets,
                                           ConnectionEstablishedNotifier connectionEstablishedNotifier,
                                           ConnectionLostNotifier connectionLostNotifier) throws HiveException {
-        HiveConnectionEventHandler connectionEventHandler = new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
+        HiveConnectionEventHandler connectionEventHandler =
+                new HiveConnectionEventHandler(connectionLostNotifier, connectionEstablishedNotifier);
         if (preferWebsockets) {
             return new HiveDeviceWebsocketImpl(createWebsocketDeviceAgent(restUri, connectionEventHandler));
         } else {
@@ -51,20 +53,24 @@ public class HiveFactory {
         }
     }
 
-
-    private static RestAgent createRestAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
-        RestAgent agent  = new RestAgent(restUri, connectionEventHandler);
+    private static RestAgent createRestAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler)
+            throws HiveException {
+        RestAgent agent = new RestAgent(restUri, connectionEventHandler);
         agent.connect();
         return agent;
     }
 
-    private static WebsocketAgent createWebsocketCleintAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+    private static WebsocketAgent createWebsocketClientAgent(URI restUri,
+                                                             HiveConnectionEventHandler connectionEventHandler)
+            throws HiveException {
         WebsocketAgent agent = new WebsocketAgent(restUri, "client", connectionEventHandler);
         agent.connect();
         return agent;
     }
 
-    private static WebsocketAgent createWebsocketDeviceAgent(URI restUri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+    private static WebsocketAgent createWebsocketDeviceAgent(URI restUri,
+                                                             HiveConnectionEventHandler connectionEventHandler)
+            throws HiveException {
         WebsocketAgent agent = new WebsocketAgent(restUri, "device", connectionEventHandler);
         agent.connect();
         return agent;
