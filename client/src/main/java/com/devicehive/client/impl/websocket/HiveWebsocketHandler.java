@@ -48,30 +48,14 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         JsonObject jsonMessage;
         try {
             jsonMessage = new JsonParser().parse(message).getAsJsonObject();
-            if (!jsonMessage.has(REQUEST_ID_MEMBER)) {
-                try {
-                    switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
-                        case COMMAND_INSERT:
-                            websocketAgent.handleCommandInsert(jsonMessage);
-                            break;
-                        case COMMAND_UPDATE:
-                            websocketAgent.handleCommandUpdate(jsonMessage);
-                            break;
-                        case NOTIFICATION_INSERT:
-                            websocketAgent.handleNotification(jsonMessage);
-                            break;
-                        default: //unknown request
-                            logger.error("Server sent unknown message {}", message);
-                    }
-                } catch (InterruptedException e) {
-                    logger.info("Task cancelled: " + e.getMessage(), e);
-                }
-            } else {
+            if (jsonMessage.has(REQUEST_ID_MEMBER)) {
                 SettableFuture<JsonObject> future = websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
                         .getAsString());
                 if (future != null) {
                     future.set(jsonMessage);
                 }
+            } else {
+                websocketAgent.handleServerMessage(jsonMessage);
             }
         } catch (JsonParseException | IllegalStateException ex) {
             logger.error("Server sent incorrect message {}", message);

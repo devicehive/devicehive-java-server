@@ -42,11 +42,7 @@ public class DeviceView {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                try {
-                    deviceExample.close();
-                } catch (HiveException e1) {
-                    //TODO
-                }
+                deviceExample.close();
                 super.windowClosed(e);
             }
         });

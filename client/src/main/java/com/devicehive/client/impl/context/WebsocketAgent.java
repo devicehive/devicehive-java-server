@@ -3,6 +3,7 @@ package com.devicehive.client.impl.context;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.rest.HiveRestConnector;
+import com.devicehive.client.impl.util.LockWrapper;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.impl.websocket.HiveWebsocketConnector;
 import com.devicehive.client.model.ApiInfo;
@@ -23,6 +24,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.client.impl.websocket.JsonEncoder.*;
@@ -32,17 +35,26 @@ public class WebsocketAgent extends RestAgent {
 
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
     private final String role;
+
+    private final ConcurrentMap<String, String> serverToLocalSubIdMap = new ConcurrentHashMap<>();
+
     private final ConcurrentMap<Long, HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage =
             new ConcurrentHashMap<>();
+
+    private final ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(50);
+
     private HiveWebsocketConnector websocketConnector;
+
 
     public WebsocketAgent(URI restUri, String role) {
         super(restUri);
         this.role = role;
     }
 
-    public synchronized HiveWebsocketConnector getWebsocketConnector() {
-        return websocketConnector;
+    public HiveWebsocketConnector getWebsocketConnector() {
+        try ( LockWrapper lw = LockWrapper.read(stateLock)) {
+            return websocketConnector;
+        }
     }
 
     @Override
@@ -61,14 +73,9 @@ public class WebsocketAgent extends RestAgent {
     }
 
     @Override
-    protected synchronized void doDisconnect() {
+    protected void doDisconnect() {
         websocketConnector.close();
         super.doDisconnect();
-    }
-
-    @Override
-    protected void afterDisconnect()  {
-        super.afterDisconnect();
     }
 
     @Override
@@ -81,21 +88,16 @@ public class WebsocketAgent extends RestAgent {
         Set<String> commandSubIds = new HashSet<>(this.getCommandSubscriptionsStorage().keySet());
         for (String subId : commandSubIds) {
             SubscriptionDescriptor<DeviceCommand> sub = getCommandsSubscriptionDescriptor(subId);
-            subscribeForCommands(sub.getFilter(), sub.getHandler(), subId);
+            serverToLocalSubIdMap.put(sendSubscribeForCommands(sub.getFilter()), subId);
         }
 
         Set<String> notificationSubIds = new HashSet<>(this.getNotificationSubscriptionsStorage().keySet());
         for (String subId : notificationSubIds) {
             SubscriptionDescriptor<DeviceNotification> sub = getNotificationsSubscriptionDescriptor(subId);
-            subscribeForNotifications(sub.getFilter(), sub.getHandler(), subId);
+            serverToLocalSubIdMap.put(sendSubscribeForNotifications(sub.getFilter()), subId);
         }
     }
 
-
-    @Override
-    public synchronized void close() {
-        super.close();
-    }
 
     @Override
     public ApiInfo getInfo() throws HiveException {
@@ -111,68 +113,71 @@ public class WebsocketAgent extends RestAgent {
     }
 
     @Override
-    public synchronized String subscribeForCommands(SubscriptionFilter newFilter,
+    public String subscribeForCommands(SubscriptionFilter newFilter,
                                                     HiveMessageHandler<DeviceCommand> handler) throws HiveException {
-        return subscribeForCommands(newFilter, handler, null);
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            String localId = UUID.randomUUID().toString();
+            addCommandsSubscription(localId, new SubscriptionDescriptor<>(handler, newFilter));
+            serverToLocalSubIdMap.put(sendSubscribeForCommands(newFilter), localId);
+            return localId;
+        }
     }
 
-
-    public synchronized String subscribeForCommands(SubscriptionFilter newFilter,
-                                                    HiveMessageHandler<DeviceCommand> handler, String oldId) throws HiveException {
+    private String sendSubscribeForCommands(SubscriptionFilter newFilter) throws HiveException {
         Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
         request.addProperty(ACTION_MEMBER, "command/subscribe");
         request.add("filter", gson.toJsonTree(newFilter));
-        String subscriptionIdValue = websocketConnector.sendMessage(request, SUBSCRIPTION_ID, String.class, null);
-        if (oldId == null) {
-            addCommandsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
-        } else {
-            replaceCommandSubscription(oldId, subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
-        }
-        return subscriptionIdValue;
+        return websocketConnector.sendMessage(request, SUBSCRIPTION_ID, String.class, null);
     }
+
+
 
     @Override
-    public synchronized String subscribeForNotifications(SubscriptionFilter newFilter,
+    public String subscribeForNotifications(SubscriptionFilter newFilter,
                                                          HiveMessageHandler<DeviceNotification> handler) throws HiveException {
-        return subscribeForNotifications(newFilter, handler, null);
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            String localId = UUID.randomUUID().toString();
+            addNotificationsSubscription(localId, new SubscriptionDescriptor<>(handler, newFilter));
+            serverToLocalSubIdMap.put(sendSubscribeForNotifications(newFilter), localId);
+            return localId;
+        }
     }
 
-    public synchronized String subscribeForNotifications(SubscriptionFilter newFilter,
-                                                         HiveMessageHandler<DeviceNotification> handler, String oldId)
-            throws HiveException {
+    private String sendSubscribeForNotifications(SubscriptionFilter newFilter) throws HiveException {
         Gson gson = GsonFactory.createGson();
         JsonObject request = new JsonObject();
         request.addProperty(ACTION_MEMBER, "notification/subscribe");
         request.add("filter", gson.toJsonTree(newFilter));
-        String subscriptionIdValue = websocketConnector.sendMessage(request, SUBSCRIPTION_ID, String.class, null);
-        if (oldId == null) {
-            addNotificationsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
-        } else {
-            replaceNotificationSubscription(oldId, subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
+        return websocketConnector.sendMessage(request, SUBSCRIPTION_ID, String.class, null);
+    }
+
+
+
+    @Override
+    public void unsubscribeFromCommands(String subId) throws HiveException {
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            removeCommandsSubscription(subId);
+            JsonObject request = new JsonObject();
+            request.addProperty(ACTION_MEMBER, "command/unsubscribe");
+            request.addProperty(SUBSCRIPTION_ID, subId);
+            websocketConnector.sendMessage(request);
         }
-        return subscriptionIdValue;
+    }
+
+
+    public void unsubscribeFromNotifications(String subId) throws HiveException {
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            removeNotificationsSubscription(subId);
+            JsonObject request = new JsonObject();
+            request.addProperty(ACTION_MEMBER, "notification/unsubscribe");
+            request.addProperty(SUBSCRIPTION_ID, subId);
+            websocketConnector.sendMessage(request);
+        }
     }
 
     @Override
-    public synchronized void unsubscribeFromCommands(String subId) throws HiveException {
-        JsonObject request = new JsonObject();
-        request.addProperty(ACTION_MEMBER, "command/unsubscribe");
-        request.addProperty(SUBSCRIPTION_ID, subId);
-        websocketConnector.sendMessage(request);
-    }
-
-
-    public synchronized void unsubscribeFromNotifications(String subId) throws HiveException {
-        JsonObject request = new JsonObject();
-        request.addProperty(ACTION_MEMBER, "notification/unsubscribe");
-        request.addProperty(SUBSCRIPTION_ID, subId);
-        websocketConnector.sendMessage(request);
-    }
-
-    @Override
-    public synchronized void authenticate(HivePrincipal principal) throws HiveException {
-        super.authenticate(principal);
+    public void authenticate(HivePrincipal principal) throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty(ACTION_MEMBER, "authenticate");
         if (principal.getUser() != null) {
@@ -186,40 +191,52 @@ public class WebsocketAgent extends RestAgent {
         } else {
             throw new IllegalArgumentException(Messages.INVALID_HIVE_PRINCIPAL);
         }
-        websocketConnector.sendMessage(request);
-    }
 
-    public synchronized void addCommandUpdateSubscription(Long commandId, String guid, HiveMessageHandler<DeviceCommand> handler) {
-        commandUpdatesHandlerStorage.put(commandId, handler);
-    }
-
-    public void handleCommandInsert(JsonObject jsonMessage) throws InterruptedException {
-        Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
-        DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
-                DeviceCommand.class);
-        SubscriptionDescriptor<DeviceCommand> sub = getCommandsSubscriptionDescriptor(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
-        sub.handleMessage(commandInsert);
-        logger.debug("Device command inserted. Id: " + commandInsert.getId());
-
-    }
-
-    public void handleCommandUpdate(JsonObject jsonMessage) throws InterruptedException {
-        Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
-        DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
-                (COMMAND_MEMBER), DeviceCommand.class);
-        if (commandUpdatesHandlerStorage.get(commandUpdated.getId()) != null) {
-            commandUpdatesHandlerStorage.remove(commandUpdated.getId()).handle(commandUpdated);
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            super.authenticate(principal);
+            websocketConnector.sendMessage(request);
         }
-        logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
-                commandUpdated.getStatus());
     }
 
-    public void handleNotification(JsonObject jsonMessage) throws InterruptedException {
-        Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
-        DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
-                (NOTIFICATION_MEMBER), DeviceNotification.class);
-        SubscriptionDescriptor<DeviceNotification> sub = getNotificationsSubscriptionDescriptor(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
-        sub.handleMessage(notification);
-        logger.debug("Device notification inserted. Id: " + notification.getId());
+    public void addCommandUpdateSubscription(Long commandId, String guid, HiveMessageHandler<DeviceCommand> handler) {
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            commandUpdatesHandlerStorage.put(commandId, handler);
+        }
+    }
+
+    public void handleServerMessage(final JsonObject jsonMessage) {
+        subscriptionExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                try ( LockWrapper lw = LockWrapper.read(stateLock)) {
+                    switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
+                        case COMMAND_INSERT:
+                            Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
+                            DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
+                                    DeviceCommand.class);
+                            String localCommandSubId = serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
+                            getCommandsSubscriptionDescriptor(localCommandSubId).handleMessage(commandInsert);
+                            break;
+                        case COMMAND_UPDATE:
+                            Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
+                            DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
+                                    (COMMAND_MEMBER), DeviceCommand.class);
+                            if (commandUpdatesHandlerStorage.get(commandUpdated.getId()) != null) {
+                                commandUpdatesHandlerStorage.remove(commandUpdated.getId()).handle(commandUpdated);
+                            }
+                            break;
+                        case NOTIFICATION_INSERT:
+                            Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
+                            DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
+                                    (NOTIFICATION_MEMBER), DeviceNotification.class);
+                            String localNotifSubId = serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
+                            getNotificationsSubscriptionDescriptor(localNotifSubId).handleMessage(notification);
+                            break;
+                        default: //unknown request
+                            logger.error("Server sent unknown message {}", jsonMessage);
+                    }
+                }
+            }
+        });
     }
 }

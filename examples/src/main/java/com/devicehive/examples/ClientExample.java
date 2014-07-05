@@ -126,11 +126,7 @@ public class ClientExample {
     }
 
     public void close() {
-        try {
             main.shutdownNow();
             hiveClient.close();
-        } catch (HiveException e) {
-            //TODO
-        }
     }
 }

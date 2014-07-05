@@ -2,6 +2,7 @@ package com.devicehive.client.impl.context;
 
 
 import com.devicehive.client.impl.Status;
+import com.devicehive.client.impl.util.LockWrapper;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -10,6 +11,8 @@ import com.google.common.base.Preconditions;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public abstract class AbstractHiveAgent {
 
@@ -17,9 +20,8 @@ public abstract class AbstractHiveAgent {
             new ConcurrentHashMap<>();
     private final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage =
             new ConcurrentHashMap<>();
-    //the first String stands for old subscription identifier, the second one stands for new subscription identifier
-    private final ConcurrentMap<String, String> oldNewSubIds = new ConcurrentHashMap<>();
-    private volatile Status status;
+
+    protected final ReadWriteLock stateLock = new ReentrantReadWriteLock(true);
     private HivePrincipal hivePrincipal;
 
     protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> getCommandSubscriptionsStorage() {
@@ -32,45 +34,23 @@ public abstract class AbstractHiveAgent {
 
 
     protected final SubscriptionDescriptor<DeviceCommand> getCommandsSubscriptionDescriptor(String subscriptionId) {
-        return commandSubscriptionsStorage.get(oldNewSubIds.get(subscriptionId));
+        return commandSubscriptionsStorage.get(subscriptionId);
     }
 
     protected final SubscriptionDescriptor<DeviceNotification> getNotificationsSubscriptionDescriptor(String subscriptionId) {
-        return notificationSubscriptionsStorage.get(oldNewSubIds.get(subscriptionId));
+        return notificationSubscriptionsStorage.get(subscriptionId);
     }
 
     protected final void addCommandsSubscription(String newSubscriptionId,
                                                  SubscriptionDescriptor<DeviceCommand> descriptor) {
-        Preconditions.checkState(!oldNewSubIds.containsKey(newSubscriptionId));
         commandSubscriptionsStorage.put(newSubscriptionId, descriptor);
-        oldNewSubIds.put(newSubscriptionId, newSubscriptionId);
     }
 
-    protected final void replaceCommandSubscription(String oldSubscriptionId,
-                                                    String newSubscriptionId,
-                                                    SubscriptionDescriptor<DeviceCommand> descriptor) {
-        Preconditions.checkState(oldNewSubIds.containsKey(oldSubscriptionId));
-        Preconditions.checkState(!oldNewSubIds.containsKey(newSubscriptionId));
-        commandSubscriptionsStorage.remove(oldSubscriptionId);
-        commandSubscriptionsStorage.put(newSubscriptionId, descriptor);
-        oldNewSubIds.replace(oldSubscriptionId, newSubscriptionId);
-    }
 
-    protected final void replaceNotificationSubscription(String oldSubscriptionId,
-                                                         String newSubscriptionId,
-                                                         SubscriptionDescriptor<DeviceNotification> descriptor) {
-        Preconditions.checkState(oldNewSubIds.containsKey(oldSubscriptionId));
-        Preconditions.checkState(!oldNewSubIds.containsKey(newSubscriptionId));
-        notificationSubscriptionsStorage.remove(oldSubscriptionId);
-        notificationSubscriptionsStorage.put(newSubscriptionId, descriptor);
-        oldNewSubIds.replace(oldSubscriptionId, newSubscriptionId);
-    }
 
     protected final void addNotificationsSubscription(String subscriptionId,
                                                       SubscriptionDescriptor<DeviceNotification> descriptor) {
-        Preconditions.checkState(!oldNewSubIds.containsKey(subscriptionId));
         notificationSubscriptionsStorage.put(subscriptionId, descriptor);
-        oldNewSubIds.put(subscriptionId, subscriptionId);
     }
 
     protected final void removeCommandsSubscription(String subscriptionId) throws HiveException {
@@ -81,18 +61,11 @@ public abstract class AbstractHiveAgent {
         notificationSubscriptionsStorage.remove(subscriptionId);
     }
 
-    public synchronized HivePrincipal getHivePrincipal() {
-        return hivePrincipal;
+    public HivePrincipal getHivePrincipal() {
+        try ( LockWrapper lw = LockWrapper.read(stateLock)) {
+            return hivePrincipal;
+        }
     }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    protected void setStatus(Status status) {
-        this.status = status;
-    }
-
 
     protected abstract void beforeConnect()throws HiveException;
 
@@ -107,30 +80,36 @@ public abstract class AbstractHiveAgent {
     protected abstract void afterDisconnect();
 
 
-    public synchronized final void connect() throws HiveException {
-        beforeConnect();
-        setStatus(Status.CONNECTING);
-        doConnect();
-        setStatus(Status.CONNECTED);
-        afterConnect();
-    }
-
-    public synchronized final void disconnect() {
-        beforeDisconnect();
-        doDisconnect();
-        setStatus(Status.NOT_CONNECTED);
-        afterDisconnect();
-    }
-
-
-    public synchronized void authenticate(HivePrincipal hivePrincipal) throws HiveException {
-        if (this.hivePrincipal != null && !this.hivePrincipal.equals(hivePrincipal)) {
-            throw new IllegalStateException(Messages.ALREADY_AUTHENTICATED);
+    public final void connect() throws HiveException {
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            beforeConnect();
+            doConnect();
+            afterConnect();
         }
-        this.hivePrincipal = hivePrincipal;
     }
 
-    public synchronized void close()  {
-        disconnect();
+    public final void disconnect() {
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            beforeDisconnect();
+            doDisconnect();
+            afterDisconnect();
+        }
+    }
+
+
+    public void authenticate(HivePrincipal hivePrincipal) throws HiveException {
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            if (this.hivePrincipal != null && !this.hivePrincipal.equals(hivePrincipal)) {
+                throw new IllegalStateException(Messages.ALREADY_AUTHENTICATED);
+            }
+            this.hivePrincipal = hivePrincipal;
+        }
+    }
+
+
+    public final void close()  {
+        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+            disconnect();
+        }
     }
 }
