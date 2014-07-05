@@ -1,4 +1,4 @@
-package com.devicehive.client;
+package com.devicehive.client.impl;
 
 /**
  * Created by stas on 25.05.14.

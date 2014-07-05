@@ -64,7 +64,7 @@ public class RestAgent extends AbstractHiveAgent {
 
 
     @Override
-    protected void beforeDisconnect() throws HiveException {
+    protected void beforeDisconnect() {
         MoreExecutors.shutdownAndAwaitTermination(subscriptionExecutor, 1, TimeUnit.MINUTES);
         commandSubscriptionsResults.clear();
         notificationSubscriptionResults.clear();
@@ -76,11 +76,11 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     @Override
-    protected void afterDisconnect() throws HiveException {
+    protected void afterDisconnect() {
     }
 
     @Override
-    public synchronized void close() throws HiveException {
+    public synchronized void close()  {
         super.close();
     }
 

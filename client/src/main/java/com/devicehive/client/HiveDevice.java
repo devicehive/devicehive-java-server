@@ -14,7 +14,7 @@ import java.util.List;
  * After connection is established, devices need to registered, perform authentication and then start sending notifications.
  * Devices may also subscribe to commands and then start receiving server-originated messages about new commands.
  */
-public interface HiveDevice {
+public interface HiveDevice extends AutoCloseable {
 
     /**
      * Authenticates a device.
@@ -98,6 +98,6 @@ public interface HiveDevice {
      */
     ApiInfo getInfo() throws HiveException;
 
-    void close() throws HiveException;
+    void close();
 
 }

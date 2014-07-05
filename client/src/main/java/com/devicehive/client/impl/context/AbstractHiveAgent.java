@@ -1,7 +1,7 @@
 package com.devicehive.client.impl.context;
 
 
-import com.devicehive.client.Status;
+import com.devicehive.client.impl.Status;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -94,17 +94,17 @@ public abstract class AbstractHiveAgent {
     }
 
 
-    protected abstract void beforeConnect() throws HiveException;
+    protected abstract void beforeConnect()throws HiveException;
 
     protected abstract void doConnect() throws HiveException;
 
     protected abstract void afterConnect() throws HiveException;
 
-    protected abstract void beforeDisconnect() throws HiveException;
+    protected abstract void beforeDisconnect();
 
-    protected abstract void doDisconnect() throws HiveException;
+    protected abstract void doDisconnect();
 
-    protected abstract void afterDisconnect() throws HiveException;
+    protected abstract void afterDisconnect();
 
 
     public synchronized final void connect() throws HiveException {
@@ -115,7 +115,7 @@ public abstract class AbstractHiveAgent {
         afterConnect();
     }
 
-    public synchronized final void disconnect() throws HiveException {
+    public synchronized final void disconnect() {
         beforeDisconnect();
         doDisconnect();
         setStatus(Status.NOT_CONNECTED);
@@ -130,7 +130,7 @@ public abstract class AbstractHiveAgent {
         this.hivePrincipal = hivePrincipal;
     }
 
-    public synchronized void close() throws HiveException {
+    public synchronized void close()  {
         disconnect();
     }
 }

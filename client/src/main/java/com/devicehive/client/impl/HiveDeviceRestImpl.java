@@ -32,7 +32,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
      * Closes single hive device with associated context
      */
     @Override
-    public void close() throws HiveException {
+    public void close() {
         restAgent.close();
     }
 

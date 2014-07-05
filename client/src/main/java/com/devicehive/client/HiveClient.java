@@ -9,7 +9,7 @@ import com.devicehive.client.model.exceptions.HiveException;
  * methods with similar logic to some container. The separation of client controllers is equal or similar to the
  * server's controller.
  */
-public interface HiveClient {
+public interface HiveClient extends AutoCloseable {
 
     /**
      * Requests API information
@@ -75,6 +75,6 @@ public interface HiveClient {
      */
     UserController getUserController() throws HiveException;
 
-    void close() throws HiveException;
+    void close();
 
 }

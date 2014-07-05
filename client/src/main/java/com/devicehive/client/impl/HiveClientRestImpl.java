@@ -64,7 +64,7 @@ public class HiveClientRestImpl implements HiveClient {
         return new OAuthTokenControllerImpl(restAgent);
     }
 
-    public void close() throws HiveException {
+    public void close() {
         restAgent.close();
     }
 

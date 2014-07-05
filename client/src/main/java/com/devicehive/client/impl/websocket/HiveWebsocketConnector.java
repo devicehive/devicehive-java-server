@@ -159,7 +159,7 @@ public class HiveWebsocketConnector {
     public void close() {
         try {
             currentSessionLock.writeLock().lock();
-            currentSession.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, ""));
+            currentSession.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Bye."));
         } catch (IOException e) {
             logger.error("Error closing websocket session", e);
         } finally {

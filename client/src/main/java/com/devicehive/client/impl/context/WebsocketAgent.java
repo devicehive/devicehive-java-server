@@ -67,7 +67,7 @@ public class WebsocketAgent extends RestAgent {
     }
 
     @Override
-    protected void afterDisconnect() throws HiveException {
+    protected void afterDisconnect()  {
         super.afterDisconnect();
     }
 
@@ -93,7 +93,7 @@ public class WebsocketAgent extends RestAgent {
 
 
     @Override
-    public synchronized void close() throws HiveException {
+    public synchronized void close() {
         super.close();
     }
 
