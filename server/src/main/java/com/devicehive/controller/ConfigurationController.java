@@ -8,11 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
 import static com.devicehive.configuration.Constants.NAME;
@@ -28,19 +24,28 @@ public class ConfigurationController {
     @EJB
     private ConfigurationService configurationService;
 
-    @GET
-    @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{" + NAME + "}/set")
-    public Response setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
-        configurationService.save(name, value);
-        return Response.ok().build();
-    }
 
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/{" + NAME + "}")
     public Response get(@PathParam(NAME) String name) {
         return Response.ok().entity(configurationService.get(name)).build();
+    }
+
+    @PUT
+    @RolesAllowed(HiveRoles.ADMIN)
+    @Path("/{" + NAME + "}")
+    public Response setProperty(@PathParam(NAME) String name, String value) {
+        configurationService.save(name, value);
+        return Response.ok().build();
+    }
+
+    @GET
+    @RolesAllowed(HiveRoles.ADMIN)
+    @Path("/{" + NAME + "}/set")
+    public Response setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
+        configurationService.save(name, value);
+        return Response.ok().build();
     }
 
     @DELETE
