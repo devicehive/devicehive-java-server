@@ -201,12 +201,12 @@ public class HiveWebsocketConnector {
                 }
             }
         } catch (InterruptedException e) {
-            logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
+            Thread.currentThread().interrupt();
+            throw new HiveClientException("Interrupted", e);
         } catch (TimeoutException e) {
-            noResponseAction();
+            throw new HiveServerException(Messages.NO_RESPONSES_FROM_SERVER, SERVICE_UNAVAILABLE.getStatusCode());
         } catch (ExecutionException e) {
-            logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
-            throw new InternalHiveClientException(e.getMessage(), e);
+            throw new InternalHiveClientException(e.getMessage(), e.getCause());
         } finally {
             websocketResponsesMap.remove(requestId);
         }
@@ -226,7 +226,7 @@ public class HiveWebsocketConnector {
                         error = result.get(Constants.ERROR).getAsString();
                     Integer code = null;
                     if (result.get(Constants.CODE) instanceof JsonPrimitive)
-                        result.get(Constants.CODE).getAsInt();
+                        code = result.get(Constants.CODE).getAsInt();
                     switch (errorFamily) {
                         case SERVER_ERROR:
                             logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
@@ -248,14 +248,12 @@ public class HiveWebsocketConnector {
                 return response;
             }
         } catch (InterruptedException e) {
-            logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
+            Thread.currentThread().interrupt();
+            throw new HiveClientException("Interrupted", e);
         } catch (TimeoutException e) {
             noResponseAction();
         } catch (ExecutionException e) {
-            logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
-            throw new InternalHiveClientException(e.getMessage(), e);
-        } catch (Exception e) {
-            logger.warn("For request id: " + requestId + ". Error message: " + e.getMessage(), e);
+            throw new InternalHiveClientException(e.getMessage(), e.getCause());
         } finally {
             websocketResponsesMap.remove(requestId);
         }

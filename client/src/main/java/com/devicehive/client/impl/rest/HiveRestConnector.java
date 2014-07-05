@@ -175,13 +175,8 @@ public class HiveRestConnector {
             Response response = buildFormInvocation(path, formParams).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
-            if (e.getCause() instanceof ConnectException) {
-                //
-            } else {
-                throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
-            }
+            throw new HiveException("Error invoking the target", e.getCause());
         }
-        return null;
     }
 
     //Private methods------------------------------------------------------------------------------------------
@@ -207,13 +202,8 @@ public class HiveRestConnector {
             Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
-            if (e.getCause() instanceof ConnectException) {
-                //
-            } else {
-                throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
-            }
+            throw new HiveException("Error invoking the target", e.getCause());
         }
-        return null;
     }
 
     private <R> R getEntity(Response response, Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
