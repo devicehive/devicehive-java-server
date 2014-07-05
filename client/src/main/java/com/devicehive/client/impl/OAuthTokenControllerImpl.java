@@ -33,7 +33,7 @@ class OAuthTokenControllerImpl implements OAuthTokenController {
         formParams.put("scope", scope);
         formParams.put("username", login);
         formParams.put("password", password);
-        AccessToken result = restAgent.getRestConnector().executeFormWithConnectionCheck(path, formParams,
+        AccessToken result = restAgent.getRestConnector().executeForm(path, formParams,
                 AccessToken.class, null);
         logger.debug("Access token request proceed for params: grant type {}, code {}, redirect uri {}, " +
                 "client id {}, scope {}, login {}", grantType, code, redirectUri, clientId, scope, login);

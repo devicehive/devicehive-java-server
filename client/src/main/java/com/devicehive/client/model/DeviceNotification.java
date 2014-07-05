@@ -12,7 +12,7 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
  * For more details see <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">Device
  * Notification</a>
  */
-public class DeviceNotification implements HiveEntity {
+public class DeviceNotification implements HiveMessage {
 
     private static final long serialVersionUID = 8704321978956225955L;
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})

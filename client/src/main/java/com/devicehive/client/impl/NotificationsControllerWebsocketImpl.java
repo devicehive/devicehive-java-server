@@ -2,7 +2,6 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.HiveMessageHandler;
-import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.DeviceNotification;
@@ -49,7 +48,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
                 DeviceNotification.class, NOTIFICATION_TO_DEVICE);
 
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
-                "params {}. Result id {} and timestamp {}", guid, notification.getNotification(),
+                        "params {}. Result id {} and timestamp {}", guid, notification.getNotification(),
                 notification.getParameters(), result.getId(), result.getTimestamp());
         return result;
     }
@@ -57,11 +56,11 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
 
     @Override
     public String subscribeForNotifications(SubscriptionFilter filter,
-                                          HiveMessageHandler<DeviceNotification> notificationsHandler)
+                                            HiveMessageHandler<DeviceNotification> notificationsHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-      String subId =  websocketAgent.addNotificationsSubscription(filter, notificationsHandler);
+        String subId = websocketAgent.subscribeForNotifications(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
         return subId;
@@ -70,7 +69,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
     @Override
     public void unsubscribeFromNotification(String subscriptionId) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
-        websocketAgent.removeNotificationsSubscription(subscriptionId);
+        websocketAgent.unsubscribeFromNotifications(subscriptionId);
         logger.debug("Client: notification/unsubscribe proceed.");
     }
 

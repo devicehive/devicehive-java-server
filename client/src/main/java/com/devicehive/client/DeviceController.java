@@ -49,7 +49,7 @@ public interface DeviceController {
      *
      * @param deviceId Device unique identifier
      * @return If successful, this method returns
-     *         a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
+     * a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
      */
     Device getDevice(String deviceId) throws HiveException;
 
@@ -103,7 +103,7 @@ public interface DeviceController {
      * @param take        Number of records to take from the result list.
      * @param skip        Number of records to skip from the result list.
      * @return If successful, this method returns array of <a href="http://www.devicehive
-     *         .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
+     * .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
      */
     List<DeviceClass> listDeviceClass(String name, String namePattern, String version, String sortField,
                                       String sortOrder, Integer take, Integer skip) throws HiveException;
@@ -115,7 +115,7 @@ public interface DeviceController {
      *
      * @param classId device class identifier
      * @return If successful, this method returns a <a href="http://www.devicehive
-     *         .com/restful#Reference/DeviceClass">DeviceClass</a> resource in the response body.
+     * .com/restful#Reference/DeviceClass">DeviceClass</a> resource in the response body.
      */
     DeviceClass getDeviceClass(long classId) throws HiveException;
 

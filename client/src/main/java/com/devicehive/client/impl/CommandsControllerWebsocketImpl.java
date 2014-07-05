@@ -13,9 +13,7 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
@@ -36,7 +34,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("DeviceCommand: insert requested for device id {] and command: command {}, parameters {}, " +
-                "lifetime {}, flags {}", guid, command.getCommand(), command.getParameters(), command.getLifetime(),
+                        "lifetime {}, flags {}", guid, command.getCommand(), command.getParameters(), command.getLifetime(),
                 command.getFlags());
 
         JsonObject request = new JsonObject();
@@ -50,7 +48,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
             websocketAgent.addCommandUpdateSubscription(toReturn.getId(), guid, commandUpdatesHandler);
         }
         logger.debug("DeviceCommand: insert request proceed successfully for device id {] and command: command {}, " +
-                "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
+                        "parameters {}, lifetime {}, flags {}. Result command id {}, timestamp {}, userId {}", guid,
                 command.getCommand(), command.getParameters(), command.getLifetime(), command.getFlags(),
                 toReturn.getId(), toReturn.getTimestamp(), toReturn.getUserId());
         return toReturn;
@@ -61,7 +59,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }
-        if (command.getId() == null){
+        if (command.getId() == null) {
             throw new HiveClientException("Command id cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("DeviceCommand: update requested for device id {] and command: id {},  flags {}, status {}, " +
@@ -74,24 +72,23 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.add("command", gson.toJsonTree(command));
         websocketAgent.getWebsocketConnector().sendMessage(request);
         logger.debug("DeviceCommand: update request proceed successfully for device id {] and command: id {},  " +
-                "flags {}, status {}, result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(),
+                        "flags {}, status {}, result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(),
                 command.getResult());
     }
 
     @Override
-    public void subscribeForCommands(SubscriptionFilter filter, HiveMessageHandler<DeviceCommand> commandMessageHandler)
+    public String subscribeForCommands(SubscriptionFilter filter, HiveMessageHandler<DeviceCommand> commandMessageHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        websocketAgent.addCommandsSubscription(filter, commandMessageHandler);
+        return websocketAgent.subscribeForCommands(filter, commandMessageHandler);
 
-        logger.debug("Client: notification/subscribe proceed for filter {},", filter);
     }
 
     @Override
     public void unsubscribeFromCommands(String subId) throws HiveException {
         logger.debug("Device: command/unsubscribe requested");
-        websocketAgent.removeCommandsSubscription(subId);
+        websocketAgent.unsubscribeFromCommands(subId);
         logger.debug("Device: command/unsubscribe request proceed successfully");
     }
 

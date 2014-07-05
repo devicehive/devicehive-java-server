@@ -2,11 +2,7 @@ package com.devicehive.client.impl.websocket;
 
 
 import com.devicehive.client.impl.context.WebsocketAgent;
-import com.devicehive.client.impl.json.GsonFactory;
-import com.devicehive.client.model.DeviceCommand;
-import com.devicehive.client.model.DeviceNotification;
 import com.google.common.util.concurrent.SettableFuture;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
@@ -16,24 +12,13 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.MessageHandler;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
+import static com.devicehive.client.impl.websocket.JsonEncoder.*;
 
 /**
  * Class that is used to handle messages from server.
  */
 public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
 
-    private final static String REQUEST_ID_MEMBER = "requestId";
-    private final static String ACTION_MEMBER = "action";
-    private final static String COMMAND_INSERT = "command/insert";
-    private final static String COMMAND_UPDATE = "command/update";
-    private final static String NOTIFICATION_INSERT = "notification/insert";
-    private final static String COMMAND_MEMBER = "command";
-    private final static String NOTIFICATION_MEMBER = "notification";
-    private final static String DEVICE_GUID_MEMBER = "deviceGuid";
-    private final static String SUBSCRIPTION_ID = "subscriptionId";
     private final static Logger logger = LoggerFactory.getLogger(HiveWebsocketHandler.class);
     private final WebsocketAgent websocketAgent;
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap;
@@ -67,13 +52,13 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
                 try {
                     switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
                         case COMMAND_INSERT:
-                            handleCommandInsert(jsonMessage);
+                            websocketAgent.handleCommandInsert(jsonMessage);
                             break;
                         case COMMAND_UPDATE:
-                            handleCommandUpdate(jsonMessage);
+                            websocketAgent.handleCommandUpdate(jsonMessage);
                             break;
                         case NOTIFICATION_INSERT:
-                            handleNotification(jsonMessage);
+                            websocketAgent.handleNotification(jsonMessage);
                             break;
                         default: //unknown request
                             logger.error("Server sent unknown message {}", message);
@@ -93,41 +78,4 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
         }
     }
 
-    private void handleCommandInsert(JsonObject jsonMessage) throws InterruptedException {
-        Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
-        DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
-                DeviceCommand.class);
-        String subId = jsonMessage.get(SUBSCRIPTION_ID).getAsString();
-        websocketAgent.getCommandsSubscriptionDescriptor(subId).getHandler().handle(commandInsert);
-        if (commandInsert.getTimestamp() != null) {
-            websocketAgent.getCommandsSubscriptionDescriptor(subId).updateTimestamp(commandInsert.getTimestamp());
-        } else {
-            logger.warn("Device command inserted without timestamp. Id: " + commandInsert.getId());
-        }
-        logger.debug("Device command inserted. Id: " + commandInsert.getId());
-
-    }
-
-    private void handleCommandUpdate(JsonObject jsonMessage) throws InterruptedException {
-        Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
-        DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
-                (COMMAND_MEMBER), DeviceCommand.class);
-        websocketAgent.proccessCommandUpdate(commandUpdated);
-        logger.debug("Device command updated. Id: " + commandUpdated.getId() + ". Status: " +
-                commandUpdated.getStatus());
-    }
-
-    private void handleNotification(JsonObject jsonMessage) throws InterruptedException {
-        Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
-        DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
-                (NOTIFICATION_MEMBER), DeviceNotification.class);
-        String subId = jsonMessage.get(SUBSCRIPTION_ID).getAsString();
-        websocketAgent.getNotificationsSubscriptionDescriptor(subId).getHandler().handle(notification);
-        if (notification.getTimestamp() != null) {
-            websocketAgent.getNotificationsSubscriptionDescriptor(subId).updateTimestamp(notification.getTimestamp());
-        } else {
-            logger.warn("Device notification inserted without timestamp. Id: " + notification.getId());
-        }
-        logger.debug("Device notification inserted. Id: " + notification.getId());
-    }
 }

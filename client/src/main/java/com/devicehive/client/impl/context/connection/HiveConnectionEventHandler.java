@@ -30,7 +30,7 @@ public class HiveConnectionEventHandler {
     public HiveConnectionEventHandler() {
     }
 
-    public void handle(final ConnectionEvent event)  {
+    public void handle(final ConnectionEvent event) {
         logger.info("Connection event info. Timestamp : {}, id : {}, is lost : {}, service uri:",
                 event.getTimestamp(), event.getId(), event.isLost(), event.getServiceUri());
         if (event.isLost()) {

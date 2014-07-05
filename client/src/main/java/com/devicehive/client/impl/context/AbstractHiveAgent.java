@@ -6,15 +6,13 @@ import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
+import com.google.common.base.Preconditions;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public abstract class AbstractHiveAgent {
 
-    private final ReadWriteLock statusLock = new ReentrantReadWriteLock(true);
     private final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptionsStorage =
             new ConcurrentHashMap<>();
     private final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage =
@@ -24,57 +22,62 @@ public abstract class AbstractHiveAgent {
     private volatile Status status;
     private HivePrincipal hivePrincipal;
 
-    public ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> getCommandSubscriptionsStorage() {
+    protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> getCommandSubscriptionsStorage() {
         return commandSubscriptionsStorage;
     }
 
-    public ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> getNotificationSubscriptionsStorage() {
+    protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> getNotificationSubscriptionsStorage() {
         return notificationSubscriptionsStorage;
     }
 
 
-
-    public SubscriptionDescriptor<DeviceCommand> getCommandsSubscriptionDescriptor(String subscriptionId) {
+    protected final SubscriptionDescriptor<DeviceCommand> getCommandsSubscriptionDescriptor(String subscriptionId) {
         return commandSubscriptionsStorage.get(oldNewSubIds.get(subscriptionId));
     }
 
-    public SubscriptionDescriptor<DeviceNotification> getNotificationsSubscriptionDescriptor(String subscriptionId) {
+    protected final SubscriptionDescriptor<DeviceNotification> getNotificationsSubscriptionDescriptor(String subscriptionId) {
         return notificationSubscriptionsStorage.get(oldNewSubIds.get(subscriptionId));
     }
 
-    public void addCommandsSubscription(String newSubscriptionId,
-                                        SubscriptionDescriptor<DeviceCommand> commandsHandler) {
-        commandSubscriptionsStorage.put(newSubscriptionId, commandsHandler);
-        oldNewSubIds.putIfAbsent(newSubscriptionId, newSubscriptionId);
+    protected final void addCommandsSubscription(String newSubscriptionId,
+                                                 SubscriptionDescriptor<DeviceCommand> descriptor) {
+        Preconditions.checkState(!oldNewSubIds.containsKey(newSubscriptionId));
+        commandSubscriptionsStorage.put(newSubscriptionId, descriptor);
+        oldNewSubIds.put(newSubscriptionId, newSubscriptionId);
     }
 
-    protected void replaceCommandSubscription(String oldSubscriptionId,
-                                              String newSubscriptionId,
-                                              SubscriptionDescriptor<DeviceCommand> commandsHandler) {
+    protected final void replaceCommandSubscription(String oldSubscriptionId,
+                                                    String newSubscriptionId,
+                                                    SubscriptionDescriptor<DeviceCommand> descriptor) {
+        Preconditions.checkState(oldNewSubIds.containsKey(oldSubscriptionId));
+        Preconditions.checkState(!oldNewSubIds.containsKey(newSubscriptionId));
         commandSubscriptionsStorage.remove(oldSubscriptionId);
-        commandSubscriptionsStorage.put(newSubscriptionId, commandsHandler);
+        commandSubscriptionsStorage.put(newSubscriptionId, descriptor);
         oldNewSubIds.replace(oldSubscriptionId, newSubscriptionId);
     }
 
-    protected void replaceNotificationSubscription(String oldSubscriptionId,
-                                                   String newSubscriptionId,
-                                                   SubscriptionDescriptor<DeviceNotification> notificationsHandler) {
+    protected final void replaceNotificationSubscription(String oldSubscriptionId,
+                                                         String newSubscriptionId,
+                                                         SubscriptionDescriptor<DeviceNotification> descriptor) {
+        Preconditions.checkState(oldNewSubIds.containsKey(oldSubscriptionId));
+        Preconditions.checkState(!oldNewSubIds.containsKey(newSubscriptionId));
         notificationSubscriptionsStorage.remove(oldSubscriptionId);
-        notificationSubscriptionsStorage.put(newSubscriptionId, notificationsHandler);
+        notificationSubscriptionsStorage.put(newSubscriptionId, descriptor);
         oldNewSubIds.replace(oldSubscriptionId, newSubscriptionId);
     }
 
-    public void addNotificationsSubscription(String subscriptionId,
-                                             SubscriptionDescriptor<DeviceNotification> notificationsHandler) {
-        notificationSubscriptionsStorage.put(subscriptionId, notificationsHandler);
-        oldNewSubIds.putIfAbsent(subscriptionId, subscriptionId);
+    protected final void addNotificationsSubscription(String subscriptionId,
+                                                      SubscriptionDescriptor<DeviceNotification> descriptor) {
+        Preconditions.checkState(!oldNewSubIds.containsKey(subscriptionId));
+        notificationSubscriptionsStorage.put(subscriptionId, descriptor);
+        oldNewSubIds.put(subscriptionId, subscriptionId);
     }
 
-    public void removeCommandsSubscription(String subscriptionId) throws HiveException {
+    protected final void removeCommandsSubscription(String subscriptionId) throws HiveException {
         commandSubscriptionsStorage.remove(subscriptionId);
     }
 
-    public void removeNotificationsSubscription(String subscriptionId) throws HiveException {
+    protected final void removeNotificationsSubscription(String subscriptionId) throws HiveException {
         notificationSubscriptionsStorage.remove(subscriptionId);
     }
 
@@ -90,9 +93,6 @@ public abstract class AbstractHiveAgent {
         this.status = status;
     }
 
-    protected ReadWriteLock getStatusLock() {
-        return statusLock;
-    }
 
     protected abstract void beforeConnect() throws HiveException;
 
@@ -106,7 +106,6 @@ public abstract class AbstractHiveAgent {
 
     protected abstract void afterDisconnect() throws HiveException;
 
-    protected abstract void resubscribe() throws HiveException;
 
     public synchronized final void connect() throws HiveException {
         beforeConnect();
@@ -123,10 +122,6 @@ public abstract class AbstractHiveAgent {
         afterDisconnect();
     }
 
-    public synchronized final void reconnect() throws HiveException {
-        disconnect();
-        connect();
-    }
 
     public synchronized void authenticate(HivePrincipal hivePrincipal) throws HiveException {
         if (this.hivePrincipal != null && !this.hivePrincipal.equals(hivePrincipal)) {

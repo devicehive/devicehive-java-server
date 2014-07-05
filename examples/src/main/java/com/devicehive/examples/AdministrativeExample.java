@@ -57,8 +57,7 @@ public class AdministrativeExample extends Example {
     public AdministrativeExample(PrintStream out, String... args) throws ExampleException, HiveException {
         super(out, args);
         commandLine = getCommandLine();
-        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
-                Example.impl, Example.impl);
+        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
     }
 
     /**
@@ -204,7 +203,7 @@ public class AdministrativeExample extends Example {
             AccessKey created = akc.insertKey(user.getId(), accessKey);
             accessKey.setId(created.getId());
             accessKey.setKey(created.getKey());
-            HiveClient newUserHC = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), Example.impl, Example.impl);
+            HiveClient newUserHC = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
             newUserHC.authenticate(accessKey.getKey());
             List<Network> allowedNetworks = newUserHC.getNetworkController().listNetworks(null, null, null, null,
                     null, null);

@@ -78,7 +78,7 @@ public class ClientExample {
 //            @Override
 //            public Void call() throws Exception {
         hiveClient = HiveFactory
-                .createClient(url, useSockets, Example.impl, Example.impl);
+                .createClient(url, useSockets);
         Thread.currentThread().setName("run");
         hiveClient.authenticate(LOGIN, PASSWORD);
         HiveMessageHandler<DeviceNotification> notificationsHandler = new HiveMessageHandler<DeviceNotification>() {

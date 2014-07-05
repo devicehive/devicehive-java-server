@@ -35,8 +35,8 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
                                  String scope, String redirectUri, AccessType accessType, String sortField,
                                  String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthGrant: list requested with parameters: userId {}, start timestamp {], end timestamp {}, " +
-                "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
-                "access type {}, sort field {}, sort order {}, take {}, skip {}", userId, start, end, clientOauthId,
+                        "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
+                        "access type {}, sort field {}, sort order {}, take {}, skip {}", userId, start, end, clientOauthId,
                 type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
         String path = "/user/" + userId + "/oauth/grant";
         Map<String, Object> queryParams = new HashMap<>();
@@ -51,7 +51,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        List<OAuthGrant> result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+        List<OAuthGrant> result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null,
                 queryParams,
                 new TypeToken<List<OAuthGrant>>() {
                 }.getType(), OAUTH_GRANT_LISTED);
@@ -68,9 +68,9 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
                                  String redirectUri, AccessType accessType, String sortField, String sortOrder,
                                  Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthGrant: list requested for current user with parameters: start timestamp {], " +
-                "end timestamp {}, " +
-                "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
-                "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
+                        "end timestamp {}, " +
+                        "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
+                        "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
                 type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
         String path = "/user/current/oauth/grant";
         Map<String, Object> queryParams = new HashMap<>();
@@ -85,14 +85,14 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        List<OAuthGrant> result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+        List<OAuthGrant> result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null,
                 queryParams,
                 new TypeToken<List<OAuthGrant>>() {
                 }.getType(), OAUTH_GRANT_LISTED);
         logger.debug("OAuthGrant: list proceed for current user with parameters: start timestamp {], " +
-                "end timestamp {}, " +
-                "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
-                "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
+                        "end timestamp {}, " +
+                        "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
+                        "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
                 type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
         return result;
     }
@@ -101,7 +101,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     public OAuthGrant get(long userId, long grantId) throws HiveException {
         logger.debug("OAuthGrant: get requested for user id {} and grant id {}", userId, grantId);
         String path = "/user/" + userId + "/oauth/grant/" + grantId;
-        OAuthGrant result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+        OAuthGrant result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null,
                 OAuthGrant.class,
                 OAUTH_GRANT_LISTED);
         logger.debug("OAuthGrant: get proceed for user id {} and grant id {}", userId, grantId);
@@ -112,7 +112,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     public OAuthGrant get(long grantId) throws HiveException {
         logger.debug("OAuthGrant: get requested for current user and grant id {}", grantId);
         String path = "/user/current/oauth/grant/" + grantId;
-        OAuthGrant result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+        OAuthGrant result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null,
                 OAuthGrant.class,
                 OAUTH_GRANT_LISTED);
         logger.debug("OAuthGrant: get proceed for current user and grant id {}", grantId);
@@ -129,11 +129,11 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
         String path = "/user/" + userId + "/oauth/grant";
         OAuthGrant result;
         if (OAuthType.TOKEN.equals(grant.getType())) {
-            result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null, grant,
+            result = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null, grant,
                     OAuthGrant.class,
                     OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
-            result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null, grant,
+            result = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null, grant,
                     OAuthGrant.class,
                     OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_CODE);
         }
@@ -152,10 +152,10 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
         String path = "/user/current/oauth/grant";
         OAuthGrant result;
         if (OAuthType.TOKEN.equals(grant.getType())) {
-            result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null, grant,
+            result = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null, grant,
                     OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
-            result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null, grant,
+            result = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null, grant,
                     OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_CODE);
         }
         logger.debug("OAuthGrant: insert proceed for current user and grant with scope {} and type {}. Result id {}",
@@ -168,13 +168,13 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
         if (grant == null) {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
-        if (grant.getId() == null){
+        if (grant.getId() == null) {
             throw new HiveClientException("OAuthGrant id cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("OAuthGrant: update requested for user with id {}, grant id {} and grant with scope {} and type " +
                 "{}", userId, grant.getId(), grant.getScope(), grant.getType());
         String path = "/user/" + userId + "/oauth/grant/" + grant.getId();
-        OAuthGrant result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, null,
+        OAuthGrant result = restAgent.getRestConnector().execute(path, HttpMethod.PUT, null, null,
                 grant,
                 OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
         logger.debug("OAuthGrant: update proceed for user with id {}, grant id {} and grant with scope {} and type " +
@@ -193,8 +193,8 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
         logger.debug("OAuthGrant: update requested for current user, grant id {} and grant with scope {} and type {}",
                 grant.getId(), grant.getScope(), grant.getType());
         String path = "/user/current/oauth/grant/" + grant.getId();
-        OAuthGrant result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, null,
-                grant,  OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
+        OAuthGrant result = restAgent.getRestConnector().execute(path, HttpMethod.PUT, null, null,
+                grant, OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
         logger.debug("OAuthGrant: update proceed for current user, grant id {} and grant with scope {} and type {}",
                 grant.getId(), grant.getScope(), grant.getType());
         return result;
@@ -204,7 +204,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     public void delete(long userId, long grantId) throws HiveException {
         logger.debug("OAuthGrant: delete requested for user id {} and grant id {}", userId, grantId);
         String path = "/user/" + userId + "/oauth/grant/" + grantId;
-        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
+        restAgent.getRestConnector().execute(path, HttpMethod.DELETE);
         logger.debug("OAuthGrant: delete proceed for user id {} and grant id {}", userId, grantId);
     }
 
@@ -212,7 +212,7 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
     public void delete(long grantId) throws HiveException {
         logger.debug("OAuthGrant: delete requested for current user and grant id {}", grantId);
         String path = "/user/current/oauth/grant/" + grantId;
-        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
+        restAgent.getRestConnector().execute(path, HttpMethod.DELETE);
         logger.debug("OAuthGrant: delete proceed for current user and grant id {}", grantId);
     }
 }

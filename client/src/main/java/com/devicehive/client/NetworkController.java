@@ -37,8 +37,8 @@ public interface NetworkController {
      *
      * @param id network identifier
      * @return If successful, this method returns a
-     *         <a href="http://www.devicehive.com/restful#Reference/Network">network</a> resource in the response
-     *         body.
+     * <a href="http://www.devicehive.com/restful#Reference/Network">network</a> resource in the response
+     * body.
      */
     Network getNetwork(long id) throws HiveException;
 

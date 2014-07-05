@@ -1,13 +1,14 @@
 package com.devicehive.client.impl.context;
 
 import com.devicehive.client.HiveMessageHandler;
+import com.devicehive.client.model.HiveMessage;
 import com.devicehive.client.model.SubscriptionFilter;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
 
-public class SubscriptionDescriptor<T> {
+public class SubscriptionDescriptor<T extends HiveMessage> {
 
     private HiveMessageHandler<T> handler;
     private SubscriptionFilter filter;
@@ -15,10 +16,15 @@ public class SubscriptionDescriptor<T> {
 
     public SubscriptionDescriptor(HiveMessageHandler<T> handler, SubscriptionFilter filter) {
         this.handler = handler;
-        this.filter = filter;
+        this.filter = ObjectUtils.cloneIfPossible(filter);
     }
 
-    public synchronized HiveMessageHandler<T> getHandler() {
+    public void handleMessage(T message) {
+        updateTimestamp(message.getTimestamp());
+        handler.handle(message);
+    }
+
+    public HiveMessageHandler<T> getHandler() {
         return handler;
     }
 
@@ -26,7 +32,7 @@ public class SubscriptionDescriptor<T> {
         return filter;
     }
 
-    public synchronized void updateTimestamp(Timestamp newTimestamp) {
+    private synchronized void updateTimestamp(Timestamp newTimestamp) {
         if (filter.getTimestamp() == null && newTimestamp != null) {
             filter.setTimestamp(newTimestamp);
         } else if (newTimestamp != null && newTimestamp.after(filter.getTimestamp())) {

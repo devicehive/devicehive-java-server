@@ -1,16 +1,7 @@
 package com.devicehive.client.impl;
 
 
-import com.devicehive.client.AccessKeyController;
-import com.devicehive.client.CommandsController;
-import com.devicehive.client.DeviceController;
-import com.devicehive.client.HiveClient;
-import com.devicehive.client.NetworkController;
-import com.devicehive.client.NotificationsController;
-import com.devicehive.client.OAuthClientController;
-import com.devicehive.client.OAuthGrantController;
-import com.devicehive.client.OAuthTokenController;
-import com.devicehive.client.UserController;
+import com.devicehive.client.*;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.model.ApiInfo;
@@ -77,8 +68,5 @@ public class HiveClientRestImpl implements HiveClient {
         restAgent.close();
     }
 
-    public boolean checkConnection(){
-       return restAgent.checkConnection();
-    }
 
 }

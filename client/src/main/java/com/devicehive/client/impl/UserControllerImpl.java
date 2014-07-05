@@ -17,11 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_SUBMITTED;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_UPDATE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class UserControllerImpl implements UserController {
@@ -36,7 +32,7 @@ class UserControllerImpl implements UserController {
     public List<User> listUsers(String login, String loginPattern, Integer role, Integer status, String sortField,
                                 String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("User: list requested with following parameters: login {}, login pattern {}, role {}, status {}," +
-                " sort field {}, sort order {}, take {}, skip {}", login, loginPattern, role, status, sortField,
+                        " sort field {}, sort order {}, take {}, skip {}", login, loginPattern, role, status, sortField,
                 sortOrder, take, skip);
         String path = "/user";
         Map<String, Object> queryParams = new HashMap<>();
@@ -48,12 +44,12 @@ class UserControllerImpl implements UserController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        List<User> result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+        List<User> result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null,
                 queryParams, null, new
-                TypeToken<List<User>>() {
-                }.getType(), null, USERS_LISTED);
+                        TypeToken<List<User>>() {
+                        }.getType(), null, USERS_LISTED);
         logger.debug("User: list proceed with following parameters: login {}, login pattern {}, role {}, status {}," +
-                " sort field {}, sort order {}, take {}, skip {}", login, loginPattern, role, status, sortField,
+                        " sort field {}, sort order {}, take {}, skip {}", login, loginPattern, role, status, sortField,
                 sortOrder, take, skip);
         return result;
     }
@@ -62,7 +58,7 @@ class UserControllerImpl implements UserController {
     public User getUser(long id) throws HiveException {
         logger.debug("User: get requested for user with id {}", id);
         String path = "/user/" + id;
-        User result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null, null,
+        User result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null, null,
                 User.class,
                 USER_PUBLISHED);
         logger.debug("User: get request proceed for user with id {}", id);
@@ -73,7 +69,7 @@ class UserControllerImpl implements UserController {
     public User getCurrent() throws HiveException {
         logger.debug("User: get requested for current user");
         String path = "/user/current";
-        User result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null, null,
+        User result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null, null,
                 User.class,
                 USER_PUBLISHED);
         logger.debug("User: get request proceed for current user");
@@ -88,7 +84,7 @@ class UserControllerImpl implements UserController {
         logger.debug("User: insert requested for user with params: login {}, role {}, status {}", user.getLogin(),
                 user.getRole(), user.getStatus());
         String path = "/user";
-        User result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null, user,
+        User result = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null, user,
                 User.class,
                 USER_UPDATE, USER_SUBMITTED);
         logger.debug("User: insert proceed for user with params: login {}, role {}, status {}. Id {}", user.getLogin(),
@@ -107,7 +103,7 @@ class UserControllerImpl implements UserController {
         logger.debug("User: update requested for user with params: id {}, login {}, role {}, status {}",
                 user.getId(), user.getLogin(), user.getRole(), user.getStatus());
         String path = "/user/" + user.getId();
-        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, user, USER_UPDATE);
+        restAgent.getRestConnector().execute(path, HttpMethod.PUT, null, user, USER_UPDATE);
         logger.debug("User: update proceed for user with params: id {}, login {}, role {}, status {}",
                 user.getId(), user.getLogin(), user.getRole(), user.getStatus());
     }
@@ -120,7 +116,7 @@ class UserControllerImpl implements UserController {
         logger.debug("User: update requested for current user with params: login {}, role {}, status {}",
                 user.getLogin(), user.getRole(), user.getStatus());
         String path = "/user/current";
-        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, user, USER_UPDATE);
+        restAgent.getRestConnector().execute(path, HttpMethod.PUT, null, user, USER_UPDATE);
         logger.debug("User: update proceed for current user with params: login {}, role {}, status {}",
                 user.getLogin(), user.getRole(), user.getStatus());
     }
@@ -129,7 +125,7 @@ class UserControllerImpl implements UserController {
     public void deleteUser(long id) throws HiveException {
         logger.debug("User: delete requested for user with id {}", id);
         String path = "/user/" + id;
-        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
+        restAgent.getRestConnector().execute(path, HttpMethod.DELETE);
         logger.debug("User: delete proceed for user with id {}", id);
     }
 
@@ -137,7 +133,7 @@ class UserControllerImpl implements UserController {
     public UserNetwork getNetwork(long userId, long networkId) throws HiveException {
         logger.debug("User: getNetwork requested for user with id {} and network with id {}", userId, networkId);
         String path = "/user/" + userId + "/network/" + networkId;
-        UserNetwork result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.GET, null,
+        UserNetwork result = restAgent.getRestConnector().execute(path, HttpMethod.GET, null,
                 UserNetwork.class,
                 NETWORKS_LISTED);
         logger.debug("User: getNetwork proceed for user with id {} and network with id {}", userId, networkId);
@@ -149,7 +145,7 @@ class UserControllerImpl implements UserController {
         logger.debug("User: assignNetwork requested for user with id {} and network with id {}", userId, networkId);
         String path = "/user/" + userId + "/network/" + networkId;
         JsonObject stub = new JsonObject();
-        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.PUT, null, stub, null);
+        restAgent.getRestConnector().execute(path, HttpMethod.PUT, null, stub, null);
         logger.debug("User: assignNetwork proceed for user with id {} and network with id {}", userId, networkId);
     }
 
@@ -157,7 +153,7 @@ class UserControllerImpl implements UserController {
     public void unassignNetwork(long userId, long networkId) throws HiveException {
         logger.debug("User: unassignNetwork requested for user with id {} and network with id {}", userId, networkId);
         String path = "/user/" + userId + "/network/" + networkId;
-        restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.DELETE);
+        restAgent.getRestConnector().execute(path, HttpMethod.DELETE);
         logger.debug("User: unassignNetwork proceed for user with id {} and network with id {}", userId, networkId);
     }
 }

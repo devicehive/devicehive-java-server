@@ -77,5 +77,4 @@ public interface HiveClient {
 
     void close() throws HiveException;
 
-    boolean checkConnection();
 }

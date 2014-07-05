@@ -20,7 +20,7 @@ public interface AccessKeyController {
      *
      * @param userId User identifier.
      * @return If successful, this method returns array of <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resources in the response body according to the specification.
+     * .com/restful#Reference/AccessKey/">AccessKey</a> resources in the response body according to the specification.
      */
     List<AccessKey> listKeys(long userId) throws HiveException;
 
@@ -30,7 +30,7 @@ public interface AccessKeyController {
      * user.
      *
      * @return If successful, this method returns array of <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resources in the response body according to the specification.
+     * .com/restful#Reference/AccessKey/">AccessKey</a> resources in the response body according to the specification.
      */
     List<AccessKey> listKeys() throws HiveException;
 
@@ -41,7 +41,7 @@ public interface AccessKeyController {
      * @param userId User identifier.
      * @param keyId  Access key identifier.
      * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
      */
     AccessKey getKey(long userId, long keyId) throws HiveException;
 
@@ -52,7 +52,7 @@ public interface AccessKeyController {
      *
      * @param keyId Access key identifier.
      * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
      */
     AccessKey getKey(long keyId) throws HiveException;
 
@@ -63,7 +63,7 @@ public interface AccessKeyController {
      *
      * @param userId User identifier.
      * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
      */
     AccessKey insertKey(long userId, AccessKey key) throws HiveException;
 
@@ -73,7 +73,7 @@ public interface AccessKeyController {
      * Creates new access key. Uses the 'current' keyword to create access key of the current user.
      *
      * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
      */
     AccessKey insertKey(AccessKey key) throws HiveException;
 
@@ -92,7 +92,7 @@ public interface AccessKeyController {
      * API: AccessKey: update</a>
      * Updates an existing access key. Use the 'current' keyword to update access key of the current user.
      *
-     * @param key   Key to be updated
+     * @param key Key to be updated
      */
     void updateKey(AccessKey key) throws HiveException;
 

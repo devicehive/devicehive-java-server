@@ -18,9 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class NotificationsControllerRestImpl implements NotificationsController {
@@ -43,7 +41,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 "grid interval {}", guid, start, end, notificationName, sortOrder, sortField, take, skip, gridInterval);
         String path = "/device/" + guid + "/notification";
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("start",start);
+        queryParams.put("start", start);
         queryParams.put("end", end);
         queryParams.put("notification", notificationName);
         queryParams.put("sortField", sortField);
@@ -51,10 +49,10 @@ class NotificationsControllerRestImpl implements NotificationsController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         queryParams.put("gridInterval", gridInterval);
-        List<DeviceNotification> result = restAgent.getRestConnector().executeWithConnectionCheck(path,
+        List<DeviceNotification> result = restAgent.getRestConnector().execute(path,
                 HttpMethod.GET, null,
                 queryParams, new TypeToken<List<DeviceNotification>>() {
-        }.getType(), NOTIFICATION_TO_CLIENT);
+                }.getType(), NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: query request proceed with parameters: device id {}, start timestamp {}, " +
                 "end timestamp {}, notification name {}, sort order {}, sort field {}, take {}, skip {}, " +
                 "grid interval {}", guid, start, end, notificationName, sortOrder, sortField, take, skip, gridInterval);
@@ -71,11 +69,11 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 "{}", guid, notification.getNotification(), notification.getParameters());
         DeviceNotification result;
         String path = "/device/" + guid + "/notification";
-        result = restAgent.getRestConnector().executeWithConnectionCheck(path, HttpMethod.POST, null, null,
+        result = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null,
                 notification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
-                "params {}. Result id {} and timestamp {}", guid, notification.getNotification(),
+                        "params {}. Result id {} and timestamp {}", guid, notification.getNotification(),
                 notification.getParameters(), result.getId(), result.getTimestamp());
         return result;
     }
@@ -86,7 +84,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 notificationId);
         String path = "/device/" + guid + "/notification/" + notificationId;
         DeviceNotification result = restAgent.getRestConnector()
-                .executeWithConnectionCheck(path, HttpMethod.GET, null, DeviceNotification.class,
+                .execute(path, HttpMethod.GET, null, DeviceNotification.class,
                         NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: get request proceed for device with id {} and notification id {}", guid,
                 notificationId);
@@ -95,11 +93,11 @@ class NotificationsControllerRestImpl implements NotificationsController {
 
     @Override
     public String subscribeForNotifications(SubscriptionFilter filter,
-                                          HiveMessageHandler<DeviceNotification> notificationsHandler)
+                                            HiveMessageHandler<DeviceNotification> notificationsHandler)
             throws HiveException {
         logger.debug("Client: notification/subscribe requested for filter {},", filter);
 
-        String subId = restAgent.addNotificationsSubscription(filter, notificationsHandler);
+        String subId = restAgent.subscribeForNotifications(filter, notificationsHandler);
 
         logger.debug("Client: notification/subscribe proceed for filter {},", filter);
         return subId;
@@ -108,7 +106,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
     @Override
     public void unsubscribeFromNotification(String subId) throws HiveException {
         logger.debug("Client: notification/unsubscribe requested.");
-        restAgent.removeNotificationsSubscription(subId);
+        restAgent.unsubscribeFromNotifications(subId);
         logger.debug("Client: notification/unsubscribe proceed.");
     }
 

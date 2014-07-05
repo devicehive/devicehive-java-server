@@ -1,12 +1,14 @@
-package com.devicehive.client.impl.context;
+package com.devicehive.client.impl.rest;
 
 
-import com.devicehive.client.impl.context.connection.ConnectionEvent;
-import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
+import com.devicehive.client.impl.context.Constants;
+import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
-import com.devicehive.client.impl.rest.RestClientFactory;
+import com.devicehive.client.impl.rest.providers.CollectionProvider;
+import com.devicehive.client.impl.rest.providers.HiveEntityProvider;
+import com.devicehive.client.impl.rest.providers.JsonRawProvider;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.ErrorMessage;
@@ -16,6 +18,8 @@ import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.google.common.collect.Maps;
 import org.apache.commons.codec.binary.Base64;
+import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,20 +29,13 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
@@ -52,52 +49,44 @@ public class HiveRestConnector {
     private static Logger logger = LoggerFactory.getLogger(HiveRestConnector.class);
     private final URI uri;
     private final Client restClient;
-    private final HiveConnectionEventHandler connectionEventHandler;
-    private final ExecutorService connectionChecker = Executors.newSingleThreadExecutor();
     private volatile HivePrincipal hivePrincipal;
-    private volatile boolean isConnected = false;
+
 
     /**
      * Creates client connected to the given REST URL. All state is kept in the hive context.
      *
      * @param uri URI of RESTful service
      */
-    public HiveRestConnector(URI uri, HiveConnectionEventHandler connectionEventHandler) throws HiveException {
+    public HiveRestConnector(URI uri) throws HiveException {
         this.uri = uri;
-        restClient = RestClientFactory.getClient();
-        this.connectionEventHandler = connectionEventHandler;
-        checkConnection();
-        if (!isConnected)
-            throw new HiveException("Unable to connect");
+        restClient = getClient();
     }
 
-    public boolean isConnected() {
-        return isConnected;
+    private static JerseyClient getClient() {
+        JerseyClient client = JerseyClientBuilder.createClient();
+        return client.register(JsonRawProvider.class)
+                .register(HiveEntityProvider.class)
+                .register(CollectionProvider.class);
+
     }
+
 
     public void setHivePrincipal(HivePrincipal hivePrincipal) {
         this.hivePrincipal = hivePrincipal;
     }
 
     public void close() {
-        shutdownAndAwaitTermination();
         restClient.close();
     }
 
-    public synchronized boolean checkConnection() {
+    public boolean checkConnection() {
         try {
             Response response = buildInvocation("/info", HttpMethod.GET, null, null, null, null).invoke();
             getEntity(response, ApiInfo.class, null);
+            return true;
         } catch (HiveException e) {
-            isConnected = false;
+            return false;
         }
-        if (isConnected) {
-            ConnectionEvent connectionEstablishedEvent = new ConnectionEvent(uri,
-                    new Timestamp(System.currentTimeMillis()), hivePrincipal);
-            connectionEstablishedEvent.setLost(false);
-            connectionEventHandler.handle(connectionEstablishedEvent);
-        }
-        return isConnected;
     }
 
     /**
@@ -109,9 +98,9 @@ public class HiveRestConnector {
      * @param objectToSend Object to send (for http methods POST and PUT only)
      * @param sendPolicy   policy that declares exclusion strategy for sending object
      */
-    public <S> void executeWithConnectionCheck(String path, String method, Map<String, String> headers, S objectToSend,
-                                               JsonPolicyDef.Policy sendPolicy) throws HiveException {
-        executeWithConnectionCheck(path, method, headers, null, objectToSend, null, sendPolicy, null);
+    public <S> void execute(String path, String method, Map<String, String> headers, S objectToSend,
+                            JsonPolicyDef.Policy sendPolicy) throws HiveException {
+        execute(path, method, headers, null, objectToSend, null, sendPolicy, null);
     }
 
     /**
@@ -122,10 +111,10 @@ public class HiveRestConnector {
      * @param headers     custom headers (authorization headers are added during the request build)
      * @param queryParams query params that should be added to the url. Null-valued params are ignored.
      */
-    public void executeWithConnectionCheck(String path, String method, Map<String, String> headers,
-                                           Map<String, Object> queryParams)
+    public void execute(String path, String method, Map<String, String> headers,
+                        Map<String, Object> queryParams)
             throws HiveException {
-        executeWithConnectionCheck(path, method, headers, queryParams, null, null, null, null);
+        execute(path, method, headers, queryParams, null, null, null, null);
     }
 
     /**
@@ -134,8 +123,8 @@ public class HiveRestConnector {
      * @param path   requested uri
      * @param method http method
      */
-    public void executeWithConnectionCheck(String path, String method) throws HiveException {
-        executeWithConnectionCheck(path, method, null, null, null, null, null, null);
+    public void execute(String path, String method) throws HiveException {
+        execute(path, method, null, null, null, null, null, null);
     }
 
     /**
@@ -149,10 +138,10 @@ public class HiveRestConnector {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of typeOfR, that represents server's response
      */
-    public <R> R executeWithConnectionCheck(String path, String method, Map<String, String> headers,
-                                            Map<String, Object> queryParams,
-                                            Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        return executeWithConnectionCheck(path, method, headers, queryParams, null, typeOfR, null, receivePolicy);
+    public <R> R execute(String path, String method, Map<String, String> headers,
+                         Map<String, Object> queryParams,
+                         Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
+        return execute(path, method, headers, queryParams, null, typeOfR, null, receivePolicy);
     }
 
     /**
@@ -165,33 +154,11 @@ public class HiveRestConnector {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of typeOfR, that represents server's response
      */
-    public <R> R executeWithConnectionCheck(String path, String method, Map<String, String> headers, Type typeOfR,
-                                            JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        return executeWithConnectionCheck(path, method, headers, null, null, typeOfR, null, receivePolicy);
+    public <R> R execute(String path, String method, Map<String, String> headers, Type typeOfR,
+                         JsonPolicyDef.Policy receivePolicy) throws HiveException {
+        return execute(path, method, headers, null, null, typeOfR, null, receivePolicy);
     }
 
-    /**
-     * Executes request with following params
-     *
-     * @param path          requested uri
-     * @param method        http method
-     * @param headers       custom headers (authorization headers are added during the request build)
-     * @param queryParams   query params that should be added to the url. Null-valued params are ignored.
-     * @param objectToSend  Object to send (for http methods POST and PUT only)
-     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
-     * @param sendPolicy    policy that declares exclusion strategy for sending object
-     * @param receivePolicy policy that declares exclusion strategy for received object
-     * @return instance of TypeOfR or null
-     */
-    public synchronized <S, R> R executeWithConnectionCheck(String path, String method, Map<String, String> headers,
-                                                            Map<String, Object> queryParams,
-                                                            S objectToSend, Type typeOfR,
-                                                            JsonPolicyDef.Policy sendPolicy,
-                                                            JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        if (!isConnected)
-            throw new HiveClientException(Messages.CONNECTION_LOST);
-        return execute(path, method, headers, queryParams, objectToSend, typeOfR, sendPolicy, receivePolicy);
-    }
 
     /**
      * Executes request with following params using forms
@@ -202,16 +169,14 @@ public class HiveRestConnector {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of TypeOfR or null
      */
-    public synchronized <R> R executeFormWithConnectionCheck(String path, Map<String, String> formParams, Type typeOfR,
-                                                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        if (!isConnected)
-            throw new HiveClientException(Messages.CONNECTION_LOST);
+    public synchronized <R> R executeForm(String path, Map<String, String> formParams, Type typeOfR,
+                                          JsonPolicyDef.Policy receivePolicy) throws HiveException {
         try {
             Response response = buildFormInvocation(path, formParams).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             if (e.getCause() instanceof ConnectException) {
-                onConnectionLost();
+                //
             } else {
                 throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
             }
@@ -234,16 +199,16 @@ public class HiveRestConnector {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of TypeOfR or null
      */
-    private synchronized <S, R> R execute(String path, String method, Map<String, String> headers,
-                                          Map<String, Object> queryParams,
-                                          S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
-                                          JsonPolicyDef.Policy receivePolicy) throws HiveException {
+    public <S, R> R execute(String path, String method, Map<String, String> headers,
+                            Map<String, Object> queryParams,
+                            S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
+                            JsonPolicyDef.Policy receivePolicy) throws HiveException {
         try {
             Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             if (e.getCause() instanceof ConnectException) {
-                onConnectionLost();
+                //
             } else {
                 throw new HiveException("Unable to read response. It can be caused by incorrect URL.");
             }
@@ -252,7 +217,6 @@ public class HiveRestConnector {
     }
 
     private <R> R getEntity(Response response, Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        isConnected = true;
         Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
         switch (statusFamily) {
             case SERVER_ERROR:
@@ -279,21 +243,6 @@ public class HiveRestConnector {
         }
     }
 
-    private void onConnectionLost() {
-        isConnected = false;
-        ConnectionEvent connectionLostEvent = new ConnectionEvent(uri,
-                new Timestamp(System.currentTimeMillis()), hivePrincipal);
-        connectionLostEvent.setLost(true);
-        connectionEventHandler.handle(connectionLostEvent);
-        connectionChecker.submit(new Runnable() {
-            @Override
-            public void run() {
-                while (!isConnected && !Thread.currentThread().isInterrupted()) {
-                    checkConnection();
-                }
-            }
-        });
-    }
 
     private Map<String, String> getAuthHeaders() {
         Map<String, String> headers = Maps.newHashMap();
@@ -381,18 +330,5 @@ public class HiveRestConnector {
         throw new InternalHiveClientException(Messages.FORM_PARAMS_ARE_NULL);
     }
 
-    private void shutdownAndAwaitTermination() {
-        connectionChecker.shutdown(); // Disable new tasks from being submitted
-        try {
-            if (!connectionChecker.awaitTermination(5, TimeUnit.SECONDS)) {
-                connectionChecker.shutdownNow();
-                if (!connectionChecker.awaitTermination(5, TimeUnit.SECONDS))
-                    logger.debug("Pool did not terminate");
-            }
-        } catch (InterruptedException ie) {
-            connectionChecker.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
 
 }

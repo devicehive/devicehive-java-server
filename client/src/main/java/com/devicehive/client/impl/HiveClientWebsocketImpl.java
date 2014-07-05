@@ -5,10 +5,7 @@ import com.devicehive.client.CommandsController;
 import com.devicehive.client.NotificationsController;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.context.WebsocketAgent;
-import com.devicehive.client.impl.context.connection.HiveConnectionEventHandler;
 import com.devicehive.client.model.exceptions.HiveException;
-
-import java.net.URI;
 
 public class HiveClientWebsocketImpl extends HiveClientRestImpl {
 

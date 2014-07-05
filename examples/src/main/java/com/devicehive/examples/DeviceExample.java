@@ -50,8 +50,7 @@ public class DeviceExample extends Example {
             throws HiveException, ExampleException, IOException {
         super(out, args);
         CommandLine commandLine = getCommandLine();
-        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS),
-                Example.impl, Example.impl);
+        hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
         view = new DeviceView(hiveDevice);
     }
 
@@ -138,7 +137,7 @@ public class DeviceExample extends Example {
                             view.setGreen();
                         }
                         deviceState = !state;
-                        while (!hiveDevice.checkConnection() && !Thread.currentThread().isInterrupted()) {
+                        while (!Thread.currentThread().isInterrupted()) {
                         }
                     } finally {
                         command.setStatus("Proceed");
@@ -149,7 +148,7 @@ public class DeviceExample extends Example {
                                 hiveDevice.updateCommand(command);
                                 sent = true;
                             } catch (HiveException e) {
-                                while (!hiveDevice.checkConnection() && !Thread.currentThread().isInterrupted()) {
+                                while (!Thread.currentThread().isInterrupted()) {
                                 }
                             }
                         }

@@ -38,7 +38,7 @@ public class RealDeviceExample extends Example {
     public RealDeviceExample(PrintStream out, String... args) throws ExampleException, HiveException {
         super(out, args);
         CommandLine commandLine = getCommandLine();
-        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS), Example.impl, Example.impl);
+        hiveClient = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
     }
 
     public static void main(String... args) {
