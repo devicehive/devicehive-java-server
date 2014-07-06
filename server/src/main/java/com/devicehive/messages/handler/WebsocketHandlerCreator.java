@@ -12,11 +12,13 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.AnnotationLiteral;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.websocket.Session;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
@@ -81,15 +83,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
                 } finally {
                     lock.unlock();
                 }
-
-                try {
-                    InitialContext initialContext = new InitialContext();
-                    AsyncMessageSupplier supplier =
-                            (AsyncMessageSupplier) initialContext.lookup(AsyncMessageSupplier.NAME);
-                    supplier.deliverMessages(session);
-                } catch (NamingException e) {
-                    logger.error("Can not get AsyncMessageSupplier bean", e);
-                }
+                CDI.current().getBeanManager().fireEvent(session,new AnnotationLiteral<AsyncMessageSupplier.Delivery>() {});
             }
         };
     }

@@ -9,8 +9,13 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.*;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.inject.Qualifier;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
@@ -89,7 +94,9 @@ public class AsyncMessageSupplier {
 //        } while (!queue.isEmpty());
     }
 
-
+    @Qualifier
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE})
     public @interface Delivery {
 
     }
