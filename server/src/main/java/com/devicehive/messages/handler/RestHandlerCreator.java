@@ -1,9 +1,11 @@
 package com.devicehive.messages.handler;
 
+import com.google.common.util.concurrent.Runnables;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
 import java.util.concurrent.FutureTask;
 
 public class RestHandlerCreator implements HandlerCreator {
@@ -13,7 +15,7 @@ public class RestHandlerCreator implements HandlerCreator {
     private final FutureTask<Void> futureTask;
 
     public RestHandlerCreator() {
-        futureTask = new FutureTask<Void>(DUMMY_TASK, null);
+        futureTask = new FutureTask<Void>(Runnables.doNothing(), null);
     }
 
     public FutureTask<Void> getFutureTask() {
@@ -21,14 +23,8 @@ public class RestHandlerCreator implements HandlerCreator {
     }
 
     @Override
-    public Runnable getHandler(final JsonObject message) {
-        logger.debug("REST subscription notified");
+    public Runnable getHandler(final Object message, UUID sibId) {
         return futureTask;
     }
 
-    private static final Runnable DUMMY_TASK = new Runnable() {
-        @Override
-        public void run() {
-        }
-    };
 }

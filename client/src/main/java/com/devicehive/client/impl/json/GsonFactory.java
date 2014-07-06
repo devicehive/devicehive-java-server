@@ -26,6 +26,9 @@ public class GsonFactory {
     }
 
     public static Gson createGson(Policy policy) {
+        if (policy == null) {
+            return createGson();
+        }
         Gson gson = cache.get(policy);
         if (gson != null) {
             return gson;

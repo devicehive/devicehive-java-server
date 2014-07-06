@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
-public abstract class Subscription<EventSource> {
+public abstract class Subscription<EventSource,T> {
 
     private static final Logger logger = LoggerFactory.getLogger(Subscription.class);
 
@@ -15,10 +15,10 @@ public abstract class Subscription<EventSource> {
 
     private UUID subscriptionId;
 
-    private HandlerCreator handlerCreator;
+    private HandlerCreator<T> handlerCreator;
 
 
-    public Subscription(EventSource eventSource, UUID subscriptionId, HandlerCreator handlerCreator) {
+    public Subscription(EventSource eventSource, UUID subscriptionId, HandlerCreator<T> handlerCreator) {
         this.eventSource = eventSource;
         this.subscriptionId = subscriptionId;
         this.handlerCreator = handlerCreator;
@@ -32,7 +32,7 @@ public abstract class Subscription<EventSource> {
         return subscriptionId;
     }
 
-    public HandlerCreator getHandlerCreator() {
+    public HandlerCreator<T> getHandlerCreator() {
         return handlerCreator;
     }
 }

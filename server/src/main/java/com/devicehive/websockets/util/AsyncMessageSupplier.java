@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -31,7 +32,7 @@ public class AsyncMessageSupplier {
 
 
     @Asynchronous
-    public void deliverMessages(Session session) {
+    public void deliverMessages(@Observes @Delivery Session session) {
         this.deliverMessages(session, 0);
     }
 
@@ -86,6 +87,11 @@ public class AsyncMessageSupplier {
                 }
             }
 //        } while (!queue.isEmpty());
+    }
+
+
+    public @interface Delivery {
+
     }
 }
 

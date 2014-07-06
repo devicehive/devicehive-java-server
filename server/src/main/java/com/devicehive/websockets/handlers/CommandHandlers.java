@@ -162,8 +162,7 @@ public class CommandHandlers implements WebsocketHandlers {
                     csList.add(new CommandSubscription(principal, d.getId(),
                             reqId,
                             names,
-                            new WebsocketHandlerCreator(session,
-                                    WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK)
+                            WebsocketHandlerCreator.createCommandInsert(session)
                     ));
                 }
             } else {
@@ -172,7 +171,8 @@ public class CommandHandlers implements WebsocketHandlers {
                                 Constants.NULL_ID_SUBSTITUTE,
                                 reqId,
                                 names,
-                                new WebsocketHandlerCreator(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK));
+                                WebsocketHandlerCreator.createCommandInsert(session)
+                        );
                 csList.add(forAll);
             }
             subscriptionSessionMap.put(reqId, session);
@@ -185,8 +185,9 @@ public class CommandHandlers implements WebsocketHandlers {
             List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             if (!commands.isEmpty()) {
                 for (DeviceCommand deviceCommand : commands) {
+
                     WebsocketSession.addMessagesToQueue(session,
-                            ServerResponsesFactory.createCommandInsertMessage(deviceCommand));
+                            ServerResponsesFactory.createCommandInsertMessage(deviceCommand,reqId));
                 }
             }
             return reqId;

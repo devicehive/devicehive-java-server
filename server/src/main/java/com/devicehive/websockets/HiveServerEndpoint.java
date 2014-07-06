@@ -30,7 +30,6 @@ import java.util.UUID;
 
 @ServerEndpoint(value = "/websocket/{endpoint}", encoders = {JsonEncoder.class})
 @LogExecutionTime
-@Singleton
 public class HiveServerEndpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;

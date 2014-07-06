@@ -24,6 +24,7 @@ import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import java.util.Arrays;
@@ -58,7 +59,6 @@ public class LocalMessageBus {
     public void submitDeviceCommand(final DeviceCommand deviceCommand) {
         logger.debug("Device command was submitted: {}", deviceCommand.getId());
 
-        JsonObject jsonObject = ServerResponsesFactory.createCommandInsertMessage(deviceCommand);
 
         Set<UUID> subscribersIds = new HashSet<>();
         Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
@@ -71,8 +71,7 @@ public class LocalMessageBus {
             boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                     Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
             if (hasAccess) {
-                jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
-                executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
+                executor.execute(subscription.getHandlerCreator().getHandler(deviceCommand, subscription.getSubscriptionId()));
             }
             subscribersIds.add(subscription.getSubscriptionId());
         }
@@ -89,8 +88,7 @@ public class LocalMessageBus {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
                 if (hasAccess) {
-                    jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
-                    executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
+                    executor.execute(subscription.getHandlerCreator().getHandler(deviceCommand, subscription.getSubscriptionId()));
                 }
             }
         }
@@ -101,14 +99,12 @@ public class LocalMessageBus {
 
         logger.debug("Device command update was submitted: {}", deviceCommand.getId());
 
-        JsonObject jsonObject = ServerResponsesFactory.createCommandUpdateMessage(deviceCommand);
 
         if (deviceCommand.getOriginSessionId() != null) {
             Session session = sessionMonitor.getSession(deviceCommand.getOriginSessionId());
             if (session != null) {
                 executor.execute(
-                        new WebsocketHandlerCreator(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK)
-                                .getHandler(jsonObject)
+                        WebsocketHandlerCreator.createCommandUpdate(session).getHandler(deviceCommand, null)
                 );
             }
         }
@@ -116,7 +112,7 @@ public class LocalMessageBus {
         Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()
                 .getByCommandId(deviceCommand.getId());
         for (CommandUpdateSubscription commandUpdateSubscription : subs) {
-            executor.execute(commandUpdateSubscription.getHandlerCreator().getHandler(jsonObject));
+            executor.execute(commandUpdateSubscription.getHandlerCreator().getHandler(deviceCommand, commandUpdateSubscription.getSubscriptionId()));
         }
     }
 
@@ -126,7 +122,6 @@ public class LocalMessageBus {
 
         logger.debug("Device notification was submitted: {}", deviceNotification.getId());
 
-        JsonObject jsonObject = ServerResponsesFactory.createNotificationInsertMessage(deviceNotification);
 
         Set<UUID> subscribersIds = new HashSet<>();
         Set<NotificationSubscription> subs =
@@ -140,8 +135,7 @@ public class LocalMessageBus {
             boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                     Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
             if (hasAccess) {
-                jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
-                executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
+                executor.execute(subscription.getHandlerCreator().getHandler(deviceNotification, subscription.getSubscriptionId()));
             }
             subscribersIds.add(subscription.getSubscriptionId());
         }
@@ -158,8 +152,7 @@ public class LocalMessageBus {
                 boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
                         Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
                 if (hasAccess) {
-                    jsonObject.addProperty(SUBSCRIPTION_ID, subscription.getSubscriptionId().toString());
-                    executor.execute(subscription.getHandlerCreator().getHandler(jsonObject));
+                    executor.execute(subscription.getHandlerCreator().getHandler(deviceNotification, subscription.getSubscriptionId()));
                 }
             }
         }

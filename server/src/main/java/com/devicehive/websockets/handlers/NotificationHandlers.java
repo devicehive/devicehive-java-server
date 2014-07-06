@@ -130,8 +130,7 @@ public class NotificationHandlers implements WebsocketHandlers {
                     nsList.add(new NotificationSubscription(principal, d.getId(),
                             reqId,
                             names,
-                            new WebsocketHandlerCreator(session,
-                                    WebsocketSession.NOTIFICATION_SUBSCRIPTION_LOCK)
+                            WebsocketHandlerCreator.createNotificationInsert(session)
                     ));
                 }
             } else {
@@ -140,7 +139,7 @@ public class NotificationHandlers implements WebsocketHandlers {
                                 Constants.NULL_ID_SUBSTITUTE,
                                 reqId,
                                 names,
-                                new WebsocketHandlerCreator(session, WebsocketSession.NOTIFICATION_SUBSCRIPTION_LOCK)
+                                WebsocketHandlerCreator.createNotificationInsert(session)
                         );
                 nsList.add(forAll);
             }
@@ -158,7 +157,7 @@ public class NotificationHandlers implements WebsocketHandlers {
             if (!notifications.isEmpty()) {
                 for (DeviceNotification notification : notifications) {
                     WebsocketSession.addMessagesToQueue(session,
-                            ServerResponsesFactory.createNotificationInsertMessage(notification));
+                            ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));
                 }
             }
             return reqId;

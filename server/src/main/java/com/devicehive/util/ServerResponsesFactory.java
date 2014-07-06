@@ -16,23 +16,26 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.UUID;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 
 public class ServerResponsesFactory {
 
-    public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification) {
+    public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification, UUID subId) {
         JsonElement deviceNotificationJson =
                 GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDevice().getGuid());
         resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
+        resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId.toString());
         return resultMessage;
     }
 
-    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand) {
+    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, UUID subId) {
 
         JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
                 DeviceCommand.class);
@@ -41,6 +44,7 @@ public class ServerResponsesFactory {
         resultJsonObject.addProperty("action", "command/insert");
         resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDevice().getGuid());
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
+        resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subId.toString());
         return resultJsonObject;
     }
 

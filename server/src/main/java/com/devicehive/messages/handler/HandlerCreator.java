@@ -1,8 +1,9 @@
 package com.devicehive.messages.handler;
 
-import com.google.gson.JsonObject;
 
-public interface HandlerCreator {
+import java.util.UUID;
 
-    Runnable getHandler(JsonObject message);
+public interface HandlerCreator<T> {
+
+    Runnable getHandler(T message, UUID subId);
 }

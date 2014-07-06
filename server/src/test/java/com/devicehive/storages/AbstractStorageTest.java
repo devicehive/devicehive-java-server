@@ -24,7 +24,7 @@ public class AbstractStorageTest {
 
     @Test
     public void insertGetTest() {
-        AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
+        AbstractStorage<Long, SubscriptionExtender<?>> storage = new AbstractStorage<>();
 
         UUID subscriberId1 = UUID.randomUUID();
         Long eventSourceId = 1l;
@@ -40,18 +40,18 @@ public class AbstractStorageTest {
                 new SubscriptionExtender(Constants.NULL_ID_SUBSTITUTE, subscriberId1, null);
         storage.insert(subscription3);
 
-        Set<SubscriptionExtender> extendersByEvent = storage.get(eventSourceId);
+        Set<SubscriptionExtender<?>> extendersByEvent = storage.get(eventSourceId);
         assertEquals(2, extendersByEvent.size());
-        Set<SubscriptionExtender> extendersBySubscription = storage.get(subscriberId1);
+        Set<SubscriptionExtender<?>> extendersBySubscription = storage.get(subscriberId1);
         assertEquals(2, extendersBySubscription.size());
-        Set<SubscriptionExtender> otherExtenders = storage.get(Constants.NULL_ID_SUBSTITUTE);
+        Set<SubscriptionExtender<?>> otherExtenders = storage.get(Constants.NULL_ID_SUBSTITUTE);
         assertEquals(1, otherExtenders.size());
 
     }
 
     @Test
     public void insertRemoveTest() {
-        AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
+        AbstractStorage<Long, SubscriptionExtender<?>> storage = new AbstractStorage<>();
 
         UUID subscriberId1 = UUID.randomUUID();
         Long eventSourceId = 1l;
@@ -71,24 +71,24 @@ public class AbstractStorageTest {
 
         storage.remove(subscription2);
 
-        Set<SubscriptionExtender> extendersByEventSource = storage.get(eventSourceId);
+        Set<SubscriptionExtender<?>> extendersByEventSource = storage.get(eventSourceId);
         assertEquals(1, extendersByEventSource.size());
-        Set<SubscriptionExtender> extendersBySubscriber = storage.get(subscriberId2);
+        Set<SubscriptionExtender<?>> extendersBySubscriber = storage.get(subscriberId2);
 
-        Set<SubscriptionExtender> otherExtenders = storage.get(Constants.NULL_ID_SUBSTITUTE);
+        Set<SubscriptionExtender<?>> otherExtenders = storage.get(Constants.NULL_ID_SUBSTITUTE);
         assertEquals(1, otherExtenders.size());
     }
 
     @Test
     public void insertRewriteTest() {
-        AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
+        AbstractStorage<Long, SubscriptionExtender<?>> storage = new AbstractStorage<>();
 
         UUID subscriberId = UUID.randomUUID();
         Long eventSourceId = 1l;
         SubscriptionExtender subscription1 =
                 new SubscriptionExtender(eventSourceId, subscriberId, new HandlerCreator() {
                     @Override
-                    public Runnable getHandler(JsonObject message) {
+                    public Runnable getHandler(Object message,UUID uuid) {
                         return null;
                     }
                 });
@@ -97,7 +97,7 @@ public class AbstractStorageTest {
         SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId, null);
         storage.insert(subscription2);
 
-        Set<SubscriptionExtender> extenders = storage.get(eventSourceId);
+        Set<SubscriptionExtender<?>> extenders = storage.get(eventSourceId);
         assertEquals(1, extenders.size());
 
         assertFalse(extenders.contains(subscription2));
@@ -105,7 +105,7 @@ public class AbstractStorageTest {
 
     @Test
     public void insertMultipleRemoveTest() {
-        AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
+        AbstractStorage<Long, SubscriptionExtender<?>> storage = new AbstractStorage<>();
 
         UUID subscriberId = UUID.randomUUID();
         Long eventSourceId = 1l;
@@ -122,20 +122,20 @@ public class AbstractStorageTest {
         storage.insert(subscription3);
         storage.insert(subscription2);
 
-        Set<SubscriptionExtender> subscriptionSetToRemove = new HashSet<SubscriptionExtender>() {{
+        Set<SubscriptionExtender<?>> subscriptionSetToRemove = new HashSet<SubscriptionExtender<?>>() {{
             add(subscription1);
             add(subscription2);
         }};
 
         storage.removeAll(subscriptionSetToRemove);
 
-        Set<SubscriptionExtender> aliveExtendersThatShouldBeRemoved = storage.get(eventSourceId);
+        Set<SubscriptionExtender<?>> aliveExtendersThatShouldBeRemoved = storage.get(eventSourceId);
         assertEquals(0, aliveExtendersThatShouldBeRemoved.size());
     }
 
     @Test(expected = NullPointerException.class)
     public void nullInsertTest() {
-        AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
+        AbstractStorage<Long, SubscriptionExtender<?>> storage = new AbstractStorage<>();
         storage.insert(new SubscriptionExtender(null, null, null));
         storage.insert(new SubscriptionExtender(null, UUID.randomUUID(), null));
         storage.insert(new SubscriptionExtender(1l, null, null));
@@ -144,7 +144,7 @@ public class AbstractStorageTest {
 
     @Test
     public void removeBySubscriberTest() {
-        AbstractStorage<Long, SubscriptionExtender> storage = new AbstractStorage<>();
+        AbstractStorage<Long, SubscriptionExtender<?>> storage = new AbstractStorage<>();
 
         final UUID subscriberId = UUID.randomUUID();
         final Long eventSourceId = 1l;
@@ -168,17 +168,17 @@ public class AbstractStorageTest {
 
         storage.removePairs(pairsToRemove);
 
-        Set<SubscriptionExtender> extendersByEventSource = storage.get(eventSourceId);
+        Set<SubscriptionExtender<?>> extendersByEventSource = storage.get(eventSourceId);
         assertEquals(1, extendersByEventSource.size());
 
-        Set<SubscriptionExtender> extendersBySubscriber = storage.get(subscriberId);
+        Set<SubscriptionExtender<?>> extendersBySubscriber = storage.get(subscriberId);
         assertEquals(1, extendersBySubscriber.size());
 
-        Set<SubscriptionExtender> otherExtenders = storage.get(Constants.NULL_ID_SUBSTITUTE);
+        Set<SubscriptionExtender<?>> otherExtenders = storage.get(Constants.NULL_ID_SUBSTITUTE);
         assertEquals(0, otherExtenders.size());
     }
 
-    private class SubscriptionExtender extends Subscription<Long> {
+    private class SubscriptionExtender<T> extends Subscription<Long,T> {
 
         public SubscriptionExtender(Long eventSourceId, UUID subscriberId, HandlerCreator handlerCreator) {
             super(eventSourceId, subscriberId, handlerCreator);
