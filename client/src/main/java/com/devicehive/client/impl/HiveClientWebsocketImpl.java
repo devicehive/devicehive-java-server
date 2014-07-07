@@ -17,10 +17,12 @@ public class HiveClientWebsocketImpl extends HiveClientRestImpl {
     }
 
     public void authenticate(String login, String password) throws HiveException {
+        super.authenticate(login,password);
         websocketAgent.authenticate(HivePrincipal.createUser(login, password));
     }
 
     public void authenticate(String accessKey) throws HiveException {
+        super.authenticate(accessKey);
         websocketAgent.authenticate(HivePrincipal.createAccessKey(accessKey));
     }
 

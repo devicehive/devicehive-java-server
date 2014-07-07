@@ -2,6 +2,7 @@ package com.devicehive.client.impl;
 
 
 import com.devicehive.client.HiveMessageHandler;
+import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.context.WebsocketAgent;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.model.Device;
@@ -29,6 +30,12 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     public HiveDeviceWebsocketImpl(WebsocketAgent websocketAgent) {
         super(websocketAgent);
         this.websocketAgent = websocketAgent;
+    }
+
+    @Override
+    public void authenticate(String deviceId, String deviceKey) throws HiveException {
+        super.authenticate(deviceId, deviceKey);
+        websocketAgent.authenticate(HivePrincipal.createDevice(deviceId, deviceKey));
     }
 
     @Override
