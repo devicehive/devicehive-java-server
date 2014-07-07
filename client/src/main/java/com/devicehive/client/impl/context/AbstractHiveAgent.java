@@ -1,13 +1,10 @@
 package com.devicehive.client.impl.context;
 
 
-import com.devicehive.client.impl.Status;
-import com.devicehive.client.impl.util.LockWrapper;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.google.common.base.Preconditions;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -62,8 +59,11 @@ public abstract class AbstractHiveAgent {
     }
 
     public HivePrincipal getHivePrincipal() {
-        try ( LockWrapper lw = LockWrapper.read(stateLock)) {
+        stateLock.readLock().lock();
+        try {
             return hivePrincipal;
+        } finally {
+            stateLock.readLock().unlock();
         }
     }
 
@@ -81,35 +81,47 @@ public abstract class AbstractHiveAgent {
 
 
     public final void connect() throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             beforeConnect();
             doConnect();
             afterConnect();
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
     public final void disconnect() {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             beforeDisconnect();
             doDisconnect();
             afterDisconnect();
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
 
     public void authenticate(HivePrincipal hivePrincipal) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             if (this.hivePrincipal != null && !this.hivePrincipal.equals(hivePrincipal)) {
                 throw new IllegalStateException(Messages.ALREADY_AUTHENTICATED);
             }
             this.hivePrincipal = hivePrincipal;
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
 
     public final void close()  {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             disconnect();
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 }

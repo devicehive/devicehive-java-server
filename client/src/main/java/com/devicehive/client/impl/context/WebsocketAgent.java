@@ -3,7 +3,6 @@ package com.devicehive.client.impl.context;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.rest.HiveRestConnector;
-import com.devicehive.client.impl.util.LockWrapper;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.impl.websocket.HiveWebsocketConnector;
 import com.devicehive.client.model.ApiInfo;
@@ -52,8 +51,11 @@ public class WebsocketAgent extends RestAgent {
     }
 
     public HiveWebsocketConnector getWebsocketConnector() {
-        try ( LockWrapper lw = LockWrapper.read(stateLock)) {
+        stateLock.readLock().lock();
+        try {
             return websocketConnector;
+        } finally {
+            stateLock.readLock().unlock();
         }
     }
 
@@ -114,12 +116,15 @@ public class WebsocketAgent extends RestAgent {
 
     @Override
     public String subscribeForCommands(SubscriptionFilter newFilter,
-                                                    HiveMessageHandler<DeviceCommand> handler) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+                                       HiveMessageHandler<DeviceCommand> handler) throws HiveException {
+        stateLock.writeLock().lock();
+        try {
             String localId = UUID.randomUUID().toString();
             addCommandsSubscription(localId, new SubscriptionDescriptor<>(handler, newFilter));
             serverToLocalSubIdMap.put(sendSubscribeForCommands(newFilter), localId);
             return localId;
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -132,15 +137,17 @@ public class WebsocketAgent extends RestAgent {
     }
 
 
-
     @Override
     public String subscribeForNotifications(SubscriptionFilter newFilter,
-                                                         HiveMessageHandler<DeviceNotification> handler) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+                                            HiveMessageHandler<DeviceNotification> handler) throws HiveException {
+        stateLock.writeLock().lock();
+        try {
             String localId = UUID.randomUUID().toString();
             addNotificationsSubscription(localId, new SubscriptionDescriptor<>(handler, newFilter));
             serverToLocalSubIdMap.put(sendSubscribeForNotifications(newFilter), localId);
             return localId;
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -153,26 +160,31 @@ public class WebsocketAgent extends RestAgent {
     }
 
 
-
     @Override
     public void unsubscribeFromCommands(String subId) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             removeCommandsSubscription(subId);
             JsonObject request = new JsonObject();
             request.addProperty(ACTION_MEMBER, "command/unsubscribe");
             request.addProperty(SUBSCRIPTION_ID, subId);
             websocketConnector.sendMessage(request);
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
 
     public void unsubscribeFromNotifications(String subId) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             removeNotificationsSubscription(subId);
             JsonObject request = new JsonObject();
             request.addProperty(ACTION_MEMBER, "notification/unsubscribe");
             request.addProperty(SUBSCRIPTION_ID, subId);
             websocketConnector.sendMessage(request);
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -192,15 +204,21 @@ public class WebsocketAgent extends RestAgent {
             throw new IllegalArgumentException(Messages.INVALID_HIVE_PRINCIPAL);
         }
 
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             super.authenticate(principal);
             websocketConnector.sendMessage(request);
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
     public void addCommandUpdateSubscription(Long commandId, String guid, HiveMessageHandler<DeviceCommand> handler) {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             commandUpdatesHandlerStorage.put(commandId, handler);
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -208,7 +226,8 @@ public class WebsocketAgent extends RestAgent {
         subscriptionExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                try ( LockWrapper lw = LockWrapper.read(stateLock)) {
+                stateLock.readLock().lock();
+                try {
                     switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
                         case COMMAND_INSERT:
                             Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
@@ -235,6 +254,8 @@ public class WebsocketAgent extends RestAgent {
                         default: //unknown request
                             logger.error("Server sent unknown message {}", jsonMessage);
                     }
+                } finally {
+                    stateLock.readLock().unlock();
                 }
             }
         });

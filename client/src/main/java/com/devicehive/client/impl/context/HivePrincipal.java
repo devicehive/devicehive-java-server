@@ -77,4 +77,26 @@ public class HivePrincipal {
     public String getAccessKey() {
         return accessKey;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        HivePrincipal that = (HivePrincipal) o;
+
+        if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null) return false;
+        if (device != null ? !device.equals(that.device) : that.device != null) return false;
+        if (user != null ? !user.equals(that.user) : that.user != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = user != null ? user.hashCode() : 0;
+        result = 31 * result + (device != null ? device.hashCode() : 0);
+        result = 31 * result + (accessKey != null ? accessKey.hashCode() : 0);
+        return result;
+    }
 }

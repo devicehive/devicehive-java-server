@@ -4,7 +4,6 @@ package com.devicehive.client.impl.context;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.rest.HiveRestConnector;
-import com.devicehive.client.impl.util.LockWrapper;
 import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.CommandPollManyResponse;
 import com.devicehive.client.model.DeviceCommand;
@@ -47,18 +46,24 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     public HiveRestConnector getRestConnector() {
-        try (LockWrapper lw = LockWrapper.read(stateLock)) {
+        stateLock.readLock().lock();
+        try {
             return restConnector;
+        } finally {
+            stateLock.readLock().unlock();
         }
     }
 
     @Override
     public void authenticate(HivePrincipal hivePrincipal) throws HiveException {
-        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             super.authenticate(hivePrincipal);
             if (restConnector != null) {
                 restConnector.setHivePrincipal(hivePrincipal);
             }
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -96,7 +101,8 @@ public class RestAgent extends AbstractHiveAgent {
     public String subscribeForCommands(final SubscriptionFilter newFilter,
                                        final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
             addCommandsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
 
@@ -127,13 +133,16 @@ public class RestAgent extends AbstractHiveAgent {
             Future commandsSubscription = subscriptionExecutor.submit(sub);
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
     public String subscribeForCommandsForDevice(final SubscriptionFilter newFilter,
                                                 final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
             addCommandsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
 
@@ -166,6 +175,8 @@ public class RestAgent extends AbstractHiveAgent {
             Future commandsSubscription = subscriptionExecutor.submit(sub);
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -173,12 +184,15 @@ public class RestAgent extends AbstractHiveAgent {
      * Remove command subscription.
      */
     public void unsubscribeFromCommands(String subscriptionId) throws HiveException {
-        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             Future commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
             if (commandsSubscription != null) {
                 commandsSubscription.cancel(true);
             }
             super.removeCommandsSubscription(subscriptionId);
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -186,7 +200,8 @@ public class RestAgent extends AbstractHiveAgent {
                                            final String guid,
                                            final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             RestSubscription sub = new RestSubscription() {
                 @Override
                 protected void execute() throws HiveException {
@@ -208,12 +223,15 @@ public class RestAgent extends AbstractHiveAgent {
                 }
             };
             subscriptionExecutor.submit(sub);
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
     public String subscribeForNotifications(final SubscriptionFilter newFilter,
                                             final HiveMessageHandler<DeviceNotification> handler) throws HiveException {
-        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
             addNotificationsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
             RestSubscription sub = new RestSubscription() {
@@ -245,6 +263,8 @@ public class RestAgent extends AbstractHiveAgent {
             Future notificationsSubscription = subscriptionExecutor.submit(sub);
             notificationSubscriptionResults.put(subscriptionIdValue, notificationsSubscription);
             return subscriptionIdValue;
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
@@ -252,12 +272,15 @@ public class RestAgent extends AbstractHiveAgent {
      * Remove command subscription for all available commands.
      */
     public void unsubscribeFromNotifications(String subscriptionId) throws HiveException {
-        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+        stateLock.writeLock().lock();
+        try {
             Future notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
             if (notificationsSubscription != null) {
                 notificationsSubscription.cancel(true);
             }
             super.removeNotificationsSubscription(subscriptionId);
+        } finally {
+            stateLock.writeLock().unlock();
         }
     }
 
