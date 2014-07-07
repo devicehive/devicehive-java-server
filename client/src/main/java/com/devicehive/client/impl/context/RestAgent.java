@@ -5,7 +5,12 @@ import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.rest.HiveRestConnector;
 import com.devicehive.client.impl.util.LockWrapper;
-import com.devicehive.client.model.*;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.CommandPollManyResponse;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.NotificationPollManyResponse;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.reflect.TypeToken;
@@ -21,7 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class RestAgent extends AbstractHiveAgent {
 
@@ -37,14 +47,14 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     public HiveRestConnector getRestConnector() {
-        try ( LockWrapper lw = LockWrapper.read(stateLock)) {
+        try (LockWrapper lw = LockWrapper.read(stateLock)) {
             return restConnector;
         }
     }
 
     @Override
     public void authenticate(HivePrincipal hivePrincipal) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        try (LockWrapper lw = LockWrapper.write(stateLock)) {
             super.authenticate(hivePrincipal);
             if (restConnector != null) {
                 restConnector.setHivePrincipal(hivePrincipal);
@@ -67,7 +77,6 @@ public class RestAgent extends AbstractHiveAgent {
         restConnector.setHivePrincipal(getHivePrincipal());
     }
 
-
     @Override
     protected void beforeDisconnect() {
         MoreExecutors.shutdownAndAwaitTermination(subscriptionExecutor, 1, TimeUnit.MINUTES);
@@ -84,14 +93,12 @@ public class RestAgent extends AbstractHiveAgent {
     protected void afterDisconnect() {
     }
 
-
     public String subscribeForCommands(final SubscriptionFilter newFilter,
-                                                    final HiveMessageHandler<DeviceCommand> handler)
+                                       final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        try (LockWrapper lw = LockWrapper.write(stateLock)) {
             final String subscriptionIdValue = UUID.randomUUID().toString();
             addCommandsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
-
 
             RestSubscription sub = new RestSubscription() {
 
@@ -116,18 +123,57 @@ public class RestAgent extends AbstractHiveAgent {
                     }
                 }
             };
+
             Future commandsSubscription = subscriptionExecutor.submit(sub);
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
         }
     }
 
+    public String subscribeForCommandsForDevice(final SubscriptionFilter newFilter,
+                                                final HiveMessageHandler<DeviceCommand> handler)
+            throws HiveException {
+        try (LockWrapper lw = LockWrapper.write(stateLock)) {
+            final String subscriptionIdValue = UUID.randomUUID().toString();
+            addCommandsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
+
+            RestSubscription sub = new RestSubscription() {
+
+                @Override
+                protected void execute() throws HiveException {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                    if (newFilter != null) {
+                        params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
+                        params.put(Constants.NAMES, StringUtils.join(newFilter.getNames(), Constants.SEPARATOR));
+                    }
+                    Type responseType = new TypeToken<List<DeviceCommand>>() {
+                    }.getType();
+                    String uri = String.format("/device/%s/command/poll", getHivePrincipal().getDevice().getLeft());
+                    List<DeviceCommand> responses =
+                            getRestConnector().execute(uri,
+                                    HttpMethod.GET,
+                                    null,
+                                    params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
+                    for (DeviceCommand response : responses) {
+                        SubscriptionDescriptor<DeviceCommand> descriptor =
+                                getCommandsSubscriptionDescriptor(subscriptionIdValue);
+                        descriptor.handleMessage(response);
+                    }
+                }
+            };
+
+            Future commandsSubscription = subscriptionExecutor.submit(sub);
+            commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
+            return subscriptionIdValue;
+        }
+    }
 
     /**
      * Remove command subscription.
      */
     public void unsubscribeFromCommands(String subscriptionId) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        try (LockWrapper lw = LockWrapper.write(stateLock)) {
             Future commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
             if (commandsSubscription != null) {
                 commandsSubscription.cancel(true);
@@ -137,10 +183,10 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     public void subscribeForCommandUpdates(final Long commandId,
-                                                        final String guid,
-                                                        final HiveMessageHandler<DeviceCommand> handler)
+                                           final String guid,
+                                           final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        try (LockWrapper lw = LockWrapper.write(stateLock)) {
             RestSubscription sub = new RestSubscription() {
                 @Override
                 protected void execute() throws HiveException {
@@ -165,10 +211,9 @@ public class RestAgent extends AbstractHiveAgent {
         }
     }
 
-
     public String subscribeForNotifications(final SubscriptionFilter newFilter,
-                                                         final HiveMessageHandler<DeviceNotification> handler) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+                                            final HiveMessageHandler<DeviceNotification> handler) throws HiveException {
+        try (LockWrapper lw = LockWrapper.write(stateLock)) {
             final String subscriptionIdValue = UUID.randomUUID().toString();
             addNotificationsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
             RestSubscription sub = new RestSubscription() {
@@ -207,7 +252,7 @@ public class RestAgent extends AbstractHiveAgent {
      * Remove command subscription for all available commands.
      */
     public void unsubscribeFromNotifications(String subscriptionId) throws HiveException {
-        try ( LockWrapper lw = LockWrapper.write(stateLock)) {
+        try (LockWrapper lw = LockWrapper.write(stateLock)) {
             Future notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
             if (notificationsSubscription != null) {
                 notificationsSubscription.cancel(true);

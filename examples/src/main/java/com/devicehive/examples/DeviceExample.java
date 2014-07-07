@@ -101,7 +101,6 @@ public class DeviceExample extends Example {
         hiveDevice.registerDevice(device);
         hiveDevice.authenticate(device.getId(), device.getKey());
         Device registered = hiveDevice.getDevice();
-        System.out.println("Device registered! Device " + registered.getId());
         Timestamp serverTimestamp = hiveDevice.getInfo().getServerTimestamp();
         HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
             @Override

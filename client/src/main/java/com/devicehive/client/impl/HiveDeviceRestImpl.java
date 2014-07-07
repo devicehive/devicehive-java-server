@@ -104,7 +104,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         uuids.add(restAgent.getHivePrincipal().getDevice().getLeft());
         SubscriptionFilter filter =
                 new SubscriptionFilter(uuids, null, timestamp);
-        commandsSubscriptionId = restAgent.subscribeForCommands(filter, commandsHandler);
+        commandsSubscriptionId = restAgent.subscribeForCommandsForDevice(filter, commandsHandler);
     }
 
     @Override

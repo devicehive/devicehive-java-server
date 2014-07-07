@@ -47,6 +47,7 @@ public class SessionMonitor {
             @Override
             public void run() {
                 try {
+                    Thread.currentThread().setName("pings_sender");
                     userSession.getAsyncRemote()
                             .sendPing(ByteBuffer.wrap(PING_MESSAGE.getBytes(Charset.forName("UTF-8"))));
                 } catch (IOException ioe) {
@@ -60,6 +61,7 @@ public class SessionMonitor {
         monitor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                Thread.currentThread().setName("monitoring");
                 if (System.currentTimeMillis() - timeOfLastReceivedPong.getTime() > TimeUnit.MINUTES.toMillis
                         (Constants.WEBSOCKET_PING_TIMEOUT)) {
                     logger.info("No pings received from server for a long time. Session will be closed");

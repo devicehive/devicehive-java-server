@@ -73,10 +73,6 @@ public class ClientExample {
      * @throws IOException
      */
     public void run(URI url, boolean useSockets) throws HiveException, ExampleException, IOException {
-
-//        main.submit(new Callable<Void>() {
-//            @Override
-//            public Void call() throws Exception {
         hiveClient = HiveFactory
                 .createClient(url, useSockets);
         Thread.currentThread().setName("run");
@@ -92,9 +88,6 @@ public class ClientExample {
                 }};
         SubscriptionFilter filter = new SubscriptionFilter(uuids, null, null);
         hiveClient.getNotificationsController().subscribeForNotifications(filter, notificationsHandler);
-//                return null;
-//            }
-//        });
     }
 
     public ActionListener createTurnOnListener() {
