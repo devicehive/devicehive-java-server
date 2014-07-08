@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.persistence.OptimisticLockException;
@@ -37,7 +35,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 @Singleton
@@ -90,7 +90,7 @@ public class WebsocketExecutor {
         } catch (Exception ex) {
             response = JsonMessageBuilder
                     .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
-        } finally {
+        }  finally {
             ThreadLocalVariablesKeeper.setRequest(null);
             ThreadLocalVariablesKeeper.setSession(null);
         }

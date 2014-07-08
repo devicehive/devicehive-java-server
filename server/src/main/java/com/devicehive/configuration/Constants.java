@@ -2,10 +2,12 @@ package com.devicehive.configuration;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.Locale;
 
 public class Constants {
     //Internal use
     public static final String UTF8 = "UTF-8";
+    public static final Locale LOCALE = Locale.getDefault();
     public static final String PERSISTENCE_UNIT = "devicehive";
     public static final String API_VERSION = "1.3.0";
     public static final String WEBSOCKET_SERVER_URL = "websocket.url";
