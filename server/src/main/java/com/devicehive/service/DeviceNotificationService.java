@@ -35,6 +35,8 @@ public class DeviceNotificationService {
     @EJB
     private DeviceEquipmentService deviceEquipmentService;
     @EJB
+    private TimestampService timestampService;
+    @EJB
     private DeviceDAO deviceDAO;
     @EJB
     private DeviceService deviceService;
@@ -92,6 +94,7 @@ public class DeviceNotificationService {
 
     public List<DeviceNotification> saveDeviceNotification(List<DeviceNotification> notifications) {
         for (DeviceNotification notification : notifications) {
+            notification.setTimestamp(timestampService.getTimestamp());
             deviceNotificationDAO.createNotification(notification);
         }
         return notifications;

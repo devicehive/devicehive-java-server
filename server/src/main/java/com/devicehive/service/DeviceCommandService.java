@@ -90,6 +90,7 @@ public class DeviceCommandService {
         command.setDevice(device);
         command.setUser(user);
         command.setUserId(user.getId());
+        command.setTimestamp(timestampService.getTimestamp());
         commandDAO.createCommand(command);
         commandEvent.fire(command);
     }
