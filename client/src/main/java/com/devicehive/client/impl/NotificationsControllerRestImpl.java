@@ -49,7 +49,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         queryParams.put("gridInterval", gridInterval);
-        List<DeviceNotification> result = restAgent.getRestConnector().execute(path,
+        List<DeviceNotification> result = restAgent.execute(path,
                 HttpMethod.GET, null,
                 queryParams, new TypeToken<List<DeviceNotification>>() {
                 }.getType(), NOTIFICATION_TO_CLIENT);
@@ -69,7 +69,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
                 "{}", guid, notification.getNotification(), notification.getParameters());
         DeviceNotification result;
         String path = "/device/" + guid + "/notification";
-        result = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null,
+        result = restAgent.execute(path, HttpMethod.POST, null, null,
                 notification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +
@@ -83,7 +83,7 @@ class NotificationsControllerRestImpl implements NotificationsController {
         logger.debug("DeviceNotification: get requested for device with id {} and notification id {}", guid,
                 notificationId);
         String path = "/device/" + guid + "/notification/" + notificationId;
-        DeviceNotification result = restAgent.getRestConnector()
+        DeviceNotification result = restAgent
                 .execute(path, HttpMethod.GET, null, DeviceNotification.class,
                         NOTIFICATION_TO_CLIENT);
         logger.debug("DeviceNotification: get request proceed for device with id {} and notification id {}", guid,

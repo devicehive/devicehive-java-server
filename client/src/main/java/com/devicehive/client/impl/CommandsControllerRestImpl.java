@@ -50,7 +50,7 @@ class CommandsControllerRestImpl implements CommandsController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         queryParams.put("gridInterval", gridInterval);
-        List<DeviceCommand> result = restAgent.getRestConnector().execute(path, HttpMethod.GET,
+        List<DeviceCommand> result = restAgent.execute(path, HttpMethod.GET,
                 null, queryParams,
                 new TypeToken<List<DeviceCommand>>() {
                 }.getType(), COMMAND_LISTED);
@@ -65,7 +65,7 @@ class CommandsControllerRestImpl implements CommandsController {
     public DeviceCommand getCommand(String guid, long id) throws HiveException {
         logger.debug("DeviceCommand: get requested for device id {] and command id {}", guid, id);
         String path = "/device/" + guid + "/command/" + id;
-        DeviceCommand result = restAgent.getRestConnector()
+        DeviceCommand result = restAgent
                 .execute(path, HttpMethod.GET, null, DeviceCommand.class, COMMAND_TO_DEVICE);
         logger.debug("DeviceCommand: get request proceed successfully for device id {] and command id {}. Timestamp " +
                         "{}, userId {}, command {], parameters {}, lifetime {}, flags {}, status {}, result {}", guid, id,
@@ -87,7 +87,7 @@ class CommandsControllerRestImpl implements CommandsController {
                 command.getFlags());
         DeviceCommand toReturn;
         String path = "/device/" + guid + "/command";
-        toReturn = restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null, command,
+        toReturn = restAgent.execute(path, HttpMethod.POST, null, null, command,
                 DeviceCommand.class, COMMAND_FROM_CLIENT, COMMAND_TO_CLIENT);
 
         if (commandUpdatesHandler != null) {
@@ -111,7 +111,7 @@ class CommandsControllerRestImpl implements CommandsController {
         logger.debug("DeviceCommand: update requested for device id {] and command: id {},  flags {}, status {}, " +
                 " result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(), command.getResult());
         String path = "/device/" + deviceId + "/command/" + command.getId();
-        restAgent.getRestConnector()
+        restAgent
                 .execute(path, HttpMethod.PUT, null, command, REST_COMMAND_UPDATE_FROM_DEVICE);
         logger.debug("DeviceCommand: update request proceed successfully for device id {] and command: id {},  " +
                         "flags {}, status {}, result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(),

@@ -1,6 +1,8 @@
 package com.devicehive.client.impl.context;
 
 
+import com.devicehive.client.ConnectionLostCallback;
+import com.devicehive.client.ConnectionRestoredCallback;
 import com.devicehive.client.impl.util.Messages;
 import com.devicehive.client.model.DeviceCommand;
 import com.devicehive.client.model.DeviceNotification;
@@ -8,6 +10,8 @@ import com.devicehive.client.model.exceptions.HiveException;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -18,8 +22,22 @@ public abstract class AbstractHiveAgent {
     private final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage =
             new ConcurrentHashMap<>();
 
-    protected final ReadWriteLock stateLock = new ReentrantReadWriteLock(true);
     private HivePrincipal hivePrincipal;
+
+    protected final ConnectionLostCallback connectionLostCallback;
+
+    protected final ConnectionRestoredCallback connectionRestoredCallback;
+
+    protected final ExecutorService connectionStateExecutor = Executors.newSingleThreadExecutor();
+
+
+    protected final ReadWriteLock stateLock = new ReentrantReadWriteLock(true);
+
+
+    protected AbstractHiveAgent(ConnectionLostCallback connectionLostCallback, ConnectionRestoredCallback connectionRestoredCallback) {
+        this.connectionLostCallback = connectionLostCallback;
+        this.connectionRestoredCallback = connectionRestoredCallback;
+    }
 
     protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> getCommandSubscriptionsStorage() {
         return commandSubscriptionsStorage;

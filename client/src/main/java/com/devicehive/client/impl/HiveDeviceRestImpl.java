@@ -48,14 +48,14 @@ public class HiveDeviceRestImpl implements HiveDevice {
             throw new HiveClientException("Device is not authenticated");
         }
         String path = "/device/" + deviceId;
-        return restAgent.getRestConnector().execute(path, HttpMethod.GET, null, Device.class, null);
+        return restAgent.execute(path, HttpMethod.GET, null, Device.class, null);
     }
 
     @Override
     public void registerDevice(Device device) throws HiveException {
         HiveValidator.validate(device);
         String path = "/device/" + device.getId();
-        restAgent.getRestConnector().execute(path, HttpMethod.PUT, null, device, null);
+        restAgent.execute(path, HttpMethod.PUT, null, device, null);
     }
 
     @SuppressWarnings("serial")
@@ -75,7 +75,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         queryParams.put("sortOrder", order);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        return restAgent.getRestConnector().execute(path, HttpMethod.GET, null, queryParams,
+        return restAgent.execute(path, HttpMethod.GET, null, queryParams,
                 new TypeToken<List<DeviceCommand>>() {
                 }.getType(), null);
     }
@@ -84,7 +84,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     public DeviceCommand getCommand(long commandId) throws HiveException {
         Pair<String, String> authenticated = restAgent.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
-        return restAgent.getRestConnector().execute(path, HttpMethod.GET, null,
+        return restAgent.execute(path, HttpMethod.GET, null,
                 DeviceCommand.class, null);
     }
 
@@ -92,7 +92,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     public void updateCommand(DeviceCommand deviceCommand) throws HiveException {
         Pair<String, String> authenticated = restAgent.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + deviceCommand.getId();
-        restAgent.getRestConnector()
+        restAgent
                 .execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
     }
 
@@ -112,7 +112,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         Pair<String, String> authenticated = restAgent.getHivePrincipal().getDevice();
         HiveValidator.validate(deviceNotification);
         String path = "/device/" + authenticated.getKey() + "/notification";
-        return restAgent.getRestConnector().execute(path, HttpMethod.POST, null, null,
+        return restAgent.execute(path, HttpMethod.POST, null, null,
                 deviceNotification,
                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
     }

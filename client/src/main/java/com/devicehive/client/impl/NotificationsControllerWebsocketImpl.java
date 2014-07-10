@@ -44,7 +44,7 @@ class NotificationsControllerWebsocketImpl extends NotificationsControllerRestIm
         request.addProperty("deviceGuid", guid);
         Gson gson = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE);
         request.add("notification", gson.toJsonTree(notification));
-        result = websocketAgent.getWebsocketConnector().sendMessage(request, "notification",
+        result = websocketAgent.sendMessage(request, "notification",
                 DeviceNotification.class, NOTIFICATION_TO_DEVICE);
 
         logger.debug("DeviceNotification: insert request proceed for device with id {} and notification name {} and " +

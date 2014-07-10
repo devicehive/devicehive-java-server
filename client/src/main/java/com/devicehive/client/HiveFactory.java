@@ -18,41 +18,60 @@ public class HiveFactory {
 
 
     public static HiveClient createClient(URI restUri,
-                                          boolean preferWebsockets) throws HiveException {
+                                          boolean preferWebsockets,
+                                          ConnectionLostCallback connectionLostCallback,
+                                          ConnectionRestoredCallback connectionRestoredCallback) throws HiveException {
         if (preferWebsockets) {
-            return new HiveClientWebsocketImpl(createWebsocketClientAgent(restUri));
+            return new HiveClientWebsocketImpl(createWebsocketClientAgent(restUri,connectionLostCallback,connectionRestoredCallback));
         } else {
-            return new HiveClientRestImpl(createRestAgent(restUri));
+            return new HiveClientRestImpl(createRestAgent(restUri,connectionLostCallback,connectionRestoredCallback));
         }
+    }
+
+    public static HiveClient createClient(URI restUri,
+                                          boolean preferWebsockets) throws HiveException {
+        return createClient(restUri,preferWebsockets,null,null);
     }
 
 
     public static HiveDevice createDevice(URI restUri,
-                                          boolean preferWebsockets) throws HiveException {
+                                          boolean preferWebsockets,
+                                          ConnectionLostCallback connectionLostCallback,
+                                          ConnectionRestoredCallback connectionRestoredCallback) throws HiveException {
         if (preferWebsockets) {
-            return new HiveDeviceWebsocketImpl(createWebsocketDeviceAgent(restUri));
+            return new HiveDeviceWebsocketImpl(createWebsocketDeviceAgent(restUri,connectionLostCallback,connectionRestoredCallback));
         } else {
-            return new HiveDeviceRestImpl(createRestAgent(restUri));
+            return new HiveDeviceRestImpl(createRestAgent(restUri,connectionLostCallback,connectionRestoredCallback));
         }
     }
+    public static HiveDevice createDevice(URI restUri,
+                                          boolean preferWebsockets) throws HiveException {
+        return createDevice(restUri,preferWebsockets,null,null);
+    }
 
-    private static RestAgent createRestAgent(URI restUri)
+    private static RestAgent createRestAgent(URI restUri,
+                                             ConnectionLostCallback connectionLostCallback,
+                                             ConnectionRestoredCallback connectionRestoredCallback)
             throws HiveException {
-        RestAgent agent = new RestAgent(restUri);
+        RestAgent agent = new RestAgent(connectionLostCallback, connectionRestoredCallback, restUri);
         agent.connect();
         return agent;
     }
 
-    private static WebsocketAgent createWebsocketClientAgent(URI restUri)
+    private static WebsocketAgent createWebsocketClientAgent(URI restUri,
+                                                             ConnectionLostCallback connectionLostCallback,
+                                                             ConnectionRestoredCallback connectionRestoredCallback)
             throws HiveException {
-        WebsocketAgent agent = new WebsocketAgent(restUri, "client");
+        WebsocketAgent agent = new WebsocketAgent(connectionLostCallback, connectionRestoredCallback, restUri, "client");
         agent.connect();
         return agent;
     }
 
-    private static WebsocketAgent createWebsocketDeviceAgent(URI restUri)
+    private static WebsocketAgent createWebsocketDeviceAgent(URI restUri,
+                                                             ConnectionLostCallback connectionLostCallback,
+                                                             ConnectionRestoredCallback connectionRestoredCallback)
             throws HiveException {
-        WebsocketAgent agent = new WebsocketAgent(restUri, "device");
+        WebsocketAgent agent = new WebsocketAgent(connectionLostCallback, connectionRestoredCallback, restUri, "device");
         agent.connect();
         return agent;
     }

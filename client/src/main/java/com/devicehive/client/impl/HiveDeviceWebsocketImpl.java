@@ -42,7 +42,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     public Device getDevice() throws HiveException {
         JsonObject request = new JsonObject();
         request.addProperty("action", "device/get");
-        return websocketAgent.getWebsocketConnector().sendMessage(request, "device", Device.class,
+        return websocketAgent.sendMessage(request, "device", Device.class,
                 DEVICE_PUBLISHED_DEVICE_AUTH);
     }
 
@@ -60,14 +60,14 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
             request.addProperty("deviceId", device.getId());
             request.addProperty("deviceKey", device.getKey());
         }
-        websocketAgent.getWebsocketConnector().sendMessage(request);
+        websocketAgent.sendMessage(request);
     }
 
     @Override
     public DeviceCommand getCommand(long commandId) throws HiveException {
         Pair<String, String> authenticated = websocketAgent.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
-        return websocketAgent.getRestConnector().execute(path, HttpMethod.GET, null,
+        return websocketAgent.execute(path, HttpMethod.GET, null,
                 DeviceCommand.class, null);
     }
 
@@ -80,7 +80,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         request.addProperty("commandId", deviceCommand.getId());
         Gson gson = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE);
         request.add("command", gson.toJsonTree(deviceCommand));
-        websocketAgent.getWebsocketConnector().sendMessage(request);
+        websocketAgent.sendMessage(request);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         request.addProperty("action", "notification/insert");
         Gson gson = GsonFactory.createGson(NOTIFICATION_FROM_DEVICE);
         request.add("notification", gson.toJsonTree(deviceNotification));
-        return websocketAgent.getWebsocketConnector().sendMessage(request, "notification", DeviceNotification.class,
+        return websocketAgent.sendMessage(request, "notification", DeviceNotification.class,
                 NOTIFICATION_TO_DEVICE);
     }
 

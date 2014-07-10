@@ -42,7 +42,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.addProperty("deviceGuid", guid);
         Gson gson = GsonFactory.createGson(COMMAND_FROM_CLIENT);
         request.add("command", gson.toJsonTree(command));
-        DeviceCommand toReturn = websocketAgent.getWebsocketConnector().sendMessage(request, "command",
+        DeviceCommand toReturn = websocketAgent.sendMessage(request, "command",
                 DeviceCommand.class, COMMAND_TO_CLIENT);
         if (commandUpdatesHandler != null) {
             websocketAgent.addCommandUpdateSubscription(toReturn.getId(), guid, commandUpdatesHandler);
@@ -70,7 +70,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.addProperty("commandId", command.getId());
         Gson gson = GsonFactory.createGson(COMMAND_UPDATE_FROM_DEVICE);
         request.add("command", gson.toJsonTree(command));
-        websocketAgent.getWebsocketConnector().sendMessage(request);
+        websocketAgent.sendMessage(request);
         logger.debug("DeviceCommand: update request proceed successfully for device id {] and command: id {},  " +
                         "flags {}, status {}, result {}", deviceId, command.getId(), command.getFlags(), command.getStatus(),
                 command.getResult());
