@@ -70,11 +70,11 @@ public class RestAgent extends AbstractHiveAgent {
 
     @Override
     public void authenticate(HivePrincipal hivePrincipal) throws HiveException {
-        stateLock.writeLock().lock();
+        connectionLock.writeLock().lock();
         try {
             super.authenticate(hivePrincipal);
         } finally {
-            stateLock.writeLock().unlock();
+            connectionLock.writeLock().unlock();
         }
     }
 
@@ -206,14 +206,14 @@ public class RestAgent extends AbstractHiveAgent {
      */
     public synchronized <R> R executeForm(String path, Map<String, String> formParams, Type typeOfR,
                                           JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        stateLock.readLock().lock();
+        connectionLock.readLock().lock();
         try {
             Response response = buildFormInvocation(path, formParams).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             throw new HiveException("Error invoking the target", e.getCause());
         } finally {
-            stateLock.readLock().unlock();
+            connectionLock.readLock().unlock();
         }
     }
 
@@ -236,14 +236,14 @@ public class RestAgent extends AbstractHiveAgent {
                             Map<String, Object> queryParams,
                             S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
                             JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        stateLock.readLock().lock();
+        connectionLock.readLock().lock();
         try {
             Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             throw new HiveException("Error invoking the target", e.getCause());
         } finally {
-            stateLock.readLock().unlock();
+            connectionLock.readLock().unlock();
         }
     }
 
@@ -366,10 +366,10 @@ public class RestAgent extends AbstractHiveAgent {
     public String subscribeForCommands(final SubscriptionFilter newFilter,
                                        final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
-            addCommandsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
+            commandSubscriptionsStorage.put(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
 
             RestSubscription sub = new RestSubscription() {
 
@@ -389,7 +389,7 @@ public class RestAgent extends AbstractHiveAgent {
                                     params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
                     for (CommandPollManyResponse response : responses) {
                         SubscriptionDescriptor<DeviceCommand> descriptor =
-                                getCommandsSubscriptionDescriptor(subscriptionIdValue);
+                                commandSubscriptionsStorage.get(subscriptionIdValue);
                         descriptor.handleMessage(response.getCommand());
                     }
                 }
@@ -399,17 +399,17 @@ public class RestAgent extends AbstractHiveAgent {
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
     public String subscribeForCommandsForDevice(final SubscriptionFilter newFilter,
                                                 final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
-            addCommandsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
+            commandSubscriptionsStorage.put(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
 
             RestSubscription sub = new RestSubscription() {
 
@@ -431,7 +431,7 @@ public class RestAgent extends AbstractHiveAgent {
                                     params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
                     for (DeviceCommand response : responses) {
                         SubscriptionDescriptor<DeviceCommand> descriptor =
-                                getCommandsSubscriptionDescriptor(subscriptionIdValue);
+                                commandSubscriptionsStorage.get(subscriptionIdValue);
                         descriptor.handleMessage(response);
                     }
                 }
@@ -441,7 +441,7 @@ public class RestAgent extends AbstractHiveAgent {
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
@@ -449,15 +449,15 @@ public class RestAgent extends AbstractHiveAgent {
      * Remove command subscription.
      */
     public void unsubscribeFromCommands(String subscriptionId) throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             Future commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
             if (commandsSubscription != null) {
                 commandsSubscription.cancel(true);
             }
-            super.removeCommandsSubscription(subscriptionId);
+            commandSubscriptionsStorage.remove(subscriptionId);
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
@@ -465,7 +465,7 @@ public class RestAgent extends AbstractHiveAgent {
                                            final String guid,
                                            final HiveMessageHandler<DeviceCommand> handler)
             throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             RestSubscription sub = new RestSubscription() {
                 @Override
@@ -489,16 +489,16 @@ public class RestAgent extends AbstractHiveAgent {
             };
             subscriptionExecutor.submit(sub);
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
     public String subscribeForNotifications(final SubscriptionFilter newFilter,
                                             final HiveMessageHandler<DeviceNotification> handler) throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
-            addNotificationsSubscription(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
+            notificationSubscriptionsStorage.put(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
             RestSubscription sub = new RestSubscription() {
                 @Override
                 protected void execute() throws HiveException {
@@ -519,7 +519,7 @@ public class RestAgent extends AbstractHiveAgent {
                             responseType,
                             JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
                     for (NotificationPollManyResponse response : responses) {
-                        SubscriptionDescriptor<DeviceNotification> descriptor = getNotificationsSubscriptionDescriptor(
+                        SubscriptionDescriptor<DeviceNotification> descriptor = notificationSubscriptionsStorage.get(
                                 subscriptionIdValue);
                         descriptor.handleMessage(response.getNotification());
                     }
@@ -529,7 +529,7 @@ public class RestAgent extends AbstractHiveAgent {
             notificationSubscriptionResults.put(subscriptionIdValue, notificationsSubscription);
             return subscriptionIdValue;
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
@@ -537,15 +537,15 @@ public class RestAgent extends AbstractHiveAgent {
      * Remove command subscription for all available commands.
      */
     public void unsubscribeFromNotifications(String subscriptionId) throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             Future notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
             if (notificationsSubscription != null) {
                 notificationsSubscription.cancel(true);
             }
-            super.removeNotificationsSubscription(subscriptionId);
+            notificationSubscriptionsStorage.remove(subscriptionId);
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 

@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -107,7 +108,7 @@ public class WebsocketAgent extends RestAgent {
                 @Override
                 public void onOpen(final Session session, EndpointConfig config) {
                     try {
-                        stateLock.writeLock().lock();
+                        connectionLock.writeLock().lock();
                         logger.info("[onOpen] User session: {}", session);
                         SessionMonitor sessionMonitor = new SessionMonitor(session);
                         session.getUserProperties().put(SessionMonitor.SESSION_MONITOR_KEY, sessionMonitor);
@@ -141,14 +142,14 @@ public class WebsocketAgent extends RestAgent {
                             }
                         }
                     } finally {
-                        stateLock.writeLock().unlock();
+                        connectionLock.writeLock().unlock();
                     }
                 }
 
                 @Override
                 public void onClose(Session session, CloseReason reason) {
                     try {
-                        stateLock.writeLock().lock();
+                        connectionLock.writeLock().lock();
                         logger.info("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
                                 reason.getCloseCode
                                         ().getCode());
@@ -158,7 +159,7 @@ public class WebsocketAgent extends RestAgent {
                             sessionMonitor.close();
                         }
                     } finally {
-                        stateLock.writeLock().unlock();
+                        connectionLock.writeLock().unlock();
                     }
                 }
 
@@ -190,16 +191,12 @@ public class WebsocketAgent extends RestAgent {
         if (principal != null) {
             authenticate(principal);
         }
-        Set<String> commandSubIds = new HashSet<>(this.getCommandSubscriptionsStorage().keySet());
-        for (String subId : commandSubIds) {
-            SubscriptionDescriptor<DeviceCommand> sub = getCommandsSubscriptionDescriptor(subId);
-            serverToLocalSubIdMap.put(sendSubscribeForCommands(sub.getFilter()), subId);
+        for (Map.Entry<String,SubscriptionDescriptor<DeviceCommand>> entry : commandSubscriptionsStorage.entrySet()) {
+            serverToLocalSubIdMap.put(sendSubscribeForCommands(entry.getValue().getFilter()), entry.getKey());
         }
 
-        Set<String> notificationSubIds = new HashSet<>(this.getNotificationSubscriptionsStorage().keySet());
-        for (String subId : notificationSubIds) {
-            SubscriptionDescriptor<DeviceNotification> sub = getNotificationsSubscriptionDescriptor(subId);
-            serverToLocalSubIdMap.put(sendSubscribeForNotifications(sub.getFilter()), subId);
+        for (Map.Entry<String,SubscriptionDescriptor<DeviceNotification>> entry : notificationSubscriptionsStorage.entrySet()) {
+            serverToLocalSubIdMap.put(sendSubscribeForNotifications(entry.getValue().getFilter()), entry.getKey());
         }
     }
 
@@ -233,12 +230,12 @@ public class WebsocketAgent extends RestAgent {
     private String rawSend(JsonObject message) {
         String requestId = UUID.randomUUID().toString();
         message.addProperty(REQUEST_ID_MEMBER, requestId);
+        connectionLock.readLock().lock();
         try {
-            stateLock.readLock().lock();
             currentSession.getAsyncRemote().sendObject(message);
             return requestId;
         } finally {
-            stateLock.readLock().unlock();
+            connectionLock.readLock().unlock();
         }
     }
 
@@ -355,14 +352,14 @@ public class WebsocketAgent extends RestAgent {
     @Override
     public String subscribeForCommands(SubscriptionFilter newFilter,
                                        HiveMessageHandler<DeviceCommand> handler) throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             String localId = UUID.randomUUID().toString();
-            addCommandsSubscription(localId, new SubscriptionDescriptor<>(handler, newFilter));
             serverToLocalSubIdMap.put(sendSubscribeForCommands(newFilter), localId);
+            commandSubscriptionsStorage.put(localId, new SubscriptionDescriptor<>(handler, newFilter));
             return localId;
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
@@ -378,14 +375,14 @@ public class WebsocketAgent extends RestAgent {
     @Override
     public String subscribeForNotifications(SubscriptionFilter newFilter,
                                             HiveMessageHandler<DeviceNotification> handler) throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             String localId = UUID.randomUUID().toString();
-            addNotificationsSubscription(localId, new SubscriptionDescriptor<>(handler, newFilter));
             serverToLocalSubIdMap.put(sendSubscribeForNotifications(newFilter), localId);
+            notificationSubscriptionsStorage.put(localId, new SubscriptionDescriptor<>(handler, newFilter));
             return localId;
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
@@ -400,29 +397,29 @@ public class WebsocketAgent extends RestAgent {
 
     @Override
     public void unsubscribeFromCommands(String subId) throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
-            removeCommandsSubscription(subId);
+            commandSubscriptionsStorage.remove(subId);
             JsonObject request = new JsonObject();
             request.addProperty(ACTION_MEMBER, "command/unsubscribe");
             request.addProperty(SUBSCRIPTION_ID, subId);
             sendMessage(request);
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
 
     public void unsubscribeFromNotifications(String subId) throws HiveException {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
-            removeNotificationsSubscription(subId);
+            notificationSubscriptionsStorage.remove(subId);
             JsonObject request = new JsonObject();
             request.addProperty(ACTION_MEMBER, "notification/unsubscribe");
             request.addProperty(SUBSCRIPTION_ID, subId);
             sendMessage(request);
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
@@ -442,21 +439,21 @@ public class WebsocketAgent extends RestAgent {
             throw new IllegalArgumentException(Messages.INVALID_HIVE_PRINCIPAL);
         }
 
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             super.authenticate(principal);
             sendMessage(request);
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
     public void addCommandUpdateSubscription(Long commandId, String guid, HiveMessageHandler<DeviceCommand> handler) {
-        stateLock.writeLock().lock();
+        subscriptionsLock.writeLock().lock();
         try {
             commandUpdatesHandlerStorage.put(commandId, handler);
         } finally {
-            stateLock.writeLock().unlock();
+            subscriptionsLock.writeLock().unlock();
         }
     }
 
@@ -464,7 +461,7 @@ public class WebsocketAgent extends RestAgent {
         subscriptionExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                stateLock.readLock().lock();
+                subscriptionsLock.readLock().lock();
                 try {
                     switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
                         case COMMAND_INSERT:
@@ -472,7 +469,7 @@ public class WebsocketAgent extends RestAgent {
                             DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
                                     DeviceCommand.class);
                             String localCommandSubId = serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
-                            getCommandsSubscriptionDescriptor(localCommandSubId).handleMessage(commandInsert);
+                            commandSubscriptionsStorage.get(localCommandSubId).handleMessage(commandInsert);
                             break;
                         case COMMAND_UPDATE:
                             Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
@@ -487,13 +484,13 @@ public class WebsocketAgent extends RestAgent {
                             DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
                                     (NOTIFICATION_MEMBER), DeviceNotification.class);
                             String localNotifSubId = serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
-                            getNotificationsSubscriptionDescriptor(localNotifSubId).handleMessage(notification);
+                            notificationSubscriptionsStorage.get(localNotifSubId).handleMessage(notification);
                             break;
                         default: //unknown request
                             logger.error("Server sent unknown message {}", jsonMessage);
                     }
                 } finally {
-                    stateLock.readLock().unlock();
+                    subscriptionsLock.readLock().unlock();
                 }
             }
         });
