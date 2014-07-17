@@ -74,7 +74,7 @@ public class NotificationHandlers implements WebsocketHandlers {
 
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT,  HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
                                                           @WsParam(DEVICE_GUIDS)
                                                           Set<String> devices,
@@ -185,7 +185,7 @@ public class NotificationHandlers implements WebsocketHandlers {
      */
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public WebSocketResponse processNotificationUnsubscribe(Session session,
                                                             @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                             @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
@@ -222,7 +222,7 @@ public class NotificationHandlers implements WebsocketHandlers {
 
     @Action("notification/insert")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = {CREATE_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
                                                        @JsonPolicyApply(NOTIFICATION_FROM_DEVICE)

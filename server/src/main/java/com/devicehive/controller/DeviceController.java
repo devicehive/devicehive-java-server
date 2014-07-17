@@ -92,7 +92,7 @@ public class DeviceController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE})
+    @AllowedKeyAction(action = GET_DEVICE)
     public Response list(@QueryParam(NAME) String name,
                          @QueryParam(NAME_PATTERN) String namePattern,
                          @QueryParam(STATUS) String status,
@@ -145,7 +145,7 @@ public class DeviceController {
      */
     @PUT
     @Path("/{id}")
-    @AllowedKeyAction(action = {REGISTER_DEVICE})
+    @AllowedKeyAction(action = REGISTER_DEVICE)
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(JsonObject jsonObject, @PathParam(ID) String deviceGuid) {
@@ -183,7 +183,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}")
-    @AllowedKeyAction(action = {GET_DEVICE})
+    @AllowedKeyAction(action = GET_DEVICE)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam(ID) String guid) {
         logger.debug("Device get requested. Guid {}", guid);
@@ -258,7 +258,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment")
-    @AllowedKeyAction(action = {GET_DEVICE_STATE})
+    @AllowedKeyAction(action = GET_DEVICE_STATE)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipment(@PathParam(ID) String guid) {
         logger.debug("Device equipment requested for device {}", guid);
@@ -285,7 +285,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment/{code}")
-    @AllowedKeyAction(action = {GET_DEVICE_STATE})
+    @AllowedKeyAction(action = GET_DEVICE_STATE)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response equipmentByCode(@PathParam(ID) String guid,
                                     @PathParam(CODE) String code) {

@@ -101,7 +101,7 @@ public class CommandHandlers implements WebsocketHandlers {
 
     @Action("command/subscribe")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
+    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
     public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
                                                      @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                      @WsParam(NAMES) Set<String> names,
@@ -200,7 +200,7 @@ public class CommandHandlers implements WebsocketHandlers {
 
     @Action("command/unsubscribe")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE_COMMAND})
+    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
     public WebSocketResponse processCommandUnsubscribe(Session session,
                                                        @WsParam(SUBSCRIPTION) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
@@ -237,7 +237,7 @@ public class CommandHandlers implements WebsocketHandlers {
 
     @Action(value = "command/insert")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = {CREATE_DEVICE_COMMAND})
+    @AllowedKeyAction(action = CREATE_DEVICE_COMMAND)
     public WebSocketResponse processCommandInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                   @WsParam(COMMAND) @JsonPolicyApply(COMMAND_FROM_CLIENT)
                                                   DeviceCommand deviceCommand,
@@ -267,7 +267,7 @@ public class CommandHandlers implements WebsocketHandlers {
 
     @Action("command/update")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = {UPDATE_DEVICE_COMMAND})
+    @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
     public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
                                                   @WsParam(COMMAND_ID) Long id,
                                                   @WsParam(COMMAND)

@@ -62,9 +62,7 @@ public class NetworkService {
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
             key = accessKeyService.find(key.getId(), principal.getKey().getUser().getId());
-            List<AllowedKeyAction.Action> actions = new ArrayList<>();
-            actions.add(AllowedKeyAction.Action.GET_DEVICE);
-            if (!CheckPermissionsHelper.checkAllPermissions(key, actions)) {
+            if (!CheckPermissionsHelper.checkAllPermissions(key, AllowedKeyAction.Action.GET_DEVICE)) {
                 result.setDevices(null);
                 return result;
             }

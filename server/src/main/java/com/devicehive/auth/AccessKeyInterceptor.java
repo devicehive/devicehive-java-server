@@ -43,8 +43,7 @@ public class AccessKeyInterceptor {
             }
             Method method = context.getMethod();
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            List<AllowedKeyAction.Action> actions = Arrays.asList(allowedActionAnnotation.action());
-            boolean isAllowed = CheckPermissionsHelper.checkAllPermissions(key, actions);
+            boolean isAllowed = CheckPermissionsHelper.checkAllPermissions(key, allowedActionAnnotation.action());
             if (!isAllowed) {
                 throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }

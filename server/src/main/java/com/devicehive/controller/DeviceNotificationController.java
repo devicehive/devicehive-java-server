@@ -141,7 +141,7 @@ public class DeviceNotificationController {
     @GET
     @Path("/{deviceGuid}/notification")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public Response query(@PathParam(DEVICE_GUID) String guid,
                           @QueryParam(START) Timestamp start,
                           @QueryParam(END) Timestamp end,
@@ -219,7 +219,7 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(ID) Long notificationId) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
@@ -256,7 +256,7 @@ public class DeviceNotificationController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
             @PathParam(DEVICE_GUID) final String deviceGuid,
@@ -423,7 +423,7 @@ public class DeviceNotificationController {
      */
     @POST
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = {CREATE_DEVICE_NOTIFICATION})
+    @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam(DEVICE_GUID) String guid,

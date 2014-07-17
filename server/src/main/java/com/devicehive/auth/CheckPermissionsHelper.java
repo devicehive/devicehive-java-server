@@ -4,26 +4,27 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Subnet;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.google.common.collect.Sets;
 
 import java.net.InetAddress;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class CheckPermissionsHelper {
 
-    public static boolean checkActions(List<AllowedKeyAction.Action> allowedActions,
+    public static boolean checkActions(AllowedKeyAction.Action allowedAction,
                                        Set<AccessKeyPermission> permissions) {
         boolean isAllowed = false;
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
-        for (AllowedKeyAction.Action currentAllowedAction : allowedActions) {
             for (AccessKeyPermission currentPermission : permissions) {
                 boolean isCurrentPermissionAllowed = false;
                 if (currentPermission.getActions() == null) {
                     return false;
                 }
                 for (String accessKeyAction : currentPermission.getActionsAsSet()) {
-                    if (accessKeyAction.equalsIgnoreCase(currentAllowedAction.getValue())) {
+                    if (accessKeyAction.equalsIgnoreCase(allowedAction.getValue())) {
                         isCurrentPermissionAllowed = true;
                         isAllowed = true;
                         permissionsToRemove.remove(currentPermission);
@@ -35,7 +36,6 @@ public class CheckPermissionsHelper {
                     }
                 }
             }
-        }
         if (!isAllowed) {
             return isAllowed;
         }
@@ -126,11 +126,11 @@ public class CheckPermissionsHelper {
         return !permissions.isEmpty();
     }
 
-    public static boolean checkAllPermissions(AccessKey key, List<AllowedKeyAction.Action> actions) {
+    public static boolean checkAllPermissions(AccessKey key, AllowedKeyAction.Action action) {
         InetAddress clientIP = ThreadLocalVariablesKeeper.getClientIP();
         Set<AccessKeyPermission> permissions = key.getPermissions();
 
-        boolean isAllowed = CheckPermissionsHelper.checkActions(actions, permissions)
+        boolean isAllowed = CheckPermissionsHelper.checkActions(action, permissions)
                 && CheckPermissionsHelper.checkIP(clientIP, permissions)
                 && CheckPermissionsHelper.checkDeviceGuids(permissions)
                 && CheckPermissionsHelper.checkNetworks(permissions)

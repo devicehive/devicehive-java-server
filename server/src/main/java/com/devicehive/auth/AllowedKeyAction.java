@@ -19,7 +19,7 @@ import static java.lang.annotation.ElementType.TYPE;
 public @interface AllowedKeyAction {
 
     @Nonbinding
-    public Action[] action() default Action.NONE;
+    public Action action() default Action.NONE;
 
     public static enum Action {
         GET_NETWORK(AvailableActions.GET_NETWORK),

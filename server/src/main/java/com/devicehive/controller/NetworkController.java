@@ -80,7 +80,7 @@ public class NetworkController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_NETWORK})
+    @AllowedKeyAction(action = GET_NETWORK)
     public Response getNetworkList(@QueryParam(NAME) String name,
                                    @QueryParam(NAME_PATTERN) String namePattern,
                                    @QueryParam(SORT_FIELD) String sortField,
@@ -125,7 +125,7 @@ public class NetworkController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = {GET_NETWORK})
+    @AllowedKeyAction(action = GET_NETWORK)
     public Response getNetwork(@PathParam(ID) long id) {
 
         logger.debug("Network get requested.");

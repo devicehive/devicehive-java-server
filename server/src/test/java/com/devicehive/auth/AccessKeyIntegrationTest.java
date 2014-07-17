@@ -246,7 +246,7 @@ public class AccessKeyIntegrationTest {
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
@@ -278,7 +278,7 @@ public class AccessKeyIntegrationTest {
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
@@ -329,7 +329,7 @@ public class AccessKeyIntegrationTest {
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
@@ -361,7 +361,7 @@ public class AccessKeyIntegrationTest {
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            AllowedKeyAction.Action action = allowedActionAnnotation.action()[0];
+            AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
                 ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
                 ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com.dataart.com");
