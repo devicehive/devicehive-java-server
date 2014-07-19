@@ -4,6 +4,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 
+import java.net.InetAddress;
 import java.security.Principal;
 
 public class HivePrincipal implements Principal {

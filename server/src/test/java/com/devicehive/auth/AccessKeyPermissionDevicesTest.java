@@ -12,6 +12,7 @@ import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -66,19 +67,19 @@ public class AccessKeyPermissionDevicesTest {
         permissions.add(permission2);
         permissions.add(permission3);
 
-        boolean result = CheckPermissionsHelper.checkDeviceGuids(permissions);
-        assertTrue(result);
+        CheckPermissionsHelper.filterDeviceGuids(permissions);
         assertEquals(2, permissions.size());
     }
 
     @Test
     public void deviceEmptyPermissionsCase() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
-        boolean result = CheckPermissionsHelper.checkDeviceGuids(permissions);
-        assertFalse(result);
+        CheckPermissionsHelper.filterDeviceGuids(permissions);
+        assertEquals(0, permissions.size());
     }
 
-  //TODO  @Test
+    @Test
+    @Ignore
     public void hasAccessToDeviceOnePermissionSuccessTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission singlePermission = new AccessKeyPermission();

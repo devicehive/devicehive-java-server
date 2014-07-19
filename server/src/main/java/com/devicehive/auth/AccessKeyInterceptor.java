@@ -2,6 +2,7 @@ package com.devicehive.auth;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.UserStatus;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
@@ -43,10 +45,11 @@ public class AccessKeyInterceptor {
             }
             Method method = context.getMethod();
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            boolean isAllowed = CheckPermissionsHelper.checkAllPermissions(key, allowedActionAnnotation.action());
-            if (!isAllowed) {
+            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), allowedActionAnnotation.action(), ThreadLocalVariablesKeeper.getClientIP(), ThreadLocalVariablesKeeper.getHostName());
+            if (filtered.isEmpty()) {
                 throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }
+            key.setPermissions(filtered);
             return context.proceed();
         } finally {
             ThreadLocalVariablesKeeper.clean();

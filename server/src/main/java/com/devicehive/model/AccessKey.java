@@ -35,6 +35,7 @@ import static com.devicehive.model.AccessKey.Queries.Values;
 @NamedQueries({
         @NamedQuery(name = Names.GET_BY_USER_ID, query = Values.GET_BY_USER_ID),
         @NamedQuery(name = Names.GET_BY_ID, query = Values.GET_BY_ID),
+        @NamedQuery(name = Names.GET_BY_ID_SIMPLE, query = Values.GET_BY_ID_SIMPLE),
         @NamedQuery(name = Names.GET_BY_KEY, query = Values.GET_BY_KEY),
         @NamedQuery(name = Names.DELETE_BY_ID_AND_USER, query = Values.DELETE_BY_ID_AND_USER),
         @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
@@ -143,6 +144,7 @@ public class AccessKey implements HiveEntity {
         public static interface Names {
             static final String GET_BY_USER_ID = "AccessKey.getByUserId";
             static final String GET_BY_ID = "AccessKey.getById";
+            static final String GET_BY_ID_SIMPLE = "AccessKey.getByIdSimple";
             static final String GET_BY_KEY = "AccessKey.getByKey";
             static final String DELETE_BY_ID_AND_USER = "AccessKey.deleteByIdAndUser";
             static final String DELETE_BY_ID = "AccessKey.deleteById";
@@ -158,6 +160,11 @@ public class AccessKey implements HiveEntity {
                     "select ak from AccessKey ak " +
                             "left join fetch ak.permissions " +
                             "join fetch ak.user u " +
+                            "where u.id = :userId and ak.id = :accessKeyId";
+            static final String GET_BY_ID_SIMPLE =
+                    "select ak from AccessKey ak " +
+                            "left join fetch ak.permissions " +
+                            "join ak.user u " +
                             "where u.id = :userId and ak.id = :accessKeyId";
             static final String GET_BY_KEY =
                     "select ak from AccessKey ak " +

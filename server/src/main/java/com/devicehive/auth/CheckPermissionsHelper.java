@@ -1,105 +1,80 @@
 package com.devicehive.auth;
 
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Subnet;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.google.common.collect.Sets;
 
 import java.net.InetAddress;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class CheckPermissionsHelper {
 
-    public static boolean checkActions(AllowedKeyAction.Action allowedAction,
-                                       Set<AccessKeyPermission> permissions) {
-        boolean isAllowed = false;
+    public static void filterActions(AllowedKeyAction.Action allowedAction,
+                                     Set<AccessKeyPermission> permissions) {
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
-            for (AccessKeyPermission currentPermission : permissions) {
-                boolean isCurrentPermissionAllowed = false;
-                if (currentPermission.getActions() == null) {
-                    return false;
-                }
+        for (AccessKeyPermission currentPermission : permissions) {
+            boolean isCurrentPermissionAllowed = false;
+            Set<String> actions = currentPermission.getActionsAsSet();
+            if (actions != null) {
                 for (String accessKeyAction : currentPermission.getActionsAsSet()) {
-                    if (accessKeyAction.equalsIgnoreCase(allowedAction.getValue())) {
-                        isCurrentPermissionAllowed = true;
-                        isAllowed = true;
-                        permissionsToRemove.remove(currentPermission);
-                    }
+                    isCurrentPermissionAllowed = accessKeyAction.equalsIgnoreCase(allowedAction.getValue());
                     if (isCurrentPermissionAllowed) {
                         break;
-                    } else {
-                        permissionsToRemove.add(currentPermission);
                     }
                 }
             }
-        if (!isAllowed) {
-            return isAllowed;
+            if (!isCurrentPermissionAllowed) {
+                permissionsToRemove.add(currentPermission);
+            }
         }
         permissions.removeAll(permissionsToRemove);
-        return true;
     }
 
-    public static boolean checkIP(InetAddress clientIp, Set<AccessKeyPermission> permissions) {
-        boolean isIpAllowed = false;
+    public static void filterIP(InetAddress clientIp, Set<AccessKeyPermission> permissions) {
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
             Set<Subnet> subnetsAsSet = currentPermission.getSubnetsAsSet();
-            if (subnetsAsSet != null && !subnetsAsSet.isEmpty()) {
+            if (subnetsAsSet != null) {
+                boolean isCurrentPermissionAllowed = false;
                 for (Subnet subnet : currentPermission.getSubnetsAsSet()) {
-                    if (subnet.isAddressFromSubnet(clientIp)) {
-                        isIpAllowed = true;
-                        permissionsToRemove.remove(currentPermission);
+                    isCurrentPermissionAllowed = subnet.isAddressFromSubnet(clientIp);
+                    if (isCurrentPermissionAllowed) {
                         break;
                     }
-                    permissionsToRemove.add(currentPermission);
-
                 }
-            } else if (subnetsAsSet != null && subnetsAsSet.isEmpty()) {
-                permissionsToRemove.add(currentPermission);
-            } else {
-                isIpAllowed = true;
+                if (!isCurrentPermissionAllowed) {
+                    permissionsToRemove.add(currentPermission);
+                }
             }
         }
         permissions.removeAll(permissionsToRemove);
-        return isIpAllowed;
     }
 
-    public static boolean checkDomains(Set<AccessKeyPermission> permissions) {
-        boolean isDomainAllowed = false;
-        String clientDomain = ThreadLocalVariablesKeeper.getHostName();
+    public static void filterDomains(String clientDomain, Set<AccessKeyPermission> permissions) {
         if (clientDomain == null) {
-            return true;
+            return;
         }
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
             Set<String> domainsAsSet = currentPermission.getDomainsAsSet();
-            if (domainsAsSet != null && !domainsAsSet.isEmpty()) {
+            if (domainsAsSet != null) {
+                boolean isCurrentPermissionAllowed = false;
                 for (String currentDomain : domainsAsSet) {
-                    if (clientDomain.endsWith(currentDomain)) {
-                        isDomainAllowed = true;
-                        permissionsToRemove.remove(currentPermission);
+                    isCurrentPermissionAllowed = clientDomain.endsWith(currentDomain);
+                    if (isCurrentPermissionAllowed) {
                         break;
                     }
+                }
+                if (!isCurrentPermissionAllowed) {
                     permissionsToRemove.add(currentPermission);
                 }
-            } else if (domainsAsSet != null && domainsAsSet.isEmpty()) {
-                permissionsToRemove.add(currentPermission);
-            } else {
-                isDomainAllowed = true;
             }
         }
         permissions.removeAll(permissionsToRemove);
-        return isDomainAllowed;
     }
 
-    public static boolean checkNetworks(Set<AccessKeyPermission> permissions) {
-        if (permissions.isEmpty()) {
-            return false;
-        }
+    public static void filterNetworks(Set<AccessKeyPermission> permissions) {
         Set<AccessKeyPermission> permissionToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
             Set<Long> currentNetworkIds = currentPermission.getNetworkIdsAsSet();
@@ -108,13 +83,9 @@ public class CheckPermissionsHelper {
             }
         }
         permissions.removeAll(permissionToRemove);
-        return !permissions.isEmpty();
     }
 
-    public static boolean checkDeviceGuids(Set<AccessKeyPermission> permissions) {
-        if (permissions.isEmpty()) {
-            return false;
-        }
+    public static void filterDeviceGuids(Set<AccessKeyPermission> permissions) {
         Set<AccessKeyPermission> permissionToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
             Set<String> currentDeviceGuids = currentPermission.getDeviceGuidsAsSet();
@@ -123,19 +94,15 @@ public class CheckPermissionsHelper {
             }
         }
         permissions.removeAll(permissionToRemove);
-        return !permissions.isEmpty();
     }
 
-    public static boolean checkAllPermissions(AccessKey key, AllowedKeyAction.Action action) {
-        InetAddress clientIP = ThreadLocalVariablesKeeper.getClientIP();
-        Set<AccessKeyPermission> permissions = key.getPermissions();
-
-        boolean isAllowed = CheckPermissionsHelper.checkActions(action, permissions)
-                && CheckPermissionsHelper.checkIP(clientIP, permissions)
-                && CheckPermissionsHelper.checkDeviceGuids(permissions)
-                && CheckPermissionsHelper.checkNetworks(permissions)
-                && CheckPermissionsHelper.checkDomains(permissions);
-
-        return isAllowed;
+    public static Set<AccessKeyPermission> filterPermissions(Set<AccessKeyPermission> permissions, AllowedKeyAction.Action action, InetAddress clientIP, String clientDomain) {
+        Set<AccessKeyPermission> filtered = Sets.newHashSet(permissions);
+        filterActions(action, filtered);
+        filterIP(clientIP, filtered);
+        filterDomains(clientDomain, filtered);
+        filterNetworks(filtered);
+        filterDeviceGuids(filtered);
+        return filtered;
     }
 }

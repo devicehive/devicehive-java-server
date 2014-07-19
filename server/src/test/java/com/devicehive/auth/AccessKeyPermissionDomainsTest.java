@@ -19,7 +19,6 @@ public class AccessKeyPermissionDomainsTest {
     public void domainsCleanPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
 
-        ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
         permission1
@@ -34,39 +33,31 @@ public class AccessKeyPermissionDomainsTest {
         permissions.add(permission2);
         permissions.add(permission3);
 
-        boolean result = CheckPermissionsHelper.checkDomains(permissions);
-        assertTrue(result);
+        CheckPermissionsHelper.filterDomains("test.devicehive.com", permissions);
         assertEquals(2, permissions.size());
-        ThreadLocalVariablesKeeper.clean();
     }
 
     @Test
     public void domainsEmptyPermissionsCase() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
-        ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
-        boolean result = CheckPermissionsHelper.checkDomains(permissions);
-        assertFalse(result);
-        ThreadLocalVariablesKeeper.clean();
+        CheckPermissionsHelper.filterDomains("test.devicehive.com", permissions);
+        assertEquals(0, permissions.size());
     }
 
     @Test
     public void hasNoAccessToDomainOnePermissionSuccessTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission singlePermission = new AccessKeyPermission();
-        ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
         singlePermission.setDomains(new JsonStringWrapper("[\".net\", \".amm.ru\"]"));
         permissions.add(singlePermission);
 
-        boolean result = CheckPermissionsHelper.checkDomains(permissions);
-        assertFalse(result);
+        CheckPermissionsHelper.filterDomains("test.devicehive.com", permissions);
         assertEquals(0, permissions.size());
-        ThreadLocalVariablesKeeper.clean();
     }
 
     @Test
     public void hasAccessToDomainSeveralPermissionsTest(){
         Set<AccessKeyPermission> permissions = new HashSet<>();
-        ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
         permission1.setDomains(new JsonStringWrapper("[\".net\", \".amm.ru\"]"));
@@ -88,16 +79,13 @@ public class AccessKeyPermissionDomainsTest {
         permission5.setDomains(new JsonStringWrapper("[\".devicehive.\"]"));
         permissions.add(permission5);
 
-        boolean result = CheckPermissionsHelper.checkDomains(permissions);
-        assertTrue(result);
+        CheckPermissionsHelper.filterDomains("test.devicehive.com", permissions);
         assertEquals(2, permissions.size());
-        ThreadLocalVariablesKeeper.clean();
     }
 
     @Test
     public void hasNoAccessToDomainSeveralPermissionsTest(){
         Set<AccessKeyPermission> permissions = new HashSet<>();
-        ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
         permission1.setDomains(new JsonStringWrapper("[\".net\", \".amm.ru\"]"));
@@ -111,8 +99,7 @@ public class AccessKeyPermissionDomainsTest {
         permission3.setDomains(new JsonStringWrapper("[\".devicehive.\"]"));
         permissions.add(permission3);
 
-        boolean result = CheckPermissionsHelper.checkDomains(permissions);
-        assertFalse(result);
+        CheckPermissionsHelper.filterDomains("test.devicehive.com", permissions);
         assertEquals(0, permissions.size());
         ThreadLocalVariablesKeeper.clean();
     }

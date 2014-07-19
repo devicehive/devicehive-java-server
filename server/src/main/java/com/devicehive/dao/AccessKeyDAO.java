@@ -13,11 +13,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
-import static com.devicehive.model.AccessKey.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.AccessKey.Queries.Names.DELETE_BY_ID_AND_USER;
-import static com.devicehive.model.AccessKey.Queries.Names.GET_BY_ID;
-import static com.devicehive.model.AccessKey.Queries.Names.GET_BY_KEY;
-import static com.devicehive.model.AccessKey.Queries.Names.GET_BY_USER_ID;
+import static com.devicehive.model.AccessKey.Queries.Names.*;
 import static com.devicehive.model.AccessKey.Queries.Parameters.ACCESS_KEY_ID;
 import static com.devicehive.model.AccessKey.Queries.Parameters.KEY;
 import static com.devicehive.model.AccessKey.Queries.Parameters.USER_ID;
@@ -39,6 +35,16 @@ public class AccessKeyDAO {
         TypedQuery<AccessKey> query = em.createNamedQuery(GET_BY_ID, AccessKey.class);
         query.setParameter(USER_ID, userId);
         query.setParameter(ACCESS_KEY_ID, accessKeyId);
+        List<AccessKey> resultList = query.getResultList();
+        return resultList.isEmpty() ? null : resultList.get(0);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public AccessKey getWithoutUser(Long userId, Long accessKeyId) {
+        TypedQuery<AccessKey> query = em.createNamedQuery(GET_BY_ID_SIMPLE, AccessKey.class);
+        query.setParameter(USER_ID, userId);
+        query.setParameter(ACCESS_KEY_ID, accessKeyId);
+        CacheHelper.cacheable(query);
         List<AccessKey> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }

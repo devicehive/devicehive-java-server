@@ -58,16 +58,15 @@ public class AccessKeyPermissionsNetworkTest {
         permission3.setNetworkIds(null);
         permissions.add(permission3);
 
-        boolean result = CheckPermissionsHelper.checkNetworks(permissions);
-        assertTrue(result);
+        CheckPermissionsHelper.filterNetworks(permissions);
         assertEquals(2, permissions.size());
     }
 
     @Test
     public void networkEmptyPermissionsTest(){
         Set<AccessKeyPermission> permissions = new HashSet<>();
-        boolean result = CheckPermissionsHelper.checkNetworks(permissions);
-        assertFalse(result);
+        CheckPermissionsHelper.filterNetworks(permissions);
+        assertEquals(0, permissions.size());
     }
 
 

@@ -32,26 +32,23 @@ public class AccessKeyPermissionsSubnetsTest {
         permissions.add(permission1);
         permissions.add(permission2);
         permissions.add(permission3);
-        boolean result = false;
         try {
-            result = CheckPermissionsHelper.checkIP(InetAddress.getByName("203.0.113.7"), permissions);
+            CheckPermissionsHelper.filterIP(InetAddress.getByName("203.0.113.7"), permissions);
         } catch (UnknownHostException e) {
             fail("No exceptions expected!");
         }
-        assertTrue(result);
         assertEquals(2, permissions.size());
     }
 
     @Test
     public void domainsEmptyPermissionsCase() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
-        boolean result = true;
         try {
-            result = CheckPermissionsHelper.checkIP(InetAddress.getByName("203.0.113.7"), permissions);
+            CheckPermissionsHelper.filterIP(InetAddress.getByName("203.0.113.7"), permissions);
         } catch (UnknownHostException e) {
             fail("No exceptions expected!");
         }
-        assertFalse(result);
+        assertEquals(0, permissions.size());
     }
 
     @Test
@@ -60,13 +57,11 @@ public class AccessKeyPermissionsSubnetsTest {
         AccessKeyPermission singlePermission = new AccessKeyPermission();
         singlePermission.setSubnets(new JsonStringWrapper("[\"127.0.0.1\", \"203.1.113.7/16\"]"));
         permissions.add(singlePermission);
-        boolean result = true;
         try {
-            result = CheckPermissionsHelper.checkIP(InetAddress.getByName("203.0.113.7"), permissions);
+            CheckPermissionsHelper.filterIP(InetAddress.getByName("203.0.113.7"), permissions);
         } catch (UnknownHostException e) {
             fail("No exceptions expected!");
         }
-        assertFalse(result);
         assertEquals(0, permissions.size());
     }
 
@@ -93,13 +88,11 @@ public class AccessKeyPermissionsSubnetsTest {
         AccessKeyPermission permission5 = new AccessKeyPermission();
         permissions.add(permission5);
 
-        boolean result = false;
         try {
-            result = CheckPermissionsHelper.checkIP(InetAddress.getByName("203.0.113.7"), permissions);
+            CheckPermissionsHelper.filterIP(InetAddress.getByName("203.0.113.7"), permissions);
         } catch (UnknownHostException e) {
             fail("No exceptions expected!");
         }
-        assertTrue(result);
         assertEquals(3, permissions.size());
     }
 
@@ -119,13 +112,11 @@ public class AccessKeyPermissionsSubnetsTest {
         permission3.setSubnets(new JsonStringWrapper("[\"203.0.113.8/32\"]"));
         permissions.add(permission3);
 
-        boolean result = true;
         try {
-            result = CheckPermissionsHelper.checkIP(InetAddress.getByName("203.0.113.7"), permissions);
+            CheckPermissionsHelper.filterIP(InetAddress.getByName("203.0.113.7"), permissions);
         } catch (UnknownHostException e) {
             fail("No exceptions expected!");
         }
-        assertFalse(result);
         assertEquals(0, permissions.size());
     }
 }

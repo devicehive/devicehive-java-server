@@ -4,14 +4,13 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.Device;
-import com.devicehive.model.Network;
-import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.google.common.collect.Sets;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -37,6 +36,8 @@ public class NetworkService {
     @EJB
     private AccessKeyService accessKeyService;
     @EJB
+    private AccessKeyDAO accessKeyDAO;
+    @EJB
     private DeviceService deviceService;
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -61,8 +62,9 @@ public class NetworkService {
                 return result;
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
-            key = accessKeyService.find(key.getId(), principal.getKey().getUser().getId());
-            if (!CheckPermissionsHelper.checkAllPermissions(key, AllowedKeyAction.Action.GET_DEVICE)) {
+            AccessKey currentKey = accessKeyDAO.getWithoutUser(user.getId(), key.getId());
+            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE, ThreadLocalVariablesKeeper.getClientIP(), ThreadLocalVariablesKeeper.getHostName());
+            if (filtered.isEmpty()) {
                 result.setDevices(null);
                 return result;
             }
