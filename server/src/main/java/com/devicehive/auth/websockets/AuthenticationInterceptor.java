@@ -4,12 +4,11 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
-import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonObject;
 
 import javax.annotation.Priority;
-import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
@@ -30,8 +29,9 @@ public class AuthenticationInterceptor {
     @AroundInvoke
     public Object authenticate(InvocationContext ctx) throws Exception {
         Session session = ThreadLocalVariablesKeeper.getSession();
-        if (WebsocketSession.getPrincipal(session) != null) {
-            ThreadLocalVariablesKeeper.setPrincipal(WebsocketSession.getPrincipal(session));
+        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+        if (state.getHivePrincipal() != null) {
+            ThreadLocalVariablesKeeper.setPrincipal(state.getHivePrincipal());
         } else {
             JsonObject request = ThreadLocalVariablesKeeper.getRequest();
             String deviceId = null, deviceKey = null;

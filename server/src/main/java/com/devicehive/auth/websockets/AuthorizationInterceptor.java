@@ -5,13 +5,12 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
-import com.devicehive.websockets.util.WebsocketSession;
 
 import javax.annotation.Priority;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
@@ -72,7 +71,7 @@ public class AuthorizationInterceptor {
     private HivePrincipal deployHivePrincipal() {
         HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
         if (principal == null) {
-            HivePrincipal sessionPrincipal = WebsocketSession.getPrincipal(ThreadLocalVariablesKeeper.getSession());
+            HivePrincipal sessionPrincipal = HiveWebsocketSessionState.get(ThreadLocalVariablesKeeper.getSession()).getHivePrincipal();
             if (sessionPrincipal != null) {
                 principal = new HivePrincipal(
                         sessionPrincipal.getUser(),
@@ -82,7 +81,7 @@ public class AuthorizationInterceptor {
                                 : null
 
                 );
-                WebsocketSession.setPrincipal(ThreadLocalVariablesKeeper.getSession(), principal);
+                HiveWebsocketSessionState.get(ThreadLocalVariablesKeeper.getSession()).setHivePrincipal(principal);
             }
             ThreadLocalVariablesKeeper.setPrincipal(principal);
         }

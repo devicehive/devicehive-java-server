@@ -5,11 +5,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.interceptor.AroundInvoke;
+import javax.interceptor.Interceptor;
+import javax.interceptor.InterceptorBinding;
 import javax.interceptor.InvocationContext;
+import java.lang.annotation.*;
 import java.lang.reflect.Method;
 
 //@LogExecutionTime
-//@Interceptor
+@Interceptor
+@ExecutionTimeLoggerInterceptor.NoneBinding
 public class ExecutionTimeLoggerInterceptor {
 
     @AroundInvoke
@@ -75,4 +79,9 @@ public class ExecutionTimeLoggerInterceptor {
 
     }
 
+    @Inherited
+    @InterceptorBinding
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    public @interface NoneBinding {}
 }

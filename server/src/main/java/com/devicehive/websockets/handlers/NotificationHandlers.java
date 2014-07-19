@@ -19,13 +19,13 @@ import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.SubscriptionSessionMap;
-import com.devicehive.websockets.util.WebsocketSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,20 +34,11 @@ import javax.ejb.EJB;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
-import static com.devicehive.configuration.Constants.DEVICE_GUID;
-import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
-import static com.devicehive.configuration.Constants.NAMES;
-import static com.devicehive.configuration.Constants.NOTIFICATION;
-import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
-import static com.devicehive.configuration.Constants.TIMESTAMP;
+import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -119,9 +110,10 @@ public class NotificationHandlers implements WebsocketHandlers {
         if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
+        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+        state.getNotificationSubscriptionsLock().lock();
         try {
             logger.debug("notification/subscribe action. Session {}", session.getId());
-            WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             List<NotificationSubscription> nsList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
             if (devices != null) {
@@ -145,9 +137,9 @@ public class NotificationHandlers implements WebsocketHandlers {
             }
             subscriptionSessionMap.put(reqId, session);
             if (names == null) {
-                WebsocketSession.addOldFormatNotificationSubscription(session, devices, reqId);
+                state.addOldFormatNotificationSubscription(devices, reqId);
             }
-            WebsocketSession.getNotificationSubscriptions(session).add(reqId);
+            state.getNotificationSubscriptions().add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (timestamp == null) {
                 timestamp = timestampService.getTimestamp();
@@ -156,13 +148,12 @@ public class NotificationHandlers implements WebsocketHandlers {
                     deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
             if (!notifications.isEmpty()) {
                 for (DeviceNotification notification : notifications) {
-                    WebsocketSession.addMessagesToQueue(session,
-                            ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));
+                    state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));
                 }
             }
             return reqId;
         } finally {
-            WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
+            state.getNotificationSubscriptionsLock().unlock();
             logger.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }
@@ -190,29 +181,30 @@ public class NotificationHandlers implements WebsocketHandlers {
                                                             @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                             @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
+        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+        state.getNotificationSubscriptionsLock().lock();
         try {
-            WebsocketSession.getNotificationSubscriptionsLock(session).lock();
             Set<UUID> subscriptions = new HashSet<>();
             if (subId == null) {
                 if (deviceGuids == null) {
                     Set<String> subForAll = new HashSet<String>() {{
                         add(Constants.NULL_SUBSTITUTE);
                     }};
-                    subscriptions.addAll(WebsocketSession.removeOldFormatNotificationSubscription(session, subForAll));
+                    subscriptions.addAll(state.removeOldFormatNotificationSubscription(subForAll));
                 } else
-                    subscriptions.addAll(WebsocketSession.removeOldFormatNotificationSubscription(session, deviceGuids));
+                    subscriptions.addAll(state.removeOldFormatNotificationSubscription(deviceGuids));
             } else {
                 subscriptions.add(subId);
             }
             for (UUID toUnsubscribe : subscriptions) {
-                if (WebsocketSession.getNotificationSubscriptions(session).contains(toUnsubscribe)) {
-                    WebsocketSession.getNotificationSubscriptions(session).remove(toUnsubscribe);
+                if (state.getNotificationSubscriptions().contains(toUnsubscribe)) {
+                    state.getNotificationSubscriptions().remove(toUnsubscribe);
                     subscriptionSessionMap.remove(toUnsubscribe);
                     subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
                 }
             }
         } finally {
-            WebsocketSession.getNotificationSubscriptionsLock(session).unlock();
+            state.getNotificationSubscriptionsLock().unlock();
             logger.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }

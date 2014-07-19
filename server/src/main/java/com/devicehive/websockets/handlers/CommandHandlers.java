@@ -18,51 +18,31 @@ import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
-import com.devicehive.util.ExecutionTimeLoggerInterceptor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.SubscriptionSessionMap;
-import com.devicehive.websockets.util.WebsocketSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_COMMAND;
-import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_COMMAND;
-import static com.devicehive.auth.AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND;
-import static com.devicehive.configuration.Constants.COMMAND;
-import static com.devicehive.configuration.Constants.COMMAND_ID;
-import static com.devicehive.configuration.Constants.DEVICE_GUID;
-import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
-import static com.devicehive.configuration.Constants.NAMES;
-import static com.devicehive.configuration.Constants.SUBSCRIPTION;
-import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
-import static com.devicehive.configuration.Constants.TIMESTAMP;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.servlet.http.HttpServletResponse.*;
 
 
 @WebsocketController
@@ -149,9 +129,10 @@ public class CommandHandlers implements WebsocketHandlers {
         if (names != null && names.isEmpty()) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
+        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+        state.getCommandSubscriptionsLock().lock();
         try {
             logger.debug("command/subscribe action. Session {}", session.getId());
-            WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             List<CommandSubscription> csList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
             if (devices != null) {
@@ -177,22 +158,20 @@ public class CommandHandlers implements WebsocketHandlers {
             }
             subscriptionSessionMap.put(reqId, session);
             if (names == null) {
-                WebsocketSession.addOldFormatCommandSubscription(session, devices, reqId);
+                state.addOldFormatCommandSubscription(devices, reqId);
             }
-            WebsocketSession.getCommandSubscriptions(session).add(reqId);
+            state.getCommandSubscriptions().add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
             List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             if (!commands.isEmpty()) {
                 for (DeviceCommand deviceCommand : commands) {
-
-                    WebsocketSession.addMessagesToQueue(session,
-                            ServerResponsesFactory.createCommandInsertMessage(deviceCommand,reqId));
+                    state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand,reqId));
                 }
             }
             return reqId;
         } finally {
-            WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
+            HiveWebsocketSessionState.get(session).getCommandSubscriptionsLock().unlock();
             logger.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }
@@ -205,29 +184,30 @@ public class CommandHandlers implements WebsocketHandlers {
                                                        @WsParam(SUBSCRIPTION) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
+        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+        state.getCommandSubscriptionsLock().lock();
         try {
-            WebsocketSession.getCommandsSubscriptionsLock(session).lock();
             Set<UUID> subscriptions = new HashSet<>();
             if (subId == null) {
                 if (deviceGuids == null) {
                     Set<String> subForAll = new HashSet<String>() {{
                         add(Constants.NULL_SUBSTITUTE);
                     }};
-                    subscriptions.addAll(WebsocketSession.removeOldFormatCommandSubscription(session, subForAll));
+                    subscriptions.addAll(state.removeOldFormatCommandSubscription(subForAll));
                 } else
-                    subscriptions.addAll(WebsocketSession.removeOldFormatCommandSubscription(session, deviceGuids));
+                    subscriptions.addAll(state.removeOldFormatCommandSubscription(deviceGuids));
             } else {
                 subscriptions.add(subId);
             }
             for (UUID toUnsubscribe : subscriptions) {
-                if (WebsocketSession.getCommandSubscriptions(session).contains(toUnsubscribe)) {
-                    WebsocketSession.getCommandSubscriptions(session).remove(toUnsubscribe);
+                if (state.getCommandSubscriptions().contains(toUnsubscribe)) {
+                    state.getCommandSubscriptions().remove(toUnsubscribe);
                     subscriptionSessionMap.remove(toUnsubscribe);
                     subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
                 }
             }
         } finally {
-            WebsocketSession.getCommandsSubscriptionsLock(session).unlock();
+            state.getCommandSubscriptionsLock().unlock();
             logger.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }

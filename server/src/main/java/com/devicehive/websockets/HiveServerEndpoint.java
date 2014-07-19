@@ -3,11 +3,12 @@ package com.devicehive.websockets;
 
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.converters.JsonEncoder;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.WebsocketExecutor;
 import com.devicehive.websockets.util.SessionMonitor;
-import com.devicehive.websockets.util.WebsocketSession;
+import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
@@ -17,14 +18,11 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.CloseReason;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.websocket.*;
+import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfig;
 import java.io.Reader;
 import java.util.UUID;
 
@@ -49,11 +47,7 @@ public class HiveServerEndpoint {
     @OnOpen
     public void onOpen(Session session, @PathParam("endpoint") String endpoint) {
         logger.debug("[onOpen] session id {} ", session.getId());
-        WebsocketSession.createCommandUpdatesSubscriptionsLock(session);
-        WebsocketSession.createNotificationSubscriptionsLock(session);
-        WebsocketSession.createCommandsSubscriptionsLock(session);
-        WebsocketSession.createQueueLock(session);
-        WebsocketSession.createSubscriptions(session);
+        session.getUserProperties().put(HiveWebsocketSessionState.KEY, new HiveWebsocketSessionState());
         sessionMonitor.registerSession(session);
     }
 
@@ -79,10 +73,11 @@ public class HiveServerEndpoint {
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
         logger.debug("[onClose] session id {}, close reason is {} ", session.getId(), closeReason);
-        for (UUID subId : WebsocketSession.getCommandSubscriptions(session)) {
+        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+        for (UUID subId : state.getCommandSubscriptions()) {
             subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
         }
-        for (UUID subId : WebsocketSession.getNotificationSubscriptions(session)) {
+        for (UUID subId : state.getNotificationSubscriptions()) {
             subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
         }
     }

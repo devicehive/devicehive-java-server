@@ -9,6 +9,7 @@ import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceActivityService;
+import com.devicehive.websockets.HiveWebsocketSessionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,12 +66,12 @@ public class SessionMonitor {
     }
 
     private void updateDeviceSession(Session session) {
-        HivePrincipal hivePrincipal = WebsocketSession.getPrincipal(session);
+        HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
         Device authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
         if (authorizedDevice != null) {
             deviceActivityService.update(authorizedDevice.getId());
         }
-        Set<UUID> commandSubscriptions = WebsocketSession.getCommandSubscriptions(session);
+        Set<UUID> commandSubscriptions = HiveWebsocketSessionState.get(session).getCommandSubscriptions();
         for (UUID subId : commandSubscriptions) {
             for (CommandSubscription subscription : subscriptionManager.getCommandSubscriptionStorage().get(subId)) {
                 if (subscription.getDeviceId() != Constants.NULL_ID_SUBSTITUTE) {
@@ -98,7 +99,7 @@ public class SessionMonitor {
         }
     }
 
-    @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
+    //@Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
     public synchronized void monitor() {
         Long timeout = configurationService
                 .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);

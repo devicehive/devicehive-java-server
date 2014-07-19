@@ -14,17 +14,16 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
-import com.devicehive.websockets.util.WebsocketSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.websocket.Session;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
@@ -112,7 +111,7 @@ public class CommonHandlers implements WebsocketHandlers {
                                                  @WsParam("deviceKey") String deviceKey,
                                                  Session session) {
         logger.debug("authenticate action for {} ", login);
-        if (WebsocketSession.getPrincipal(session) != null) {
+        if (HiveWebsocketSessionState.get(session).getHivePrincipal() != null) {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
         HivePrincipal hivePrincipal = null;
@@ -138,7 +137,7 @@ public class CommonHandlers implements WebsocketHandlers {
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
             }
         }
-        WebsocketSession.setPrincipal(session, hivePrincipal);
+        HiveWebsocketSessionState.get(session).setHivePrincipal(hivePrincipal);
         return new WebSocketResponse();
     }
 

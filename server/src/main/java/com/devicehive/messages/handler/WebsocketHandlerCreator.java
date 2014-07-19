@@ -6,8 +6,8 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
-import com.devicehive.websockets.util.WebsocketSession;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +30,14 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
 
     private final Lock lock;
 
-    private WebsocketHandlerCreator(Session session, String lockAttribute) {
+    private WebsocketHandlerCreator(Session session, Lock lock) {
         this.session = session;
-        this.lock = (Lock) session.getUserProperties().get(lockAttribute);
+        this.lock = lock;
     }
 
 
     public static WebsocketHandlerCreator<DeviceCommand> createCommandInsert(Session session) {
-        return new WebsocketHandlerCreator<DeviceCommand>(session, WebsocketSession.COMMANDS_SUBSCRIPTION_LOCK) {
+        return new WebsocketHandlerCreator<DeviceCommand>(session, HiveWebsocketSessionState.get(session).getCommandSubscriptionsLock()) {
             @Override
             protected JsonObject createJsonObject(DeviceCommand message, UUID subId) {
                 return ServerResponsesFactory.createCommandInsertMessage(message, subId);
@@ -46,7 +46,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
     }
 
     public static WebsocketHandlerCreator<DeviceCommand> createCommandUpdate(Session session) {
-        return new WebsocketHandlerCreator<DeviceCommand>(session, WebsocketSession.COMMAND_UPDATES_SUBSCRIPTION_LOCK) {
+        return new WebsocketHandlerCreator<DeviceCommand>(session, HiveWebsocketSessionState.get(session).getCommandUpdateSubscriptionsLock()) {
             @Override
             protected JsonObject createJsonObject(DeviceCommand message, UUID subId) {
                 return ServerResponsesFactory.createCommandUpdateMessage(message);
@@ -55,7 +55,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
     }
 
     public static WebsocketHandlerCreator<DeviceNotification> createNotificationInsert(Session session) {
-        return new WebsocketHandlerCreator<DeviceNotification>(session, WebsocketSession.NOTIFICATION_SUBSCRIPTION_LOCK) {
+        return new WebsocketHandlerCreator<DeviceNotification>(session, HiveWebsocketSessionState.get(session).getNotificationSubscriptionsLock()) {
             @Override
             protected JsonObject createJsonObject(DeviceNotification message, UUID subId) {
                 return ServerResponsesFactory.createNotificationInsertMessage(message, subId);
@@ -79,7 +79,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
                 try {
                     lock.lock();
                     logger.debug("Add messages to queue process for session " + session.getId());
-                    WebsocketSession.addMessagesToQueue(session, json);
+                    HiveWebsocketSessionState.get(session).getQueue().add(json);
                 } finally {
                     lock.unlock();
                 }

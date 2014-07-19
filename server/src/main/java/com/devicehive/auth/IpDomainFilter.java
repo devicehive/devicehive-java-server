@@ -1,6 +1,7 @@
 package com.devicehive.auth;
 
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.google.common.net.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,6 @@ import java.net.InetAddress;
 @WebFilter(urlPatterns = "/*", asyncSupported = true)
 public class IpDomainFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(IpDomainFilter.class);
-    private static final String originHeader = "Origin";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -35,7 +35,7 @@ public class IpDomainFilter implements Filter {
             String method = ((HttpServletRequest) request).getMethod();
             logger.debug("Current thread : {}. URI : {}, Method : {}", Thread.currentThread().getName(), url, method);
             HttpServletRequest httpServletRequest = HttpServletRequest.class.cast(request);
-            String canonicalHostName = httpServletRequest.getHeader(originHeader);
+            String canonicalHostName = httpServletRequest.getHeader(HttpHeaders.ORIGIN);
             ThreadLocalVariablesKeeper.setHostName(canonicalHostName);
         }
         chain.doFilter(request, response);
