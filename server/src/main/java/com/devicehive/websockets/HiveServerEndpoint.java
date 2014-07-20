@@ -47,7 +47,10 @@ public class HiveServerEndpoint {
     @OnOpen
     public void onOpen(Session session, @PathParam("endpoint") String endpoint) {
         logger.debug("[onOpen] session id {} ", session.getId());
-        session.getUserProperties().put(HiveWebsocketSessionState.KEY, new HiveWebsocketSessionState());
+        HiveWebsocketSessionState state = new HiveWebsocketSessionState();
+        session.getUserProperties().put(HiveWebsocketSessionState.KEY, state);
+        state.setHostName(ThreadLocalVariablesKeeper.getHostName());
+        state.setClientInetAddress(ThreadLocalVariablesKeeper.getClientIP());
         sessionMonitor.registerSession(session);
     }
 

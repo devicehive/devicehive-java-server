@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+import javax.websocket.Session;
 import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 
@@ -32,7 +33,13 @@ public class AuthorizationInterceptor {
         Method method = context.getMethod();
         boolean allowed = false;
         try {
-            HivePrincipal principal = deployHivePrincipal();
+            Session session = ThreadLocalVariablesKeeper.getSession();
+
+            HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+            ThreadLocalVariablesKeeper.setHostName(state.getHostName());
+            ThreadLocalVariablesKeeper.setClientIP(state.getClientInetAddress());
+
+            HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
             if (method.isAnnotationPresent(RolesAllowed.class)) {
                 RolesAllowed rolesAllowed = method.getAnnotation(RolesAllowed.class);
                 String[] roles = rolesAllowed.value();
@@ -63,28 +70,9 @@ public class AuthorizationInterceptor {
             }
             return context.proceed();
         } finally {
-            ThreadLocalVariablesKeeper.setPrincipal(null);
+            ThreadLocalVariablesKeeper.setHostName(null);
+            ThreadLocalVariablesKeeper.setClientIP(null);
         }
     }
 
-
-    private HivePrincipal deployHivePrincipal() {
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        if (principal == null) {
-            HivePrincipal sessionPrincipal = HiveWebsocketSessionState.get(ThreadLocalVariablesKeeper.getSession()).getHivePrincipal();
-            if (sessionPrincipal != null) {
-                principal = new HivePrincipal(
-                        sessionPrincipal.getUser(),
-                        sessionPrincipal.getDevice(),
-                        sessionPrincipal.getKey() != null
-                                ? accessKeyService.authenticate(sessionPrincipal.getKey().getKey())
-                                : null
-
-                );
-                HiveWebsocketSessionState.get(ThreadLocalVariablesKeeper.getSession()).setHivePrincipal(principal);
-            }
-            ThreadLocalVariablesKeeper.setPrincipal(principal);
-        }
-        return principal;
-    }
 }

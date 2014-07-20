@@ -8,6 +8,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 
 import javax.websocket.Session;
+import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,10 @@ public class HiveWebsocketSessionState {
     private final ConcurrentMap<Set<String>, Set<UUID>> oldFormatNotificationSubscriptions = Maps.newConcurrentMap();
 
     private HivePrincipal hivePrincipal;
+
+    private InetAddress clientInetAddress;
+
+    private String hostName;
 
 
     public static HiveWebsocketSessionState get(Session session) {
@@ -90,6 +95,22 @@ public class HiveWebsocketSessionState {
 
     public Lock getCommandUpdateSubscriptionsLock() {
         return commandUpdateSubscriptionsLock;
+    }
+
+    public InetAddress getClientInetAddress() {
+        return clientInetAddress;
+    }
+
+    public void setClientInetAddress(InetAddress clientInetAddress) {
+        this.clientInetAddress = clientInetAddress;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
     public synchronized void addOldFormatCommandSubscription(Set<String> guids, UUID subscriptionId) {
