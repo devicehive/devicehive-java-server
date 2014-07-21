@@ -12,6 +12,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.google.common.base.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,8 @@ import javax.naming.NamingException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
@@ -31,10 +34,9 @@ import static com.devicehive.configuration.Constants.UTF8;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
-public class AuthenticationFilter implements ContainerRequestFilter {
+public class AuthenticationFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
     private static Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
-    private static Charset UTF8_CHARSET = Charset.forName(UTF8);
     private DeviceService deviceService;
     private UserService userService;
     private AccessKeyService accessKeyService;
@@ -118,7 +120,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return null;
         }
         if (auth.substring(0, 5).equalsIgnoreCase(Constants.BASIC_AUTH_SCHEME)) {
-            String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), UTF8_CHARSET);
+            String decodedAuth = new String(Base64.decodeBase64(auth.substring(5).trim()), Charsets.UTF_8);
             int pos = decodedAuth.indexOf(":");
             if (pos <= 0) {
                 return null;
@@ -134,6 +136,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             }
         }
         return null;
+    }
+
+    @Override
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+        ThreadLocalVariablesKeeper.clean();
     }
 }
 

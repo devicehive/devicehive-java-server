@@ -55,7 +55,7 @@ public class AuthenticationInterceptor {
             }
             return ctx.proceed();
         } finally {
-            ThreadLocalVariablesKeeper.setPrincipal(null);
+            ThreadLocalVariablesKeeper.clean();
         }
     }
 
