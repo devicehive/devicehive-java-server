@@ -9,10 +9,8 @@ import com.google.gson.JsonElement;
 
 import javax.websocket.Session;
 import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import java.util.concurrent.ConcurrentMap;
@@ -27,11 +25,11 @@ public class HiveWebsocketSessionState {
 
     private final ConcurrentLinkedQueue<JsonElement> queue = new ConcurrentLinkedQueue<>();
 
-    private final Set<UUID> commandSubscriptions = Sets.newConcurrentHashSet();
+    private final Set<UUID> commandSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
     private final Lock commandSubscriptionsLock = new ReentrantLock(true);
 
-    private final Set<UUID> notificationSubscriptions = Sets.newConcurrentHashSet();
+    private final Set<UUID> notificationSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
     private final Lock notificationSubscriptionsLock = new ReentrantLock(true);
 

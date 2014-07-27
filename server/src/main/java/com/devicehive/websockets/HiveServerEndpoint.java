@@ -1,6 +1,8 @@
 package com.devicehive.websockets;
 
 
+import com.devicehive.context.HiveRequest;
+import com.devicehive.context.HiveRequestAttributes;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -28,6 +30,7 @@ import java.util.UUID;
 
 @ServerEndpoint(value = "/websocket/{endpoint}", encoders = {JsonEncoder.class})
 @LogExecutionTime
+@HiveRequest
 public class HiveServerEndpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
@@ -42,6 +45,9 @@ public class HiveServerEndpoint {
 
     @Inject
     private WebsocketExecutor executor;
+
+    @Inject
+    private HiveRequestAttributes requestAttributes;
 
 
     @OnOpen

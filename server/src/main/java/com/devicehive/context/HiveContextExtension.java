@@ -14,7 +14,14 @@ public class HiveContextExtension implements Extension {
 
     private static final Logger logger = LoggerFactory.getLogger(HiveContextExtension.class);
 
+    private HiveRequestContext context;
+
+    public HiveRequestContext getContext() {
+        return context;
+    }
+
     public void createContext(@Observes AfterBeanDiscovery afterBeanDiscovery) {
-        afterBeanDiscovery.addContext(new HiveRequestContext());
+        context = new HiveRequestContext();
+        afterBeanDiscovery.addContext(context);
     }
 }

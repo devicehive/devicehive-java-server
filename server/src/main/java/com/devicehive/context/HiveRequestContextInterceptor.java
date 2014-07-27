@@ -3,8 +3,6 @@ package com.devicehive.context;
 
 
 import javax.annotation.Priority;
-import javax.enterprise.context.spi.Context;
-import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
@@ -12,14 +10,15 @@ import javax.interceptor.InvocationContext;
 
 @HiveRequest
 @Priority(Interceptor.Priority.APPLICATION - 500)
+@Interceptor
 public class HiveRequestContextInterceptor {
 
     @Inject
-    private BeanManager beanManager;
+    private HiveContextExtension hiveContextExtension;
 
     @AroundInvoke
     public Object activateContext(InvocationContext invocationContext) throws Exception {
-        HiveRequestContext hiveRequestContext = (HiveRequestContext) beanManager.getContext(HiveRequestScoped.class);
+        HiveRequestContext hiveRequestContext = hiveContextExtension.getContext();
         try {
             hiveRequestContext.activate();
             return invocationContext.proceed();
