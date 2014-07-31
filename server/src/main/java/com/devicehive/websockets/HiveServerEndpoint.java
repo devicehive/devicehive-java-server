@@ -63,16 +63,17 @@ public class HiveServerEndpoint {
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public JsonObject onMessage(Reader reader, Session session) {
         try {
-            logger.debug("[onMessage] session id {} ", session.getId());
+            logger.debug("Session id {} ", session.getId());
             JsonObject request = new JsonParser().parse(reader).getAsJsonObject();
-            logger.debug("[onMessage] request is parsed correctly");
-            return executor.execute(request, session);
-        } catch (JsonParseException ex) {
-            logger.error("[onMessage] Incorrect message syntax ", ex);
+            logger.debug("Request is parsed correctly");
+            return executor.execute(request,session);
+        } catch (JsonParseException | IllegalStateException ex) {
+            logger.error("Incorrect message syntax ", ex);
             return JsonMessageBuilder
                     .createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax")
                     .build();
         } catch (Exception ex) {
+            logger.error("Unknown error", ex);
             return JsonMessageBuilder
                     .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error")
                     .build();
