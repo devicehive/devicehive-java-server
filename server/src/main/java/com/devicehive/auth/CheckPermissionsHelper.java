@@ -1,6 +1,7 @@
 package com.devicehive.auth;
 
 import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.Device;
 import com.devicehive.model.Subnet;
 import com.google.common.collect.Sets;
 
@@ -105,4 +106,22 @@ public class CheckPermissionsHelper {
         filterDeviceGuids(filtered);
         return filtered;
     }
+
+    public static boolean checkFilteredPermissions(Set<AccessKeyPermission> permissions, Device device) {
+        Set<AccessKeyPermission> filtered = Sets.newHashSet(permissions);
+        for (AccessKeyPermission permission : permissions) {
+            Set<Long> networks = permission.getNetworkIdsAsSet();
+            if (networks != null && !networks.contains(device.getNetwork().getId())) {
+                continue;
+            }
+            Set<String> deviceGuids = permission.getDeviceGuidsAsSet();
+            if (deviceGuids != null && !deviceGuids.contains(device.getGuid())) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+
 }
