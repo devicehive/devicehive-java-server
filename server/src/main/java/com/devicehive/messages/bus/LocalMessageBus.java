@@ -57,8 +57,7 @@ public class LocalMessageBus {
                     !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
                 continue;
             }
-            boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                    Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
+            boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceCommand.getDevice());
             if (hasAccess) {
                 executor.execute(subscription.getHandlerCreator().getHandler(deviceCommand, subscription.getSubscriptionId()));
             }
@@ -74,8 +73,7 @@ public class LocalMessageBus {
                 continue;
             }
             if (!subscribersIds.contains(subscription.getSubscriptionId())) {
-                boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                        Arrays.asList(deviceCommand.getDevice().getGuid())) != 0;
+                boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceCommand.getDevice());
                 if (hasAccess) {
                     executor.execute(subscription.getHandlerCreator().getHandler(deviceCommand, subscription.getSubscriptionId()));
                 }
@@ -121,8 +119,7 @@ public class LocalMessageBus {
                     && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
                 continue;
             }
-            boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                    Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
+            boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceNotification.getDevice());
             if (hasAccess) {
                 executor.execute(subscription.getHandlerCreator().getHandler(deviceNotification, subscription.getSubscriptionId()));
             }
@@ -138,8 +135,7 @@ public class LocalMessageBus {
                 continue;
             }
             if (!subscribersIds.contains(subscription.getSubscriptionId())) {
-                boolean hasAccess = deviceService.getAllowedDevicesCount(subscription.getPrincipal(),
-                        Arrays.asList(deviceNotification.getDevice().getGuid())) != 0;
+                boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceNotification.getDevice());
                 if (hasAccess) {
                     executor.execute(subscription.getHandlerCreator().getHandler(deviceNotification, subscription.getSubscriptionId()));
                 }

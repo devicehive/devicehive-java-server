@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
@@ -406,6 +407,24 @@ public class DeviceService {
             throw new HiveException(message, Response.Status.NOT_FOUND.getStatusCode());
         }
         return result;
+    }
+
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public boolean hasAccessTo(@NotNull HivePrincipal filtered, @NotNull Device device) {
+        if (filtered.getDevice() != null) {
+            return filtered.getDevice().getId().equals(device.getId());
+        }
+        if (filtered.getUser() != null) {
+            return userService.hasAccessToDevice(filtered.getUser(), device);
+        }
+        if (filtered.getKey() != null) {
+            if (!userService.hasAccessToDevice(filtered.getKey().getUser(), device)) {
+                return false;
+            }
+            return CheckPermissionsHelper.checkFilteredPermissions(filtered.getKey().getPermissions(), device);
+        }
+        return false;
     }
 
 }

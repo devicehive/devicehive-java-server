@@ -120,7 +120,7 @@ public class HiveWebsocketSessionState {
             Set<UUID> existingSubscriptions = oldFormatCommandSubscriptions.get(toStore);
             existingSubscriptions.add(subscriptionId);
         } else {
-            Set<UUID> subscriptions = Sets.newConcurrentHashSet();
+            Set<UUID> subscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
             subscriptions.add(subscriptionId);
             oldFormatCommandSubscriptions.put(toStore, subscriptions);
         }
@@ -144,7 +144,7 @@ public class HiveWebsocketSessionState {
             Set<UUID> existingSubscriptions = oldFormatNotificationSubscriptions.get(toStore);
             existingSubscriptions.add(subscriptionId);
         } else {
-            Set<UUID> subscriptions = Sets.newConcurrentHashSet();
+            Set<UUID> subscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
             subscriptions.add(subscriptionId);
             oldFormatNotificationSubscriptions.put(toStore, subscriptions);
         }
