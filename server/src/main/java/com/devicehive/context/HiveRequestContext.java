@@ -62,12 +62,12 @@ public class HiveRequestContext implements AlterableContext {
             logger.warn("HiveRequestContext is already activated");
             return;
         }
-        logger.info("Activating HiveRequestContext...");
+        logger.debug("Activating HiveRequestContext...");
         UUID id = UUID.randomUUID();
         instances.put(id, new ConcurrentHashMap<Contextual, HiveInstanceInfo>());
         contextId.set(id);
         //TODO @Initialized event?
-        logger.info("HiveRequestContext is activated.");
+        logger.debug("HiveRequestContext is activated.");
     }
 
     public void deactivate() {
@@ -76,14 +76,14 @@ public class HiveRequestContext implements AlterableContext {
             logger.warn("HiveRequestContext is already deactivated");
             return;
         }
-        logger.info("Deactivating HiveRequestContext...");
+        logger.debug("Deactivating HiveRequestContext...");
         contextId.remove();
         ConcurrentMap<Contextual, HiveInstanceInfo> map = instances.remove(id);
         for (Map.Entry<Contextual, HiveInstanceInfo> entry : map.entrySet()) {
             entry.getKey().destroy(entry.getValue().getInstance(), entry.getValue().getCreationalContext());
         }
         //TODO @Destroyed event?
-        logger.info("HiveRequestContext is deactivated.");
+        logger.debug("HiveRequestContext is deactivated.");
     }
 
     @Override
