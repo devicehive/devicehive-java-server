@@ -2,6 +2,8 @@ package com.devicehive.websockets;
 
 
 import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -10,6 +12,7 @@ import com.devicehive.websockets.converters.JsonEncoder;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.WebsocketExecutor;
 import com.devicehive.websockets.util.SessionMonitor;
+import com.google.common.base.Throwables;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -67,27 +70,16 @@ public class HiveServerEndpoint {
 
     @OnMessage(maxMessageSize = MAX_MESSAGE_SIZE)
     public JsonObject onMessage(Reader reader, Session session) {
+        JsonObject request = null;
         try {
             logger.debug("Session id {} ", session.getId());
-            JsonObject request = new JsonParser().parse(reader).getAsJsonObject();
+            request = new JsonParser().parse(reader).getAsJsonObject();
             logger.debug("Request is parsed correctly");
-            ThreadLocalVariablesKeeper.setRequest(request);
-            ThreadLocalVariablesKeeper.setSession(session);
-            return executor.execute(request,session);
-        } catch (JsonParseException | IllegalStateException ex) {
-            logger.error("Incorrect message syntax ", ex);
-            return JsonMessageBuilder
-                    .createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax")
-                    .build();
-        } catch (Exception ex) {
-            logger.error("Unknown error", ex);
-            return JsonMessageBuilder
-                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error")
-                    .build();
-        } finally {
-            ThreadLocalVariablesKeeper.setRequest(null);
-            ThreadLocalVariablesKeeper.setSession(null);
+        } catch (IllegalStateException ex) {
+            throw new JsonParseException(ex);
         }
+
+        return executor.execute(request,session);
     }
 
     @OnClose
@@ -104,7 +96,17 @@ public class HiveServerEndpoint {
 
     @OnError
     public void onError(Throwable exception, Session session) {
-        logger.error("[onError] ", exception);
+        logger.error("Error in session " + session.getId(), exception);
+
+        JsonMessageBuilder builder = null;
+
+        if (exception instanceof JsonParseException) {
+            builder = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax");
+        } else {
+            builder = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
+        }
+        session.getAsyncRemote().sendText(GsonFactory.createGson().toJson(builder.build()));
+
     }
 
 

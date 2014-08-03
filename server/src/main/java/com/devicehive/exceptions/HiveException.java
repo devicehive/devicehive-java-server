@@ -17,11 +17,11 @@ public class HiveException extends RuntimeException {
     }
 
     public HiveException(String message, Throwable cause) {
-        this(message, cause, null);
+        this(message, cause, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 
     public HiveException(String message) {
-        this(message, null, null);
+        this(message, null, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 
     public HiveException(String message, Integer code) {

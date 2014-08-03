@@ -56,8 +56,8 @@ public class JsonMessageBuilder {
         return this;
     }
 
-    public JsonMessageBuilder addAction(String action) {
-        jsonObject.addProperty(ACTION, action);
+    public JsonMessageBuilder addAction(JsonElement action) {
+        jsonObject.add(ACTION, action);
         return this;
     }
 

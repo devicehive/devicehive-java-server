@@ -15,6 +15,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -97,7 +98,7 @@ public class WebsocketExecutor {
 
         logger.debug("[execute] building final response");
         return new JsonMessageBuilder()
-                .addAction(request.get(JsonMessageBuilder.ACTION).getAsString())
+                .addAction(request.get(JsonMessageBuilder.ACTION))
                 .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
                 .include(response)
                 .build();
@@ -124,10 +125,21 @@ public class WebsocketExecutor {
         }
     }
 
+    private String getAction(JsonObject request) {
+        JsonElement action = request.get(JsonMessageBuilder.ACTION);
+        if (action == null || !action.isJsonPrimitive()) {
+            return null;
+        }
+        return action.getAsString();
+    }
 
 
     private Pair<WebsocketHandlers, Method> getMethod(JsonObject request) {
-        String action = request.getAsJsonPrimitive("action").getAsString();
+        String action = getAction(request);
+
+        if(action == null) {
+            throw new JsonParseException("Action parameter is bad");
+        }
 
         Pair<WebsocketHandlers, Method> methodPair = methodsCache.get(action);
         if (methodPair != null) {
@@ -155,7 +167,7 @@ public class WebsocketExecutor {
         }
         if (methodPair == null) {
             throw new HiveException(String.format(Messages.UNKNOWN_ACTION_REQUESTED_WS, action),
-                    HttpServletResponse.SC_BAD_REQUEST);
+                    HttpServletResponse.SC_NOT_FOUND);
         }
         methodsCache.put(action, methodPair);
         return methodPair;
