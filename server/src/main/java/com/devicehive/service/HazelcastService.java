@@ -14,6 +14,8 @@ import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 
+import java.util.Set;
+
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
 @Singleton
@@ -25,17 +27,27 @@ public class HazelcastService {
 
     private HazelcastInstance hazelcast;
 
+    private boolean wasCreated = false;
+
     @PostConstruct
     protected void postConstruct() {
-        logger.debug("Initializing Hazelcast instance...");
-        hazelcast = Hazelcast.newHazelcastInstance();
-        logger.debug("New Hazelcast instance created: " + hazelcast);
-
+        logger.info("Initializing Hazelcast instance...");
+        Set<HazelcastInstance> set = Hazelcast.getAllHazelcastInstances();
+        if (!set.isEmpty()) {
+            hazelcast = set.iterator().next();
+            logger.info("Existing Hazelcast instance is reused: " + hazelcast);
+        } else {
+            hazelcast = Hazelcast.newHazelcastInstance();
+            wasCreated = true;
+            logger.info("New Hazelcast instance created: " + hazelcast);
+        }
     }
 
     @PreDestroy
     protected void preDestroy() {
-        hazelcast.getLifecycleService().shutdown();
+        if (wasCreated) {
+            hazelcast.getLifecycleService().shutdown();
+        }
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)

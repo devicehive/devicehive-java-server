@@ -36,7 +36,7 @@
             <property name="hibernate.cache.use_second_level_cache" value="true"/>
             <property name="hibernate.cache.use_query_cache" value="true"/>
             <property name="hibernate.cache.use_minimal_puts" value="true"/>
-            <property name="hibernate.cache.hazelcast.configuration_file_path" value="hazelcast-cache.xml"/>
+            <property name="hibernate.cache.hazelcast.configuration_file_path" value="hazelcast.xml"/>
         </properties>
     </persistence-unit>
 
