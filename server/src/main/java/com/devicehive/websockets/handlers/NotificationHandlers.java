@@ -4,6 +4,7 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -45,9 +47,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 
-@WebsocketController
-@LogExecutionTime
-public class NotificationHandlers implements WebsocketHandlers {
+public class NotificationHandlers extends WebsocketHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationHandlers.class);
     @EJB
@@ -62,6 +62,9 @@ public class NotificationHandlers implements WebsocketHandlers {
     private TimestampService timestampService;
     @EJB
     private SubscriptionSessionMap subscriptionSessionMap;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT,  HiveRoles.KEY})
@@ -103,7 +106,7 @@ public class NotificationHandlers implements WebsocketHandlers {
                                              Set<String> devices,
                                              Set<String> names,
                                              Timestamp timestamp) throws IOException {
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
@@ -221,7 +224,7 @@ public class NotificationHandlers implements WebsocketHandlers {
                                                        DeviceNotification notification,
                                                        Session session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");

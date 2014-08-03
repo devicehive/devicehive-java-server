@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.Authorized;
 import com.devicehive.util.LogExecutionTime;
 
 import javax.annotation.security.PermitAll;
@@ -17,6 +18,7 @@ import static com.devicehive.configuration.Constants.VERSION;
  * Provides build information
  */
 @Path("/version")
+@Authorized
 @LogExecutionTime
 public class VersionController {
     private static final String propertiesPath = "/WEB-INF/classes/app.properties";

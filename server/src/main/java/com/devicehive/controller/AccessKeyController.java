@@ -1,7 +1,9 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.Authorized;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
@@ -49,6 +51,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
  * details.
  */
 @Path("/user/{userId}/accesskey")
+@Authorized
 @LogExecutionTime
 public class AccessKeyController {
 
@@ -59,6 +62,9 @@ public class AccessKeyController {
 
     @EJB
     private AccessKeyService accessKeyService;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:
@@ -193,7 +199,7 @@ public class AccessKeyController {
     }
 
     private User getUser(String userId) {
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         User currentUser = principal.getUser();
 
         Long id;

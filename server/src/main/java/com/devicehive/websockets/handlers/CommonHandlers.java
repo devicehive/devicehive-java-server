@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.Authorized;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
@@ -29,9 +30,7 @@ import javax.websocket.Session;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
-@LogExecutionTime
-@WebsocketController
-public class CommonHandlers implements WebsocketHandlers {
+public class CommonHandlers extends WebsocketHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonHandlers.class);
     @EJB
@@ -111,10 +110,10 @@ public class CommonHandlers implements WebsocketHandlers {
                                                  @WsParam("deviceKey") String deviceKey,
                                                  Session session) {
         logger.debug("authenticate action for {} ", login);
-        if (HiveWebsocketSessionState.get(session).getHivePrincipal() != null) {
+        HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
+        if (hivePrincipal != null && hivePrincipal.isAuthenticated()) {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
-        HivePrincipal hivePrincipal = null;
         if (login != null) {
             User user = userService.authenticate(login, password);
             if (user != null) {

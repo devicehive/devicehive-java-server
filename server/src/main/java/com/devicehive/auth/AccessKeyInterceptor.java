@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Priority;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
@@ -27,11 +29,18 @@ public class AccessKeyInterceptor {
 
     private static Logger logger = LoggerFactory.getLogger(AccessKeyInterceptor.class);
 
+
+    private HiveSecurityContext hiveSecurityContext;
+
+    @Inject
+    public void setHiveSecurityContext(HiveSecurityContext hiveSecurityContext) {
+        this.hiveSecurityContext = hiveSecurityContext;
+    }
+
     @AroundInvoke
     public Object checkPermissions(InvocationContext context) throws Exception {
         try {
-            logger.trace(Thread.currentThread().getName());
-            HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+            HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
             AccessKey key = principal.getKey();
             if (key == null) {
                 return context.proceed();
@@ -45,7 +54,7 @@ public class AccessKeyInterceptor {
             }
             Method method = context.getMethod();
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), allowedActionAnnotation.action(), ThreadLocalVariablesKeeper.getClientIP(), ThreadLocalVariablesKeeper.getHostName());
+            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), allowedActionAnnotation.action(), hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
             if (filtered.isEmpty()) {
                 throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }

@@ -1,8 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.*;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
@@ -71,6 +69,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  * @author rroschin
  */
 @Path("/device")
+@Authorized
 @LogExecutionTime
 public class DeviceNotificationController {
 
@@ -93,6 +92,9 @@ public class DeviceNotificationController {
 
     @EJB
     private AsynchronousExecutor executor;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
 
     /**
@@ -168,7 +170,7 @@ public class DeviceNotificationController {
         }
         sortField = sortField.toLowerCase();
 
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
@@ -223,7 +225,7 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(ID) Long notificationId) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
             throw new HiveException(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId),
@@ -289,7 +291,7 @@ public class DeviceNotificationController {
                       final Timestamp timestamp,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -429,7 +431,7 @@ public class DeviceNotificationController {
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification notification) {
         logger.debug("DeviceNotification insertAll requested");
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
                     "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");

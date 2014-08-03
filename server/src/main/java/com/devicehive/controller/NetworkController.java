@@ -1,8 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.*;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
@@ -43,6 +41,7 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/network")
+@Authorized
 @LogExecutionTime
 public class NetworkController {
 
@@ -50,6 +49,9 @@ public class NetworkController {
 
     @EJB
     private NetworkService networkService;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
 
     /**
@@ -101,7 +103,7 @@ public class NetworkController {
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         List<Network> result = networkService
                 .list(name, namePattern, sortField, sortOrder, take, skip, principal);
 
@@ -129,8 +131,7 @@ public class NetworkController {
     public Response getNetwork(@PathParam(ID) long id) {
 
         logger.debug("Network get requested.");
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id, principal);
+        Network existing = networkService.getWithDevicesAndDeviceClasses(id, hiveSecurityContext);
         if (existing == null) {
             logger.debug("Network with id =  {} does not exists", id);
             return ResponseFactory

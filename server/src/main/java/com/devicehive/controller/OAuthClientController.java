@@ -1,7 +1,9 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.Authorized;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
@@ -47,6 +49,7 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/oauth/client")
+@Authorized
 @LogExecutionTime
 public class OAuthClientController {
 
@@ -54,6 +57,9 @@ public class OAuthClientController {
 
     @EJB
     private OAuthClientService clientService;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
 
     @GET
@@ -84,7 +90,7 @@ public class OAuthClientController {
                 "sortField {}, sortOrder {}, take {}, skip {}. Result list contains {} elems", name, namePattern,
                 domain, oauthId, sortField, sortOrder, take, skip, result.size());
 
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (principal != null && principal.getUser() != null && principal.getUser().isAdmin()) {
             return ResponseFactory.response(OK, result, OAUTH_CLIENT_LISTED_ADMIN);
         }
@@ -102,7 +108,7 @@ public class OAuthClientController {
                     new ErrorResponse(NOT_FOUND.getStatusCode(), "OAuthClient with id " + clientId + " not found"));
         }
         logger.debug("OAuthClient proceed successfully. Client id: {}", clientId);
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (principal != null && principal.getUser() != null && principal.getUser().isAdmin()) {
             return ResponseFactory.response(OK, existing, OAUTH_CLIENT_LISTED_ADMIN);
         }

@@ -1,11 +1,11 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.context.HiveRequest;
-import com.devicehive.context.HiveRequestAttributes;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.devicehive.websockets.context.WebsocketContextExtension;
 import com.devicehive.websockets.converters.JsonEncoder;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.WebsocketExecutor;
@@ -17,6 +17,9 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +33,8 @@ import java.util.UUID;
 
 @ServerEndpoint(value = "/websocket/{endpoint}", encoders = {JsonEncoder.class})
 @LogExecutionTime
-@HiveRequest
+@Stateless
+@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class HiveServerEndpoint {
 
     protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
@@ -47,16 +51,17 @@ public class HiveServerEndpoint {
     private WebsocketExecutor executor;
 
     @Inject
-    private HiveRequestAttributes requestAttributes;
+    private HiveSecurityContext hiveSecurityContext;
 
 
     @OnOpen
     public void onOpen(Session session, @PathParam("endpoint") String endpoint) {
-        logger.debug("[onOpen] session id {} ", session.getId());
+        logger.info("Opening session id {} ", session.getId());
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getUserProperties().put(HiveWebsocketSessionState.KEY, state);
-        state.setHostName(ThreadLocalVariablesKeeper.getHostName());
-        state.setClientInetAddress(ThreadLocalVariablesKeeper.getClientIP());
+        state.setOrigin(hiveSecurityContext.getOrigin());
+        state.setHivePrincipal(hiveSecurityContext.getHivePrincipal());
+        state.setClientInetAddress(hiveSecurityContext.getClientInetAddress());
         sessionMonitor.registerSession(session);
     }
 
@@ -66,6 +71,8 @@ public class HiveServerEndpoint {
             logger.debug("Session id {} ", session.getId());
             JsonObject request = new JsonParser().parse(reader).getAsJsonObject();
             logger.debug("Request is parsed correctly");
+            ThreadLocalVariablesKeeper.setRequest(request);
+            ThreadLocalVariablesKeeper.setSession(session);
             return executor.execute(request,session);
         } catch (JsonParseException | IllegalStateException ex) {
             logger.error("Incorrect message syntax ", ex);
@@ -77,12 +84,15 @@ public class HiveServerEndpoint {
             return JsonMessageBuilder
                     .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error")
                     .build();
+        } finally {
+            ThreadLocalVariablesKeeper.setRequest(null);
+            ThreadLocalVariablesKeeper.setSession(null);
         }
     }
 
     @OnClose
     public void onClose(Session session, CloseReason closeReason) {
-        logger.debug("[onClose] session id {}, close reason is {} ", session.getId(), closeReason);
+        logger.info("Closing session id {}, close reason is {} ", session.getId(), closeReason);
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
         for (UUID subId : state.getCommandSubscriptions()) {
             subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);

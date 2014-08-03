@@ -36,8 +36,10 @@ public class AccessKeyCommonTest {
         AccessKey key = new AccessKey();
         ADMIN.setStatus(UserStatus.DISABLED);
         key.setUser(ADMIN);
-        ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, key));
+        HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+        hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
         AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
+        interceptor.setHiveSecurityContext(hiveSecurityContext);
         Exception thrown = null;
         try {
             interceptor.checkPermissions(null);
@@ -50,7 +52,6 @@ public class AccessKeyCommonTest {
                 fail("Hive exception expected");
             }
         } finally {
-            assertNull(ThreadLocalVariablesKeeper.getPrincipal());
         }
         if (thrown == null) {
             fail("Hive exception expected");
@@ -59,7 +60,10 @@ public class AccessKeyCommonTest {
         key = new AccessKey();
         ADMIN.setStatus(UserStatus.LOCKED_OUT);
         key.setUser(ADMIN);
-        ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, key));
+        hiveSecurityContext = new HiveSecurityContext();
+        hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
+        interceptor = new AccessKeyInterceptor();
+        interceptor.setHiveSecurityContext(hiveSecurityContext);
         thrown = null;
         try {
             interceptor.checkPermissions(null);
@@ -72,7 +76,6 @@ public class AccessKeyCommonTest {
                 fail("Hive exception expected");
             }
         } finally {
-            assertNull(ThreadLocalVariablesKeeper.getPrincipal());
         }
         if (thrown == null) {
             fail("Hive exception expected");
@@ -81,7 +84,10 @@ public class AccessKeyCommonTest {
         key = new AccessKey();
         ADMIN.setStatus(UserStatus.DELETED);
         key.setUser(ADMIN);
-        ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, key));
+        hiveSecurityContext = new HiveSecurityContext();
+        hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
+        interceptor = new AccessKeyInterceptor();
+        interceptor.setHiveSecurityContext(hiveSecurityContext);
         thrown = null;
         try {
             interceptor.checkPermissions(null);
@@ -94,7 +100,6 @@ public class AccessKeyCommonTest {
                 fail("Hive exception expected");
             }
         } finally {
-            assertNull(ThreadLocalVariablesKeeper.getPrincipal());
         }
         if (thrown == null) {
             fail("Hive exception expected");
@@ -108,8 +113,10 @@ public class AccessKeyCommonTest {
         key.setUser(CLIENT);
         Timestamp inPast = new Timestamp(0);
         key.setExpirationDate(inPast);
-        ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, key));
+        HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+        hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
         AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
+        interceptor.setHiveSecurityContext(hiveSecurityContext);
         try {
             interceptor.checkPermissions(null);
         } catch (Exception e) {
@@ -120,7 +127,6 @@ public class AccessKeyCommonTest {
                 fail("Hive exception expected");
             }
         } finally {
-            assertNull(ThreadLocalVariablesKeeper.getPrincipal());
         }
     }
 

@@ -1,49 +1,56 @@
 package com.devicehive.auth;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.model.OAuthClient;
 import com.devicehive.model.UserRole;
 
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.core.SecurityContext;
+import java.net.InetAddress;
 import java.security.Principal;
 
-public class HiveSecurityContext implements SecurityContext {
-    private final HivePrincipal hivePrincipal;
-    private final boolean secure;
+@RequestScoped
+public class HiveSecurityContext  {
 
-    public HiveSecurityContext(HivePrincipal hivePrincipal, boolean secure) {
-        this.hivePrincipal = hivePrincipal;
-        this.secure = secure;
-    }
 
-    @Override
-    public Principal getUserPrincipal() {
+    private HivePrincipal hivePrincipal;
+
+    private InetAddress clientInetAddress;
+
+    private String origin;
+
+    private OAuthClient oAuthClient;
+
+
+    public HivePrincipal getHivePrincipal() {
         return hivePrincipal;
     }
 
-    @Override
-    public boolean isUserInRole(String roleString) {
-        switch (roleString) {
-            case HiveRoles.DEVICE:
-                return hivePrincipal != null && hivePrincipal.getDevice() != null;
-            case HiveRoles.KEY:
-                return hivePrincipal != null && hivePrincipal.getKey() != null;
-            default:
-                return hivePrincipal != null
-                        && hivePrincipal.getUser() != null
-                        && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
-        }
+    public void setHivePrincipal(HivePrincipal hivePrincipal) {
+        this.hivePrincipal = hivePrincipal;
     }
 
-    @Override
-    public boolean isSecure() {
-        return secure;
+    public InetAddress getClientInetAddress() {
+        return clientInetAddress;
     }
 
-    @Override
-    public String getAuthenticationScheme() {
-        if (hivePrincipal.getKey() != null) {
-            return Constants.OAUTH_AUTH_SCEME;
-        }
-        return BASIC_AUTH;
+    public void setClientInetAddress(InetAddress clientInetAddress) {
+        this.clientInetAddress = clientInetAddress;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public OAuthClient getoAuthClient() {
+        return oAuthClient;
+    }
+
+    public void setoAuthClient(OAuthClient oAuthClient) {
+        this.oAuthClient = oAuthClient;
     }
 }

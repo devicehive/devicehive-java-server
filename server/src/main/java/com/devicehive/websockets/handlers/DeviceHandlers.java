@@ -1,6 +1,7 @@
 package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
@@ -36,15 +37,16 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISH
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
-@LogExecutionTime
-@WebsocketController
-public class DeviceHandlers implements WebsocketHandlers {
+public class DeviceHandlers extends WebsocketHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
     @EJB
     private DeviceDAO deviceDAO;
     @EJB
     private DeviceService deviceService;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/deviceget">WebSocketAPI:
@@ -82,7 +84,7 @@ public class DeviceHandlers implements WebsocketHandlers {
     @Action(value = "device/get")
     @RolesAllowed({HiveRoles.DEVICE})
     public WebSocketResponse processDeviceGet() {
-        Device device = ThreadLocalVariablesKeeper.getPrincipal().getDevice();
+        Device device = hiveSecurityContext.getHivePrincipal().getDevice();
         Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED_DEVICE_AUTH);
@@ -156,7 +158,7 @@ public class DeviceHandlers implements WebsocketHandlers {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        deviceService.deviceSaveAndNotify(device, equipmentSet, ThreadLocalVariablesKeeper.getPrincipal(),
+        deviceService.deviceSaveAndNotify(device, equipmentSet, hiveSecurityContext.getHivePrincipal(),
                 useExistingEquipment);
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();

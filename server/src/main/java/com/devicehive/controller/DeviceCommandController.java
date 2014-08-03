@@ -1,8 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.*;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
@@ -71,6 +69,7 @@ import static javax.ws.rs.core.Response.Status.OK;
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for details.
  */
 @Path("/device")
+@Authorized
 @LogExecutionTime
 public class DeviceCommandController {
 
@@ -90,6 +89,9 @@ public class DeviceCommandController {
 
     @EJB
     private AsynchronousExecutor executor;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
 
     /**
@@ -133,7 +135,7 @@ public class DeviceCommandController {
                       final Timestamp timestamp,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
@@ -230,7 +232,7 @@ public class DeviceCommandController {
             @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
 
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -384,7 +386,7 @@ public class DeviceCommandController {
         }
         sortField = sortField.toLowerCase();
 
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         List<DeviceCommand> commandList =
@@ -422,7 +424,7 @@ public class DeviceCommandController {
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long id) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
 
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
@@ -488,7 +490,7 @@ public class DeviceCommandController {
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand) {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         User authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
 
@@ -530,7 +532,7 @@ public class DeviceCommandController {
     public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command) {
 
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {

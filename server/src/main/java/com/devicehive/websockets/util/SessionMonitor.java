@@ -37,7 +37,6 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 public class SessionMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
-    private static final String PING = "ping";
     private ConcurrentMap<String, Session> sessionMap;
     @EJB
     private ConfigurationService configurationService;
@@ -46,17 +45,18 @@ public class SessionMonitor {
     @EJB
     private SubscriptionManager subscriptionManager;
 
+    @EJB
+    private SessionMonitor self;
+
     public void registerSession(final Session session) {
         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
-                logger.debug("Pong received for session " + session.getId());
-                AtomicLong atomicLong = (AtomicLong) session.getUserProperties().get(PING);
-                atomicLong.set(System.currentTimeMillis());
+                logger.info("Pong received for session " + session.getId());
+                HiveWebsocketSessionState.get(session).getLastPongTimestamp().set(System.currentTimeMillis());
                 updateDeviceSession(session);
             }
         });
-        session.getUserProperties().put(PING, new AtomicLong(System.currentTimeMillis()));
         sessionMap.put(session.getId(), session);
     }
 
@@ -85,12 +85,11 @@ public class SessionMonitor {
     public synchronized void ping() {
         for (Session session : sessionMap.values()) {
             if (session.isOpen()) {
-                logger.debug("Pinging session " + session.getId());
+                logger.info("Pinging session " + session.getId());
                 try {
                     session.getAsyncRemote().sendPing(Constants.PING);
                 } catch (IOException ex) {
-                    logger.error("Error sending ping, closing the session", ex);
-                    closePingPong(session);
+                    logger.error("Error sending ping", ex);
                 }
             } else {
                 logger.debug("Session " + session.getId() + " is closed.");
@@ -99,16 +98,16 @@ public class SessionMonitor {
         }
     }
 
-    //@Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
+    @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
     public synchronized void monitor() {
         Long timeout = configurationService
                 .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);
         for (Session session : sessionMap.values()) {
-            logger.debug("Checking session " + session.getId());
+            logger.info("Checking session " + session.getId());
             if (session.isOpen()) {
-                AtomicLong atomicLong = (AtomicLong) session.getUserProperties().get(PING);
+                AtomicLong atomicLong = HiveWebsocketSessionState.get(session).getLastPongTimestamp();
                 if (System.currentTimeMillis() - atomicLong.get() > timeout) {
-                    closePingPong(session);
+                    self.closePingPong(session);
                 }
             } else {
                 logger.debug("Session " + session.getId() + " is closed.");
@@ -117,9 +116,10 @@ public class SessionMonitor {
         }
     }
 
-    private void closePingPong(Session session) {
+    @Asynchronous
+    public void closePingPong(Session session) {
         try {
-            session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, Messages.NO_PONGS_FOR_A_LONG_TIME));
+            session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, Messages.NO_PONGS_FOR_A_LONG_TIME));
         } catch (IOException ex) {
             logger.error("Error closing session", ex);
         }

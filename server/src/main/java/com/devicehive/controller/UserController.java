@@ -1,7 +1,9 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.Authorized;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
@@ -44,6 +46,7 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/user")
+@Authorized
 @LogExecutionTime
 public class UserController {
 
@@ -51,6 +54,9 @@ public class UserController {
 
     @EJB
     private UserService userService;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
 
     /**
@@ -167,7 +173,7 @@ public class UserController {
     @Path("/current")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     public Response getCurrent() {
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Long id = principal.getUser().getId();
         User currentUser = userService.findUserWithNetworks(id);
 
@@ -244,7 +250,7 @@ public class UserController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateCurrentUser(UserUpdate user) {
-        Long id = ThreadLocalVariablesKeeper.getPrincipal().getUser().getId();
+        Long id = hiveSecurityContext.getHivePrincipal().getUser().getId();
         userService.updateUser(id, user);
         return ResponseFactory.response(NO_CONTENT);
     }

@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.Authorized;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.controller.util.ResponseFactory;
@@ -20,8 +21,9 @@ import javax.ws.rs.core.Response;
 /**
  * Provide API information
  */
-@LogExecutionTime
 @Path("/info")
+@Authorized
+@LogExecutionTime
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
 

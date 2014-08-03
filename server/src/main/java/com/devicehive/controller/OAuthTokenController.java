@@ -1,5 +1,7 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.Authorized;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.AccessKey;
@@ -37,6 +39,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
+@Authorized
 @LogExecutionTime
 public class OAuthTokenController {
 
@@ -50,6 +53,9 @@ public class OAuthTokenController {
     @EJB
     private TimestampService timestampService;
 
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
+
     @POST
     @PermitAll
     public Response accessTokenRequest(@FormParam(GRANT_TYPE) @NotNull String grantType,
@@ -61,7 +67,7 @@ public class OAuthTokenController {
                                        @FormParam(PASSWORD) String password) {
         logger.debug("OAuthToken: token requested. Grant type: {}, code: {}, redirect URI: {}, client id: {}",
                 grantType, code, redirectUri, clientId);
-        OAuthClient client = ThreadLocalVariablesKeeper.getOAuthClient();
+        OAuthClient client = hiveSecurityContext.getoAuthClient();
         AccessKey key;
         switch (grantType) {
             case AUTHORIZATION_CODE:

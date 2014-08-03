@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -43,7 +44,9 @@ public class HiveWebsocketSessionState {
 
     private InetAddress clientInetAddress;
 
-    private String hostName;
+    private String origin;
+
+    private AtomicLong lastPongTimestamp = new AtomicLong(System.currentTimeMillis());
 
 
     public static HiveWebsocketSessionState get(Session session) {
@@ -103,12 +106,12 @@ public class HiveWebsocketSessionState {
         this.clientInetAddress = clientInetAddress;
     }
 
-    public String getHostName() {
-        return hostName;
+    public String getOrigin() {
+        return origin;
     }
 
-    public void setHostName(String hostName) {
-        this.hostName = hostName;
+    public void setOrigin(String origin) {
+        this.origin = origin;
     }
 
     public synchronized void addOldFormatCommandSubscription(Set<String> guids, UUID subscriptionId) {
@@ -157,5 +160,9 @@ public class HiveWebsocketSessionState {
         }}
                 : guids;
         return oldFormatNotificationSubscriptions.remove(toRemove);
+    }
+
+    public AtomicLong getLastPongTimestamp() {
+        return lastPongTimestamp;
     }
 }

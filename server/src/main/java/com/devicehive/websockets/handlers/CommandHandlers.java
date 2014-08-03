@@ -1,9 +1,7 @@
 package com.devicehive.websockets.handlers;
 
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.*;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -34,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -45,9 +44,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.servlet.http.HttpServletResponse.*;
 
 
-@WebsocketController
-@LogExecutionTime
-public class CommandHandlers implements WebsocketHandlers {
+public class CommandHandlers extends WebsocketHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandHandlers.class);
     @EJB
@@ -62,6 +59,9 @@ public class CommandHandlers implements WebsocketHandlers {
     private TimestampService timestampService;
     @EJB
     private SubscriptionSessionMap subscriptionSessionMap;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
     public static String createAccessDeniedForGuidsMessage(List<String> guids,
                                                            List<Device> allowedDevices) {
@@ -120,7 +120,7 @@ public class CommandHandlers implements WebsocketHandlers {
                                          Set<String> devices,
                                          Set<String> names,
                                          Timestamp timestamp) throws IOException {
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
@@ -226,7 +226,7 @@ public class CommandHandlers implements WebsocketHandlers {
         if (deviceGuid == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         if (device == null) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceGuid), SC_NOT_FOUND);
@@ -256,7 +256,7 @@ public class CommandHandlers implements WebsocketHandlers {
                                                   Session session) {
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
         if (guid == null) {
-            HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+            HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
             if (principal.getDevice() != null) {
                 guid = principal.getDevice().getGuid();
             }
@@ -269,7 +269,7 @@ public class CommandHandlers implements WebsocketHandlers {
             logger.debug("command/update canceled for session: {}. Command id is not provided", session);
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);

@@ -1,4 +1,4 @@
-package com.devicehive.context;
+package com.devicehive.auth;
 
 import javax.interceptor.InterceptorBinding;
 import java.lang.annotation.Inherited;
@@ -9,9 +9,10 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 
+
 @Target({METHOD, TYPE})
-@Inherited
 @InterceptorBinding
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HiveRequest {
+@Inherited
+public @interface Authorized {
 }

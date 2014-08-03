@@ -1,7 +1,9 @@
 package com.devicehive.controller;
 
 
+import com.devicehive.auth.Authorized;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
@@ -51,6 +53,7 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/user/{userId}/oauth/grant")
+@Authorized
 @LogExecutionTime
 public class OAuthGrantController {
 
@@ -61,6 +64,8 @@ public class OAuthGrantController {
 
     @EJB
     private UserService userService;
+
+    private HiveSecurityContext hiveSecurityContext;
 
 
     @GET
@@ -169,7 +174,7 @@ public class OAuthGrantController {
     }
 
     private User getUser(String userId) {
-        User current = ThreadLocalVariablesKeeper.getPrincipal().getUser();
+        User current = hiveSecurityContext.getHivePrincipal().getUser();
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             return current;
         }

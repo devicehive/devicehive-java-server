@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.NetworkDAO;
@@ -16,6 +17,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,8 +42,10 @@ public class NetworkService {
     @EJB
     private DeviceService deviceService;
 
+
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HivePrincipal principal) {
+    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveSecurityContext hiveSecurityContext) {
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (principal.getUser() != null) {
             List<Network> found = networkDAO.getNetworkList(principal.getUser(), null, Arrays.asList(networkId));
             if (found.isEmpty()) {
@@ -63,7 +67,7 @@ public class NetworkService {
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
             AccessKey currentKey = accessKeyDAO.getWithoutUser(user.getId(), key.getId());
-            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE, ThreadLocalVariablesKeeper.getClientIP(), ThreadLocalVariablesKeeper.getHostName());
+            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE, hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
             if (filtered.isEmpty()) {
                 result.setDevices(null);
                 return result;

@@ -110,13 +110,15 @@ public class AccessKeyIntegrationTest {
             try {
                 AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
                 List<AllowedKeyAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
-                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
+                HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+                hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, accessKey));
+                hiveSecurityContext.setOrigin("http://test.devicehive.com");
                 try {
-                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+                    hiveSecurityContext.setClientInetAddress(InetAddress.getByName("8.8.8.8"));
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
+                interceptor.setHiveSecurityContext(hiveSecurityContext);
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE)) {
                     actionTestProcess(accessKey, "[GetDevice,GetNetwork,GetDeviceNotification]");
                 }
@@ -151,9 +153,6 @@ public class AccessKeyIntegrationTest {
             } catch (Exception e) {
                 fail("No exceptions expected from interceptor");
             } finally {
-                assertNull(ThreadLocalVariablesKeeper.getClientIP());
-                assertNull(ThreadLocalVariablesKeeper.getHostName());
-                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
                 accessKey.getPermissions().clear();
             }
         }
@@ -172,13 +171,15 @@ public class AccessKeyIntegrationTest {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
             List<AllowedKeyAction.Action> allowedActions = Arrays.asList(allowedActionAnnotation.action());
-            ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-            ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
+            HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+            hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, accessKey));
+            hiveSecurityContext.setOrigin("http://test.devicehive.com");
             try {
-                ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+                hiveSecurityContext.setClientInetAddress(InetAddress.getByName("8.8.8.8"));
             } catch (UnknownHostException e) {
                 fail("Unexpected exception");
             }
+            interceptor.setHiveSecurityContext(hiveSecurityContext);
             try {
                 //if some controllers will contain more than 1 action per method, should be changed
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE)) {
@@ -215,9 +216,6 @@ public class AccessKeyIntegrationTest {
                 }
                 exceptionsCounter++;
             } finally {
-                assertNull(ThreadLocalVariablesKeeper.getClientIP());
-                assertNull(ThreadLocalVariablesKeeper.getHostName());
-                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
                 accessKey.getPermissions().clear();
             }
 
@@ -248,20 +246,19 @@ public class AccessKeyIntegrationTest {
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
             AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
-                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
+                HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+                hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, accessKey));
+                hiveSecurityContext.setOrigin("http://test.devicehive.com");
                 try {
-                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+                    hiveSecurityContext.setClientInetAddress(InetAddress.getByName("8.8.8.8"));
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
+                interceptor.setHiveSecurityContext(hiveSecurityContext);
                 subnetsTestProcess(accessKey, "[" + action.getValue() + "]");
             } catch (Exception e) {
                 fail("No exceptions expected from interceptor");
             } finally {
-                assertNull(ThreadLocalVariablesKeeper.getClientIP());
-                assertNull(ThreadLocalVariablesKeeper.getHostName());
-                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
                 accessKey.getPermissions().clear();
             }
         }
@@ -280,13 +277,15 @@ public class AccessKeyIntegrationTest {
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
             AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
-                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
+                HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+                hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, accessKey));
+                hiveSecurityContext.setOrigin("http://test.devicehive.com");
                 try {
-                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("192.150.1.1"));
+                    hiveSecurityContext.setClientInetAddress(InetAddress.getByName("192.150.1.1"));
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
+                interceptor.setHiveSecurityContext(hiveSecurityContext);
                 try {
                     subnetsTestProcess(accessKey, "[" + action.getValue() + "]");
                 } catch (HiveException e) {
@@ -295,9 +294,6 @@ public class AccessKeyIntegrationTest {
                     }
                     exceptionsCounter++;
                 } finally {
-                    assertNull(ThreadLocalVariablesKeeper.getClientIP());
-                    assertNull(ThreadLocalVariablesKeeper.getHostName());
-                    assertNull(ThreadLocalVariablesKeeper.getPrincipal());
                     accessKey.getPermissions().clear();
                 }
             } catch (Exception e) {
@@ -331,20 +327,19 @@ public class AccessKeyIntegrationTest {
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
             AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
-                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com");
+                HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+                hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, accessKey));
+                hiveSecurityContext.setOrigin("http://test.devicehive.com");
                 try {
-                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("8.8.8.8"));
+                    hiveSecurityContext.setClientInetAddress(InetAddress.getByName("8.8.8.8"));
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
+                interceptor.setHiveSecurityContext(hiveSecurityContext);
                 domainsTestProcess(accessKey, "[" + action.getValue() + "]");
             } catch (Exception e) {
                 fail("No exceptions expected from interceptor");
             } finally {
-                assertNull(ThreadLocalVariablesKeeper.getClientIP());
-                assertNull(ThreadLocalVariablesKeeper.getHostName());
-                assertNull(ThreadLocalVariablesKeeper.getPrincipal());
                 accessKey.getPermissions().clear();
             }
         }
@@ -363,13 +358,15 @@ public class AccessKeyIntegrationTest {
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
             AllowedKeyAction.Action action = allowedActionAnnotation.action();
             try {
-                ThreadLocalVariablesKeeper.setPrincipal(new HivePrincipal(null, null, accessKey));
-                ThreadLocalVariablesKeeper.setHostName("http://test.devicehive.com.dataart.com");
+                HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
+                hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, accessKey));
+                hiveSecurityContext.setOrigin("http://test.devicehive.com.dataart.com");
                 try {
-                    ThreadLocalVariablesKeeper.setClientIP(InetAddress.getByName("192.150.1.1"));
+                    hiveSecurityContext.setClientInetAddress(InetAddress.getByName("8.8.8.8"));
                 } catch (UnknownHostException e) {
                     fail("Unexpected exception");
                 }
+                interceptor.setHiveSecurityContext(hiveSecurityContext);
                 try {
                     domainsTestProcess(accessKey, "[" + action.getValue() + "]");
                 } catch (HiveException e) {
@@ -378,9 +375,6 @@ public class AccessKeyIntegrationTest {
                     }
                     exceptionsCounter++;
                 } finally {
-                    assertNull(ThreadLocalVariablesKeeper.getClientIP());
-                    assertNull(ThreadLocalVariablesKeeper.getHostName());
-                    assertNull(ThreadLocalVariablesKeeper.getPrincipal());
                     accessKey.getPermissions().clear();
                 }
             } catch (Exception e) {

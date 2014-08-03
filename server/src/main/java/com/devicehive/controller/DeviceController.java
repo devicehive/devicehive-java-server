@@ -1,8 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.*;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrder;
 import com.devicehive.controller.util.ResponseFactory;
@@ -60,6 +58,7 @@ import static javax.ws.rs.core.Response.Status.OK;
  * See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive RESTful API: Device</a> for details.
  */
 @Path("/device")
+@Authorized
 @LogExecutionTime
 public class DeviceController {
 
@@ -70,6 +69,9 @@ public class DeviceController {
 
     @EJB
     private DeviceService deviceService;
+
+    @Inject
+    private HiveSecurityContext hiveSecurityContext;
 
 
     /**
@@ -121,7 +123,7 @@ public class DeviceController {
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
 
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                 deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, principal);
@@ -165,7 +167,8 @@ public class DeviceController {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        deviceService.deviceSaveAndNotify(device, equipmentSet, ThreadLocalVariablesKeeper.getPrincipal(),
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        deviceService.deviceSaveAndNotify(device, equipmentSet, principal,
                 useExistingEquipment);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
@@ -188,7 +191,7 @@ public class DeviceController {
     public Response get(@PathParam(ID) String guid) {
         logger.debug("Device get requested. Guid {}", guid);
 
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
 
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
@@ -215,7 +218,7 @@ public class DeviceController {
 
         logger.debug("Device delete requested");
 
-        deviceService.deleteDevice(guid, ThreadLocalVariablesKeeper.getPrincipal());
+        deviceService.deleteDevice(guid, hiveSecurityContext.getHivePrincipal());
 
         logger.debug("Device with id = {} is deleted", guid);
 
@@ -263,7 +266,7 @@ public class DeviceController {
     public Response equipment(@PathParam(ID) String guid) {
         logger.debug("Device equipment requested for device {}", guid);
 
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
@@ -291,7 +294,7 @@ public class DeviceController {
                                     @PathParam(CODE) String code) {
 
         logger.debug("Device equipment by code requested");
-        HivePrincipal principal = ThreadLocalVariablesKeeper.getPrincipal();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);

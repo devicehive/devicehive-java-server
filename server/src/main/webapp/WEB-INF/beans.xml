@@ -5,7 +5,7 @@ http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd" version="1.1" bean-discovery-m
     <interceptors>
         <class>com.devicehive.util.ExecutionTimeLoggerInterceptor</class>
         <class>com.devicehive.auth.websockets.AuthenticationInterceptor</class>
-        <class>com.devicehive.auth.websockets.AuthorizationInterceptor</class>
+        <class>com.devicehive.auth.AuthorizationInterceptor</class>
         <class>com.devicehive.auth.AccessKeyInterceptor</class>
     </interceptors>
 
