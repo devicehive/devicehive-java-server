@@ -29,7 +29,7 @@
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.id.new_generator_mappings" value="true"/>
-            <property name="hibernate.transaction.jta.platform" value="SunOne"/>
+            <property name="hibernate.transaction.jta.platform" value="${jta.platform}"/>
             <!--<property name="hibernate.transaction.jta.platform" value="JBossAS"/>-->
             <property name="hibernate.cache.region.factory_class"
                       value="com.hazelcast.hibernate.HazelcastCacheRegionFactory"/>
