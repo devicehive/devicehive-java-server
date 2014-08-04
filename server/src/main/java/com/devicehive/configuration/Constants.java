@@ -23,6 +23,7 @@ public class Constants {
     public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 60 * 60 * 1000; // 1 hour
     public static final String WEBSOCKET_SESSION_PING_TIMEOUT = "websocket.ping.timeout";
     public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
+    public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final String DEVICE_ACTIVITY_MAP = "DEVICE_ACTIVITY_MAP";
     public static final Integer DEFAULT_TAKE = 1000;
     public static final String CURRENT_USER = "current";

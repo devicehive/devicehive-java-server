@@ -158,6 +158,10 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <properties>
+                <jta.platform>SunOne</jta.platform>
+                <server.log.directory>${com.sun.aas.instanceRoot}</server.log.directory>
+            </properties>
             <dependencies>
                 <!-- Ugly workaround for bug in Glassfish 4, should be not needed for 4.0.1 -->
                 <dependency>
@@ -166,10 +170,6 @@
                     <version>2.11</version>
                 </dependency>
             </dependencies>
-            <properties>
-                <jta.platform>SunOne</jta.platform>
-                <server.log.directory>${com.sun.aas.instanceRoot}</server.log.directory>
-            </properties>
         </profile>
         <profile>
             <id>wildfly</id>
@@ -180,6 +180,9 @@
                 <jta.platform>JBossAS</jta.platform>
                 <server.log.directory>${jboss.server.log.dir}</server.log.directory>
             </properties>
+            <dependencies>
+
+            </dependencies>
         </profile>
     </profiles>
 

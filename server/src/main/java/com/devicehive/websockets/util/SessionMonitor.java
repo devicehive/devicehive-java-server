@@ -53,11 +53,14 @@ public class SessionMonitor {
             @Override
             public void onMessage(PongMessage message) {
                 logger.info("Pong received for session " + session.getId());
-                HiveWebsocketSessionState.get(session).getLastPongTimestamp().set(System.currentTimeMillis());
                 updateDeviceSession(session);
             }
         });
         sessionMap.put(session.getId(), session);
+        session.setMaxIdleTimeout(configurationService
+                .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT));
+        session.setMaxBinaryMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
+        session.setMaxTextMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
     }
 
     public Session getSession(String sessionId) {
@@ -90,6 +93,7 @@ public class SessionMonitor {
                     session.getAsyncRemote().sendPing(Constants.PING);
                 } catch (IOException ex) {
                     logger.error("Error sending ping", ex);
+                    self.closePing(session);
                 }
             } else {
                 logger.debug("Session " + session.getId() + " is closed.");
@@ -98,28 +102,11 @@ public class SessionMonitor {
         }
     }
 
-    @Schedule(hour = "*", minute = "*", second = "*/30", persistent = false)
-    public synchronized void monitor() {
-        Long timeout = configurationService
-                .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT);
-        for (Session session : sessionMap.values()) {
-            logger.info("Checking session " + session.getId());
-            if (session.isOpen()) {
-                AtomicLong atomicLong = HiveWebsocketSessionState.get(session).getLastPongTimestamp();
-                if (System.currentTimeMillis() - atomicLong.get() > timeout) {
-                    self.closePingPong(session);
-                }
-            } else {
-                logger.debug("Session " + session.getId() + " is closed.");
-                sessionMap.remove(session.getId());
-            }
-        }
-    }
 
     @Asynchronous
-    public void closePingPong(Session session) {
+    public void closePing(Session session) {
         try {
-            session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, Messages.NO_PONGS_FOR_A_LONG_TIME));
+            session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, Messages.PING_ERROR));
         } catch (IOException ex) {
             logger.error("Error closing session", ex);
         }
@@ -139,5 +126,6 @@ public class SessionMonitor {
                 logger.error("Error closing session", ex);
             }
         }
+        sessionMap.clear();
     }
 }

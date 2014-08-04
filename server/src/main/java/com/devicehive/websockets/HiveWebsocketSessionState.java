@@ -46,7 +46,6 @@ public class HiveWebsocketSessionState {
 
     private String origin;
 
-    private AtomicLong lastPongTimestamp = new AtomicLong(System.currentTimeMillis());
 
 
     public static HiveWebsocketSessionState get(Session session) {
@@ -162,7 +161,4 @@ public class HiveWebsocketSessionState {
         return oldFormatNotificationSubscriptions.remove(toRemove);
     }
 
-    public AtomicLong getLastPongTimestamp() {
-        return lastPongTimestamp;
-    }
 }

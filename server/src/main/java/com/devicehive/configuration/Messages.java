@@ -77,7 +77,7 @@ public class Messages {
     public static final String EMPTY_NAMES = BidBundle.get("EMPTY_NAMES");
     public static final String COLUMN_CANNOT_BE_NULL = BidBundle.get("COLUMN_CANNOT_BE_NULL");
     public static final String FIELD_LENGTH_CONSTRAINT = BidBundle.get("FIELD_LENGTH_CONSTRAINT");
-    public static final String NO_PONGS_FOR_A_LONG_TIME = BidBundle.get("NO_PONGS_FOR_A_LONG_TIME");
+    public static final String PING_ERROR = BidBundle.get("PING_ERROR");
     public static final String SHUTDOWN = BidBundle.get("SHUTDOWN");
 
     /**

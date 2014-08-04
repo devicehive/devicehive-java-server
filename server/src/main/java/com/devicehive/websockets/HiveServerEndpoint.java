@@ -92,6 +92,7 @@ public class HiveServerEndpoint {
         for (UUID subId : state.getNotificationSubscriptions()) {
             subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
         }
+        logger.info("Session {} is closed", session.getId());
     }
 
     @OnError
