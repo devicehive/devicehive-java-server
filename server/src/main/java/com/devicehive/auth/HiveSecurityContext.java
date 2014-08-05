@@ -19,6 +19,8 @@ public class HiveSecurityContext  {
 
     private String origin;
 
+    private String authorization;
+
     private OAuthClient oAuthClient;
 
 
@@ -52,5 +54,27 @@ public class HiveSecurityContext  {
 
     public void setoAuthClient(OAuthClient oAuthClient) {
         this.oAuthClient = oAuthClient;
+    }
+
+    public String getAuthorization() {
+        return authorization;
+    }
+
+    public void setAuthorization(String authorization) {
+        this.authorization = authorization;
+    }
+
+
+    public boolean isUserInRole(String roleString) {
+        switch (roleString) {
+            case HiveRoles.DEVICE:
+                return hivePrincipal != null && hivePrincipal.getDevice() != null;
+            case HiveRoles.KEY:
+                return hivePrincipal != null && hivePrincipal.getKey() != null;
+            default:
+                return hivePrincipal != null
+                        && hivePrincipal.getUser() != null
+                        && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
+        }
     }
 }

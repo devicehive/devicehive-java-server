@@ -45,10 +45,8 @@ public class HiveSecurityFilter implements Filter {
     @Inject
     private OAuthClientService clientService;
 
-
     @Inject
     private HiveSecurityContext hiveSecurityContext;
-
 
 
     @Override
@@ -64,6 +62,8 @@ public class HiveSecurityFilter implements Filter {
         hiveSecurityContext.setoAuthClient(authClient(httpServletRequest));
         hiveSecurityContext.setClientInetAddress(InetAddress.getByName(request.getRemoteAddr()));
         hiveSecurityContext.setOrigin(httpServletRequest.getHeader(com.google.common.net.HttpHeaders.ORIGIN));
+        hiveSecurityContext.setAuthorization(httpServletRequest.getHeader(com.google.common.net.HttpHeaders.AUTHORIZATION));
+        httpServletRequest.setAttribute(HiveSecurityContext.class.getName(), hiveSecurityContext);
         chain.doFilter(request,response);
     }
 

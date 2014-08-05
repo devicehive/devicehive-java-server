@@ -1,10 +1,11 @@
-package com.devicehive.auth;
+package com.devicehive.auth.websockets;
 
 import com.devicehive.auth.Authorized;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.websockets.handlers.annotations.WebsocketController;
 
 import javax.annotation.Priority;
 import javax.annotation.security.PermitAll;
@@ -18,7 +19,7 @@ import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 
 @Interceptor
-@Authorized
+@WebsocketController
 @Priority(Interceptor.Priority.APPLICATION + 200)
 public class AuthorizationInterceptor {
 
