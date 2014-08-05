@@ -33,32 +33,18 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        BeanManager beanManager = CDI.current().getBeanManager();
-        Context requestScope = beanManager.getContext(RequestScoped.class);
-        HiveSecurityContext hiveSecurityContext = null;
-        for (Bean<?> bean : beanManager.getBeans(HiveSecurityContext.class)) {
-            if (requestScope.get(bean) != null) {
-                hiveSecurityContext = (HiveSecurityContext) requestScope.get(bean);
-            }
-        }
         for (String role : allowedRoles) {
-            if (hiveSecurityContext.isUserInRole(role)) {
+            if (requestContext.getSecurityContext().isUserInRole(role)) {
                 return;
             }
         }
-        HivePrincipal hivePrincipal = hiveSecurityContext.getHivePrincipal();
-        if (hivePrincipal != null && hivePrincipal.getKey() != null) {
-            requestContext.abortWith(Response
-                    .status(Response.Status.UNAUTHORIZED)
-                    .header(HttpHeaders.AUTHORIZATION, Messages.OAUTH_REALM)
-                    .entity(Messages.NOT_AUTHORIZED)
-                    .build());
-        } else {
-            requestContext.abortWith(Response
-                    .status(Response.Status.UNAUTHORIZED)
-                    .header(HttpHeaders.AUTHORIZATION, Messages.BASIC_REALM)
-                    .entity(Messages.NOT_AUTHORIZED)
-                    .build());
-        }
+
+        boolean isOauth = Constants.OAUTH_AUTH_SCEME.equals(requestContext.getSecurityContext().getAuthenticationScheme());
+
+        requestContext.abortWith(Response
+                            .status(Response.Status.UNAUTHORIZED)
+                            .header(HttpHeaders.WWW_AUTHENTICATE, isOauth ? Messages.OAUTH_REALM : Messages.BASIC_REALM)
+                            .entity(Messages.NOT_AUTHORIZED)
+                            .build());
     }
 }
