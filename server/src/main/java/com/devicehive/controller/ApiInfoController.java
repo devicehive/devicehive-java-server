@@ -1,6 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.Authorized;
+
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.controller.util.ResponseFactory;

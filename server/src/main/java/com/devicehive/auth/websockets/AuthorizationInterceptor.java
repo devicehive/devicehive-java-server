@@ -1,6 +1,6 @@
 package com.devicehive.auth.websockets;
 
-import com.devicehive.auth.Authorized;
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;

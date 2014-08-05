@@ -1,7 +1,7 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.Authorized;
+
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;

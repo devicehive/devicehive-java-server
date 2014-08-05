@@ -1,6 +1,6 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.auth.Authorized;
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
