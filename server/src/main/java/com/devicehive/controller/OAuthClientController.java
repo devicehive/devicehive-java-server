@@ -49,7 +49,6 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/oauth/client")
-@Authorized
 @LogExecutionTime
 public class OAuthClientController {
 

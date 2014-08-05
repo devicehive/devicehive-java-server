@@ -19,7 +19,6 @@ import static com.devicehive.configuration.Constants.VALUE;
  * Provide API information
  */
 @Path("/configuration")
-@Authorized
 @LogExecutionTime
 public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);

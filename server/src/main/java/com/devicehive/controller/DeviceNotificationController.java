@@ -69,7 +69,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  * @author rroschin
  */
 @Path("/device")
-@Authorized
 @LogExecutionTime
 public class DeviceNotificationController {
 

@@ -41,7 +41,6 @@ import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/device/class/{deviceClassId}/equipment")
 @RolesAllowed(HiveRoles.ADMIN)
-@Authorized
 @LogExecutionTime
 public class EquipmentController {
 

@@ -58,7 +58,6 @@ import static javax.ws.rs.core.Response.Status.OK;
  * See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive RESTful API: Device</a> for details.
  */
 @Path("/device")
-@Authorized
 @LogExecutionTime
 public class DeviceController {
 

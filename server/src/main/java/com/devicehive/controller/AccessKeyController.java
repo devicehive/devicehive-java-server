@@ -51,7 +51,6 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
  * details.
  */
 @Path("/user/{userId}/accesskey")
-@Authorized
 @LogExecutionTime
 public class AccessKeyController {
 

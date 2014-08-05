@@ -18,7 +18,6 @@ import static com.devicehive.configuration.Constants.VERSION;
  * Provides build information
  */
 @Path("/version")
-@Authorized
 @LogExecutionTime
 public class VersionController {
     private static final String propertiesPath = "/WEB-INF/classes/app.properties";

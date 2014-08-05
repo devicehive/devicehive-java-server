@@ -53,7 +53,6 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/user/{userId}/oauth/grant")
-@Authorized
 @LogExecutionTime
 public class OAuthGrantController {
 

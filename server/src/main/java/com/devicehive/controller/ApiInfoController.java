@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
  * Provide API information
  */
 @Path("/info")
-@Authorized
 @LogExecutionTime
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);

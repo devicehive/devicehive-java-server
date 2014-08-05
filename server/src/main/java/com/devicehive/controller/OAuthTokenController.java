@@ -39,7 +39,6 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
-@Authorized
 @LogExecutionTime
 public class OAuthTokenController {
 
