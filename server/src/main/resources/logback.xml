@@ -1,9 +1,11 @@
 <configuration debug="true">
 
 
+    <property name="entry.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>${entry.pattern}</pattern>
         </encoder>
     </appender>
 
@@ -23,7 +25,7 @@
         </triggeringPolicy>
 
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>${entry.pattern}</pattern>
         </encoder>
     </appender>
 

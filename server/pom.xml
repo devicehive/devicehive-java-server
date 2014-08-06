@@ -160,7 +160,7 @@
             </activation>
             <properties>
                 <jta.platform>SunOne</jta.platform>
-                <server.log.directory>${com.sun.aas.instanceRoot}</server.log.directory>
+                <server.log.directory>${com.sun.aas.instanceRoot}/logs</server.log.directory>
             </properties>
             <dependencies>
                 <!-- Ugly workaround for bug in Glassfish 4, should be not needed for 4.0.1 -->
