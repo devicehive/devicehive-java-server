@@ -58,11 +58,9 @@ public class WebsocketExecutor {
     public JsonObject execute(JsonObject request, Session session) {
         JsonObject response = null;
         try {
-            logger.debug("[execute] ");
             ThreadLocalVariablesKeeper.setRequest(request);
             ThreadLocalVariablesKeeper.setSession(session);
             response = tryExecute(request, session);
-            logger.debug("[execute] building final response");
         } catch (HiveException ex) {
             response = JsonMessageBuilder.createError(ex).build();
         } catch (ConstraintViolationException ex) {
@@ -96,7 +94,6 @@ public class WebsocketExecutor {
             ThreadLocalVariablesKeeper.setSession(null);
         }
 
-        logger.debug("[execute] building final response");
         return new JsonMessageBuilder()
                 .addAction(request.get(JsonMessageBuilder.ACTION))
                 .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))

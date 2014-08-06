@@ -8,6 +8,7 @@ import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.FlushQueue;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.websocket.Session;
+import java.lang.annotation.Annotation;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -83,9 +85,11 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
                 } finally {
                     lock.unlock();
                 }
-                CDI.current().getBeanManager().fireEvent(session,new AnnotationLiteral<AsyncMessageSupplier.Delivery>() {});
+                CDI.current().getBeanManager().fireEvent(session, flushQueue);
             }
         };
     }
 
+
+    private static AnnotationLiteral<FlushQueue> flushQueue = new AnnotationLiteral<FlushQueue>() {};
 }

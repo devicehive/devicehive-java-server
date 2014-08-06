@@ -5,6 +5,9 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.bus.Create;
+import com.devicehive.messages.bus.GlobalMessage;
+import com.devicehive.messages.bus.LocalMessage;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
@@ -40,8 +43,16 @@ public class DeviceNotificationService {
     private DeviceDAO deviceDAO;
     @EJB
     private DeviceService deviceService;
+
     @Inject
-    private Event<DeviceNotification> event;
+    @Create
+    @LocalMessage
+    private Event<DeviceNotification> eventLocal;
+
+    @Inject
+    @Create
+    @GlobalMessage
+    private Event<DeviceNotification> eventGlobal;
 
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -103,7 +114,8 @@ public class DeviceNotificationService {
     public void submitDeviceNotification(DeviceNotification notification, Device device) {
         List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
         for (DeviceNotification currentNotification : proceedNotifications) {
-            event.fire(currentNotification);
+            eventGlobal.fire(currentNotification);
+            eventLocal.fire(currentNotification);
         }
     }
 

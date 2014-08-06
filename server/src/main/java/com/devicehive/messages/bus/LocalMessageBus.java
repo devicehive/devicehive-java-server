@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
+import javax.enterprise.event.Observes;
+import javax.enterprise.event.TransactionPhase;
 import javax.websocket.Session;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -45,7 +47,8 @@ public class LocalMessageBus {
 
 
     @Asynchronous
-    public void submitDeviceCommand(final DeviceCommand deviceCommand) {
+    public void submitDeviceCommand(@LocalMessage @Create
+                                        @Observes(during = TransactionPhase.AFTER_SUCCESS) final DeviceCommand deviceCommand) {
         logger.debug("Device command was submitted: {}", deviceCommand.getId());
 
 
@@ -82,7 +85,8 @@ public class LocalMessageBus {
     }
 
     @Asynchronous
-    public void submitDeviceCommandUpdate(final DeviceCommand deviceCommand) {
+    public void submitDeviceCommandUpdate(@LocalMessage @Update
+                                              @Observes(during = TransactionPhase.AFTER_SUCCESS) final DeviceCommand deviceCommand) {
 
         logger.debug("Device command update was submitted: {}", deviceCommand.getId());
 
@@ -105,7 +109,8 @@ public class LocalMessageBus {
 
 
     @Asynchronous
-    public void submitDeviceNotification(final DeviceNotification deviceNotification) {
+    public void submitDeviceNotification(@LocalMessage @Create
+                                             @Observes(during = TransactionPhase.AFTER_SUCCESS) final DeviceNotification deviceNotification) {
 
         logger.debug("Device notification was submitted: {}", deviceNotification.getId());
 

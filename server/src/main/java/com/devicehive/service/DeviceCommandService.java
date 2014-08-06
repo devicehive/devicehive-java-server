@@ -4,6 +4,10 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.bus.Create;
+import com.devicehive.messages.bus.GlobalMessage;
+import com.devicehive.messages.bus.LocalMessage;
+import com.devicehive.messages.bus.Update;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
@@ -39,12 +43,27 @@ public class DeviceCommandService {
     private DeviceService deviceService;
     @EJB
     private TimestampService timestampService;
+
     @Inject
     @Create
-    private Event<DeviceCommand> commandEvent;
+    @GlobalMessage
+    private Event<DeviceCommand> commandEventGlobal;
+
+    @Inject
+    @Create
+    @LocalMessage
+    private Event<DeviceCommand> commandEventLocal;
+
     @Inject
     @Update
-    private Event<DeviceCommand> updateEvent;
+    @GlobalMessage
+    private Event<DeviceCommand> updateEventGlobal;
+
+    @Inject
+    @Update
+    @LocalMessage
+    private Event<DeviceCommand> updateEventLocal;
+
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public DeviceCommand getByGuidAndId(@NotNull String guid, @NotNull long id) {
@@ -83,7 +102,8 @@ public class DeviceCommandService {
 
     public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
         DeviceCommand saved = saveDeviceCommandUpdate(update, device);
-        updateEvent.fire(saved);
+        updateEventGlobal.fire(saved);
+        updateEventLocal.fire(saved);
     }
 
     public void submitDeviceCommand(DeviceCommand command, Device device, User user) {
@@ -92,7 +112,8 @@ public class DeviceCommandService {
         command.setUserId(user.getId());
         command.setTimestamp(timestampService.getTimestamp());
         commandDAO.createCommand(command);
-        commandEvent.fire(command);
+        commandEventGlobal.fire(command);
+        commandEventLocal.fire(command);
     }
 
     private DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
@@ -134,15 +155,5 @@ public class DeviceCommandService {
         return cmd;
     }
 
-    @Qualifier
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE})
-    public static @interface Create {
-    }
 
-    @Qualifier
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE})
-    public static @interface Update {
-    }
 }

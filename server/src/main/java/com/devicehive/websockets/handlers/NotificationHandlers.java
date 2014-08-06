@@ -26,12 +26,14 @@ import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
+import com.devicehive.websockets.util.FlushQueue;
 import com.devicehive.websockets.util.SubscriptionSessionMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -65,6 +67,10 @@ public class NotificationHandlers extends WebsocketHandlers {
 
     @Inject
     private HiveSecurityContext hiveSecurityContext;
+
+    @Inject
+    @FlushQueue
+    private Event<Session> event;
 
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT,  HiveRoles.KEY})
@@ -209,7 +215,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         } finally {
             state.getNotificationSubscriptionsLock().unlock();
             logger.debug("deliver messages process for session" + session.getId());
-            asyncMessageDeliverer.deliverMessages(session);
+            event.fire(session);
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
         return new WebSocketResponse();

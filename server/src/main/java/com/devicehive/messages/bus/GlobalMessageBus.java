@@ -23,6 +23,9 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.TransactionPhase;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.CDI;
+import javax.enterprise.util.AnnotationLiteral;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -40,8 +43,7 @@ public class GlobalMessageBus {
     private static final String DEVICE_NOTIFICATION = "DEVICE_NOTIFICATION";
     @EJB
     private HazelcastService hazelcastService;
-    @EJB
-    private LocalMessageBus localMessageBus;
+
     private HazelcastInstance hazelcast;
     private String commandListener;
     private String commandUpdateListener;
@@ -76,10 +78,9 @@ public class GlobalMessageBus {
 
     @Asynchronous
     public void publishDeviceCommand(@Observes(during = TransactionPhase.AFTER_SUCCESS)
-                                     @DeviceCommandService.Create
+                                     @GlobalMessage @Create
                                      DeviceCommand deviceCommand) {
         logger.debug("Sending device command {}", deviceCommand.getId());
-        localMessageBus.submitDeviceCommand(deviceCommand);
         hazelcast.getTopic(DEVICE_COMMAND).publish(deviceCommand);
         logger.debug("Sent");
     }
@@ -87,61 +88,67 @@ public class GlobalMessageBus {
     @Asynchronous
     public void publishDeviceCommandUpdate(
             @Observes(during = TransactionPhase.AFTER_SUCCESS)
-            @DeviceCommandService.Update
+            @GlobalMessage @Update
             DeviceCommand deviceCommandUpdate) {
         logger.debug("Sending device command update {}", deviceCommandUpdate.getId());
-        localMessageBus.submitDeviceCommandUpdate(deviceCommandUpdate);
-        logger.debug("id: {} , command: {} , parameters: {} , status: {}", deviceCommandUpdate.getId(),
-                deviceCommandUpdate.getCommand(), deviceCommandUpdate.getParameters(),
-                deviceCommandUpdate.getStatus());
         hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommandUpdate);
         logger.debug("Sent");
     }
 
     @Asynchronous
     public void publishDeviceNotification(
+            @GlobalMessage @Create
             @Observes(during = TransactionPhase.AFTER_SUCCESS) DeviceNotification deviceNotification) {
         logger.debug("Sending device notification {}", deviceNotification.getId());
-        localMessageBus.submitDeviceNotification(deviceNotification);
         hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
         logger.debug("Sent");
     }
 
     private class DeviceCommandListener implements MessageListener<DeviceCommand> {
 
+        private BeanManager beanManager = CDI.current().getBeanManager();
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
             if (!deviceCommandMessage.getPublishingMember().localMember()) {
                 logger.debug("Received device command {}", deviceCommandMessage.getMessageObject().getId());
-                localMessageBus.submitDeviceCommand(deviceCommandMessage.getMessageObject());
+                beanManager.fireEvent(deviceCommandMessage.getMessageObject(), create, localMessage);
             }
         }
     }
 
     private class DeviceCommandUpdateListener implements MessageListener<DeviceCommand> {
 
+        private BeanManager beanManager = CDI.current().getBeanManager();
 
         @Override
         public void onMessage(Message<DeviceCommand> deviceCommandMessage) {
             if (!deviceCommandMessage.getPublishingMember().localMember()) {
                 logger.debug("Received device command update {}", deviceCommandMessage.getMessageObject().getId());
-                localMessageBus.submitDeviceCommandUpdate(deviceCommandMessage.getMessageObject());
+                beanManager.fireEvent(deviceCommandMessage.getMessageObject(), update, localMessage);
             }
         }
     }
 
     private class DeviceNotificationListener implements MessageListener<DeviceNotification> {
 
+        private BeanManager beanManager = CDI.current().getBeanManager();
 
         @Override
         public void onMessage(Message<DeviceNotification> deviceNotificationMessage) {
             if (!deviceNotificationMessage.getPublishingMember().localMember()) {
                 logger.debug("Received device notification{}", deviceNotificationMessage.getMessageObject().getId());
-                localMessageBus.submitDeviceNotification(deviceNotificationMessage.getMessageObject());
+                beanManager.fireEvent(deviceNotificationMessage.getMessageObject(), create, localMessage);
             }
         }
     }
 
+    private static AnnotationLiteral<Create> create = new AnnotationLiteral<Create>(){};
+
+    private static AnnotationLiteral<Update> update = new AnnotationLiteral<Update>(){};
+
+    private static AnnotationLiteral<GlobalMessage> globalMessage = new AnnotationLiteral<GlobalMessage>(){};
+
+    private static AnnotationLiteral<LocalMessage> localMessage = new AnnotationLiteral<LocalMessage>(){};
 
 }
