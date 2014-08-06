@@ -28,10 +28,11 @@ public class TimestampAdapter extends TypeAdapter<Timestamp> {
     }
 
     public static Timestamp parseTimestamp(String input) throws IllegalArgumentException {
+        input = StringUtils.trim(input);
+        input = StringUtils.removeEnd(input, "Z");
         if (StringUtils.isEmpty(input)) {
             return null;
         }
-        input = input.trim();
         int pos = input.indexOf(".");
         String dateSeconds = pos >= 0 ? input.substring(0, pos) : input;
 
