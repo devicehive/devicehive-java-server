@@ -36,7 +36,6 @@ import static com.devicehive.configuration.Constants.UTF8;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
-@RequestScoped
 public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Override
