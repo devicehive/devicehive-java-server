@@ -3,7 +3,8 @@ package com.devicehive.controller;
 import com.devicehive.auth.*;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
+import com.devicehive.controller.converters.TimestampQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.exceptions.HiveException;
@@ -102,11 +103,11 @@ public class DeviceNotificationController {
      * Queries device notifications.
      *
      * @param guid         Device unique identifier.
-     * @param start        Filter by notification start timestamp (UTC).
-     * @param end          Filter by notification end timestamp (UTC).
+     * @param startTs        Filter by notification start timestamp (UTC).
+     * @param endTs          Filter by notification end timestamp (UTC).
      * @param notification Filter by notification name.
      * @param sortField    Result list sort field. Available values are Timestamp (default) and Notification.
-     * @param sortOrder    Result list sort order. Available values are ASC and DESC.
+     * @param sortOrderSt    Result list sort order. Available values are ASC and DESC.
      * @param take         Number of records to take from the result list (default is 1000).
      * @param skip         Number of records to skip from the result list.
      * @return If successful, this method returns array of <a href="http://www.devicehive
@@ -144,21 +145,19 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public Response query(@PathParam(DEVICE_GUID) String guid,
-                          @QueryParam(START) Timestamp start,
-                          @QueryParam(END) Timestamp end,
+                          @QueryParam(START) String startTs,
+                          @QueryParam(END) String endTs,
                           @QueryParam(NOTIFICATION) String notification,
                           @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
-                          @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                          @QueryParam(SORT_ORDER) String sortOrderSt,
                           @QueryParam(TAKE) Integer take,
                           @QueryParam(SKIP) Integer skip,
                           @QueryParam(GRID_INTERVAL) Integer gridInterval) {
 
-        logger.debug("Device notification query requested. Guid {}, start {}, end {}, notification {}, sort field {}," +
-                "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
-        if (sortOrder == null) {
-            sortOrder = true;
-        }
+        Timestamp start = TimestampQueryParamParser.parse(startTs);
+        Timestamp end = TimestampQueryParamParser.parse(endTs);
 
         if (!TIMESTAMP.equalsIgnoreCase(sortField) && !NOTIFICATION.equalsIgnoreCase(sortField)) {
             logger.debug("Device notification query request failed Bad request sort field. Guid {}, start {}, end {}," +
@@ -262,7 +261,7 @@ public class DeviceNotificationController {
     public void poll(
             @PathParam(DEVICE_GUID) final String deviceGuid,
             @QueryParam(NAMES) final String namesString,
-            @QueryParam(TIMESTAMP) final Timestamp timestamp,
+            @QueryParam(TIMESTAMP) final String timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
@@ -278,7 +277,7 @@ public class DeviceNotificationController {
             @QueryParam(WAIT_TIMEOUT) final long timeout,
             @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
             @QueryParam(NAMES) final String namesString,
-            @QueryParam(TIMESTAMP) final Timestamp timestamp,
+            @QueryParam(TIMESTAMP) final String timestamp,
             @Suspended final AsyncResponse asyncResponse) {
 
         poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
@@ -287,16 +286,15 @@ public class DeviceNotificationController {
     private void poll(final long timeout,
                       final String deviceGuidsString,
                       final String namesString,
-                      final Timestamp timestamp,
+                      final String timestampSt,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final Timestamp timestamp = TimestampQueryParamParser.parse(timestampSt);
+
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                logger.debug(
-                        "Device notification poll many proceed successfully for devices: {} with names, timestamp {}",
-                        deviceGuidsString, namesString, timestamp);
             }
         });
 

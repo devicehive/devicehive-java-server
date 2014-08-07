@@ -5,7 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -85,7 +85,7 @@ public class UserController {
      * @param role         User's role ADMIN - 0, CLIENT - 1
      * @param status       ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
      * @param sortField    either of "login", "loginAttempts", "role", "status", "lastLogin"
-     * @param sortOrder    either ASC or DESC
+     * @param sortOrderSt    either ASC or DESC
      * @param take         like SQL LIMIT
      * @param skip         like SQL OFFSET
      * @return List of User
@@ -97,16 +97,11 @@ public class UserController {
                                  @QueryParam(ROLE) Integer role,
                                  @QueryParam(STATUS) Integer status,
                                  @QueryParam(SORT_FIELD) String sortField,
-                                 @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                                 @QueryParam(SORT_ORDER) String sortOrderSt,
                                  @QueryParam(TAKE) Integer take,
                                  @QueryParam(SKIP) Integer skip) {
-        logger.debug("User list requested. Login = {}, loginPattern = {}, role = {}, status = {}, sortField = {}, " +
-                "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
-                take, skip);
 
-        if (sortOrder == null) {
-            sortOrder = true;
-        }
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(BAD_REQUEST,

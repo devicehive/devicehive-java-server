@@ -2,7 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.*;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -86,7 +86,7 @@ public class DeviceController {
      * @param deviceClassName    Associated device class name
      * @param deviceClassVersion Associated device class version
      * @param sortField          Result list sort field. Available values are Name, Status, Network and DeviceClass.
-     * @param sortOrder          Result list sort order. Available values are ASC and DESC.
+     * @param sortOrderSt          Result list sort order. Available values are ASC and DESC.
      * @param take               Number of records to take from the result list.
      * @param skip               Number of records to skip from the result list.
      * @return list of <a href="http://www.devicehive.com/restful#Reference/Device">Devices</a>
@@ -103,15 +103,13 @@ public class DeviceController {
                          @QueryParam(DEVICE_CLASS_NAME) String deviceClassName,
                          @QueryParam(DEVICE_CLASS_VERSION) String deviceClassVersion,
                          @QueryParam(SORT_FIELD) String sortField,
-                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                         @QueryParam(SORT_ORDER) String sortOrderSt,
                          @QueryParam(TAKE) @Min(0) @Max(Integer.MAX_VALUE) Integer take,
                          @QueryParam(SKIP) @Min(0) @Max(Integer.MAX_VALUE) Integer skip) {
 
         logger.debug("Device list requested");
 
-        if (sortOrder == null) {
-            sortOrder = true;
-        }
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
         if (sortField != null
                 && !NAME.equalsIgnoreCase(sortField)
                 && !STATUS.equalsIgnoreCase(sortField)

@@ -3,7 +3,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.DeviceClass;
@@ -71,7 +71,7 @@ public class DeviceClassController {
      * @param namePattern Device class name pattern.
      * @param version     Device class version.
      * @param sortField   Result list sort field. Available values are ID and Name.
-     * @param sortOrder   Result list sort order. Available values are ASC and DESC.
+     * @param sortOrderSt   Result list sort order. Available values are ASC and DESC.
      * @param take        Number of records to take from the result list.
      * @param skip        Number of records to skip from the result list.
      * @return If successful, this method returns array of <a href="http://www.devicehive
@@ -84,14 +84,12 @@ public class DeviceClassController {
             @QueryParam(NAME_PATTERN) String namePattern,
             @QueryParam(VERSION) String version,
             @QueryParam(SORT_FIELD) String sortField,
-            @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+            @QueryParam(SORT_ORDER) String sortOrderSt,
             @QueryParam(TAKE) @Min(0) @Max(Integer.MAX_VALUE) Integer take,
             @QueryParam(SKIP) Integer skip) {
 
         logger.debug("DeviceClass list requested");
-        if (sortOrder == null) {
-            sortOrder = true;
-        }
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
         if (sortField != null
                 && !ID.equalsIgnoreCase(sortField)
                 && !NAME.equalsIgnoreCase(sortField)) {

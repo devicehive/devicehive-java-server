@@ -5,7 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.OAuthClient;
@@ -68,12 +68,10 @@ public class OAuthClientController {
                          @QueryParam(DOMAIN) String domain,
                          @QueryParam(OAUTH_ID) String oauthId,
                          @QueryParam(SORT_FIELD) String sortField,
-                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                         @QueryParam(SORT_ORDER) String sortOrderSt,
                          @QueryParam(TAKE) Integer take,
                          @QueryParam(SKIP) Integer skip) {
-        logger.debug("OAuthClient list requested. Params: name {}, namePattern {}, domain {}, oauthId {}, " +
-                "sortField {}, sortOrder {}, take {}, skip {}", name, namePattern, domain, oauthId, sortField,
-                sortOrder, take, skip);
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !sortField.equalsIgnoreCase(ID) && !sortField.equalsIgnoreCase(NAME) &&
                 !sortField.equalsIgnoreCase(DOMAIN) && !sortField.equalsIgnoreCase(OAUTH_ID)) {

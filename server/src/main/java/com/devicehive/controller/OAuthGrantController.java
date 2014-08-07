@@ -6,7 +6,8 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
+import com.devicehive.controller.converters.TimestampQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -70,21 +71,23 @@ public class OAuthGrantController {
     @GET
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
     public Response list(@PathParam(USER_ID) String userId,
-                         @QueryParam(START) Timestamp start,
-                         @QueryParam(END) Timestamp end,
+                         @QueryParam(START) String startTs,
+                         @QueryParam(END) String endTs,
                          @QueryParam(CLIENT_OAUTH_ID) String clientOAuthId,
                          @QueryParam(TYPE) String type,
                          @QueryParam(SCOPE) String scope,
                          @QueryParam(REDIRECT_URI) String redirectUri,
                          @QueryParam(ACCESS_TYPE) String accessType,
                          @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
-                         @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                         @QueryParam(SORT_ORDER) String sortOrderSt,
                          @QueryParam(TAKE) Integer take,
                          @QueryParam(SKIP) Integer skip) {
-        logger.debug("OAuthGrant: list requested. User id: {}, start: {}, end: {}, clientOAuthID: {}, type: {}, " +
-                "scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
-                userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
-                skip);
+
+        Timestamp start = TimestampQueryParamParser.parse(startTs);
+        Timestamp end = TimestampQueryParamParser.parse(endTs);
+
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+
         if (!sortField.equalsIgnoreCase(TIMESTAMP)) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));

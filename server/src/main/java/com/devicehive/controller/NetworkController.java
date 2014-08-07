@@ -2,7 +2,7 @@ package com.devicehive.controller;
 
 import com.devicehive.auth.*;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -75,7 +75,7 @@ public class NetworkController {
      * @param name        exact network's name, ignored, when  namePattern is not null
      * @param namePattern name pattern
      * @param sortField   Sort Field, can be either "id", "key", "name" or "description"
-     * @param sortOrder   ASC - ascending, otherwise descending
+     * @param sortOrderSt   ASC - ascending, otherwise descending
      * @param take        limit, default 1000
      * @param skip        offset, default 0
      */
@@ -85,15 +85,13 @@ public class NetworkController {
     public Response getNetworkList(@QueryParam(NAME) String name,
                                    @QueryParam(NAME_PATTERN) String namePattern,
                                    @QueryParam(SORT_FIELD) String sortField,
-                                   @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                                   @QueryParam(SORT_ORDER) String sortOrderSt,
                                    @QueryParam(TAKE) Integer take,
                                    @QueryParam(SKIP) Integer skip) {
 
         logger.debug("Network list requested");
 
-        if (sortOrder == null) {
-            sortOrder = true;
-        }
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.debug("Unable to proceed network list request. Invalid sortField");

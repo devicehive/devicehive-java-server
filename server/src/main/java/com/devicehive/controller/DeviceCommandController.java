@@ -3,7 +3,8 @@ package com.devicehive.controller;
 import com.devicehive.auth.*;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.converters.SortOrder;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
+import com.devicehive.controller.converters.TimestampQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -108,7 +109,7 @@ public class DeviceCommandController {
     public void poll(
             @PathParam(DEVICE_GUID) final String deviceGuid,
             @QueryParam(NAMES) final String namesString,
-            @QueryParam(TIMESTAMP) final Timestamp timestamp,
+            @QueryParam(TIMESTAMP) final String timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
@@ -121,7 +122,7 @@ public class DeviceCommandController {
     public void pollMany(
             @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
             @QueryParam(NAMES) final String namesString,
-            @QueryParam(TIMESTAMP) final Timestamp timestamp,
+            @QueryParam(TIMESTAMP) final String timestamp,
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
@@ -131,7 +132,7 @@ public class DeviceCommandController {
     private void poll(final long timeout,
                       final String deviceGuidsString,
                       final String namesString,
-                      final Timestamp timestamp,
+                      final String timestamp,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
@@ -143,6 +144,8 @@ public class DeviceCommandController {
             }
         });
 
+        final Timestamp ts = TimestampQueryParamParser.parse(timestamp);
+
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -151,7 +154,7 @@ public class DeviceCommandController {
                 final List<String> names = ParseUtil.getList(namesString);
                 try {
                     List<DeviceCommand> list =
-                            getOrWaitForCommands(principal, devices, names, timestamp, timeout);
+                            getOrWaitForCommands(principal, devices, names, ts, timeout);
                     Response response;
                     if (isMany) {
                         List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
@@ -346,12 +349,12 @@ public class DeviceCommandController {
      * </code>
      *
      * @param guid      GUID, string like "550e8400-e29b-41d4-a716-446655440000"
-     * @param start     start date in format "yyyy-MM-dd'T'HH:mm:ss.SSS"
-     * @param end       end date in format "yyyy-MM-dd'T'HH:mm:ss.SSS"
+     * @param startTs     start date in format "yyyy-MM-dd'T'HH:mm:ss.SSS"
+     * @param endTs       end date in format "yyyy-MM-dd'T'HH:mm:ss.SSS"
      * @param command   filter by command
      * @param status    filter by status
      * @param sortField either "Timestamp", "Command" or "Status"
-     * @param sortOrder ASC or DESC
+     * @param sortOrderSt ASC or DESC
      * @param take      like mysql LIMIT
      * @param skip      like mysql OFFSET
      * @return list of device command with status 200, otherwise empty response with status 400
@@ -361,20 +364,21 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
     public Response query(@PathParam(DEVICE_GUID) String guid,
-                          @QueryParam(START) Timestamp start,
-                          @QueryParam(END) Timestamp end,
+                          @QueryParam(START) String startTs,
+                          @QueryParam(END) String endTs,
                           @QueryParam(COMMAND) String command,
                           @QueryParam(STATUS) String status,
                           @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
-                          @QueryParam(SORT_ORDER) @SortOrder Boolean sortOrder,
+                          @QueryParam(SORT_ORDER) String sortOrderSt,
                           @QueryParam(TAKE) Integer take,
                           @QueryParam(SKIP) Integer skip,
                           @QueryParam(GRID_INTERVAL) Integer gridInterval) {
 
         logger.debug("Device command query requested");
-        if (sortOrder == null) {
-            sortOrder = true;
-        }
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+
+        Timestamp start = TimestampQueryParamParser.parse(startTs);
+        Timestamp end = TimestampQueryParamParser.parse(endTs);
 
         if (!TIMESTAMP.equalsIgnoreCase(sortField)
                 && !COMMAND.equalsIgnoreCase(sortField)
