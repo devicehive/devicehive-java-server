@@ -38,9 +38,8 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="ASYNC"/>
-        <appender-ref ref="STDOUT" />
     </root>
 
 
