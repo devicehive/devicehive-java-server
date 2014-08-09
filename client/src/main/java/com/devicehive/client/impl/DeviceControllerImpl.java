@@ -31,7 +31,7 @@ class DeviceControllerImpl implements DeviceController {
 
     //for devices
     @Override
-    public List<Device> listDevices(String name, String namePattern, String status, Integer networkId,
+    public List<Device> listDevices(String name, String namePattern, String status, Long networkId,
                                     String networkName, Integer deviceClassId, String deviceClassName,
                                     String deviceClassVersion, String sortField, String sortOrder, Integer take,
                                     Integer skip) throws HiveException {
@@ -198,7 +198,7 @@ class DeviceControllerImpl implements DeviceController {
     @Override
     public void deleteDeviceClass(long classId) throws HiveException {
         logger.debug("DeviceClass: delete requested for class with id {}", classId);
-        String path = "/device/class" + classId;
+        String path = "/device/class/" + classId;
         restAgent.execute(path, HttpMethod.DELETE);
         logger.debug("DeviceClass: delete request proceed for class with id {}", classId);
     }

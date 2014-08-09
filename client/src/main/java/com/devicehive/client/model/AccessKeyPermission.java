@@ -3,6 +3,7 @@ package com.devicehive.client.model;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
@@ -27,17 +28,8 @@ public class AccessKeyPermission implements HiveEntity {
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED})
     private Set<String> devices;
 
-    private AccessKey accessKey;
 
     public AccessKeyPermission() {
-    }
-
-    public AccessKey getAccessKey() {
-        return accessKey;
-    }
-
-    public void setAccessKey(AccessKey accessKey) {
-        this.accessKey = accessKey;
     }
 
     public Set<String> getDomains() {
@@ -83,7 +75,6 @@ public class AccessKeyPermission implements HiveEntity {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("AccessKeyPermission{");
-        sb.append("accessKey=").append(accessKey);
         sb.append(", devices=").append(devices);
         sb.append(", networks=").append(networks);
         sb.append(", actions=").append(actions);
@@ -92,4 +83,30 @@ public class AccessKeyPermission implements HiveEntity {
         sb.append('}');
         return sb.toString();
     }
+
+    public static final String GET_NETWORK = "GetNetwork";
+    public static final String GET_DEVICE = "GetDevice";
+    public static final String GET_DEVICE_STATE = "GetDeviceState";
+    public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
+    public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
+    public static final String REGISTER_DEVICE = "RegisterDevice";
+    public static final String CREATE_DEVICE_NOTIFICATION = "CreateDeviceNotification";
+    public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
+    public static final String UPDATE_DEVICE_COMMAND = "UpdateDeviceCommand";
+
+    public static Set KNOWN_ACTIONS = new HashSet() {
+        {
+            add(GET_NETWORK.toUpperCase());
+            add(GET_DEVICE.toUpperCase());
+            add(GET_DEVICE_STATE.toUpperCase());
+            add(GET_DEVICE_NOTIFICATION.toUpperCase());
+            add(GET_DEVICE_COMMAND.toUpperCase());
+            add(REGISTER_DEVICE.toUpperCase());
+            add(CREATE_DEVICE_NOTIFICATION.toUpperCase());
+            add(CREATE_DEVICE_COMMAND.toUpperCase());
+            add(UPDATE_DEVICE_COMMAND.toUpperCase());
+        }
+
+        private static final long serialVersionUID = -6981208010851957614L;
+    };
 }

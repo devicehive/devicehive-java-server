@@ -38,42 +38,42 @@ public interface HiveClient extends AutoCloseable {
      *
      * @return access key controller
      */
-    AccessKeyController getAccessKeyController() throws HiveException;
+    AccessKeyController getAccessKeyController();
 
     /**
      * Return new instance of command controller
      *
      * @return command controller
      */
-    CommandsController getCommandsController() throws HiveException;
+    CommandsController getCommandsController();
 
     /**
      * Return new instance of device controller
      *
      * @return device controller
      */
-    DeviceController getDeviceController() throws HiveException;
+    DeviceController getDeviceController();
 
     /**
      * Return new instance of network controller
      *
      * @return network controller
      */
-    NetworkController getNetworkController() throws HiveException;
+    NetworkController getNetworkController();
 
     /**
      * Return new instance of notification controller
      *
      * @return notification controller
      */
-    NotificationsController getNotificationsController() throws HiveException;
+    NotificationsController getNotificationsController();
 
     /**
      * Return new instance of user controller.
      *
      * @return user controller
      */
-    UserController getUserController() throws HiveException;
+    UserController getUserController();
 
     void close();
 

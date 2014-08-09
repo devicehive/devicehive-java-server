@@ -38,7 +38,7 @@ public interface DeviceController {
      * @param skip               Number of records to skip in the result list.
      * @return list of <a href="http://www.devicehive.com/restful#Reference/Device">Devices</a>
      */
-    List<Device> listDevices(String name, String namePattern, String status, Integer networkId, String networkName,
+    List<Device> listDevices(String name, String namePattern, String status, Long networkId, String networkName,
                              Integer deviceClassId, String deviceClassName, String deviceClassVersion,
                              String sortField, String sortOrder, Integer take, Integer skip) throws HiveException;
 
