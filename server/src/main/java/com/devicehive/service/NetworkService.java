@@ -79,7 +79,6 @@ public class NetworkService {
         }
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean delete(long id) {
         return networkDAO.delete(id);
     }
