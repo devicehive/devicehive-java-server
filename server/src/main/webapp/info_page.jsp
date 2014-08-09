@@ -37,5 +37,8 @@
     </tr>
 </table>
 </p>
+
+<p>Build version: <%=request.getAttribute("build.version")%></p>
+<p>Build timestamp: <%=request.getAttribute("build.timestamp")%></p>
 </body>
 </html>
