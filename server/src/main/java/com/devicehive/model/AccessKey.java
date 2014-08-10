@@ -66,7 +66,7 @@ public class AccessKey implements HiveEntity {
             OAUTH_GRANT_LISTED})
     private String key;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", updatable = false)
     @NotNull(message = "User column cannot be null")
     private User user;
@@ -75,7 +75,7 @@ public class AccessKey implements HiveEntity {
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Timestamp expirationDate;
 
-    @OneToMany(mappedBy = "accessKey")
+    @OneToMany(mappedBy = "accessKey", fetch = FetchType.EAGER)
     @NotNull
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Set<AccessKeyPermission> permissions;
