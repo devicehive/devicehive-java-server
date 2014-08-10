@@ -40,7 +40,7 @@ In order to use DeviceHive framework you must have the following components inst
 * Oracle JDK 7 or OpenJDK 7 (this is requirement for Glassfish 4; Java EE 7 requires JDK 7). Oracle JDK 7 can be
 downloaded from http://www.oracle.com/technetwork/java/javase/downloads/index.html. If you would like to use Open JDK
  7 you have to use this link http://openjdk.java.net/install/ or install it from the distribution repository of your
- choice. Package java-1.7.0-openjdk-devel is required for Open JDK
+ choice. E.g. in Debian you can just install openjdk-7-jdk package.
 * Maven (http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava 
 * dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java)
 * DeviceHiveJava source files. This is the main part of the DeviceHive framework (https://github.com/devicehive/devicehive-java)
@@ -65,7 +65,7 @@ Database setup
 
 Glassfish configuration
 -----------------------
-* Install glassfish 4 as it described in the glassfish installation instructions (see https://glassfish.java.net/docs/4.0/installation-guide.pdf).
+* Install Glassfish 4 as it described in the glassfish installation instructions (see https://glassfish.java.net/docs/4.0/installation-guide.pdf).
 * Deploy PostgreSQL jdbc driver to glassfish. Just put postgresql-jdbc4.jar (or another postgresql jdbc driver suitable for your postgresql version) to ${glassfish installation directory}/glassfish/domains/${domain_dir}/lib/ext directory and restart glassfish.
 * Then, run server and open ${yourServerName}:4848
 * Navigate to Resources -> JDBC -> JDBC Connection Pools. You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
