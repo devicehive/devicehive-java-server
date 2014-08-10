@@ -94,17 +94,17 @@ public class AccessKeyPermission implements HiveEntity {
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
     public static final String UPDATE_DEVICE_COMMAND = "UpdateDeviceCommand";
 
-    public static Set KNOWN_ACTIONS = new HashSet() {
+    public static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
         {
-            add(GET_NETWORK.toUpperCase());
-            add(GET_DEVICE.toUpperCase());
-            add(GET_DEVICE_STATE.toUpperCase());
-            add(GET_DEVICE_NOTIFICATION.toUpperCase());
-            add(GET_DEVICE_COMMAND.toUpperCase());
-            add(REGISTER_DEVICE.toUpperCase());
-            add(CREATE_DEVICE_NOTIFICATION.toUpperCase());
-            add(CREATE_DEVICE_COMMAND.toUpperCase());
-            add(UPDATE_DEVICE_COMMAND.toUpperCase());
+            add(GET_NETWORK);
+            add(GET_DEVICE);
+            add(GET_DEVICE_STATE);
+            add(GET_DEVICE_NOTIFICATION);
+            add(GET_DEVICE_COMMAND);
+            add(REGISTER_DEVICE);
+            add(CREATE_DEVICE_NOTIFICATION);
+            add(CREATE_DEVICE_COMMAND);
+            add(UPDATE_DEVICE_COMMAND);
         }
 
         private static final long serialVersionUID = -6981208010851957614L;
