@@ -50,7 +50,7 @@ public class AccessKeyService {
         if (accessKey.getLabel() == null) {
             throw new HiveException(Messages.LABEL_IS_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
         }
-        if (accessKey.getId() != null || accessKey.getPermissions() == null) {
+        if (accessKey.getId() != null || accessKey.getPermissions() == null || accessKey.getPermissions().isEmpty()) {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                     Response.Status.BAD_REQUEST.getStatusCode());
         }
