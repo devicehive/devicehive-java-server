@@ -111,7 +111,7 @@ public class AccessKeyService {
     private void validateActions(AccessKey accessKey) {
         Set<String> actions = new HashSet<>();
         for (AccessKeyPermission permission : accessKey.getPermissions()) {
-            if (permission.getActions() == null) {
+            if (permission.getActionsAsSet() == null) {
                 throw new HiveException(Messages.ACTIONS_ARE_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
             }
             actions.addAll(permission.getActionsAsSet());
