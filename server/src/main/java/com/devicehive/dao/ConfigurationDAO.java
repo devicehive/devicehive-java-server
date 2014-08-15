@@ -16,6 +16,7 @@ import java.util.List;
 
 import static com.devicehive.model.Configuration.Queries.Names.DELETE;
 import static com.devicehive.model.Configuration.Queries.Names.GET_ALL;
+import static com.devicehive.model.Configuration.Queries.Names.GET_BY_NAME;
 import static com.devicehive.model.Configuration.Queries.Parameters.NAME;
 
 @Stateless
@@ -26,7 +27,10 @@ public class ConfigurationDAO {
     private EntityManager em;
 
     public Configuration findByName(@NotNull String name) {
-        return em.find(Configuration.class, name);
+        TypedQuery<Configuration> query = em.createNamedQuery(GET_BY_NAME, Configuration.class);
+        query.setParameter(NAME, name);
+        CacheHelper.cacheable(query);
+        return query.getSingleResult();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

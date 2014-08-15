@@ -96,4 +96,10 @@ CREATE INDEX user_network_network_id_user_id_idx ON user_network(network_id, use
 
 
 
+ALTER TABLE configuration DROP CONSTRAINT configuration_pk;
 
+ALTER TABLE configuration
+  add column id BIGSERIAL not null;
+
+ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (id);
+ALTER TABLE configuration ADD CONSTRAINT configuration_name_unique UNIQUE (name);

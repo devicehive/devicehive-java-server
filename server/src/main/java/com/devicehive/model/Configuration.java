@@ -2,14 +2,7 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Version;
+import javax.persistence.*;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
@@ -26,6 +19,7 @@ import static com.devicehive.model.Configuration.Queries.Values;
 @Table(name = "configuration")
 @NamedQueries({
         @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL),
+        @NamedQuery(name = Names.GET_BY_NAME, query = Values.GET_BY_NAME),
         @NamedQuery(name = Names.DELETE, query = Values.DELETE)
 })
 @Cacheable(true)
@@ -33,7 +27,13 @@ public class Configuration implements HiveEntity {
 
 
     private static final long serialVersionUID = 7957264089438389993L;
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true)
+    @NotNull(message = "name field cannot be null.")
     @SerializedName("name")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name should not be more than " +
             "32 symbols.")
@@ -73,6 +73,14 @@ public class Configuration implements HiveEntity {
         }
         return result;
 
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public long getEntityVersion() {
@@ -130,12 +138,14 @@ public class Configuration implements HiveEntity {
     public static class Queries {
         public static interface Names {
             static final String GET_ALL = "Configuration.getAll";
+            static final String GET_BY_NAME = "Configuration.getByName";
             static final String DELETE = "Configuration.delete";
         }
 
         static interface Values {
             public static final String GET_ALL = "select c from Configuration c";
             public static final String DELETE = "delete from Configuration c where c.name = :name";
+            public static final String GET_BY_NAME = "select c from Configuration c where c.name = :name";
         }
 
         public static interface Parameters {
