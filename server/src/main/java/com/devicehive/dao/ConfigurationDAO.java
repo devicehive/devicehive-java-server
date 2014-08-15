@@ -30,7 +30,8 @@ public class ConfigurationDAO {
         TypedQuery<Configuration> query = em.createNamedQuery(GET_BY_NAME, Configuration.class);
         query.setParameter(NAME, name);
         CacheHelper.cacheable(query);
-        return query.getSingleResult();
+        List<Configuration> list = query.getResultList();
+        return list.isEmpty() ? null : list.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
