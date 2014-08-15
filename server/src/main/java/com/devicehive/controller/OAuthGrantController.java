@@ -20,7 +20,6 @@ import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +64,7 @@ public class OAuthGrantController {
     @EJB
     private UserService userService;
 
+    @Inject
     private HiveSecurityContext hiveSecurityContext;
 
 

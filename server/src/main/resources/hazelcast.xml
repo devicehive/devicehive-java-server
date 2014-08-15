@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.2.xsd"
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.1.xsd"
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -7,17 +7,27 @@
         <name>DeviceHive</name>
         <password>DeviceHive</password>
     </group>
+    <!--<management-center enabled="true">-->
+        <!--http://adorofeev:8080/mancenter-3.1.7-->
+    <!--</management-center>-->
+
+    <management-center enabled="true">
+        http://devicehive1-java:8080/mancenter
+    </management-center>
+
     <properties>
         <property name="hazelcast.logging.type">slf4j</property>
     </properties>
 
     <network>
-        <port auto-increment="false" port-count="1">54701</port>
+        <!--<port auto-increment="false" port-count="1">54701</port>-->
+        <port auto-increment="false" port-count="1">44701</port>
         <outbound-ports>
             <ports>0</ports>
         </outbound-ports>
         <join>
-            <multicast enabled="false">
+            <multicast enabled="true">
+            <!--<multicast enabled="false">-->
                 <multicast-group>224.2.2.3</multicast-group>
                 <multicast-port>54327</multicast-port>
             </multicast>
@@ -37,4 +47,6 @@
     </serialization>
 
     <services enable-defaults="true" />
+
+
 </hazelcast>
