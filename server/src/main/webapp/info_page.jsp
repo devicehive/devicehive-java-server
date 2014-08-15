@@ -35,6 +35,17 @@
             <a href="<%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/device"><%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/device</a>
         </td>
     </tr>
+
+    <tr>
+        <td>
+            Autoconfigure endpoint URIs using current page
+        </td>
+        <td>
+            <form action="rest/configuration/auto" method="post">
+                <input type="submit" name="input" value="Configure"/>
+            </form>
+        </td>
+    </tr>
 </table>
 </p>
 
