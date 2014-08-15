@@ -1,9 +1,24 @@
 package com.devicehive.messaging;
 
 import com.devicehive.client.HiveClient;
-import com.devicehive.client.model.*;
+import com.devicehive.client.HiveDevice;
+import com.devicehive.client.HiveFactory;
+import com.devicehive.client.HiveMessageHandler;
+import com.devicehive.client.model.AccessKey;
+import com.devicehive.client.model.AccessKeyPermission;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceClass;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.Network;
+import com.devicehive.client.model.User;
+import com.devicehive.client.model.UserRole;
+import com.devicehive.client.model.UserStatus;
 import com.devicehive.client.model.exceptions.HiveException;
+import com.devicehive.messaging.config.Constants;
 import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,22 +29,22 @@ import java.util.UUID;
  */
 public class AdminTool {
 
-
+    private static final Logger logger = LoggerFactory.getLogger(AdminTool.class);
     private final static String DEVICE_NAME = "MessagingTestDevice";
     private final static String DEVICE_CLASS = "MessagingTestDeviceClass";
     private final static String NETWORK = "MessagingTestNetwork";
     private final static String USER = "MessagingTestUser";
-
     private HiveClient adminClient;
+    private List<HiveDevice> testDevices;
+    private List<HiveClient> testClients;
 
 
     public AdminTool(HiveClient adminClient) {
         this.adminClient = adminClient;
     }
 
-
     private void cleanUser() throws HiveException {
-        List<User> users =  adminClient.getUserController().listUsers(USER, null, null, null, null, null, null, null);
+        List<User> users = adminClient.getUserController().listUsers(USER, null, null, null, null, null, null, null);
         for (User user : users) {
             user.setStatus(UserStatus.LOCKED_OUT);
             adminClient.getUserController().updateUser(user);
@@ -67,7 +82,8 @@ public class AdminTool {
     private void cleanTestDevices() throws HiveException {
         List<Network> list = adminClient.getNetworkController().listNetworks(NETWORK, null, null, null, null, null);
         for (Network network : list) {
-            List<Device> devices = adminClient.getDeviceController().listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
+            List<Device> devices = adminClient.getDeviceController()
+                    .listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
             for (Device device : devices) {
                 adminClient.getDeviceController().deleteDevice(device.getId());
             }
@@ -77,10 +93,17 @@ public class AdminTool {
     public List<Device> prepareTestDevices(int deviceCount) throws HiveException {
         DeviceClass deviceClass = registerDeviceClass();
         Network network = registerNetwork();
-        return prepareTestDevices(deviceCount, deviceClass, network);
+        List<Device> created = prepareTestDevices(deviceCount, deviceClass, network);
+        for (Device currentDevice : created) {
+            HiveDevice hd = HiveFactory.createDevice(Constants.REST_URI, Constants.USE_SOCKETS);
+            hd.authenticate(currentDevice.getId(), currentDevice.getKey());
+            testDevices.add(hd);
+        }
+        return created;
     }
 
-    private List<Device> prepareTestDevices(int deviceCount, DeviceClass deviceClass, Network network) throws HiveException {
+    private List<Device> prepareTestDevices(int deviceCount, DeviceClass deviceClass, Network network)
+            throws HiveException {
         for (int i = 0; i < deviceCount; i++) {
             Device device = new Device();
             device.setId(DEVICE_NAME + i);
@@ -90,12 +113,13 @@ public class AdminTool {
             device.setKey(UUID.randomUUID().toString());
             adminClient.getDeviceController().registerDevice(device.getId(), device);
         }
-        return adminClient.getDeviceController().listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
+        return adminClient.getDeviceController()
+                .listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
     }
 
-
     private void cleanDeviceClass() throws HiveException {
-        List<DeviceClass> list = adminClient.getDeviceController().listDeviceClass(DEVICE_CLASS, null, null, null, null, null, null);
+        List<DeviceClass> list =
+                adminClient.getDeviceController().listDeviceClass(DEVICE_CLASS, null, null, null, null, null, null);
         for (DeviceClass deviceClass : list) {
             adminClient.getDeviceController().deleteDeviceClass(deviceClass.getId());
         }
@@ -130,18 +154,39 @@ public class AdminTool {
         return adminClient.getNetworkController().getNetwork(id);
     }
 
-
     public List<AccessKey> prepareKeys(List<Device> devices) throws HiveException {
         User user = findUser();
         List<AccessKey> res = new ArrayList<>();
-        for (Device device: devices) {
+        for (Device device : devices) {
             AccessKey key = createKey(device);
             key = adminClient.getAccessKeyController().insertKey(user.getId(), key);
             res.add(adminClient.getAccessKeyController().getKey(user.getId(), key.getId()));
         }
+        for (AccessKey currentKey : res) {
+            HiveClient hc = HiveFactory.createClient(Constants.REST_URI, Constants.USE_SOCKETS);
+            hc.authenticate(currentKey.getKey());
+            testClients.add(hc);
+        }
         return res;
     }
 
+    public void prepareSubscriptions(HiveMessageHandler<DeviceCommand> commandsHandler,
+                                     HiveMessageHandler<DeviceNotification> notificationsHandler) {
+        for (HiveDevice currentDevice : testDevices) {
+            try {
+                currentDevice.subscribeForCommands(null, commandsHandler);
+            } catch (HiveException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        for (HiveClient currentClient : testClients) {
+            try {
+                currentClient.getNotificationsController().subscribeForNotifications(null, notificationsHandler);
+            } catch (HiveException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+    }
 
     private AccessKey createKey(Device device) {
         AccessKey accessKey = new AccessKey();
@@ -154,6 +199,14 @@ public class AdminTool {
         return accessKey;
     }
 
+    private void cleanClients() {
+        for (HiveClient hc : testClients) {
+            hc.close();
+        }
+        for (HiveDevice hd : testDevices) {
+            hd.close();
+        }
+    }
 
     public void cleanup() throws HiveException {
         cleanKeys();
@@ -161,6 +214,7 @@ public class AdminTool {
         cleanNetwork();
         cleanDeviceClass();
         cleanUser();
+        cleanClients();
     }
 
 }
