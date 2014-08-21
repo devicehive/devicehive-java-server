@@ -14,12 +14,11 @@ import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.service.UserService;
-import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
+import com.devicehive.websockets.util.HiveEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,27 +113,31 @@ public class CommonHandlers extends WebsocketHandlers {
         if (hivePrincipal != null && hivePrincipal.isAuthenticated()) {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
-        if (login != null) {
+        HiveWebsocketSessionState state = (HiveWebsocketSessionState)
+                session.getUserProperties().get(HiveWebsocketSessionState.KEY);
+        if (login != null && state.getEndpoint().equals(HiveEndpoint.CLIENT)) {
             User user = userService.authenticate(login, password);
             if (user != null) {
                 hivePrincipal = new HivePrincipal(user, null, null);
             } else {
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
             }
-        } else if (key != null) {
+        } else if (key != null && state.getEndpoint().equals(HiveEndpoint.CLIENT)) {
             AccessKey accessKey = accessKeyService.authenticate(key);
             if (accessKey != null) {
                 hivePrincipal = new HivePrincipal(null, null, accessKey);
             } else {
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
             }
-        } else if (deviceId != null) {
+        } else if (deviceId != null && state.getEndpoint().equals(HiveEndpoint.DEVICE)) {
             Device device = deviceService.authenticate(deviceId, deviceKey);
             if (device != null) {
                 hivePrincipal = new HivePrincipal(null, device, null);
             } else {
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
             }
+        } else {
+            throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
         HiveWebsocketSessionState.get(session).setHivePrincipal(hivePrincipal);
         return new WebSocketResponse();
