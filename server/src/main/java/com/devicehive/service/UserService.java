@@ -84,14 +84,15 @@ public class UserService {
             return existing;
         }
         if (userToUpdate.getLogin() != null) {
-            User existingLogin = userDAO.findByLogin(userToUpdate.getLogin().getValue());
-            if (existingLogin != null && !existingLogin.getId().equals(id)) {
+            String newLogin =  StringUtils.trim(userToUpdate.getLogin().getValue());
+            User withSuchLogin = userDAO.findByLogin(newLogin);
+            if (withSuchLogin != null && !withSuchLogin.getId().equals(id)) {
                 throw new HiveException(Messages.DUPLICATE_LOGIN, FORBIDDEN.getStatusCode());
             }
-            existing.setLogin(userToUpdate.getLogin().getValue());
+            existing.setLogin(newLogin);
         }
         if (userToUpdate.getPassword() != null) {
-            if (userToUpdate.getPassword().getValue() == null || userToUpdate.getPassword().getValue().isEmpty()) {
+            if (StringUtils.isEmpty(userToUpdate.getPassword().getValue())) {
                 throw new HiveException(Messages.PASSWORD_REQUIRED, BAD_REQUEST.getStatusCode());
             }
             String salt = passwordService.generateSalt();
@@ -183,13 +184,10 @@ public class UserService {
         if (user.getId() != null) {
             throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
         }
-        User existing = userDAO.findByLogin(user.getLogin());
+        User existing = userDAO.findByLogin(StringUtils.trim(user.getLogin()));
         if (existing != null) {
             throw new HiveException(Messages.DUPLICATE_LOGIN,
                     FORBIDDEN.getStatusCode());
-        }
-        if (StringUtils.isBlank(password)) {
-            throw new HiveException(Messages.PASSWORD_REQUIRED, BAD_REQUEST.getStatusCode());
         }
         String salt = passwordService.generateSalt();
         String hash = passwordService.hashPassword(password, salt);
