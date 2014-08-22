@@ -13,23 +13,16 @@
     </properties>
 
     <network>
-        <port auto-increment="false" port-count="1">54701</port>
         <outbound-ports>
             <ports>0</ports>
         </outbound-ports>
         <join>
-            <multicast enabled="false">
-                <multicast-group>224.2.2.3</multicast-group>
-                <multicast-port>54327</multicast-port>
-            </multicast>
-            <tcp-ip enabled="false">
-                <interface>127.0.0.1</interface>
-            </tcp-ip>
-            <aws enabled="false">
-            </aws>
+            <multicast enabled="false"/>
+            <tcp-ip enabled="false"/>
+            <aws enabled="false"/>
         </join>
-        <interfaces enabled="false">
-            <interface>10.10.1.*</interface>
+        <interfaces>
+			<interface>127.0.0.1</interface>
         </interfaces>
     </network>
 
