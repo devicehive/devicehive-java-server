@@ -190,6 +190,10 @@ public class UserService {
             throw new HiveException(Messages.DUPLICATE_LOGIN,
                     FORBIDDEN.getStatusCode());
         }
+        if (StringUtils.isEmpty(password)){
+            throw new HiveException(Messages.PASSWORD_REQUIRED,
+                    BAD_REQUEST.getStatusCode());
+        }
         String salt = passwordService.generateSalt();
         String hash = passwordService.hashPassword(password, salt);
         user.setPasswordSalt(salt);
