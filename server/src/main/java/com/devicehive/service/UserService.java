@@ -184,7 +184,8 @@ public class UserService {
         if (user.getId() != null) {
             throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
         }
-        User existing = userDAO.findByLogin(StringUtils.trim(user.getLogin()));
+        user.setLogin(StringUtils.trim(user.getLogin()));
+        User existing = userDAO.findByLogin(user.getLogin());
         if (existing != null) {
             throw new HiveException(Messages.DUPLICATE_LOGIN,
                     FORBIDDEN.getStatusCode());
@@ -194,6 +195,7 @@ public class UserService {
         user.setPasswordSalt(salt);
         user.setPasswordHash(hash);
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
+
         return userDAO.create(user);
     }
 

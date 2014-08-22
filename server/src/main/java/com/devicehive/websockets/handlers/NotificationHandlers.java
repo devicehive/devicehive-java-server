@@ -248,6 +248,10 @@ public class NotificationHandlers extends WebsocketHandlers {
         } else {
             device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         }
+        if (device == null){
+            logger.debug("notification/insert canceled for session: {}. Guid is not provided", session);
+            throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_FORBIDDEN);
+        }
         if (device.getNetwork() == null) {
             logger.debug(
                     "notification/insert. No network specified for device with guid = {}", deviceGuid);
