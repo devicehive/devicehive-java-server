@@ -18,6 +18,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate-version>4.3.5.Final</hibernate-version>
         <hazelcast-version>3.1.7</hazelcast-version>
+        <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
+        <instance.id/>
     </properties>
 
     <dependencyManagement>

@@ -5,7 +5,7 @@
     <persistence-unit name="devicehive" transaction-type="JTA">
 
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-        <jta-data-source>jdbc/DeviceHiveDataSource</jta-data-source>
+        <jta-data-source>jdbc/DeviceHiveDataSource${instance.id}</jta-data-source>
         <class>com.devicehive.model.User</class>
         <class>com.devicehive.model.Device</class>
         <class>com.devicehive.model.DeviceClass</class>
