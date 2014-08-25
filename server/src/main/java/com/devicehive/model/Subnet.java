@@ -42,7 +42,6 @@ public class Subnet {
 
     public boolean isAddressFromSubnet(InetAddress ip) {
         if (ip instanceof Inet6Address) {
-            //TODO support for IPv6
             return false;
         }
         if (inetAddress.getHostAddress().equalsIgnoreCase(ip.getHostAddress()) && mask == 32) {

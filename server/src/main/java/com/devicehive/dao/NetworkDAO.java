@@ -197,4 +197,9 @@ public class NetworkDAO {
             }
         }
     }
+
+    public Network updateNetwork(@NotNull Network network){
+        em.merge(network);
+        return network;
+    }
 }

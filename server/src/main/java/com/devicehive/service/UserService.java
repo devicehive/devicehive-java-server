@@ -12,6 +12,7 @@ import com.devicehive.model.User;
 import com.devicehive.model.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
+import com.devicehive.util.HiveValidator;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
@@ -19,8 +20,6 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
@@ -45,9 +44,8 @@ public class UserService {
     private TimestampService timestampService;
     @EJB
     private ConfigurationService configurationService;
-    @Inject
-    private Validator validator;
-
+    @EJB
+    private HiveValidator hiveValidator;
     /**
      * Tries to authenticate with given credentials
      *
@@ -78,7 +76,7 @@ public class UserService {
         }
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public User updateUser(@NotNull Long id, UserUpdate userToUpdate) {
         User existing = userDAO.findById(id);
 
@@ -112,13 +110,8 @@ public class UserService {
             existing.setStatus(userToUpdate.getStatusEnum());
         }
 
-        Set<ConstraintViolation<User>> violations = validator.validate(existing);
-        if (violations.isEmpty()) {
-            userDAO.update(existing);
-            return existing;
-        } else {
-            throw new HiveException(StringUtils.join(violations.iterator(), ", "), BAD_REQUEST.getStatusCode());
-        }
+        hiveValidator.validate(existing);
+        return userDAO.update(existing);
     }
 
     /**
@@ -212,13 +205,8 @@ public class UserService {
         user.setPasswordHash(hash);
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-        if (violations.isEmpty()) {
-            return userDAO.create(user);
-        } else {
-            throw new HiveException(StringUtils.join(violations.iterator(), ", "), BAD_REQUEST.getStatusCode());
-        }
-
+        hiveValidator.validate(user);
+        return userDAO.create(user);
     }
 
     /**

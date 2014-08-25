@@ -8,18 +8,20 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.Device;
+import com.devicehive.model.Network;
+import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
-import com.google.common.collect.Sets;
+import com.devicehive.util.HiveValidator;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -41,10 +43,12 @@ public class NetworkService {
     private AccessKeyDAO accessKeyDAO;
     @EJB
     private DeviceService deviceService;
-
+    @EJB
+    private HiveValidator hiveValidator;
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveSecurityContext hiveSecurityContext) {
+    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId,
+                                                  @NotNull HiveSecurityContext hiveSecurityContext) {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (principal.getUser() != null) {
             List<Network> found = networkDAO.getNetworkList(principal.getUser(), null, Arrays.asList(networkId));
@@ -67,7 +71,9 @@ public class NetworkService {
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
             AccessKey currentKey = accessKeyDAO.getWithoutUser(user.getId(), key.getId());
-            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE, hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
+            Set<AccessKeyPermission> filtered = CheckPermissionsHelper
+                    .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
+                            hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
             if (filtered.isEmpty()) {
                 result.setDevices(null);
                 return result;
@@ -94,6 +100,7 @@ public class NetworkService {
         return networkDAO.createNetwork(newNetwork);
     }
 
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public Network update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
         Network existing = getById(networkId);
         if (existing == null) {
@@ -108,7 +115,8 @@ public class NetworkService {
         if (networkUpdate.getDescription() != null) {
             existing.setDescription(networkUpdate.getDescription().getValue());
         }
-        return existing;
+        hiveValidator.validate(existing);
+        return networkDAO.updateNetwork(existing);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)

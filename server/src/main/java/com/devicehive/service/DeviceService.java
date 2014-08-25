@@ -15,6 +15,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -57,6 +58,8 @@ public class DeviceService {
     private DeviceActivityService deviceActivityService;
     @EJB
     private AccessKeyService accessKeyService;
+    @EJB
+    private HiveValidator hiveValidator;
 
     @Inject
     private Event<DeviceNotification> event;
@@ -319,6 +322,7 @@ public class DeviceService {
         if (device.getDeviceClass() != null && device.getDeviceClass().getValue() == null) {
             throw new HiveException(Messages.EMPTY_DEVICE_CLASS);
         }
+        hiveValidator.validate(device);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)

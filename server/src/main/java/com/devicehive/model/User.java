@@ -92,30 +92,6 @@ public class User implements HiveEntity {
     private long entityVersion;
 
     /**
-     * Validates user representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
-     *
-     * @param user      User that should be validated
-     * @param validator Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(User user, Validator validator) {
-
-        Set<ConstraintViolation<User>> constraintViolations = validator.validate(user);
-        Set<String> result = new HashSet<>();
-
-        if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<User> cv : constraintViolations) {
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-            }
-        }
-
-        return result;
-
-    }
-
-    /**
      * @return true, if user is admin
      */
     public boolean isAdmin() {

@@ -40,6 +40,11 @@ public class EquipmentDAO {
         return equipment;
     }
 
+    public Equipment update (@NotNull Equipment equipment){
+        em.merge(equipment);
+        return equipment;
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Equipment> getByDeviceClass(DeviceClass deviceClass) {
         TypedQuery<Equipment> query = em.createNamedQuery(GET_BY_DEVICE_CLASS, Equipment.class);

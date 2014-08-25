@@ -7,6 +7,7 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
+import com.devicehive.util.HiveValidator;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -30,7 +31,8 @@ public class DeviceClassService {
     private DeviceClassDAO deviceClassDAO;
     @EJB
     private EquipmentService equipmentService;
-
+    @EJB
+    private HiveValidator hiveValidator;
     public boolean delete(@NotNull long id) {
         return deviceClassDAO.delete(id);
     }
@@ -127,6 +129,7 @@ public class DeviceClassService {
         if (update.getVersion() != null) {
             stored.setVersion(update.getVersion().getValue());
         }
+        hiveValidator.validate(stored);
         deviceClassDAO.updateDeviceClass(stored);
     }
 

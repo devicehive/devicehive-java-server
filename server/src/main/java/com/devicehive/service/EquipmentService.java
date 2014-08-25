@@ -4,11 +4,12 @@ import com.devicehive.dao.EquipmentDAO;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
+import com.devicehive.util.HiveValidator;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -17,11 +18,13 @@ import java.util.List;
  * be used directly from controller, please use this class instead
  */
 @Stateless
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class EquipmentService {
 
-    @Inject
+    @EJB
     private EquipmentDAO equipmentDAO;
-
+    @EJB
+    private HiveValidator validationUtil;
 
     /**
      * Delete Equipment (not DeviceEquipment, but whole equipment with appropriate device Equipments)
@@ -30,12 +33,10 @@ public class EquipmentService {
      * @param deviceClassId id of deviceClass which equipment belongs used to double check
      * @return true if deleted successfully
      */
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
         return equipmentDAO.delete(equipmentId, deviceClassId);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment create(Equipment equipment) {
         return equipmentDAO.create(equipment);
     }
@@ -47,17 +48,14 @@ public class EquipmentService {
      * @param equipmentId   id of equipment to get
      * @return
      */
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
         return equipmentDAO.getByDeviceClass(deviceClassId, equipmentId);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {
         return equipmentDAO.getByDeviceClass(deviceClass);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public int deleteByDeviceClass(@NotNull DeviceClass deviceClass) {
         return equipmentDAO.deleteByDeviceClass(deviceClass);
     }
@@ -90,6 +88,8 @@ public class EquipmentService {
         if (equipmentUpdate.getData() != null) {
             stored.setData(equipmentUpdate.getData().getValue());
         }
+        validationUtil.validate(stored);
+        equipmentDAO.update(stored);
         return true;
     }
 }

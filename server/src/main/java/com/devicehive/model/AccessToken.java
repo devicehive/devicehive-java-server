@@ -16,8 +16,6 @@ public class AccessToken implements HiveEntity {
     @SerializedName("expires_in")
     private Long expiresIn;
 
-    //todo refresh token?
-
     public String getAccessToken() {
         return accessToken;
     }

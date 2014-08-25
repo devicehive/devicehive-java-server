@@ -15,11 +15,15 @@ import com.devicehive.websockets.util.SessionMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
+import javax.ejb.Asynchronous;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.TransactionPhase;
 import javax.websocket.Session;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -38,7 +42,6 @@ public class LocalMessageBus {
     private SubscriptionManager subscriptionManager;
     @EJB
     private DeviceService deviceService;
-
     @EJB
     private SessionMonitor sessionMonitor;
 

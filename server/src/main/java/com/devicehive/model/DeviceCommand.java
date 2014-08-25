@@ -131,27 +131,6 @@ public class DeviceCommand implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
-    /**
-     * Validates deviceCommand representation. Returns set of strings which are represent constraint violations. Set
-     * will be empty if no constraint violations found.
-     *
-     * @param deviceCommand DeviceCommand that should be validated
-     * @param validator     Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(DeviceCommand deviceCommand, Validator validator) {
-        Set<ConstraintViolation<DeviceCommand>> constraintViolations = validator.validate(deviceCommand);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<DeviceCommand> cv : constraintViolations) {
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-            }
-        }
-        return result;
-
-    }
-
     public Long getId() {
         return id;
     }

@@ -103,26 +103,6 @@ public class Device implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
-    /**
-     * Validates device representation. Returns set of strings which are represent constraint violations. Set will be
-     * empty if no constraint violations found.
-     *
-     * @param device    Device that should be validated
-     * @param validator Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(Device device, Validator validator) {
-        Set<ConstraintViolation<Device>> constraintViolations = validator.validate(device);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<Device> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
-    }
-
     public long getEntityVersion() {
         return entityVersion;
     }

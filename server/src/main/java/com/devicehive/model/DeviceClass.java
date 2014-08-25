@@ -99,26 +99,6 @@ public class DeviceClass implements HiveEntity {
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_PUBLISHED})
     private Set<Equipment> equipment;
 
-    /**
-     * Validates deviceClass representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
-     *
-     * @param deviceClass DeviceClass that should be validated
-     * @param validator   Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(DeviceClass deviceClass, Validator validator) {
-        Set<ConstraintViolation<DeviceClass>> constraintViolations = validator.validate(deviceClass);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<DeviceClass> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
-    }
-
     public long getEntityVersion() {
         return entityVersion;
     }

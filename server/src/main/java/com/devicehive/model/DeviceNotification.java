@@ -86,27 +86,6 @@ public class DeviceNotification implements HiveEntity {
     public DeviceNotification() {
     }
 
-    /**
-     * Validates deviceNotification representation. Returns set of strings which are represent constraint violations.
-     * Set
-     * will be empty if no constraint violations found.
-     *
-     * @param deviceNotification DeviceCommand that should be validated
-     * @param validator          Validator
-     * @return Set of strings which are represent constraint violations
-     */
-    public static Set<String> validate(DeviceNotification deviceNotification, Validator validator) {
-        Set<ConstraintViolation<DeviceNotification>> constraintViolations = validator.validate(deviceNotification);
-        Set<String> result = new HashSet<>();
-        if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<DeviceNotification> cv : constraintViolations)
-                result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
-        }
-        return result;
-
-    }
-
     public Long getId() {
         return id;
     }

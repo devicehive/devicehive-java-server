@@ -12,6 +12,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.DeviceCommandUpdate;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 
 import javax.ejb.EJB;
@@ -20,12 +21,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
-import javax.inject.Qualifier;
 import javax.validation.constraints.NotNull;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +39,8 @@ public class DeviceCommandService {
     private DeviceService deviceService;
     @EJB
     private TimestampService timestampService;
+    @EJB
+    private HiveValidator hiveValidator;
 
     @Inject
     @Create
@@ -152,6 +150,7 @@ public class DeviceCommandService {
         if (update.getTimestamp() != null) {
             cmd.setTimestamp(update.getTimestamp().getValue());
         }
+        hiveValidator.validate(cmd);
         return cmd;
     }
 
