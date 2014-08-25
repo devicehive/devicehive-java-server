@@ -19,6 +19,8 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +45,8 @@ public class UserService {
     private TimestampService timestampService;
     @EJB
     private ConfigurationService configurationService;
+    @Inject
+    private Validator validator;
 
     /**
      * Tries to authenticate with given credentials
@@ -74,6 +78,7 @@ public class UserService {
         }
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public User updateUser(@NotNull Long id, UserUpdate userToUpdate) {
         User existing = userDAO.findById(id);
 
@@ -84,7 +89,7 @@ public class UserService {
             return existing;
         }
         if (userToUpdate.getLogin() != null) {
-            String newLogin =  StringUtils.trim(userToUpdate.getLogin().getValue());
+            String newLogin = StringUtils.trim(userToUpdate.getLogin().getValue());
             User withSuchLogin = userDAO.findByLogin(newLogin);
             if (withSuchLogin != null && !withSuchLogin.getId().equals(id)) {
                 throw new HiveException(Messages.DUPLICATE_LOGIN, FORBIDDEN.getStatusCode());
@@ -106,7 +111,14 @@ public class UserService {
         if (userToUpdate.getStatus() != null) {
             existing.setStatus(userToUpdate.getStatusEnum());
         }
-        return existing;
+
+        Set<ConstraintViolation<User>> violations = validator.validate(existing);
+        if (violations.isEmpty()) {
+            userDAO.update(existing);
+            return existing;
+        } else {
+            throw new HiveException(StringUtils.join(violations.iterator(), ", "), BAD_REQUEST.getStatusCode());
+        }
     }
 
     /**
@@ -190,7 +202,7 @@ public class UserService {
             throw new HiveException(Messages.DUPLICATE_LOGIN,
                     FORBIDDEN.getStatusCode());
         }
-        if (StringUtils.isEmpty(password)){
+        if (StringUtils.isEmpty(password)) {
             throw new HiveException(Messages.PASSWORD_REQUIRED,
                     BAD_REQUEST.getStatusCode());
         }
@@ -200,7 +212,13 @@ public class UserService {
         user.setPasswordHash(hash);
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
 
-        return userDAO.create(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        if (violations.isEmpty()) {
+            return userDAO.create(user);
+        } else {
+            throw new HiveException(StringUtils.join(violations.iterator(), ", "), BAD_REQUEST.getStatusCode());
+        }
+
     }
 
     /**

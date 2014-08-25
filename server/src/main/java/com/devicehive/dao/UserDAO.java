@@ -19,6 +19,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,6 +160,11 @@ public class UserDAO {
 
     public User create(User user) {
         em.persist(user);
+        return user;
+    }
+
+    public User update(@NotNull @Valid User user) {
+        em.merge(user);
         return user;
     }
 }
