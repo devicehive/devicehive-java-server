@@ -38,9 +38,16 @@ public class AdminTool {
     private List<HiveDevice> testDevices;
     private List<HiveClient> testClients;
 
-
     public AdminTool(HiveClient adminClient) {
         this.adminClient = adminClient;
+    }
+
+    public List<HiveDevice> getTestDevices() {
+        return testDevices;
+    }
+
+    public List<HiveClient> getTestClients() {
+        return testClients;
     }
 
     private void cleanUser() throws HiveException {
@@ -200,11 +207,15 @@ public class AdminTool {
     }
 
     private void cleanClients() {
-        for (HiveClient hc : testClients) {
-            hc.close();
+        if (testClients != null) {
+            for (HiveClient hc : testClients) {
+                hc.close();
+            }
         }
-        for (HiveDevice hd : testDevices) {
-            hd.close();
+        if (testDevices != null) {
+            for (HiveDevice hd : testDevices) {
+                hd.close();
+            }
         }
     }
 

@@ -1,8 +1,7 @@
 package com.devicehive.client.model;
 
-import org.apache.commons.lang3.ObjectUtils;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Tool for differentiate entity that was not set and entity which were set null
@@ -39,7 +38,7 @@ public class NullableWrapper<K> implements Serializable {
 
     @Override
     public String toString() {
-        return ObjectUtils.toString(value, null);
+        return Objects.toString(value, null);
     }
 
 }

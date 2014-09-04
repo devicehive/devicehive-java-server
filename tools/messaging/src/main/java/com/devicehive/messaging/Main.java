@@ -15,11 +15,11 @@ import java.util.List;
 public class Main {
 
 
-    public static void main(String... args) throws HiveException {
+    public static void main(String... args) throws HiveException, InterruptedException {
         HiveClient hiveClient = null;
         AdminTool adminTool = null;
         try {
-            hiveClient = HiveFactory.createClient(Constants.REST_URI, false);
+            hiveClient = HiveFactory.createClient(Constants.REST_URI, true);
             hiveClient.authenticate("dhadmin", "dhadmin_#911");
             adminTool = new AdminTool(hiveClient);
             adminTool.cleanup();
@@ -27,6 +27,11 @@ public class Main {
             List<AccessKey> keys = adminTool.prepareKeys(devices);
             Messager msg = new Messager();
             adminTool.prepareSubscriptions(msg.getCommandsHandler(), msg.getNotificationsHandler());
+            msg.startSendCommands(devices, adminTool.getTestClients());
+            msg.startSendNotifications(adminTool.getTestDevices());
+            Thread.currentThread().join(1_000L);
+        } catch (Exception e){
+            System.err.print(e);
         } finally {
             if (adminTool != null) {
                 adminTool.cleanup();

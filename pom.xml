@@ -19,6 +19,7 @@
         <hibernate-version>4.3.5.Final</hibernate-version>
         <hazelcast-version>3.1.7</hazelcast-version>
         <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
+        <glassfish.tyrus>1.8.2</glassfish.tyrus>
         <instance.id/>
     </properties>
 
@@ -144,19 +145,15 @@
                 <version>2.3.1</version>
             </dependency>
 
-
-
-
-
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
                 <artifactId>tyrus-container-grizzly-client</artifactId>
-                <version>1.7</version>
+                <version>${glassfish.tyrus}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
                 <artifactId>tyrus-client</artifactId>
-                <version>1.7</version>
+                <version>${glassfish.tyrus}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.jersey.core</groupId>

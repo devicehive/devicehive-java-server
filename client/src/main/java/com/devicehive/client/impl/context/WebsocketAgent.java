@@ -23,23 +23,40 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.*;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.client.impl.websocket.JsonEncoder.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
+import static com.devicehive.client.impl.websocket.JsonEncoder.ACTION_MEMBER;
+import static com.devicehive.client.impl.websocket.JsonEncoder.COMMAND_INSERT;
+import static com.devicehive.client.impl.websocket.JsonEncoder.COMMAND_MEMBER;
+import static com.devicehive.client.impl.websocket.JsonEncoder.COMMAND_UPDATE;
+import static com.devicehive.client.impl.websocket.JsonEncoder.NOTIFICATION_INSERT;
+import static com.devicehive.client.impl.websocket.JsonEncoder.NOTIFICATION_MEMBER;
+import static com.devicehive.client.impl.websocket.JsonEncoder.SUBSCRIPTION_ID;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 
@@ -54,9 +71,8 @@ public class WebsocketAgent extends RestAgent {
     private final ConcurrentMap<String, String> serverToLocalSubIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage =
             new ConcurrentHashMap<>();
-
     private final ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(50);
-
+    private Endpoint endpoint;
 
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap = new ConcurrentHashMap<>();
     private Session currentSession;
@@ -65,6 +81,8 @@ public class WebsocketAgent extends RestAgent {
     public WebsocketAgent(ConnectionLostCallback connectionLostCallback, ConnectionRestoredCallback connectionRestoredCallback, URI restUri, String role) {
         super(connectionLostCallback, connectionRestoredCallback, restUri);
         this.role = role;
+        EndpointFactory factory = new EndpointFactory();
+        endpoint = factory.createEndpoint();
     }
 
     private ClientManager getClient() {
@@ -91,7 +109,7 @@ public class WebsocketAgent extends RestAgent {
                 return super.onConnectFailure(exception);
             }
         };
-        client.getProperties().put(ClientManager.RECONNECT_HANDLER, reconnectHandler);
+        client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
         return client;
     }
 
@@ -104,70 +122,7 @@ public class WebsocketAgent extends RestAgent {
         }
         URI wsUri = URI.create(basicUrl + "/" + role);
         try {
-            getClient().connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(final Session session, EndpointConfig config) {
-                    try {
-                        connectionLock.writeLock().lock();
-                        logger.info("[onOpen] User session: {}", session);
-                        SessionMonitor sessionMonitor = new SessionMonitor(session);
-                        session.getUserProperties().put(SessionMonitor.SESSION_MONITOR_KEY, sessionMonitor);
-                        session.addMessageHandler(new HiveWebsocketHandler(WebsocketAgent.this, websocketResponsesMap));
-                        boolean reconnect = currentSession != null;
-                        currentSession = session;
-                        if (reconnect) {
-
-                            try {
-                                resubscribe();
-                                connectionStateExecutor.submit(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (connectionRestoredCallback != null) {
-                                            connectionRestoredCallback.connectionRestored();
-                                        }
-                                    }
-                                });
-                            } catch (final HiveException he) {
-                                logger.error("Can not restore session context", he);
-                                connectionStateExecutor.submit(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, "Can not restore session context"));
-                                        } catch (IOException e1) {
-                                            logger.error("Can not close session", e1);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    } finally {
-                        connectionLock.writeLock().unlock();
-                    }
-                }
-
-                @Override
-                public void onClose(Session session, CloseReason reason) {
-                    try {
-                        connectionLock.writeLock().lock();
-                        logger.info("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
-                                reason.getCloseCode
-                                        ().getCode());
-                        SessionMonitor sessionMonitor =
-                                (SessionMonitor) session.getUserProperties().get(SessionMonitor.SESSION_MONITOR_KEY);
-                        if (sessionMonitor != null) {
-                            sessionMonitor.close();
-                        }
-                    } finally {
-                        connectionLock.writeLock().unlock();
-                    }
-                }
-
-                @Override
-                public void onError(Session session, Throwable thr) {
-                    logger.error("[onError] ", thr);
-                }
-            }, ClientEndpointConfig.Builder.create().build(), wsUri);
+            getClient().connectToServer(endpoint, ClientEndpointConfig.Builder.create().build(), wsUri);
         } catch (IOException | DeploymentException e) {
             throw new HiveException("Can not connect to websockets", e);
         }
@@ -495,4 +450,78 @@ public class WebsocketAgent extends RestAgent {
             }
         });
     }
+
+    private final class EndpointFactory {
+
+        private EndpointFactory() {
+        }
+
+        private Endpoint createEndpoint(){
+            return new Endpoint() {
+                @Override
+                public void onOpen(final Session session, EndpointConfig config) {
+                    try {
+//                        connectionLock.writeLock().lock();
+                        logger.info("[onOpen] User session: {}", session);
+                        SessionMonitor sessionMonitor = new SessionMonitor(session);
+                        session.getUserProperties().put(SessionMonitor.SESSION_MONITOR_KEY, sessionMonitor);
+                        session.addMessageHandler(new HiveWebsocketHandler(WebsocketAgent.this, websocketResponsesMap));
+                        boolean reconnect = currentSession != null;
+                        currentSession = session;
+                        if (reconnect) {
+
+                            try {
+                                resubscribe();
+                                connectionStateExecutor.submit(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (connectionRestoredCallback != null) {
+                                            connectionRestoredCallback.connectionRestored();
+                                        }
+                                    }
+                                });
+                            } catch (final HiveException he) {
+                                logger.error("Can not restore session context", he);
+                                connectionStateExecutor.submit(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, "Can not restore session context"));
+                                        } catch (IOException e1) {
+                                            logger.error("Can not close session", e1);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    } finally {
+//                        connectionLock.writeLock().unlock();
+                    }
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason reason) {
+                    try {
+//                        connectionLock.writeLock().lock();
+                        logger.info("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
+                                reason.getCloseCode
+                                        ().getCode());
+                        SessionMonitor sessionMonitor =
+                                (SessionMonitor) session.getUserProperties().get(SessionMonitor.SESSION_MONITOR_KEY);
+                        if (sessionMonitor != null) {
+                            sessionMonitor.close();
+                        }
+                    } finally {
+//                        connectionLock.writeLock().unlock();
+                    }
+                }
+
+                @Override
+                public void onError(Session session, Throwable thr) {
+                    logger.error("[onError] ", thr);
+                }
+            };
+        }
+    }
+
 }
