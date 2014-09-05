@@ -41,12 +41,12 @@ public class DeviceClassDAO {
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceClass> criteria = criteriaBuilder.createQuery(DeviceClass.class);
-        Root from = criteria.from(DeviceClass.class);
+        Root<DeviceClass> from = criteria.from(DeviceClass.class);
 
         List<Predicate> predicates = new ArrayList<>();
 
         if (namePattern != null) {
-            predicates.add(criteriaBuilder.like(from.get(DeviceClass.NAME_COLUMN), namePattern));
+            predicates.add(criteriaBuilder.like(from.<String>get(DeviceClass.NAME_COLUMN), namePattern));
         } else {
             if (name != null) {
                 predicates.add(criteriaBuilder.equal(from.get(DeviceClass.NAME_COLUMN), name));

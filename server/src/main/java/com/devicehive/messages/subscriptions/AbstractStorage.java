@@ -48,12 +48,12 @@ public class AbstractStorage<E, T extends Subscription<E,?>> {
 
     public Set<T> get(E eventPoint) {
         Set<T> set = byEventSource.get(eventPoint);
-        return set != null ? set : Collections.EMPTY_SET;
+        return set != null ? set : Collections.<T>emptySet();
     }
 
     public Set<T> get(UUID id) {
         Set<T> set = bySubscriptionId.get(id);
-        return set != null ? set : Collections.EMPTY_SET;
+        return set != null ? set : Collections.<T>emptySet();
     }
 
     public synchronized void remove(T subscription) {

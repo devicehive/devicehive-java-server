@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class WebsocketMessageContext implements Context {
+public class WebsocketMessageContext<T> implements Context {
     private static final Logger logger = LoggerFactory.getLogger(WebsocketContextExtension.class);
 
     private final ThreadLocal<Map<Contextual, BeanInfo>> beanStore = new ThreadLocal<>();
@@ -27,8 +27,6 @@ public class WebsocketMessageContext implements Context {
     public WebsocketMessageContext() {
         logger.info("WebsocketMessageContext is created.");
     }
-
-
 
     @Override
     public Class<? extends Annotation> getScope() {
@@ -47,7 +45,6 @@ public class WebsocketMessageContext implements Context {
     @Override
     public <T> T get(Contextual<T> contextual) {
         checkActive();
-        @SuppressWarnings("unchecked")
         BeanInfo<T> info = beanStore.get().get(contextual);
         return info != null ? info.getInstance() : null;
     }

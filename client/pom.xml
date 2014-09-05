@@ -89,7 +89,7 @@
                         </manifest>
                     </archive>
                     <appendAssemblyId>false</appendAssemblyId>
-                    <finalName>dhclient-${parent.version}</finalName>
+                    <finalName>dhclient-${project.parent.version}</finalName>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>

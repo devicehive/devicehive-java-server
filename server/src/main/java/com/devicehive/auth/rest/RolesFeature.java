@@ -27,12 +27,12 @@ public class RolesFeature implements DynamicFeature {
             return;
         }
 
-        Class resourceClass = resourceInfo.getResourceClass();
+        Class<?> resourceClass = resourceInfo.getResourceClass();
         if (resourceClass.isAnnotationPresent(DenyAll.class)) {
             context.register(new DenyAllFilter());
             return;
         } else if (resourceClass.isAnnotationPresent(RolesAllowed.class)) {
-            RolesAllowed rolesAllowed = (RolesAllowed) resourceClass.getAnnotation(RolesAllowed.class);
+            RolesAllowed rolesAllowed = resourceClass.getAnnotation(RolesAllowed.class);
             context.register(new RolesAllowedFilter(Arrays.asList(rolesAllowed.value())));
             return;
         } else if (method.isAnnotationPresent(PermitAll.class)) {

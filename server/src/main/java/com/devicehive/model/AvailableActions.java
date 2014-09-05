@@ -15,7 +15,7 @@ public class AvailableActions {
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
     public static final String UPDATE_DEVICE_COMMAND = "UpdateDeviceCommand";
 
-    private static Set KNOWN_ACTIONS = new HashSet() {
+    private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
         {
             add(GET_NETWORK.toUpperCase());
             add(GET_DEVICE.toUpperCase());
@@ -30,11 +30,6 @@ public class AvailableActions {
 
         private static final long serialVersionUID = -6981208010851957614L;
     };
-
-    public static boolean isAvailable(String action) {
-        String actionUpper = action.toUpperCase();
-        return KNOWN_ACTIONS.contains(actionUpper);
-    }
 
     public static boolean validate(Set<String> actions) {
         for (String current : actions) {

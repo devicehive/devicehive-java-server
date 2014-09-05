@@ -111,7 +111,17 @@ public class CommonHandlers extends WebsocketHandlers {
         logger.debug("authenticate action for {} ", login);
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
         if (hivePrincipal != null && hivePrincipal.isAuthenticated()) {
-            throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
+            if (hivePrincipal.getUser() != null) {
+                if (!hivePrincipal.getUser().getLogin().equals(login)) {
+                    throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
+                }
+            } else if (hivePrincipal.getDevice() != null) {
+                if (!hivePrincipal.getDevice().getGuid().equals(deviceId)) {
+                    throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
+                }
+            } else if (!hivePrincipal.getKey().getKey().equals(key)) {
+                throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
+            }
         }
         HiveWebsocketSessionState state = (HiveWebsocketSessionState)
                 session.getUserProperties().get(HiveWebsocketSessionState.KEY);
