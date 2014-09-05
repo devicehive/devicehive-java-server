@@ -16,22 +16,23 @@ public class HiveClientWebsocketImpl extends HiveClientRestImpl {
         this.websocketAgent = websocketAgent;
     }
 
+    @Override
     public void authenticate(String login, String password) throws HiveException {
-        super.authenticate(login,password);
         websocketAgent.authenticate(HivePrincipal.createUser(login, password));
     }
 
+    @Override
     public void authenticate(String accessKey) throws HiveException {
         super.authenticate(accessKey);
         websocketAgent.authenticate(HivePrincipal.createAccessKey(accessKey));
     }
 
-
+    @Override
     public CommandsController getCommandsController() {
         return new CommandsControllerWebsocketImpl(websocketAgent);
     }
 
-
+    @Override
     public NotificationsController getNotificationsController() {
         return new NotificationsControllerWebsocketImpl(websocketAgent);
     }

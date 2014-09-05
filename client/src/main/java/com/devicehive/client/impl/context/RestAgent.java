@@ -11,7 +11,13 @@ import com.devicehive.client.impl.rest.providers.CollectionProvider;
 import com.devicehive.client.impl.rest.providers.HiveEntityProvider;
 import com.devicehive.client.impl.rest.providers.JsonRawProvider;
 import com.devicehive.client.impl.util.Messages;
-import com.devicehive.client.model.*;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.CommandPollManyResponse;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.ErrorMessage;
+import com.devicehive.client.model.NotificationPollManyResponse;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
@@ -31,7 +37,11 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -55,27 +65,15 @@ public class RestAgent extends AbstractHiveAgent {
     private static final String KEY_AUTH_SCHEMA = "Bearer";
     private static final int TIMEOUT = 60;
     protected final URI restUri;
-
     private final ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(50);
     private ConcurrentMap<String, Future> commandSubscriptionsResults = new ConcurrentHashMap<>();
     private ConcurrentMap<String, Future> notificationSubscriptionResults = new ConcurrentHashMap<>();
-
     private Client restClient;
 
-    public RestAgent(ConnectionLostCallback connectionLostCallback, ConnectionRestoredCallback connectionRestoredCallback, URI restUri) {
+    public RestAgent(ConnectionLostCallback connectionLostCallback,
+                     ConnectionRestoredCallback connectionRestoredCallback, URI restUri) {
         super(connectionLostCallback, connectionRestoredCallback);
         this.restUri = restUri;
-    }
-
-
-    @Override
-    public void authenticate(HivePrincipal hivePrincipal) throws HiveException {
-        connectionLock.writeLock().lock();
-        try {
-            super.authenticate(hivePrincipal);
-        } finally {
-            connectionLock.writeLock().unlock();
-        }
     }
 
     @Override
@@ -111,8 +109,6 @@ public class RestAgent extends AbstractHiveAgent {
     @Override
     protected void afterDisconnect() {
     }
-
-
 
     public boolean checkConnection() {
         try {
@@ -194,7 +190,6 @@ public class RestAgent extends AbstractHiveAgent {
         return execute(path, method, headers, null, null, typeOfR, null, receivePolicy);
     }
 
-
     /**
      * Executes request with following params using forms
      *
@@ -273,7 +268,6 @@ public class RestAgent extends AbstractHiveAgent {
                 throw new HiveException(Messages.UNKNOWN_RESPONSE);
         }
     }
-
 
     private Map<String, String> getAuthHeaders() {
         Map<String, String> headers = Maps.newHashMap();
@@ -361,7 +355,6 @@ public class RestAgent extends AbstractHiveAgent {
         }
         throw new InternalHiveClientException(Messages.FORM_PARAMS_ARE_NULL);
     }
-
 
     public String subscribeForCommands(final SubscriptionFilter newFilter,
                                        final HiveMessageHandler<DeviceCommand> handler)

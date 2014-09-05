@@ -75,6 +75,28 @@ public interface HiveClient extends AutoCloseable {
      */
     UserController getUserController();
 
+    /**
+     * Return new instance of OAuth controller.
+     *
+     * @return user controller
+     */
+    OAuthClientController getOAuthClientController();
+
+    /**
+     * Return new instance of OAuth client controller.
+     *
+     * @return user controller
+     */
+    OAuthGrantController getOAuthGrantController();
+
+    /**
+     * Return new instance of OAuth token controller.
+     *
+     * @return user controller
+     */
+    OAuthTokenController getOAuthTokenController();
+
+
     void close();
 
 }

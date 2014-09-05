@@ -380,6 +380,7 @@ public class WebsocketAgent extends RestAgent {
 
     @Override
     public void authenticate(HivePrincipal principal) throws HiveException {
+        super.authenticate(principal);
         JsonObject request = new JsonObject();
         request.addProperty(ACTION_MEMBER, "authenticate");
         if (principal.getUser() != null) {
@@ -393,14 +394,7 @@ public class WebsocketAgent extends RestAgent {
         } else {
             throw new IllegalArgumentException(Messages.INVALID_HIVE_PRINCIPAL);
         }
-
-        subscriptionsLock.writeLock().lock();
-        try {
-            super.authenticate(principal);
-            sendMessage(request);
-        } finally {
-            subscriptionsLock.writeLock().unlock();
-        }
+        sendMessage(request);
     }
 
     public void addCommandUpdateSubscription(Long commandId, String guid, HiveMessageHandler<DeviceCommand> handler) {
