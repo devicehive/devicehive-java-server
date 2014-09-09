@@ -1,6 +1,9 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.*;
+import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
@@ -27,7 +30,6 @@ import com.devicehive.service.TimestampService;
 import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +102,6 @@ public class DeviceCommandController {
      * @param deviceGuid Device unique identifier.
      * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
      * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
-     * @return Array of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
@@ -190,7 +191,7 @@ public class DeviceCommandController {
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            RestHandlerCreator<DeviceCommand> restHandlerCreator = new RestHandlerCreator<>();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
             if (devices != null) {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
@@ -221,7 +222,6 @@ public class DeviceCommandController {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/wait">DeviceHive RESTful API: DeviceCommand: wait</a>
      *
      * @param timeout Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
-     * @return One of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceCommand</a>
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
@@ -302,7 +302,7 @@ public class DeviceCommandController {
         if (command.getEntityVersion() == 0) {
             CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            RestHandlerCreator<DeviceCommand> restHandlerCreator = new RestHandlerCreator<>();
             CommandUpdateSubscription commandSubscription =
                     new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
 

@@ -6,16 +6,17 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.sql.Timestamp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
+@SuppressWarnings({"serialization"})
 public class AccessKeyCommonTest {
 
     private static User CLIENT = new User() {{
@@ -23,13 +24,19 @@ public class AccessKeyCommonTest {
         setLogin("client");
         setRole(UserRole.CLIENT);
         setStatus(UserStatus.ACTIVE);
-    }};
+    }
+
+        private static final long serialVersionUID = 2596203145671715890L;
+    };
     private static User ADMIN = new User() {{
         setId(Constants.ACTIVE_ADMIN_ID);
         setLogin("admin");
         setRole(UserRole.ADMIN);
         setStatus(UserStatus.ACTIVE);
-    }};
+    }
+
+        private static final long serialVersionUID = -5580164266287051549L;
+    };
 
     @Test
     public void userStatusTest() throws Exception {

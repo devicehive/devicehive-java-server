@@ -1,7 +1,10 @@
 package com.devicehive.websockets.handlers;
 
 
-import com.devicehive.auth.*;
+import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -16,13 +19,10 @@ import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
-import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
-import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.FlushQueue;
@@ -38,12 +38,29 @@ import javax.inject.Inject;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.*;
-import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static javax.servlet.http.HttpServletResponse.*;
+import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_COMMAND;
+import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_COMMAND;
+import static com.devicehive.auth.AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND;
+import static com.devicehive.configuration.Constants.COMMAND;
+import static com.devicehive.configuration.Constants.COMMAND_ID;
+import static com.devicehive.configuration.Constants.DEVICE_GUID;
+import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
+import static com.devicehive.configuration.Constants.NAMES;
+import static com.devicehive.configuration.Constants.SUBSCRIPTION;
+import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
+import static com.devicehive.configuration.Constants.TIMESTAMP;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 
 public class CommandHandlers extends WebsocketHandlers {
@@ -61,10 +78,8 @@ public class CommandHandlers extends WebsocketHandlers {
     private TimestampService timestampService;
     @EJB
     private SubscriptionSessionMap subscriptionSessionMap;
-
     @Inject
     private HiveSecurityContext hiveSecurityContext;
-
     @Inject
     @FlushQueue
     private Event<Session> event;
@@ -114,9 +129,13 @@ public class CommandHandlers extends WebsocketHandlers {
             return deviceIdSet;
         }
         if (deviceIdSet == null) {
-            return new HashSet<String>() {{
-                add(deviceId);
-            }};
+            return new HashSet<String>() {
+                {
+                    add(deviceId);
+                }
+
+                private static final long serialVersionUID = -8657632518613033661L;
+            };
         }
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
 
@@ -172,7 +191,7 @@ public class CommandHandlers extends WebsocketHandlers {
             List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             if (!commands.isEmpty()) {
                 for (DeviceCommand deviceCommand : commands) {
-                    state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand,reqId));
+                    state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
                 }
             }
             return reqId;
@@ -196,9 +215,13 @@ public class CommandHandlers extends WebsocketHandlers {
             Set<UUID> subscriptions = new HashSet<>();
             if (subId == null) {
                 if (deviceGuids == null) {
-                    Set<String> subForAll = new HashSet<String>() {{
-                        add(Constants.NULL_SUBSTITUTE);
-                    }};
+                    Set<String> subForAll = new HashSet<String>() {
+                        {
+                            add(Constants.NULL_SUBSTITUTE);
+                        }
+
+                        private static final long serialVersionUID = 8001668138178383978L;
+                    };
                     subscriptions.addAll(state.removeOldFormatCommandSubscription(subForAll));
                 } else
                     subscriptions.addAll(state.removeOldFormatCommandSubscription(deviceGuids));

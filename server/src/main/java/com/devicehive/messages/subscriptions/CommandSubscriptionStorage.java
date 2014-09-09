@@ -8,7 +8,6 @@ public class CommandSubscriptionStorage extends AbstractStorage<Long, CommandSub
         return get(id);
     }
 
-
     public synchronized void removeByDevice(Long deviceId) {
         removeByEventSource(deviceId);
     }

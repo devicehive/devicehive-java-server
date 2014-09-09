@@ -13,6 +13,7 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
+@SuppressWarnings({"serialization"})
 public class AccessKeyPermissionDomainsTest {
 
     @Test

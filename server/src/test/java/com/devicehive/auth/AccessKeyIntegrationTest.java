@@ -1,23 +1,25 @@
 package com.devicehive.auth;
 
 import com.devicehive.Constants;
-import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.controller.DeviceCommandController;
 import com.devicehive.controller.DeviceController;
 import com.devicehive.controller.DeviceNotificationController;
 import com.devicehive.controller.NetworkController;
-import com.devicehive.dao.*;
+import com.devicehive.dao.AccessKeyDAO;
+import com.devicehive.dao.AccessKeyPermissionDAO;
+import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
-import com.devicehive.service.AccessKeyService;
-import com.devicehive.service.UserService;
-import com.devicehive.service.helpers.PasswordProcessor;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -26,49 +28,54 @@ import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
+@SuppressWarnings({"serialization"})
 public class AccessKeyIntegrationTest {
 
-    private static final User ADMIN = new User() {{
-        setId(Constants.ACTIVE_ADMIN_ID);
-        setLogin("admin");
-        setRole(UserRole.ADMIN);
-        setStatus(UserStatus.ACTIVE);
-    }};
-    private static final User CLIENT = new User() {{
-        setId(Constants.ACTIVE_CLIENT_ID);
-        setLogin("client");
-        setRole(UserRole.CLIENT);
-        setStatus(UserStatus.ACTIVE);
-    }};
+    private static final User ADMIN = new User() {
+        {
+            setId(Constants.ACTIVE_ADMIN_ID);
+            setLogin("admin");
+            setRole(UserRole.ADMIN);
+            setStatus(UserStatus.ACTIVE);
+        }
+
+        private static final long serialVersionUID = -8141654148541503342L;
+    };
+
+    private static final User CLIENT = new User() {
+        {
+            setId(Constants.ACTIVE_CLIENT_ID);
+            setLogin("client");
+            setRole(UserRole.CLIENT);
+            setStatus(UserStatus.ACTIVE);
+        }
+
+        private static final long serialVersionUID = -765281406898288088L;
+    };
+
     List<Method> allAvailableMethods;
-
-    @InjectMocks
-    private AccessKeyService accessKeyService;
-
-    @InjectMocks
-    private UserService userService;
 
     @Mock
     private AccessKeyDAO accessKeyDAO;
-
     @Mock
     private DeviceDAO deviceDAO;
-
     @Mock
     private AccessKeyPermissionDAO permissionDAO;
-
     @Mock
     private UserDAO userDAO;
-
     private AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
-
     @Mock
     private InvocationContext context;
     private int methodCalls;

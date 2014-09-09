@@ -70,7 +70,6 @@ public class NetworkService {
                 return result;
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
-            AccessKey currentKey = accessKeyDAO.getWithoutUser(user.getId(), key.getId());
             Set<AccessKeyPermission> filtered = CheckPermissionsHelper
                     .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
                             hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());

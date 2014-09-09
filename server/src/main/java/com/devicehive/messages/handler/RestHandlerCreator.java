@@ -1,16 +1,11 @@
 package com.devicehive.messages.handler;
 
 import com.google.common.util.concurrent.Runnables;
-import com.google.gson.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 import java.util.concurrent.FutureTask;
 
-public class RestHandlerCreator implements HandlerCreator {
-
-    private static final Logger logger = LoggerFactory.getLogger(RestHandlerCreator.class);
+public class RestHandlerCreator<T> implements HandlerCreator<T> {
 
     private final FutureTask<Void> futureTask;
 

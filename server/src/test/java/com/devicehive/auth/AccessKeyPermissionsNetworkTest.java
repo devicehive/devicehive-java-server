@@ -1,7 +1,13 @@
 package com.devicehive.auth;
 
 import com.devicehive.Constants;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
+import com.devicehive.model.UserRole;
+import com.devicehive.model.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import org.junit.Before;
@@ -15,27 +21,34 @@ import org.mockito.MockitoAnnotations;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
+@SuppressWarnings({"serialization"})
 public class AccessKeyPermissionsNetworkTest {
 
+    private static final User CLIENT = new User() {
+        {
+            setId(Constants.ACTIVE_CLIENT_ID);
+            setLogin("client");
+            setRole(UserRole.CLIENT);
+            setStatus(UserStatus.ACTIVE);
+        }
+
+        private static final long serialVersionUID = -6352391323920531802L;
+    };
+
     private AccessKey key = new AccessKey();
+
     @InjectMocks
     private AccessKeyService accessKeyService = new AccessKeyService();
 
     @Mock
     private UserService userService;
-
-    private static final User CLIENT = new User() {{
-        setId(Constants.ACTIVE_CLIENT_ID);
-        setLogin("client");
-        setRole(UserRole.CLIENT);
-        setStatus(UserStatus.ACTIVE);
-    }};
 
     @Before
     public void initAccessKeyService() {
@@ -63,15 +76,14 @@ public class AccessKeyPermissionsNetworkTest {
     }
 
     @Test
-    public void networkEmptyPermissionsTest(){
+    public void networkEmptyPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
         CheckPermissionsHelper.filterNetworks(permissions);
         assertEquals(0, permissions.size());
     }
 
-
     @Test
-    public void hasAccessToNetworkOnePermissionSuccessTest(){
+    public void hasAccessToNetworkOnePermissionSuccessTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission singlePermission = new AccessKeyPermission();
         singlePermission.setNetworkIds(new JsonStringWrapper("[42]"));
@@ -101,7 +113,7 @@ public class AccessKeyPermissionsNetworkTest {
     }
 
     @Test
-    public void hasAccessToNetworkOnePermissionDeniedTest(){
+    public void hasAccessToNetworkOnePermissionDeniedTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission singlePermission = new AccessKeyPermission();
         singlePermission.setNetworkIds(new JsonStringWrapper("[103]"));
@@ -131,7 +143,7 @@ public class AccessKeyPermissionsNetworkTest {
     }
 
     @Test
-    public void hasAccessToNetworkSeveralPermissionsTest(){
+    public void hasAccessToNetworkSeveralPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
@@ -174,7 +186,7 @@ public class AccessKeyPermissionsNetworkTest {
     }
 
     @Test
-    public void hasNoAccessToNetworkSeveralPermissionsTest(){
+    public void hasNoAccessToNetworkSeveralPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
 
         AccessKeyPermission permission1 = new AccessKeyPermission();

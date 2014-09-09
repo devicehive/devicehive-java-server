@@ -1,6 +1,9 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.*;
+import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
@@ -24,7 +27,6 @@ import com.devicehive.service.TimestampService;
 import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,28 +76,20 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class DeviceNotificationController {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
-
     @EJB
     private DeviceNotificationService notificationService;
-
     @EJB
     private SubscriptionManager subscriptionManager;
-
     @EJB
     private DeviceNotificationService deviceNotificationService;
-
     @EJB
     private DeviceService deviceService;
-
     @EJB
     private TimestampService timestampService;
-
     @EJB
     private AsynchronousExecutor executor;
-
     @Inject
     private HiveSecurityContext hiveSecurityContext;
-
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive
@@ -103,11 +97,11 @@ public class DeviceNotificationController {
      * Queries device notifications.
      *
      * @param guid         Device unique identifier.
-     * @param startTs        Filter by notification start timestamp (UTC).
-     * @param endTs          Filter by notification end timestamp (UTC).
+     * @param startTs      Filter by notification start timestamp (UTC).
+     * @param endTs        Filter by notification end timestamp (UTC).
      * @param notification Filter by notification name.
      * @param sortField    Result list sort field. Available values are Timestamp (default) and Notification.
-     * @param sortOrderSt    Result list sort order. Available values are ASC and DESC.
+     * @param sortOrderSt  Result list sort order. Available values are ASC and DESC.
      * @param take         Number of records to take from the result list (default is 1000).
      * @param skip         Number of records to skip from the result list.
      * @return If successful, this method returns array of <a href="http://www.devicehive
@@ -349,7 +343,7 @@ public class DeviceNotificationController {
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
-            RestHandlerCreator restHandlerCreator = new RestHandlerCreator();
+            RestHandlerCreator<DeviceNotification> restHandlerCreator = new RestHandlerCreator<>();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
             if (devices != null) {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);

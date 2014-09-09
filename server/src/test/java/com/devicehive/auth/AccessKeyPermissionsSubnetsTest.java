@@ -1,6 +1,5 @@
 package com.devicehive.auth;
 
-import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.JsonStringWrapper;
 import org.junit.Test;
@@ -12,9 +11,11 @@ import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
+@SuppressWarnings({"serialization"})
 public class AccessKeyPermissionsSubnetsTest {
 
     @Test

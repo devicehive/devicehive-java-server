@@ -38,16 +38,16 @@ public class HiveWebsocketSessionState {
     private InetAddress clientInetAddress;
     private String origin;
 
-    public void setEndpoint(HiveEndpoint endpoint) {
-        this.endpoint = endpoint;
-    }
-
     public static HiveWebsocketSessionState get(Session session) {
         return (HiveWebsocketSessionState) session.getUserProperties().get(HiveWebsocketSessionState.KEY);
     }
 
     public HiveEndpoint getEndpoint() {
         return endpoint;
+    }
+
+    public void setEndpoint(HiveEndpoint endpoint) {
+        this.endpoint = endpoint;
     }
 
     public Lock getQueueLock() {
@@ -72,14 +72,6 @@ public class HiveWebsocketSessionState {
 
     public Lock getNotificationSubscriptionsLock() {
         return notificationSubscriptionsLock;
-    }
-
-    public ConcurrentMap<Set<String>, Set<UUID>> getOldFormatCommandSubscriptions() {
-        return oldFormatCommandSubscriptions;
-    }
-
-    public ConcurrentMap<Set<String>, Set<UUID>> getOldFormatNotificationSubscriptions() {
-        return oldFormatNotificationSubscriptions;
     }
 
     public HivePrincipal getHivePrincipal() {
@@ -127,9 +119,12 @@ public class HiveWebsocketSessionState {
 
     public synchronized Set<UUID> removeOldFormatCommandSubscription(Set<String> guids) {
         Set<String> toRemove = guids == null
-                ? new HashSet<String>() {{
-            add(Constants.NULL_SUBSTITUTE);
-        }}
+                ? new HashSet<String>() {
+            {
+                add(Constants.NULL_SUBSTITUTE);
+            }
+            private static final long serialVersionUID = -8106785048967338278L;
+        }
                 : guids;
         return oldFormatCommandSubscriptions.remove(toRemove);
     }
@@ -151,9 +146,13 @@ public class HiveWebsocketSessionState {
 
     public synchronized Set<UUID> removeOldFormatNotificationSubscription(Set<String> guids) {
         Set<String> toRemove = guids == null
-                ? new HashSet<String>() {{
-            add(Constants.NULL_SUBSTITUTE);
-        }}
+                ? new HashSet<String>() {
+            {
+                add(Constants.NULL_SUBSTITUTE);
+            }
+
+            private static final long serialVersionUID = 599925075379032426L;
+        }
                 : guids;
         return oldFormatNotificationSubscriptions.remove(toRemove);
     }

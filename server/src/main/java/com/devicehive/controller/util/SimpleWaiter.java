@@ -16,7 +16,6 @@ public class SimpleWaiter {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleWaiter.class);
 
-
     private static boolean waitFor(Future<Void> future, long seconds) {
         try {
             logger.debug("Waiting for {} seconds", seconds);
@@ -31,8 +30,10 @@ public class SimpleWaiter {
         }
     }
 
-    public static boolean subscribeAndWait(AbstractStorage storage, Subscription sub, Future<Void> future,
-                                           long seconds) {
+    public static <E, T, S extends Subscription<E, T>> boolean subscribeAndWait(AbstractStorage<E, S> storage,
+                                                                                S sub,
+                                                                                Future<Void> future,
+                                                                                long seconds) {
         try {
             storage.insert(sub);
             return waitFor(future, seconds);
@@ -41,8 +42,10 @@ public class SimpleWaiter {
         }
     }
 
-    public static boolean subscribeAndWait(AbstractStorage storage, Collection<? extends Subscription> subs,
-                                           Future<Void> future, long seconds) {
+    public static <E, T, S extends Subscription<E, T>> boolean subscribeAndWait(AbstractStorage<E, S> storage,
+                                                                                Collection<S> subs,
+                                                                                Future<Void> future,
+                                                                                long seconds) {
         try {
             storage.insertAll(subs);
             return waitFor(future, seconds);

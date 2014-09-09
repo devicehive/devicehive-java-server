@@ -25,20 +25,23 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
+@SuppressWarnings({"serialization"})
 public class AccessKeyPermissionDevicesTest {
 
-    private static final User CLIENT = new User() {{
-        setId(Constants.ACTIVE_CLIENT_ID);
-        setLogin("client");
-        setRole(UserRole.CLIENT);
-        setStatus(UserStatus.ACTIVE);
-    }};
+    private static final User CLIENT = new User() {
+        {
+            setId(Constants.ACTIVE_CLIENT_ID);
+            setLogin("client");
+            setRole(UserRole.CLIENT);
+            setStatus(UserStatus.ACTIVE);
+        }
+
+        private static final long serialVersionUID = 1330575406466966753L;
+    };
     private AccessKey key = new AccessKey();
     @InjectMocks
     private AccessKeyService accessKeyService = new AccessKeyService();
@@ -101,7 +104,7 @@ public class AccessKeyPermissionDevicesTest {
         Assert.assertEquals(1, permissions.size());
     }
 
-//   TODO @Test
+    //   TODO @Test
     public void hasNoAccessToDeviceOnePermissionTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission singlePermission = new AccessKeyPermission();
@@ -125,7 +128,7 @@ public class AccessKeyPermissionDevicesTest {
         Assert.assertEquals(0, permissions.size());
     }
 
-//   TODO @Test
+    //   TODO @Test
     public void hasAccessToDeviceSeveralPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
         UUID usefulGuid = UUID.randomUUID();
@@ -161,7 +164,7 @@ public class AccessKeyPermissionDevicesTest {
         Assert.assertEquals(3, permissions.size());
     }
 
-//  TODO  @Test
+    //  TODO  @Test
     public void hasNoAccessToDeviceSeveralPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
 

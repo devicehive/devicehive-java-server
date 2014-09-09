@@ -39,7 +39,7 @@ public class HiveValidator {
     public String buildMessage(Set<ConstraintViolation<?>> violations ){
         StringBuilder builder = new StringBuilder("Error! Validation failed: \n");
         for (ConstraintViolation<?> cv : violations) {
-            builder.append(String.format("On property %s (value: %s): %s ; \n", cv.getPropertyPath(),
+            builder.append(String.format("On property %s (value: %s): %s ; %n", cv.getPropertyPath(),
                     cv.getInvalidValue(), cv.getMessage()));
         }
         return StringUtils.removeEnd(builder.toString(), " \n");

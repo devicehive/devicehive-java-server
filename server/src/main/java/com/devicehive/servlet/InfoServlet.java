@@ -34,7 +34,7 @@ public class InfoServlet extends HttpServlet {
         try (InputStream is = request.getServletContext().getResourceAsStream(PROPERTIES)) {
             Properties properties = new Properties();
             properties.load(is);
-            for (Map.Entry entry : properties.entrySet()) {
+            for (Map.Entry<?, ?> entry : properties.entrySet()) {
                 request.setAttribute(entry.getKey().toString(), entry.getValue());
             }
         }

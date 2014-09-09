@@ -70,16 +70,14 @@ public class NotificationHandlers extends WebsocketHandlers {
     private TimestampService timestampService;
     @EJB
     private SubscriptionSessionMap subscriptionSessionMap;
-
     @Inject
     private HiveSecurityContext hiveSecurityContext;
-
     @Inject
     @FlushQueue
     private Event<Session> event;
 
     @Action(value = "notification/subscribe")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT,  HiveRoles.KEY})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
                                                           @WsParam(DEVICE_GUIDS)
@@ -106,10 +104,16 @@ public class NotificationHandlers extends WebsocketHandlers {
             deviceIdSet.remove(null);
             return deviceIdSet;
         }
+
         if (deviceIdSet == null) {
-            return new HashSet<String>() {{
-                add(deviceId);
-            }};
+            return new HashSet<String>() {
+                {
+                    add(deviceId);
+                }
+
+                private static final long serialVersionUID = 955343867580964077L;
+            };
+
         }
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
@@ -202,9 +206,13 @@ public class NotificationHandlers extends WebsocketHandlers {
             Set<UUID> subscriptions = new HashSet<>();
             if (subId == null) {
                 if (deviceGuids == null) {
-                    Set<String> subForAll = new HashSet<String>() {{
-                        add(Constants.NULL_SUBSTITUTE);
-                    }};
+                    Set<String> subForAll = new HashSet<String>() {
+                        {
+                            add(Constants.NULL_SUBSTITUTE);
+                        }
+
+                        private static final long serialVersionUID = 2484204746448211456L;
+                    };
                     subscriptions.addAll(state.removeOldFormatNotificationSubscription(subForAll));
                 } else
                     subscriptions.addAll(state.removeOldFormatNotificationSubscription(deviceGuids));
@@ -248,7 +256,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         } else {
             device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         }
-        if (device == null){
+        if (device == null) {
             logger.debug("notification/insert canceled for session: {}. Guid is not provided", session);
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_FORBIDDEN);
         }

@@ -108,7 +108,6 @@ public class CheckPermissionsHelper {
     }
 
     public static boolean checkFilteredPermissions(Set<AccessKeyPermission> permissions, Device device) {
-        Set<AccessKeyPermission> filtered = Sets.newHashSet(permissions);
         for (AccessKeyPermission permission : permissions) {
             Set<Long> networks = permission.getNetworkIdsAsSet();
             if (networks != null && !networks.contains(device.getNetwork().getId())) {

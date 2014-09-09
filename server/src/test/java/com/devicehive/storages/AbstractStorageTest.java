@@ -4,7 +4,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.messages.handler.HandlerCreator;
 import com.devicehive.messages.subscriptions.AbstractStorage;
 import com.devicehive.messages.subscriptions.Subscription;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
@@ -20,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 @RunWith(JUnit4.class)
+@SuppressWarnings("serialization")
 public class AbstractStorageTest {
 
     @Test
@@ -28,16 +28,16 @@ public class AbstractStorageTest {
 
         UUID subscriberId1 = UUID.randomUUID();
         Long eventSourceId = 1l;
-        SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId1, null);
+        SubscriptionExtender<?> subscription1 = new SubscriptionExtender<>(eventSourceId, subscriberId1, null);
         storage.insert(subscription1);
 
         UUID subscriberId2 = UUID.randomUUID();
-        SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId2, null);
+        SubscriptionExtender<?> subscription2 = new SubscriptionExtender<>(eventSourceId, subscriberId2, null);
         storage.insert(subscription2);
         storage.insert(subscription2);
 
-        SubscriptionExtender subscription3 =
-                new SubscriptionExtender(Constants.NULL_ID_SUBSTITUTE, subscriberId1, null);
+        SubscriptionExtender<?> subscription3 =
+                new SubscriptionExtender<>(Constants.NULL_ID_SUBSTITUTE, subscriberId1, null);
         storage.insert(subscription3);
 
         Set<SubscriptionExtender<?>> extendersByEvent = storage.get(eventSourceId);
@@ -55,17 +55,17 @@ public class AbstractStorageTest {
 
         UUID subscriberId1 = UUID.randomUUID();
         Long eventSourceId = 1l;
-        SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId1, null);
+        SubscriptionExtender<?> subscription1 = new SubscriptionExtender<>(eventSourceId, subscriberId1, null);
         storage.insert(subscription1);
 
         UUID subscriberId2 = UUID.randomUUID();
-        SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId2, null);
+        SubscriptionExtender<?> subscription2 = new SubscriptionExtender<>(eventSourceId, subscriberId2, null);
         storage.insert(subscription2);
         storage.insert(subscription2);
 
         UUID subscriberId3 = UUID.randomUUID();
-        SubscriptionExtender subscription3 =
-                new SubscriptionExtender(Constants.NULL_ID_SUBSTITUTE, subscriberId3, null);
+        SubscriptionExtender<?> subscription3 =
+                new SubscriptionExtender<>(Constants.NULL_ID_SUBSTITUTE, subscriberId3, null);
         storage.insert(subscription3);
         storage.insert(subscription2);
 
@@ -73,7 +73,6 @@ public class AbstractStorageTest {
 
         Set<SubscriptionExtender<?>> extendersByEventSource = storage.get(eventSourceId);
         assertEquals(1, extendersByEventSource.size());
-        Set<SubscriptionExtender<?>> extendersBySubscriber = storage.get(subscriberId2);
 
         Set<SubscriptionExtender<?>> otherExtenders = storage.get(Constants.NULL_ID_SUBSTITUTE);
         assertEquals(1, otherExtenders.size());
@@ -85,16 +84,16 @@ public class AbstractStorageTest {
 
         UUID subscriberId = UUID.randomUUID();
         Long eventSourceId = 1l;
-        SubscriptionExtender subscription1 =
-                new SubscriptionExtender(eventSourceId, subscriberId, new HandlerCreator() {
+        SubscriptionExtender<?> subscription1 =
+                new SubscriptionExtender<>(eventSourceId, subscriberId, new HandlerCreator<Object>() {
                     @Override
-                    public Runnable getHandler(Object message,UUID uuid) {
+                    public Runnable getHandler(Object message, UUID uuid) {
                         return null;
                     }
                 });
         storage.insert(subscription1);
 
-        SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId, null);
+        SubscriptionExtender<?> subscription2 = new SubscriptionExtender<>(eventSourceId, subscriberId, null);
         storage.insert(subscription2);
 
         Set<SubscriptionExtender<?>> extenders = storage.get(eventSourceId);
@@ -109,23 +108,28 @@ public class AbstractStorageTest {
 
         UUID subscriberId = UUID.randomUUID();
         Long eventSourceId = 1l;
-        final SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId, null);
+        final SubscriptionExtender<?> subscription1 = new SubscriptionExtender<>(eventSourceId, subscriberId, null);
         storage.insert(subscription1);
 
         UUID subscriberId2 = UUID.randomUUID();
-        final SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId, subscriberId2, null);
+        final SubscriptionExtender<?> subscription2 = new SubscriptionExtender<>(eventSourceId, subscriberId2, null);
         storage.insert(subscription2);
         storage.insert(subscription2);
 
         UUID subscriberId3 = UUID.randomUUID();
-        SubscriptionExtender subscription3 = new SubscriptionExtender(Constants.NULL_ID_SUBSTITUTE, subscriberId3, null);
+        SubscriptionExtender<?> subscription3 =
+                new SubscriptionExtender<>(Constants.NULL_ID_SUBSTITUTE, subscriberId3, null);
         storage.insert(subscription3);
         storage.insert(subscription2);
 
-        Set<SubscriptionExtender<?>> subscriptionSetToRemove = new HashSet<SubscriptionExtender<?>>() {{
-            add(subscription1);
-            add(subscription2);
-        }};
+        Set<SubscriptionExtender<?>> subscriptionSetToRemove = new HashSet<SubscriptionExtender<?>>() {
+            {
+                add(subscription1);
+                add(subscription2);
+            }
+
+            private static final long serialVersionUID = 3105415755988433781L;
+        };
 
         storage.removeAll(subscriptionSetToRemove);
 
@@ -136,9 +140,9 @@ public class AbstractStorageTest {
     @Test(expected = NullPointerException.class)
     public void nullInsertTest() {
         AbstractStorage<Long, SubscriptionExtender<?>> storage = new AbstractStorage<>();
-        storage.insert(new SubscriptionExtender(null, null, null));
-        storage.insert(new SubscriptionExtender(null, UUID.randomUUID(), null));
-        storage.insert(new SubscriptionExtender(1l, null, null));
+        storage.insert(new SubscriptionExtender<>(null, null, null));
+        storage.insert(new SubscriptionExtender<>(null, UUID.randomUUID(), null));
+        storage.insert(new SubscriptionExtender<>(1l, null, null));
         storage.removeAll(null);
     }
 
@@ -148,15 +152,16 @@ public class AbstractStorageTest {
 
         final UUID subscriberId = UUID.randomUUID();
         final Long eventSourceId = 1l;
-        SubscriptionExtender subscription1 = new SubscriptionExtender(eventSourceId, subscriberId, null);
+        SubscriptionExtender<?> subscription1 = new SubscriptionExtender<>(eventSourceId, subscriberId, null);
         storage.insert(subscription1);
 
         final Long eventSourceId2 = 2l;
-        SubscriptionExtender subscription2 = new SubscriptionExtender(eventSourceId2, subscriberId, null);
+        SubscriptionExtender<?> subscription2 = new SubscriptionExtender<>(eventSourceId2, subscriberId, null);
         storage.insert(subscription2);
 
         final UUID subscriberIdOther = UUID.randomUUID();
-        SubscriptionExtender subscription3 = new SubscriptionExtender(Constants.NULL_ID_SUBSTITUTE, subscriberIdOther, null);
+        SubscriptionExtender<?> subscription3 =
+                new SubscriptionExtender<>(Constants.NULL_ID_SUBSTITUTE, subscriberIdOther, null);
         storage.insert(subscription3);
 
         Collection<Pair<Long, UUID>> pairsToRemove = new HashSet<Pair<Long, UUID>>() {
@@ -164,6 +169,8 @@ public class AbstractStorageTest {
                 add(ImmutablePair.of(eventSourceId2, subscriberId));
                 add(ImmutablePair.of(Constants.NULL_ID_SUBSTITUTE, subscriberIdOther));
             }
+
+            private static final long serialVersionUID = -3382403110218581241L;
         };
 
         storage.removePairs(pairsToRemove);
@@ -178,9 +185,9 @@ public class AbstractStorageTest {
         assertEquals(0, otherExtenders.size());
     }
 
-    private class SubscriptionExtender<T> extends Subscription<Long,T> {
+    private class SubscriptionExtender<T> extends Subscription<Long, T> {
 
-        public SubscriptionExtender(Long eventSourceId, UUID subscriberId, HandlerCreator handlerCreator) {
+        public SubscriptionExtender(Long eventSourceId, UUID subscriberId, HandlerCreator<T> handlerCreator) {
             super(eventSourceId, subscriberId, handlerCreator);
         }
     }
