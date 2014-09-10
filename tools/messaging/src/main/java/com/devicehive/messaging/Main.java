@@ -2,7 +2,6 @@ package com.devicehive.messaging;
 
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
-import com.devicehive.client.model.AccessKey;
 import com.devicehive.client.model.Device;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.messaging.config.Constants;
@@ -24,7 +23,7 @@ public class Main {
             adminTool = new AdminTool(hiveClient);
             adminTool.cleanup();
             List<Device> devices = adminTool.prepareTestDevices(Constants.MAX_DEVICES);
-            List<AccessKey> keys = adminTool.prepareKeys(devices);
+//            List<AccessKey> keys = adminTool.prepareKeys(devices);
             Messager msg = new Messager();
             adminTool.prepareSubscriptions(msg.getCommandsHandler(), msg.getNotificationsHandler());
             msg.startSendCommands(devices, adminTool.getTestClients());

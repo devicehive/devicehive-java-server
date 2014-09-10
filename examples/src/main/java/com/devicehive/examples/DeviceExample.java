@@ -84,12 +84,16 @@ public class DeviceExample extends Example {
         dc.setPermanent(true);
         dc.setOfflineTimeout(DC_OFFLINE_TIMEOUT);
 
-        Set<Equipment> equipmentSet = new HashSet<Equipment>() {{
-            Equipment equipment = new Equipment();
-            equipment.setName(EQUIPMENT_NAME);
-            equipment.setType(EQUIPMENT_TYPE);
-            equipment.setCode(LED_COMMAND);
-        }};
+        Set<Equipment> equipmentSet = new HashSet<Equipment>() {
+            {
+                Equipment equipment = new Equipment();
+                equipment.setName(EQUIPMENT_NAME);
+                equipment.setType(EQUIPMENT_TYPE);
+                equipment.setCode(LED_COMMAND);
+            }
+
+            private static final long serialVersionUID = -7409380697000528798L;
+        };
         dc.setEquipment(equipmentSet);
         device.setDeviceClass(dc);
         return device;
@@ -100,7 +104,6 @@ public class DeviceExample extends Example {
         Device device = createDevice();
         hiveDevice.registerDevice(device);
         hiveDevice.authenticate(device.getId(), device.getKey());
-        Device registered = hiveDevice.getDevice();
         Timestamp serverTimestamp = hiveDevice.getInfo().getServerTimestamp();
         HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
             @Override

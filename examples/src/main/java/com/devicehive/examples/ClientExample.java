@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 /**
  * Client example represents base client features. It sends commands and receive notifications.
  */
+
 public class ClientExample {
     private static final String LOGIN = "dhadmin";
     private static final String PASSWORD = "dhadmin_#911";
@@ -64,6 +65,7 @@ public class ClientExample {
     public static void main(String... args) {
         ClientExample clientExample = new ClientExample();
     }
+
     /**
      * Shows how to authorize using access key or user. Subscribes for the notifications. Sends a dummy command to
      * all available devices every 10 seconds. The task runs for 10 minutes.
@@ -83,9 +85,14 @@ public class ClientExample {
                 System.out.print("Notification received: {}" + notification);
             }
         };
-        Set<String> uuids = new HashSet<String>() {{
-                    add(DEVICE_ID);
-                }};
+        Set<String> uuids = new
+                HashSet<String>() {
+                    {
+                        add(DEVICE_ID);
+                    }
+
+                    private static final long serialVersionUID = -8028742640202067195L;
+                };
         SubscriptionFilter filter = new SubscriptionFilter(uuids, null, null);
         hiveClient.getNotificationsController().subscribeForNotifications(filter, notificationsHandler);
     }
@@ -119,7 +126,7 @@ public class ClientExample {
     }
 
     public void close() {
-            main.shutdownNow();
-            hiveClient.close();
+        main.shutdownNow();
+        hiveClient.close();
     }
 }

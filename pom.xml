@@ -190,10 +190,10 @@
                         <target>${maven.compiler.target}</target>
                         <showWarnings>true</showWarnings>
                         <showDeprecation>true</showDeprecation>
-                        <!--<compilerArgs>-->
-                            <!--<arg>-Werror</arg>-->
-                            <!--<arg>-Xlint:all</arg>-->
-                        <!--</compilerArgs>-->
+                        <compilerArgs>
+                            <arg>-Werror</arg>
+                            <arg>-Xlint:all</arg>
+                        </compilerArgs>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -222,14 +222,12 @@
                         <threshold>Default</threshold>
                     </configuration>
                     <executions>
-                        <!--
-                        <execution>
-                            <phase>compile</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                        -->
+                        <!--<execution>-->
+                            <!--<phase>compile</phase>-->
+                            <!--<goals>-->
+                                <!--<goal>check</goal>-->
+                            <!--</goals>-->
+                        <!--</execution>-->
                     </executions>
                 </plugin>
 
