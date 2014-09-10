@@ -4,7 +4,14 @@ import com.googlecode.flyway.core.Flyway;
 import com.googlecode.flyway.core.api.FlywayException;
 import com.googlecode.flyway.core.api.MigrationInfo;
 import com.googlecode.flyway.core.api.MigrationVersion;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,14 +99,14 @@ public class DatabaseUpdater {
 
     private void initArgumentsOptions(PrintStream err) {
         Properties props = new Properties();
-        try (InputStream is = Main.class.getResourceAsStream(Constants.ARGUMENTS_FILE)){
+        try (InputStream is = Main.class.getResourceAsStream(Constants.ARGUMENTS_FILE)) {
             props.load(is);
             Set<String> propertiesNames = props.stringPropertyNames();
             for (String propertyName : propertiesNames) {
-                Option option = OptionBuilder.withArgName(propertyName).
-                        withDescription(props.getProperty(propertyName))
-                        .hasArg()
-                        .create(propertyName);
+                OptionBuilder.withArgName(propertyName);
+                OptionBuilder.withDescription(props.getProperty(propertyName));
+                OptionBuilder.hasArg();
+                Option option = OptionBuilder.create(propertyName);
                 options.addOption(option);
             }
         } catch (IOException e) {
@@ -134,31 +141,31 @@ public class DatabaseUpdater {
         }
         if (flyway.info().current() == null) {
             try (Connection connection = flyway.getDataSource().getConnection()) {
-                try (PreparedStatement statement = connection.prepareStatement(SELECT_NUMBER_OF_TABLES_IN_SCHEMA)){
-                if (schema == null) {
-                    statement.setString(1, flyway.getSchemas()[0]);
-                } else {
-                    statement.setString(1, schema);
-                }
-                statement.setString(2, user);
-                ResultSet result = null;
-                try {
-                    result = statement.executeQuery();
-                    result.next();
-                    Integer tablesNumber = result.getInt("number");
-                    if (tablesNumber != 0) {
-                        err.print(Constants.NOT_EMPTY_DATABASE_WARNING_MESSAGE);
-                        return;
+                try (PreparedStatement statement = connection.prepareStatement(SELECT_NUMBER_OF_TABLES_IN_SCHEMA)) {
+                    if (schema == null) {
+                        statement.setString(1, flyway.getSchemas()[0]);
+                    } else {
+                        statement.setString(1, schema);
                     }
-                } finally {
-                    if (result != null) {
-                        try {
-                            result.close();
-                        } catch (SQLException e) {
-                            err.print(Constants.DATABASE_ACCESS_ERROR_MESSAGE + e.getMessage());
+                    statement.setString(2, user);
+                    ResultSet result = null;
+                    try {
+                        result = statement.executeQuery();
+                        result.next();
+                        Integer tablesNumber = result.getInt("number");
+                        if (tablesNumber != 0) {
+                            err.print(Constants.NOT_EMPTY_DATABASE_WARNING_MESSAGE);
+                            return;
+                        }
+                    } finally {
+                        if (result != null) {
+                            try {
+                                result.close();
+                            } catch (SQLException e) {
+                                err.print(Constants.DATABASE_ACCESS_ERROR_MESSAGE + e.getMessage());
+                            }
                         }
                     }
-                }
                 }
             } catch (SQLException e) {
                 err.print(Constants.UNEXPECTED_EXCEPTION + e.getMessage());
