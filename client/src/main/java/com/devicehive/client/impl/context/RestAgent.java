@@ -566,12 +566,10 @@ public class RestAgent extends AbstractHiveAgent {
 
         @Override
         public final void run() {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    execute();
-                } catch (Throwable e) {
-                    logger.error("Error processing subscription", e);
-                }
+            try {
+                execute();
+            } catch (Throwable e) {
+                logger.error("Error processing subscription", e);
             }
         }
     }

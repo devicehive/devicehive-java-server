@@ -78,7 +78,6 @@ class CommandsControllerRestImpl implements CommandsController {
     public DeviceCommand insertCommand(String guid,
                                        DeviceCommand command,
                                        HiveMessageHandler<DeviceCommand> commandUpdatesHandler) throws HiveException {
-        Thread.currentThread().setName("insertCommand");
         if (command == null) {
             throw new HiveClientException("Command cannot be null!", BAD_REQUEST.getStatusCode());
         }

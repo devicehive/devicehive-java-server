@@ -13,7 +13,9 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
@@ -42,8 +44,7 @@ class CommandsControllerWebsocketImpl extends CommandsControllerRestImpl {
         request.addProperty("deviceGuid", guid);
         Gson gson = GsonFactory.createGson(COMMAND_FROM_CLIENT);
         request.add("command", gson.toJsonTree(command));
-        DeviceCommand toReturn = websocketAgent.sendMessage(request, "command",
-                DeviceCommand.class, COMMAND_TO_CLIENT);
+        DeviceCommand toReturn = websocketAgent.sendMessage(request, "command", DeviceCommand.class, COMMAND_TO_CLIENT);
         if (commandUpdatesHandler != null) {
             websocketAgent.addCommandUpdateSubscription(toReturn.getId(), guid, commandUpdatesHandler);
         }
