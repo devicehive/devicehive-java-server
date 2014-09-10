@@ -11,11 +11,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORK_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORK_UPDATE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class NetworkControllerImpl implements NetworkController {
@@ -40,9 +44,10 @@ class NetworkControllerImpl implements NetworkController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
-        List<Network> result = restAgent
-                .execute(path, HttpMethod.GET, null, queryParams, new TypeToken<List<Network>>() {
-                }.getType(), NETWORKS_LISTED);
+        Type type = new TypeToken<List<Network>>() {
+            private static final long serialVersionUID = -4134073649305556791L;
+        }.getType();
+        List<Network> result = restAgent.execute(path, HttpMethod.GET, null, queryParams, type, NETWORKS_LISTED);
         logger.debug("Network: list request proceed with parameters: name {}, name pattern {}, sort field {}, " +
                 "sort order {}, take {}, skip {}", name, namePattern, sortField, sortOrder, take, skip);
         return result;
@@ -52,9 +57,7 @@ class NetworkControllerImpl implements NetworkController {
     public Network getNetwork(long id) throws HiveException {
         logger.debug("Network: get requested for network with id {}", id);
         String path = "/network/" + id;
-        Network result = restAgent.execute(path, HttpMethod.GET, null,
-                Network.class,
-                NETWORK_PUBLISHED);
+        Network result = restAgent.execute(path, HttpMethod.GET, null, Network.class, NETWORK_PUBLISHED);
         logger.debug("Network: get requested for network with id {}. Network name {}", id, result.getName());
         return result;
     }
@@ -66,8 +69,8 @@ class NetworkControllerImpl implements NetworkController {
         }
         logger.debug("Network: insert requested for network with name {}", network.getName());
         String path = "/network";
-        Network returned = restAgent.execute(path, HttpMethod.POST, null, null,
-                network, Network.class, NETWORK_UPDATE, NETWORK_SUBMITTED);
+        Network returned = restAgent
+                .execute(path, HttpMethod.POST, null, null, network, Network.class, NETWORK_UPDATE, NETWORK_SUBMITTED);
         logger.debug("Network: insert request proceed for network with name {}. Result id {}", network.getName(),
                 returned.getId());
         return returned.getId();

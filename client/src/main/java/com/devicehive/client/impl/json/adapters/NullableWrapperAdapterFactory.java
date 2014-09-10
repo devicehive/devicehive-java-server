@@ -24,11 +24,15 @@ public class NullableWrapperAdapterFactory implements TypeAdapterFactory {
         }
         ParameterizedType parameterizedType = (ParameterizedType) type.getType();
         Type internalType = parameterizedType.getActualTypeArguments()[0];
-
-        return (TypeAdapter<T>) new NullableWrapperAdapter(gson, internalType);
+        /**
+         * Cast is checked since we check is the class assignable from type T
+         */
+        @SuppressWarnings("unchecked")
+        TypeAdapter<T> result = (TypeAdapter<T>) new NullableWrapperAdapter(gson, internalType);
+        return result;
     }
 
-    private static class NullableWrapperAdapter extends TypeAdapter<NullableWrapper> {
+    private static class NullableWrapperAdapter extends TypeAdapter<NullableWrapper<?>> {
 
         private Type internalType;
         private Gson gson;
@@ -39,18 +43,17 @@ public class NullableWrapperAdapterFactory implements TypeAdapterFactory {
         }
 
         @Override
-        public void write(JsonWriter out, NullableWrapper value) throws IOException {
+        public void write(JsonWriter out, NullableWrapper<?> value) throws IOException {
             if (value == null) {
                 out.nullValue();
             } else {
-                gson.toJson(value.getValue(), internalType, out);
+                gson.toJson(value, internalType, out);
             }
-
         }
 
         @Override
-        public NullableWrapper read(JsonReader in) throws IOException {
-            return new NullableWrapper(gson.fromJson(in, internalType));
+        public NullableWrapper<?> read(JsonReader in) throws IOException {
+            return new NullableWrapper<>(gson.fromJson(in, internalType));
         }
     }
 }

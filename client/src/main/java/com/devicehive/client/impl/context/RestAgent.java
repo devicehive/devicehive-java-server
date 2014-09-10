@@ -66,8 +66,8 @@ public class RestAgent extends AbstractHiveAgent {
     private static final int TIMEOUT = 60;
     protected final URI restUri;
     private final ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(50);
-    private ConcurrentMap<String, Future> commandSubscriptionsResults = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, Future> notificationSubscriptionResults = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Future<?>> commandSubscriptionsResults = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, Future<?>> notificationSubscriptionResults = new ConcurrentHashMap<>();
     private Client restClient;
 
     public RestAgent(ConnectionLostCallback connectionLostCallback,
@@ -388,7 +388,7 @@ public class RestAgent extends AbstractHiveAgent {
                 }
             };
 
-            Future commandsSubscription = subscriptionExecutor.submit(sub);
+            Future<?> commandsSubscription = subscriptionExecutor.submit(sub);
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
         } finally {
@@ -430,7 +430,7 @@ public class RestAgent extends AbstractHiveAgent {
                 }
             };
 
-            Future commandsSubscription = subscriptionExecutor.submit(sub);
+            Future<?> commandsSubscription = subscriptionExecutor.submit(sub);
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
         } finally {
@@ -444,7 +444,7 @@ public class RestAgent extends AbstractHiveAgent {
     public void unsubscribeFromCommands(String subscriptionId) throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
-            Future commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
+            Future<?> commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
             if (commandsSubscription != null) {
                 commandsSubscription.cancel(true);
             }
@@ -518,7 +518,7 @@ public class RestAgent extends AbstractHiveAgent {
                     }
                 }
             };
-            Future notificationsSubscription = subscriptionExecutor.submit(sub);
+            Future<?> notificationsSubscription = subscriptionExecutor.submit(sub);
             notificationSubscriptionResults.put(subscriptionIdValue, notificationsSubscription);
             return subscriptionIdValue;
         } finally {
@@ -532,7 +532,7 @@ public class RestAgent extends AbstractHiveAgent {
     public void unsubscribeFromNotifications(String subscriptionId) throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
-            Future notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
+            Future<?> notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
             if (notificationsSubscription != null) {
                 notificationsSubscription.cancel(true);
             }
@@ -559,7 +559,7 @@ public class RestAgent extends AbstractHiveAgent {
         return getInfo().getApiVersion();
     }
 
-    private abstract static class RestSubscription<T> implements Runnable {
+    private abstract static class RestSubscription implements Runnable {
         private static Logger logger = LoggerFactory.getLogger(RestSubscription.class);
 
         protected abstract void execute() throws HiveException;

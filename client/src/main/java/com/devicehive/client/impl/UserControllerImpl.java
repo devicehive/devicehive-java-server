@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +45,11 @@ class UserControllerImpl implements UserController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
+        Type type = new TypeToken<List<User>>() {
+            private static final long serialVersionUID = -8980491502416082021L;
+                }.getType();
         List<User> result = restAgent.execute(path, HttpMethod.GET, null,
-                queryParams, null, new
-                        TypeToken<List<User>>() {
-                        }.getType(), null, USERS_LISTED);
+                queryParams, null, type, null, USERS_LISTED);
         logger.debug("User: list proceed with following parameters: login {}, login pattern {}, role {}, status {}," +
                         " sort field {}, sort order {}, take {}, skip {}", login, loginPattern, role, status, sortField,
                 sortOrder, take, skip);

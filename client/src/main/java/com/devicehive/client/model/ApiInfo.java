@@ -10,12 +10,10 @@ import java.sql.Timestamp;
  */
 public class ApiInfo implements HiveEntity {
 
+    private static final long serialVersionUID = 2607988877048211220L;
     private String apiVersion;
-
     private Timestamp serverTimestamp;
-
     private String webSocketServerUrl;
-
     private String restServerUrl;
 
     public ApiInfo() {

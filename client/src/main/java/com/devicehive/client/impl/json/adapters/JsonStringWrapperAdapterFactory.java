@@ -22,7 +22,12 @@ public class JsonStringWrapperAdapterFactory implements TypeAdapterFactory {
         if (!JsonStringWrapper.class.isAssignableFrom(type.getRawType())) {
             return null;
         }
-        return (TypeAdapter<T>) new JsonStringWrapperAdapter();
+        /**
+         * Cast is checked since we check if JsonStringWrapper is assignable from type T
+         */
+        @SuppressWarnings("unchecked")
+        TypeAdapter<T> result = (TypeAdapter<T>) new JsonStringWrapperAdapter();
+        return result;
     }
 
     private static class JsonStringWrapperAdapter extends TypeAdapter<JsonStringWrapper> {

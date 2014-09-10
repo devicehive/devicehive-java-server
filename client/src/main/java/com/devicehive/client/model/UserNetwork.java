@@ -10,6 +10,7 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.US
  */
 public class UserNetwork implements HiveEntity {
 
+    private static final long serialVersionUID = 5320582614135741990L;
     @JsonPolicyDef({NETWORKS_LISTED, USER_PUBLISHED})
     private Network network;
 

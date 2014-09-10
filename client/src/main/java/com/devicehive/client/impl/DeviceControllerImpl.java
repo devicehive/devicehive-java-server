@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,10 +54,10 @@ class DeviceControllerImpl implements DeviceController {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         String path = "/device";
-        List<Device> result = restAgent.execute(path, HttpMethod.GET, null,
-                queryParams,
-                new TypeToken<List<Device>>() {
-                }.getType(), DEVICE_PUBLISHED);
+        Type type =  new TypeToken<List<Device>>() {
+            private static final long serialVersionUID = 2607988877048211221L;
+        }.getType();
+        List<Device> result = restAgent.execute(path, HttpMethod.GET, null, queryParams, type, DEVICE_PUBLISHED);
         logger.debug("Device: list request proceed successfully for following parameters: name {}, name pattern {}, " +
                         "network id {}, network name {}, device class id {}, device class name {}, device class version {}, " +
                         "sort field {}, sort order {}, take {}, skip {}", name, namePattern, networkId, networkName,
@@ -94,8 +95,10 @@ class DeviceControllerImpl implements DeviceController {
                 device.getDeviceClass() != null ? device.getDeviceClass().getId() : null,
                 device.getDeviceClass() != null ? device.getDeviceClass().getName() : null,
                 device.getDeviceClass() != null ? device.getDeviceClass().getVersion() : null);
+
         String path = "/device/" + deviceId;
         restAgent.execute(path, HttpMethod.PUT, null, device, DEVICE_PUBLISHED);
+
         logger.debug("Device: register request proceed successfully for device id {} Device name {}, status {}, " +
                         "data {}, network id {}, network name {}, device class id {}, device class name {}, device class verison {}",
                 deviceId, device.getName(), device.getStatus(), device.getData(),
@@ -118,10 +121,11 @@ class DeviceControllerImpl implements DeviceController {
     public List<DeviceEquipment> getDeviceEquipment(String deviceId) throws HiveException {
         logger.debug("Device: equipment requested for device with id {}", deviceId);
         String path = "/device/" + deviceId + "/equipment";
+        Type type = new TypeToken<List<DeviceEquipment>>() {
+            private static final long serialVersionUID = 2607988877048211222L;
+        }.getType();
         List<DeviceEquipment> result = restAgent
-                .execute(path, HttpMethod.GET, null, null, null,
-                        new TypeToken<List<DeviceEquipment>>() {
-                        }.getType(), null, DEVICE_EQUIPMENT_SUBMITTED);
+                .execute(path, HttpMethod.GET, null, null, null, type, null, DEVICE_EQUIPMENT_SUBMITTED);
         logger.debug("Device: equipment request proceed successfully for device with id {}", deviceId);
         return result;
     }
@@ -142,10 +146,12 @@ class DeviceControllerImpl implements DeviceController {
         queryParams.put("sortOrder", sortOrder);
         queryParams.put("take", take);
         queryParams.put("skip", skip);
+        Type type = new TypeToken<List<DeviceClass>>() {
+            private static final long serialVersionUID = 2607988877048211223L;
+        }.getType();
         List<DeviceClass> result = restAgent.execute(path, HttpMethod.GET, null,
-                queryParams,
-                new TypeToken<List<DeviceClass>>() {
-                }.getType(), DEVICECLASS_LISTED);
+                queryParams, type
+                , DEVICECLASS_LISTED);
         logger.debug("DeviceClass: list request proceed for following params: name {}, name pattern {}, version {}, " +
                         "sort field {}, sort order {}, take param {}, skip  param {}", name, namePattern, version, sortField,
                 sortOrder, take, skip);
