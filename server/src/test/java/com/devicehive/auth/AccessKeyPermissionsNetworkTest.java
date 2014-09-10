@@ -28,7 +28,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
-@SuppressWarnings({"serialization"})
 public class AccessKeyPermissionsNetworkTest {
 
     private static final User CLIENT = new User() {

@@ -30,7 +30,6 @@ public class AsyncMessageSupplier {
     @LogExecutionTime
     @Asynchronous
     public void deliverMessages(@Observes @FlushQueue Session session) throws IOException {
-        @SuppressWarnings("unchecked")
         ConcurrentLinkedQueue<JsonElement> queue = HiveWebsocketSessionState.get(session).getQueue();
         boolean acquired = false;
         try {

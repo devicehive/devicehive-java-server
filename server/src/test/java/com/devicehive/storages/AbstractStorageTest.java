@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 @RunWith(JUnit4.class)
-@SuppressWarnings("serialization")
 public class AbstractStorageTest {
 
     @Test

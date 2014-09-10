@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
-@SuppressWarnings({"serialization"})
 public class AccessKeyPermissionsSubnetsTest {
 
     @Test

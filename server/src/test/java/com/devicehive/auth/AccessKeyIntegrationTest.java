@@ -40,7 +40,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
-@SuppressWarnings({"serialization"})
 public class AccessKeyIntegrationTest {
 
     private static final User ADMIN = new User() {
@@ -53,7 +52,6 @@ public class AccessKeyIntegrationTest {
 
         private static final long serialVersionUID = -8141654148541503342L;
     };
-
     private static final User CLIENT = new User() {
         {
             setId(Constants.ACTIVE_CLIENT_ID);
@@ -64,9 +62,7 @@ public class AccessKeyIntegrationTest {
 
         private static final long serialVersionUID = -765281406898288088L;
     };
-
     List<Method> allAvailableMethods;
-
     @Mock
     private AccessKeyDAO accessKeyDAO;
     @Mock
