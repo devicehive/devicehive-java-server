@@ -1,16 +1,21 @@
 package com.devicehive.client.model;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.Set;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.USER_UPDATE;
 
 /**
- * Represents a user to this API.
- * See <a href="http://www.devicehive.com/restful#Reference/User">User</a>
+ * Represents a user to this API. See <a href="http://www.devicehive.com/restful#Reference/User">User</a>
  */
 public class User implements HiveEntity {
 

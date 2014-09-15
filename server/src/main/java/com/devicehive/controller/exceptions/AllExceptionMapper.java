@@ -2,6 +2,7 @@ package com.devicehive.controller.exceptions;
 
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

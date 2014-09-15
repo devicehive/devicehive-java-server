@@ -25,14 +25,10 @@ import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.FlushQueue;
 import com.devicehive.websockets.util.SubscriptionSessionMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.RolesAllowed;
-import javax.ejb.EJB;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -40,6 +36,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.ejb.EJB;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
+import javax.websocket.Session;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
@@ -86,11 +88,11 @@ public class NotificationHandlers extends WebsocketHandlers {
                                                           @WsParam(DEVICE_GUID) String deviceId,
                                                           Session session) throws IOException {
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, timestamp, names, session);
+                     devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
         UUID subId = notificationSubscribeAction(session, devices, names, timestamp);
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, timestamp, names, session);
+                     devices, deviceId, timestamp, names, session);
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(SUBSCRIPTION_ID, subId, null);
         return response;
@@ -139,19 +141,19 @@ public class NotificationHandlers extends WebsocketHandlers {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 for (Device d : actualDevices) {
                     nsList.add(new NotificationSubscription(principal, d.getId(),
-                            reqId,
-                            names,
-                            WebsocketHandlerCreator.createNotificationInsert(session)
+                                                            reqId,
+                                                            names,
+                                                            WebsocketHandlerCreator.createNotificationInsert(session)
                     ));
                 }
             } else {
                 NotificationSubscription forAll =
-                        new NotificationSubscription(principal,
-                                Constants.NULL_ID_SUBSTITUTE,
-                                reqId,
-                                names,
-                                WebsocketHandlerCreator.createNotificationInsert(session)
-                        );
+                    new NotificationSubscription(principal,
+                                                 Constants.NULL_ID_SUBSTITUTE,
+                                                 reqId,
+                                                 names,
+                                                 WebsocketHandlerCreator.createNotificationInsert(session)
+                    );
                 nsList.add(forAll);
             }
             subscriptionSessionMap.put(reqId, session);
@@ -164,7 +166,7 @@ public class NotificationHandlers extends WebsocketHandlers {
                 timestamp = timestampService.getTimestamp();
             }
             List<DeviceNotification> notifications =
-                    deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
+                deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
             if (!notifications.isEmpty()) {
                 for (DeviceNotification notification : notifications) {
                     state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));
@@ -180,18 +182,11 @@ public class NotificationHandlers extends WebsocketHandlers {
 
     /**
      * Implementation of the <a href="http://www.devicehive.com/restful#WsReference/Client/notificationunsubscribe">
-     * WebSocket API: Client: notification/unsubscribe</a>
-     * Unsubscribes from device notifications.
+     * WebSocket API: Client: notification/unsubscribe</a> Unsubscribes from device notifications.
      *
      * @param session Current session
-     * @return Json object with the following structure
-     *         <code>
-     *         {
-     *         "action": {string},
-     *         "status": {string},
-     *         "requestId": {object}
-     *         }
-     *         </code>
+     * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
+     *         {object} } </code>
      */
     @Action(value = "notification/unsubscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
@@ -214,8 +209,9 @@ public class NotificationHandlers extends WebsocketHandlers {
                         private static final long serialVersionUID = 2484204746448211456L;
                     };
                     subscriptions.addAll(state.removeOldFormatNotificationSubscription(subForAll));
-                } else
+                } else {
                     subscriptions.addAll(state.removeOldFormatNotificationSubscription(deviceGuids));
+                }
             } else {
                 subscriptions.add(subId);
             }
@@ -247,7 +243,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
-                    "notification/insert proceed with error. Bad notification: notification is required.");
+                "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
         Device device;
@@ -262,7 +258,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         }
         if (device.getNetwork() == null) {
             logger.debug(
-                    "notification/insert. No network specified for device with guid = {}", deviceGuid);
+                "notification/insert. No network specified for device with guid = {}", deviceGuid);
             throw new HiveException(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, SC_FORBIDDEN);
         }
         deviceNotificationService.submitDeviceNotification(notification, device);

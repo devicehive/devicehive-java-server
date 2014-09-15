@@ -1,17 +1,26 @@
 package com.devicehive.websockets.util;
 
+import com.google.gson.JsonElement;
+
 import com.devicehive.json.GsonFactory;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.HiveWebsocketSessionState;
-import com.google.gson.JsonElement;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
-import javax.enterprise.event.Observes;
-import javax.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.ejb.Asynchronous;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.enterprise.event.Observes;
+import javax.websocket.Session;
 
 
 @Singleton
@@ -20,7 +29,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class AsyncMessageSupplier {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageSupplier.class);
-
 
 
     @EJB

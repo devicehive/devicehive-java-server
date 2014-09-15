@@ -7,4 +7,5 @@ import com.devicehive.websockets.handlers.annotations.WebsocketController;
 @LogExecutionTime
 @WebsocketController
 public abstract class WebsocketHandlers {
+
 }

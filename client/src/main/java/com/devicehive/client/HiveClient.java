@@ -5,9 +5,9 @@ import com.devicehive.client.model.ApiInfo;
 import com.devicehive.client.model.exceptions.HiveException;
 
 /**
- * Hive client that represents the number of controller getters methods. Controllers are used only to delegate
- * methods with similar logic to some container. The separation of client controllers is equal or similar to the
- * server's controller.
+ * Hive client that represents the number of controller getters methods. Controllers are used only to delegate methods
+ * with similar logic to some container. The separation of client controllers is equal or similar to the server's
+ * controller.
  */
 public interface HiveClient extends AutoCloseable {
 

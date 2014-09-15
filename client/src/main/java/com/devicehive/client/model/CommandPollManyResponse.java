@@ -1,8 +1,9 @@
 package com.devicehive.client.model;
 
 
-import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
 

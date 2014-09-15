@@ -1,6 +1,8 @@
 package com.devicehive.client.impl;
 
 
+import com.google.common.reflect.TypeToken;
+
 import com.devicehive.client.OAuthGrantController;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.model.AccessType;
@@ -8,16 +10,17 @@ import com.devicehive.client.model.OAuthGrant;
 import com.devicehive.client.model.OAuthType;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.google.common.reflect.TypeToken;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.HttpMethod;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
@@ -39,9 +42,10 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
                                  String scope, String redirectUri, AccessType accessType, String sortField,
                                  String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthGrant: list requested with parameters: userId {}, start timestamp {], end timestamp {}, " +
-                "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
-                "access type {}, sort field {}, sort order {}, take {}, skip {}", userId, start, end, clientOauthId,
-                type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
+                     "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
+                     "access type {}, sort field {}, sort order {}, take {}, skip {}", userId, start, end,
+                     clientOauthId,
+                     type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
         String path = "/user/" + userId + "/oauth/grant";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("start", start);
@@ -59,12 +63,12 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
             private static final long serialVersionUID = 6725932065321755957L;
         }.getType();
         List<OAuthGrant> result =
-                restAgent.execute(path, HttpMethod.GET, null, queryParams, paramType, OAUTH_GRANT_LISTED);
+            restAgent.execute(path, HttpMethod.GET, null, queryParams, paramType, OAUTH_GRANT_LISTED);
         logger.debug(
-                "OAuthGrant: list request proceed for parameters: userId {}, start timestamp {], end timestamp {}, " +
-                        "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
-                        "access type {}, sort field {}, sort order {}, take {}, skip {}", userId, start, end,
-                clientOauthId, type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
+            "OAuthGrant: list request proceed for parameters: userId {}, start timestamp {], end timestamp {}, " +
+            "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
+            "access type {}, sort field {}, sort order {}, take {}, skip {}", userId, start, end,
+            clientOauthId, type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
         return result;
     }
 
@@ -73,10 +77,10 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
                                  String redirectUri, AccessType accessType, String sortField, String sortOrder,
                                  Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthGrant: list requested for current user with parameters: start timestamp {], " +
-                "end timestamp {}, " +
-                "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
-                "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
-                type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
+                     "end timestamp {}, " +
+                     "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
+                     "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
+                     type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
         String path = "/user/current/oauth/grant";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("start", start);
@@ -94,12 +98,12 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
             private static final long serialVersionUID = 6749932065321755993L;
         }.getType();
         List<OAuthGrant> result =
-                restAgent.execute(path, HttpMethod.GET, null, queryParams, paramType, OAUTH_GRANT_LISTED);
+            restAgent.execute(path, HttpMethod.GET, null, queryParams, paramType, OAUTH_GRANT_LISTED);
         logger.debug("OAuthGrant: list proceed for current user with parameters: start timestamp {], " +
-                "end timestamp {}, " +
-                "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
-                "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
-                type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
+                     "end timestamp {}, " +
+                     "client OAuth identifier {}, OAuth grant type {}, OAuth scope {} OAuth redirect URI {}, " +
+                     "access type {}, sort field {}, sort order {}, take {}, skip {}", start, end, clientOauthId,
+                     type, scope, redirectUri, accessType, sortField, sortOrder, take, skip);
         return result;
     }
 
@@ -127,18 +131,18 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("OAuthGrant: insert requested for user with id {} and grant with scope {} and type {}", userId,
-                grant.getScope(), grant.getType());
+                     grant.getScope(), grant.getType());
         String path = "/user/" + userId + "/oauth/grant";
         OAuthGrant result;
         if (OAuthType.TOKEN.equals(grant.getType())) {
             result = restAgent.execute(path, HttpMethod.POST, null, null, grant,
-                    OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_TOKEN);
+                                       OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
             result = restAgent.execute(path, HttpMethod.POST, null, null, grant,
-                    OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_CODE);
+                                       OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_CODE);
         }
         logger.debug("OAuthGrant: insert proceed for user with id {} and grant with scope {} and type {}.Result id " +
-                "{}", userId, grant.getScope(), grant.getType(), result.getId());
+                     "{}", userId, grant.getScope(), grant.getType(), result.getId());
         return result;
     }
 
@@ -148,18 +152,18 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
             throw new HiveClientException("OAuthGrant cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("OAuthGrant: insert requested for current user and grant with scope {} and type {}",
-                grant.getScope(), grant.getType());
+                     grant.getScope(), grant.getType());
         String path = "/user/current/oauth/grant";
         OAuthGrant result;
         if (OAuthType.TOKEN.equals(grant.getType())) {
             result = restAgent.execute(path, HttpMethod.POST, null, null, grant,
-                    OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_TOKEN);
+                                       OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
             result = restAgent.execute(path, HttpMethod.POST, null, null, grant,
-                    OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_CODE);
+                                       OAuthGrant.class, OAUTH_GRANT_PUBLISHED, OAUTH_GRANT_SUBMITTED_CODE);
         }
         logger.debug("OAuthGrant: insert proceed for current user and grant with scope {} and type {}. Result id {}",
-                grant.getScope(), grant.getType(), result.getId());
+                     grant.getScope(), grant.getType(), result.getId());
         return result;
     }
 
@@ -172,12 +176,12 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
             throw new HiveClientException("OAuthGrant id cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("OAuthGrant: update requested for user with id {}, grant id {} and grant with scope {} and type " +
-                "{}", userId, grant.getId(), grant.getScope(), grant.getType());
+                     "{}", userId, grant.getId(), grant.getScope(), grant.getType());
         String path = "/user/" + userId + "/oauth/grant/" + grant.getId();
         OAuthGrant result = restAgent
-                .execute(path, HttpMethod.PUT, null, null, grant, OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
+            .execute(path, HttpMethod.PUT, null, null, grant, OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
         logger.debug("OAuthGrant: update proceed for user with id {}, grant id {} and grant with scope {} and type " +
-                "{}", userId, grant.getId(), grant.getScope(), grant.getType());
+                     "{}", userId, grant.getId(), grant.getScope(), grant.getType());
         return result;
     }
 
@@ -190,12 +194,12 @@ class OAuthGrantControllerImpl implements OAuthGrantController {
             throw new HiveClientException("OAuthGrant id cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("OAuthGrant: update requested for current user, grant id {} and grant with scope {} and type {}",
-                grant.getId(), grant.getScope(), grant.getType());
+                     grant.getId(), grant.getScope(), grant.getType());
         String path = "/user/current/oauth/grant/" + grant.getId();
         OAuthGrant result = restAgent
-                .execute(path, HttpMethod.PUT, null, null, grant, OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
+            .execute(path, HttpMethod.PUT, null, null, grant, OAuthGrant.class, OAUTH_GRANT_PUBLISHED, null);
         logger.debug("OAuthGrant: update proceed for current user, grant id {} and grant with scope {} and type {}",
-                grant.getId(), grant.getScope(), grant.getType());
+                     grant.getId(), grant.getScope(), grant.getType());
         return result;
     }
 

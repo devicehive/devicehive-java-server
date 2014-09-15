@@ -2,11 +2,15 @@ package com.devicehive.client.model;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
 
 /**
- * Represents a client with the access to the DeviceHive OAuth API.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/OAuthClient">OAuthClient</a>
+ * Represents a client with the access to the DeviceHive OAuth API. For more details see <a
+ * href="http://www.devicehive.com/restful#Reference/OAuthClient">OAuthClient</a>
  */
 public class OAuthClient implements HiveEntity {
 
@@ -15,7 +19,7 @@ public class OAuthClient implements HiveEntity {
     private Long id;
 
     @JsonPolicyDef({OAUTH_CLIENT_LISTED, OAUTH_CLIENT_SUBMITTED, OAUTH_GRANT_LISTED, OAUTH_CLIENT_SUBMITTED,
-            OAUTH_GRANT_PUBLISHED})
+                    OAUTH_GRANT_PUBLISHED})
     private NullableWrapper<String> name;
 
     @JsonPolicyDef({OAUTH_CLIENT_LISTED, OAUTH_CLIENT_SUBMITTED, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})

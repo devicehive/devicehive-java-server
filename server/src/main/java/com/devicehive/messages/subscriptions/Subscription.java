@@ -2,12 +2,13 @@ package com.devicehive.messages.subscriptions;
 
 
 import com.devicehive.messages.handler.HandlerCreator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
-public abstract class Subscription<EventSource,T> {
+public abstract class Subscription<EventSource, T> {
 
     private static final Logger logger = LoggerFactory.getLogger(Subscription.class);
 

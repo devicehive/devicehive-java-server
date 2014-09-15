@@ -10,6 +10,7 @@ import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -58,7 +59,7 @@ public class AccessKeyPermissionDevicesTest {
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
         permission1
-                .setDeviceGuids(new JsonStringWrapper("[\"" + UUID.randomUUID() + "\",\"" + UUID.randomUUID() + "\"]"));
+            .setDeviceGuids(new JsonStringWrapper("[\"" + UUID.randomUUID() + "\",\"" + UUID.randomUUID() + "\"]"));
 
         AccessKeyPermission permission2 = new AccessKeyPermission();
         permission2.setDeviceGuids(new JsonStringWrapper("[]"));
@@ -87,7 +88,7 @@ public class AccessKeyPermissionDevicesTest {
         AccessKeyPermission singlePermission = new AccessKeyPermission();
         UUID usefulGuid = UUID.randomUUID();
         singlePermission.setDeviceGuids(
-                new JsonStringWrapper("[\"" + usefulGuid + "\", \"" + UUID.randomUUID().toString() + "\"]"));
+            new JsonStringWrapper("[\"" + usefulGuid + "\", \"" + UUID.randomUUID().toString() + "\"]"));
         permissions.add(singlePermission);
 
         key.setUser(CLIENT);
@@ -109,9 +110,9 @@ public class AccessKeyPermissionDevicesTest {
         AccessKeyPermission singlePermission = new AccessKeyPermission();
         UUID usefulGuid = UUID.randomUUID();
         singlePermission.setDeviceGuids(
-                new JsonStringWrapper(
-                        "[\"" + UUID.randomUUID().toString() + "\", \"" + UUID.randomUUID().toString() + "\", " +
-                                "\"" + UUID.randomUUID().toString() + "\"]"));
+            new JsonStringWrapper(
+                "[\"" + UUID.randomUUID().toString() + "\", \"" + UUID.randomUUID().toString() + "\", " +
+                "\"" + UUID.randomUUID().toString() + "\"]"));
         permissions.add(singlePermission);
 
         key.setUser(CLIENT);
@@ -134,12 +135,12 @@ public class AccessKeyPermissionDevicesTest {
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
         permission1.setDeviceGuids(
-                new JsonStringWrapper("[\"" + usefulGuid + "\", \"" + UUID.randomUUID().toString() + "\"]"));
+            new JsonStringWrapper("[\"" + usefulGuid + "\", \"" + UUID.randomUUID().toString() + "\"]"));
         permissions.add(permission1);
 
         AccessKeyPermission permission2 = new AccessKeyPermission();
         permission2.setDeviceGuids(
-                new JsonStringWrapper("[\"" + UUID.randomUUID() + "\", \"" + UUID.randomUUID().toString() + "\"]"));
+            new JsonStringWrapper("[\"" + UUID.randomUUID() + "\", \"" + UUID.randomUUID().toString() + "\"]"));
         permissions.add(permission2);
 
         AccessKeyPermission permission3 = new AccessKeyPermission();
@@ -147,7 +148,8 @@ public class AccessKeyPermissionDevicesTest {
 
         AccessKeyPermission permission4 = new AccessKeyPermission();
         permission4.setDeviceGuids(new JsonStringWrapper("[\"" + UUID.randomUUID() + "\", " +
-                "\"" + UUID.randomUUID().toString() + "\", \"" + usefulGuid.toString() + "\"]"));
+                                                         "\"" + UUID.randomUUID().toString() + "\", \"" + usefulGuid
+            .toString() + "\"]"));
         permissions.add(permission4);
 
         key.setUser(CLIENT);
@@ -169,13 +171,13 @@ public class AccessKeyPermissionDevicesTest {
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
         permission1.setDeviceGuids(
-                new JsonStringWrapper(
-                        "[\"" + UUID.randomUUID().toString() + "\", \"" + UUID.randomUUID().toString() + "\"]"));
+            new JsonStringWrapper(
+                "[\"" + UUID.randomUUID().toString() + "\", \"" + UUID.randomUUID().toString() + "\"]"));
         permissions.add(permission1);
 
         AccessKeyPermission permission2 = new AccessKeyPermission();
         permission2.setDeviceGuids(
-                new JsonStringWrapper("[\"" + UUID.randomUUID() + "\", \"" + UUID.randomUUID().toString() + "\"]"));
+            new JsonStringWrapper("[\"" + UUID.randomUUID() + "\", \"" + UUID.randomUUID().toString() + "\"]"));
         permissions.add(permission2);
 
         key.setUser(CLIENT);

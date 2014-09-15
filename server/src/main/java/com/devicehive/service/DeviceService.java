@@ -18,7 +18,16 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
+
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -28,13 +37,6 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -44,6 +46,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 @LogExecutionTime
 @EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
+
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
@@ -99,7 +102,7 @@ public class DeviceService {
                                                boolean useExistingEquipment) {
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
         DeviceClass deviceClass = deviceClassService
-                .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
@@ -111,9 +114,9 @@ public class DeviceService {
             }
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                    (existingDevice, SpecialNotifications.DEVICE_ADD);
+                (existingDevice, SpecialNotifications.DEVICE_ADD);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice)) {
@@ -138,10 +141,10 @@ public class DeviceService {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                    (existingDevice,
-                            SpecialNotifications.DEVICE_UPDATE);
+                (existingDevice,
+                 SpecialNotifications.DEVICE_UPDATE);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         }
     }
@@ -154,26 +157,26 @@ public class DeviceService {
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
             throw new HiveException(
-                    String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
-                    UNAUTHORIZED.getStatusCode());
+                String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
+                UNAUTHORIZED.getStatusCode());
         }
         Network network = networkService.verifyNetworkByKey(deviceUpdate.getNetwork(), key);
         DeviceClass deviceClass = deviceClassService
-                .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                    (existingDevice, SpecialNotifications.DEVICE_ADD);
+                (existingDevice, SpecialNotifications.DEVICE_ADD);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().getValue())) {
                 throw new HiveException(
-                        String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
-                        UNAUTHORIZED.getStatusCode());
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
+                    UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
                 existingDevice.setDeviceClass(deviceClass);
@@ -194,9 +197,9 @@ public class DeviceService {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                    (existingDevice, SpecialNotifications.DEVICE_UPDATE);
+                (existingDevice, SpecialNotifications.DEVICE_UPDATE);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         }
     }
@@ -210,13 +213,13 @@ public class DeviceService {
         }
         if (!device.getGuid().equals(deviceUpdate.getGuid().getValue())) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
-                    UNAUTHORIZED.getStatusCode());
+                                    UNAUTHORIZED.getStatusCode());
         }
         if (deviceUpdate.getKey() != null && !device.getKey().equals(deviceUpdate.getKey().getValue())) {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
         DeviceClass deviceClass = deviceClassService
-                .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
             existingDevice.setDeviceClass(deviceClass);
@@ -234,10 +237,10 @@ public class DeviceService {
             existingDevice.setKey(deviceUpdate.getKey().getValue());
         }
         final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                (existingDevice,
-                        SpecialNotifications.DEVICE_UPDATE);
+            (existingDevice,
+             SpecialNotifications.DEVICE_UPDATE);
         List<DeviceNotification> resultList =
-                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+            deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
         return resultList.get(0);
     }
 
@@ -246,7 +249,7 @@ public class DeviceService {
                                          boolean useExistingEquipment) {
         Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
         DeviceClass deviceClass = deviceClassService
-                .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
 
         if (existingDevice == null) {
@@ -259,10 +262,10 @@ public class DeviceService {
             }
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                    (existingDevice,
-                            SpecialNotifications.DEVICE_ADD);
+                (existingDevice,
+                 SpecialNotifications.DEVICE_ADD);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         } else {
             if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
@@ -281,10 +284,10 @@ public class DeviceService {
                 existingDevice.setNetwork(network);
             }
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                    (existingDevice,
-                            SpecialNotifications.DEVICE_UPDATE);
+                (existingDevice,
+                 SpecialNotifications.DEVICE_UPDATE);
             List<DeviceNotification> resultList =
-                    deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
             return resultList.get(0);
         }
     }
@@ -301,12 +304,9 @@ public class DeviceService {
     }
 
     /**
-     * Implementation for model:
-     * if field exists and null - error
-     * if field does not exists - use field from database
+     * Implementation for model: if field exists and null - error if field does not exists - use field from database
      *
      * @param device device to check
-     * @throws HiveException
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void validateDevice(DeviceUpdate device) throws HiveException {
@@ -370,14 +370,14 @@ public class DeviceService {
                                 HivePrincipal principal) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
+                                 deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(Long networkId,
                                 HivePrincipal principal) {
         return deviceDAO
-                .getList(null, null, null, networkId, null, null, null, null, null, null, null, null, principal);
+            .getList(null, null, null, networkId, null, null, null, null, null, null, null, null, principal);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

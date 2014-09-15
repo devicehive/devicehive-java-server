@@ -4,12 +4,17 @@ package com.devicehive.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
+
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InterceptorBinding;
 import javax.interceptor.InvocationContext;
-import java.lang.annotation.*;
-import java.lang.reflect.Method;
 
 //@LogExecutionTime
 @Interceptor
@@ -62,10 +67,8 @@ public class ExecutionTimeLoggerInterceptor {
 
 
         /**
-         * logs message like "Execution of methodName  took 100 milliseconds"
-         * if execution time is less or equal MAX_METHOD_EXECUTION_TIME will log with debug priority,
-         * Will log with warning priority otherwise
-         *
+         * logs message like "Execution of methodName  took 100 milliseconds" if execution time is less or equal
+         * MAX_METHOD_EXECUTION_TIME will log with debug priority, Will log with warning priority otherwise
          */
         public void logExecuted() {
             long time = click() / 1000;
@@ -83,5 +86,7 @@ public class ExecutionTimeLoggerInterceptor {
     @InterceptorBinding
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.TYPE, ElementType.METHOD})
-    public @interface NoneBinding {}
+    public @interface NoneBinding {
+
+    }
 }

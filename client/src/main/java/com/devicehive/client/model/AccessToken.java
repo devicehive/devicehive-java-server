@@ -4,8 +4,8 @@ package com.devicehive.client.model;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Represents access token
- * For more details see <a href="http://tools.ietf.org/html/rfc6749">The OAuth 2.0 Authorization Framework</a>
+ * Represents access token For more details see <a href="http://tools.ietf.org/html/rfc6749">The OAuth 2.0 Authorization
+ * Framework</a>
  */
 public class AccessToken implements HiveEntity {
 

@@ -17,15 +17,16 @@ import com.devicehive.model.User;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
@@ -33,6 +34,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Stateless
 public class NetworkService {
+
     @EJB
     private NetworkDAO networkDAO;
     @EJB
@@ -63,22 +65,22 @@ public class NetworkService {
             AccessKey key = principal.getKey();
             User user = userService.findUserWithNetworks(key.getUser().getId());
             List<Network> found = networkDAO.getNetworkList(user,
-                    key.getPermissions(),
-                    Arrays.asList(networkId));
+                                                            key.getPermissions(),
+                                                            Arrays.asList(networkId));
             Network result = found.isEmpty() ? null : found.get(0);
             if (result == null) {
                 return result;
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
             Set<AccessKeyPermission> filtered = CheckPermissionsHelper
-                    .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
-                            hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
+                .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
+                                   hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
             if (filtered.isEmpty()) {
                 result.setDevices(null);
                 return result;
             }
             Set<Device> devices =
-                    new HashSet<>(deviceService.getList(result.getId(), principal));
+                new HashSet<>(deviceService.getList(result.getId(), principal));
             result.setDevices(devices);
             return result;
         }

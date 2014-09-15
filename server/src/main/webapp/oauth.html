@@ -36,21 +36,21 @@
                 var deviceHive = new DeviceHive(deviceHiveUrl, sessionStorage.deviceHiveToken);
                 var devices = deviceHive.getDevices()
                         .done(function (devices) {
-                            $("#device-list-panel").show();
-                            $.each(devices, function(index, device) {
-                                $("<li></li>").text(device.name).appendTo($("#device-list"));
-                            });
-                        })
-                        .fail(function(message, xhr) {
-                            if (xhr.status == 401) {
-                                // the key is expired on invalid - ask to renew
-                                $("#auth-request").show();
-                            }
-                            else {
-                                // generic error
-                                alert("DeviceHive error: " + message);
-                            }
-                        });
+                                  $("#device-list-panel").show();
+                                  $.each(devices, function (index, device) {
+                                      $("<li></li>").text(device.name).appendTo($("#device-list"));
+                                  });
+                              })
+                        .fail(function (message, xhr) {
+                                  if (xhr.status == 401) {
+                                      // the key is expired on invalid - ask to renew
+                                      $("#auth-request").show();
+                                  }
+                                  else {
+                                      // generic error
+                                      alert("DeviceHive error: " + message);
+                                  }
+                              });
             }
             else {
                 // otherwise - display the OAuth Request Access button
@@ -58,12 +58,14 @@
             }
 
             // Request Access button click handler
-            $("#request-access").click(function() {
-                document.location.href = oauthUrl + "?response_type=token&client_id=" + oauthClientId + "&scope=" + oauthScope + "&redirect_uri=" + encodeURIComponent(oauthRedirectUrl);
+            $("#request-access").click(function () {
+                document.location.href =
+                oauthUrl + "?response_type=token&client_id=" + oauthClientId + "&scope=" + oauthScope + "&redirect_uri="
+                        + encodeURIComponent(oauthRedirectUrl);
             });
 
             // Clear Token button click handler
-            $("#clear-token").click(function() {
+            $("#clear-token").click(function () {
                 sessionStorage.removeItem("deviceHiveToken");
                 document.location.href = oauthRedirectUrl;
             });

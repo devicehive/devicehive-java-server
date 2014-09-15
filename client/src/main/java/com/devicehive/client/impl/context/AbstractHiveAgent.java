@@ -18,9 +18,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public abstract class AbstractHiveAgent {
 
     protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptionsStorage =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
     protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
 
     private HivePrincipal hivePrincipal;
 
@@ -35,7 +35,8 @@ public abstract class AbstractHiveAgent {
     protected final ReadWriteLock subscriptionsLock = new ReentrantReadWriteLock(true);
 
 
-    protected AbstractHiveAgent(ConnectionLostCallback connectionLostCallback, ConnectionRestoredCallback connectionRestoredCallback) {
+    protected AbstractHiveAgent(ConnectionLostCallback connectionLostCallback,
+                                ConnectionRestoredCallback connectionRestoredCallback) {
         this.connectionLostCallback = connectionLostCallback;
         this.connectionRestoredCallback = connectionRestoredCallback;
     }
@@ -49,7 +50,7 @@ public abstract class AbstractHiveAgent {
         }
     }
 
-    protected abstract void beforeConnect()throws HiveException;
+    protected abstract void beforeConnect() throws HiveException;
 
     protected abstract void doConnect() throws HiveException;
 
@@ -98,7 +99,7 @@ public abstract class AbstractHiveAgent {
     }
 
 
-    public final void close()  {
+    public final void close() {
         connectionLock.writeLock().lock();
         try {
             disconnect();

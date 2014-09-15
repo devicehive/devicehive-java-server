@@ -9,16 +9,17 @@ import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.util.HiveValidator;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
@@ -33,6 +34,7 @@ public class DeviceClassService {
     private EquipmentService equipmentService;
     @EJB
     private HiveValidator hiveValidator;
+
     public boolean delete(@NotNull long id) {
         return deviceClassDAO.delete(id);
     }
@@ -55,7 +57,7 @@ public class DeviceClassService {
             stored = deviceClassDAO.getDeviceClass(deviceClassFromMessage.getId());
         } else {
             stored = deviceClassDAO.getDeviceClassByNameAndVersion(deviceClassFromMessage.getName(),
-                    deviceClassFromMessage.getVersion());
+                                                                   deviceClassFromMessage.getVersion());
         }
         if (stored != null) {
             //update
@@ -106,13 +108,14 @@ public class DeviceClassService {
         DeviceClass stored = deviceClassDAO.getDeviceClass(id);
         if (stored == null) {
             throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, id),
-                    Response.Status.NOT_FOUND.getStatusCode());
+                                    Response.Status.NOT_FOUND.getStatusCode());
         }
         if (update == null) {
             return;
         }
-        if (update.getData() != null)
+        if (update.getData() != null) {
             stored.setData(update.getData().getValue());
+        }
         if (update.getEquipment() != null) {
             replaceEquipment(update.getEquipment().getValue(), stored);
             stored.setEquipment(update.getEquipment().getValue());
@@ -140,8 +143,8 @@ public class DeviceClassService {
         for (Equipment newEquipment : equipmentsToReplace) {
             if (codes.contains(newEquipment.getCode())) {
                 throw new HiveException(
-                        String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, newEquipment.getCode(), deviceClass.getId()),
-                        FORBIDDEN.getStatusCode());
+                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, newEquipment.getCode(), deviceClass.getId()),
+                    FORBIDDEN.getStatusCode());
             }
             codes.add(newEquipment.getCode());
             newEquipment.setDeviceClass(deviceClass);
@@ -155,8 +158,8 @@ public class DeviceClassService {
         for (Equipment equipment : equipments) {
             if (existingCodesSet.contains(equipment.getCode())) {
                 throw new HiveException(
-                        String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, equipment.getCode(), deviceClass.getId()),
-                        FORBIDDEN.getStatusCode());
+                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, equipment.getCode(), deviceClass.getId()),
+                    FORBIDDEN.getStatusCode());
             }
             existingCodesSet.add(equipment.getCode());
             equipment.setDeviceClass(deviceClass);
@@ -180,8 +183,8 @@ public class DeviceClassService {
             for (Equipment e : equipments) {
                 if (newCode.equals(e.getCode())) {
                     throw new HiveException(
-                            String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, e.getCode(), classId),
-                            FORBIDDEN.getStatusCode());
+                        String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, e.getCode(), classId),
+                        FORBIDDEN.getStatusCode());
                 }
             }
         }

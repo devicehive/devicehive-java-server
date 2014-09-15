@@ -1,11 +1,13 @@
 package com.devicehive.client.impl.json.adapters;
 
 
-import com.devicehive.client.impl.util.Messages;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+
+import com.devicehive.client.impl.util.Messages;
+
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -55,7 +57,7 @@ public class TimestampAdapter extends TypeAdapter<Timestamp> {
             return null;
         }
         StringBuilder res = new StringBuilder(FORMATTER.print(new DateTime(timestamp.getTime())))
-                .append(".");
+            .append(".");
         int microseconds = timestamp.getNanos() / 1000;
 
         if (microseconds == 0) {

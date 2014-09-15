@@ -1,5 +1,7 @@
 package com.devicehive.auth.websockets;
 
+import com.google.gson.JsonObject;
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.model.Device;
@@ -7,11 +9,10 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
-import com.google.gson.JsonObject;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.annotation.Priority;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;

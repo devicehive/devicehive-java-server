@@ -1,17 +1,17 @@
 package com.devicehive.messages.bus.listener;
 
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import com.devicehive.messages.bus.Update;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devicehive.messages.bus.LocalMessage;
+import com.devicehive.messages.bus.Update;
 import com.devicehive.model.DeviceCommand;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 @Singleton
 public class DeviceCommandUpdateListener implements MessageListener<DeviceCommand> {

@@ -1,5 +1,7 @@
 package com.devicehive.messaging;
 
+import com.google.common.collect.Sets;
+
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.HiveFactory;
@@ -16,7 +18,7 @@ import com.devicehive.client.model.UserRole;
 import com.devicehive.client.model.UserStatus;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.messaging.config.Constants;
-import com.google.common.collect.Sets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +92,7 @@ public class AdminTool {
         List<Network> list = adminClient.getNetworkController().listNetworks(NETWORK, null, null, null, null, null);
         for (Network network : list) {
             List<Device> devices = adminClient.getDeviceController()
-                    .listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
+                .listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
             for (Device device : devices) {
                 adminClient.getDeviceController().deleteDevice(device.getId());
             }
@@ -110,7 +112,7 @@ public class AdminTool {
     }
 
     private List<Device> prepareTestDevices(int deviceCount, DeviceClass deviceClass, Network network)
-            throws HiveException {
+        throws HiveException {
         for (int i = 0; i < deviceCount; i++) {
             Device device = new Device();
             device.setId(DEVICE_NAME + i);
@@ -121,12 +123,12 @@ public class AdminTool {
             adminClient.getDeviceController().registerDevice(device.getId(), device);
         }
         return adminClient.getDeviceController()
-                .listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
+            .listDevices(null, null, null, network.getId(), null, null, null, null, null, null, null, null);
     }
 
     private void cleanDeviceClass() throws HiveException {
         List<DeviceClass> list =
-                adminClient.getDeviceController().listDeviceClass(DEVICE_CLASS, null, null, null, null, null, null);
+            adminClient.getDeviceController().listDeviceClass(DEVICE_CLASS, null, null, null, null, null, null);
         for (DeviceClass deviceClass : list) {
             adminClient.getDeviceController().deleteDeviceClass(deviceClass.getId());
         }

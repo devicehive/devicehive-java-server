@@ -16,7 +16,13 @@ import com.devicehive.model.User;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.util.LogExecutionTime;
+
 import org.apache.commons.lang3.StringUtils;
+
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -24,10 +30,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Stateless
 @LogExecutionTime
@@ -52,7 +54,7 @@ public class AccessKeyService {
         }
         if (accessKey.getId() != null || accessKey.getPermissions() == null || accessKey.getPermissions().isEmpty()) {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                                    Response.Status.BAD_REQUEST.getStatusCode());
         }
         validateActions(accessKey);
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
@@ -85,7 +87,7 @@ public class AccessKeyService {
             Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().getValue();
             if (permissionsToReplace == null) {
                 throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
-                        Response.Status.BAD_REQUEST.getStatusCode());
+                                        Response.Status.BAD_REQUEST.getStatusCode());
             }
             AccessKey toValidate = toUpdate.convertTo();
             validateActions(toValidate);
@@ -144,7 +146,7 @@ public class AccessKeyService {
         }
         user = userService.findUserWithNetworks(user.getId());
         return allowedNetworks.contains(targetNetwork.getId()) &&
-                (user.isAdmin() || user.getNetworks().contains(targetNetwork));
+               (user.isAdmin() || user.getNetworks().contains(targetNetwork));
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -183,13 +185,13 @@ public class AccessKeyService {
         permissions.removeAll(toRemove);
         boolean hasAccess;
         hasAccess = allowedDevices.contains(null) ?
-                userService.hasAccessToDevice(accessKeyUser, device) :
-                allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(accessKeyUser, device);
+                    userService.hasAccessToDevice(accessKeyUser, device) :
+                    allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(accessKeyUser, device);
 
         hasAccess = hasAccess && allowedNetworks.contains(null) ?
-                accessKeyUser.isAdmin() || accessKeyUser.getNetworks().contains(device.getNetwork()) :
-                (accessKeyUser.isAdmin() || accessKeyUser.getNetworks().contains(device.getNetwork()))
-                        && allowedNetworks.contains(device.getNetwork().getId());
+                    accessKeyUser.isAdmin() || accessKeyUser.getNetworks().contains(device.getNetwork()) :
+                    (accessKeyUser.isAdmin() || accessKeyUser.getNetworks().contains(device.getNetwork()))
+                    && allowedNetworks.contains(device.getNetwork().getId());
 
         return hasAccess;
     }

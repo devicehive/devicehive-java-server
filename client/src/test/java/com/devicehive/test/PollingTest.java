@@ -1,6 +1,7 @@
 package com.devicehive.test;
 
 import junit.framework.TestCase;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -9,7 +10,7 @@ import org.junit.runners.JUnit4;
 public class PollingTest {
 
     @Test
-    public void dummyTest(){
+    public void dummyTest() {
         TestCase.assertEquals(true, true);
     }
 

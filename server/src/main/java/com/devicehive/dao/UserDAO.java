@@ -7,6 +7,9 @@ import com.devicehive.model.User;
 import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.util.LogExecutionTime;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -21,8 +24,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.devicehive.model.User.Queries.Names.DELETE_BY_ID;
 import static com.devicehive.model.User.Queries.Names.FIND_BY_NAME;
@@ -63,7 +64,8 @@ public class UserDAO {
      * @param login        user login ignored, when loginPattern is specified
      * @param loginPattern login pattern (LIKE %VALUE%) user login will be ignored, if not null
      * @param role         User's role ADMIN - 0, CLIENT - 1
-     * @param status       ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
+     * @param status       ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login
+     *                     failures), DISABLED - 2 , DELETED - 3;
      * @param sortField    either of "login", "loginAttempts", "role", "status", "lastLogin"
      * @param sortOrderAsc Ascending order, if true
      * @param take         like SQL LIMIT

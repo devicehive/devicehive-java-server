@@ -15,6 +15,10 @@ import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -22,9 +26,6 @@ import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.List;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -79,8 +80,8 @@ public class DeviceCommandService {
                                                      HivePrincipal principal) {
         if (devices != null) {
             return commandDAO
-                    .findCommands(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp,
-                            null);
+                .findCommands(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp,
+                              null);
         } else {
             return commandDAO.findCommands(null, names, timestamp, principal);
         }
@@ -91,7 +92,7 @@ public class DeviceCommandService {
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip, Integer gridInterval) {
         return commandDAO.queryDeviceCommand(device, start, end, command, status, sortField, sortOrderAsc, take,
-                skip, gridInterval);
+                                             skip, gridInterval);
     }
 
     public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {
@@ -120,14 +121,13 @@ public class DeviceCommandService {
 
         if (cmd == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
-                    NOT_FOUND.getStatusCode());
+                                    NOT_FOUND.getStatusCode());
         }
 
         if (!cmd.getDevice().getId().equals(device.getId())) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
-                    NOT_FOUND.getStatusCode());
+                                    NOT_FOUND.getStatusCode());
         }
-
 
         if (update.getCommand() != null) {
             cmd.setCommand(update.getCommand().getValue());

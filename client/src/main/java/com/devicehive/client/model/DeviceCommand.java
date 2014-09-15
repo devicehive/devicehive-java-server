@@ -2,36 +2,43 @@ package com.devicehive.client.model;
 
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE;
 
 /**
- * Represents a device command, a unit of information sent to devices.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/DeviceCommand"></a>
+ * Represents a device command, a unit of information sent to devices. For more details see <a
+ * href="http://www.devicehive.com/restful#Reference/DeviceCommand"></a>
  */
 public class DeviceCommand implements HiveMessage {
 
     private static final long serialVersionUID = -5147107009697358635L;
     @JsonPolicyDef(
-            {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+        {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Long id;
 
     @JsonPolicyDef(
-            {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+        {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
 
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
     private Long userId;
 
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String command;
 
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
 
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
@@ -41,11 +48,11 @@ public class DeviceCommand implements HiveMessage {
     private NullableWrapper<Integer> flags;
 
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private NullableWrapper<String> status;
 
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private NullableWrapper<JsonStringWrapper> result;
 
 

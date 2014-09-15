@@ -19,6 +19,7 @@ import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.HiveEndpoint;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,22 +46,11 @@ public class CommonHandlers extends WebsocketHandlers {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Client/serverinfo">WebSocket API:
-     * Client: server/info</a>
-     * Gets meta-information about the current API.
+     * Client: server/info</a> Gets meta-information about the current API.
      *
      * @param session Current session
-     * @return Json object with the following structure
-     *         <code>
-     *         {
-     *         "action": {string},
-     *         "status": {string},
-     *         "requestId": {object},
-     *         "info": {
-     *         "apiVersion": {string},
-     *         "serverTimestamp": {datetime},
-     *         "restServerUrl": {string}
-     *         }
-     *         }
+     * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
+     *         {object}, "info": { "apiVersion": {string}, "serverTimestamp": {datetime}, "restServerUrl": {string} } }
      *         </code>
      */
 
@@ -83,21 +73,11 @@ public class CommonHandlers extends WebsocketHandlers {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Client/authenticate">WebSocket API:
-     * Client: authenticate</a>
-     * Authenticates a user.
+     * Client: authenticate</a> Authenticates a user.
      *
      * @param session Current session
-     * @return JsonObject with structure
-     *         <code>
-     *         {
-     *         "action": {string},
-     *         "status": {string},
-     *         "requestId": {object}
-     *         }
-     *         </code>
-     *         Where:
-     *         action - Action name: authenticate
-     *         status - Operation execution status (success or error).
+     * @return JsonObject with structure <code> { "action": {string}, "status": {string}, "requestId": {object} }
+     *         </code> Where: action - Action name: authenticate status - Operation execution status (success or error).
      *         requestId - Request unique identifier as specified in the request message.
      */
     @Action(value = "authenticate")
@@ -124,7 +104,7 @@ public class CommonHandlers extends WebsocketHandlers {
             }
         }
         HiveWebsocketSessionState state = (HiveWebsocketSessionState)
-                session.getUserProperties().get(HiveWebsocketSessionState.KEY);
+            session.getUserProperties().get(HiveWebsocketSessionState.KEY);
         if (login != null && state.getEndpoint().equals(HiveEndpoint.CLIENT)) {
             User user = userService.authenticate(login, password);
             if (user != null) {

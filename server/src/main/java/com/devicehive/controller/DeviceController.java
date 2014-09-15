@@ -1,6 +1,13 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
+import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -15,12 +22,13 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -37,14 +45,27 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_STATE;
 import static com.devicehive.auth.AllowedKeyAction.Action.REGISTER_DEVICE;
-import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.configuration.Constants.CODE;
+import static com.devicehive.configuration.Constants.DEVICE_CLASS;
+import static com.devicehive.configuration.Constants.DEVICE_CLASS_ID;
+import static com.devicehive.configuration.Constants.DEVICE_CLASS_NAME;
+import static com.devicehive.configuration.Constants.DEVICE_CLASS_VERSION;
+import static com.devicehive.configuration.Constants.EQUIPMENT;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.configuration.Constants.NAME_PATTERN;
+import static com.devicehive.configuration.Constants.NETWORK;
+import static com.devicehive.configuration.Constants.NETWORK_ID;
+import static com.devicehive.configuration.Constants.NETWORK_NAME;
+import static com.devicehive.configuration.Constants.SKIP;
+import static com.devicehive.configuration.Constants.SORT_FIELD;
+import static com.devicehive.configuration.Constants.SORT_ORDER;
+import static com.devicehive.configuration.Constants.STATUS;
+import static com.devicehive.configuration.Constants.TAKE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
@@ -54,8 +75,8 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
 /**
- * REST controller for devices: <i>/device</i>.
- * See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive RESTful API: Device</a> for details.
+ * REST controller for devices: <i>/device</i>. See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive
+ * RESTful API: Device</a> for details.
  */
 @Path("/device")
 @LogExecutionTime
@@ -86,7 +107,7 @@ public class DeviceController {
      * @param deviceClassName    Associated device class name
      * @param deviceClassVersion Associated device class version
      * @param sortField          Result list sort field. Available values are Name, Status, Network and DeviceClass.
-     * @param sortOrderSt          Result list sort order. Available values are ASC and DESC.
+     * @param sortOrderSt        Result list sort order. Available values are ASC and DESC.
      * @param take               Number of records to take from the result list.
      * @param skip               Number of records to skip from the result list.
      * @return list of <a href="http://www.devicehive.com/restful#Reference/Device">Devices</a>
@@ -111,19 +132,21 @@ public class DeviceController {
 
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
         if (sortField != null
-                && !NAME.equalsIgnoreCase(sortField)
-                && !STATUS.equalsIgnoreCase(sortField)
-                && !NETWORK.equalsIgnoreCase(sortField)
-                && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
+            && !NAME.equalsIgnoreCase(sortField)
+            && !STATUS.equalsIgnoreCase(sortField)
+            && !NETWORK.equalsIgnoreCase(sortField)
+            && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                                              Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
 
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, deviceClassVersion, sortField, sortOrder, take, skip, principal);
+                                                    deviceClassName, deviceClassVersion, sortField, sortOrder, take,
+                                                    skip, principal);
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 
@@ -131,11 +154,9 @@ public class DeviceController {
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/register">DeviceHive RESTful
-     * API: Device: register</a>
-     * Registers a device.
-     * If device with specified identifier has already been registered,
-     * it gets updated in case when valid key is provided in the authorization header.
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/register">DeviceHive RESTful API:
+     * Device: register</a> Registers a device. If device with specified identifier has already been registered, it gets
+     * updated in case when valid key is provided in the authorization header.
      *
      * @param jsonObject In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                   .com/restful#Reference/Device/register">
@@ -157,29 +178,28 @@ public class DeviceController {
         Gson gsonForEquipment = GsonFactory.createGson();
         boolean useExistingEquipment = jsonObject.get(EQUIPMENT) == null;
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
-                jsonObject.get(EQUIPMENT),
-                new TypeToken<HashSet<Equipment>>() {
-                }.getType());
+            jsonObject.get(EQUIPMENT),
+            new TypeToken<HashSet<Equipment>>() {
+            }.getType());
 
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         deviceService.deviceSaveAndNotify(device, equipmentSet, principal,
-                useExistingEquipment);
+                                          useExistingEquipment);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful
-     * API: Device: get</a>
-     * Gets information about device.
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful API:
+     * Device: get</a> Gets information about device.
      *
      * @param guid Device unique identifier
-     * @return If successful, this method returns
-     *         a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a> resource in the response body.
+     * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a>
+     *         resource in the response body.
      */
     @GET
     @Path("/{id}")
@@ -201,9 +221,8 @@ public class DeviceController {
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/delete">DeviceHive RESTful
-     * API: Device: delete</a>
-     * Deletes an existing device.
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/delete">DeviceHive RESTful API:
+     * Device: delete</a> Deletes an existing device.
      *
      * @param guid Device unique identifier
      * @return If successful, this method returns an empty response body.
@@ -223,37 +242,16 @@ public class DeviceController {
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/equipment">DeviceHive RESTful
-     * API: Device: equipment</a>
-     * Gets current state of device equipment.
-     * The equipment state is tracked by framework and it could be updated by sending 'equipment' notification
-     * with the following parameters:
-     * equipment: equipment code
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/equipment">DeviceHive RESTful API:
+     * Device: equipment</a> Gets current state of device equipment. The equipment state is tracked by framework and it
+     * could be updated by sending 'equipment' notification with the following parameters: equipment: equipment code
      * parameters: current equipment state
      *
      * @param guid Device unique identifier.
-     * @return If successful, this method returns array of the following structures in the response body.
-     *         <table>
-     *         <tr>
-     *         <td>Property Name</td>
-     *         <td>Type</td>
-     *         <td>Description</td>
-     *         </tr>
-     *         <tr>
-     *         <td>id</td>
-     *         <td>string</td>
-     *         <td>Equipment code.</td>
-     *         </tr>
-     *         <tr>
-     *         <td>timestamp</td>
-     *         <td>datetime</td>
-     *         <td>Equipment state timestamp.</td>
-     *         </tr>
-     *         <tr>
-     *         <td>parameters</td>
-     *         <td>object</td>
-     *         <td>Current equipment state.</td>
-     *         </tr>
+     * @return If successful, this method returns array of the following structures in the response body. <table> <tr>
+     *         <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>string</td>
+     *         <td>Equipment code.</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Equipment state
+     *         timestamp.</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Current equipment state.</td> </tr>
      *         </table>
      */
     @GET
@@ -273,11 +271,9 @@ public class DeviceController {
     }
 
     /**
-     * Gets current state of device equipment.
-     * The equipment state is tracked by framework and it could be updated by sending 'equipment' notification
-     * with the following parameters:
-     * equipment: equipment code
-     * parameters: current equipment state
+     * Gets current state of device equipment. The equipment state is tracked by framework and it could be updated by
+     * sending 'equipment' notification with the following parameters: equipment: equipment code parameters: current
+     * equipment state
      *
      * @param guid device guid
      * @param code equipment code
@@ -298,9 +294,9 @@ public class DeviceController {
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
             return ResponseFactory
-                    .response(NOT_FOUND,
-                            new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
+                .response(NOT_FOUND,
+                          new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                            String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         logger.debug("Device equipment by code proceed successfully");
 

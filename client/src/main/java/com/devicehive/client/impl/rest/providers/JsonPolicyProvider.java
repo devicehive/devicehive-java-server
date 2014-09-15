@@ -1,23 +1,31 @@
 package com.devicehive.client.impl.rest.providers;
 
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+
 import com.devicehive.client.impl.context.Constants;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.devicehive.client.impl.util.Messages;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
-import java.io.*;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.nio.charset.Charset;
 
 /**
  * Provider that applies JSON exclusion strategy to the hive entity
@@ -29,7 +37,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return MediaType.APPLICATION_JSON_TYPE.getType().equals(mediaType.getType()) && MediaType
-                .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
+            .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
     }
 
     @Override
@@ -40,7 +48,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
     @Override
     public void writeTo(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
                         MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
-            throws IOException, WebApplicationException {
+        throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
         JsonElement jsonElement = gson.toJsonTree(entity);
         Writer writer = null;
@@ -57,13 +65,13 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return MediaType.APPLICATION_JSON_TYPE.getType().equals(mediaType.getType()) && MediaType
-                .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
+            .APPLICATION_JSON_TYPE.getSubtype().equals(mediaType.getSubtype());
     }
 
     @Override
     public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType,
                       MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
-            throws IOException, WebApplicationException {
+        throws IOException, WebApplicationException {
         Gson gson = createGson(annotations);
         Reader reader = new InputStreamReader(entityStream, Charset.forName(Constants.CURRENT_CHARSET));
         return gson.fromJson(reader, genericType);

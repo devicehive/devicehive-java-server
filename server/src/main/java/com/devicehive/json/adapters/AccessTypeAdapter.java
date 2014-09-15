@@ -1,16 +1,18 @@
 package com.devicehive.json.adapters;
 
 
-import com.devicehive.configuration.Messages;
-import com.devicehive.model.AccessType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
+import com.devicehive.configuration.Messages;
+import com.devicehive.model.AccessType;
+
 import java.io.IOException;
 
 public class AccessTypeAdapter extends TypeAdapter<AccessType> {
+
     @Override
     public void write(JsonWriter out, AccessType value) throws IOException {
         if (value == null) {

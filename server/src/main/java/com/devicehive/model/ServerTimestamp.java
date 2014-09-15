@@ -2,6 +2,9 @@ package com.devicehive.model;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import java.io.Serializable;
+import java.sql.Timestamp;
+
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,8 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
-import java.io.Serializable;
-import java.sql.Timestamp;
 
 import static com.devicehive.model.ServerTimestamp.Queries.Names;
 import static com.devicehive.model.ServerTimestamp.Queries.Values;
@@ -18,8 +19,8 @@ import static com.devicehive.model.ServerTimestamp.Queries.Values;
 @Entity
 @Table(name = "get_timestamp")
 @NamedQueries({
-        @NamedQuery(name = Names.GET, query = Values.GET)
-})
+                  @NamedQuery(name = Names.GET, query = Values.GET)
+              })
 @Cacheable(false)
 public class ServerTimestamp implements Serializable {
 
@@ -37,11 +38,14 @@ public class ServerTimestamp implements Serializable {
     }
 
     public static class Queries {
+
         public static interface Names {
+
             static final String GET = "ServerTimestamp.get";
         }
 
         static interface Values {
+
             static final String GET = "select st from ServerTimestamp st";
         }
     }

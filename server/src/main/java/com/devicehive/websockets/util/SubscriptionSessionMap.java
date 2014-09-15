@@ -1,16 +1,16 @@
 package com.devicehive.websockets.util;
 
+import java.util.Collection;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.websocket.Session;
-import java.util.Collection;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 

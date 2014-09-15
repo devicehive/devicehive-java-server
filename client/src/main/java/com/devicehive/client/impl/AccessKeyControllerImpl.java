@@ -1,18 +1,21 @@
 package com.devicehive.client.impl;
 
 
+import com.google.common.reflect.TypeToken;
+
 import com.devicehive.client.AccessKeyController;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.model.AccessKey;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.google.common.reflect.TypeToken;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.HttpMethod;
 import java.lang.reflect.Type;
 import java.util.List;
+
+import javax.ws.rs.HttpMethod;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
@@ -36,7 +39,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
             private static final long serialVersionUID = 5031432595147474481L;
         }.getType();
         List<AccessKey> result = restAgent
-                .execute(path, HttpMethod.GET, null, null, type, ACCESS_KEY_LISTED);
+            .execute(path, HttpMethod.GET, null, null, type, ACCESS_KEY_LISTED);
         logger.debug("AccessKey: list request for user id {} proceed successfully.", userId);
         return result;
     }
@@ -49,7 +52,7 @@ class AccessKeyControllerImpl implements AccessKeyController {
             private static final long serialVersionUID = 6171432595147474481L;
         }.getType();
         List<AccessKey> result = restAgent
-                .execute(path, HttpMethod.GET, null, null, type, ACCESS_KEY_LISTED);
+            .execute(path, HttpMethod.GET, null, null, type, ACCESS_KEY_LISTED);
         logger.debug("AccessKey: list request for current user proceed successfully.");
         return result;
     }
@@ -68,8 +71,8 @@ class AccessKeyControllerImpl implements AccessKeyController {
         logger.debug("AccessKey: get requested for current user and key with id {}", keyId);
         String path = "/user/current/accesskey/" + keyId;
         AccessKey key = restAgent.execute(path, HttpMethod.GET, null,
-                AccessKey.class,
-                ACCESS_KEY_LISTED);
+                                          AccessKey.class,
+                                          ACCESS_KEY_LISTED);
         logger.debug("AccessKey: get request proceed successfully for current user and key with id {}", keyId);
         return key;
     }
@@ -80,13 +83,13 @@ class AccessKeyControllerImpl implements AccessKeyController {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("AccessKey: insert requested for user with id {}. Key params: label {}, " +
-                "expiration date {}", userId, key.getLabel(), key.getExpirationDate());
+                     "expiration date {}", userId, key.getLabel(), key.getExpirationDate());
         String path = "/user/" + userId + "/accesskey";
         AccessKey result = restAgent
-                .execute(path, HttpMethod.POST, null, null, key, AccessKey.class, ACCESS_KEY_PUBLISHED,
-                        ACCESS_KEY_SUBMITTED);
+            .execute(path, HttpMethod.POST, null, null, key, AccessKey.class, ACCESS_KEY_PUBLISHED,
+                     ACCESS_KEY_SUBMITTED);
         logger.debug("AccessKey: insert request proceed successfully for user with id {}. Key params: id {}, " +
-                "label {}, expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
+                     "label {}, expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
         return result;
     }
 
@@ -96,13 +99,13 @@ class AccessKeyControllerImpl implements AccessKeyController {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("AccessKey: insert requested for current user. Key params: label {}, " +
-                "expiration date {}", key.getLabel(), key.getExpirationDate());
+                     "expiration date {}", key.getLabel(), key.getExpirationDate());
         String path = "/user/current/accesskey";
         AccessKey result =
-                restAgent.execute(path, HttpMethod.POST, null, null, key,
-                        AccessKey.class,  ACCESS_KEY_PUBLISHED, ACCESS_KEY_SUBMITTED);
+            restAgent.execute(path, HttpMethod.POST, null, null, key,
+                              AccessKey.class, ACCESS_KEY_PUBLISHED, ACCESS_KEY_SUBMITTED);
         logger.debug("AccessKey: insert request proceed successfully for current user. Key params: id {}, " +
-                "label {}, expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
+                     "label {}, expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
         return result;
     }
 
@@ -112,11 +115,11 @@ class AccessKeyControllerImpl implements AccessKeyController {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("AccessKey: update requested for user with id {}. Key params: id {}, label {}, " +
-                "expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
+                     "expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
         String path = "/user/" + userId + "/accesskey/" + key.getId();
         restAgent.execute(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
         logger.debug("AccessKey: update request proceed successfully for user with id {}. Key params: id {}, " +
-                "label {}, expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
+                     "label {}, expiration date {}", userId, key.getId(), key.getLabel(), key.getExpirationDate());
     }
 
     @Override
@@ -125,11 +128,11 @@ class AccessKeyControllerImpl implements AccessKeyController {
             throw new HiveClientException("key cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("AccessKey: update requested for current user. Key params: id{}, label {}, " +
-                "expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
+                     "expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
         String path = "/user/current/accesskey/" + key.getId();
         restAgent.execute(path, HttpMethod.PUT, null, key, ACCESS_KEY_PUBLISHED);
         logger.debug("AccessKey: update request proceed successfully for current user. Key params: id {}, " +
-                "label {}, expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
+                     "label {}, expiration date {}", key.getId(), key.getLabel(), key.getExpirationDate());
     }
 
     @Override

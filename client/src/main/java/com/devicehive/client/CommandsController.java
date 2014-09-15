@@ -9,9 +9,9 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
- * Client side controller for device commands: <i>/device/{deviceGuid}/command</i>.
- * See <a href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for details.
- * Transport declared in the hive context will be used.
+ * Client side controller for device commands: <i>/device/{deviceGuid}/command</i>. See <a
+ * href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for
+ * details. Transport declared in the hive context will be used.
  */
 public interface CommandsController {
 
@@ -50,11 +50,11 @@ public interface CommandsController {
      * @return inserted command resource
      */
     DeviceCommand insertCommand(String guid, DeviceCommand command, HiveMessageHandler<DeviceCommand>
-            commandUpdateMessageHandler) throws HiveException;
+        commandUpdateMessageHandler) throws HiveException;
 
     /**
-     * Updates command with specified id by device with specified identifier. Notifies client who sent this command
-     * by command/update message.
+     * Updates command with specified id by device with specified identifier. Notifies client who sent this command by
+     * command/update message.
      *
      * @param deviceGuid device identifier
      * @param command    command resource
@@ -62,11 +62,11 @@ public interface CommandsController {
     void updateCommand(String deviceGuid, DeviceCommand command) throws HiveException;
 
     /**
-     * Subscribes client or device to commands. RESTful poll/pollMany or websocket subscribe will be used. When
-     * command proceed device will be notified by servers's command/update message.
+     * Subscribes client or device to commands. RESTful poll/pollMany or websocket subscribe will be used. When command
+     * proceed device will be notified by servers's command/update message.
      */
     String subscribeForCommands(SubscriptionFilter filter, HiveMessageHandler<DeviceCommand> commandMessageHandler)
-            throws HiveException;
+        throws HiveException;
 
     /**
      * Unsubscribes client or device from commands.

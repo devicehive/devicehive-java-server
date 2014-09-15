@@ -2,8 +2,9 @@ package com.devicehive.constants;
 
 
 public class Constants {
+
     /**
-     *  Application name
+     * Application name
      */
     public static final String NAME = "Examples set";
 

@@ -7,22 +7,22 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.util.ServerResponsesFactory;
 
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 //TODO:javadoc
 @Stateless
 public class DeviceEquipmentService {
+
     @EJB
     private DeviceEquipmentDAO deviceEquipmentDAO;
     @EJB
     private TimestampService timestampService;
-
 
 
     /**

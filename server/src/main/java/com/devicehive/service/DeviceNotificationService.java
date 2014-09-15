@@ -13,7 +13,15 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
+
 import org.apache.commons.lang3.StringUtils;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -23,16 +31,11 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationService {
+
     @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
     @EJB
@@ -68,8 +71,9 @@ public class DeviceNotificationService {
                 }
                 Set<String> notAllowedDeviceIds = new HashSet<>();
                 for (String guid : devices) {
-                    if (!availableDeviceIds.contains(guid))
+                    if (!availableDeviceIds.contains(guid)) {
                         notAllowedDeviceIds.add(guid);
+                    }
                 }
                 String message = String.format(Messages.DEVICES_NOT_FOUND, StringUtils.join(notAllowedDeviceIds, ","));
                 throw new HiveException(message, Response.Status.NOT_FOUND.getStatusCode());
@@ -96,10 +100,9 @@ public class DeviceNotificationService {
                                                             Integer skip,
                                                             Integer gridInterval) {
         return deviceNotificationDAO
-                .queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip,
-                        gridInterval);
+            .queryDeviceNotification(device, start, end, notification, sortField, sortOrderAsc, take, skip,
+                                     gridInterval);
     }
-
 
     //device should be already set
 

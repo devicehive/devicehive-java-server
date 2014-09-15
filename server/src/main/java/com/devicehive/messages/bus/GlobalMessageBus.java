@@ -5,13 +5,11 @@ import com.devicehive.messages.bus.listener.DeviceCommandUpdateListener;
 import com.devicehive.messages.bus.listener.DeviceNotificationCreateListener;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.util.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +22,8 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.TransactionPhase;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.CDI;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
@@ -103,9 +97,9 @@ public class GlobalMessageBus {
 
     @Asynchronous
     public void publishDeviceCommandUpdate(
-            @Observes(during = TransactionPhase.AFTER_SUCCESS)
-            @GlobalMessage @Update
-            DeviceCommand deviceCommandUpdate) {
+        @Observes(during = TransactionPhase.AFTER_SUCCESS)
+        @GlobalMessage @Update
+        DeviceCommand deviceCommandUpdate) {
         logger.debug("Sending device command update {}", deviceCommandUpdate.getId());
         hazelcast.getTopic(DEVICE_COMMAND_UPDATE).publish(deviceCommandUpdate);
         logger.debug("Sent");
@@ -113,8 +107,8 @@ public class GlobalMessageBus {
 
     @Asynchronous
     public void publishDeviceNotification(
-            @GlobalMessage @Create
-            @Observes(during = TransactionPhase.AFTER_SUCCESS) DeviceNotification deviceNotification) {
+        @GlobalMessage @Create
+        @Observes(during = TransactionPhase.AFTER_SUCCESS) DeviceNotification deviceNotification) {
         logger.debug("Sending device notification {}", deviceNotification.getId());
         hazelcast.getTopic(DEVICE_NOTIFICATION).publish(deviceNotification);
         logger.debug("Sent");

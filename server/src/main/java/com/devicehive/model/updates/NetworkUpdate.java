@@ -14,6 +14,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLIS
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
 public class NetworkUpdate implements HiveEntity {
+
     private static final long serialVersionUID = -4134073649300446791L;
 
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})

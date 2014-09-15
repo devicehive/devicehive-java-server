@@ -7,16 +7,16 @@ import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 
+import java.lang.reflect.Method;
+
 import javax.annotation.Priority;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import javax.ws.rs.core.Response;
-import java.lang.reflect.Method;
 
 @Interceptor
 @WebsocketController
@@ -39,7 +39,7 @@ public class AuthorizationInterceptor {
                 switch (role) {
                     case HiveRoles.ADMIN:
                         allowed = allowed ||
-                                (principal != null && principal.getUser() != null && principal.getUser().isAdmin());
+                                  (principal != null && principal.getUser() != null && principal.getUser().isAdmin());
                         break;
                     case HiveRoles.CLIENT:
                         allowed = allowed || (principal != null && principal.getUser() != null);
@@ -58,7 +58,7 @@ public class AuthorizationInterceptor {
         }
         if (!allowed) {
             throw new HiveException(Response.Status.FORBIDDEN.getReasonPhrase(),
-                    Response.Status.FORBIDDEN.getStatusCode());
+                                    Response.Status.FORBIDDEN.getStatusCode());
         }
         return context.proceed();
     }

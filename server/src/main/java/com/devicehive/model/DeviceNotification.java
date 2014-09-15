@@ -1,9 +1,13 @@
 package com.devicehive.model;
 
 
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+
+import com.devicehive.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
+
+import java.sql.Timestamp;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
@@ -21,13 +25,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Version;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
@@ -41,12 +40,13 @@ import static com.devicehive.model.DeviceNotification.Queries.Values;
 @Entity
 @Table(name = "device_notification")
 @NamedQueries(value = {
-        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_FK),
-        @NamedQuery(name = Names.DELETE_BY_FK, query = Values.DELETE_BY_FK)
+    @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_FK),
+    @NamedQuery(name = Names.DELETE_BY_FK, query = Values.DELETE_BY_FK)
 
 })
 @Cacheable
 public class DeviceNotification implements HiveEntity {
+
     public static final String TIMESTAMP_COLUMN = "timestamp";
     public static final String DEVICE_COLUMN = "device";
     public static final String NOTIFICATION_COLUMN = "notification";
@@ -55,8 +55,8 @@ public class DeviceNotification implements HiveEntity {
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
+                        })
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private JsonStringWrapper parameters;
     @SerializedName("id")
@@ -72,7 +72,7 @@ public class DeviceNotification implements HiveEntity {
     @Column
     @NotNull(message = "notification field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification should not be more than " +
-            "128 symbols.")
+                                        "128 symbols.")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private String notification;
     @ManyToOne(fetch = FetchType.EAGER)
@@ -135,17 +135,21 @@ public class DeviceNotification implements HiveEntity {
     }
 
     public static class Queries {
+
         public static interface Names {
+
             static final String DELETE_BY_ID = "DeviceNotification.deleteById";
             static final String DELETE_BY_FK = "DeviceNotification.deleteByFK";
         }
 
         static interface Values {
+
             static final String DELETE_BY_ID = "delete from DeviceNotification dn where dn.id = :id";
             static final String DELETE_BY_FK = "delete from DeviceNotification dn where dn.device = :device";
         }
 
         public static interface Parameters {
+
             static final String ID = "id";
             static final String DEVICE = "device";
         }

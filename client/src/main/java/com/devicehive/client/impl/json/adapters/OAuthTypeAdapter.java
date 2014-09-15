@@ -1,11 +1,12 @@
 package com.devicehive.client.impl.json.adapters;
 
-import com.devicehive.client.impl.util.Messages;
-import com.devicehive.client.model.OAuthType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+
+import com.devicehive.client.impl.util.Messages;
+import com.devicehive.client.model.OAuthType;
 
 import java.io.IOException;
 
@@ -13,6 +14,7 @@ import java.io.IOException;
  * Adapter for conversion OAuthType into JSON and JSON into OAuthType
  */
 public class OAuthTypeAdapter extends TypeAdapter<OAuthType> {
+
     @Override
     public void write(JsonWriter out, OAuthType value) throws IOException {
         if (value == null) {

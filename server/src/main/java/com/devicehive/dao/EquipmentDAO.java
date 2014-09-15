@@ -4,6 +4,8 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -12,7 +14,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 import static com.devicehive.model.Equipment.Queries.Names.DELETE_BY_DEVICE_CLASS;
 import static com.devicehive.model.Equipment.Queries.Names.DELETE_BY_ID_AND_DEVICE_CLASS;
@@ -40,7 +41,7 @@ public class EquipmentDAO {
         return equipment;
     }
 
-    public Equipment update (@NotNull Equipment equipment){
+    public Equipment update(@NotNull Equipment equipment) {
         em.merge(equipment);
         return equipment;
     }

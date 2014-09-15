@@ -4,6 +4,8 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -12,7 +14,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 import static com.devicehive.model.DeviceEquipment.Queries.Names.DELETE_BY_FK;
 import static com.devicehive.model.DeviceEquipment.Queries.Names.DELETE_BY_ID;
@@ -24,6 +25,7 @@ import static com.devicehive.model.DeviceEquipment.Queries.Parameters.ID;
 
 @Stateless
 public class DeviceEquipmentDAO {
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 

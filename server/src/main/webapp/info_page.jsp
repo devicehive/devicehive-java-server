@@ -16,7 +16,9 @@
             RESTful endpoint
         </td>
         <td>
-            <a href="<%=request.getAttribute(Constants.REST_SERVER_URL)%>"><%=request.getAttribute(Constants.REST_SERVER_URL)%></a>
+            <a href="<%=request.getAttribute(Constants.REST_SERVER_URL)%>"><%=request
+                .getAttribute(Constants.REST_SERVER_URL)%>
+            </a>
         </td>
     </tr>
     <tr>
@@ -24,7 +26,8 @@
             Websocket Client endpoint
         </td>
         <td>
-            <a href="<%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/client"><%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/client</a>
+            <a href="<%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/client"><%=request
+                .getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/client</a>
         </td>
     </tr>
     <tr>
@@ -32,7 +35,8 @@
             Websocket Device endpoint
         </td>
         <td>
-            <a href="<%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/device"><%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/device</a>
+            <a href="<%=request.getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/device"><%=request
+                .getAttribute(Constants.WEBSOCKET_SERVER_URL)%>/device</a>
         </td>
     </tr>
 
@@ -49,7 +53,10 @@
 </table>
 </p>
 
-<p>Build version: <%=request.getAttribute("build.version")%></p>
-<p>Build timestamp: <%=request.getAttribute("build.timestamp")%></p>
+<p>Build version: <%=request.getAttribute("build.version")%>
+</p>
+
+<p>Build timestamp: <%=request.getAttribute("build.timestamp")%>
+</p>
 </body>
 </html>

@@ -13,7 +13,11 @@ import com.devicehive.model.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.util.HiveValidator;
+
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -21,8 +25,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
@@ -34,6 +36,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
+
     @Inject
     private PasswordProcessor passwordService;
     @EJB
@@ -46,11 +49,10 @@ public class UserService {
     private ConfigurationService configurationService;
     @EJB
     private HiveValidator hiveValidator;
+
     /**
      * Tries to authenticate with given credentials
      *
-     * @param login
-     * @param password
      * @return User object if authentication is successful or null if not
      */
     public User authenticate(String login, String password) {
@@ -61,15 +63,17 @@ public class UserService {
         if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts() >=
-                    configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
+                configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
             return null;
         } else {
-            if (user.getLoginAttempts() != 0)
+            if (user.getLoginAttempts() != 0) {
                 user.setLoginAttempts(0);
+            }
             if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() >
-                    configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT)) {
+                                               configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT,
+                                                                            Constants.LAST_LOGIN_TIMEOUT_DEFAULT)) {
                 user.setLastLogin(timestampService.getTimestamp());
             }
             return user;
@@ -173,8 +177,8 @@ public class UserService {
     }
 
     /**
-     * Retrieves user with networks by id, if there is no networks user hass access to
-     * networks will be represented by empty set
+     * Retrieves user with networks by id, if there is no networks user hass access to networks will be represented by
+     * empty set
      *
      * @param id user id
      * @return User model with networks, or null, if there is no such user
@@ -193,11 +197,11 @@ public class UserService {
         User existing = userDAO.findByLogin(user.getLogin());
         if (existing != null) {
             throw new HiveException(Messages.DUPLICATE_LOGIN,
-                    FORBIDDEN.getStatusCode());
+                                    FORBIDDEN.getStatusCode());
         }
         if (StringUtils.isEmpty(password)) {
             throw new HiveException(Messages.PASSWORD_REQUIRED,
-                    BAD_REQUEST.getStatusCode());
+                                    BAD_REQUEST.getStatusCode());
         }
         String salt = passwordService.generateSalt();
         String hash = passwordService.hashPassword(password, salt);

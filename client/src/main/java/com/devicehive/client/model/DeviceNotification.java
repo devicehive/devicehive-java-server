@@ -1,16 +1,18 @@
 package com.devicehive.client.model;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 
 /**
- * Represents a device notification, a unit of information dispatched from devices.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">Device
- * Notification</a>
+ * Represents a device notification, a unit of information dispatched from devices. For more details see <a
+ * href="http://www.devicehive.com/restful#Reference/DeviceNotification">Device Notification</a>
  */
 public class DeviceNotification implements HiveMessage {
 

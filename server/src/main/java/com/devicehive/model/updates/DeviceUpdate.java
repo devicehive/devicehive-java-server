@@ -1,6 +1,8 @@
 package com.devicehive.model.updates;
 
 
+import com.google.gson.annotations.SerializedName;
+
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
@@ -8,7 +10,6 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.Network;
 import com.devicehive.model.NullableWrapper;
-import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
@@ -103,8 +104,9 @@ public class DeviceUpdate implements HiveEntity {
 
     public Device convertTo() {
         Device device = new Device();
-        if (guid != null)
+        if (guid != null) {
             device.setGuid(guid.getValue());
+        }
         if (data != null) {
             device.setData(data.getValue());
         }

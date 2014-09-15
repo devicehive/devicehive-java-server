@@ -9,6 +9,12 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -21,15 +27,11 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationDAO {
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
@@ -47,14 +49,15 @@ public class DeviceNotificationDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceNotification> findNotifications(Collection<Device> devices, Collection<String> names,
                                                       @NotNull Timestamp timestamp, HivePrincipal principal) {
-        if (devices != null && devices.isEmpty())
+        if (devices != null && devices.isEmpty()) {
             return Collections.emptyList();
+        }
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<DeviceNotification> criteria = criteriaBuilder.createQuery(DeviceNotification.class);
         Root<DeviceNotification> from = criteria.from(DeviceNotification.class);
         List<Predicate> predicates = new ArrayList<>();
         predicates
-                .add(criteriaBuilder.greaterThan(from.<Timestamp>get(DeviceNotification.TIMESTAMP_COLUMN), timestamp));
+            .add(criteriaBuilder.greaterThan(from.<Timestamp>get(DeviceNotification.TIMESTAMP_COLUMN), timestamp));
         if (names != null) {
             predicates.add(from.get(DeviceNotification.NOTIFICATION_COLUMN).in(names));
         }
@@ -113,12 +116,12 @@ public class DeviceNotificationDAO {
         sb.append("SELECT * FROM device_notification ");     //this part of query is immutable
         if (gridInterval != null) {
             sb.append("WHERE device_notification.timestamp IN ")
-                    .append("  (SELECT min(rank_selection.timestamp) ")
-                    .append("  FROM ")
-                    .append("     (SELECT device_notification.*, ")
-                    .append("           rank() OVER (PARTITION BY device_notification.notification ORDER BY floor(" +
-                            "(extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank ")
-                    .append("      FROM device_notification ");
+                .append("  (SELECT min(rank_selection.timestamp) ")
+                .append("  FROM ")
+                .append("     (SELECT device_notification.*, ")
+                .append("           rank() OVER (PARTITION BY device_notification.notification ORDER BY floor(" +
+                        "(extract(EPOCH FROM device_notification.timestamp)) / ?)) AS rank ")
+                .append("      FROM device_notification ");
             parameters.add(gridInterval);
         }
         if (start != null && end != null) {
@@ -136,9 +139,9 @@ public class DeviceNotificationDAO {
             sb.append(" ) AS rank_selection ");
             sb.append("  WHERE (rank_selection.device_id = ?) ");
         } else {
-            if (start != null || end != null)
+            if (start != null || end != null) {
                 sb.append(" AND ");
-            else {
+            } else {
                 sb.append(" WHERE ");
             }
             sb.append(" device_notification.device_id = ? ");
@@ -178,7 +181,7 @@ public class DeviceNotificationDAO {
             query.setParameter(i + 1, parameters.get(i));
         }
         // Result list will contain only DeviceNotifications according to the query creation
-        @SuppressWarnings("unchecked") List<DeviceNotification> result =  query.getResultList();
+        @SuppressWarnings("unchecked") List<DeviceNotification> result = query.getResultList();
         return result;
     }
 
@@ -192,7 +195,7 @@ public class DeviceNotificationDAO {
             }
             if (user != null && !user.isAdmin()) {
                 Predicate userPredicate = from.join(DeviceNotification.DEVICE_COLUMN)
-                        .join(Device.NETWORK_COLUMN).join(Network.USERS_ASSOCIATION).in(user);
+                    .join(Device.NETWORK_COLUMN).join(Network.USERS_ASSOCIATION).in(user);
                 predicates.add(userPredicate);
             }
             if (principal.getDevice() != null) {
@@ -203,19 +206,19 @@ public class DeviceNotificationDAO {
 
                 List<Predicate> extraPredicates = new ArrayList<>();
                 for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
-                        .createExtraFilters(principal.getKey().getPermissions())) {
+                    .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getDeviceGuids() != null) {
                         filter.add(
-                                from.join(DeviceNotification.DEVICE_COLUMN).get(Device.GUID_COLUMN)
-                                        .in(extraFilter.getDeviceGuids()
-                                        ));
+                            from.join(DeviceNotification.DEVICE_COLUMN).get(Device.GUID_COLUMN)
+                                .in(extraFilter.getDeviceGuids()
+                                ));
                     }
                     if (extraFilter.getNetworkIds() != null) {
                         Predicate networkFilter =
-                                from.join(DeviceNotification.DEVICE_COLUMN)
-                                        .join(Device.NETWORK_COLUMN)
-                                        .get(Network.ID_COLUMN).in(extraFilter.getNetworkIds());
+                            from.join(DeviceNotification.DEVICE_COLUMN)
+                                .join(Device.NETWORK_COLUMN)
+                                .get(Network.ID_COLUMN).in(extraFilter.getNetworkIds());
                         filter.add(networkFilter);
                     }
                     extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[filter.size()])));

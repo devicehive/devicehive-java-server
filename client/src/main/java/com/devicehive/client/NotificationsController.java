@@ -9,15 +9,14 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
- * Client side controller for device notifications: <i>/device/{deviceGuid}/notification</i>.
- * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceHive RESTful API:
- * DeviceNotification</a> for details.
- * Transport declared in the hive context will be used.
+ * Client side controller for device notifications: <i>/device/{deviceGuid}/notification</i>. See <a
+ * href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceHive RESTful API: DeviceNotification</a>
+ * for details. Transport declared in the hive context will be used.
  */
 public interface NotificationsController {
+
     /**
-     * Queries device notifications.
-     * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive
+     * Queries device notifications. See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive
      * RESTful API: DeviceNotification: query</a> for more details.
      *
      * @param deviceId         device identifier
@@ -36,8 +35,7 @@ public interface NotificationsController {
                                                 Integer gridInterval) throws HiveException;
 
     /**
-     * Insert and send notification to the client.
-     * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/insert">DeviceHive
+     * Insert and send notification to the client. See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/insert">DeviceHive
      * RESTful API: DeviceNotification: insert</a> for more details.
      *
      * @param deviceId     device identifier
@@ -46,8 +44,7 @@ public interface NotificationsController {
     DeviceNotification insertNotification(String deviceId, DeviceNotification notification) throws HiveException;
 
     /**
-     * Get information about required notification.
-     * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive
+     * Get information about required notification. See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive
      * RESTful API: DeviceNotification: get</a> for more details.
      *
      * @param deviceId       device identifier
@@ -59,14 +56,12 @@ public interface NotificationsController {
     /**
      * Subscribes client to notifications. RESTful poll/pollMany or websocket subscribe will be used.
      *
-     * @param filter
-     * @param notificationsHandler
      * @return subscription id
      */
 
     String subscribeForNotifications(SubscriptionFilter filter,
                                      HiveMessageHandler<DeviceNotification> notificationsHandler)
-            throws HiveException;
+        throws HiveException;
 
     /**
      * Unsubscribes client from notifications.

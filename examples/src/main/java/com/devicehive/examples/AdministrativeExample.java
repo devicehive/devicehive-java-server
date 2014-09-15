@@ -14,6 +14,7 @@ import com.devicehive.client.model.UserRole;
 import com.devicehive.client.model.UserStatus;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -26,17 +27,18 @@ import java.util.Set;
 import static com.devicehive.constants.Constants.USE_SOCKETS;
 
 /**
- * Administrative example represents administrative client features such as creating networks,
- * users access keys and how to manage them.
+ * Administrative example represents administrative client features such as creating networks, users access keys and how
+ * to manage them.
  */
 public class AdministrativeExample extends Example {
+
     private static final String LOGIN = "login";
     private static final String LOGIN_DESCRIPTION = "User login.";
     private static final String PASSWORD = "password";
     private static final String PASSWORD_DESCRIPTION = "User password.";
     private static final String ACCESS_KEY = "ak";
     private static final String ACCESS_KEY_DESCRIPTION = "Access key should be created. If used, " +
-            "login and password should be provided";
+                                                         "login and password should be provided";
     private static final String NETWORK = "nname";
     private static final String NETWORK_DESCRIPTION = "New network name.";
     private static final String NETWORK_KEY = "nk";
@@ -87,10 +89,6 @@ public class AdministrativeExample extends Example {
 
     /**
      * Includes a set of operations: user, network and access key operations.
-     *
-     * @throws HiveException
-     * @throws ExampleException
-     * @throws IOException
      */
     @Override
     public void run() throws HiveException, ExampleException, IOException {
@@ -107,11 +105,10 @@ public class AdministrativeExample extends Example {
 
     /**
      * Performs set of network operations. Lists all available networks, creates a new network if there is no network
-     * with such key provided or takes existing one. Updates network description. All these actions will be performed
-     * if the network name and the network key are provided as command line arguments.
+     * with such key provided or takes existing one. Updates network description. All these actions will be performed if
+     * the network name and the network key are provided as command line arguments.
      *
      * @return created network, if any was created, null otherwise
-     * @throws HiveException
      */
     private Network networkOperationsSet() throws HiveException {
         if (commandLine.hasOption(NETWORK)) {
@@ -119,7 +116,7 @@ public class AdministrativeExample extends Example {
             String key = commandLine.getOptionValue(NETWORK_KEY);
             NetworkController nc = hiveClient.getNetworkController();
             List<Network> allCreatedWithName =
-                    nc.listNetworks(name, null, null, null, null, null);
+                nc.listNetworks(name, null, null, null, null, null);
             Network network = null;
             if (allCreatedWithName.size() != 0) {
                 for (Network n : allCreatedWithName) {
@@ -128,8 +125,9 @@ public class AdministrativeExample extends Example {
                         break;
                     }
                 }
-                if (network != null)
+                if (network != null) {
                     print("There found {} networks with such name. Requested network found", allCreatedWithName.size());
+                }
             }
             if (network == null) {
                 print("No networks with such name found. New network will be created");
@@ -148,10 +146,6 @@ public class AdministrativeExample extends Example {
 
     /**
      * performs set of user operations. Lists all available users. If there is found a user with provided name,
-     *
-     * @param network
-     * @return
-     * @throws HiveException
      */
     private User usersOperationSet(Network network) throws HiveException {
         if (commandLine.hasOption(LOGIN)) {
@@ -170,12 +164,14 @@ public class AdministrativeExample extends Example {
                 User created = uc.insertUser(user);
                 user.setId(created.getId());
                 user.setLastLogin(created.getLastLogin());
-            } else
+            } else {
                 user = usersWithSuchName.get(0);
+            }
             user.setPassword(password);
             uc.updateUser(user);
-            if (network != null)
+            if (network != null) {
                 uc.assignNetwork(user.getId(), network.getId());
+            }
             return user;
         }
         return null;
@@ -192,7 +188,7 @@ public class AdministrativeExample extends Example {
             akp.setActions(actions);
             Set<Long> networks = new HashSet<>();
             List<Network> allAvailable =
-                    hiveClient.getNetworkController().listNetworks(null, null, null, null, null, null);
+                hiveClient.getNetworkController().listNetworks(null, null, null, null, null, null);
             for (Network currentNetwork : allAvailable) {
                 networks.add(currentNetwork.getId());
             }
@@ -206,16 +202,18 @@ public class AdministrativeExample extends Example {
             HiveClient newUserHC = HiveFactory.createClient(getServerUrl(), commandLine.hasOption(USE_SOCKETS));
             newUserHC.authenticate(accessKey.getKey());
             List<Network> allowedNetworks = newUserHC.getNetworkController().listNetworks(null, null, null, null,
-                    null, null);
+                                                                                          null, null);
             assert (allowedNetworks.size() == allAvailable.size());
             akc.deleteKey(accessKey.getId());
         }
     }
 
     private void cleanAll(User user, Network network) throws HiveException {
-        if (user != null)
+        if (user != null) {
             hiveClient.getUserController().deleteUser(user.getId());
-        if (network != null)
+        }
+        if (network != null) {
             hiveClient.getNetworkController().deleteNetwork(network.getId());
+        }
     }
 }

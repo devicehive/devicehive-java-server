@@ -1,9 +1,10 @@
 package com.devicehive.json.strategies;
 
 
-import javax.enterprise.util.AnnotationLiteral;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import javax.enterprise.util.AnnotationLiteral;
 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JsonPolicyApply {
@@ -11,7 +12,7 @@ public @interface JsonPolicyApply {
     JsonPolicyDef.Policy value();
 
     public static class JsonPolicyApplyLiteral extends AnnotationLiteral<JsonPolicyApply>
-            implements JsonPolicyApply {
+        implements JsonPolicyApply {
 
 
         private static final long serialVersionUID = 7838737655418173629L;

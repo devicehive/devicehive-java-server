@@ -1,16 +1,14 @@
 package com.devicehive.auth;
 
-import com.devicehive.configuration.Constants;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.UserRole;
 
-import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.core.SecurityContext;
 import java.net.InetAddress;
-import java.security.Principal;
+
+import javax.enterprise.context.RequestScoped;
 
 @RequestScoped
-public class HiveSecurityContext  {
+public class HiveSecurityContext {
 
 
     private HivePrincipal hivePrincipal;
@@ -73,8 +71,8 @@ public class HiveSecurityContext  {
                 return hivePrincipal != null && hivePrincipal.getKey() != null;
             default:
                 return hivePrincipal != null
-                        && hivePrincipal.getUser() != null
-                        && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
+                       && hivePrincipal.getUser() != null
+                       && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
         }
     }
 }

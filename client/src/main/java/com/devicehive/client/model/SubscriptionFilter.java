@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 import java.util.Set;
 
 public class SubscriptionFilter {
+
     private volatile Set<String> uuids;
     private volatile Set<String> names;
     private volatile Timestamp timestamp;

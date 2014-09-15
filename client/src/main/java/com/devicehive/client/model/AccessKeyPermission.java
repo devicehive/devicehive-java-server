@@ -6,12 +6,15 @@ import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
 
 /**
  * Represents an permissions of access keys.
  */
 public class AccessKeyPermission implements HiveEntity {
+
     private static final long serialVersionUID = 1640449055358665301L;
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED})
     private Set<String> domains;

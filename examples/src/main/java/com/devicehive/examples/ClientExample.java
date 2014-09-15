@@ -1,6 +1,8 @@
 package com.devicehive.examples;
 
 
+import com.google.gson.JsonObject;
+
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
@@ -12,7 +14,6 @@ import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import com.devicehive.view.ClientView;
-import com.google.gson.JsonObject;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,6 +29,7 @@ import java.util.concurrent.Executors;
  */
 
 public class ClientExample {
+
     private static final String LOGIN = "dhadmin";
     private static final String PASSWORD = "dhadmin_#911";
     private static final String LED_COMMAND = "LED";
@@ -67,16 +69,12 @@ public class ClientExample {
     }
 
     /**
-     * Shows how to authorize using access key or user. Subscribes for the notifications. Sends a dummy command to
-     * all available devices every 10 seconds. The task runs for 10 minutes.
-     *
-     * @throws HiveException
-     * @throws ExampleException
-     * @throws IOException
+     * Shows how to authorize using access key or user. Subscribes for the notifications. Sends a dummy command to all
+     * available devices every 10 seconds. The task runs for 10 minutes.
      */
     public void run(URI url, boolean useSockets) throws HiveException, ExampleException, IOException {
         hiveClient = HiveFactory
-                .createClient(url, useSockets);
+            .createClient(url, useSockets);
         Thread.currentThread().setName("run");
         hiveClient.authenticate(LOGIN, PASSWORD);
         HiveMessageHandler<DeviceNotification> notificationsHandler = new HiveMessageHandler<DeviceNotification>() {
@@ -86,13 +84,13 @@ public class ClientExample {
             }
         };
         Set<String> uuids = new
-                HashSet<String>() {
-                    {
-                        add(DEVICE_ID);
-                    }
+            HashSet<String>() {
+                {
+                    add(DEVICE_ID);
+                }
 
-                    private static final long serialVersionUID = -8028742640202067195L;
-                };
+                private static final long serialVersionUID = -8028742640202067195L;
+            };
         SubscriptionFilter filter = new SubscriptionFilter(uuids, null, null);
         hiveClient.getNotificationsController().subscribeForNotifications(filter, notificationsHandler);
     }

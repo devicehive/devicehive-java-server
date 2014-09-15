@@ -6,13 +6,17 @@ import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import java.sql.Timestamp;
 import java.util.Set;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_SUBMITTED_TOKEN;
 
 /**
- * Represents an access key to this API.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/AccessKey">AccessKey</a>
+ * Represents an access key to this API. For more details see <a href="http://www.devicehive.com/restful#Reference/AccessKey">AccessKey</a>
  */
 public class AccessKey implements HiveEntity {
+
     private static final long serialVersionUID = 5031432598347474481L;
 
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_SUBMITTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_LISTED})

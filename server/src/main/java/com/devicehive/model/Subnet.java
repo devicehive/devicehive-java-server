@@ -2,15 +2,18 @@ package com.devicehive.model;
 
 
 import com.devicehive.exceptions.HiveException;
+
 import org.apache.commons.net.util.SubnetUtils;
 
-import javax.ws.rs.core.Response;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import javax.ws.rs.core.Response;
+
 public class Subnet {
+
     //        private static final int IPv6_MASK_MAX_VALUE = 64;
     private static final int IPv4_MASK_MAX_VALUE = 32;
     private InetAddress inetAddress;

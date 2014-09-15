@@ -1,5 +1,13 @@
 package com.devicehive.websockets.handlers;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
@@ -11,17 +19,20 @@ import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WebsocketController;
 import com.devicehive.websockets.handlers.annotations.WsParam;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
@@ -32,14 +43,6 @@ import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ConcurrentMap;
 
 @Singleton
 public class WebsocketExecutor {
@@ -65,40 +68,40 @@ public class WebsocketExecutor {
             response = JsonMessageBuilder.createError(ex).build();
         } catch (ConstraintViolationException ex) {
             response =
-                    JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage())
-                            .build();
+                JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage())
+                    .build();
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage())
-                    .build();
+                .build();
         } catch (JsonParseException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST,
-                    Messages.INVALID_REQUEST_PARAMETERS).build();
+                                                                     Messages.INVALID_REQUEST_PARAMETERS).build();
         } catch (OptimisticLockException ex) {
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT,
-                    Messages.CONFLICT_MESSAGE).build();
+                                                                     Messages.CONFLICT_MESSAGE).build();
         } catch (PersistenceException ex) {
             if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException) {
                 response =
-                        JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage())
-                                .build();
+                    JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage())
+                        .build();
             } else {
                 response = JsonMessageBuilder
-                        .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
-                        .build();
+                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
+                    .build();
             }
         } catch (Exception ex) {
             response = JsonMessageBuilder
-                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
-        }  finally {
+                .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
+        } finally {
             ThreadLocalVariablesKeeper.setRequest(null);
             ThreadLocalVariablesKeeper.setSession(null);
         }
 
         return new JsonMessageBuilder()
-                .addAction(request.get(JsonMessageBuilder.ACTION))
-                .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
-                .include(response)
-                .build();
+            .addAction(request.get(JsonMessageBuilder.ACTION))
+            .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
+            .include(response)
+            .build();
     }
 
     public JsonObject tryExecute(JsonObject request, Session session) {
@@ -134,7 +137,7 @@ public class WebsocketExecutor {
     private Pair<WebsocketHandlers, Method> getMethod(JsonObject request) {
         String action = getAction(request);
 
-        if(action == null) {
+        if (action == null) {
             throw new JsonParseException("Action parameter is bad");
         }
 
@@ -143,7 +146,7 @@ public class WebsocketExecutor {
             return methodPair;
         }
 
-        for (Iterator<WebsocketHandlers> iter = handlers.iterator(); iter.hasNext();) {
+        for (Iterator<WebsocketHandlers> iter = handlers.iterator(); iter.hasNext(); ) {
             WebsocketHandlers current = iter.next();
             Class<? extends WebsocketHandlers> currentClass = current.getClass();
             boolean found = false;
@@ -151,7 +154,7 @@ public class WebsocketExecutor {
                 if (method.isAnnotationPresent(Action.class)) {
                     if (method.getAnnotation(Action.class).value().equals(action)) {
                         Preconditions.checkState(method.getReturnType().equals(WebSocketResponse.class),
-                                "Method should have %s return type", WebSocketResponse.class);
+                                                 "Method should have %s return type", WebSocketResponse.class);
                         methodPair = ImmutablePair.of(current, method);
                         found = true;
                         break;
@@ -164,7 +167,7 @@ public class WebsocketExecutor {
         }
         if (methodPair == null) {
             throw new HiveException(String.format(Messages.UNKNOWN_ACTION_REQUESTED_WS, action),
-                    HttpServletResponse.SC_NOT_FOUND);
+                                    HttpServletResponse.SC_NOT_FOUND);
         }
         methodsCache.put(action, methodPair);
         return methodPair;
@@ -211,8 +214,8 @@ public class WebsocketExecutor {
                 } else {
                     Preconditions.checkNotNull(name);
                     Gson gson = descriptor.getPolicy() == null
-                            ? GsonFactory.createGson()
-                            : GsonFactory.createGson(descriptor.getPolicy());
+                                ? GsonFactory.createGson()
+                                : GsonFactory.createGson(descriptor.getPolicy());
                     values.add(gson.fromJson(request.get(name), type));
                 }
             }
@@ -222,6 +225,7 @@ public class WebsocketExecutor {
 
 
     private static class WebsocketParameterDescriptor {
+
         private String name;
         private Type type;
         private JsonPolicyDef.Policy policy;

@@ -10,14 +10,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class CommandSubscription extends Subscription<Long,DeviceCommand> {
+public class CommandSubscription extends Subscription<Long, DeviceCommand> {
 
     private final HivePrincipal principal;
     private final Set<String> commandNames;
 
     public CommandSubscription(HivePrincipal principal, Long deviceId, UUID subscriptionId,
                                Collection<String> commandNames,
-                               HandlerCreator<DeviceCommand>  handlerCreator) {
+                               HandlerCreator<DeviceCommand> handlerCreator) {
         super(deviceId, subscriptionId, handlerCreator);
         this.principal = principal;
         this.commandNames = commandNames != null ? new HashSet<>(commandNames) : null;

@@ -2,10 +2,11 @@ package com.devicehive.client.model.exceptions;
 
 
 /**
- * Common exception is used for all exceptional events: server errors, client errors,
- * internal exceptional library events
+ * Common exception is used for all exceptional events: server errors, client errors, internal exceptional library
+ * events
  */
 public class HiveException extends Exception {
+
     private static final long serialVersionUID = 6413354755792688308L;
     private Integer code = null;
 

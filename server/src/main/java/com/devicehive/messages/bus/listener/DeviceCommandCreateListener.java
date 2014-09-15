@@ -3,9 +3,9 @@ package com.devicehive.messages.bus.listener;
 import com.devicehive.messages.bus.Create;
 import com.devicehive.messages.bus.LocalMessage;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.util.AsynchronousExecutor;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -16,9 +16,11 @@ import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
@@ -30,7 +32,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.USER_ID;
@@ -45,9 +46,8 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
- * REST Controller for access keys: <i>/user/{userId}/accesskey</i>
- * See <a href="http://www.devicehive.com/restful/#Reference/AccessKey">DeviceHive RESTful API: AccessKey</a> for
- * details.
+ * REST Controller for access keys: <i>/user/{userId}/accesskey</i> See <a href="http://www.devicehive.com/restful/#Reference/AccessKey">DeviceHive
+ * RESTful API: AccessKey</a> for details.
  */
 @Path("/user/{userId}/accesskey")
 @LogExecutionTime
@@ -66,12 +66,12 @@ public class AccessKeyController {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:
-     * AccessKey: list</a>
-     * Gets list of access keys and their permissions.
+     * AccessKey: list</a> Gets list of access keys and their permissions.
      *
      * @param userId User identifier. Use the 'current' keyword to list access keys of the current user.
      * @return If successful, this method returns array of <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resources in the response body according to the specification.
+     *         .com/restful#Reference/AccessKey/">AccessKey</a> resources in the response body according to the
+     *         specification.
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
@@ -89,13 +89,12 @@ public class AccessKeyController {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/get">DeviceHive RESTful API:
-     * AccessKey: get</a>
-     * Gets information about access key and its permissions.
+     * AccessKey: get</a> Gets information about access key and its permissions.
      *
      * @param userId      User identifier. Use the 'current' keyword to get access key of the current user.
      * @param accessKeyId Access key identifier.
-     * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * @return If successful, this method returns an <a href="http://www.devicehive .com/restful#Reference/AccessKey/">AccessKey</a>
+     *         resource in the response body according to the specification.
      */
     @GET
     @Path("/{id}")
@@ -108,26 +107,25 @@ public class AccessKeyController {
         AccessKey result = accessKeyService.get(id, accessKeyId);
         if (result == null) {
             logger.debug("Access key : list failed for userId : {} and accessKeyId : {}. Reason: No access key found" +
-                    ".", userId, accessKeyId);
+                         ".", userId, accessKeyId);
             return ResponseFactory
-                    .response(NOT_FOUND,
-                            new ErrorResponse(NOT_FOUND.getStatusCode(), "Access key not found."));
+                .response(NOT_FOUND,
+                          new ErrorResponse(NOT_FOUND.getStatusCode(), "Access key not found."));
         }
 
         logger.debug("Access key : insert proceed successfully for userId : {} and accessKeyId : {}", userId,
-                accessKeyId);
+                     accessKeyId);
 
         return ResponseFactory.response(OK, result, ACCESS_KEY_LISTED);
     }
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/insert">DeviceHive RESTful API:
-     * AccessKey: insert</a>
-     * Creates new access key.
+     * AccessKey: insert</a> Creates new access key.
      *
      * @param userId User identifier. Use the 'current' keyword to get access key of the current user.
-     * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * @return If successful, this method returns an <a href="http://www.devicehive .com/restful#Reference/AccessKey/">AccessKey</a>
+     *         resource in the response body according to the specification.
      */
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
@@ -142,14 +140,13 @@ public class AccessKeyController {
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/update">DeviceHive RESTful
-     * API: AccessKey: update</a>
-     * Updates an existing access key.
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/update">DeviceHive RESTful API:
+     * AccessKey: update</a> Updates an existing access key.
      *
      * @param userId      User identifier. Use the 'current' keyword to update access key of the current user.
      * @param accessKeyId Access key identifier.
-     * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * @return If successful, this method returns an <a href="http://www.devicehive .com/restful#Reference/AccessKey/">AccessKey</a>
+     *         resource in the response body according to the specification.
      */
     @PUT
     @Path("/{id}")
@@ -157,29 +154,29 @@ public class AccessKeyController {
     public Response update(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate) {
         logger.debug("Access key : update requested for userId : {}, access key id : {}, access key : {} ", userId,
-                accessKeyId, accessKeyUpdate);
+                     accessKeyId, accessKeyUpdate);
 
         Long id = getUser(userId).getId();
         if (!accessKeyService.update(id, accessKeyId, accessKeyUpdate)) {
             logger.debug("Access key : update failed for userId : {} and accessKeyId : {}. Reason: No access key " +
-                    "found.", userId, accessKeyId);
+                         "found.", userId, accessKeyId);
             return ResponseFactory
-                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.ACCESS_KEY_NOT_FOUND));
+                .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.ACCESS_KEY_NOT_FOUND));
         }
 
         logger.debug("Access key : update proceed successfully for userId : {}, access key id : {}, access key : {} ",
-                userId, accessKeyId, accessKeyUpdate);
+                     userId, accessKeyId, accessKeyUpdate);
         return ResponseFactory.response(NO_CONTENT);
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/delete">DeviceHive RESTful
-     * API: AccessKey: delete</a>
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/delete">DeviceHive RESTful API:
+     * AccessKey: delete</a>
      *
      * @param userId      User identifier. Use the 'current' keyword to update access key of the current user.
      * @param accessKeyId Access key identifier.
-     * @return If successful, this method returns an <a href="http://www.devicehive
-     *         .com/restful#Reference/AccessKey/">AccessKey</a> resource in the response body according to the specification.
+     * @return If successful, this method returns an <a href="http://www.devicehive .com/restful#Reference/AccessKey/">AccessKey</a>
+     *         resource in the response body according to the specification.
      */
     @DELETE
     @Path("/{id}")
@@ -191,7 +188,7 @@ public class AccessKeyController {
         accessKeyService.delete(id, accessKeyId);
 
         logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId,
-                accessKeyId);
+                     accessKeyId);
         return ResponseFactory.response(NO_CONTENT);
 
     }
@@ -208,7 +205,7 @@ public class AccessKeyController {
                 id = Long.parseLong(userId);
             } catch (NumberFormatException e) {
                 throw new HiveException(String.format(Messages.BAD_USER_IDENTIFIER, userId), e,
-                        BAD_REQUEST.getStatusCode());
+                                        BAD_REQUEST.getStatusCode());
             }
         }
 

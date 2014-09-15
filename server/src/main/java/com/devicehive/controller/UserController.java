@@ -17,9 +17,11 @@ import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
@@ -35,9 +37,17 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
-import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.LOGIN;
+import static com.devicehive.configuration.Constants.LOGIN_PATTERN;
+import static com.devicehive.configuration.Constants.NETWORK_ID;
+import static com.devicehive.configuration.Constants.ROLE;
+import static com.devicehive.configuration.Constants.SKIP;
+import static com.devicehive.configuration.Constants.SORT_FIELD;
+import static com.devicehive.configuration.Constants.SORT_ORDER;
+import static com.devicehive.configuration.Constants.STATUS;
+import static com.devicehive.configuration.Constants.TAKE;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.CREATED;
@@ -59,33 +69,17 @@ public class UserController {
 
 
     /**
-     * This method will generate following output
-     * <p/>
-     * <code>
-     * [
-     * {
-     * "id": 2,
-     * "login": "login",
-     * "role": 0,
-     * "status": 0,
-     * "lastLogin": "1970-01-01 03:00:00.0"
-     * },
-     * {
-     * "id": 3,
-     * "login": "login1",
-     * "role": 1,
-     * "status": 2,
-     * "lastLogin": "1970-01-01 03:00:00.0"
-     * }
-     * ]
-     * </code>
+     * This method will generate following output <p/> <code> [ { "id": 2, "login": "login", "role": 0, "status": 0,
+     * "lastLogin": "1970-01-01 03:00:00.0" }, { "id": 3, "login": "login1", "role": 1, "status": 2, "lastLogin":
+     * "1970-01-01 03:00:00.0" } ] </code>
      *
      * @param login        user login ignored, when loginPattern is specified
      * @param loginPattern login pattern (LIKE %VALUE%) user login will be ignored, if not null
      * @param role         User's role ADMIN - 0, CLIENT - 1
-     * @param status       ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
+     * @param status       ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login
+     *                     failures), DISABLED - 2 , DELETED - 3;
      * @param sortField    either of "login", "loginAttempts", "role", "status", "lastLogin"
-     * @param sortOrderSt    either ASC or DESC
+     * @param sortOrderSt  either ASC or DESC
      * @param take         like SQL LIMIT
      * @param skip         like SQL OFFSET
      * @return List of User
@@ -105,7 +99,8 @@ public class UserController {
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                                              Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -113,36 +108,18 @@ public class UserController {
         List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
 
         logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
-                "sortField = {}, " +
-                "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
-                take, skip);
+                     "sortField = {}, " +
+                     "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
+                     take, skip);
 
         return ResponseFactory.response(OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
 
     /**
-     * Method will generate following output:
-     * <p/>
-     * <code>
-     * {
-     * "id": 2,
-     * "login": "login",
-     * "status": 0,
-     * "networks": [
-     * {
-     * "network": {
-     * "id": 5,
-     * "key": "network key",
-     * "name": "name of network",
-     * "description": "short description of network"
-     * }
-     * }
-     * ],
-     * "lastLogin": "1970-01-01 03:00:00.0"
-     * }
-     * </code>
-     * <p/>
-     * If success, response with status 200, if user is not found 400
+     * Method will generate following output: <p/> <code> { "id": 2, "login": "login", "status": 0, "networks": [ {
+     * "network": { "id": 5, "key": "network key", "name": "name of network", "description": "short description of
+     * network" } } ], "lastLogin": "1970-01-01 03:00:00.0" } </code> <p/> If success, response with status 200, if user
+     * is not found 400
      *
      * @param userId user id
      */
@@ -155,12 +132,13 @@ public class UserController {
 
         if (user == null) {
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId)));
+                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                                              String.format(Messages.USER_NOT_FOUND, userId)));
         }
 
         return ResponseFactory.response(OK,
-                UserResponse.createFromUser(user),
-                JsonPolicyDef.Policy.USER_PUBLISHED);
+                                        UserResponse.createFromUser(user),
+                                        JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     @GET
@@ -173,32 +151,17 @@ public class UserController {
 
         if (currentUser == null) {
             return ResponseFactory.response(CONFLICT,
-                    new ErrorResponse(CONFLICT.getStatusCode(), Messages.CAN_NOT_GET_CURRENT_USER));
+                                            new ErrorResponse(CONFLICT.getStatusCode(),
+                                                              Messages.CAN_NOT_GET_CURRENT_USER));
         }
 
         return ResponseFactory.response(OK, currentUser, JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     /**
-     * One needs to provide user resource in request body (all parameters are mandatory):
-     * <p/>
-     * <code>
-     * {
-     * "login":"login"
-     * "role":0
-     * "status":0
-     * "password":"qwerty"
-     * }
-     * </code>
-     * <p/>
-     * In case of success server will provide following response with code 201
-     * <p/>
-     * <code>
-     * {
-     * "id": 1,
-     * "lastLogin": null
-     * }
-     * </code>
+     * One needs to provide user resource in request body (all parameters are mandatory): <p/> <code> { "login":"login"
+     * "role":0 "status":0 "password":"qwerty" } </code> <p/> In case of success server will provide following response
+     * with code 201 <p/> <code> { "id": 1, "lastLogin": null } </code>
      *
      * @return Empty body, status 201 if success, 403 if forbidden, 400 otherwise
      */
@@ -213,19 +176,10 @@ public class UserController {
     }
 
     /**
-     * Updates user. One should specify following json to update user (none of parameters are mandatory, bot neither of them can be null):
-     * <p/>
-     * <code>
-     * {
-     * "login": "login",
-     * "role": 0,
-     * "status": 0,
-     * "password": "password"
-     * }
-     * </code>
-     * <p/>
-     * role:  Administrator - 0, Client - 1
-     * status: ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login failures), DISABLED - 2 , DELETED - 3;
+     * Updates user. One should specify following json to update user (none of parameters are mandatory, bot neither of
+     * them can be null): <p/> <code> { "login": "login", "role": 0, "status": 0, "password": "password" } </code> <p/>
+     * role:  Administrator - 0, Client - 1 status: ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked
+     * for multiple login failures), DISABLED - 2 , DELETED - 3;
      *
      * @param userId - id of user being edited
      * @return empty response, status 201 if succeeded, 403 if action is forbidden, 400 otherwise
@@ -264,16 +218,9 @@ public class UserController {
     }
 
     /**
-     * Method returns following body in case of success (status 200):
-     * <code>
-     * {
-     * "id": 5,
-     * "key": "network_key",
-     * "name": "network name",
-     * "description": "short description of net"
-     * }
-     * </code>
-     * in case, there is no such network, or user, or user doesn't have access
+     * Method returns following body in case of success (status 200): <code> { "id": 5, "key": "network_key", "name":
+     * "network name", "description": "short description of net" } </code> in case, there is no such network, or user,
+     * or user doesn't have access
      *
      * @param id        user id
      * @param networkId network id
@@ -289,8 +236,8 @@ public class UserController {
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
                 return ResponseFactory.response(OK,
-                        UserNetworkResponse.fromNetwork(network),
-                        JsonPolicyDef.Policy.NETWORKS_LISTED);
+                                                UserNetworkResponse.fromNetwork(network),
+                                                JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
         throw new NotFoundException(String.format(Messages.USER_NETWORK_NOT_FOUND, id, networkId));

@@ -1,6 +1,7 @@
 package com.devicehive.client.model;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;

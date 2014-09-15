@@ -1,6 +1,9 @@
 package com.devicehive.examples;
 
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.HiveFactory;
 import com.devicehive.client.HiveMessageHandler;
@@ -14,8 +17,7 @@ import com.devicehive.client.model.Network;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import com.devicehive.view.DeviceView;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -28,6 +30,7 @@ import java.util.Set;
 import static com.devicehive.constants.Constants.USE_SOCKETS;
 
 public class DeviceExample extends Example {
+
     private static final String ID = "3d77f31c-bddd-443b-b11c-640946b0581a";
     private static final String KEY = "example_key";
     private static final String NAME = "Graphical Example Device";
@@ -47,7 +50,7 @@ public class DeviceExample extends Example {
 
 
     public DeviceExample(PrintStream err, PrintStream out, String... args)
-            throws HiveException, ExampleException, IOException {
+        throws HiveException, ExampleException, IOException {
         super(out, args);
         CommandLine commandLine = getCommandLine();
         hiveDevice = HiveFactory.createDevice(getServerUrl(), commandLine.hasOption(USE_SOCKETS));

@@ -15,6 +15,7 @@ import static com.devicehive.model.AccessKeyPermission.Queries.Parameters.ACCESS
 
 @Stateless
 public class AccessKeyPermissionDAO {
+
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 

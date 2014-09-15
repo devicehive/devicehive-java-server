@@ -5,20 +5,19 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.UserStatus;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
+import java.sql.Timestamp;
+import java.util.Set;
+
 import javax.annotation.Priority;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
-import java.lang.reflect.Method;
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
@@ -54,7 +53,11 @@ public class AccessKeyInterceptor {
             }
             Method method = context.getMethod();
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
-            Set<AccessKeyPermission> filtered = CheckPermissionsHelper.filterPermissions(key.getPermissions(), allowedActionAnnotation.action(), hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
+            Set<AccessKeyPermission>
+                filtered =
+                CheckPermissionsHelper.filterPermissions(key.getPermissions(), allowedActionAnnotation.action(),
+                                                         hiveSecurityContext.getClientInetAddress(),
+                                                         hiveSecurityContext.getOrigin());
             if (filtered.isEmpty()) {
                 throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }

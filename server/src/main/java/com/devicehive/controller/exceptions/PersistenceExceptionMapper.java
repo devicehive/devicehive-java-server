@@ -4,6 +4,7 @@ package com.devicehive.controller.exceptions;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
+
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +23,10 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
     public Response toResponse(PersistenceException exception) {
         if (exception.getCause() instanceof ConstraintViolationException) {
             return ResponseFactory
-                    .response(Response.Status.CONFLICT, new ErrorResponse(Messages.CONFLICT_MESSAGE));
+                .response(Response.Status.CONFLICT, new ErrorResponse(Messages.CONFLICT_MESSAGE));
         }
         logger.error("Error: ", exception);
         return ResponseFactory
-                .response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(exception.getMessage()));
+            .response(Response.Status.INTERNAL_SERVER_ERROR, new ErrorResponse(exception.getMessage()));
     }
 }

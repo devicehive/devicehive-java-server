@@ -6,16 +6,17 @@ import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.util.HiveValidator;
 
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
- * This class manages equipment in database. EquipmentDAO shouldn't
- * be used directly from controller, please use this class instead
+ * This class manages equipment in database. EquipmentDAO shouldn't be used directly from controller, please use this
+ * class instead
  */
 @Stateless
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -46,7 +47,6 @@ public class EquipmentService {
      *
      * @param deviceClassId parent device class id for this equipment
      * @param equipmentId   id of equipment to get
-     * @return
      */
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
         return equipmentDAO.getByDeviceClass(deviceClassId, equipmentId);

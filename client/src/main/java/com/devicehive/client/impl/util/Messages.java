@@ -1,6 +1,7 @@
 package com.devicehive.client.impl.util;
 
 public final class Messages {
+
     public static final String ALREADY_AUTHENTICATED = "Already authenticated";
     public static final String FORM_PARAMS_ARE_NULL = "Form params cannot be null!";
     public static final String INCORRECT_RESPONSE_TYPE = "Incorrect type of response!";

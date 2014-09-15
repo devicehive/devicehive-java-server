@@ -1,15 +1,17 @@
 package com.devicehive.client.impl.websocket;
 
 
-import com.devicehive.client.impl.json.GsonFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import com.devicehive.client.impl.json.GsonFactory;
+
+import java.io.IOException;
+import java.io.Writer;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
-import java.io.IOException;
-import java.io.Writer;
 
 /**
  * Encoder for JSON. Converts jsonObject to text and writes to text stream

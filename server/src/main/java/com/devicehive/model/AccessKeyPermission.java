@@ -1,19 +1,36 @@
 package com.devicehive.model;
 
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
 
-import javax.persistence.*;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
+
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Version;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
@@ -24,8 +41,8 @@ import static com.devicehive.model.AccessKeyPermission.Queries.Values;
 
 @Entity
 @NamedQueries({
-        @NamedQuery(name = Names.DELETE_BY_ACCESS_KEY, query = Values.DELETE_BY_ACCESS_KEY)
-})
+                  @NamedQuery(name = Names.DELETE_BY_ACCESS_KEY, query = Values.DELETE_BY_ACCESS_KEY)
+              })
 @Table(name = "access_key_permission")
 @Cacheable
 public class AccessKeyPermission implements HiveEntity {
@@ -40,32 +57,32 @@ public class AccessKeyPermission implements HiveEntity {
     private AccessKey accessKey;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
+                        })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper domains;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
+                        })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper subnets;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
+                        })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper actions;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
+                        })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper networkIds;
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
+                        })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper deviceGuids;
     @Version
@@ -230,16 +247,20 @@ public class AccessKeyPermission implements HiveEntity {
     }
 
     public static class Queries {
+
         public static interface Names {
+
             static final String DELETE_BY_ACCESS_KEY = "AccessKeyPermission.deleteByAccessKey";
         }
 
         static interface Values {
+
             static final String DELETE_BY_ACCESS_KEY =
-                    "delete from AccessKeyPermission akp where akp.accessKey = :accessKey";
+                "delete from AccessKeyPermission akp where akp.accessKey = :accessKey";
         }
 
         public static interface Parameters {
+
             static final String ACCESS_KEY = "accessKey";
         }
     }

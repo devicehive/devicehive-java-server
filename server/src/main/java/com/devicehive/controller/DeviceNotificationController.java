@@ -24,14 +24,23 @@ import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
-import com.devicehive.util.AsynchronousExecutor;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.annotation.Resource;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -47,16 +56,23 @@ import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
-import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.configuration.Constants.DEVICE_GUID;
+import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
+import static com.devicehive.configuration.Constants.END;
+import static com.devicehive.configuration.Constants.GRID_INTERVAL;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.NAMES;
+import static com.devicehive.configuration.Constants.NOTIFICATION;
+import static com.devicehive.configuration.Constants.SKIP;
+import static com.devicehive.configuration.Constants.SORT_FIELD;
+import static com.devicehive.configuration.Constants.SORT_ORDER;
+import static com.devicehive.configuration.Constants.START;
+import static com.devicehive.configuration.Constants.TAKE;
+import static com.devicehive.configuration.Constants.TIMESTAMP;
+import static com.devicehive.configuration.Constants.WAIT_TIMEOUT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -67,7 +83,8 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
- * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceHive RESTful API: DeviceNotification</a> for details.
+ * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceHive RESTful API:
+ * DeviceNotification</a> for details.
  *
  * @author rroschin
  */
@@ -86,15 +103,14 @@ public class DeviceNotificationController {
     private DeviceService deviceService;
     @EJB
     private TimestampService timestampService;
-    @EJB
-    private AsynchronousExecutor executor;
+    @Resource(name = "concurrent/DeviceHiveWaitService")
+    private ManagedExecutorService mes;
     @Inject
     private HiveSecurityContext hiveSecurityContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive
-     * RESTful API: DeviceNotification: query</a>
-     * Queries device notifications.
+     * RESTful API: DeviceNotification: query</a> Queries device notifications.
      *
      * @param guid         Device unique identifier.
      * @param startTs      Filter by notification start timestamp (UTC).
@@ -105,34 +121,12 @@ public class DeviceNotificationController {
      * @param take         Number of records to take from the result list (default is 1000).
      * @param skip         Number of records to skip from the result list.
      * @return If successful, this method returns array of <a href="http://www.devicehive
-     *         .com/restful#Reference/DeviceNotification">DeviceNotification</a> resources in the response body.
-     *         <table>
-     *         <tr>
-     *         <td>Property Name</td>
-     *         <td>Type</td>
-     *         <td>Description</td>
-     *         </tr>
-     *         <tr>
-     *         <td>id</td>
-     *         <td>integer</td>
-     *         <td>Notification identifier</td>
-     *         </tr>
-     *         <tr>
-     *         <td>timestamp</td>
-     *         <td>datetime</td>
-     *         <td>Notification timestamp (UTC)</td>
-     *         </tr>
-     *         <tr>
-     *         <td>notification</td>
-     *         <td>string</td>
-     *         <td>Notification name</td>
-     *         </tr>
-     *         <tr>
-     *         <td>parameters</td>
-     *         <td>object</td>
-     *         <td>Notification parameters, a JSON object with an arbitrary structure</td>
-     *         </tr>
-     *         </table>
+     *         .com/restful#Reference/DeviceNotification">DeviceNotification</a> resources in the response body. <table>
+     *         <tr> <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>integer</td>
+     *         <td>Notification identifier</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Notification
+     *         timestamp (UTC)</td> </tr> <tr> <td>notification</td> <td>string</td> <td>Notification name</td> </tr>
+     *         <tr> <td>parameters</td> <td>object</td> <td>Notification parameters, a JSON object with an arbitrary
+     *         structure</td> </tr> </table>
      */
     @GET
     @Path("/{deviceGuid}/notification")
@@ -155,10 +149,11 @@ public class DeviceNotificationController {
 
         if (!TIMESTAMP.equalsIgnoreCase(sortField) && !NOTIFICATION.equalsIgnoreCase(sortField)) {
             logger.debug("Device notification query request failed Bad request sort field. Guid {}, start {}, end {}," +
-                    " notification {}, sort field {}, sort order {}, take {}, skip {}", guid, start, end,
-                    notification, sortField, sortOrder, take, skip);
+                         " notification {}, sort field {}, sort order {}, take {}, skip {}", guid, start, end,
+                         notification, sortField, sortOrder, take, skip);
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                                              Messages.INVALID_REQUEST_PARAMETERS));
         }
         sortField = sortField.toLowerCase();
 
@@ -166,50 +161,29 @@ public class DeviceNotificationController {
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
-                notification, sortField, sortOrder, take, skip, gridInterval);
+                                                                                      notification, sortField,
+                                                                                      sortOrder, take, skip,
+                                                                                      gridInterval);
 
         logger.debug("Device notification query succeed. Guid {}, start {}, end {}, notification {}, sort field {}," +
-                "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take, skip);
+                     "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take,
+                     skip);
 
         return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive
-     * RESTful API: DeviceNotification: get</a>
-     * Gets information about device notification.
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive RESTful
+     * API: DeviceNotification: get</a> Gets information about device notification.
      *
      * @param guid           Device unique identifier.
      * @param notificationId Notification identifier.
-     * @return If successful, this method returns a <a href="http://www.devicehive
-     *         .com/restful#Reference/DeviceNotification">DeviceNotification</a> resource in the response body.
-     *         <table>
-     *         <tr>
-     *         <td>Property Name</td>
-     *         <td>Type</td>
-     *         <td>Description</td>
-     *         </tr>
-     *         <tr>
-     *         <td>id</td>
-     *         <td>integer</td>
-     *         <td>Notification identifier</td>
-     *         </tr>
-     *         <tr>
-     *         <td>timestamp</td>
-     *         <td>datetime</td>
-     *         <td>Notification timestamp (UTC)</td>
-     *         </tr>
-     *         <tr>
-     *         <td>notification</td>
-     *         <td>string</td>
-     *         <td>Notification name</td>
-     *         </tr>
-     *         <tr>
-     *         <td>parameters</td>
-     *         <td>object</td>
-     *         <td>Notification parameters, a JSON object with an arbitrary structure</td>
-     *         </tr>
-     *         </table>
+     * @return If successful, this method returns a <a href="http://www.devicehive .com/restful#Reference/DeviceNotification">DeviceNotification</a>
+     *         resource in the response body. <table> <tr> <td>Property Name</td> <td>Type</td> <td>Description</td>
+     *         </tr> <tr> <td>id</td> <td>integer</td> <td>Notification identifier</td> </tr> <tr> <td>timestamp</td>
+     *         <td>datetime</td> <td>Notification timestamp (UTC)</td> </tr> <tr> <td>notification</td> <td>string</td>
+     *         <td>Notification name</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Notification parameters, a
+     *         JSON object with an arbitrary structure</td> </tr> </table>
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
@@ -221,19 +195,21 @@ public class DeviceNotificationController {
         DeviceNotification deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
             throw new HiveException(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId),
-                    NOT_FOUND.getStatusCode());
+                                    NOT_FOUND.getStatusCode());
         }
         String deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
         if (!deviceGuidFromNotification.equals(guid)) {
             logger.debug("No device notifications found for device with guid : {}", guid);
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(String.format(Messages.NO_NOTIFICATIONS_FROM_DEVICE, guid)));
+                                            new ErrorResponse(
+                                                String.format(Messages.NO_NOTIFICATIONS_FROM_DEVICE, guid)));
         }
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             logger.debug("No permissions to get notifications for device with guid : {}", guid);
             return ResponseFactory.response(Response.Status.NOT_FOUND,
-                    new ErrorResponse(String.format(Messages.NO_NOTIFICATIONS_FROM_DEVICE, guid)));
+                                            new ErrorResponse(
+                                                String.format(Messages.NO_NOTIFICATIONS_FROM_DEVICE, guid)));
         }
 
         logger.debug("Device notification proceed successfully");
@@ -242,23 +218,26 @@ public class DeviceNotificationController {
     }
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/poll">DeviceHive RESTful API: DeviceNotification: poll</a>
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/poll">DeviceHive
+     * RESTful API: DeviceNotification: poll</a>
      *
      * @param deviceGuid Device unique identifier.
-     * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
-     * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.
+     * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken
+     *                   instead.
+     * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable
+     *                   waiting.
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     @Path("/{deviceGuid}/notification/poll")
     public void poll(
-            @PathParam(DEVICE_GUID) final String deviceGuid,
-            @QueryParam(NAMES) final String namesString,
-            @QueryParam(TIMESTAMP) final String timestamp,
-            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam(WAIT_TIMEOUT) final long timeout,
-            @Suspended final AsyncResponse asyncResponse) {
+        @PathParam(DEVICE_GUID) final String deviceGuid,
+        @QueryParam(NAMES) final String namesString,
+        @QueryParam(TIMESTAMP) final String timestamp,
+        @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+        @QueryParam(WAIT_TIMEOUT) final long timeout,
+        @Suspended final AsyncResponse asyncResponse) {
 
         poll(timeout, deviceGuid, namesString, timestamp, asyncResponse, false);
     }
@@ -267,12 +246,12 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
     public void pollMany(
-            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam(WAIT_TIMEOUT) final long timeout,
-            @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
-            @QueryParam(NAMES) final String namesString,
-            @QueryParam(TIMESTAMP) final String timestamp,
-            @Suspended final AsyncResponse asyncResponse) {
+        @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+        @QueryParam(WAIT_TIMEOUT) final long timeout,
+        @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
+        @QueryParam(NAMES) final String namesString,
+        @QueryParam(TIMESTAMP) final String timestamp,
+        @Suspended final AsyncResponse asyncResponse) {
 
         poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
     }
@@ -292,8 +271,7 @@ public class DeviceNotificationController {
             }
         });
 
-        executor.execute(new Runnable() {
-
+        mes.submit(new Runnable() {
 
             @Override
             public void run() {
@@ -303,16 +281,16 @@ public class DeviceNotificationController {
 
                 try {
                     List<DeviceNotification> list =
-                            getOrWaitForNotifications(principal, devices, names, timestamp, timeout);
+                        getOrWaitForNotifications(principal, devices, names, timestamp, timeout);
                     Response response;
                     if (isMany) {
                         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
                         for (DeviceNotification notification : list) {
                             resultList.add(new NotificationPollManyResponse(notification,
-                                    notification.getDevice().getGuid()));
+                                                                            notification.getDevice().getGuid()));
                         }
                         response =
-                                ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT);
+                            ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT);
                     } else {
                         response = ResponseFactory.response(Response.Status.OK, list, Policy.NOTIFICATION_TO_CLIENT);
                     }
@@ -331,14 +309,13 @@ public class DeviceNotificationController {
                                                                Timestamp timestamp,
                                                                long timeout) {
         logger.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names,
-                timestamp, timeout);
-
+                     timestamp, timeout);
 
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
         List<DeviceNotification> list =
-                deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
+            deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
 
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
@@ -349,18 +326,18 @@ public class DeviceNotificationController {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 for (Device d : actualDevices) {
                     subscriptionSet
-                            .add(new NotificationSubscription(principal, d.getId(), reqId, names, restHandlerCreator));
+                        .add(new NotificationSubscription(principal, d.getId(), reqId, names, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
-                        .add(new NotificationSubscription(principal, Constants.NULL_ID_SUBSTITUTE,
-                                reqId,
-                                names,
-                                restHandlerCreator));
+                    .add(new NotificationSubscription(principal, Constants.NULL_ID_SUBSTITUTE,
+                                                      reqId,
+                                                      names,
+                                                      restHandlerCreator));
             }
 
             if (SimpleWaiter
-                    .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
+                .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
                 list = deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
             }
             return list;
@@ -370,49 +347,18 @@ public class DeviceNotificationController {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/insert">DeviceHive
-     * RESTful API: DeviceNotification: insert</a>
-     * Creates new device notification.
+     * RESTful API: DeviceNotification: insert</a> Creates new device notification.
      *
      * @param guid         Device unique identifier.
-     * @param notification In the request body, supply a DeviceNotification resource.
-     *                     <table>
-     *                     <tr>
-     *                     <td>Property Name</td>
-     *                     <td>Required</td>
-     *                     <td>Type</td>
-     *                     <td>Description</td>
-     *                     </tr>
-     *                     <tr>
-     *                     <td>notification</td>
-     *                     <td>Yes</td>
-     *                     <td>string</td>
-     *                     <td>Notification name.</td>
-     *                     </tr>
-     *                     <tr>
-     *                     <td>parameters</td>
-     *                     <td>No</td>
-     *                     <td>object</td>
-     *                     <td>Notification parameters, a JSON object with an arbitrary structure.</td>
-     *                     </tr>
-     *                     </table>
-     * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a> resource in the response body.
-     *         <table>
-     *         <tr>
-     *         <tr>Property Name</tr>
-     *         <tr>Type</tr>
-     *         <tr>Description</tr>
-     *         </tr>
-     *         <tr>
-     *         <td>id</td>
-     *         <td>integer</td>
-     *         <td>Notification identifier.</td>
-     *         </tr>
-     *         <tr>
-     *         <td>timestamp</td>
-     *         <td>datetime</td>
-     *         <td>Notification timestamp (UTC).</td>
-     *         </tr>
-     *         </table>
+     * @param notification In the request body, supply a DeviceNotification resource. <table> <tr> <td>Property
+     *                     Name</td> <td>Required</td> <td>Type</td> <td>Description</td> </tr> <tr>
+     *                     <td>notification</td> <td>Yes</td> <td>string</td> <td>Notification name.</td> </tr> <tr>
+     *                     <td>parameters</td> <td>No</td> <td>object</td> <td>Notification parameters, a JSON object
+     *                     with an arbitrary structure.</td> </tr> </table>
+     * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
+     *         resource in the response body. <table> <tr> <tr>Property Name</tr> <tr>Type</tr> <tr>Description</tr>
+     *         </tr> <tr> <td>id</td> <td>integer</td> <td>Notification identifier.</td> </tr> <tr> <td>timestamp</td>
+     *         <td>datetime</td> <td>Notification timestamp (UTC).</td> </tr> </table>
      */
     @POST
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
@@ -425,19 +371,22 @@ public class DeviceNotificationController {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (notification == null || notification.getNotification() == null) {
             logger.debug(
-                    "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
+                "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                                              Messages.INVALID_REQUEST_PARAMETERS));
         }
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
+                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                                              String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         if (device.getNetwork() == null) {
             return ResponseFactory.response(FORBIDDEN,
-                    new ErrorResponse(FORBIDDEN.getStatusCode(),
-                            String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
+                                            new ErrorResponse(FORBIDDEN.getStatusCode(),
+                                                              String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK,
+                                                                            guid)));
         }
         notificationService.submitDeviceNotification(notification, device);
 

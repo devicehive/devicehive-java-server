@@ -1,14 +1,14 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Constants;
-import com.devicehive.websockets.util.HiveEndpoint;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 
-import javax.websocket.Session;
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Constants;
+import com.devicehive.websockets.util.HiveEndpoint;
+
 import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashSet;
@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.websocket.Session;
+
 public class HiveWebsocketSessionState {
 
     public static final String KEY = HiveWebsocketSessionState.class.getName();
@@ -28,7 +30,7 @@ public class HiveWebsocketSessionState {
     private final Set<UUID> commandSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
     private final Lock commandSubscriptionsLock = new ReentrantLock(true);
     private final Set<UUID> notificationSubscriptions =
-            Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+        Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
     private final Lock notificationSubscriptionsLock = new ReentrantLock(true);
     private final Lock commandUpdateSubscriptionsLock = new ReentrantLock(true);
     private final ConcurrentMap<Set<String>, Set<UUID>> oldFormatCommandSubscriptions = Maps.newConcurrentMap();
@@ -104,8 +106,8 @@ public class HiveWebsocketSessionState {
 
     public synchronized void addOldFormatCommandSubscription(Set<String> guids, UUID subscriptionId) {
         Set<String> toStore = guids == null
-                ? Sets.newHashSet(Constants.NULL_SUBSTITUTE)
-                : guids;
+                              ? Sets.newHashSet(Constants.NULL_SUBSTITUTE)
+                              : guids;
 
         if (oldFormatCommandSubscriptions.containsKey(toStore)) {
             Set<UUID> existingSubscriptions = oldFormatCommandSubscriptions.get(toStore);
@@ -119,20 +121,21 @@ public class HiveWebsocketSessionState {
 
     public synchronized Set<UUID> removeOldFormatCommandSubscription(Set<String> guids) {
         Set<String> toRemove = guids == null
-                ? new HashSet<String>() {
+                               ? new HashSet<String>() {
             {
                 add(Constants.NULL_SUBSTITUTE);
             }
+
             private static final long serialVersionUID = -8106785048967338278L;
         }
-                : guids;
+                               : guids;
         return oldFormatCommandSubscriptions.remove(toRemove);
     }
 
     public synchronized void addOldFormatNotificationSubscription(Set<String> guids, UUID subscriptionId) {
         Set<String> toStore = guids == null
-                ? Sets.newHashSet(Constants.NULL_SUBSTITUTE)
-                : guids;
+                              ? Sets.newHashSet(Constants.NULL_SUBSTITUTE)
+                              : guids;
 
         if (oldFormatNotificationSubscriptions.containsKey(toStore)) {
             Set<UUID> existingSubscriptions = oldFormatNotificationSubscriptions.get(toStore);
@@ -146,14 +149,14 @@ public class HiveWebsocketSessionState {
 
     public synchronized Set<UUID> removeOldFormatNotificationSubscription(Set<String> guids) {
         Set<String> toRemove = guids == null
-                ? new HashSet<String>() {
+                               ? new HashSet<String>() {
             {
                 add(Constants.NULL_SUBSTITUTE);
             }
 
             private static final long serialVersionUID = 599925075379032426L;
         }
-                : guids;
+                               : guids;
         return oldFormatNotificationSubscriptions.remove(toRemove);
     }
 

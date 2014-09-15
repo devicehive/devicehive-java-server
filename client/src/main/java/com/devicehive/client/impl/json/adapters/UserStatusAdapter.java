@@ -1,12 +1,13 @@
 package com.devicehive.client.impl.json.adapters;
 
 
-import com.devicehive.client.impl.util.Messages;
-import com.devicehive.client.model.UserStatus;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+
+import com.devicehive.client.impl.util.Messages;
+import com.devicehive.client.model.UserStatus;
 
 import java.io.IOException;
 

@@ -17,6 +17,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITT
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
 
 public class DeviceClassUpdate implements HiveEntity {
+
     private static final long serialVersionUID = 967472386318199376L;
     @JsonPolicyDef(DEVICE_PUBLISHED)
     private Long id;

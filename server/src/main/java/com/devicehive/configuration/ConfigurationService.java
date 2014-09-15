@@ -2,10 +2,13 @@ package com.devicehive.configuration;
 
 import com.devicehive.dao.ConfigurationDAO;
 import com.devicehive.model.Configuration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.validation.constraints.NotNull;
 
 @Singleton

@@ -6,6 +6,10 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -21,9 +25,6 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import static com.devicehive.model.Device.Queries.Names.DELETE_BY_UUID;
 import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_AND_KEY;
@@ -52,7 +53,7 @@ public class DeviceDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Device findByUUIDWithNetworkAndDeviceClass(String uuid) {
         TypedQuery<Device> query = em.createNamedQuery(FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS,
-                Device.class);
+                                                       Device.class);
         query.setParameter(GUID, uuid);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);
@@ -167,11 +168,10 @@ public class DeviceDAO {
 
         if (deviceClassVersion != null) {
             devicePredicates
-                    .add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("version"), deviceClassVersion));
+                .add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("version"), deviceClassVersion));
         }
 
         appendPrincipalPredicates(devicePredicates, principal, fromDevice);
-
 
         deviceCriteria.where(devicePredicates.toArray(new Predicate[devicePredicates.size()]));
         if (sortField != null) {
@@ -211,7 +211,7 @@ public class DeviceDAO {
 
                 List<Predicate> extraPredicates = new ArrayList<>();
                 for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
-                        .createExtraFilters(principal.getKey().getPermissions())) {
+                    .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getDeviceGuids() != null) {
                         filter.add(fromDevice.get("guid").in(extraFilter.getDeviceGuids()));
@@ -221,7 +221,8 @@ public class DeviceDAO {
                     }
                     extraPredicates.add(criteriaBuilder.and(filter.toArray(new Predicate[filter.size()])));
                 }
-                devicePredicates.add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[extraPredicates.size()])));
+                devicePredicates
+                    .add(criteriaBuilder.or(extraPredicates.toArray(new Predicate[extraPredicates.size()])));
             }
         }
     }

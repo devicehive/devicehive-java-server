@@ -2,14 +2,14 @@ package com.devicehive.view;
 
 
 import com.devicehive.client.HiveDevice;
-import com.devicehive.client.model.exceptions.HiveException;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class DeviceView {
 
@@ -23,9 +23,9 @@ public class DeviceView {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         green = new ImageIcon(ImageIO.read(DeviceView.class.getResourceAsStream("/Circle_Green.png"))
-                .getScaledInstance(50, 50, Image.SCALE_SMOOTH));
+                                  .getScaledInstance(50, 50, Image.SCALE_SMOOTH));
         red = new ImageIcon(ImageIO.read(DeviceView.class.getResourceAsStream("/Circle_Red.png"))
-                .getScaledInstance(50, 50, Image.SCALE_SMOOTH));
+                                .getScaledInstance(50, 50, Image.SCALE_SMOOTH));
 
         JPanel main = new JPanel();
 

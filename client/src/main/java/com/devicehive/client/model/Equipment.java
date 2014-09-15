@@ -2,13 +2,17 @@ package com.devicehive.client.model;
 
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_SUBMITTED;
 
 /**
- * Represents an equipment which is installed on devices.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/Equipment"></a>
+ * Represents an equipment which is installed on devices. For more details see <a href="http://www.devicehive.com/restful#Reference/Equipment"></a>
  */
 public class Equipment implements HiveEntity {
+
     private static final long serialVersionUID = -1048095377970919818L;
 
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENTCLASS_PUBLISHED, EQUIPMENTCLASS_SUBMITTED})

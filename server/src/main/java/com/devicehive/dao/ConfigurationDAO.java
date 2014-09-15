@@ -4,6 +4,8 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Configuration;
 import com.devicehive.util.LogExecutionTime;
 
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -12,7 +14,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 import static com.devicehive.model.Configuration.Queries.Names.DELETE;
 import static com.devicehive.model.Configuration.Queries.Names.GET_ALL;

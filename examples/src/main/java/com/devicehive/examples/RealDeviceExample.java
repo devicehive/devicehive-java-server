@@ -1,6 +1,8 @@
 package com.devicehive.examples;
 
 
+import com.google.gson.JsonObject;
+
 import com.devicehive.client.CommandsController;
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveFactory;
@@ -11,7 +13,7 @@ import com.devicehive.client.model.JsonStringWrapper;
 import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
-import com.google.gson.JsonObject;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -25,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static com.devicehive.constants.Constants.USE_SOCKETS;
 
 public class RealDeviceExample extends Example {
+
     private static final String LOGIN = "dhadmin";
     private static final String PASSWORD = "dhadmin_#911";
     private final HiveClient hiveClient;
@@ -68,10 +71,10 @@ public class RealDeviceExample extends Example {
             Timestamp serverTimestamp = hiveClient.getInfo().getServerTimestamp();
             SubscriptionFilter notificationSubscriptionFilter = new SubscriptionFilter(null, null, serverTimestamp);
             hiveClient.getNotificationsController().subscribeForNotifications(notificationSubscriptionFilter,
-                    notificationsHandler);
+                                                                              notificationsHandler);
             ScheduledExecutorService commandsExecutor = Executors.newSingleThreadScheduledExecutor();
             commandsExecutor.scheduleAtFixedRate(new CommandTask(), 3, 3, TimeUnit.SECONDS);
-            Thread.currentThread().join(TimeUnit.MINUTES.toMillis(10));
+            Thread.currentThread().join(TimeUnit.SECONDS.toMillis(30));
             commandsExecutor.shutdownNow();
         } catch (InterruptedException e) {
             throw new ExampleException(e.getMessage(), e);
@@ -81,6 +84,7 @@ public class RealDeviceExample extends Example {
     }
 
     private class CommandTask implements Runnable {
+
         private static final String LED_GREEN = "LED_G";
         private static final String LED_RED = "LED_R";
         private static final String LED_TYPE = "equipment";
@@ -101,15 +105,19 @@ public class RealDeviceExample extends Example {
                 JsonObject commandParams = new JsonObject();
                 if (isItGreenTurn) {
                     commandParams.addProperty(LED_TYPE, LED_GREEN);
-                    if (isGreen)
+                    if (isGreen) {
                         commandParams.addProperty(LED_STATE, 0);
-                    else commandParams.addProperty(LED_STATE, 1);
+                    } else {
+                        commandParams.addProperty(LED_STATE, 1);
+                    }
                     isGreen = !isGreen;
                 } else {
                     commandParams.addProperty(LED_TYPE, LED_RED);
-                    if (isRed)
+                    if (isRed) {
                         commandParams.addProperty(LED_STATE, 0);
-                    else commandParams.addProperty(LED_STATE, 1);
+                    } else {
+                        commandParams.addProperty(LED_STATE, 1);
+                    }
                     isRed = !isRed;
                 }
                 isItGreenTurn = !isItGreenTurn;

@@ -9,6 +9,11 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -23,10 +28,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_DEVICE_AND_USER;
 import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_FOREIGN_KEY;
@@ -76,7 +77,7 @@ public class DeviceCommandDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {
         TypedQuery<DeviceCommand> query =
-                em.createNamedQuery(GET_BY_DEVICE_UUID_AND_ID, DeviceCommand.class);
+            em.createNamedQuery(GET_BY_DEVICE_UUID_AND_ID, DeviceCommand.class);
         query.setParameter(ID, id);
         query.setParameter(GUID, guid);
         CacheHelper.cacheable(query);
@@ -138,7 +139,8 @@ public class DeviceCommandDAO {
         //groupBy
         if (gridInterval != null) {
             Subquery<Timestamp> timestampSubquery = gridIntervalFilter(criteriaBuilder, criteria,
-                    gridInterval, from.<Timestamp>get(DeviceCommand.TIMESTAMP_COLUMN));
+                                                                       gridInterval, from.<Timestamp>get(
+                DeviceCommand.TIMESTAMP_COLUMN));
             predicates.add(from.get(DeviceCommand.TIMESTAMP_COLUMN).in(timestampSubquery));
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -188,8 +190,8 @@ public class DeviceCommandDAO {
             }
             if (user != null && !user.isAdmin()) {
                 Predicate userPredicate = from.join(DeviceCommand.DEVICE_COLUMN)
-                        .join(Device.NETWORK_COLUMN)
-                        .join(Network.USERS_ASSOCIATION).in(user);
+                    .join(Device.NETWORK_COLUMN)
+                    .join(Network.USERS_ASSOCIATION).in(user);
                 predicates.add(userPredicate);
             }
             if (principal.getDevice() != null) {
@@ -200,7 +202,7 @@ public class DeviceCommandDAO {
 
                 List<Predicate> extraPredicates = new ArrayList<>();
                 for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
-                        .createExtraFilters(principal.getKey().getPermissions())) {
+                    .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getDeviceGuids() != null) {
                         filter.add(from.join("device").get("guid").in(extraFilter.getDeviceGuids()));

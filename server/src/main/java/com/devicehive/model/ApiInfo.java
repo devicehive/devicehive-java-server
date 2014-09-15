@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
@@ -9,8 +10,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_IN
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 
 /**
- * Represents meta-information about the current API.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfo</a>
+ * Represents meta-information about the current API. For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfo</a>
  */
 public class ApiInfo implements HiveEntity {
 

@@ -9,12 +9,13 @@ import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.service.helpers.DefaultPasswordProcessor;
 import com.devicehive.service.helpers.PasswordProcessor;
 
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -23,6 +24,7 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 @Stateless
 @EJB(beanInterface = OAuthClientService.class, name = "OAuthClientService")
 public class OAuthClientService {
+
     @EJB
     private OAuthClientDAO clientDAO;
     private PasswordProcessor secretGenerator = new DefaultPasswordProcessor();

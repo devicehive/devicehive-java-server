@@ -1,7 +1,8 @@
 package com.devicehive.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+
+import com.devicehive.json.strategies.JsonPolicyDef;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
@@ -19,12 +20,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Version;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
@@ -41,13 +38,14 @@ import static com.devicehive.model.Device.Queries.Values;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-        @NamedQuery(name = Names.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS,
-                query = Values.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS),
-        @NamedQuery(name = Names.FIND_BY_UUID_AND_KEY, query = Values.FIND_BY_UUID_AND_KEY),
-        @NamedQuery(name = Names.DELETE_BY_UUID, query = Values.DELETE_BY_UUID)
-})
+                  @NamedQuery(name = Names.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS,
+                              query = Values.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS),
+                  @NamedQuery(name = Names.FIND_BY_UUID_AND_KEY, query = Values.FIND_BY_UUID_AND_KEY),
+                  @NamedQuery(name = Names.DELETE_BY_UUID, query = Values.DELETE_BY_UUID)
+              })
 @Cacheable
 public class Device implements HiveEntity {
+
     public static final String NETWORK_COLUMN = "network";
     public static final String GUID_COLUMN = "guid";
 
@@ -60,7 +58,7 @@ public class Device implements HiveEntity {
     @Column
     @NotNull(message = "guid field cannot be null.")
     @Size(min = 1, max = 48,
-            message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
+          message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, NETWORK_PUBLISHED})
     private String guid;
     @SerializedName("key")
@@ -72,20 +70,20 @@ public class Device implements HiveEntity {
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
-            "symbols.")
+                                        "symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String name;
     @SerializedName("status")
     @Column
     @Size(min = 1, max = 128,
-            message = "Field cannot be empty. The length of status should not be more than 128 symbols.")
+          message = "Field cannot be empty. The length of status should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String status;
     @SerializedName("data")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
+                        })
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
     @SerializedName("network")
@@ -176,25 +174,29 @@ public class Device implements HiveEntity {
     }
 
     public static class Queries {
+
         public static interface Names {
+
             static final String FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS =
-                    "Device.findByUUIDWithNetworkAndDeviceClass";
+                "Device.findByUUIDWithNetworkAndDeviceClass";
             static final String FIND_BY_UUID_AND_KEY = "Device.findByUUIDAndKey";
             static final String DELETE_BY_UUID = "Device.deleteByUUID";
         }
 
         static interface Values {
+
             static final String FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS =
-                    "select d from Device d " +
-                            "left join fetch d.network " +
-                            "left join fetch d.deviceClass dc " +
-                            "left join fetch dc.equipment " +
-                            "where d.guid = :guid";
+                "select d from Device d " +
+                "left join fetch d.network " +
+                "left join fetch d.deviceClass dc " +
+                "left join fetch dc.equipment " +
+                "where d.guid = :guid";
             static final String FIND_BY_UUID_AND_KEY = "select d from Device d where d.guid = :guid and d.key = :key";
             static final String DELETE_BY_UUID = "delete from Device d where d.guid = :guid";
         }
 
         public static interface Parameters {
+
             static final String GUID = "guid";
             static final String KEY = "key";
             static final String ID = "id";

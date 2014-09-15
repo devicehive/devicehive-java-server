@@ -7,6 +7,7 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.util.LogExecutionTime;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,6 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.inject.Inject;
 
 @Singleton
 @Startup

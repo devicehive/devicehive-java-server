@@ -3,6 +3,7 @@ package com.devicehive.client.impl.context;
 import java.nio.charset.Charset;
 
 public class Constants {
+
     /**
      * Should not be changed. Defines request and responses encoding.
      */
@@ -20,9 +21,9 @@ public class Constants {
      */
     public static final int WAIT_TIMEOUT = 30;
     /**
-     * Timeout for websocket ping/pongs. If no pongs received during this timeout, reconnection will be started.
-     * Notice, that reconnection will be started, if some request did not received any message during response
-     * timeout, reconnection action will be started.
+     * Timeout for websocket ping/pongs. If no pongs received during this timeout, reconnection will be started. Notice,
+     * that reconnection will be started, if some request did not received any message during response timeout,
+     * reconnection action will be started.
      */
     public static final long WEBSOCKET_PING_TIMEOUT = 2L;
     /**

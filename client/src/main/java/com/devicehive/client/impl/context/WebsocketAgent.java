@@ -71,14 +71,15 @@ public class WebsocketAgent extends RestAgent {
     private final String role;
     private final ConcurrentMap<String, String> serverToLocalSubIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, HiveMessageHandler<DeviceCommand>> commandUpdatesHandlerStorage =
-            new ConcurrentHashMap<>();
+        new ConcurrentHashMap<>();
     private Endpoint endpoint;
 
     private final ConcurrentMap<String, SettableFuture<JsonObject>> websocketResponsesMap = new ConcurrentHashMap<>();
     private Session currentSession;
 
 
-    public WebsocketAgent(ConnectionLostCallback connectionLostCallback, ConnectionRestoredCallback connectionRestoredCallback, URI restUri, String role) {
+    public WebsocketAgent(ConnectionLostCallback connectionLostCallback,
+                          ConnectionRestoredCallback connectionRestoredCallback, URI restUri, String role) {
         super(connectionLostCallback, connectionRestoredCallback, restUri);
         this.role = role;
         EndpointFactory factory = new EndpointFactory();
@@ -146,11 +147,12 @@ public class WebsocketAgent extends RestAgent {
         if (principal != null) {
             authenticate(principal);
         }
-        for (Map.Entry<String,SubscriptionDescriptor<DeviceCommand>> entry : commandSubscriptionsStorage.entrySet()) {
+        for (Map.Entry<String, SubscriptionDescriptor<DeviceCommand>> entry : commandSubscriptionsStorage.entrySet()) {
             serverToLocalSubIdMap.put(sendSubscribeForCommands(entry.getValue().getFilter()), entry.getKey());
         }
 
-        for (Map.Entry<String,SubscriptionDescriptor<DeviceNotification>> entry : notificationSubscriptionsStorage.entrySet()) {
+        for (Map.Entry<String, SubscriptionDescriptor<DeviceNotification>> entry : notificationSubscriptionsStorage
+            .entrySet()) {
             serverToLocalSubIdMap.put(sendSubscribeForNotifications(entry.getValue().getFilter()), entry.getKey());
         }
     }
@@ -214,14 +216,14 @@ public class WebsocketAgent extends RestAgent {
                 switch (errorFamily) {
                     case SERVER_ERROR:
                         logger.warn(
-                                "Request id: " + requestId + ". Error message:" + response.getError() + ". Status code:"
-                                        + response.getCode()
+                            "Request id: " + requestId + ". Error message:" + response.getError() + ". Status code:"
+                            + response.getCode()
                         );
                         throw new HiveServerException(response.getError(), response.getCode());
                     case CLIENT_ERROR:
                         logger.warn(
-                                "Request id: " + requestId + ". Error message:" + response.getError() + ". Status code:"
-                                        + response.getCode()
+                            "Request id: " + requestId + ". Error message:" + response.getError() + ". Status code:"
+                            + response.getCode()
                         );
                         throw new HiveClientException(response.getError(), response.getCode());
                 }
@@ -246,21 +248,25 @@ public class WebsocketAgent extends RestAgent {
                 if (result.get(Constants.STATUS).getAsString().equals(Constants.EXPECTED_RESPONSE_STATUS)) {
                     logger.debug("Request with id:" + requestId + "proceed successfully");
                 } else {
-                    Response.Status.Family errorFamily = Response.Status.Family.familyOf(result.get(Constants.CODE).getAsInt());
+                    Response.Status.Family
+                        errorFamily =
+                        Response.Status.Family.familyOf(result.get(Constants.CODE).getAsInt());
                     String error = null;
-                    if (result.get(Constants.ERROR) instanceof JsonPrimitive)
+                    if (result.get(Constants.ERROR) instanceof JsonPrimitive) {
                         error = result.get(Constants.ERROR).getAsString();
+                    }
                     Integer code = null;
-                    if (result.get(Constants.CODE) instanceof JsonPrimitive)
+                    if (result.get(Constants.CODE) instanceof JsonPrimitive) {
                         code = result.get(Constants.CODE).getAsInt();
+                    }
                     switch (errorFamily) {
                         case SERVER_ERROR:
                             logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
-                                    "code:" + code);
+                                        "code:" + code);
                             throw new HiveServerException(error, code);
                         case CLIENT_ERROR:
                             logger.warn("Request id: " + requestId + ". Error message:" + error + ". Status " +
-                                    "code:" + code);
+                                        "code:" + code);
                             throw new HiveClientException(error, code);
                     }
                 }
@@ -415,15 +421,19 @@ public class WebsocketAgent extends RestAgent {
                     switch (jsonMessage.get(ACTION_MEMBER).getAsString()) {
                         case COMMAND_INSERT:
                             Gson commandInsertGson = GsonFactory.createGson(COMMAND_LISTED);
-                            DeviceCommand commandInsert = commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
-                                    DeviceCommand.class);
-                            String localCommandSubId = serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
+                            DeviceCommand
+                                commandInsert =
+                                commandInsertGson.fromJson(jsonMessage.getAsJsonObject(COMMAND_MEMBER),
+                                                           DeviceCommand.class);
+                            String
+                                localCommandSubId =
+                                serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
                             commandSubscriptionsStorage.get(localCommandSubId).handleMessage(commandInsert);
                             break;
                         case COMMAND_UPDATE:
                             Gson commandUpdateGson = GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT);
                             DeviceCommand commandUpdated = commandUpdateGson.fromJson(jsonMessage.getAsJsonObject
-                                    (COMMAND_MEMBER), DeviceCommand.class);
+                                (COMMAND_MEMBER), DeviceCommand.class);
                             if (commandUpdatesHandlerStorage.get(commandUpdated.getId()) != null) {
                                 commandUpdatesHandlerStorage.remove(commandUpdated.getId()).handle(commandUpdated);
                             }
@@ -431,8 +441,10 @@ public class WebsocketAgent extends RestAgent {
                         case NOTIFICATION_INSERT:
                             Gson notificationsGson = GsonFactory.createGson(NOTIFICATION_TO_CLIENT);
                             DeviceNotification notification = notificationsGson.fromJson(jsonMessage.getAsJsonObject
-                                    (NOTIFICATION_MEMBER), DeviceNotification.class);
-                            String localNotifSubId = serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
+                                (NOTIFICATION_MEMBER), DeviceNotification.class);
+                            String
+                                localNotifSubId =
+                                serverToLocalSubIdMap.get(jsonMessage.get(SUBSCRIPTION_ID).getAsString());
                             notificationSubscriptionsStorage.get(localNotifSubId).handleMessage(notification);
                             break;
                         default: //unknown request
@@ -450,7 +462,7 @@ public class WebsocketAgent extends RestAgent {
         private EndpointFactory() {
         }
 
-        private Endpoint createEndpoint(){
+        private Endpoint createEndpoint() {
             return new Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig config) {
@@ -480,7 +492,8 @@ public class WebsocketAgent extends RestAgent {
                                     @Override
                                     public void run() {
                                         try {
-                                            session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, "Can not restore session context"));
+                                            session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION,
+                                                                          "Can not restore session context"));
                                         } catch (IOException e1) {
                                             logger.error("Can not close session", e1);
                                         }
@@ -497,11 +510,12 @@ public class WebsocketAgent extends RestAgent {
                 public void onClose(Session session, CloseReason reason) {
                     try {
 //                        connectionLock.writeLock().lock();
-                        logger.info("[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
-                                reason.getCloseCode
-                                        ().getCode());
+                        logger.info(
+                            "[onClose] Websocket client closed. Reason: " + reason.getReasonPhrase() + "; Code: " +
+                            reason.getCloseCode
+                                ().getCode());
                         SessionMonitor sessionMonitor =
-                                (SessionMonitor) session.getUserProperties().get(SessionMonitor.SESSION_MONITOR_KEY);
+                            (SessionMonitor) session.getUserProperties().get(SessionMonitor.SESSION_MONITOR_KEY);
                         if (sessionMonitor != null) {
                             sessionMonitor.close();
                         }

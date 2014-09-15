@@ -16,6 +16,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,8 +24,6 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import javax.interceptor.InvocationContext;
-import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -34,6 +33,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import javax.interceptor.InvocationContext;
+import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -133,22 +135,22 @@ public class AccessKeyIntegrationTest {
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION)) {
                     actionTestProcess(accessKey,
-                            "[CreateDeviceNotification,CreateDeviceCommand,UpdateDeviceCommand]");
+                                      "[CreateDeviceNotification,CreateDeviceCommand,UpdateDeviceCommand]");
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey, "[CreateDeviceNotification,GetDeviceCommand,UpdateDeviceCommand]");
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION)) {
                     actionTestProcess(accessKey,
-                            "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
+                                      "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND)) {
                     actionTestProcess(accessKey,
-                            "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
+                                      "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
                     actionTestProcess(accessKey,
-                            "[CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
+                                      "[CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_STATE)) {
                     actionTestProcess(accessKey, "[GetDeviceState]");
@@ -211,7 +213,7 @@ public class AccessKeyIntegrationTest {
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
                     actionTestProcess(accessKey,
-                            "[CreateDeviceNotification]");
+                                      "[CreateDeviceNotification]");
                 }
             } catch (HiveException e) {
                 if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {

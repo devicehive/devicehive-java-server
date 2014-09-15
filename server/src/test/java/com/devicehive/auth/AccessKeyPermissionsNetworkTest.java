@@ -10,6 +10,7 @@ import com.devicehive.model.UserRole;
 import com.devicehive.model.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

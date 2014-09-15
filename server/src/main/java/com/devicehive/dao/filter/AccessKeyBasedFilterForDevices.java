@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class
-        AccessKeyBasedFilterForDevices {
+    AccessKeyBasedFilterForDevices {
 
     private Set<String> deviceGuids;
 
@@ -29,13 +29,21 @@ public class
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         AccessKeyBasedFilterForDevices that = (AccessKeyBasedFilterForDevices) o;
 
-        if (deviceGuids != null ? !deviceGuids.equals(that.deviceGuids) : that.deviceGuids != null) return false;
-        if (networkIds != null ? !networkIds.equals(that.networkIds) : that.networkIds != null) return false;
+        if (deviceGuids != null ? !deviceGuids.equals(that.deviceGuids) : that.deviceGuids != null) {
+            return false;
+        }
+        if (networkIds != null ? !networkIds.equals(that.networkIds) : that.networkIds != null) {
+            return false;
+        }
 
         return true;
     }

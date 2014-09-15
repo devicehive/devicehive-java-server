@@ -1,8 +1,12 @@
 package com.devicehive.model;
 
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+
+import com.devicehive.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
+
+import java.sql.Timestamp;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
@@ -20,13 +24,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.Version;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
@@ -45,13 +44,14 @@ import static com.devicehive.model.DeviceCommand.Queries.Values;
 @Entity
 @Table(name = "device_command")
 @NamedQueries({
-        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-        @NamedQuery(name = Names.DELETE_BY_DEVICE_AND_USER, query = Values.DELETE_BY_DEVICE_AND_USER),
-        @NamedQuery(name = Names.DELETE_BY_FOREIGN_KEY, query = Values.DELETE_BY_FOREIGN_KEY),
-        @NamedQuery(name = Names.GET_BY_DEVICE_UUID_AND_ID, query = Values.GET_BY_DEVICE_UUID_AND_ID)
-})
+                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
+                  @NamedQuery(name = Names.DELETE_BY_DEVICE_AND_USER, query = Values.DELETE_BY_DEVICE_AND_USER),
+                  @NamedQuery(name = Names.DELETE_BY_FOREIGN_KEY, query = Values.DELETE_BY_FOREIGN_KEY),
+                  @NamedQuery(name = Names.GET_BY_DEVICE_UUID_AND_ID, query = Values.GET_BY_DEVICE_UUID_AND_ID)
+              })
 @Cacheable
 public class DeviceCommand implements HiveEntity {
+
     public static final String TIMESTAMP_COLUMN = "timestamp";
     public static final String DEVICE_COLUMN = "device";
     public static final String COMMAND_COLUMN = "command";
@@ -62,12 +62,12 @@ public class DeviceCommand implements HiveEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
-            COMMAND_LISTED})
+                    COMMAND_LISTED})
     private Long id;
     @SerializedName("timestamp")
     @Column(insertable = false, updatable = false)
     @JsonPolicyDef(
-            {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+        {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
     @SerializedName("user")
     @ManyToOne
@@ -86,46 +86,46 @@ public class DeviceCommand implements HiveEntity {
     @Column
     @NotNull(message = "command field cannot be null.")
     @Size(min = 1, max = 128,
-            message = "Field cannot be empty. The length of command should not be more than 128 symbols.")
+          message = "Field cannot be empty. The length of command should not be more than 128 symbols.")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String command;
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
+                        })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
     @SerializedName("lifetime")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            COMMAND_LISTED})
+                    COMMAND_LISTED})
     private Integer lifetime;
     @SerializedName("flags")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+                    REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer flags;
     @SerializedName("status")
     @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE,
-            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE,
+                    REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private String status;
     @SerializedName("result")
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
-    })
+                            @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
+                        })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE,
-            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+                    POST_COMMAND_TO_DEVICE,
+                    REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
     @Column(name = "origin_session_id")
     @Size(min = 1, max = 64,
-            message = "The length of origin_session_id should not be more than 64 symbols.")
+          message = "The length of origin_session_id should not be more than 64 symbols.")
     private String originSessionId;
     @Version
     @Column(name = "entity_version")
@@ -236,7 +236,9 @@ public class DeviceCommand implements HiveEntity {
     }
 
     public static class Queries {
+
         public static interface Names {
+
             static final String DELETE_BY_ID = "DeviceCommand.deleteById";
             static final String DELETE_BY_DEVICE_AND_USER = "DeviceCommand.deleteByDeviceAndUser";
             static final String DELETE_BY_FOREIGN_KEY = "DeviceCommand.deleteByFK";
@@ -244,17 +246,19 @@ public class DeviceCommand implements HiveEntity {
         }
 
         static interface Values {
+
             static final String DELETE_BY_ID = "delete from DeviceCommand dc where dc.id = :id";
             static final String DELETE_BY_DEVICE_AND_USER =
-                    "delete from DeviceCommand dc " +
-                            "where dc.user = :user and dc.device = :device";
+                "delete from DeviceCommand dc " +
+                "where dc.user = :user and dc.device = :device";
             static final String DELETE_BY_FOREIGN_KEY = "delete from DeviceCommand dc where dc.device = :device";
             static final String GET_BY_DEVICE_UUID_AND_ID =
-                    "select dc from DeviceCommand dc " +
-                            "where dc.id = :id and dc.device.guid = :guid";
+                "select dc from DeviceCommand dc " +
+                "where dc.id = :id and dc.device.guid = :guid";
         }
 
         public static interface Parameters {
+
             static final String ID = "id";
             static final String USER = "user";
             static final String DEVICE = "device";

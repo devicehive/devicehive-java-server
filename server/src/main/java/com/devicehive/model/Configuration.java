@@ -2,14 +2,24 @@ package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import javax.persistence.*;
+import java.sql.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.devicehive.model.Configuration.Queries.Names;
 import static com.devicehive.model.Configuration.Queries.Values;
@@ -18,10 +28,10 @@ import static com.devicehive.model.Configuration.Queries.Values;
 @Entity
 @Table(name = "configuration")
 @NamedQueries({
-        @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL),
-        @NamedQuery(name = Names.GET_BY_NAME, query = Values.GET_BY_NAME),
-        @NamedQuery(name = Names.DELETE, query = Values.DELETE)
-})
+                  @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL),
+                  @NamedQuery(name = Names.GET_BY_NAME, query = Values.GET_BY_NAME),
+                  @NamedQuery(name = Names.DELETE, query = Values.DELETE)
+              })
 @Cacheable(true)
 public class Configuration implements HiveEntity {
 
@@ -36,12 +46,12 @@ public class Configuration implements HiveEntity {
     @NotNull(message = "name field cannot be null.")
     @SerializedName("name")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name should not be more than " +
-            "32 symbols.")
+                                       "32 symbols.")
     private String name;
     @Column
     @NotNull(message = "value field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of value should not be more than " +
-            "128 symbols.")
+                                        "128 symbols.")
     private String value;
     @Version
     @Column(name = "entity_version")
@@ -56,8 +66,8 @@ public class Configuration implements HiveEntity {
     }
 
     /**
-     * Validates equipment representation. Returns set of strings which are represent constraint violations. Set will
-     * be empty if no constraint violations found.
+     * Validates equipment representation. Returns set of strings which are represent constraint violations. Set will be
+     * empty if no constraint violations found.
      *
      * @param configuration Equipment that should be validated
      * @param validator     Validator
@@ -67,9 +77,10 @@ public class Configuration implements HiveEntity {
         Set<ConstraintViolation<Configuration>> constraintViolations = validator.validate(configuration);
         Set<String> result = new HashSet<>();
         if (constraintViolations.size() > 0) {
-            for (ConstraintViolation<Configuration> cv : constraintViolations)
+            for (ConstraintViolation<Configuration> cv : constraintViolations) {
                 result.add(String.format("Error! property: [%s], value: [%s], message: [%s]",
-                        cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+                                         cv.getPropertyPath(), cv.getInvalidValue(), cv.getMessage()));
+            }
         }
         return result;
 
@@ -136,19 +147,23 @@ public class Configuration implements HiveEntity {
     }
 
     public static class Queries {
+
         public static interface Names {
+
             static final String GET_ALL = "Configuration.getAll";
             static final String GET_BY_NAME = "Configuration.getByName";
             static final String DELETE = "Configuration.delete";
         }
 
         static interface Values {
+
             public static final String GET_ALL = "select c from Configuration c";
             public static final String DELETE = "delete from Configuration c where c.name = :name";
             public static final String GET_BY_NAME = "select c from Configuration c where c.name = :name";
         }
 
         public static interface Parameters {
+
             static final String NAME = "name";
         }
     }

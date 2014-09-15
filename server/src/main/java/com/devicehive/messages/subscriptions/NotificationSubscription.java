@@ -3,7 +3,6 @@ package com.devicehive.messages.subscriptions;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.messages.handler.HandlerCreator;
-import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 
 import java.util.Collection;
@@ -19,7 +18,7 @@ public class NotificationSubscription extends Subscription<Long, DeviceNotificat
 
     public NotificationSubscription(HivePrincipal principal, Long deviceId, UUID subscriberId,
                                     Collection<String> notificationNames,
-                                    HandlerCreator<DeviceNotification>  handlerCreator) {
+                                    HandlerCreator<DeviceNotification> handlerCreator) {
         super(deviceId, subscriberId, handlerCreator);
         this.principal = principal;
         this.notificationNames = notificationNames != null ? new HashSet<>(notificationNames) : null;

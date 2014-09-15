@@ -12,7 +12,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class AbstractStorage<E, T extends Subscription<E,?>> {
+public class AbstractStorage<E, T extends Subscription<E, ?>> {
 
     private ConcurrentMap<E, Set<T>> byEventSource = new ConcurrentHashMap<>();
     private ConcurrentMap<UUID, Set<T>> bySubscriptionId = new ConcurrentHashMap<>();

@@ -1,14 +1,16 @@
 package com.devicehive.websockets.converters;
 
-import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import com.devicehive.json.GsonFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class WebSocketResponse {
+
     private Map<String, Object> dataMap = new HashMap<>();
     private Map<String, JsonPolicyDef.Policy> policyMap = new HashMap<>();
 

@@ -1,9 +1,10 @@
 package com.devicehive.auth;
 
+import com.google.common.collect.Sets;
+
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
 import com.devicehive.model.Subnet;
-import com.google.common.collect.Sets;
 
 import java.net.InetAddress;
 import java.util.HashSet;
@@ -97,7 +98,9 @@ public class CheckPermissionsHelper {
         permissions.removeAll(permissionToRemove);
     }
 
-    public static Set<AccessKeyPermission> filterPermissions(Set<AccessKeyPermission> permissions, AllowedKeyAction.Action action, InetAddress clientIP, String clientDomain) {
+    public static Set<AccessKeyPermission> filterPermissions(Set<AccessKeyPermission> permissions,
+                                                             AllowedKeyAction.Action action, InetAddress clientIP,
+                                                             String clientDomain) {
         Set<AccessKeyPermission> filtered = Sets.newHashSet(permissions);
         filterActions(action, filtered);
         filterIP(clientIP, filtered);

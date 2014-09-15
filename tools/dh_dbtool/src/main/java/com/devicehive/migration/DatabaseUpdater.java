@@ -4,6 +4,7 @@ import com.googlecode.flyway.core.Flyway;
 import com.googlecode.flyway.core.api.FlywayException;
 import com.googlecode.flyway.core.api.MigrationInfo;
 import com.googlecode.flyway.core.api.MigrationVersion;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,11 +25,13 @@ import java.util.Properties;
 import java.util.Set;
 
 public class DatabaseUpdater {
+
     private static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
     private static final String SELECT_NUMBER_OF_TABLES_IN_SCHEMA = "select count(table_name) as number " +
-            "from information_schema.tables " +
-            "where table_schema = ? and has_table_privilege(? ,quote_ident(table_schema) || '.' || quote_ident" +
-            "(table_name), 'INSERT');";
+                                                                    "from information_schema.tables " +
+                                                                    "where table_schema = ? and has_table_privilege(? ,quote_ident(table_schema) || '.' || quote_ident"
+                                                                    +
+                                                                    "(table_name), 'INSERT');";
     private Options options = new Options();
     private Flyway flyway = new Flyway();
 
@@ -47,10 +50,10 @@ public class DatabaseUpdater {
         if (command.hasOption(Constants.PRINT_VERSION_OPTION)) {
             try {
                 printCurrentVersion(out, err,
-                        command.getOptionValue(Constants.DATABASE_JDBC_URL),
-                        command.getOptionValue(Constants.DATABASE_LOGIN),
-                        command.getOptionValue(Constants.USER_PASSWORD),
-                        command.getOptionValue(Constants.DATABASE_SCHEMA));
+                                    command.getOptionValue(Constants.DATABASE_JDBC_URL),
+                                    command.getOptionValue(Constants.DATABASE_LOGIN),
+                                    command.getOptionValue(Constants.USER_PASSWORD),
+                                    command.getOptionValue(Constants.DATABASE_SCHEMA));
             } catch (FlywayException e) {
                 out.println(e.getMessage());
                 if (e.getCause() != null) {

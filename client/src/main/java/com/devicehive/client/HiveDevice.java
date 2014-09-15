@@ -10,9 +10,9 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
- * HiveDevice represents a simple device in terms of DeviceHive.
- * After connection is established, devices need to registered, perform authentication and then start sending notifications.
- * Devices may also subscribe to commands and then start receiving server-originated messages about new commands.
+ * HiveDevice represents a simple device in terms of DeviceHive. After connection is established, devices need to
+ * registered, perform authentication and then start sending notifications. Devices may also subscribe to commands and
+ * then start receiving server-originated messages about new commands.
  */
 public interface HiveDevice extends AutoCloseable {
 
@@ -70,13 +70,14 @@ public interface HiveDevice extends AutoCloseable {
     void updateCommand(DeviceCommand deviceCommand) throws HiveException;
 
     /**
-     * Subscribes the device to commands. After subscription is completed, the server will start to send commands to
-     * the connected device.
+     * Subscribes the device to commands. After subscription is completed, the server will start to send commands to the
+     * connected device.
      *
-     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken instead.
+     * @param timestamp Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken
+     *                  instead.
      */
     void subscribeForCommands(Timestamp timestamp, HiveMessageHandler<DeviceCommand> commandsHandler)
-            throws HiveException;
+        throws HiveException;
 
     /**
      * Unsubscribes the device from commands.

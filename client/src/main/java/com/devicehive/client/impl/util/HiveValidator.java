@@ -5,6 +5,7 @@ import com.devicehive.client.model.Device;
 import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.Equipment;
 import com.devicehive.client.model.exceptions.HiveClientException;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.LinkedList;
@@ -59,7 +60,7 @@ public class HiveValidator {
         if (!constraintViolations.isEmpty()) {
             String message = "Validation failed with following constraint violations: ";
             throw new HiveClientException(message + StringUtils.join(constraintViolations, ";"),
-                    BAD_REQUEST.getStatusCode());
+                                          BAD_REQUEST.getStatusCode());
         }
     }
 

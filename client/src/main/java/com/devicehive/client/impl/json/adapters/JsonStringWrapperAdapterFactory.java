@@ -1,7 +1,6 @@
 package com.devicehive.client.impl.json.adapters;
 
 
-import com.devicehive.client.model.JsonStringWrapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.google.gson.TypeAdapter;
@@ -11,12 +10,15 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import com.devicehive.client.model.JsonStringWrapper;
+
 import java.io.IOException;
 
 /**
  * Adapter factory for conversion from JSON into JsonStringWrapper and JsonStringWrapper into JSON
  */
 public class JsonStringWrapperAdapterFactory implements TypeAdapterFactory {
+
     @Override
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
         if (!JsonStringWrapper.class.isAssignableFrom(type.getRawType())) {

@@ -1,10 +1,11 @@
 package com.devicehive.model.response;
 
 
+import com.google.gson.annotations.SerializedName;
+
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HiveEntity;
-import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;

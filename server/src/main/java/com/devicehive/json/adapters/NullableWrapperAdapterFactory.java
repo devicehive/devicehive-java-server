@@ -1,7 +1,6 @@
 package com.devicehive.json.adapters;
 
 
-import com.devicehive.model.NullableWrapper;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
@@ -9,11 +8,14 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import com.devicehive.model.NullableWrapper;
+
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 public class NullableWrapperAdapterFactory implements TypeAdapterFactory {
+
     @Override
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
         if (!NullableWrapper.class.isAssignableFrom(type.getRawType())) {

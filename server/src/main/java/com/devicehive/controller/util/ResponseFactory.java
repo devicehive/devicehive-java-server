@@ -3,9 +3,10 @@ package com.devicehive.controller.util;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 
+import java.lang.annotation.Annotation;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.lang.annotation.Annotation;
 
 public class ResponseFactory {
 

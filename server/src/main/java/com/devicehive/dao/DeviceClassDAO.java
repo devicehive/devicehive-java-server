@@ -3,6 +3,9 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -15,8 +18,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.devicehive.model.DeviceClass.Queries.Names.DELETE_BY_ID;
 import static com.devicehive.model.DeviceClass.Queries.Names.FIND_BY_NAME_AND_VERSION;
@@ -111,9 +112,6 @@ public class DeviceClassDAO {
 
     /**
      * Updates Device Class
-     *
-     * @param deviceClass
-     * @return
      */
     public DeviceClass updateDeviceClass(DeviceClass deviceClass) {
         return em.merge(deviceClass);

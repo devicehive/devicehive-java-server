@@ -1,14 +1,12 @@
 package com.devicehive.util;
 
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.OAuthClient;
 import com.google.gson.JsonObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.Session;
-import java.net.InetAddress;
 
 public final class ThreadLocalVariablesKeeper {
 

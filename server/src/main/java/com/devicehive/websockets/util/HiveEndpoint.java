@@ -10,11 +10,11 @@ public enum HiveEndpoint {
     }
 
     public static HiveEndpoint byValue(String endpoint) {
-        if (endpoint.equalsIgnoreCase(HiveEndpoint.CLIENT.value))
+        if (endpoint.equalsIgnoreCase(HiveEndpoint.CLIENT.value)) {
             return HiveEndpoint.CLIENT;
-        else if (endpoint.equalsIgnoreCase(HiveEndpoint.DEVICE.value))
+        } else if (endpoint.equalsIgnoreCase(HiveEndpoint.DEVICE.value)) {
             return HiveEndpoint.DEVICE;
-        else {
+        } else {
             return null;
         }
     }

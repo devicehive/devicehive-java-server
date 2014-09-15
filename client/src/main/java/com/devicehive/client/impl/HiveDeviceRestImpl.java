@@ -1,22 +1,35 @@
 package com.devicehive.client.impl;
 
 
+import com.google.common.reflect.TypeToken;
+
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.context.HivePrincipal;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.impl.util.HiveValidator;
-import com.devicehive.client.model.*;
+import com.devicehive.client.model.ApiInfo;
+import com.devicehive.client.model.Device;
+import com.devicehive.client.model.DeviceCommand;
+import com.devicehive.client.model.DeviceNotification;
+import com.devicehive.client.model.SubscriptionFilter;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.google.common.reflect.TypeToken;
+
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.ws.rs.HttpMethod;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import javax.ws.rs.HttpMethod;
+
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 
 
 public class HiveDeviceRestImpl implements HiveDevice {
@@ -62,7 +75,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
     @Override
     public List<DeviceCommand> queryCommands(Timestamp start, Timestamp end, String command, String status,
                                              String sortBy, boolean sortAsc, Integer take, Integer skip)
-            throws HiveException {
+        throws HiveException {
         Pair<String, String> authenticated = restAgent.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command";
         Map<String, Object> queryParams = new HashMap<>();
@@ -76,8 +89,8 @@ public class HiveDeviceRestImpl implements HiveDevice {
         queryParams.put("take", take);
         queryParams.put("skip", skip);
         return restAgent.execute(path, HttpMethod.GET, null, queryParams,
-                new TypeToken<List<DeviceCommand>>() {
-                }.getType(), null);
+                                 new TypeToken<List<DeviceCommand>>() {
+                                 }.getType(), null);
     }
 
     @Override
@@ -85,7 +98,7 @@ public class HiveDeviceRestImpl implements HiveDevice {
         Pair<String, String> authenticated = restAgent.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
         return restAgent.execute(path, HttpMethod.GET, null,
-                DeviceCommand.class, null);
+                                 DeviceCommand.class, null);
     }
 
     @Override
@@ -93,17 +106,17 @@ public class HiveDeviceRestImpl implements HiveDevice {
         Pair<String, String> authenticated = restAgent.getHivePrincipal().getDevice();
         String path = "/device/" + authenticated.getKey() + "/command/" + deviceCommand.getId();
         restAgent
-                .execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
+            .execute(path, HttpMethod.PUT, null, deviceCommand, COMMAND_UPDATE_FROM_DEVICE);
     }
 
     @Override
     public synchronized void subscribeForCommands(final Timestamp timestamp,
                                                   final HiveMessageHandler<DeviceCommand> commandsHandler)
-            throws HiveException {
+        throws HiveException {
         Set<String> uuids = new HashSet<>();
         uuids.add(restAgent.getHivePrincipal().getDevice().getLeft());
         SubscriptionFilter filter =
-                new SubscriptionFilter(uuids, null, timestamp);
+            new SubscriptionFilter(uuids, null, timestamp);
         commandsSubscriptionId = restAgent.subscribeForCommandsForDevice(filter, commandsHandler);
     }
 
@@ -113,8 +126,8 @@ public class HiveDeviceRestImpl implements HiveDevice {
         HiveValidator.validate(deviceNotification);
         String path = "/device/" + authenticated.getKey() + "/notification";
         return restAgent.execute(path, HttpMethod.POST, null, null,
-                deviceNotification,
-                DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
+                                 deviceNotification,
+                                 DeviceNotification.class, NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_DEVICE);
     }
 
     @Override

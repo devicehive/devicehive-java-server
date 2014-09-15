@@ -4,6 +4,7 @@ package com.devicehive.configuration;
 import java.util.ResourceBundle;
 
 public class Messages {
+
     public static final String NOT_AUTHORIZED = BidBundle.get("NOT_AUTHORIZED");
     public static final String OAUTH_REALM = BidBundle.get("OAUTH_REALM");
     public static final String BASIC_REALM = BidBundle.get("BASIC_REALM");
@@ -39,7 +40,10 @@ public class Messages {
     public static final String UNKNOWN_ACTION = BidBundle.get("UNKNOWN_ACTION");
     public static final String OAUTH_TOKEN_LABEL = BidBundle.get("OAUTH_TOKEN_LABEL");
     public static final String ID_NOT_ALLOWED = BidBundle.get("ID_NOT_ALLOWED");
-    public static final String DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS = BidBundle.get("DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS");
+    public static final
+    String
+        DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS =
+        BidBundle.get("DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS");
     public static final String DUPLICATE_EQUIPMENT_ENTRY = BidBundle.get("DUPLICATE_EQUIPMENT_ENTRY");
     public static final String UPDATE_PERMANENT_EQUIPMENT = BidBundle.get("UPDATE_PERMANENT_EQUIPMENT");
     public static final String INCORRECT_CREDENTIALS = BidBundle.get("INCORRECT_CREDENTIALS");

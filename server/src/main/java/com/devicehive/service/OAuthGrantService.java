@@ -11,7 +11,13 @@ import com.devicehive.model.Type;
 import com.devicehive.model.User;
 import com.devicehive.model.UserStatus;
 import com.devicehive.model.updates.OAuthGrantUpdate;
+
 import org.apache.commons.lang3.StringUtils;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -19,10 +25,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
@@ -116,14 +118,18 @@ public class OAuthGrantService {
 
         }
         existing.setClient(client);
-        if (grantToUpdate.getAccessType() != null)
+        if (grantToUpdate.getAccessType() != null) {
             existing.setAccessType(grantToUpdate.getAccessType().getValue());
-        if (grantToUpdate.getType() != null)
+        }
+        if (grantToUpdate.getType() != null) {
             existing.setType(grantToUpdate.getType().getValue());
-        if (grantToUpdate.getNetworkIds() != null)
+        }
+        if (grantToUpdate.getNetworkIds() != null) {
             existing.setNetworkIds(grantToUpdate.getNetworkIds().getValue());
-        if (grantToUpdate.getRedirectUri() != null)
+        }
+        if (grantToUpdate.getRedirectUri() != null) {
             existing.setRedirectUri(grantToUpdate.getRedirectUri().getValue());
+        }
         if (grantToUpdate.getScope() != null) {
             existing.setScope(grantToUpdate.getScope().getValue());
         }
@@ -131,8 +137,9 @@ public class OAuthGrantService {
         existing.setTimestamp(now);
         AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(existing, user, now);
         existing.setAccessKey(key);
-        if (existing.getAuthCode() != null)
+        if (existing.getAuthCode() != null) {
             existing.setAuthCode(UUID.randomUUID().toString());
+        }
         return existing;
     }
 
@@ -150,7 +157,7 @@ public class OAuthGrantService {
                                  Integer take,
                                  Integer skip) {
         return grantDAO.get(user, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField,
-                sortOrder, take, skip);
+                            sortOrder, take, skip);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -169,8 +176,9 @@ public class OAuthGrantService {
         if (redirectUri != null && !grant.getRedirectUri().equals(redirectUri)) {
             throw new HiveException(Messages.INVALID_URI, SC_UNAUTHORIZED);
         }
-        if (grant.getTimestamp().getTime() - timestampService.getTimestamp().getTime() > 600_000)
+        if (grant.getTimestamp().getTime() - timestampService.getTimestamp().getTime() > 600_000) {
             throw new HiveException(Messages.EXPIRED_GRANT, SC_UNAUTHORIZED);
+        }
         invalidate(grant);
         return grant.getAccessKey();
     }
@@ -185,7 +193,7 @@ public class OAuthGrantService {
         }
         user.setLastLogin(timestampService.getTimestamp());
         List<OAuthGrant> found = grantDAO.get(user, null, null, client.getOauthId(), Type.PASSWORD.ordinal(), scope,
-                null, null, null, null, null, null);
+                                              null, null, null, null, null, null);
         OAuthGrant grant = found.isEmpty() ? null : found.get(0);
         Timestamp now = timestampService.getTimestamp();
         if (grant == null) {
@@ -232,7 +240,7 @@ public class OAuthGrantService {
         }
         if (!violations.isEmpty()) {
             throw new HiveException(String.format(Messages.VALIDATION_FAILED, StringUtils.join(violations, "; ")),
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                                    Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
 }

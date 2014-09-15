@@ -4,11 +4,14 @@ import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 
 import java.util.Set;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
 
 /**
- * Represents a device, a unit that runs microcode and communicates to this API.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/Device">Device</a>
+ * Represents a device, a unit that runs microcode and communicates to this API. For more details see <a
+ * href="http://www.devicehive.com/restful#Reference/Device">Device</a>
  */
 public class Device implements HiveEntity {
 

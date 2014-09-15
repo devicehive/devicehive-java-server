@@ -2,10 +2,9 @@ package com.devicehive.client.model;
 
 
 /**
- * Grant access type. Available values:
- * Online: Access is requested to a limited period of time
- * Offline: Assess is requested for an unlimited period of time
- * For more details see <a href="http://tools.ietf.org/html/rfc6749">The OAuth 2.0 Authorization Framework</a>
+ * Grant access type. Available values: Online: Access is requested to a limited period of time Offline: Assess is
+ * requested for an unlimited period of time For more details see <a href="http://tools.ietf.org/html/rfc6749">The OAuth
+ * 2.0 Authorization Framework</a>
  */
 public enum AccessType {
     ONLINE("Online"),

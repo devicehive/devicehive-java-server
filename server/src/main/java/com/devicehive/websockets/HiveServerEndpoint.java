@@ -1,6 +1,10 @@
 package com.devicehive.websockets;
 
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
@@ -8,11 +12,12 @@ import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.WebsocketExecutor;
 import com.devicehive.websockets.util.SessionMonitor;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Reader;
+import java.util.UUID;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -21,8 +26,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
-import java.io.Reader;
-import java.util.UUID;
 
 
 @LogExecutionTime
@@ -84,10 +87,10 @@ abstract class HiveServerEndpoint {
 
         if (exception instanceof JsonParseException) {
             builder = JsonMessageBuilder
-                    .createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax");
+                .createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax");
         } else {
             builder = JsonMessageBuilder
-                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
+                .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
         session.getAsyncRemote().sendText(GsonFactory.createGson().toJson(builder.build()));
 

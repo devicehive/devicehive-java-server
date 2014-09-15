@@ -1,6 +1,7 @@
 package com.devicehive.service.helpers;
 
 import com.devicehive.configuration.Constants;
+
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.UnsupportedEncodingException;
@@ -9,8 +10,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 /**
- * this one uses the same scheme as .net server
- * TODO investigate maybe it makes sense to replace it with some key-stretching scheme (scrypt, PBKDF2 or bcrypt)
+ * this one uses the same scheme as .net server TODO investigate maybe it makes sense to replace it with some
+ * key-stretching scheme (scrypt, PBKDF2 or bcrypt)
  */
 
 public class DefaultPasswordProcessor implements PasswordProcessor {
@@ -26,11 +27,6 @@ public class DefaultPasswordProcessor implements PasswordProcessor {
 
     /**
      * TODO do we need timing-safe implementation?
-     *
-     * @param password
-     * @param salt
-     * @param hash
-     * @return
      */
     @Override
     public boolean checkPassword(String password, String salt, String hash) {
@@ -39,10 +35,6 @@ public class DefaultPasswordProcessor implements PasswordProcessor {
 
     /**
      * Implements self-made hash scheme.
-     *
-     * @param password
-     * @param salt
-     * @return
      */
     @Override
     public String hashPassword(String password, String salt) {

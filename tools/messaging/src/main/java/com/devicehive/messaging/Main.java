@@ -29,7 +29,7 @@ public class Main {
             msg.startSendCommands(devices, adminTool.getTestClients());
             msg.startSendNotifications(adminTool.getTestDevices());
             Thread.currentThread().join(1_000L);
-        } catch (Exception e){
+        } catch (Exception e) {
             System.err.print(e);
         } finally {
             if (adminTool != null) {

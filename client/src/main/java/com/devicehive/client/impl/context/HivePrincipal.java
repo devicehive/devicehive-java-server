@@ -80,14 +80,24 @@ public class HivePrincipal {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         HivePrincipal that = (HivePrincipal) o;
 
-        if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null) return false;
-        if (device != null ? !device.equals(that.device) : that.device != null) return false;
-        if (user != null ? !user.equals(that.user) : that.user != null) return false;
+        if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null) {
+            return false;
+        }
+        if (device != null ? !device.equals(that.device) : that.device != null) {
+            return false;
+        }
+        if (user != null ? !user.equals(that.user) : that.user != null) {
+            return false;
+        }
 
         return true;
     }

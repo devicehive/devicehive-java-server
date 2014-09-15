@@ -22,8 +22,12 @@ public class AccessKeyBasedFilterForNetworks {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof AccessKeyBasedFilterForNetworks)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof AccessKeyBasedFilterForNetworks)) {
+            return false;
+        }
         AccessKeyBasedFilterForNetworks that = (AccessKeyBasedFilterForNetworks) o;
         return !(networkIds != null ? !networkIds.equals(that.networkIds) : that.networkIds != null);
     }

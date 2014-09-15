@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 
 public final class SpecialNotifications {
+
     /**
      * Server-originated notification about new device registration
      */

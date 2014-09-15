@@ -1,5 +1,9 @@
 package com.devicehive.util;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -10,13 +14,10 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.UUID;
+
+import javax.servlet.http.HttpServletResponse;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
@@ -26,7 +27,7 @@ public class ServerResponsesFactory {
 
     public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification, UUID subId) {
         JsonElement deviceNotificationJson =
-                GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
+            GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDevice().getGuid());
@@ -38,7 +39,7 @@ public class ServerResponsesFactory {
     public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, UUID subId) {
 
         JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
-                DeviceCommand.class);
+                                                                                             DeviceCommand.class);
 
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
@@ -53,7 +54,7 @@ public class ServerResponsesFactory {
             deviceCommand.setUserId(deviceCommand.getUser().getId());
         }
         JsonElement deviceCommandJson =
-                GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
+            GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/update");
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);

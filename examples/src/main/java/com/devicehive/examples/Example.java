@@ -3,7 +3,14 @@ package com.devicehive.examples;
 
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -11,7 +18,12 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static com.devicehive.constants.Constants.*;
+import static com.devicehive.constants.Constants.NAME;
+import static com.devicehive.constants.Constants.PARSE_EXCEPTION_MESSAGE;
+import static com.devicehive.constants.Constants.URL;
+import static com.devicehive.constants.Constants.URL_DESCRIPTION;
+import static com.devicehive.constants.Constants.USE_SOCKETS;
+import static com.devicehive.constants.Constants.USE_SOCKETS_DESCRIPTION;
 
 /**
  * Base class for full examples set.
@@ -113,18 +125,15 @@ public abstract class Example {
                 replacement[i] = objects[i].toString();
             }
             resultMessage = StringUtils.replaceEach(msg, replaceList, replacement);
-        } else
+        } else {
             resultMessage = msg;
+        }
         out.println(resultMessage);
 
     }
 
     /**
      * Main method. Represents example's logic
-     *
-     * @throws HiveException
-     * @throws ExampleException
-     * @throws IOException
      */
     public abstract void run() throws HiveException, ExampleException, IOException;
 }

@@ -1,7 +1,6 @@
 package com.devicehive.controller;
 
 
-
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
@@ -13,12 +12,12 @@ import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 import com.devicehive.util.LogExecutionTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -53,24 +52,10 @@ public class EquipmentController {
     private EquipmentService equipmentService;
 
 
-
     /**
-     * Gets current state of device equipment.
-     * <code>
-     * [
-     * {
-     * "id":1,
-     * "timestamp": "1970-01-01 00:00:00.0",
-     * "parameters":{/ *custom json object* /}
-     * },
-     * {
-     * "id":2,
-     * "timestamp": "1970-01-01 00:00:00.0",
-     * "parameters":{/ *custom json object* /}
-     * }
-     * ]
-     * <p/>
-     * </code>
+     * Gets current state of device equipment. <code> [ { "id":1, "timestamp": "1970-01-01 00:00:00.0", "parameters":{/
+     * *custom json object* /} }, { "id":2, "timestamp": "1970-01-01 00:00:00.0", "parameters":{/ *custom json object*
+     * /} } ] <p/> </code>
      *
      * @param classId device class id
      * @param eqId    equipment id
@@ -85,8 +70,9 @@ public class EquipmentController {
         if (result == null) {
             logger.debug("No equipment with id = {} for device class with id = {} found", eqId, classId);
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.EQUIPMENT_NOT_FOUND, eqId, classId)));
+                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                                              String.format(Messages.EQUIPMENT_NOT_FOUND, eqId,
+                                                                            classId)));
         }
         logger.debug("Device class's equipment get proceed successfully");
 
@@ -110,46 +96,36 @@ public class EquipmentController {
     }
 
     /**
-     * Updates device class' equipment. None of following parameters are mandatory.
-     * Parameters, if left unspecified, remains unchanged, instead setting parameter to
-     * null will null corresponding value.
-     * In following JSON
-     * <p/>
-     * name 	Equipment display name.
-     * code 	Equipment code. It's used to reference particular equipment and it should be unique within a device class.
-     * type 	Equipment type. An arbitrary string representing equipment capabilities.
-     * data 	Equipment data, a JSON object with an arbitrary structure.
-     * <p/>
-     * <code>
-     * {
-     * "name": "equipment name",
-     * "code": "equipment_code",
-     * "type": "equipment_type",
-     * "data": {/ * json object* /}
-     * }
-     * </code>
+     * Updates device class' equipment. None of following parameters are mandatory. Parameters, if left unspecified,
+     * remains unchanged, instead setting parameter to null will null corresponding value. In following JSON <p/> name
+     * 	Equipment display name. code 	Equipment code. It's used to reference particular equipment and it should be
+     * unique within a device class. type 	Equipment type. An arbitrary string representing equipment capabilities. data
+     * 	Equipment data, a JSON object with an arbitrary structure. <p/> <code> { "name": "equipment name", "code":
+     * "equipment_code", "type": "equipment_type", "data": {/ * json object* /} } </code>
      *
      * @param classId         id of class
      * @param eqId            equipment id
      * @param equipmentUpdate Json  object
-     * @return empty response with status 201 in case of success, empty response with status 404, if there's no such record
+     * @return empty response with status 201 in case of success, empty response with status 404, if there's no such
+     *         record
      */
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateEquipment(
-            @PathParam(DEVICE_CLASS_ID) long classId,
-            @PathParam(ID) long eqId,
-            @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED) EquipmentUpdate equipmentUpdate) {
+        @PathParam(DEVICE_CLASS_ID) long classId,
+        @PathParam(ID) long eqId,
+        @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED) EquipmentUpdate equipmentUpdate) {
 
         logger.debug("Update device class's equipment requested");
 
         if (!equipmentService.update(equipmentUpdate, eqId, classId)) {
             logger.debug("Unable to update equipment. Equipment with id = {} for device class with id = {} not found",
-                    eqId, classId);
+                         eqId, classId);
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.EQUIPMENT_NOT_FOUND, eqId, classId)));
+                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                                              String.format(Messages.EQUIPMENT_NOT_FOUND, eqId,
+                                                                            classId)));
         }
 
         logger.debug("Update device class's equipment finished successfully");
@@ -158,8 +134,7 @@ public class EquipmentController {
     }
 
     /**
-     * Will cascade deletes specified equipment and all
-     * data for this equipment for all devise of this type.
+     * Will cascade deletes specified equipment and all data for this equipment for all devise of this type.
      *
      * @param classId Device class id
      * @param eqId    Equipment id
@@ -178,27 +153,14 @@ public class EquipmentController {
     }
 
     /**
-     * Gets current state of device equipment.
-     * <code>
-     * [
-     * {
-     * "id":1,
-     * "timestamp": "1970-01-01 00:00:00.0",
-     * "parameters":{/ *custom json object* /}
-     * },
-     * {
-     * "id":2,
-     * "timestamp": "1970-01-01 00:00:00.0",
-     * "parameters":{/ *custom json object* /}
-     * }
-     * ]
-     * <p/>
-     * </code>
+     * Gets current state of device equipment. <code> [ { "id":1, "timestamp": "1970-01-01 00:00:00.0", "parameters":{/
+     * *custom json object* /} }, { "id":2, "timestamp": "1970-01-01 00:00:00.0", "parameters":{/ *custom json object*
+     * /} } ] <p/> </code>
      */
     @GET
     public Response getEquipment() {
         return ResponseFactory.response(METHOD_NOT_ALLOWED, new ErrorResponse(METHOD_NOT_ALLOWED.getStatusCode(),
-                METHOD_NOT_ALLOWED.getReasonPhrase()));
+                                                                              METHOD_NOT_ALLOWED.getReasonPhrase()));
     }
 
 }

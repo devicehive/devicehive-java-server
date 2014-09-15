@@ -10,23 +10,29 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceActivityService;
 import com.devicehive.websockets.HiveWebsocketSessionState;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.*;
-import javax.inject.Inject;
-import javax.websocket.CloseReason;
-import javax.websocket.MessageHandler;
-import javax.websocket.PongMessage;
-import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.Asynchronous;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.EJB;
+import javax.ejb.Schedule;
+import javax.ejb.Singleton;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.websocket.CloseReason;
+import javax.websocket.MessageHandler;
+import javax.websocket.PongMessage;
+import javax.websocket.Session;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -58,7 +64,8 @@ public class SessionMonitor {
         });
         sessionMap.put(session.getId(), session);
         session.setMaxIdleTimeout(configurationService
-                .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT));
+                                      .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT,
+                                               Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT));
         session.setMaxBinaryMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
         session.setMaxTextMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
     }

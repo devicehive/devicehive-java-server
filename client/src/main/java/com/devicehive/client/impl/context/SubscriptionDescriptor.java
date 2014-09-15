@@ -3,6 +3,7 @@ package com.devicehive.client.impl.context;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.model.HiveMessage;
 import com.devicehive.client.model.SubscriptionFilter;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;

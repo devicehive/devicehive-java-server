@@ -1,5 +1,7 @@
 package com.devicehive.messaging;
 
+import com.google.gson.JsonObject;
+
 import com.devicehive.client.HiveClient;
 import com.devicehive.client.HiveDevice;
 import com.devicehive.client.HiveMessageHandler;
@@ -9,7 +11,7 @@ import com.devicehive.client.model.DeviceNotification;
 import com.devicehive.client.model.JsonStringWrapper;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.messaging.config.Constants;
-import com.google.gson.JsonObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Messager {
+
     private static final Logger logger = LoggerFactory.getLogger(Messager.class);
     private final HiveMessageHandler<DeviceCommand> commandsHandler = new HiveMessageHandler<DeviceCommand>() {
         @Override
@@ -37,18 +40,18 @@ public class Messager {
         }
     };
     private final HiveMessageHandler<DeviceNotification> notificationsHandler =
-            new HiveMessageHandler<DeviceNotification>() {
-                @Override
-                public void handle(DeviceNotification message) {
-                    notificationsLock.lock();
-                    try {
-                        lostNotifications++;
-                        okNotifications--;
-                    } finally {
-                        notificationsLock.unlock();
-                    }
+        new HiveMessageHandler<DeviceNotification>() {
+            @Override
+            public void handle(DeviceNotification message) {
+                notificationsLock.lock();
+                try {
+                    lostNotifications++;
+                    okNotifications--;
+                } finally {
+                    notificationsLock.unlock();
                 }
-            };
+            }
+        };
     private final DeviceNotification deviceNotification;
     private final DeviceCommand deviceCommand;
     private Lock commandsLock = new ReentrantLock();

@@ -12,9 +12,11 @@ import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.util.LogExecutionTime;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -28,7 +30,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 import static com.devicehive.configuration.Constants.DOMAIN;
 import static com.devicehive.configuration.Constants.ID;
@@ -74,18 +75,19 @@ public class OAuthClientController {
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !sortField.equalsIgnoreCase(ID) && !sortField.equalsIgnoreCase(NAME) &&
-                !sortField.equalsIgnoreCase(DOMAIN) && !sortField.equalsIgnoreCase(OAUTH_ID)) {
+            !sortField.equalsIgnoreCase(DOMAIN) && !sortField.equalsIgnoreCase(OAUTH_ID)) {
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                                              Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
 
         List<OAuthClient> result =
-                clientService.get(name, namePattern, domain, oauthId, sortField, sortOrder, take, skip);
+            clientService.get(name, namePattern, domain, oauthId, sortField, sortOrder, take, skip);
         logger.debug("OAuthClient list procced. Params: name {}, namePattern {}, domain {}, oauthId {}, " +
-                "sortField {}, sortOrder {}, take {}, skip {}. Result list contains {} elems", name, namePattern,
-                domain, oauthId, sortField, sortOrder, take, skip, result.size());
+                     "sortField {}, sortOrder {}, take {}, skip {}. Result list contains {} elems", name, namePattern,
+                     domain, oauthId, sortField, sortOrder, take, skip, result.size());
 
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (principal != null && principal.getUser() != null && principal.getUser().isAdmin()) {
@@ -102,7 +104,8 @@ public class OAuthClientController {
         OAuthClient existing = clientService.get(clientId);
         if (existing == null) {
             return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), "OAuthClient with id " + clientId + " not found"));
+                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                                              "OAuthClient with id " + clientId + " not found"));
         }
         logger.debug("OAuthClient proceed successfully. Client id: {}", clientId);
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
@@ -118,11 +121,12 @@ public class OAuthClientController {
         logger.debug("OAuthClient insert requested. Client to insert: {}", clientToInsert);
         if (clientToInsert == null) {
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                                              Messages.INVALID_REQUEST_PARAMETERS));
         }
         OAuthClient created = clientService.insert(clientToInsert);
         logger.debug("OAuthClient insert procceed successfully. Client to insert: {}. New id: {}", clientToInsert,
-                clientToInsert.getId());
+                     clientToInsert.getId());
         return ResponseFactory.response(CREATED, created, OAUTH_CLIENT_PUBLISHED);
     }
 

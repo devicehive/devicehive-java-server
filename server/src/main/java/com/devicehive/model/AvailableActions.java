@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class AvailableActions {
+
     public static final String GET_NETWORK = "GetNetwork";
     public static final String GET_DEVICE = "GetDevice";
     public static final String GET_DEVICE_STATE = "GetDeviceState";

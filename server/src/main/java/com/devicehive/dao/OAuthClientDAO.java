@@ -4,6 +4,9 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.OAuthClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -15,8 +18,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.devicehive.model.OAuthClient.Queries.Names.DELETE_BY_ID;
 import static com.devicehive.model.OAuthClient.Queries.Names.GET_BY_NAME;
@@ -46,7 +47,7 @@ public class OAuthClientDAO {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public OAuthClient get(String oauthId) {
         TypedQuery<OAuthClient> query = em.createNamedQuery(GET_BY_OAUTH_ID,
-                OAuthClient.class);
+                                                            OAuthClient.class);
         query.setParameter(OAUTH_ID, oauthId);
         CacheHelper.cacheable(query);
         List<OAuthClient> result = query.getResultList();

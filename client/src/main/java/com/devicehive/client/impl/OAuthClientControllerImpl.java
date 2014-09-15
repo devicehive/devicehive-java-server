@@ -1,20 +1,23 @@
 package com.devicehive.client.impl;
 
 
+import com.google.common.reflect.TypeToken;
+
 import com.devicehive.client.OAuthClientController;
 import com.devicehive.client.impl.context.RestAgent;
 import com.devicehive.client.model.OAuthClient;
 import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
-import com.google.common.reflect.TypeToken;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.HttpMethod;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
 
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_LISTED;
 import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_PUBLISHED;
@@ -22,6 +25,7 @@ import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OA
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 class OAuthClientControllerImpl implements OAuthClientController {
+
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientControllerImpl.class);
     private final RestAgent restAgent;
 
@@ -33,8 +37,8 @@ class OAuthClientControllerImpl implements OAuthClientController {
     public List<OAuthClient> list(String name, String namePattern, String domain, String oauthId, String sortField,
                                   String sortOrder, Integer take, Integer skip) throws HiveException {
         logger.debug("OAuthClient: list requested with following parameters: name {}, name pattern {}, domain {}, " +
-                "oauth id {}, sort field {}, sort order {}, take {}, skip {}", name, namePattern, domain, oauthId,
-                sortField, sortOrder, take, skip);
+                     "oauth id {}, sort field {}, sort order {}, take {}, skip {}", name, namePattern, domain, oauthId,
+                     sortField, sortOrder, take, skip);
         String path = "/oauth/client";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("name", name);
@@ -49,11 +53,11 @@ class OAuthClientControllerImpl implements OAuthClientController {
             private static final long serialVersionUID = -1095382534684298888L;
         }.getType();
         List<OAuthClient> result =
-                restAgent.execute(path, HttpMethod.GET, null, queryParams, type, OAUTH_CLIENT_LISTED);
+            restAgent.execute(path, HttpMethod.GET, null, queryParams, type, OAUTH_CLIENT_LISTED);
         logger.debug(
-                "OAuthClient: list request proceed for following parameters: name {}, name pattern {}, domain {}, " +
-                        "oauth id {}, sort field {}, sort order {}, take {}, skip {}", name, namePattern, domain,
-                oauthId, sortField, sortOrder, take, skip);
+            "OAuthClient: list request proceed for following parameters: name {}, name pattern {}, domain {}, " +
+            "oauth id {}, sort field {}, sort order {}, take {}, skip {}", name, namePattern, domain,
+            oauthId, sortField, sortOrder, take, skip);
         return result;
     }
 
@@ -63,8 +67,8 @@ class OAuthClientControllerImpl implements OAuthClientController {
         String path = "/oauth/client/" + id;
         OAuthClient result = restAgent.execute(path, HttpMethod.GET, null, OAuthClient.class, OAUTH_CLIENT_LISTED);
         logger.debug("OAuthClient: get request proceed for id {}. Result name {], domain {}, subnet {}, " +
-                "redirect uri {} ", id, result.getName(), result.getDomain(), result.getSubnet(),
-                result.getRedirectUri());
+                     "redirect uri {} ", id, result.getName(), result.getDomain(), result.getSubnet(),
+                     result.getRedirectUri());
         return result;
     }
 
@@ -74,13 +78,14 @@ class OAuthClientControllerImpl implements OAuthClientController {
             throw new HiveClientException("OAuthClient cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("OAuthClient: insert requested for client with name {}, domain {], subnet {}, redirect uri {}",
-                client.getName(), client.getDomain(), client.getSubnet(), client.getRedirectUri());
+                     client.getName(), client.getDomain(), client.getSubnet(), client.getRedirectUri());
         String path = "/oauth/client";
         OAuthClient result = restAgent.execute(path, HttpMethod.POST, null,
-                null, client, OAuthClient.class, OAUTH_CLIENT_SUBMITTED, OAUTH_CLIENT_PUBLISHED);
+                                               null, client, OAuthClient.class, OAUTH_CLIENT_SUBMITTED,
+                                               OAUTH_CLIENT_PUBLISHED);
         logger.debug("OAuthClient: insert proceed for client with name {}, domain {], subnet {}, " +
-                "redirect uri {}. Result id {}", client.getName(), client.getDomain(), client.getSubnet(),
-                client.getRedirectUri(), result.getId());
+                     "redirect uri {}. Result id {}", client.getName(), client.getDomain(), client.getSubnet(),
+                     client.getRedirectUri(), result.getId());
         return result;
     }
 
@@ -93,14 +98,14 @@ class OAuthClientControllerImpl implements OAuthClientController {
             throw new HiveClientException("OAuthClient id cannot be null!", BAD_REQUEST.getStatusCode());
         }
         logger.debug("OAuthClient: update requested for client with id {}, name {}, domain {], subnet {}, " +
-                "redirect uri {}", client.getId(), client.getName(), client.getDomain(), client.getSubnet(),
-                client.getRedirectUri());
+                     "redirect uri {}", client.getId(), client.getName(), client.getDomain(), client.getSubnet(),
+                     client.getRedirectUri());
         String path = "/oauth/client/" + client.getId();
         restAgent.execute(path, HttpMethod.PUT, null, client,
-                OAUTH_CLIENT_SUBMITTED);
+                          OAUTH_CLIENT_SUBMITTED);
         logger.debug("OAuthClient: update proceed for client with id {}, name {}, domain {], subnet {}, " +
-                "redirect uri {}", client.getId(), client.getName(), client.getDomain(), client.getSubnet(),
-                client.getRedirectUri());
+                     "redirect uri {}", client.getId(), client.getName(), client.getDomain(), client.getSubnet(),
+                     client.getRedirectUri());
     }
 
     @Override

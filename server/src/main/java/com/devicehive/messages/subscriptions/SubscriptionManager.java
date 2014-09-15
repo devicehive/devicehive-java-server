@@ -11,11 +11,11 @@ import static javax.ejb.ConcurrencyManagementType.BEAN;
 public class SubscriptionManager {
 
     private final CommandSubscriptionStorage commandSubscriptionStorage
-            = new CommandSubscriptionStorage();
+        = new CommandSubscriptionStorage();
     private final CommandUpdateSubscriptionStorage commandUpdateSubscriptionStorage =
-            new CommandUpdateSubscriptionStorage();
+        new CommandUpdateSubscriptionStorage();
     private final NotificationSubscriptionStorage notificationSubscriptionStorage =
-            new NotificationSubscriptionStorage();
+        new NotificationSubscriptionStorage();
 
     public CommandSubscriptionStorage getCommandSubscriptionStorage() {
         return commandSubscriptionStorage;

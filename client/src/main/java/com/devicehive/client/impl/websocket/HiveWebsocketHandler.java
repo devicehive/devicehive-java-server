@@ -1,18 +1,21 @@
 package com.devicehive.client.impl.websocket;
 
 
-import com.devicehive.client.impl.context.WebsocketAgent;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+
+import com.devicehive.client.impl.context.WebsocketAgent;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.MessageHandler;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.devicehive.client.impl.websocket.JsonEncoder.*;
+import javax.websocket.MessageHandler;
+
+import static com.devicehive.client.impl.websocket.JsonEncoder.REQUEST_ID_MEMBER;
 
 /**
  * Class that is used to handle messages from server.
@@ -27,8 +30,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     /**
      * Constructor.
      *
-     * @param websocketAgent
-     * @param responsesMap   map that contains request id and response association.
+     * @param responsesMap map that contains request id and response association.
      */
     public HiveWebsocketHandler(WebsocketAgent websocketAgent,
                                 ConcurrentMap<String, SettableFuture<JsonObject>> responsesMap) {
@@ -37,9 +39,9 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
     }
 
     /**
-     * Handle messages from server. If message is not a JSON object - HiveServerException will be thrown (server
-     * sends smth unparseable and unexpected), else if request identifier is provided then response for some request
-     * received, otherwise - command, notification or command update received.
+     * Handle messages from server. If message is not a JSON object - HiveServerException will be thrown (server sends
+     * smth unparseable and unexpected), else if request identifier is provided then response for some request received,
+     * otherwise - command, notification or command update received.
      *
      * @param message message from server.
      */
@@ -50,7 +52,7 @@ public class HiveWebsocketHandler implements MessageHandler.Whole<String> {
             jsonMessage = new JsonParser().parse(message).getAsJsonObject();
             if (jsonMessage.has(REQUEST_ID_MEMBER)) {
                 SettableFuture<JsonObject> future = websocketResponsesMap.get(jsonMessage.get(REQUEST_ID_MEMBER)
-                        .getAsString());
+                                                                                  .getAsString());
                 if (future != null) {
                     future.set(jsonMessage);
                 }

@@ -34,11 +34,11 @@
     </appender>
 
     <logger name="org.hibernate.engine.transaction.internal" level="INFO">
-        <appender-ref ref="ASYNC" />
+        <appender-ref ref="ASYNC"/>
     </logger>
 
     <logger name="com.hazelcast.cluster.MulticastService" level="ERROR">
-        <appender-ref ref="ASYNC" />
+        <appender-ref ref="ASYNC"/>
     </logger>
 
     <root level="INFO">

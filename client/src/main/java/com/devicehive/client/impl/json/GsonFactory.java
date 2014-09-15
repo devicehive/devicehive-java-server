@@ -1,14 +1,21 @@
 package com.devicehive.client.impl.json;
 
 
-import com.devicehive.client.impl.json.adapters.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import com.devicehive.client.impl.json.adapters.AccessTypeAdapter;
+import com.devicehive.client.impl.json.adapters.JsonStringWrapperAdapterFactory;
+import com.devicehive.client.impl.json.adapters.NullableWrapperAdapterFactory;
+import com.devicehive.client.impl.json.adapters.OAuthTypeAdapter;
+import com.devicehive.client.impl.json.adapters.TimestampAdapter;
+import com.devicehive.client.impl.json.adapters.UserRoleAdapter;
+import com.devicehive.client.impl.json.adapters.UserStatusAdapter;
 import com.devicehive.client.impl.json.strategies.AnnotatedStrategy;
 import com.devicehive.client.model.AccessType;
 import com.devicehive.client.model.OAuthType;
 import com.devicehive.client.model.UserRole;
 import com.devicehive.client.model.UserStatus;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -34,9 +41,9 @@ public class GsonFactory {
             return gson;
         }
         gson = createGsonBuilder()
-                .addDeserializationExclusionStrategy(new AnnotatedStrategy(policy))
-                .addSerializationExclusionStrategy(new AnnotatedStrategy(policy))
-                .create();
+            .addDeserializationExclusionStrategy(new AnnotatedStrategy(policy))
+            .addSerializationExclusionStrategy(new AnnotatedStrategy(policy))
+            .create();
         cache.put(policy, gson);
         return gson;
     }
@@ -44,14 +51,14 @@ public class GsonFactory {
 
     private static GsonBuilder createGsonBuilder() {
         return new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
-                .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
-                .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
-                .registerTypeAdapter(OAuthType.class, new OAuthTypeAdapter())
-                .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
-                .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
-                .registerTypeAdapter(Timestamp.class, new TimestampAdapter());
+            .setPrettyPrinting()
+            .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
+            .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
+            .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
+            .registerTypeAdapter(OAuthType.class, new OAuthTypeAdapter())
+            .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
+            .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
+            .registerTypeAdapter(Timestamp.class, new TimestampAdapter());
     }
 
 }

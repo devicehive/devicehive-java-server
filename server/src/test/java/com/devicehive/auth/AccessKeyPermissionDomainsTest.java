@@ -1,8 +1,10 @@
 package com.devicehive.auth;
 
 
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -10,7 +12,7 @@ import org.junit.runners.JUnit4;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(JUnit4.class)
 public class AccessKeyPermissionDomainsTest {
@@ -19,10 +21,9 @@ public class AccessKeyPermissionDomainsTest {
     public void domainsCleanPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
 
-
         AccessKeyPermission permission1 = new AccessKeyPermission();
         permission1
-                .setDomains(new JsonStringWrapper("[\"http://test.test.com\",\".net\",\".devicehive.com\"]"));
+            .setDomains(new JsonStringWrapper("[\"http://test.test.com\",\".net\",\".devicehive.com\"]"));
 
         AccessKeyPermission permission2 = new AccessKeyPermission();
         permission2.setDomains(new JsonStringWrapper("[]"));
@@ -56,7 +57,7 @@ public class AccessKeyPermissionDomainsTest {
     }
 
     @Test
-    public void hasAccessToDomainSeveralPermissionsTest(){
+    public void hasAccessToDomainSeveralPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
 
         AccessKeyPermission permission1 = new AccessKeyPermission();
@@ -84,7 +85,7 @@ public class AccessKeyPermissionDomainsTest {
     }
 
     @Test
-    public void hasNoAccessToDomainSeveralPermissionsTest(){
+    public void hasNoAccessToDomainSeveralPermissionsTest() {
         Set<AccessKeyPermission> permissions = new HashSet<>();
 
         AccessKeyPermission permission1 = new AccessKeyPermission();

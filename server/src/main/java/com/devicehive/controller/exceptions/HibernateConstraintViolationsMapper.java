@@ -3,6 +3,7 @@ package com.devicehive.controller.exceptions;
 
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
+
 import org.hibernate.exception.ConstraintViolationException;
 
 import javax.ws.rs.core.Response;

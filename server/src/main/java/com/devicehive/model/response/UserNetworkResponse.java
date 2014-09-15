@@ -1,9 +1,10 @@
 package com.devicehive.model.response;
 
+import com.google.gson.annotations.SerializedName;
+
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.Network;
-import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;

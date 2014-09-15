@@ -1,8 +1,9 @@
 package com.devicehive.websockets.converters;
 
-import com.devicehive.exceptions.HiveException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import com.devicehive.exceptions.HiveException;
 
 import java.util.Map;
 

@@ -5,7 +5,6 @@ import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.examples.ClientExample;
 import com.devicehive.exceptions.ExampleException;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,7 +13,10 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.URI;
 
+import javax.swing.*;
+
 public class ClientView {
+
     private static final int gap = 10;
     private JFrame frame = new JFrame("Client Example");
     private JTextField textField = new JTextField(50);
@@ -46,7 +48,6 @@ public class ClientView {
         start.addActionListener(onStart(example));
         url.add(start);
 
-
         JPanel commandPanel = new JPanel();
         commandPanel.setLayout(new BoxLayout(commandPanel, BoxLayout.X_AXIS));
         on.addActionListener(example.createTurnOnListener());
@@ -66,7 +67,7 @@ public class ClientView {
     }
 
 
-    private ActionListener onStart(final ClientExample example){
+    private ActionListener onStart(final ClientExample example) {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -77,7 +78,7 @@ public class ClientView {
                     on.setVisible(true);
                     off.setVisible(true);
                     frame.pack();
-                }  catch (HiveException | ExampleException | IOException e1) {
+                } catch (HiveException | ExampleException | IOException e1) {
                     System.err.println(e1.getMessage());
                 }
             }

@@ -88,8 +88,8 @@ public class RestAgent extends AbstractHiveAgent {
     protected void doConnect() throws HiveException {
         this.restClient = JerseyClientBuilder.createClient();
         this.restClient.register(JsonRawProvider.class)
-                .register(HiveEntityProvider.class)
-                .register(CollectionProvider.class);
+            .register(HiveEntityProvider.class)
+            .register(CollectionProvider.class);
     }
 
     @Override
@@ -147,7 +147,7 @@ public class RestAgent extends AbstractHiveAgent {
      */
     public void execute(String path, String method, Map<String, String> headers,
                         Map<String, Object> queryParams)
-            throws HiveException {
+        throws HiveException {
         execute(path, method, headers, queryParams, null, null, null, null);
     }
 
@@ -168,7 +168,8 @@ public class RestAgent extends AbstractHiveAgent {
      * @param method        http method
      * @param headers       custom headers (authorization headers are added during the request build)
      * @param queryParams   query params that should be added to the url. Null-valued params are ignored.
-     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such
+     *                      classes
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of typeOfR, that represents server's response
      */
@@ -184,7 +185,8 @@ public class RestAgent extends AbstractHiveAgent {
      * @param path          requested uri
      * @param method        http method
      * @param headers       custom headers (authorization headers are added during the request build)
-     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such
+     *                      classes
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of typeOfR, that represents server's response
      */
@@ -198,7 +200,8 @@ public class RestAgent extends AbstractHiveAgent {
      *
      * @param path          requested uri
      * @param formParams    form parameters
-     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such
+     *                      classes
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of TypeOfR or null
      */
@@ -225,7 +228,8 @@ public class RestAgent extends AbstractHiveAgent {
      * @param headers       custom headers (authorization headers are added during the request build)
      * @param queryParams   query params that should be added to the url. Null-valued params are ignored.
      * @param objectToSend  Object to send (for http methods POST and PUT only)
-     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such classes
+     * @param typeOfR       type of response. Should be a class that implements hive entity or a collection of such
+     *                      classes
      * @param sendPolicy    policy that declares exclusion strategy for sending object
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of TypeOfR or null
@@ -253,7 +257,7 @@ public class RestAgent extends AbstractHiveAgent {
             case CLIENT_ERROR:
                 if (response.getStatus() == METHOD_NOT_ALLOWED.getStatusCode()) {
                     throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
-                            response.getStatus());
+                                                          response.getStatus());
                 }
                 ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
                 throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
@@ -297,8 +301,8 @@ public class RestAgent extends AbstractHiveAgent {
         if (queryParams != null) {
             for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
                 Object value = entry.getValue() instanceof Timestamp
-                        ? TimestampAdapter.formatTimestamp((Timestamp) entry.getValue())
-                        : entry.getValue();
+                               ? TimestampAdapter.formatTimestamp((Timestamp) entry.getValue())
+                               : entry.getValue();
                 target = target.queryParam(entry.getKey(), value);
             }
         }
@@ -306,11 +310,11 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     private <S> Invocation buildInvocation(String path, String method, Map<String, String> headers, Map<String,
-            Object> queryParams, S objectToSend, JsonPolicyDef.Policy sendPolicy) {
+        Object> queryParams, S objectToSend, JsonPolicyDef.Policy sendPolicy) {
         Invocation.Builder invocationBuilder = createTarget(path, queryParams)
-                .request()
-                .accept(MediaType.APPLICATION_JSON_TYPE)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            .request()
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_TYPE);
         for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
         }
@@ -323,7 +327,7 @@ public class RestAgent extends AbstractHiveAgent {
             Entity<S> entity;
             if (sendPolicy != null) {
                 entity = Entity.entity(objectToSend, MediaType.APPLICATION_JSON_TYPE,
-                        new Annotation[]{new JsonPolicyApply.JsonPolicyApplyLiteral(sendPolicy)});
+                                       new Annotation[]{new JsonPolicyApply.JsonPolicyApplyLiteral(sendPolicy)});
             } else {
                 entity = Entity.entity(objectToSend, MediaType.APPLICATION_JSON_TYPE);
             }
@@ -339,9 +343,9 @@ public class RestAgent extends AbstractHiveAgent {
 
     private Invocation buildFormInvocation(String path, Map<String, String> formParams) throws HiveException {
         Invocation.Builder invocationBuilder = createTarget(path).
-                request().
-                accept(MediaType.APPLICATION_JSON_TYPE).
-                header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+            request().
+            accept(MediaType.APPLICATION_JSON_TYPE).
+            header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_TYPE);
 
         for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
@@ -361,7 +365,7 @@ public class RestAgent extends AbstractHiveAgent {
 
     public String subscribeForCommands(final SubscriptionFilter newFilter,
                                        final HiveMessageHandler<DeviceCommand> handler)
-            throws HiveException {
+        throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
@@ -381,11 +385,11 @@ public class RestAgent extends AbstractHiveAgent {
                     Type responseType = new TypeToken<List<CommandPollManyResponse>>() {
                     }.getType();
                     List<CommandPollManyResponse> responses =
-                            RestAgent.this.execute("/device/command/poll", HttpMethod.GET, null,
-                                    params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
+                        RestAgent.this.execute("/device/command/poll", HttpMethod.GET, null,
+                                               params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
                     for (CommandPollManyResponse response : responses) {
                         SubscriptionDescriptor<DeviceCommand> descriptor =
-                                commandSubscriptionsStorage.get(subscriptionIdValue);
+                            commandSubscriptionsStorage.get(subscriptionIdValue);
                         descriptor.handleMessage(response.getCommand());
                     }
                 }
@@ -401,7 +405,7 @@ public class RestAgent extends AbstractHiveAgent {
 
     public String subscribeForCommandsForDevice(final SubscriptionFilter newFilter,
                                                 final HiveMessageHandler<DeviceCommand> handler)
-            throws HiveException {
+        throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
@@ -421,13 +425,13 @@ public class RestAgent extends AbstractHiveAgent {
                     }.getType();
                     String uri = String.format("/device/%s/command/poll", getHivePrincipal().getDevice().getLeft());
                     List<DeviceCommand> responses =
-                            RestAgent.this.execute(uri,
-                                    HttpMethod.GET,
-                                    null,
-                                    params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
+                        RestAgent.this.execute(uri,
+                                               HttpMethod.GET,
+                                               null,
+                                               params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
                     for (DeviceCommand response : responses) {
                         SubscriptionDescriptor<DeviceCommand> descriptor =
-                                commandSubscriptionsStorage.get(subscriptionIdValue);
+                            commandSubscriptionsStorage.get(subscriptionIdValue);
                         descriptor.handleMessage(response);
                     }
                 }
@@ -460,7 +464,7 @@ public class RestAgent extends AbstractHiveAgent {
     public void subscribeForCommandUpdates(final Long commandId,
                                            final String guid,
                                            final HiveMessageHandler<DeviceCommand> handler)
-            throws HiveException {
+        throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
             RestSubscription sub = new RestSubscription() {
@@ -473,12 +477,12 @@ public class RestAgent extends AbstractHiveAgent {
                     }.getType();
                     while (result == null && !Thread.currentThread().isInterrupted()) {
                         result = RestAgent.this.execute(
-                                String.format("/device/%s/command/%s/poll", guid, commandId),
-                                HttpMethod.GET,
-                                null,
-                                params,
-                                responseType,
-                                JsonPolicyDef.Policy.COMMAND_TO_DEVICE);
+                            String.format("/device/%s/command/%s/poll", guid, commandId),
+                            HttpMethod.GET,
+                            null,
+                            params,
+                            responseType,
+                            JsonPolicyDef.Policy.COMMAND_TO_DEVICE);
                     }
                     handler.handle(result);
                 }
@@ -508,15 +512,15 @@ public class RestAgent extends AbstractHiveAgent {
                     Type responseType = new TypeToken<List<NotificationPollManyResponse>>() {
                     }.getType();
                     List<NotificationPollManyResponse> responses = RestAgent.this.execute(
-                            "/device/notification/poll",
-                            HttpMethod.GET,
-                            null,
-                            params,
-                            responseType,
-                            JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
+                        "/device/notification/poll",
+                        HttpMethod.GET,
+                        null,
+                        params,
+                        responseType,
+                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
                     for (NotificationPollManyResponse response : responses) {
                         SubscriptionDescriptor<DeviceNotification> descriptor = notificationSubscriptionsStorage.get(
-                                subscriptionIdValue);
+                            subscriptionIdValue);
                         descriptor.handleMessage(response.getNotification());
                     }
                 }
@@ -563,6 +567,7 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     private abstract static class RestSubscription implements Runnable {
+
         private static Logger logger = LoggerFactory.getLogger(RestSubscription.class);
 
         protected abstract void execute() throws HiveException;

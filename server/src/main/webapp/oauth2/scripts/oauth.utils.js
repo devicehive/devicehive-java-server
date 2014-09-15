@@ -23,7 +23,8 @@ var encodeBase64 = function (data) {
 };
 
 var getUrlParam = function (name) {
-    return decodeURIComponent(((RegExp(name + '=' + '(.+?)(&|$)', 'i').exec(location.search) || [, ""])[1]).replace(/\+/g,' '));
+    return decodeURIComponent(((RegExp(name + '=' + '(.+?)(&|$)', 'i').exec(location.search) || [, ""
+    ])[1]).replace(/\+/g, ' '));
 };
 
 var callDeviceHive = function (serviceUrl, login, password, method, url, params) {

@@ -15,9 +15,9 @@ public class HiveExceptionMapper implements ExceptionMapper<HiveException> {
     @Override
     public Response toResponse(HiveException exception) {
         Response.Status responseCode = (exception.getCode() != null)
-                ? Response.Status.fromStatusCode(exception.getCode())
-                : Response.Status.BAD_REQUEST;
+                                       ? Response.Status.fromStatusCode(exception.getCode())
+                                       : Response.Status.BAD_REQUEST;
         return ResponseFactory
-                .response(responseCode, new ErrorResponse(responseCode.getStatusCode(), exception.getMessage()));
+            .response(responseCode, new ErrorResponse(responseCode.getStatusCode(), exception.getMessage()));
     }
 }

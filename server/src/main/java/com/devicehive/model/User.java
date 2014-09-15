@@ -1,9 +1,14 @@
 package com.devicehive.model;
 
 
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+
+import com.devicehive.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
+
+import java.sql.Timestamp;
+import java.util.Set;
 
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
@@ -17,13 +22,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Version;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
@@ -36,14 +36,15 @@ import static com.devicehive.model.User.Queries.Values;
 @Entity(name = "User")
 @Table(name = "\"user\"")
 @NamedQueries({
-        @NamedQuery(name = Names.FIND_BY_NAME, query = Values.FIND_BY_NAME),
-        @NamedQuery(name = Names.HAS_ACCESS_TO_NETWORK, query = Values.HAS_ACCESS_TO_NETWORK),
-        @NamedQuery(name = Names.HAS_ACCESS_TO_DEVICE, query = Values.HAS_ACCESS_TO_DEVICE),
-        @NamedQuery(name = Names.GET_WITH_NETWORKS_BY_ID, query = Values.GET_WITH_NETWORKS_BY_ID),
-        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
-})
+                  @NamedQuery(name = Names.FIND_BY_NAME, query = Values.FIND_BY_NAME),
+                  @NamedQuery(name = Names.HAS_ACCESS_TO_NETWORK, query = Values.HAS_ACCESS_TO_NETWORK),
+                  @NamedQuery(name = Names.HAS_ACCESS_TO_DEVICE, query = Values.HAS_ACCESS_TO_DEVICE),
+                  @NamedQuery(name = Names.GET_WITH_NETWORKS_BY_ID, query = Values.GET_WITH_NETWORKS_BY_ID),
+                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
+              })
 @Cacheable
 public class User implements HiveEntity {
+
     public static final String ID_COLUMN = "id";
     public static final String LOGIN_COLUMN = "login";
     public static final String ROLE_COLUMN = "role";
@@ -58,7 +59,7 @@ public class User implements HiveEntity {
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
-            "symbols.")
+                                        "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
     @Column(name = "password_hash")
@@ -68,7 +69,7 @@ public class User implements HiveEntity {
     @Column(name = "password_salt")
     @NotNull(message = "passwordSalt field cannot be null.")
     @Size(min = 1, max = 24, message = "Field cannot be empty. The length of passwordSalt should not be more than " +
-            "24 symbols.")
+                                       "24 symbols.")
     private String passwordSalt;
     @Column(name = "login_attempts")
     private Integer loginAttempts;
@@ -200,7 +201,9 @@ public class User implements HiveEntity {
     }
 
     public static class Queries {
+
         public static interface Names {
+
             static final String FIND_BY_NAME = "User.findByName";
             static final String HAS_ACCESS_TO_NETWORK = "User.hasAccessToNetwork";
             static final String HAS_ACCESS_TO_DEVICE = "User.hasAccessToDevice";
@@ -209,22 +212,24 @@ public class User implements HiveEntity {
         }
 
         static interface Values {
+
             static final String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
             static final String HAS_ACCESS_TO_NETWORK =
-                    "select count(distinct u) from User u " +
-                            "join u.networks n " +
-                            "where u = :user and n = :network";
+                "select count(distinct u) from User u " +
+                "join u.networks n " +
+                "where u = :user and n = :network";
             static final String HAS_ACCESS_TO_DEVICE =
-                    "select count(distinct n) from Network n " +
-                            "join n.devices d " +
-                            "join n.users u " +
-                            "where u = :user and d = :device";
+                "select count(distinct n) from Network n " +
+                "join n.devices d " +
+                "join n.users u " +
+                "where u = :user and d = :device";
             static final String GET_WITH_NETWORKS_BY_ID =
-                    "select u from User u left join fetch u.networks where u.id = :id";
+                "select u from User u left join fetch u.networks where u.id = :id";
             static final String DELETE_BY_ID = "delete from User u where u.id = :id";
         }
 
         public static interface Parameters {
+
             static final String USER = "user";
             static final String NETWORK = "network";
             static final String DEVICE = "device";

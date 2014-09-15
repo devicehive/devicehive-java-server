@@ -5,8 +5,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import java.sql.Timestamp;
 
 /**
- * Represents meta-information about the current API.
- * For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfo</a>
+ * Represents meta-information about the current API. For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfo</a>
  */
 public class ApiInfo implements HiveEntity {
 

@@ -1,7 +1,6 @@
 package com.devicehive.controller;
 
 
-
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
@@ -20,9 +19,13 @@ import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.Timestamp;
+import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
@@ -36,10 +39,21 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
-import java.util.List;
 
-import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.configuration.Constants.ACCESS_TYPE;
+import static com.devicehive.configuration.Constants.CLIENT_OAUTH_ID;
+import static com.devicehive.configuration.Constants.END;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.REDIRECT_URI;
+import static com.devicehive.configuration.Constants.SCOPE;
+import static com.devicehive.configuration.Constants.SKIP;
+import static com.devicehive.configuration.Constants.SORT_FIELD;
+import static com.devicehive.configuration.Constants.SORT_ORDER;
+import static com.devicehive.configuration.Constants.START;
+import static com.devicehive.configuration.Constants.TAKE;
+import static com.devicehive.configuration.Constants.TIMESTAMP;
+import static com.devicehive.configuration.Constants.TYPE;
+import static com.devicehive.configuration.Constants.USER_ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED_ADMIN;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
@@ -90,20 +104,23 @@ public class OAuthGrantController {
 
         if (!sortField.equalsIgnoreCase(TIMESTAMP)) {
             return ResponseFactory.response(BAD_REQUEST,
-                    new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                                              Messages.INVALID_REQUEST_PARAMETERS));
         } else {
             sortField = sortField.toLowerCase();
         }
         User user = getUser(userId);
         List<OAuthGrant> result = grantService.list(user, start, end, clientOAuthId,
-                type == null ? null : Type.forName(type).ordinal(), scope,
-                redirectUri, accessType == null ? null : AccessType.forName(accessType).ordinal(), sortField,
-                sortOrder, take, skip);
+                                                    type == null ? null : Type.forName(type).ordinal(), scope,
+                                                    redirectUri, accessType == null ? null
+                                                                                    : AccessType.forName(accessType)
+                                                                     .ordinal(), sortField,
+                                                    sortOrder, take, skip);
         logger.debug(
-                "OAuthGrant: list proceed successfully. User id: {}, start: {}, end: {}, clientOAuthID: {}, " +
-                        "type: {}, scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
-                userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
-                skip);
+            "OAuthGrant: list proceed successfully. User id: {}, start: {}, end: {}, clientOAuthID: {}, " +
+            "type: {}, scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
+            userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
+            skip);
         if (user.isAdmin()) {
             return ResponseFactory.response(OK, result, OAUTH_GRANT_LISTED_ADMIN);
         }

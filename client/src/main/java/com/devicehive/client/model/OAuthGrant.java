@@ -1,21 +1,26 @@
 package com.devicehive.client.model;
 
-import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
+
+import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
+
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_SUBMITTED_CODE;
+import static com.devicehive.client.impl.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_SUBMITTED_TOKEN;
 
 /**
- * Represents an OAuth permission grant.
- * See <a href="http://www.devicehive.com/restful#Reference/OAuthGrant">OAuthGrant</a> for more details
+ * Represents an OAuth permission grant. See <a href="http://www.devicehive.com/restful#Reference/OAuthGrant">OAuthGrant</a>
+ * for more details
  */
 public class OAuthGrant implements HiveEntity {
 

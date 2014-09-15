@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.util.Locale;
 
 public class Constants {
+
     //Internal use
     public static final String UTF8 = "UTF-8";
     public static final Locale LOCALE = Locale.getDefault();

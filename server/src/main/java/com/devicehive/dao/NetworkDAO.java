@@ -9,6 +9,11 @@ import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -22,10 +27,6 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 import static com.devicehive.model.Network.Queries.Names.DELETE_BY_ID;
 import static com.devicehive.model.Network.Queries.Names.FIND_BY_NAME;
@@ -66,7 +67,7 @@ public class NetworkDAO {
         }
         if (permissions != null) {
             Collection<AccessKeyBasedFilterForNetworks> extraFilters = AccessKeyBasedFilterForNetworks
-                    .createExtraFilters(permissions);
+                .createExtraFilters(permissions);
 
             if (extraFilters != null) {
                 List<Predicate> extraPredicates = new ArrayList<>();
@@ -186,7 +187,7 @@ public class NetworkDAO {
 
                 List<Predicate> extraPredicates = new ArrayList<>();
                 for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
-                        .createExtraFilters(principal.getKey().getPermissions())) {
+                    .createExtraFilters(principal.getKey().getPermissions())) {
                     List<Predicate> filter = new ArrayList<>();
                     if (extraFilter.getNetworkIds() != null) {
                         filter.add(from.get("id").in(extraFilter.getNetworkIds()));
@@ -198,7 +199,7 @@ public class NetworkDAO {
         }
     }
 
-    public Network updateNetwork(@NotNull Network network){
+    public Network updateNetwork(@NotNull Network network) {
         em.merge(network);
         return network;
     }

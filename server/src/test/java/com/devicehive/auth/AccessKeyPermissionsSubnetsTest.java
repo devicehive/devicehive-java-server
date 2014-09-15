@@ -2,6 +2,7 @@ package com.devicehive.auth;
 
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.JsonStringWrapper;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

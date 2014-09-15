@@ -5,8 +5,6 @@ import java.util.Objects;
 
 /**
  * Tool for differentiate entity that was not set and entity which were set null
- *
- * @param <K>
  */
 public class NullableWrapper<K> implements Serializable {
 
