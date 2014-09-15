@@ -1,6 +1,10 @@
 package com.devicehive.client.impl.context;
 
 
+import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.gson.reflect.TypeToken;
+
 import com.devicehive.client.ConnectionLostCallback;
 import com.devicehive.client.ConnectionRestoredCallback;
 import com.devicehive.client.HiveMessageHandler;
@@ -22,26 +26,13 @@ import com.devicehive.client.model.exceptions.HiveClientException;
 import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.client.model.exceptions.HiveServerException;
 import com.devicehive.client.model.exceptions.InternalHiveClientException;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.gson.reflect.TypeToken;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -57,6 +48,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
 public class RestAgent extends AbstractHiveAgent {
@@ -65,7 +68,7 @@ public class RestAgent extends AbstractHiveAgent {
     private static final String KEY_AUTH_SCHEMA = "Bearer";
     private static final int TIMEOUT = 60;
     protected final URI restUri;
-    private final ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(50);
+    protected final ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(50);
     private ConcurrentMap<String, Future<?>> commandSubscriptionsResults = new ConcurrentHashMap<>();
     private ConcurrentMap<String, Future<?>> notificationSubscriptionResults = new ConcurrentHashMap<>();
     private Client restClient;
