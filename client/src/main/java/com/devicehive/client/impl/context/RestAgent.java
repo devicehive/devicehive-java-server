@@ -212,7 +212,7 @@ public class RestAgent extends AbstractHiveAgent {
             Response response = buildFormInvocation(path, formParams).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
-            throw new HiveException("Error invoking the target", e.getCause());
+            throw new HiveException(Messages.INVOKE_TARGET_ERROR, e.getCause());
         } finally {
             connectionLock.readLock().unlock();
         }
@@ -243,7 +243,7 @@ public class RestAgent extends AbstractHiveAgent {
             Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
-            throw new HiveException("Error invoking the target", e.getCause());
+            throw new HiveException(Messages.INVOKE_TARGET_ERROR, e.getCause());
         } finally {
             connectionLock.readLock().unlock();
         }
@@ -312,7 +312,7 @@ public class RestAgent extends AbstractHiveAgent {
     private <S> Invocation buildInvocation(String path,
                                            String method,
                                            Map<String, String> headers,
-                                           Map<String,Object> queryParams,
+                                           Map<String, Object> queryParams,
                                            S objectToSend,
                                            JsonPolicyDef.Policy sendPolicy) {
         Invocation.Builder invocationBuilder = createTarget(path, queryParams)
@@ -388,13 +388,17 @@ public class RestAgent extends AbstractHiveAgent {
                     }
                     Type responseType = new TypeToken<List<CommandPollManyResponse>>() {
                     }.getType();
-                    List<CommandPollManyResponse> responses =
-                        RestAgent.this.execute("/device/command/poll", HttpMethod.GET, null,
-                                               params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
-                    for (CommandPollManyResponse response : responses) {
-                        SubscriptionDescriptor<DeviceCommand> descriptor =
-                            commandSubscriptionsStorage.get(subscriptionIdValue);
-                        descriptor.handleMessage(response.getCommand());
+                    while (!Thread.currentThread().isInterrupted()) {
+                        List<CommandPollManyResponse> responses =
+                            RestAgent.this.execute("/device/command/poll", HttpMethod.GET, null,
+                                                   params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
+                        for (CommandPollManyResponse response : responses) {
+                            SubscriptionDescriptor<DeviceCommand> descriptor =
+                                commandSubscriptionsStorage.get(subscriptionIdValue);
+                            descriptor.handleMessage(response.getCommand());
+                        }
+                        Timestamp newTimestamp = responses.get(responses.size() - 1).getCommand().getTimestamp();
+                        params.put(Constants.TIMESTAMP, newTimestamp);
                     }
                 }
             };
@@ -428,15 +432,19 @@ public class RestAgent extends AbstractHiveAgent {
                     Type responseType = new TypeToken<List<DeviceCommand>>() {
                     }.getType();
                     String uri = String.format("/device/%s/command/poll", getHivePrincipal().getDevice().getLeft());
-                    List<DeviceCommand> responses =
-                        RestAgent.this.execute(uri,
-                                               HttpMethod.GET,
-                                               null,
-                                               params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
-                    for (DeviceCommand response : responses) {
-                        SubscriptionDescriptor<DeviceCommand> descriptor =
-                            commandSubscriptionsStorage.get(subscriptionIdValue);
-                        descriptor.handleMessage(response);
+                    while (!Thread.currentThread().isInterrupted()) {
+                        List<DeviceCommand> responses =
+                            RestAgent.this.execute(uri,
+                                                   HttpMethod.GET,
+                                                   null,
+                                                   params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
+                        for (DeviceCommand response : responses) {
+                            SubscriptionDescriptor<DeviceCommand> descriptor =
+                                commandSubscriptionsStorage.get(subscriptionIdValue);
+                            descriptor.handleMessage(response);
+                        }
+                        Timestamp newTimestamp = responses.get(responses.size() - 1).getTimestamp();
+                        params.put(Constants.TIMESTAMP, newTimestamp);
                     }
                 }
             };
@@ -515,17 +523,23 @@ public class RestAgent extends AbstractHiveAgent {
                     }
                     Type responseType = new TypeToken<List<NotificationPollManyResponse>>() {
                     }.getType();
-                    List<NotificationPollManyResponse> responses = RestAgent.this.execute(
-                        "/device/notification/poll",
-                        HttpMethod.GET,
-                        null,
-                        params,
-                        responseType,
-                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-                    for (NotificationPollManyResponse response : responses) {
-                        SubscriptionDescriptor<DeviceNotification> descriptor = notificationSubscriptionsStorage.get(
-                            subscriptionIdValue);
-                        descriptor.handleMessage(response.getNotification());
+                    while (!Thread.currentThread().isInterrupted()) {
+                        List<NotificationPollManyResponse> responses = RestAgent.this.execute(
+                            "/device/notification/poll",
+                            HttpMethod.GET,
+                            null,
+                            params,
+                            responseType,
+                            JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
+                        for (NotificationPollManyResponse response : responses) {
+                            SubscriptionDescriptor<DeviceNotification>
+                                descriptor =
+                                notificationSubscriptionsStorage.get(
+                                    subscriptionIdValue);
+                            descriptor.handleMessage(response.getNotification());
+                        }
+                        Timestamp newTimestamp = responses.get(responses.size() - 1).getNotification().getTimestamp();
+                        params.put(Constants.TIMESTAMP, newTimestamp);
                     }
                 }
             };
@@ -581,7 +595,7 @@ public class RestAgent extends AbstractHiveAgent {
             try {
                 execute();
             } catch (Throwable e) {
-                logger.error("Error processing subscription", e);
+                logger.error(Messages.SUBSCRIPTION_ERROR, e);
             }
         }
     }

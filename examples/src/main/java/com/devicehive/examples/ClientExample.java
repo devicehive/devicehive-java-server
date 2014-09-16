@@ -15,6 +15,9 @@ import com.devicehive.client.model.exceptions.HiveException;
 import com.devicehive.exceptions.ExampleException;
 import com.devicehive.view.ClientView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -30,6 +33,7 @@ import java.util.concurrent.Executors;
 
 public class ClientExample {
 
+    private static final Logger logger = LoggerFactory.getLogger(ClientExample.class);
     private static final String LOGIN = "dhadmin";
     private static final String PASSWORD = "dhadmin_#911";
     private static final String LED_COMMAND = "LED";
@@ -84,6 +88,7 @@ public class ClientExample {
             }
         };
         Set<String> uuids = new
+
             HashSet<String>() {
                 {
                     add(DEVICE_ID);
@@ -103,7 +108,7 @@ public class ClientExample {
                     CommandsController cc = hiveClient.getCommandsController();
                     cc.insertCommand(DEVICE_ID, TURN_ON, null);
                 } catch (HiveException e1) {
-                    //TODO
+                    logger.error(e1.getMessage(), e1);
                 }
             }
         };
@@ -117,7 +122,7 @@ public class ClientExample {
                     CommandsController cc = hiveClient.getCommandsController();
                     cc.insertCommand(DEVICE_ID, TURN_OFF, null);
                 } catch (HiveException e1) {
-                    //TODO
+                    logger.error(e1.getMessage(), e1);
                 }
             }
         };
