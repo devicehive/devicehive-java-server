@@ -309,8 +309,12 @@ public class RestAgent extends AbstractHiveAgent {
         return target;
     }
 
-    private <S> Invocation buildInvocation(String path, String method, Map<String, String> headers, Map<String,
-        Object> queryParams, S objectToSend, JsonPolicyDef.Policy sendPolicy) {
+    private <S> Invocation buildInvocation(String path,
+                                           String method,
+                                           Map<String, String> headers,
+                                           Map<String,Object> queryParams,
+                                           S objectToSend,
+                                           JsonPolicyDef.Policy sendPolicy) {
         Invocation.Builder invocationBuilder = createTarget(path, queryParams)
             .request()
             .accept(MediaType.APPLICATION_JSON_TYPE)

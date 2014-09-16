@@ -46,7 +46,7 @@ public class NullableWrapperAdapterFactory implements TypeAdapterFactory {
             if (value == null) {
                 out.nullValue();
             } else {
-                gson.toJson(value, internalType, out);
+                gson.toJson(value.getValue(), internalType, out);
             }
         }
 
