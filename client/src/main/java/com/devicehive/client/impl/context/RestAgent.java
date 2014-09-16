@@ -397,8 +397,10 @@ public class RestAgent extends AbstractHiveAgent {
                                 commandSubscriptionsStorage.get(subscriptionIdValue);
                             descriptor.handleMessage(response.getCommand());
                         }
-                        Timestamp newTimestamp = responses.get(responses.size() - 1).getCommand().getTimestamp();
-                        params.put(Constants.TIMESTAMP, newTimestamp);
+                        if (!responses.isEmpty()) {
+                            Timestamp newTimestamp = responses.get(responses.size() - 1).getCommand().getTimestamp();
+                            params.put(Constants.TIMESTAMP, newTimestamp);
+                        }
                     }
                 }
             };
@@ -443,8 +445,10 @@ public class RestAgent extends AbstractHiveAgent {
                                 commandSubscriptionsStorage.get(subscriptionIdValue);
                             descriptor.handleMessage(response);
                         }
-                        Timestamp newTimestamp = responses.get(responses.size() - 1).getTimestamp();
-                        params.put(Constants.TIMESTAMP, newTimestamp);
+                        if (!responses.isEmpty()) {
+                            Timestamp newTimestamp = responses.get(responses.size() - 1).getTimestamp();
+                            params.put(Constants.TIMESTAMP, newTimestamp);
+                        }
                     }
                 }
             };
@@ -538,8 +542,10 @@ public class RestAgent extends AbstractHiveAgent {
                                     subscriptionIdValue);
                             descriptor.handleMessage(response.getNotification());
                         }
-                        Timestamp newTimestamp = responses.get(responses.size() - 1).getNotification().getTimestamp();
-                        params.put(Constants.TIMESTAMP, newTimestamp);
+                        if (!responses.isEmpty()) {
+                            Timestamp newTimestamp = responses.get(responses.size() - 1).getNotification().getTimestamp();
+                            params.put(Constants.TIMESTAMP, newTimestamp);
+                        }
                     }
                 }
             };
