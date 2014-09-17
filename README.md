@@ -37,10 +37,10 @@ In order to use DeviceHive framework you must have the following components inst
 * [PostgreSQL 9.1](http://www.postgresql.org/download/) or above.
 * [PostgreSQL JDBC driver](http://jdbc.postgresql.org/download.html#others) suitable for your version of PostgreSQL
 * [Glassfish 4.1](http://glassfish.java.net/download.html) application server (Java EE 7 Full Platform)
-* [Oracle JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 7](http://openjdk.java.net/) (this is requirement for Glassfish 4.1; Java EE 7 requires JDK 7). Oracle JDK 7 can be
-downloaded from http://www.oracle.com/technetwork/java/javase/downloads/index.html. JDK 8 will be fine too.
+* [Oracle JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 7](http://openjdk.java.net/)
+(this is requirement for Glassfish 4.1; Java EE 7 requires JDK 7). JDK 8 will be fine too.
 * [Maven](http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava
-* dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java)
+* [dh_dbtool source files](https://github.com/devicehive/devicehive-java). dh_dbtool.jar will be used to provide necessary database migrations
 * [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java). This is the main part of the [DeviceHive[ framework
 
 
@@ -49,13 +49,17 @@ Build packages
 * Download source code from [GitHub](https://github.com/devicehive/devicehive-java) using "Download ZIP" button.
 It should always point to recent stable or beta release, but you always can get any other tag or branch.
 It also can be done using one of [Git version control client](http://git-scm.com/downloads/guis) or git command line tool.
-If you prefer git, clone project using command  `git clone https://github.com/devicehive/devicehive-java.git`.
+If you prefer git, clone project using command
+
+`git clone https://github.com/devicehive/devicehive-java.git`
+
 After that you can switch to the tag or branch you need. The list of all available releases can be found at
 https://github.com/devicehive/devicehive-java/releases
 * Execute the following command from ${devicehive-java-directory}/tools/dh_dbtools: `mvn clean package`
 * Execute the same command from ${devicehive-java-directory}/server.
 
-If this steps are done correctly you will find DeviceHiveJava.war at ${devicehive-java-directory}/server/target and dh_dbtool.jar at ${devicehive-java-directory}/tools/dh_dbtools/target. 
+If this steps are done correctly you will find DeviceHiveJava.war at ${devicehive-java-directory}/server/target and dh_dbtool.jar
+at ${devicehive-java-directory}/tools/dh_dbtools/target.
 After successful compilation and packaging go to the next step.
 
 
@@ -140,11 +144,21 @@ DeviceHive Java update instructions
 
 * Download [source code](https://github.com/devicehive/devicehive-java) using "Download ZIP" button. It should
 always point to the BRANCH-1.3. It also can be done using one of [Git version control client](http://git-scm
-.com/downloads/guis) or git command line tool. If you prefer git, clone project using command `git clone
-https://github.com/devicehive/devicehive-java.git`. After that you can switch to the tag or branch you need. The list
- of all available releases can be found at https://github.com/devicehive/devicehive-java/releases
-* Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command   `java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
-* The parameter `${databaseurl}` is a jdbc connection URL to your database (like jdbc://, user is a database user’s login and password is a user’s password, if required.  To get help use   `java –jar dh_dbtool.jar –help`
+.com/downloads/guis) or git command line tool. If you prefer git, clone project using command
+
+`git clone https://github.com/devicehive/devicehive-java.git`
+
+After that you can switch to the tag or branch you need. The list of all available releases can be found at https://github.com/devicehive/devicehive-java/releases
+* Run dh_dbtool.jar to update your database schema and insert some initial parameters.
+Go to dh_dbtool.jar installation directory and run this application using command
+
+`java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
+
+* The parameter `${databaseurl}` is a jdbc connection URL to your database
+(like jdbc://), ${user} is a database user’s login and ${password} is a user’s password, if required. To get help use
+
+`java –jar dh_dbtool.jar –help`
+
 * Go to ${yourServerName}:4848
 * Open Applications tab.
 * Click on Undeploy button (is not required)
