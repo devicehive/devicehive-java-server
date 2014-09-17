@@ -55,7 +55,10 @@ If you prefer git, clone project using command
 
 After that you can switch to the tag or branch you need. The list of all available releases can be found at
 https://github.com/devicehive/devicehive-java/releases
-* Execute the following command from ${devicehive-java-directory}/tools/dh_dbtools: `mvn clean package`
+* Execute the following command from ${devicehive-java-directory}/tools/dh_dbtools:
+
+`mvn clean package`
+
 * Execute the same command from ${devicehive-java-directory}/server.
 
 If this steps are done correctly you will find DeviceHiveJava.war at ${devicehive-java-directory}/server/target and dh_dbtool.jar
@@ -65,17 +68,28 @@ After successful compilation and packaging go to the next step.
 
 Database setup
 --------------
-* After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) you have to create new user. This step is required for database migrations to work properly.
+* After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides)
+you have to create new user. This step is required for database migrations to work properly.
 * Create database using user that have been created at step 1. This user should be owner of database.
-* Run dh_dbtool.jar to update your database schema and insert some initial parameters.  Go to dh_dbtool.jar installation directory and run this application using command `java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
-* The parameter ${databaseurl} is a jdbc connection URL to your database (like jdbc://, user is a database user’s login and password is a user’s password, if required.  To get help use `java –jar dh_dbtool.jar –help`
+* Run dh_dbtool.jar to update your database schema and insert some initial parameters.
+Go to dh_dbtool.jar installation directory and run this application using command
+
+`java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
+
+* The parameter ${databaseurl} is a jdbc connection URL to your database (like jdbc://), ${user} is a database user’s login
+and ${password} is a user’s password, if required. To get help use
+
+`java –jar dh_dbtool.jar –help`
+
 
 Glassfish configuration
 -----------------------
 * Install Glassfish 4.1 as it described in the [glassfish installation instructions](https://glassfish.java.net/docs/4.0/installation-guide.pdf).
-* Deploy PostgreSQL jdbc driver to glassfish. Just put postgresql-jdbc4.jar (or another postgresql jdbc driver suitable for your postgresql version) to `${glassfish installation directory}/glassfish/domains/${domain_dir}/lib/ext` directory and restart glassfish.
+* Deploy PostgreSQL jdbc driver to glassfish. Just put postgresql-jdbc4.jar (or another postgresql jdbc driver suitable
+for your postgresql version) to ${glassfish installation directory}/glassfish/domains/${domain_dir}/lib/ext directory and restart glassfish.
 * Then, run server and open ${yourServerName}:4848
-* Navigate to Resources -> JDBC -> JDBC Connection Pools.  You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
+* Navigate to Resources -> JDBC -> JDBC Connection Pools.
+You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
 
 Pool Name: Specify some pool name, e.g. DeviceHivePool  
 Resource Type: javax.sql.ConnectionPoolDataSource  
@@ -154,7 +168,7 @@ Go to dh_dbtool.jar installation directory and run this application using comman
 
 `java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
 
-* The parameter `${databaseurl}` is a jdbc connection URL to your database
+* The parameter ${databaseurl} is a jdbc connection URL to your database
 (like jdbc://), ${user} is a database user’s login and ${password} is a user’s password, if required. To get help use
 
 `java –jar dh_dbtool.jar –help`
