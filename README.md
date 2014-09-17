@@ -38,17 +38,20 @@ In order to use DeviceHive framework you must have the following components inst
 * [PostgreSQL JDBC driver](http://jdbc.postgresql.org/download.html#others) suitable for your version of PostgreSQL
 * [Glassfish 4.1](http://glassfish.java.net/download.html) application server (Java EE 7 Full Platform)
 * [Oracle JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 7](http://openjdk.java.net/) (this is requirement for Glassfish 4.1; Java EE 7 requires JDK 7). Oracle JDK 7 can be
-downloaded from http://www.oracle.com/technetwork/java/javase/downloads/index.html. If you would like to use Open JDK
- 7 you have to use this link http://openjdk.java.net/install/ or install it from the distribution repository of your
- choice. E.g. in Debian you can just install openjdk-7-jdk package. JDK 8 will be fine too.
-* Maven (http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava 
+downloaded from http://www.oracle.com/technetwork/java/javase/downloads/index.html. JDK 8 will be fine too.
+* [Maven](http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava
 * dh_dbtool source files. dh_dbtool.jar will be used to provide necessary database migrations (https://github.com/devicehive/devicehive-java)
-* DeviceHiveJava source files. This is the main part of the DeviceHive framework (https://github.com/devicehive/devicehive-java)
+* [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java). This is the main part of the [DeviceHive[ framework
 
 
 Build packages
 --------------
-* Download source code from [GitHub](https://github.com/devicehive/devicehive-java) using "Download ZIP" button. It should always point to recent stable or beta release, but you always can get any other tag or branch. It also can be done using one of Git version control client (http://git-scm.com/downloads/guis) or git command line tool. If you prefer git, clone project using command `git clone https://github.com/devicehive/devicehive-java.git`. After that you can switch to the tag or branch you need. The list of all available releases can be found at https://github.com/devicehive/devicehive-java/releases
+* Download source code from [GitHub](https://github.com/devicehive/devicehive-java) using "Download ZIP" button.
+It should always point to recent stable or beta release, but you always can get any other tag or branch.
+It also can be done using one of [Git version control client](http://git-scm.com/downloads/guis) or git command line tool.
+If you prefer git, clone project using command  `git clone https://github.com/devicehive/devicehive-java.git`.
+After that you can switch to the tag or branch you need. The list of all available releases can be found at
+https://github.com/devicehive/devicehive-java/releases
 * Execute the following command from ${devicehive-java-directory}/tools/dh_dbtools: `mvn clean package`
 * Execute the same command from ${devicehive-java-directory}/server.
 
@@ -149,14 +152,16 @@ https://github.com/devicehive/devicehive-java.git`. After that you can switch to
 * Click on Deploy button
 * Click on “Select file” button. In the dialog box select DeviceHiveJava.war. Click on “Ok” button
 * Launch DeviceHiveJava
+
 **Glassfish 4.1 is requiered!**
+
 Notice, that the all parameters set up for configuration of RESTful and websocket services will be the same. If it is
  required to change these parameters use:
 
- http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}/set?value=${value}
+`http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}/set?value=${value}`
 
 You can get access to this service using any of your administrative accounts.  
-For more details see RELEASE_NOTES
+For more details see [RELEASE_NOTES](https://github.com/devicehive/devicehive-java/blob/master/RELEASE_NOTES)
 
 DeviceHive Java server settings
 ===============================
