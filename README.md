@@ -189,7 +189,7 @@ Notice, that the all parameters set up for configuration of RESTful and websocke
 `http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}/set?value=${value}`
 
 You can get access to this service using any of your administrative accounts.  
-For more details see [RELEASE_NOTES](https://github.com/devicehive/devicehive-java/blob/master/RELEASE_NOTES)
+For more details see [RELEASE_NOTES](https://github.com/devicehive/devicehive-java/blob/master/RELEASE_NOTES.md)
 
 DeviceHive Java server settings
 ===============================
