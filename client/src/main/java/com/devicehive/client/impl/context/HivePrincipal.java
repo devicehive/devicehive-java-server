@@ -9,14 +9,17 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class HivePrincipal {
 
-    private Pair<String, String> user;
-    private Pair<String, String> device;
-    private String accessKey;
+    private final Pair<String, String> principal;
 
-    private HivePrincipal(Pair<String, String> user, Pair<String, String> device, String accessKey) {
-        this.user = user;
-        this.device = device;
-        this.accessKey = accessKey;
+    private final Type type;
+
+    private enum Type {
+        USER, DEVICE, ACCESS_KEY
+    }
+
+    private HivePrincipal(Pair<String, String> principal, Type type) {
+        this.principal = principal;
+        this.type = type;
     }
 
     /**
@@ -27,7 +30,7 @@ public class HivePrincipal {
      * @return new hive principal with user credentials
      */
     public static HivePrincipal createUser(String login, String password) {
-        return new HivePrincipal(ImmutablePair.of(login, password), null, null);
+        return new HivePrincipal(ImmutablePair.of(login, password), Type.USER);
     }
 
     /**
@@ -38,7 +41,7 @@ public class HivePrincipal {
      * @return new hive principal with device credentials.
      */
     public static HivePrincipal createDevice(String id, String key) {
-        return new HivePrincipal(null, ImmutablePair.of(id, key), null);
+        return new HivePrincipal(ImmutablePair.of(id, key), Type.DEVICE);
     }
 
     /**
@@ -48,65 +51,42 @@ public class HivePrincipal {
      * @return new hive principal with access key credentials
      */
     public static HivePrincipal createAccessKey(String key) {
-        return new HivePrincipal(null, null, key);
+        return new HivePrincipal(ImmutablePair.of((String) null, key), Type.ACCESS_KEY);
     }
 
-    /**
-     * Get user's credentials.
-     *
-     * @return pair of login and password
-     */
-    public Pair<String, String> getUser() {
-        return user;
+    public Pair<String, String> getPrincipal() {
+        return principal;
     }
 
-    /**
-     * Get device's credentials.
-     *
-     * @return pair of device identifier and key
-     */
-    public Pair<String, String> getDevice() {
-        return device;
+    public boolean isUser() {
+        return Type.USER.equals(this.type);
     }
 
-    /**
-     * Get access key's credentials.
-     *
-     * @return access key
-     */
-    public String getAccessKey() {
-        return accessKey;
+    public boolean isDevice() {
+        return Type.DEVICE.equals(this.type);
+    }
+
+    public boolean isAccessKey() {
+        return Type.ACCESS_KEY.equals(this.type);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         HivePrincipal that = (HivePrincipal) o;
 
-        if (accessKey != null ? !accessKey.equals(that.accessKey) : that.accessKey != null) {
-            return false;
-        }
-        if (device != null ? !device.equals(that.device) : that.device != null) {
-            return false;
-        }
-        if (user != null ? !user.equals(that.user) : that.user != null) {
-            return false;
-        }
+        if (principal != null ? !principal.equals(that.principal) : that.principal != null) return false;
+        if (type != that.type) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = user != null ? user.hashCode() : 0;
-        result = 31 * result + (device != null ? device.hashCode() : 0);
-        result = 31 * result + (accessKey != null ? accessKey.hashCode() : 0);
+        int result = principal != null ? principal.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 }

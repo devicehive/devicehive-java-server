@@ -8,7 +8,7 @@ package com.devicehive.client.model.exceptions;
 public class HiveException extends Exception {
 
     private static final long serialVersionUID = 6413354755792688308L;
-    private Integer code = null;
+    private final Integer code;
 
     public HiveException(String message, Throwable cause) {
         this(message, cause, null);

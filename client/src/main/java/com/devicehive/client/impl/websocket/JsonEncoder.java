@@ -25,7 +25,6 @@ public class JsonEncoder implements Encoder.TextStream<JsonObject> {
     public final static String NOTIFICATION_INSERT = "notification/insert";
     public final static String COMMAND_MEMBER = "command";
     public final static String NOTIFICATION_MEMBER = "notification";
-    public final static String DEVICE_GUID_MEMBER = "deviceGuid";
     public final static String SUBSCRIPTION_ID = "subscriptionId";
 
     private final Gson gson = GsonFactory.createGson();

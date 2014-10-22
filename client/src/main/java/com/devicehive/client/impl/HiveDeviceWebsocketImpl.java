@@ -59,7 +59,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
         Gson gson = GsonFactory.createGson();
         request.add("device", gson.toJsonTree(device));
         if (websocketAgent.getHivePrincipal() != null) {
-            Pair<String, String> authenticated = websocketAgent.getHivePrincipal().getDevice();
+            Pair<String, String> authenticated = websocketAgent.getHivePrincipal().getPrincipal();
             request.addProperty("deviceId", authenticated.getLeft());
             request.addProperty("deviceKey", authenticated.getRight());
         } else {
@@ -71,7 +71,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
 
     @Override
     public DeviceCommand getCommand(long commandId) throws HiveException {
-        Pair<String, String> authenticated = websocketAgent.getHivePrincipal().getDevice();
+        Pair<String, String> authenticated = websocketAgent.getHivePrincipal().getPrincipal();
         String path = "/device/" + authenticated.getKey() + "/command/" + commandId;
         return websocketAgent.execute(path, HttpMethod.GET, null,
                                       DeviceCommand.class, null);
@@ -90,11 +90,11 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
     }
 
     @Override
-    public synchronized void subscribeForCommands(final Timestamp timestamp, HiveMessageHandler<DeviceCommand>
+    public void subscribeForCommands(final Timestamp timestamp, HiveMessageHandler<DeviceCommand>
         commandMessageHandler)
         throws HiveException {
         Set<String> uuids = new HashSet<>();
-        uuids.add(websocketAgent.getHivePrincipal().getDevice().getLeft());
+        uuids.add(websocketAgent.getHivePrincipal().getPrincipal().getLeft());
         SubscriptionFilter filter =
             new SubscriptionFilter(uuids, null, timestamp);
         commandsSubscriptionId = websocketAgent.subscribeForCommands(filter, commandMessageHandler);
@@ -104,7 +104,7 @@ public class HiveDeviceWebsocketImpl extends HiveDeviceRestImpl {
      * Unsubscribes the device from commands.
      */
     @Override
-    public synchronized void unsubscribeFromCommands() throws HiveException {
+    public void unsubscribeFromCommands() throws HiveException {
         websocketAgent.unsubscribeFromCommands(commandsSubscriptionId);
     }
 

@@ -1,7 +1,5 @@
 package com.devicehive.client.impl.websocket;
 
-import com.devicehive.client.impl.context.Constants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,10 +17,16 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 
 public class SessionMonitor {
+    private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
 
     public static final String SESSION_MONITOR_KEY = "SESSION_MONITOR_KEY";
     private static final String PING_MESSAGE = "devicehive-client-ping";
-    private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
+    /**
+     * Timeout for websocket ping/pongs. If no pongs received during this timeout, reconnection will be started. Notice,
+     * that reconnection will be started, if some request did not received any message during response timeout,
+     * reconnection action will be started.
+     */
+    private static final long WEBSOCKET_PING_TIMEOUT = 2L;
     private final Date timeOfLastReceivedPong;
     private final Session userSession;
     private ScheduledExecutorService monitor = Executors.newScheduledThreadPool(2);
@@ -66,7 +70,7 @@ public class SessionMonitor {
             public void run() {
                 Thread.currentThread().setName("monitoring");
                 if (System.currentTimeMillis() - timeOfLastReceivedPong.getTime() > TimeUnit.MINUTES.toMillis
-                    (Constants.WEBSOCKET_PING_TIMEOUT)) {
+                    (WEBSOCKET_PING_TIMEOUT)) {
                     logger.info("No pings received from server for a long time. Session will be closed");
                     try {
                         if (userSession.isOpen()) {

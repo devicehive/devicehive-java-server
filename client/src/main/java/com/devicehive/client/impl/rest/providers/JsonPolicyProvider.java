@@ -1,10 +1,11 @@
 package com.devicehive.client.impl.rest.providers;
 
 
+import com.devicehive.client.model.exceptions.InternalHiveClientException;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
-import com.devicehive.client.impl.context.Constants;
+import com.devicehive.client.impl.Constants;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
 import com.devicehive.client.impl.json.strategies.JsonPolicyDef;
@@ -89,6 +90,10 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
                 }
             }
         }
-        return policy != null ? GsonFactory.createGson(policy) : GsonFactory.createGson();
+        try {
+            return policy != null ? GsonFactory.createGson(policy) : GsonFactory.createGson();
+        } catch (InternalHiveClientException e) {
+            throw new IllegalStateException(e.getMessage(), e.getCause());
+        }
     }
 }
