@@ -15,13 +15,10 @@ public final class Messages {
     public static final String INVALID_USER_STATUS = "Invalid user status";
     public static final String SEVERAL_ACTIVE_JSON_POLICIES = "Only one JSON policy is allowed";
     public static final String NOT_A_JSON = "Not a JSON object";
-    public static final String INCORRECT_SERVER_URL = "Incorrect server URL!";
     public static final String UNKNOWN_RESPONSE = "Unknown response";
-    public static final String CONNECTION_LOST = "Try to send request when connection is lost";
     public static final String INVOKE_TARGET_ERROR = "Error occurred during invoking the target";
     public static final String SUBSCRIPTION_ERROR = "Error processing subscription";
     public static final String WRONG_TYPE_RESPONSE =  "Wrong type of response!";
-    public static final String INCOMPATIBLE_SERVER_VERSION = "Incompatible server version!";
 
     private Messages() {
     }

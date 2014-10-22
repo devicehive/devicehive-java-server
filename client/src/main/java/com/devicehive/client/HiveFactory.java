@@ -25,12 +25,11 @@ public class HiveFactory {
             return new HiveClientWebsocketImpl(
                 createWebsocketClientAgent(restUri, connectionLostCallback, connectionRestoredCallback));
         } else {
-            return new HiveClientRestImpl(createRestAgent(restUri, connectionLostCallback, connectionRestoredCallback));
+            return new HiveClientRestImpl(createRestAgent(restUri));
         }
     }
 
-    public static HiveClient createClient(URI restUri,
-                                          boolean preferWebsockets) throws HiveException {
+    public static HiveClient createClient(URI restUri, boolean preferWebsockets) throws HiveException {
         return createClient(restUri, preferWebsockets, null, null);
     }
 
@@ -43,20 +42,16 @@ public class HiveFactory {
             return new HiveDeviceWebsocketImpl(
                 createWebsocketDeviceAgent(restUri, connectionLostCallback, connectionRestoredCallback));
         } else {
-            return new HiveDeviceRestImpl(createRestAgent(restUri, connectionLostCallback, connectionRestoredCallback));
+            return new HiveDeviceRestImpl(createRestAgent(restUri));
         }
     }
 
-    public static HiveDevice createDevice(URI restUri,
-                                          boolean preferWebsockets) throws HiveException {
+    public static HiveDevice createDevice(URI restUri, boolean preferWebsockets) throws HiveException {
         return createDevice(restUri, preferWebsockets, null, null);
     }
 
-    private static RestAgent createRestAgent(URI restUri,
-                                             ConnectionLostCallback connectionLostCallback,
-                                             ConnectionRestoredCallback connectionRestoredCallback)
-        throws HiveException {
-        RestAgent agent = new RestAgent(connectionLostCallback, connectionRestoredCallback, restUri);
+    private static RestAgent createRestAgent(URI restUri) throws HiveException {
+        RestAgent agent = new RestAgent(restUri);
         agent.connect();
         return agent;
     }

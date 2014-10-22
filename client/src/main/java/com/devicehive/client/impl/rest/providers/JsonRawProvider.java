@@ -6,7 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import com.devicehive.client.impl.context.Constants;
+import com.devicehive.client.impl.Constants;
 import com.devicehive.client.impl.json.GsonFactory;
 import com.devicehive.client.impl.util.Messages;
 
