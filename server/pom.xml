@@ -163,11 +163,11 @@
                 <server.log.directory>${com.sun.aas.instanceRoot}/logs</server.log.directory>
             </properties>
             <dependencies>
-                <!-- Ugly workaround for bug in Glassfish 4, should be not needed for 4.0.1 -->
+                <!-- Workaround for Glassfish 4.1 -->
                 <dependency>
-                    <groupId>org.glassfish.jersey.containers.glassfish</groupId>
-                    <artifactId>jersey-gf-cdi</artifactId>
-                    <version>2.11</version>
+                	<groupId>org.hibernate</groupId>
+                	<artifactId>hibernate-validator-cdi</artifactId>
+                	<version>5.1.2.Final</version>
                 </dependency>
             </dependencies>
         </profile>
