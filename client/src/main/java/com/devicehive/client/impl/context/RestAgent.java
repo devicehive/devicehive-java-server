@@ -1,12 +1,8 @@
 package com.devicehive.client.impl.context;
 
-
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.reflect.TypeToken;
 
-import com.devicehive.client.ConnectionLostCallback;
-import com.devicehive.client.ConnectionRestoredCallback;
 import com.devicehive.client.HiveMessageHandler;
 import com.devicehive.client.impl.json.adapters.TimestampAdapter;
 import com.devicehive.client.impl.json.strategies.JsonPolicyApply;
@@ -36,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +44,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
@@ -62,29 +61,55 @@ import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.METHOD_NOT_ALLOWED;
 
-public class RestAgent extends AbstractHiveAgent {
+public class RestAgent {
 
     private static final String USER_AUTH_SCHEMA = "Basic";
     private static final String KEY_AUTH_SCHEMA = "Bearer";
     private static final int TIMEOUT = 60;
-    protected final URI restUri;
+    private static final String DEVICE_ID_HEADER = "Auth-DeviceID";
+    private static final String DEVICE_KEY_HEADER = "Auth-DeviceKey";
+    private static final String WAIT_TIMEOUT_PARAM = "waitTimeout";
+    private static final String DEVICE_GUIDS = "deviceGuids";
+    private static final String NAMES = "names";
+    private static final String TIMESTAMP = "timestamp";
+    private static final String SEPARATOR = ",";
+
+    private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
     protected final ExecutorService subscriptionExecutor = Executors.newFixedThreadPool(50);
-    private ConcurrentMap<String, Future<?>> commandSubscriptionsResults = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, Future<?>> notificationSubscriptionResults = new ConcurrentHashMap<>();
+
+    private final URI restUri;
     private Client restClient;
 
-    public RestAgent(ConnectionLostCallback connectionLostCallback,
-                     ConnectionRestoredCallback connectionRestoredCallback, URI restUri) {
-        super(connectionLostCallback, connectionRestoredCallback);
+    private HivePrincipal hivePrincipal;
+
+    protected final ReadWriteLock connectionLock = new ReentrantReadWriteLock(true);
+    protected final ReadWriteLock subscriptionsLock = new ReentrantReadWriteLock(true);
+
+    protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceCommand>> commandSubscriptionsStorage =
+            new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Future<?>> commandSubscriptionsResults = new ConcurrentHashMap<>();
+
+    protected final ConcurrentMap<String, SubscriptionDescriptor<DeviceNotification>> notificationSubscriptionsStorage =
+            new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Future<?>> notificationSubscriptionResults = new ConcurrentHashMap<>();
+
+    public RestAgent(URI restUri) {
         this.restUri = restUri;
     }
 
-    @Override
-    protected void beforeConnect() throws HiveException {
-
+    public HivePrincipal getHivePrincipal() {
+        connectionLock.readLock().lock();
+        try {
+            return hivePrincipal;
+        } finally {
+            connectionLock.readLock().unlock();
+        }
     }
 
-    @Override
+    protected void beforeConnect() throws HiveException {
+    }
+
     protected void doConnect() throws HiveException {
         this.restClient = JerseyClientBuilder.createClient();
         this.restClient.register(JsonRawProvider.class)
@@ -92,30 +117,69 @@ public class RestAgent extends AbstractHiveAgent {
             .register(CollectionProvider.class);
     }
 
-    @Override
     protected void afterConnect() throws HiveException {
-
     }
 
-    @Override
     protected void beforeDisconnect() {
         MoreExecutors.shutdownAndAwaitTermination(subscriptionExecutor, 1, TimeUnit.MINUTES);
         commandSubscriptionsResults.clear();
         notificationSubscriptionResults.clear();
     }
 
-    @Override
     protected void doDisconnect() {
         this.restClient.close();
     }
 
-    @Override
     protected void afterDisconnect() {
     }
 
+    public final void connect() throws HiveException {
+        connectionLock.writeLock().lock();
+        try {
+            beforeConnect();
+            doConnect();
+            afterConnect();
+        } finally {
+            connectionLock.writeLock().unlock();
+        }
+    }
+
+    public final void disconnect() {
+        connectionLock.writeLock().lock();
+        try {
+            beforeDisconnect();
+            doDisconnect();
+            afterDisconnect();
+        } finally {
+            connectionLock.writeLock().unlock();
+        }
+    }
+
+    public void authenticate(final HivePrincipal hivePrincipal) throws HiveException {
+        connectionLock.writeLock().lock();
+        try {
+            if (this.hivePrincipal != null && !this.hivePrincipal.equals(hivePrincipal)) {
+                throw new IllegalStateException(Messages.ALREADY_AUTHENTICATED);
+            }
+            this.hivePrincipal = hivePrincipal;
+        } finally {
+            connectionLock.writeLock().unlock();
+        }
+    }
+
+    public final void close() {
+        connectionLock.writeLock().lock();
+        try {
+            disconnect();
+        } finally {
+            connectionLock.writeLock().unlock();
+        }
+    }
+
+    @SuppressWarnings("unused")
     public boolean checkConnection() {
         try {
-            Response response = buildInvocation("/info", HttpMethod.GET, null, null, null, null).invoke();
+            final Response response = buildInvocation("/info", HttpMethod.GET, null, null, null, null).invoke();
             getEntity(response, ApiInfo.class, null);
             return true;
         } catch (HiveException e) {
@@ -132,8 +196,8 @@ public class RestAgent extends AbstractHiveAgent {
      * @param objectToSend Object to send (for http methods POST and PUT only)
      * @param sendPolicy   policy that declares exclusion strategy for sending object
      */
-    public <S> void execute(String path, String method, Map<String, String> headers, S objectToSend,
-                            JsonPolicyDef.Policy sendPolicy) throws HiveException {
+    public <S> void execute(final String path, final String method, final Map<String, String> headers,
+                            final S objectToSend, final JsonPolicyDef.Policy sendPolicy) throws HiveException {
         execute(path, method, headers, null, objectToSend, null, sendPolicy, null);
     }
 
@@ -145,9 +209,8 @@ public class RestAgent extends AbstractHiveAgent {
      * @param headers     custom headers (authorization headers are added during the request build)
      * @param queryParams query params that should be added to the url. Null-valued params are ignored.
      */
-    public void execute(String path, String method, Map<String, String> headers,
-                        Map<String, Object> queryParams)
-        throws HiveException {
+    public void execute(final String path, final String method, final Map<String, String> headers,
+                        final Map<String, Object> queryParams) throws HiveException {
         execute(path, method, headers, queryParams, null, null, null, null);
     }
 
@@ -157,7 +220,7 @@ public class RestAgent extends AbstractHiveAgent {
      * @param path   requested uri
      * @param method http method
      */
-    public void execute(String path, String method) throws HiveException {
+    public void execute(final String path, final String method) throws HiveException {
         execute(path, method, null, null, null, null, null, null);
     }
 
@@ -173,9 +236,9 @@ public class RestAgent extends AbstractHiveAgent {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of typeOfR, that represents server's response
      */
-    public <R> R execute(String path, String method, Map<String, String> headers,
-                         Map<String, Object> queryParams,
-                         Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
+    public <R> R execute(final String path, final String method, final Map<String, String> headers,
+                         final Map<String, Object> queryParams,
+                         final Type typeOfR, final JsonPolicyDef.Policy receivePolicy) throws HiveException {
         return execute(path, method, headers, queryParams, null, typeOfR, null, receivePolicy);
     }
 
@@ -190,8 +253,8 @@ public class RestAgent extends AbstractHiveAgent {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of typeOfR, that represents server's response
      */
-    public <R> R execute(String path, String method, Map<String, String> headers, Type typeOfR,
-                         JsonPolicyDef.Policy receivePolicy) throws HiveException {
+    public <R> R execute(final String path, final String method, final Map<String, String> headers, final Type typeOfR,
+                         final JsonPolicyDef.Policy receivePolicy) throws HiveException {
         return execute(path, method, headers, null, null, typeOfR, null, receivePolicy);
     }
 
@@ -205,11 +268,11 @@ public class RestAgent extends AbstractHiveAgent {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of TypeOfR or null
      */
-    public synchronized <R> R executeForm(String path, Map<String, String> formParams, Type typeOfR,
-                                          JsonPolicyDef.Policy receivePolicy) throws HiveException {
+    public <R> R executeForm(final String path, final Map<String, String> formParams, final Type typeOfR,
+                             final JsonPolicyDef.Policy receivePolicy) throws HiveException {
         connectionLock.readLock().lock();
         try {
-            Response response = buildFormInvocation(path, formParams).invoke();
+            final Response response = buildFormInvocation(path, formParams).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             throw new HiveException(Messages.INVOKE_TARGET_ERROR, e.getCause());
@@ -234,13 +297,13 @@ public class RestAgent extends AbstractHiveAgent {
      * @param receivePolicy policy that declares exclusion strategy for received object
      * @return instance of TypeOfR or null
      */
-    public <S, R> R execute(String path, String method, Map<String, String> headers,
-                            Map<String, Object> queryParams,
-                            S objectToSend, Type typeOfR, JsonPolicyDef.Policy sendPolicy,
-                            JsonPolicyDef.Policy receivePolicy) throws HiveException {
+    public <S, R> R execute(final String path, final String method, final Map<String, String> headers,
+                            final Map<String, Object> queryParams,
+                            final S objectToSend, final Type typeOfR, final JsonPolicyDef.Policy sendPolicy,
+                            final JsonPolicyDef.Policy receivePolicy) throws HiveException {
         connectionLock.readLock().lock();
         try {
-            Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
+            final Response response = buildInvocation(path, method, headers, queryParams, objectToSend, sendPolicy).invoke();
             return getEntity(response, typeOfR, receivePolicy);
         } catch (ProcessingException e) {
             throw new HiveException(Messages.INVOKE_TARGET_ERROR, e.getCause());
@@ -249,8 +312,9 @@ public class RestAgent extends AbstractHiveAgent {
         }
     }
 
-    private <R> R getEntity(Response response, Type typeOfR, JsonPolicyDef.Policy receivePolicy) throws HiveException {
-        Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
+    private <R> R getEntity(final Response response, final Type typeOfR,
+                            final JsonPolicyDef.Policy receivePolicy) throws HiveException {
+        final Response.Status.Family statusFamily = response.getStatusInfo().getFamily();
         switch (statusFamily) {
             case SERVER_ERROR:
                 throw new HiveServerException(response.getStatus());
@@ -259,7 +323,7 @@ public class RestAgent extends AbstractHiveAgent {
                     throw new InternalHiveClientException(METHOD_NOT_ALLOWED.getReasonPhrase(),
                                                           response.getStatus());
                 }
-                ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
+                final ErrorMessage errorMessage = response.readEntity(ErrorMessage.class);
                 throw new HiveClientException(errorMessage.getMessage(), response.getStatus());
             case SUCCESSFUL:
                 if (typeOfR == null) {
@@ -268,7 +332,7 @@ public class RestAgent extends AbstractHiveAgent {
                 if (receivePolicy == null) {
                     return response.readEntity(new GenericType<R>(typeOfR));
                 } else {
-                    Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
+                    final Annotation[] readAnnotations = {new JsonPolicyApply.JsonPolicyApplyLiteral(receivePolicy)};
                     return response.readEntity(new GenericType<R>(typeOfR), readAnnotations);
                 }
             default:
@@ -277,30 +341,30 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     private Map<String, String> getAuthHeaders() {
-        Map<String, String> headers = Maps.newHashMap();
-        HivePrincipal hivePrincipal = getHivePrincipal();
-        if (getHivePrincipal() != null) {
-            if (hivePrincipal.getUser() != null) {
-                String decodedAuth = hivePrincipal.getUser().getLeft() + ":" + hivePrincipal.getUser().getRight();
-                String encodedAuth = Base64.encodeBase64String(decodedAuth.getBytes(Constants.UTF8_CHARSET));
+        final Map<String, String> headers = new HashMap<>();
+        final HivePrincipal hivePrincipal = getHivePrincipal();
+        if (hivePrincipal != null) {
+            if (hivePrincipal.isUser()) {
+                final String decodedAuth = hivePrincipal.getPrincipal().getLeft() + ":" + hivePrincipal.getPrincipal().getRight();
+                final String encodedAuth = Base64.encodeBase64String(decodedAuth.getBytes(UTF8_CHARSET));
                 headers.put(HttpHeaders.AUTHORIZATION, USER_AUTH_SCHEMA + " " + encodedAuth);
             }
-            if (hivePrincipal.getDevice() != null) {
-                headers.put(Constants.DEVICE_ID_HEADER, hivePrincipal.getDevice().getLeft());
-                headers.put(Constants.DEVICE_KEY_HEADER, hivePrincipal.getDevice().getRight());
+            if (hivePrincipal.isDevice()) {
+                headers.put(DEVICE_ID_HEADER, hivePrincipal.getPrincipal().getLeft());
+                headers.put(DEVICE_KEY_HEADER, hivePrincipal.getPrincipal().getRight());
             }
-            if (hivePrincipal.getAccessKey() != null) {
-                headers.put(HttpHeaders.AUTHORIZATION, KEY_AUTH_SCHEMA + " " + hivePrincipal.getAccessKey());
+            if (hivePrincipal.isAccessKey()) {
+                headers.put(HttpHeaders.AUTHORIZATION, KEY_AUTH_SCHEMA + " " + hivePrincipal.getPrincipal().getValue());
             }
         }
         return headers;
     }
 
-    private WebTarget createTarget(String path, Map<String, Object> queryParams) {
+    private WebTarget createTarget(final String path, final Map<String, Object> queryParams) {
         WebTarget target = restClient.target(restUri).path(path);
         if (queryParams != null) {
-            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
-                Object value = entry.getValue() instanceof Timestamp
+            for (final Map.Entry<String, Object> entry : queryParams.entrySet()) {
+                final Object value = entry.getValue() instanceof Timestamp
                                ? TimestampAdapter.formatTimestamp((Timestamp) entry.getValue())
                                : entry.getValue();
                 target = target.queryParam(entry.getKey(), value);
@@ -309,26 +373,26 @@ public class RestAgent extends AbstractHiveAgent {
         return target;
     }
 
-    private <S> Invocation buildInvocation(String path,
-                                           String method,
-                                           Map<String, String> headers,
-                                           Map<String, Object> queryParams,
-                                           S objectToSend,
-                                           JsonPolicyDef.Policy sendPolicy) {
-        Invocation.Builder invocationBuilder = createTarget(path, queryParams)
+    private <S> Invocation buildInvocation(final String path,
+                                           final String method,
+                                           final Map<String, String> headers,
+                                           final Map<String, Object> queryParams,
+                                           final S objectToSend,
+                                           final JsonPolicyDef.Policy sendPolicy) {
+        final Invocation.Builder invocationBuilder = createTarget(path, queryParams)
             .request()
             .accept(MediaType.APPLICATION_JSON_TYPE)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_TYPE);
-        for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
+        for (final Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
         }
         if (headers != null) {
-            for (Map.Entry<String, String> customHeader : headers.entrySet()) {
+            for (final Map.Entry<String, String> customHeader : headers.entrySet()) {
                 invocationBuilder.header(customHeader.getKey(), customHeader.getValue());
             }
         }
         if (objectToSend != null) {
-            Entity<S> entity;
+            final Entity<S> entity;
             if (sendPolicy != null) {
                 entity = Entity.entity(objectToSend, MediaType.APPLICATION_JSON_TYPE,
                                        new Annotation[]{new JsonPolicyApply.JsonPolicyApplyLiteral(sendPolicy)});
@@ -341,24 +405,24 @@ public class RestAgent extends AbstractHiveAgent {
         }
     }
 
-    private WebTarget createTarget(String path) {
+    private WebTarget createTarget(final String path) {
         return createTarget(path, null);
     }
 
-    private Invocation buildFormInvocation(String path, Map<String, String> formParams) throws HiveException {
-        Invocation.Builder invocationBuilder = createTarget(path).
+    private Invocation buildFormInvocation(final String path, final Map<String, String> formParams) throws HiveException {
+        final Invocation.Builder invocationBuilder = createTarget(path).
             request().
             accept(MediaType.APPLICATION_JSON_TYPE).
             header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_TYPE);
 
-        for (Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
+        for (final Map.Entry<String, String> entry : getAuthHeaders().entrySet()) {
             invocationBuilder.header(entry.getKey(), entry.getValue());
         }
 
-        Entity<Form> entity;
+        final Entity<Form> entity;
         if (formParams != null) {
-            Form f = new Form();
-            for (Map.Entry<String, String> entry : formParams.entrySet()) {
+            final Form f = new Form();
+            for (final Map.Entry<String, String> entry : formParams.entrySet()) {
                 f.param(entry.getKey(), entry.getValue());
             }
             entity = Entity.entity(f, MediaType.APPLICATION_FORM_URLENCODED_TYPE);
@@ -368,44 +432,42 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     public String subscribeForCommands(final SubscriptionFilter newFilter,
-                                       final HiveMessageHandler<DeviceCommand> handler)
-        throws HiveException {
+                                       final HiveMessageHandler<DeviceCommand> handler) throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
-            commandSubscriptionsStorage.put(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
+            final SubscriptionDescriptor<DeviceCommand> descriptor = new SubscriptionDescriptor<>(handler, newFilter);
+            commandSubscriptionsStorage.put(subscriptionIdValue, descriptor);
 
-            RestSubscription sub = new RestSubscription() {
+            final RestSubscription sub = new RestSubscription() {
 
                 @Override
                 protected void execute() throws HiveException {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                    final Map<String, Object> params = new HashMap<>();
+                    params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
                     if (newFilter != null) {
-                        params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
-                        params.put(Constants.NAMES, StringUtils.join(newFilter.getNames(), Constants.SEPARATOR));
-                        params.put(Constants.DEVICE_GUIDS, StringUtils.join(newFilter.getUuids(), Constants.SEPARATOR));
+                        params.put(TIMESTAMP, newFilter.getTimestamp());
+                        params.put(NAMES, StringUtils.join(newFilter.getNames(), SEPARATOR));
+                        params.put(DEVICE_GUIDS, StringUtils.join(newFilter.getUuids(), SEPARATOR));
                     }
-                    Type responseType = new TypeToken<List<CommandPollManyResponse>>() {
+                    final Type responseType = new TypeToken<List<CommandPollManyResponse>>() {
                     }.getType();
                     while (!Thread.currentThread().isInterrupted()) {
-                        List<CommandPollManyResponse> responses =
+                        final List<CommandPollManyResponse> responses =
                             RestAgent.this.execute("/device/command/poll", HttpMethod.GET, null,
                                                    params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
-                        for (CommandPollManyResponse response : responses) {
-                            SubscriptionDescriptor<DeviceCommand> descriptor =
-                                commandSubscriptionsStorage.get(subscriptionIdValue);
+                        for (final CommandPollManyResponse response : responses) {
                             descriptor.handleMessage(response.getCommand());
                         }
                         if (!responses.isEmpty()) {
-                            Timestamp newTimestamp = responses.get(responses.size() - 1).getCommand().getTimestamp();
-                            params.put(Constants.TIMESTAMP, newTimestamp);
+                            final Timestamp newTimestamp = responses.get(responses.size() - 1).getCommand().getTimestamp();
+                            params.put(TIMESTAMP, newTimestamp);
                         }
                     }
                 }
             };
 
-            Future<?> commandsSubscription = subscriptionExecutor.submit(sub);
+            final Future<?> commandsSubscription = subscriptionExecutor.submit(sub);
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
         } finally {
@@ -414,46 +476,44 @@ public class RestAgent extends AbstractHiveAgent {
     }
 
     public String subscribeForCommandsForDevice(final SubscriptionFilter newFilter,
-                                                final HiveMessageHandler<DeviceCommand> handler)
-        throws HiveException {
+                                                final HiveMessageHandler<DeviceCommand> handler) throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
-            commandSubscriptionsStorage.put(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
+            final SubscriptionDescriptor<DeviceCommand> descriptor = new SubscriptionDescriptor<>(handler, newFilter);
+            commandSubscriptionsStorage.put(subscriptionIdValue, descriptor);
 
-            RestSubscription sub = new RestSubscription() {
+            final RestSubscription sub = new RestSubscription() {
 
                 @Override
                 protected void execute() throws HiveException {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                    final Map<String, Object> params = new HashMap<>();
+                    params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
                     if (newFilter != null) {
-                        params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
-                        params.put(Constants.NAMES, StringUtils.join(newFilter.getNames(), Constants.SEPARATOR));
+                        params.put(TIMESTAMP, newFilter.getTimestamp());
+                        params.put(NAMES, StringUtils.join(newFilter.getNames(), SEPARATOR));
                     }
-                    Type responseType = new TypeToken<List<DeviceCommand>>() {
+                    final Type responseType = new TypeToken<List<DeviceCommand>>() {
                     }.getType();
-                    String uri = String.format("/device/%s/command/poll", getHivePrincipal().getDevice().getLeft());
+                    final String uri = String.format("/device/%s/command/poll", getHivePrincipal().getPrincipal().getLeft());
                     while (!Thread.currentThread().isInterrupted()) {
-                        List<DeviceCommand> responses =
+                        final List<DeviceCommand> responses =
                             RestAgent.this.execute(uri,
                                                    HttpMethod.GET,
                                                    null,
                                                    params, responseType, JsonPolicyDef.Policy.COMMAND_LISTED);
-                        for (DeviceCommand response : responses) {
-                            SubscriptionDescriptor<DeviceCommand> descriptor =
-                                commandSubscriptionsStorage.get(subscriptionIdValue);
+                        for (final DeviceCommand response : responses) {
                             descriptor.handleMessage(response);
                         }
                         if (!responses.isEmpty()) {
-                            Timestamp newTimestamp = responses.get(responses.size() - 1).getTimestamp();
-                            params.put(Constants.TIMESTAMP, newTimestamp);
+                            final Timestamp newTimestamp = responses.get(responses.size() - 1).getTimestamp();
+                            params.put(TIMESTAMP, newTimestamp);
                         }
                     }
                 }
             };
 
-            Future<?> commandsSubscription = subscriptionExecutor.submit(sub);
+            final Future<?> commandsSubscription = subscriptionExecutor.submit(sub);
             commandSubscriptionsResults.put(subscriptionIdValue, commandsSubscription);
             return subscriptionIdValue;
         } finally {
@@ -464,10 +524,10 @@ public class RestAgent extends AbstractHiveAgent {
     /**
      * Remove command subscription.
      */
-    public void unsubscribeFromCommands(String subscriptionId) throws HiveException {
+    public void unsubscribeFromCommands(final String subscriptionId) throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
-            Future<?> commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
+            final Future<?> commandsSubscription = commandSubscriptionsResults.remove(subscriptionId);
             if (commandsSubscription != null) {
                 commandsSubscription.cancel(true);
             }
@@ -479,17 +539,16 @@ public class RestAgent extends AbstractHiveAgent {
 
     public void subscribeForCommandUpdates(final Long commandId,
                                            final String guid,
-                                           final HiveMessageHandler<DeviceCommand> handler)
-        throws HiveException {
+                                           final HiveMessageHandler<DeviceCommand> handler) throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
-            RestSubscription sub = new RestSubscription() {
+            final RestSubscription sub = new RestSubscription() {
                 @Override
                 protected void execute() throws HiveException {
                     DeviceCommand result = null;
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
-                    Type responseType = new TypeToken<DeviceCommand>() {
+                    final Map<String, Object> params = new HashMap<>();
+                    params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                    final Type responseType = new TypeToken<DeviceCommand>() {
                     }.getType();
                     while (result == null && !Thread.currentThread().isInterrupted()) {
                         result = RestAgent.this.execute(
@@ -514,42 +573,39 @@ public class RestAgent extends AbstractHiveAgent {
         subscriptionsLock.writeLock().lock();
         try {
             final String subscriptionIdValue = UUID.randomUUID().toString();
-            notificationSubscriptionsStorage.put(subscriptionIdValue, new SubscriptionDescriptor<>(handler, newFilter));
-            RestSubscription sub = new RestSubscription() {
+            final SubscriptionDescriptor<DeviceNotification> descriptor = new SubscriptionDescriptor<>(handler, newFilter);
+            notificationSubscriptionsStorage.put(subscriptionIdValue, descriptor);
+            final RestSubscription sub = new RestSubscription() {
                 @Override
                 protected void execute() throws HiveException {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put(Constants.WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
+                    final Map<String, Object> params = new HashMap<>();
+                    params.put(WAIT_TIMEOUT_PARAM, String.valueOf(TIMEOUT));
                     if (newFilter != null) {
-                        params.put(Constants.TIMESTAMP, newFilter.getTimestamp());
-                        params.put(Constants.NAMES, StringUtils.join(newFilter.getNames(), Constants.SEPARATOR));
-                        params.put(Constants.DEVICE_GUIDS, StringUtils.join(newFilter.getUuids(), Constants.SEPARATOR));
+                        params.put(TIMESTAMP, newFilter.getTimestamp());
+                        params.put(NAMES, StringUtils.join(newFilter.getNames(), SEPARATOR));
+                        params.put(DEVICE_GUIDS, StringUtils.join(newFilter.getUuids(), SEPARATOR));
                     }
-                    Type responseType = new TypeToken<List<NotificationPollManyResponse>>() {
+                    final Type responseType = new TypeToken<List<NotificationPollManyResponse>>() {
                     }.getType();
                     while (!Thread.currentThread().isInterrupted()) {
-                        List<NotificationPollManyResponse> responses = RestAgent.this.execute(
+                        final List<NotificationPollManyResponse> responses = RestAgent.this.execute(
                             "/device/notification/poll",
                             HttpMethod.GET,
                             null,
                             params,
                             responseType,
                             JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-                        for (NotificationPollManyResponse response : responses) {
-                            SubscriptionDescriptor<DeviceNotification>
-                                descriptor =
-                                notificationSubscriptionsStorage.get(
-                                    subscriptionIdValue);
+                        for (final NotificationPollManyResponse response : responses) {
                             descriptor.handleMessage(response.getNotification());
                         }
                         if (!responses.isEmpty()) {
-                            Timestamp newTimestamp = responses.get(responses.size() - 1).getNotification().getTimestamp();
-                            params.put(Constants.TIMESTAMP, newTimestamp);
+                            final Timestamp newTimestamp = responses.get(responses.size() - 1).getNotification().getTimestamp();
+                            params.put(TIMESTAMP, newTimestamp);
                         }
                     }
                 }
             };
-            Future<?> notificationsSubscription = subscriptionExecutor.submit(sub);
+            final Future<?> notificationsSubscription = subscriptionExecutor.submit(sub);
             notificationSubscriptionResults.put(subscriptionIdValue, notificationsSubscription);
             return subscriptionIdValue;
         } finally {
@@ -560,10 +616,10 @@ public class RestAgent extends AbstractHiveAgent {
     /**
      * Remove command subscription for all available commands.
      */
-    public void unsubscribeFromNotifications(String subscriptionId) throws HiveException {
+    public void unsubscribeFromNotifications(final String subscriptionId) throws HiveException {
         subscriptionsLock.writeLock().lock();
         try {
-            Future<?> notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
+            final Future<?> notificationsSubscription = notificationSubscriptionResults.remove(subscriptionId);
             if (notificationsSubscription != null) {
                 notificationsSubscription.cancel(true);
             }
@@ -582,16 +638,17 @@ public class RestAgent extends AbstractHiveAgent {
         return execute("/info", HttpMethod.GET, null, ApiInfo.class, null);
     }
 
+    @SuppressWarnings("unused")
     public Timestamp getServerTimestamp() throws HiveException {
         return getInfo().getServerTimestamp();
     }
 
+    @SuppressWarnings("unused")
     public String getServerApiVersion() throws HiveException {
         return getInfo().getApiVersion();
     }
 
     private abstract static class RestSubscription implements Runnable {
-
         private static Logger logger = LoggerFactory.getLogger(RestSubscription.class);
 
         protected abstract void execute() throws HiveException;
