@@ -39,8 +39,6 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
 
         requestContext.abortWith(Response
                                      .status(Response.Status.UNAUTHORIZED)
-                                     .header(HttpHeaders.WWW_AUTHENTICATE,
-                                             isOauth ? Messages.OAUTH_REALM : Messages.BASIC_REALM)
                                      .entity(Messages.NOT_AUTHORIZED)
                                      .build());
     }
