@@ -191,7 +191,6 @@
                         <showWarnings>true</showWarnings>
                         <showDeprecation>true</showDeprecation>
                         <compilerArgs>
-                            <arg>-Werror</arg>
                             <arg>-Xlint:all</arg>
                         </compilerArgs>
                     </configuration>
