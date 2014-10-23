@@ -4,6 +4,7 @@ package com.devicehive.controller;
 import com.google.common.net.HttpHeaders;
 
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.auth.WwwAuthenticateRequired;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.util.LogExecutionTime;
@@ -76,6 +77,7 @@ public class ConfigurationController {
     @POST
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/auto")
+    @WwwAuthenticateRequired
     public Response auto(@HeaderParam(HttpHeaders.REFERER) String referrer) {
         try {
             URI ref = checkURI(referrer);
