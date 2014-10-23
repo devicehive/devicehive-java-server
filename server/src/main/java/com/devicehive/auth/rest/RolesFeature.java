@@ -1,5 +1,7 @@
 package com.devicehive.auth.rest;
 
+import com.devicehive.auth.WwwAuthenticateRequired;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -17,12 +19,13 @@ public class RolesFeature implements DynamicFeature {
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
         Method method = resourceInfo.getResourceMethod();
+        boolean isWwwAuthenticationRequired = method.isAnnotationPresent(WwwAuthenticateRequired.class);
         if (method.isAnnotationPresent(DenyAll.class)) {
             context.register(new DenyAllFilter());
             return;
         } else if (method.isAnnotationPresent(RolesAllowed.class)) {
             RolesAllowed rolesAllowed = method.getAnnotation(RolesAllowed.class);
-            context.register(new RolesAllowedFilter(Arrays.asList(rolesAllowed.value())));
+            context.register(new RolesAllowedFilter(Arrays.asList(rolesAllowed.value()), isWwwAuthenticationRequired));
             return;
         } else if (method.isAnnotationPresent(PermitAll.class)) {
             return;
@@ -34,7 +37,7 @@ public class RolesFeature implements DynamicFeature {
             return;
         } else if (resourceClass.isAnnotationPresent(RolesAllowed.class)) {
             RolesAllowed rolesAllowed = resourceClass.getAnnotation(RolesAllowed.class);
-            context.register(new RolesAllowedFilter(Arrays.asList(rolesAllowed.value())));
+            context.register(new RolesAllowedFilter(Arrays.asList(rolesAllowed.value()), isWwwAuthenticationRequired));
             return;
         } else if (method.isAnnotationPresent(PermitAll.class)) {
             return;
