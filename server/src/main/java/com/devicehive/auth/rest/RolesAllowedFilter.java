@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Priority;
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -33,6 +32,16 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
                 return;
             }
         }
-        throw new ForbiddenException();
+
+        boolean
+            isOauth =
+            Constants.OAUTH_AUTH_SCEME.equals(requestContext.getSecurityContext().getAuthenticationScheme());
+
+        requestContext.abortWith(Response
+                                     .status(Response.Status.UNAUTHORIZED)
+                                     .header(HttpHeaders.WWW_AUTHENTICATE,
+                                             isOauth ? Messages.OAUTH_REALM : Messages.BASIC_REALM)
+                                     .entity(Messages.NOT_AUTHORIZED)
+                                     .build());
     }
 }
