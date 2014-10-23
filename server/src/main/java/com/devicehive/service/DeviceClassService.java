@@ -45,7 +45,7 @@ public class DeviceClassService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-                                                 Set<Equipment> newEquipmentSet, boolean useExistingEquipment) {
+                                                 Set<Equipment> customEquipmentSet) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
@@ -71,8 +71,10 @@ public class DeviceClassService {
                 if (deviceClass.getValue().getPermanent() != null) {
                     stored.setPermanent(deviceClassFromMessage.getPermanent());
                 }
-                if (!useExistingEquipment) {
-                    replaceEquipment(newEquipmentSet, stored);
+                Set<Equipment> eq = deviceClass.getValue().getEquipment().getValue();
+                eq = eq != null ? eq : customEquipmentSet;
+                if (eq != null) {
+                    replaceEquipment(eq, stored);
                 }
             }
             return stored;
@@ -82,8 +84,10 @@ public class DeviceClassService {
                 throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
             }
             deviceClassDAO.createDeviceClass(deviceClassFromMessage);
-            if (!useExistingEquipment) {
-                replaceEquipment(newEquipmentSet, deviceClassFromMessage);
+            Set<Equipment> eq = deviceClassFromMessage.getEquipment();
+            eq = eq != null ? eq : customEquipmentSet;
+            if (eq != null) {
+                replaceEquipment(eq, deviceClassFromMessage);
             }
             return deviceClassFromMessage;
         }

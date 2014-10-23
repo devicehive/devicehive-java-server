@@ -176,7 +176,6 @@ public class DeviceController {
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
         device.setGuid(new NullableWrapper<>(deviceGuid));
         Gson gsonForEquipment = GsonFactory.createGson();
-        boolean useExistingEquipment = jsonObject.get(EQUIPMENT) == null;
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
             jsonObject.get(EQUIPMENT),
             new TypeToken<HashSet<Equipment>>() {
@@ -186,8 +185,7 @@ public class DeviceController {
             equipmentSet.remove(null);
         }
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        deviceService.deviceSaveAndNotify(device, equipmentSet, principal,
-                                          useExistingEquipment);
+        deviceService.deviceSaveAndNotify(device, equipmentSet, principal);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);

@@ -170,7 +170,6 @@ public class DeviceHandlers extends WebsocketHandlers {
         }
         device.setGuid(new NullableWrapper<>(deviceId));
         Gson gsonForEquipment = GsonFactory.createGson();
-        boolean useExistingEquipment = message.get(Constants.EQUIPMENT) == null;
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
             message.get(Constants.EQUIPMENT),
             new TypeToken<HashSet<Equipment>>() {
@@ -179,8 +178,7 @@ public class DeviceHandlers extends WebsocketHandlers {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        deviceService.deviceSaveAndNotify(device, equipmentSet, hiveSecurityContext.getHivePrincipal(),
-                                          useExistingEquipment);
+        deviceService.deviceSaveAndNotify(device, equipmentSet, hiveSecurityContext.getHivePrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
     }

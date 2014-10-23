@@ -68,29 +68,29 @@ public class DeviceService {
     private Event<DeviceNotification> event;
 
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
-                                    HivePrincipal principal, boolean useExistingEquipment) {
+                                    HivePrincipal principal) {
         validateDevice(device);
         DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
             switch (principal.getRole()) {
                 case HiveRoles.ADMIN:
-                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser(), useExistingEquipment);
+                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser());
                     break;
                 case HiveRoles.CLIENT:
-                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser(), useExistingEquipment);
+                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser());
                     break;
                 case HiveRoles.DEVICE:
-                    dn = deviceUpdateByDevice(device, equipmentSet, principal.getDevice(), useExistingEquipment);
+                    dn = deviceUpdateByDevice(device, equipmentSet, principal.getDevice());
                     break;
                 case HiveRoles.KEY:
-                    dn = deviceSaveByKey(device, equipmentSet, principal.getKey(), useExistingEquipment);
+                    dn = deviceSaveByKey(device, equipmentSet, principal.getKey());
                     break;
                 default:
-                    dn = deviceSave(device, equipmentSet, useExistingEquipment);
+                    dn = deviceSave(device, equipmentSet);
                     break;
             }
         } else {
-            dn = deviceSave(device, equipmentSet, useExistingEquipment);
+            dn = deviceSave(device, equipmentSet);
         }
         event.fire(dn);
         deviceActivityService.update(dn.getDevice().getId());
@@ -98,11 +98,10 @@ public class DeviceService {
 
     public DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
                                                Set<Equipment> equipmentSet,
-                                               User user,
-                                               boolean useExistingEquipment) {
+                                               User user) {
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
         DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
@@ -151,8 +150,7 @@ public class DeviceService {
 
     public DeviceNotification deviceSaveByKey(DeviceUpdate deviceUpdate,
                                               Set<Equipment> equipmentSet,
-                                              AccessKey key,
-                                              boolean useExistingEquipment) {
+                                              AccessKey key) {
 
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
@@ -162,7 +160,7 @@ public class DeviceService {
         }
         Network network = networkService.verifyNetworkByKey(deviceUpdate.getNetwork(), key);
         DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
@@ -206,8 +204,7 @@ public class DeviceService {
 
     public DeviceNotification deviceUpdateByDevice(DeviceUpdate deviceUpdate,
                                                    Set<Equipment> equipmentSet,
-                                                   Device device,
-                                                   boolean useExistingEquipment) {
+                                                   Device device) {
         if (deviceUpdate.getGuid() == null) {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
         }
@@ -219,7 +216,7 @@ public class DeviceService {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
         DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
             existingDevice.setDeviceClass(deviceClass);
@@ -245,11 +242,10 @@ public class DeviceService {
     }
 
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
-                                         Set<Equipment> equipmentSet,
-                                         boolean useExistingEquipment) {
+                                         Set<Equipment> equipmentSet) {
         Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
         DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, useExistingEquipment);
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
 
         if (existingDevice == null) {
