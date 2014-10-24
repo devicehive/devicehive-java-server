@@ -45,6 +45,7 @@ public class ConfigurationController {
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/{" + NAME + "}")
+    @WwwAuthenticateRequired
     public Response get(@PathParam(NAME) String name) {
         return Response.ok().entity(configurationService.get(name)).build();
     }
@@ -52,6 +53,7 @@ public class ConfigurationController {
     @PUT
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/{" + NAME + "}")
+    @WwwAuthenticateRequired
     public Response setProperty(@PathParam(NAME) String name, String value) {
         configurationService.save(name, value);
         return Response.ok().build();
@@ -60,6 +62,7 @@ public class ConfigurationController {
     @GET
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/{" + NAME + "}/set")
+    @WwwAuthenticateRequired
     public Response setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
         configurationService.save(name, value);
         return Response.ok().build();
@@ -68,6 +71,7 @@ public class ConfigurationController {
     @DELETE
     @RolesAllowed(HiveRoles.ADMIN)
     @Path("/{" + NAME + "}")
+    @WwwAuthenticateRequired
     public Response deleteProperty(@PathParam(NAME) String name) {
         configurationService.delete(name);
         return Response.noContent().build();
