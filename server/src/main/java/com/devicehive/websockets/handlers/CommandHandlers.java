@@ -210,7 +210,7 @@ public class CommandHandlers extends WebsocketHandlers {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
     public WebSocketResponse processCommandUnsubscribe(Session session,
-                                                       @WsParam(SUBSCRIPTION) UUID subId,
+                                                       @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
