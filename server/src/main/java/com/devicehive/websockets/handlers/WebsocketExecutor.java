@@ -65,18 +65,24 @@ public class WebsocketExecutor {
             ThreadLocalVariablesKeeper.setSession(session);
             response = tryExecute(request, session);
         } catch (HiveException ex) {
+            logger.error("Error executing the request", ex);
             response = JsonMessageBuilder.createError(ex).build();
         } catch (ConstraintViolationException ex) {
+            logger.error("Error executing the request", ex);
             response =
                 JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage())
                     .build();
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
+            logger.error("Error executing the request", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage())
                 .build();
         } catch (JsonParseException ex) {
+            logger.error("Error executing the request", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST,
                                                                      Messages.INVALID_REQUEST_PARAMETERS).build();
         } catch (OptimisticLockException ex) {
+            logger.error("Error executing the request", ex);
+            logger.error("Data conflict", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT,
                                                                      Messages.CONFLICT_MESSAGE).build();
         } catch (PersistenceException ex) {
@@ -90,6 +96,7 @@ public class WebsocketExecutor {
                     .build();
             }
         } catch (Exception ex) {
+            logger.error("Error executing the request", ex);
             response = JsonMessageBuilder
                 .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
         } finally {
