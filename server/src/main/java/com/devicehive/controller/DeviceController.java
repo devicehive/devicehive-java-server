@@ -66,9 +66,7 @@ import static com.devicehive.configuration.Constants.SORT_FIELD;
 import static com.devicehive.configuration.Constants.SORT_ORDER;
 import static com.devicehive.configuration.Constants.STATUS;
 import static com.devicehive.configuration.Constants.TAKE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
@@ -171,7 +169,7 @@ public class DeviceController {
     public Response register(JsonObject jsonObject, @PathParam(ID) String deviceGuid) {
         logger.debug("Device register method requested. Guid : {}", deviceGuid);
 
-        Gson mainGson = GsonFactory.createGson(DEVICE_PUBLISHED);
+        Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
         DeviceUpdate device;
         device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
         device.setGuid(new NullableWrapper<>(deviceGuid));

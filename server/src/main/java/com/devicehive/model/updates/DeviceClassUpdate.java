@@ -31,7 +31,7 @@ public class DeviceClassUpdate implements HiveEntity {
     private NullableWrapper<Integer> offlineTimeout;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private NullableWrapper<JsonStringWrapper> data;
-    @JsonPolicyDef({DEVICECLASS_PUBLISHED})
+    @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_SUBMITTED})
     private NullableWrapper<Set<Equipment>> equipment;
 
     public NullableWrapper<Set<Equipment>> getEquipment() {

@@ -35,6 +35,7 @@ import javax.websocket.Session;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 public class DeviceHandlers extends WebsocketHandlers {
@@ -157,7 +158,7 @@ public class DeviceHandlers extends WebsocketHandlers {
     @PermitAll
     public WebSocketResponse processDeviceSave(@WsParam(Constants.DEVICE_ID) String deviceId,
                                                @WsParam(Constants.DEVICE_KEY) String deviceKey,
-                                               @WsParam(Constants.DEVICE) @JsonPolicyApply(DEVICE_PUBLISHED)
+                                               @WsParam(Constants.DEVICE) @JsonPolicyApply(DEVICE_SUBMITTED)
                                                DeviceUpdate device,
                                                JsonObject message,
                                                Session session) {
