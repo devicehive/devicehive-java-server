@@ -24,12 +24,7 @@ import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.Equipment.Queries.Names;
 import static com.devicehive.model.Equipment.Queries.Values;
 
@@ -62,7 +57,7 @@ public class Equipment implements HiveEntity {
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
                                         "symbols.")
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENT_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH,
-                    DEVICE_PUBLISHED})
+                    DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICECLASS_SUBMITTED})
     private String name;
     @SerializedName("code")
     @Column
@@ -70,7 +65,7 @@ public class Equipment implements HiveEntity {
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code should not be more than 128 " +
                                         "symbols.")
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENT_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH,
-                    DEVICE_PUBLISHED})
+                    DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICECLASS_SUBMITTED})
     private String code;
     @SerializedName("type")
     @Column
@@ -78,7 +73,7 @@ public class Equipment implements HiveEntity {
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of type should not be more than 128 " +
                                         "symbols.")
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENT_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH,
-                    DEVICE_PUBLISHED})
+                    DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICECLASS_SUBMITTED})
     private String type;
     @SerializedName("data")
     @Embedded
@@ -86,7 +81,7 @@ public class Equipment implements HiveEntity {
                             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
                         })
     @JsonPolicyDef({EQUIPMENT_SUBMITTED, DEVICECLASS_PUBLISHED, EQUIPMENT_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH,
-                    DEVICE_PUBLISHED})
+                    DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICECLASS_SUBMITTED})
     private JsonStringWrapper data;
     @ManyToOne
     @JoinColumn(name = "device_class_id", updatable = false)

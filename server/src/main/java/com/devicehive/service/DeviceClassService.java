@@ -71,7 +71,7 @@ public class DeviceClassService {
                 if (deviceClass.getValue().getPermanent() != null) {
                     stored.setPermanent(deviceClassFromMessage.getPermanent());
                 }
-                Set<Equipment> eq = deviceClass.getValue().getEquipment().getValue();
+                Set<Equipment> eq = deviceClassFromMessage.getEquipment();
                 eq = eq != null ? eq : customEquipmentSet;
                 if (eq != null) {
                     replaceEquipment(eq, stored);
