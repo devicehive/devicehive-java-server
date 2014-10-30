@@ -24,6 +24,9 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -50,6 +53,10 @@ public class UserService {
     @EJB
     private HiveValidator hiveValidator;
 
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
+    private EntityManager em;
+
+
     /**
      * Tries to authenticate with given credentials
      *
@@ -60,23 +67,37 @@ public class UserService {
         if (user == null) {
             return null;
         }
-        if (!passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
+
+        long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
+
+        if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
+            boolean willBeChanged = user.getLoginAttempts() != 0
+                || user.getLastLogin() == null
+                || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
+
+            // No changes to user, successful authentication
+            if (!willBeChanged) {
+                return user;
+            }
+        }
+
+        em.refresh(user, LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+        // repeat whole auth procedure on locked entity
+        if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
+            if (user.getLoginAttempts() != 0) {
+                user.setLoginAttempts(0);
+            }
+            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
+                user.setLastLogin(timestampService.getTimestamp());
+            }
+            return user;
+        } else {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts() >=
                 configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
             return null;
-        } else {
-            if (user.getLoginAttempts() != 0) {
-                user.setLoginAttempts(0);
-            }
-            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() >
-                                               configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT,
-                                                                            Constants.LAST_LOGIN_TIMEOUT_DEFAULT)) {
-                user.setLastLogin(timestampService.getTimestamp());
-            }
-            return user;
         }
     }
 
