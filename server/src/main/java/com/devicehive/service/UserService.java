@@ -81,7 +81,7 @@ public class UserService {
             }
         }
 
-        em.refresh(user, LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         // repeat whole auth procedure on locked entity
         if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             if (user.getLoginAttempts() != 0) {
