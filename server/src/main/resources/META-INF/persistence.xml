@@ -20,6 +20,7 @@
         <class>com.devicehive.model.AccessKeyPermission</class>
         <class>com.devicehive.model.OAuthClient</class>
         <class>com.devicehive.model.OAuthGrant</class>
+        <class>com.devicehive.model.IdentityProvider</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode>
         <validation-mode>AUTO</validation-mode>

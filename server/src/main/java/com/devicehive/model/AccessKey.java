@@ -39,6 +39,7 @@ import static com.devicehive.model.AccessKey.Queries.Values;
                   @NamedQuery(name = Names.GET_BY_ID, query = Values.GET_BY_ID),
                   @NamedQuery(name = Names.GET_BY_ID_SIMPLE, query = Values.GET_BY_ID_SIMPLE),
                   @NamedQuery(name = Names.GET_BY_KEY, query = Values.GET_BY_KEY),
+                  @NamedQuery(name = Names.GET_BY_USER_AND_LABEL, query = Values.GET_BY_USER_AND_LABEL),
                   @NamedQuery(name = Names.DELETE_BY_ID_AND_USER, query = Values.DELETE_BY_ID_AND_USER),
                   @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
               })
@@ -151,6 +152,7 @@ public class AccessKey implements HiveEntity {
             static final String GET_BY_ID = "AccessKey.getById";
             static final String GET_BY_ID_SIMPLE = "AccessKey.getByIdSimple";
             static final String GET_BY_KEY = "AccessKey.getByKey";
+            static final String GET_BY_USER_AND_LABEL = "AccessKey.getByUserAndLabel";
             static final String DELETE_BY_ID_AND_USER = "AccessKey.deleteByIdAndUser";
             static final String DELETE_BY_ID = "AccessKey.deleteById";
         }
@@ -177,6 +179,11 @@ public class AccessKey implements HiveEntity {
                 "left join fetch ak.permissions " +
                 "join fetch ak.user " +
                 "where ak.key = :someKey";
+            static final String GET_BY_USER_AND_LABEL =
+                "select ak from AccessKey ak " +
+                        "left join fetch ak.permissions " +
+                        "join fetch ak.user u " +
+                        "where u.id = :userId and ak.label = :label";
             static final String DELETE_BY_ID_AND_USER =
                 "delete from AccessKey ak where ak.user.id = :userId and ak.id = :accessKeyId";
             static final String DELETE_BY_ID = "delete from AccessKey ak where ak.id = :accessKeyId";
@@ -187,6 +194,7 @@ public class AccessKey implements HiveEntity {
             static final String USER_ID = "userId";
             static final String ACCESS_KEY_ID = "accessKeyId";
             static final String KEY = "someKey";
+            static final String LABEL = "label";
         }
     }
 }

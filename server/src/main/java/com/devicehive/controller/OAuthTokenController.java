@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
@@ -8,34 +9,24 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessToken;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.OAuthClient;
+import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.CLIENT_ID;
-import static com.devicehive.configuration.Constants.CODE;
-import static com.devicehive.configuration.Constants.GRANT_TYPE;
-import static com.devicehive.configuration.Constants.OAUTH_AUTH_SCEME;
-import static com.devicehive.configuration.Constants.REDIRECT_URI;
-import static com.devicehive.configuration.Constants.SCOPE;
-import static com.devicehive.configuration.Constants.USERNAME;
+import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
@@ -51,6 +42,9 @@ public class OAuthTokenController {
 
     @EJB
     private TimestampService timestampService;
+
+    @EJB
+    private AccessKeyService accessKeyService;
 
     @Inject
     private HiveSecurityContext hiveSecurityContext;
@@ -103,5 +97,21 @@ public class OAuthTokenController {
         logger.debug("OAuthToken: token requested. Grant type: {}, code: {}, redirect URI: {}, client id: {}",
                      grantType, code, redirectUri, clientId);
         return ResponseFactory.response(OK, token);
+    }
+
+    @Path("/apply")
+    @GET
+    @RolesAllowed({HiveRoles.KEY})
+    public Response login() {
+        return ResponseFactory.response(OK, hiveSecurityContext.getHivePrincipal().getKey().getKey());
+    }
+
+    @Path("/remove")
+    @GET
+    @RolesAllowed({HiveRoles.KEY})
+    public Response logout() {
+        AccessKey accessKey = hiveSecurityContext.getHivePrincipal().getKey();
+        accessKeyService.delete(null, accessKey.getId());
+        return ResponseFactory.response(OK);
     }
 }

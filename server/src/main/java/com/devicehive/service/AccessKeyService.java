@@ -1,28 +1,27 @@
 package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
+import com.devicehive.configuration.PropertiesService;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.AccessKeyPermissionDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.AccessType;
-import com.devicehive.model.AvailableActions;
-import com.devicehive.model.Device;
-import com.devicehive.model.Network;
-import com.devicehive.model.OAuthGrant;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
+import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
+import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.util.LogExecutionTime;
-
+import com.google.api.client.auth.oauth2.BearerToken;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
-
-import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -30,12 +29,17 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Stateless
 @LogExecutionTime
 @EJB(beanInterface = AccessKeyService.class, name = "AccessKeyService")
 public class AccessKeyService {
-
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(AccessKeyService.class);
 
     @EJB
     private AccessKeyDAO accessKeyDAO;
@@ -47,6 +51,18 @@ public class AccessKeyService {
     private DeviceDAO deviceDAO;
     @EJB
     private AccessKeyService self;
+    @EJB
+    private IdentityProviderService identityProviderService;
+    @EJB
+    private TimestampService timestampService;
+    @EJB
+    private NetworkService networkService;
+    @EJB
+    private DeviceService deviceService;
+    @EJB
+    PropertiesService propertiesService;
+    @EJB
+    OAuthAuthenticationUtils authenticationUtils;
 
     public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
         if (accessKey.getLabel() == null) {
@@ -56,7 +72,7 @@ public class AccessKeyService {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                                     Response.Status.BAD_REQUEST.getStatusCode());
         }
-        validateActions(accessKey);
+        authenticationUtils.validateActions(accessKey);
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         String key = keyProcessor.generateKey();
         accessKey.setKey(key);
@@ -90,7 +106,7 @@ public class AccessKeyService {
                                         Response.Status.BAD_REQUEST.getStatusCode());
             }
             AccessKey toValidate = toUpdate.convertTo();
-            validateActions(toValidate);
+            authenticationUtils.validateActions(toValidate);
             permissionDAO.deleteByAccessKey(existing);
             for (AccessKeyPermission current : permissionsToReplace) {
                 current.setAccessKey(existing);
@@ -105,22 +121,54 @@ public class AccessKeyService {
         return accessKeyDAO.get(key);
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public AccessKey authenticate(@NotNull String accessToken, @NotNull String state) {
+        final IdentityProvider identityProvider = authenticationUtils.getIdentityProvider(state);
+        String apiResponse = null;
+        try {
+            final String verificationResponse =  executeGet(new NetHttpTransport(),
+                    BearerToken.queryParameterAccessMethod(), accessToken, identityProvider.getVerificationEndpoint(), identityProvider.getName());
+            if (!authenticationUtils.validateVerificationResponse(verificationResponse, identityProvider)) {
+                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, identityProvider.getName()),
+                        Response.Status.FORBIDDEN.getStatusCode());
+            }
+            apiResponse =  executeGet(new NetHttpTransport(), BearerToken.authorizationHeaderAccessMethod(),
+                    accessToken, identityProvider.getApiEndpoint(), identityProvider.getName());
+        } catch (IOException e) {
+            LOGGER.error("Exception has been caught during Identity Provider GET request execution", e);
+            return null;
+        }
+        final String email = authenticationUtils.getEmailFromResponse(apiResponse, identityProvider.getId());
+        User user = userService.findByLoginAndIdentity(email, identityProvider);
+        if (user == null) {
+            user = userService.createExternalUser(email, identityProvider);
+        }
+        AccessKey accessKey = accessKeyDAO.get(user.getId(),
+                String.format(OAuthAuthenticationUtils.OAUTH_ACCESS_KEY_LABEL_FORMAT, identityProvider.getName(), email));
+        if (accessKey == null) {
+            return createExternalAccessToken(user, identityProvider.getName(), email);
+        }
+        return accessKey;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    private AccessKey createExternalAccessToken(final User user, final String providerName, final String email) {
+        AccessKey accessKey = authenticationUtils.prepareAccessKey(user, providerName, email);
+
+        Set<AccessKeyPermission> permissions = new HashSet<>();
+        final AccessKeyPermission permission = authenticationUtils.preparePermission();
+        permissions.add(permission);
+        accessKey.setPermissions(permissions);
+        accessKeyDAO.insert(accessKey);
+
+        permission.setAccessKey(accessKey);
+        permissionDAO.insert(permission);
+        return accessKey;
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public AccessKey find(@NotNull Long keyId, @NotNull Long userId) {
         return accessKeyDAO.get(userId, keyId);
-    }
-
-    private void validateActions(AccessKey accessKey) {
-        Set<String> actions = new HashSet<>();
-        for (AccessKeyPermission permission : accessKey.getPermissions()) {
-            if (permission.getActionsAsSet() == null) {
-                throw new HiveException(Messages.ACTIONS_ARE_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
-            }
-            actions.addAll(permission.getActionsAsSet());
-        }
-        if (!AvailableActions.validate(actions)) {
-            throw new HiveException(Messages.UNKNOWN_ACTION, Response.Status.BAD_REQUEST.getStatusCode());
-        }
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -261,5 +309,17 @@ public class AccessKeyService {
         return accessKeyDAO.delete(userId, keyId);
     }
 
-
+    private static String executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
+                                           final String endpoint, final String providerName) throws IOException {
+        final Credential credential = new Credential(accessMethod).setAccessToken(accessToken);
+        final GenericUrl url = new GenericUrl(endpoint);
+        final HttpRequestFactory requestFactory = transport.createRequestFactory(credential);
+        final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
+        final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
+        if (jsonObject.get("error") != null) {
+            throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
+                    Response.Status.FORBIDDEN.getStatusCode());
+        }
+        return response;
+    }
 }

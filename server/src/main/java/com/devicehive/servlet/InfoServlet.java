@@ -2,11 +2,7 @@ package com.devicehive.servlet;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Properties;
+import com.devicehive.configuration.PropertiesService;
 
 import javax.ejb.EJB;
 import javax.servlet.RequestDispatcher;
@@ -15,6 +11,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
 
 @WebServlet("/index")
 public class InfoServlet extends HttpServlet {
@@ -26,18 +25,16 @@ public class InfoServlet extends HttpServlet {
 
     private static final String INFO_PAGE = "info_page.jsp";
 
-    private static final String PROPERTIES = "/WEB-INF/classes/buildInfo.properties";
+    @EJB
+    PropertiesService propertiesService;
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute(Constants.REST_SERVER_URL, configurationService.get(Constants.REST_SERVER_URL));
         request.setAttribute(Constants.WEBSOCKET_SERVER_URL, configurationService.get(Constants.WEBSOCKET_SERVER_URL));
 
-        try (InputStream is = request.getServletContext().getResourceAsStream(PROPERTIES)) {
-            Properties properties = new Properties();
-            properties.load(is);
-            for (Map.Entry<?, ?> entry : properties.entrySet()) {
-                request.setAttribute(entry.getKey().toString(), entry.getValue());
-            }
+        Properties properties = propertiesService.getProperties();
+        for (Map.Entry<?, ?> entry : properties.entrySet()) {
+            request.setAttribute(entry.getKey().toString(), entry.getValue());
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher(INFO_PAGE);

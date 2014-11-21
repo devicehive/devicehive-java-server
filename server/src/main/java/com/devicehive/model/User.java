@@ -4,26 +4,18 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.Set;
 
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Version;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.ws.rs.DefaultValue;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
@@ -37,6 +29,7 @@ import static com.devicehive.model.User.Queries.Values;
 @Table(name = "\"user\"")
 @NamedQueries({
                   @NamedQuery(name = Names.FIND_BY_NAME, query = Values.FIND_BY_NAME),
+                  @NamedQuery(name = Names.FIND_BY_LOGIN_AND_IDENTITY, query = Values.FIND_BY_LOGIN_AND_IDENTITY),
                   @NamedQuery(name = Names.HAS_ACCESS_TO_NETWORK, query = Values.HAS_ACCESS_TO_NETWORK),
                   @NamedQuery(name = Names.HAS_ACCESS_TO_DEVICE, query = Values.HAS_ACCESS_TO_DEVICE),
                   @NamedQuery(name = Names.GET_WITH_NETWORKS_BY_ID, query = Values.GET_WITH_NETWORKS_BY_ID),
@@ -63,13 +56,8 @@ public class User implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
     @Column(name = "password_hash")
-    @NotNull(message = "passwordHash field cannot be null.")
-    @Size(min = 1, max = 64, message = "Field cannot be empty. The length of passwordHash should be 64 symbols.")
     private String passwordHash;
     @Column(name = "password_salt")
-    @NotNull(message = "passwordSalt field cannot be null.")
-    @Size(min = 1, max = 24, message = "Field cannot be empty. The length of passwordSalt should not be more than " +
-                                       "24 symbols.")
     private String passwordSalt;
     @Column(name = "login_attempts")
     private Integer loginAttempts;
@@ -88,6 +76,11 @@ public class User implements HiveEntity {
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
+    @SerializedName("identityProvider")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "identity_provider_id")
+    @NotNull(message = "identityProvider field cannot be null.")
+    private IdentityProvider identityProvider;
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -179,6 +172,14 @@ public class User implements HiveEntity {
         this.entityVersion = entityVersion;
     }
 
+    public IdentityProvider getIdentityProvider() {
+        return identityProvider;
+    }
+
+    public void setIdentityProvider(IdentityProvider identityProvider) {
+        this.identityProvider = identityProvider;
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -205,6 +206,7 @@ public class User implements HiveEntity {
         public static interface Names {
 
             static final String FIND_BY_NAME = "User.findByName";
+            static final String FIND_BY_LOGIN_AND_IDENTITY = "User.findByLoginAndIdentity";
             static final String HAS_ACCESS_TO_NETWORK = "User.hasAccessToNetwork";
             static final String HAS_ACCESS_TO_DEVICE = "User.hasAccessToDevice";
             static final String GET_WITH_NETWORKS_BY_ID = "User.getWithNetworksById";
@@ -214,6 +216,7 @@ public class User implements HiveEntity {
         static interface Values {
 
             static final String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
+            static final String FIND_BY_LOGIN_AND_IDENTITY = "select u from User u where u.login = :login and u.identityProvider = :identityProvider and u.status <> 3";
             static final String HAS_ACCESS_TO_NETWORK =
                 "select count(distinct u) from User u " +
                 "join u.networks n " +
@@ -235,6 +238,7 @@ public class User implements HiveEntity {
             static final String DEVICE = "device";
             static final String ID = "id";
             static final String LOGIN = "login";
+            static final String IDENTITY_PROVIDER = "identityProvider";
         }
     }
 }

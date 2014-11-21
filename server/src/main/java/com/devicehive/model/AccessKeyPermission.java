@@ -1,41 +1,18 @@
 package com.devicehive.model;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonParser;
-
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.*;
 
+import javax.persistence.*;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Version;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED_ADMIN;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.AccessKeyPermission.Queries.Names;
 import static com.devicehive.model.AccessKeyPermission.Queries.Values;
 
@@ -238,12 +215,22 @@ public class AccessKeyPermission implements HiveEntity {
         this.networkIds = networkIds;
     }
 
+    public void setNetworkIds(Collection<Long> actions) {
+        Gson gson = GsonFactory.createGson();
+        this.networkIds = new JsonStringWrapper(gson.toJsonTree(actions).toString());
+    }
+
     public JsonStringWrapper getDeviceGuids() {
         return deviceGuids;
     }
 
     public void setDeviceGuids(JsonStringWrapper deviceGuids) {
         this.deviceGuids = deviceGuids;
+    }
+
+    public void setDeviceGuids(Collection<String> deviceGuids) {
+        Gson gson = GsonFactory.createGson();
+        this.deviceGuids = new JsonStringWrapper(gson.toJsonTree(deviceGuids).toString());
     }
 
     public static class Queries {

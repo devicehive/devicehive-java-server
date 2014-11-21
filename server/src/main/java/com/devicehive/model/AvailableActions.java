@@ -42,4 +42,8 @@ public class AvailableActions {
         return true;
     }
 
+    public static String[] getAllActions() {
+        return KNOWN_ACTIONS.toArray(new String[KNOWN_ACTIONS.size()]);
+    }
+
 }

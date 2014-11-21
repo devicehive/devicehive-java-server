@@ -7,17 +7,15 @@ import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
+import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.util.HiveValidator;
-
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
-import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -28,10 +26,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Set;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * This class serves all requests to database from controller.
@@ -39,6 +37,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
+    private static final Long DH_IDENTITY_PROVIDER_ID = 0L;
 
     @Inject
     private PasswordProcessor passwordService;
@@ -52,6 +51,8 @@ public class UserService {
     private ConfigurationService configurationService;
     @EJB
     private HiveValidator hiveValidator;
+    @EJB
+    private IdentityProviderService identityProviderService;
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
@@ -229,9 +230,22 @@ public class UserService {
         user.setPasswordSalt(salt);
         user.setPasswordHash(hash);
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
+        user.setIdentityProvider(identityProviderService.find(DH_IDENTITY_PROVIDER_ID));
 
         hiveValidator.validate(user);
         return userDAO.create(user);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User createExternalUser(@NotNull String email, @NotNull IdentityProvider identityProvider) {
+        User user = new User();
+        user.setLogin(email);
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setLastLogin(timestampService.getTimestamp());
+        user.setIdentityProvider(identityProvider);
+        user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
+        return  userDAO.create(user);
     }
 
     /**
@@ -253,6 +267,15 @@ public class UserService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public boolean hasAccessToNetwork(User user, Network network) {
         return user.isAdmin() || userDAO.hasAccessToNetwork(user, network);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByLoginAndIdentity(String login, IdentityProvider identityProvider) {
+        User user = userDAO.findByLoginAndIdentity(login, identityProvider);
+        if (user == null) {
+            return null;
+        }
+        return user;
     }
 
 }

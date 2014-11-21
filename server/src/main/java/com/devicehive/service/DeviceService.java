@@ -6,28 +6,12 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.Equipment;
-import com.devicehive.model.Network;
-import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
-
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -37,10 +21,9 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import java.util.*;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Stateless
 @LogExecutionTime
@@ -367,6 +350,12 @@ public class DeviceService {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
                                  deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public List<Device> listAll() {
+        return deviceDAO.getList(null, null, null, null, null, null, null,
+                null, null, null, null, null, null);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
