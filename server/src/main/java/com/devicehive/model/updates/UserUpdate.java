@@ -3,8 +3,8 @@ package com.devicehive.model.updates;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 
 public class UserUpdate implements HiveEntity {
 

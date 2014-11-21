@@ -1,4 +1,4 @@
-package com.devicehive.model;
+package com.devicehive.model.enums;
 
 
 public enum UserStatus {

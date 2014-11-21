@@ -4,8 +4,8 @@ import com.devicehive.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

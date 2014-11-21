@@ -3,21 +3,19 @@ package com.devicehive.auth;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Method;
-import java.sql.Timestamp;
-import java.util.Set;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+import java.lang.reflect.Method;
+import java.sql.Timestamp;
+import java.util.Set;
 
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 

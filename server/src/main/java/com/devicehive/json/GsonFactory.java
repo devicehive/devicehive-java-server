@@ -12,10 +12,10 @@ import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.json.adapters.UserRoleAdapter;
 import com.devicehive.json.adapters.UserStatusAdapter;
 import com.devicehive.json.strategies.AnnotatedStrategy;
-import com.devicehive.model.AccessType;
-import com.devicehive.model.Type;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.AccessType;
+import com.devicehive.model.enums.Type;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 
 import java.sql.Timestamp;
 import java.util.Map;

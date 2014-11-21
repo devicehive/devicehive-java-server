@@ -6,10 +6,6 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -18,17 +14,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import static com.devicehive.model.Device.Queries.Names.DELETE_BY_UUID;
-import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_AND_KEY;
-import static com.devicehive.model.Device.Queries.Names.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS;
+import static com.devicehive.model.Device.Queries.Names.*;
 import static com.devicehive.model.Device.Queries.Parameters.GUID;
 import static com.devicehive.model.Device.Queries.Parameters.KEY;
 

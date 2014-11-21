@@ -6,8 +6,8 @@ import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 
