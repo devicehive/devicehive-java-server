@@ -352,12 +352,6 @@ public class DeviceService {
                                  deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public List<Device> listAll() {
-        return deviceDAO.getList(null, null, null, null, null, null, null,
-                null, null, null, null, null, null);
-    }
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Device> getList(Long networkId,
                                 HivePrincipal principal) {

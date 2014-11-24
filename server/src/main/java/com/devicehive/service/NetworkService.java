@@ -123,11 +123,6 @@ public class NetworkService {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, principal);
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public List<Network> listAll() {
-        return networkDAO.list(null, null, null, null, null, null, null);
-    }
-
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
         Network stored;

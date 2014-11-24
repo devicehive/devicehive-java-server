@@ -82,9 +82,9 @@ public class DeviceCommandController {
      *                   waiting.
      */
     @GET
+    @Path("/{deviceGuid}/command/poll")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    @Path("/{deviceGuid}/command/poll")
     public void poll(
         @PathParam(DEVICE_GUID) final String deviceGuid,
         @QueryParam(NAMES) final String namesString,
@@ -96,8 +96,9 @@ public class DeviceCommandController {
     }
 
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
     public void pollMany(
         @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
         @QueryParam(NAMES) final String namesString,
@@ -204,9 +205,9 @@ public class DeviceCommandController {
      *                waiting.
      */
     @GET
+    @Path("/{deviceGuid}/command/{commandId}/poll")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    @Path("/{deviceGuid}/command/{commandId}/poll")
     public void wait(
         @PathParam(DEVICE_GUID) final String deviceGuid,
         @PathParam(COMMAND_ID) final Long commandId,
@@ -365,9 +366,9 @@ public class DeviceCommandController {
      * @param id   command id
      */
     @GET
+    @Path("/{deviceGuid}/command/{commandId}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    @Path("/{deviceGuid}/command/{commandId}")
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long id) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
 
@@ -409,9 +410,9 @@ public class DeviceCommandController {
      */
     @POST
     @Path("/{deviceGuid}/command")
+    @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = CREATE_DEVICE_COMMAND)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand) {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
@@ -448,9 +449,9 @@ public class DeviceCommandController {
      */
     @PUT
     @Path("/{deviceGuid}/command/{commandId}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command) {
 

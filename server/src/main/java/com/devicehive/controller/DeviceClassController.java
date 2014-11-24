@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
@@ -11,43 +12,22 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.NAME;
-import static com.devicehive.configuration.Constants.NAME_PATTERN;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.TAKE;
-import static com.devicehive.configuration.Constants.VERSION;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST controller for device classes: <i>/DeviceClass</i>. See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive
@@ -78,7 +58,8 @@ public class DeviceClassController {
      *         .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
      */
     @GET
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_CLASS)
     public Response getDeviceClassList(
         @QueryParam(NAME) String name,
         @QueryParam(NAME_PATTERN) String namePattern,
@@ -118,7 +99,8 @@ public class DeviceClassController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_CLASS)
     public Response getDeviceClass(@PathParam(ID) long id) {
 
         logger.debug("Get device class by id requested");
@@ -151,8 +133,9 @@ public class DeviceClassController {
      * @return If successful, this method returns a DeviceClass resource in the response body.
      */
     @POST
-    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = CREATE_DEVICE_CLASS)
     public Response insertDeviceClass(DeviceClass insert) {
         logger.debug("Insert device class requested");
         DeviceClass result = deviceClassService.addDeviceClass(insert);
@@ -172,8 +155,9 @@ public class DeviceClassController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = UPDATE_DEVICE_CLASS)
     public Response updateDeviceClass(
         @PathParam(ID) long id,
         @JsonPolicyApply(DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
@@ -192,7 +176,8 @@ public class DeviceClassController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = DELETE_DEVICE_CLASS)
     public Response deleteDeviceClass(@PathParam(ID) long id) {
         logger.debug("Device class delete requested");
         deviceClassService.delete(id);

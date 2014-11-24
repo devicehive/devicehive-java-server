@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
@@ -12,42 +13,23 @@ import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
-import static com.devicehive.configuration.Constants.DOMAIN;
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.NAME;
-import static com.devicehive.configuration.Constants.NAME_PATTERN;
-import static com.devicehive.configuration.Constants.OAUTH_ID;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.TAKE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_LISTED_ADMIN;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_PUBLISHED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_OAUTH_CLIENT;
+import static com.devicehive.auth.AllowedKeyAction.Action.DELETE_OAUTH_CLIENT;
+import static com.devicehive.auth.AllowedKeyAction.Action.UPDATE_OAUTH_CLIENT;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/oauth/client")
 @LogExecutionTime
@@ -116,7 +98,8 @@ public class OAuthClientController {
     }
 
     @POST
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = CREATE_OAUTH_CLIENT)
     public Response insert(OAuthClient clientToInsert) {
         logger.debug("OAuthClient insert requested. Client to insert: {}", clientToInsert);
         if (clientToInsert == null) {
@@ -132,7 +115,8 @@ public class OAuthClientController {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = UPDATE_OAUTH_CLIENT)
     public Response update(@PathParam(ID) Long clientId, OAuthClientUpdate clientToUpdate) {
         logger.debug("OAuthClient update requested. Client id: {}", clientId);
         clientService.update(clientToUpdate, clientId);
@@ -142,7 +126,8 @@ public class OAuthClientController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = DELETE_OAUTH_CLIENT)
     public Response delete(@PathParam(ID) Long clientId) {
         logger.debug("OAuthClient delete requested");
         clientService.delete(clientId);

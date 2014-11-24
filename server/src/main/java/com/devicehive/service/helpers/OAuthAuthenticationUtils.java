@@ -9,19 +9,14 @@ import com.devicehive.model.enums.OAuthProvider;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.NetworkService;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -56,16 +51,6 @@ public class OAuthAuthenticationUtils {
     public AccessKeyPermission preparePermission() {
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setActions(AvailableActions.getAllActions());
-        List<Long> networkIds = new ArrayList<>();
-        for (Network network : networkService.listAll()) {
-            networkIds.add(network.getId());
-        }
-        permission.setNetworkIds(networkIds);
-        List<String> devicesGuids = new ArrayList<>();
-        for (Device device : deviceService.listAll()) {
-            devicesGuids.add(device.getGuid());
-        }
-        permission.setDeviceGuids(devicesGuids);
         return permission;
     }
 
@@ -109,7 +94,7 @@ public class OAuthAuthenticationUtils {
         }
     }
 
-    public String getEmailFromResponse (final String response, final Long providerId) {
+    public String getEmailFromResponse (final String response, final Long providerId) throws HiveException {
         if (StringUtils.isBlank(response)) {
             return null;
         }
@@ -118,12 +103,19 @@ public class OAuthAuthenticationUtils {
         switch (provider) {
             case GOOGLE:
                 final JsonArray jsonArray = jsonObject.getAsJsonArray("emails");
-                return jsonArray.get(0).getAsJsonObject().get("value").getAsString();
+                if (jsonArray != null && jsonArray.size() > 0) {
+                    return jsonArray.get(0).getAsJsonObject().get("value").getAsString();
+                }
             case FACEBOOK:
-                return jsonObject.get("email").getAsString();
+                final JsonElement jsonElement = jsonObject.get("email");
+                if (jsonElement != null) {
+                    return jsonObject.get("email").getAsString();
+                }
+                throw new HiveException(Messages.WRONG_IDENTITY_PROVIDER_SCOPE, Response.Status.BAD_REQUEST.getStatusCode());
             default: throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, providerId),
                     Response.Status.BAD_REQUEST.getStatusCode());
         }
+        //throw new HiveException(Messages.WRONG_IDENTITY_PROVIDER_SCOPE, Response.Status.BAD_REQUEST.getStatusCode());
     }
 
     public void validateActions(AccessKey accessKey) {

@@ -13,36 +13,19 @@ import com.devicehive.model.Network;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.NetworkService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.GET_NETWORK;
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.NAME;
-import static com.devicehive.configuration.Constants.NAME_PATTERN;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.TAKE;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static com.devicehive.configuration.Constants.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/network")
 @LogExecutionTime
@@ -165,7 +148,8 @@ public class NetworkController {
      * provided anyway.
      */
     @POST
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = CREATE_NETWORK)
     public Response insert(Network network) {
         logger.debug("Network insert requested");
         Network result = networkService.create(network);
@@ -195,7 +179,8 @@ public class NetworkController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = UPDATE_NETWORK)
     public Response update(NetworkUpdate networkToUpdate, @PathParam(ID) long id) {
 
         logger.debug("Network update requested. Id : {}", id);
@@ -212,7 +197,8 @@ public class NetworkController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = DELETE_NETWORK)
     public Response delete(@PathParam(ID) long id) {
 
         logger.debug("Network delete requested");

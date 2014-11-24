@@ -13,6 +13,10 @@
         $(document).ready(function () {
             var deviceHiveUrl = "http://" + window.location.host + "/DeviceHiveJava/";
             var deviceHiveHomeUrl = deviceHiveUrl + "home.html";
+            var deviceHiveLoginUrl = deviceHiveUrl + "login.html";
+            [].forEach.call(document.getElementsByName("redirect_uri"), function(elem) {
+                elem.value = deviceHiveLoginUrl;
+            });
 
             var params = {}, queryString = location.hash.substring(1),
                     regex = /([^&=]+)=([^&]*)/g, m;
@@ -49,8 +53,8 @@
     <form action="https://accounts.google.com/o/oauth2/auth" method="get">
         <input name="response_type" value="token" type="hidden">
         <input name="client_id" value="544030378310-5abl2cqkn34f04vqdt0704iimn0dokmf.apps.googleusercontent.com" type="hidden">
-        <input name="redirect_uri" value="http://localhost:8080/DeviceHiveJava/login.html" type="hidden">
-        <input name="scope" value="profile" type="hidden">
+        <input name="redirect_uri" type="hidden">
+        <input name="scope" value="email" type="hidden">
         <input name="state" value="identity_provider_id=1" type="hidden">
         <button type="submit" class="btn btn-google-plus"><i class="fa fa-google-plus"> Sign in with Google</i></button>
     </form>
@@ -60,7 +64,7 @@
     <form action="https://www.facebook.com/dialog/oauth" method="get">
         <input name="response_type" value="token" type="hidden">
         <input name="client_id" value="986499761367338" type="hidden">
-        <input name="redirect_uri" value="http://localhost:8080/DeviceHiveJava/login.html" type="hidden">
+        <input name="redirect_uri" type="hidden">
         <input name="scope" value="email" type="hidden">
         <input name="state" value="identity_provider_id=2" type="hidden">
         <button type="submit" class="btn btn-facebook"><i class="fa fa-facebook"> Sign in with Facebook</i></button>

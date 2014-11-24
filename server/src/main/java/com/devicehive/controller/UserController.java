@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -61,7 +63,8 @@ public class UserController {
      * @return List of User
      */
     @GET
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_USER)
     public Response getUsersList(@QueryParam(LOGIN) String login,
                                  @QueryParam(LOGIN_PATTERN) String loginPattern,
                                  @QueryParam(ROLE) Integer role,
@@ -101,7 +104,8 @@ public class UserController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_USER)
     public Response getUser(@PathParam(ID) Long userId) {
 
         User user = userService.findUserWithNetworks(userId);
@@ -119,7 +123,8 @@ public class UserController {
 
     @GET
     @Path("/current")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_USER)
     public Response getCurrent() {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Long id = principal.getUser().getId();
@@ -142,8 +147,9 @@ public class UserController {
      * @return Empty body, status 201 if success, 403 if forbidden, 400 otherwise
      */
     @POST
-    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = CREATE_USER)
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserUpdate userToCreate) {
         String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
@@ -162,8 +168,9 @@ public class UserController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = UPDATE_USER)
     public Response updateUser(UserUpdate user, @PathParam("id") Long userId) {
         userService.updateUser(userId, user);
         return ResponseFactory.response(NO_CONTENT);
@@ -171,8 +178,9 @@ public class UserController {
 
     @PUT
     @Path("/current")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = UPDATE_USER)
     public Response updateCurrentUser(UserUpdate user) {
         Long id = hiveSecurityContext.getHivePrincipal().getUser().getId();
         userService.updateUser(id, user);
@@ -187,7 +195,8 @@ public class UserController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = DELETE_USER)
     public Response deleteUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
         return ResponseFactory.response(NO_CONTENT);
@@ -203,7 +212,8 @@ public class UserController {
      */
     @GET
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_NETWORK)
     public Response getNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
@@ -227,7 +237,8 @@ public class UserController {
      */
     @PUT
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = ASSIGN_NETWORK)
     public Response assignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.assignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);
@@ -242,7 +253,8 @@ public class UserController {
      */
     @DELETE
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = ASSIGN_NETWORK)
     public Response unassignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.unassignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);

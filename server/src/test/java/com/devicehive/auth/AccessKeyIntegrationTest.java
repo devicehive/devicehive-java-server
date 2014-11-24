@@ -208,6 +208,18 @@ public class AccessKeyIntegrationTest {
                     actionTestProcess(accessKey,
                                       "[CreateDeviceNotification]");
                 }
+                if (allowedActions.contains(AllowedKeyAction.Action.DELETE_DEVICE)) {
+                    actionTestProcess(accessKey, "[GetDevice]");
+                }
+                if (allowedActions.contains(AllowedKeyAction.Action.DELETE_NETWORK)) {
+                    actionTestProcess(accessKey, "[GetNetwork]");
+                }
+                if (allowedActions.contains(AllowedKeyAction.Action.CREATE_NETWORK)) {
+                    actionTestProcess(accessKey, "[GetNetwork]");
+                }
+                if (allowedActions.contains(AllowedKeyAction.Action.UPDATE_NETWORK)) {
+                    actionTestProcess(accessKey, "[GetNetwork]");
+                }
             } catch (HiveException e) {
                 if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
                     fail("Unauthorizd code expected");

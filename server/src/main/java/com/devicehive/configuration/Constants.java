@@ -21,7 +21,7 @@ public class Constants {
     public static final int INITIAL_LOGIN_ATTEMPTS = 0;
     public static final int MAX_LOGIN_ATTEMPTS_DEFAULT = 10;
     public static final String LAST_LOGIN_TIMEOUT = "user.login.lastTimeout"; // 1 hour
-    public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 60 * 60 * 1000; // 1 hour
+    public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 1000; // 1 hour
     public static final String WEBSOCKET_SESSION_PING_TIMEOUT = "websocket.ping.timeout";
     public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
