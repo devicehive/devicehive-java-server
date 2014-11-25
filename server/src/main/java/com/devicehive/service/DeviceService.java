@@ -179,6 +179,7 @@ public class DeviceService {
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
+            device.setNetwork(network);
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_ADD);
