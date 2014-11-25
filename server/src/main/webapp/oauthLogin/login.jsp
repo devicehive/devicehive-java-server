@@ -65,7 +65,7 @@
     <input name="client_id" value="<%=request.getAttribute(Constants.GOOGLE_CLIENT_ID)%>" type="hidden">
     <input name="redirect_uri" type="hidden">
     <input name="scope" value="email" type="hidden">
-    <input name="state" value="identity_provider_id=1" type="hidden">
+    <input name="state" value="identity_provider_id=<%=Constants.GOOGLE_IDENTITY_ID%>" type="hidden">
     <button type="submit" class="btn btn-google-plus"><i class="fa fa-google-plus"> Sign in with Google</i></button>
   </form>
 </div>
@@ -76,7 +76,7 @@
     <input name="client_id" value="<%=request.getAttribute(Constants.FACEBOOK_CLIENT_ID)%>" type="hidden">
     <input name="redirect_uri" type="hidden">
     <input name="scope" value="email" type="hidden">
-    <input name="state" value="identity_provider_id=2" type="hidden">
+    <input name="state" value="identity_provider_id=<%=Constants.FACEBOOK_IDENTITY_ID%>" type="hidden">
     <button type="submit" class="btn btn-facebook"><i class="fa fa-facebook"> Sign in with Facebook</i></button>
   </form>
 </div>

@@ -115,7 +115,6 @@ public class OAuthAuthenticationUtils {
             default: throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, providerId),
                     Response.Status.BAD_REQUEST.getStatusCode());
         }
-        //throw new HiveException(Messages.WRONG_IDENTITY_PROVIDER_SCOPE, Response.Status.BAD_REQUEST.getStatusCode());
     }
 
     public void validateActions(AccessKey accessKey) {
