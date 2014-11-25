@@ -278,4 +278,22 @@ public class UserService {
         return user;
     }
 
+    public User refreshUserLoginData(User user) {
+        final long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
+        final boolean updateLoginAttempts = user.getLoginAttempts() != 0;
+        final boolean updateLastLogin = user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
+        if (updateLoginAttempts || updateLastLogin) {
+            em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+            if (updateLoginAttempts) {
+                user.setLoginAttempts(0);
+            }
+            if (updateLastLogin) {
+                user.setLastLogin(timestampService.getTimestamp());
+            }
+            hiveValidator.validate(user);
+            return userDAO.update(user);
+        }
+        return user;
+    }
+
 }

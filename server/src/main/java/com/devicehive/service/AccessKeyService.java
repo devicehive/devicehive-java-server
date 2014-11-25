@@ -121,7 +121,6 @@ public class AccessKeyService {
         return accessKeyDAO.get(key);
     }
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public AccessKey authenticate(@NotNull String accessToken, @NotNull String state) {
         final IdentityProvider identityProvider = authenticationUtils.getIdentityProvider(state);
         String apiResponse = null;
@@ -143,6 +142,7 @@ public class AccessKeyService {
         if (user == null) {
             user = userService.createExternalUser(email, identityProvider);
         }
+        userService.refreshUserLoginData(user);
         AccessKey accessKey = accessKeyDAO.get(user.getId(),
                 String.format(OAuthAuthenticationUtils.OAUTH_ACCESS_KEY_LABEL_FORMAT, identityProvider.getName(), email));
         if (accessKey == null) {
