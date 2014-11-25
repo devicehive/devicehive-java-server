@@ -131,7 +131,7 @@ public class NetworkService {
         return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, principal);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute
     public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
         Network stored;
         //case network is not defined
@@ -162,7 +162,7 @@ public class NetworkService {
         return stored;
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute
     public Network createOrUpdateNetworkByUser(NullableWrapper<Network> network, User user) {
         Network stored;
 
