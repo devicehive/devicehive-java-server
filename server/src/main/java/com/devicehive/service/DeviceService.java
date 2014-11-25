@@ -6,6 +6,9 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.bus.Create;
+import com.devicehive.messages.bus.GlobalMessage;
+import com.devicehive.messages.bus.LocalMessage;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
@@ -67,7 +70,14 @@ public class DeviceService {
     @EJB
     private HiveValidator hiveValidator;
     @Inject
-    private Event<DeviceNotification> event;
+    @Create
+    @LocalMessage
+    private Event<DeviceNotification> eventLocal;
+
+    @Inject
+    @Create
+    @GlobalMessage
+    private Event<DeviceNotification> eventGlobal;
 
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal) {
@@ -95,7 +105,8 @@ public class DeviceService {
         } else {
             dn = deviceSave(device, equipmentSet);
         }
-        event.fire(dn);
+        eventLocal.fire(dn);
+        eventGlobal.fire(dn);
         deviceActivityService.update(dn.getDevice().getId());
     }
 
