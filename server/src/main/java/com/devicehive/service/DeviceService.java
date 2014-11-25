@@ -20,6 +20,8 @@ import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,6 +49,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 @EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
 
+    private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
     @EJB
     private DeviceNotificationService deviceNotificationService;
     @EJB
@@ -63,12 +66,12 @@ public class DeviceService {
     private AccessKeyService accessKeyService;
     @EJB
     private HiveValidator hiveValidator;
-
     @Inject
     private Event<DeviceNotification> event;
 
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal) {
+        logger.debug("Device: {}. Current role: {}.", device.getGuid(), principal == null ? null : principal.getRole());
         validateDevice(device);
         DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
@@ -99,6 +102,7 @@ public class DeviceService {
     public DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
                                                Set<Equipment> equipmentSet,
                                                User user) {
+        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
@@ -151,7 +155,7 @@ public class DeviceService {
     public DeviceNotification deviceSaveByKey(DeviceUpdate deviceUpdate,
                                               Set<Equipment> equipmentSet,
                                               AccessKey key) {
-
+        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
             throw new HiveException(
@@ -205,6 +209,8 @@ public class DeviceService {
     public DeviceNotification deviceUpdateByDevice(DeviceUpdate deviceUpdate,
                                                    Set<Equipment> equipmentSet,
                                                    Device device) {
+        logger.debug("Device update executed for device update: id {}, device: {}", deviceUpdate.getGuid(),
+                     device.getId());
         if (deviceUpdate.getGuid() == null) {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
         }
@@ -243,6 +249,7 @@ public class DeviceService {
 
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
                                          Set<Equipment> equipmentSet) {
+        logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
@@ -408,7 +415,6 @@ public class DeviceService {
         }
         return result;
     }
-
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean hasAccessTo(@NotNull HivePrincipal filtered, @NotNull Device device) {
