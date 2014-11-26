@@ -2,6 +2,7 @@ package com.devicehive.controller;
 
 
 import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
@@ -169,7 +170,8 @@ public class OAuthGrantController {
     }
 
     private User getUser(String userId) {
-        User current = hiveSecurityContext.getHivePrincipal().getUser();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        User current = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             return current;
         }

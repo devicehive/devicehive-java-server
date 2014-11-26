@@ -188,7 +188,7 @@ public class AccessKeyController {
 
     private User getUser(String userId) {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        User currentUser = principal.getUser();
+        User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         Long id;
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {

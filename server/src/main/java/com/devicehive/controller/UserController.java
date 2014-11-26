@@ -127,7 +127,7 @@ public class UserController {
     @AllowedKeyAction(action = GET_USER)
     public Response getCurrent() {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        Long id = principal.getUser().getId();
+        Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();
         User currentUser = userService.findUserWithNetworks(id);
 
         if (currentUser == null) {
@@ -182,7 +182,8 @@ public class UserController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_USER)
     public Response updateCurrentUser(UserUpdate user) {
-        Long id = hiveSecurityContext.getHivePrincipal().getUser().getId();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();
         userService.updateUser(id, user);
         return ResponseFactory.response(NO_CONTENT);
     }
