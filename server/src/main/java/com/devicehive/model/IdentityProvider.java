@@ -18,8 +18,7 @@ import static com.devicehive.model.IdentityProvider.Queries.Values;
 @Table(name = "identity_provider")
 @NamedQueries({
         @NamedQuery(name = Names.GET_BY_NAME, query = Values.GET_BY_NAME),
-        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-        @NamedQuery(name = Names.GET_BY_CLIENT_ID, query = Values.GET_BY_CLIENT_ID)
+        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
 })
 @Cacheable
 public class IdentityProvider implements HiveEntity {
@@ -38,12 +37,6 @@ public class IdentityProvider implements HiveEntity {
     @SerializedName("name")
     @JsonPolicyDef({IDENTITY_PROVIDER_LISTED})
     private String name;
-
-    @Column(name = "client_id")
-    @NotNull(message = "client id can't be null.")
-    @SerializedName("clientId")
-    @JsonPolicyDef({IDENTITY_PROVIDER_LISTED})
-    private String clientId;
 
     @Column(name = "api_endpoint")
     @NotNull(message = "identity provider's api endpoint can't be null.")
@@ -75,14 +68,6 @@ public class IdentityProvider implements HiveEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
     }
 
     public String getApiEndpoint() {
@@ -135,20 +120,17 @@ public class IdentityProvider implements HiveEntity {
 
             static final String GET_BY_NAME = "IdentityProvider.getByName";
             static final String DELETE_BY_ID = "IdentityProvider.deleteById";
-            static final String GET_BY_CLIENT_ID = "IdentityProvider.getByClientId";
         }
 
         static interface Values {
 
             static final String GET_BY_NAME = "select ip from IdentityProvider ip where ip.name = :name";
             static final String DELETE_BY_ID = "delete from IdentityProvider ip where ip.id = :id";
-            static final String GET_BY_CLIENT_ID = "select ip from IdentityProvider ip where ip.clientId = :clientId";
         }
 
         public static interface Parameters {
 
             static final String ID = "id";
-            static final String CLIENT_ID = "clientId";
             static final String NAME = "name";
         }
     }

@@ -14,6 +14,7 @@
   <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
   <link href="css/social-buttons.css" rel="stylesheet"/>
   <script type="text/javascript" src="webjars/jquery/1.11.1/jquery.min.js"></script>
+  <script type="text/javascript" src="oauthLogin/oauthConfig.js"></script>
   <script type="application/javascript">
     $(document).ready(function () {
       var deviceHiveUrl = "http://" + window.location.host + "/DeviceHiveJava/";
@@ -27,6 +28,13 @@
       [].forEach.call(document.getElementsByName("redirect_uri"), function(elem) {
         elem.value = deviceHiveLoginUrl;
       });
+
+      document.getElementById('googleClientId').value = oauthConfig.googleClientId;
+      document.getElementById('facebookClientId').value = oauthConfig.facebookClientId;
+
+      var identityProviderState = "identity_provider_id=";
+      document.getElementById('googleStateId').value = identityProviderState + oauthConfig.googleIdentityProviderId;
+      document.getElementById('facebookStateId').value = identityProviderState + oauthConfig.facebookIdentityProviderId;
 
       var params = {}, queryString = location.hash.substring(1),
               regex = /([^&=]+)=([^&]*)/g, m;
@@ -62,10 +70,10 @@
 <div>
   <form action="https://accounts.google.com/o/oauth2/auth" method="get">
     <input name="response_type" value="token" type="hidden">
-    <input name="client_id" value="<%=request.getAttribute(Constants.GOOGLE_CLIENT_ID)%>" type="hidden">
+    <input name="client_id" id="googleClientId" type="hidden">
     <input name="redirect_uri" type="hidden">
     <input name="scope" value="email" type="hidden">
-    <input name="state" value="identity_provider_id=<%=Constants.GOOGLE_IDENTITY_ID%>" type="hidden">
+    <input name="state" id="googleStateId" type="hidden">
     <button type="submit" class="btn btn-google-plus"><i class="fa fa-google-plus"> Sign in with Google</i></button>
   </form>
 </div>
@@ -73,10 +81,10 @@
 <div>
   <form action="https://www.facebook.com/dialog/oauth" method="get">
     <input name="response_type" value="token" type="hidden">
-    <input name="client_id" value="<%=request.getAttribute(Constants.FACEBOOK_CLIENT_ID)%>" type="hidden">
+    <input name="client_id" id="facebookClientId" type="hidden">
     <input name="redirect_uri" type="hidden">
     <input name="scope" value="email" type="hidden">
-    <input name="state" value="identity_provider_id=<%=Constants.FACEBOOK_IDENTITY_ID%>" type="hidden">
+    <input name="state" id="facebookStateId" type="hidden">
     <button type="submit" class="btn btn-facebook"><i class="fa fa-facebook"> Sign in with Facebook</i></button>
   </form>
 </div>

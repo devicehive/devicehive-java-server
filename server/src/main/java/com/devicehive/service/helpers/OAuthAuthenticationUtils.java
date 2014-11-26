@@ -5,15 +5,19 @@ import com.devicehive.configuration.PropertiesService;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.*;
-import com.devicehive.model.enums.OAuthProvider;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.NetworkService;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -33,9 +37,18 @@ public class OAuthAuthenticationUtils {
     @EJB
     private DeviceService deviceService;
     @EJB
-    PropertiesService propertiesService;
+    private PropertiesService propertiesService;
     @EJB
     private IdentityProviderService identityProviderService;
+
+    private Long googleIdentityProviderId;
+    private Long facebookIdentityProviderId;
+
+    @PostConstruct
+    public void loadProperties() {
+        googleIdentityProviderId = Long.valueOf(propertiesService.getProperty("google.identity.provider.id"));
+        facebookIdentityProviderId = Long.valueOf(propertiesService.getProperty("facebook.identity.provider.id"));
+    }
 
     public AccessKey prepareAccessKey(final User user, final String providerName, final String email) {
         AccessKey accessKey = new AccessKey();
@@ -75,46 +88,41 @@ public class OAuthAuthenticationUtils {
     }
 
     public boolean validateVerificationResponse(final String response, final IdentityProvider identityProvider) {
-        final OAuthProvider provider = OAuthProvider.forId(identityProvider.getId());
         final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
         if (jsonObject.get("error") != null) {
             throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, identityProvider.getName()),
                     Response.Status.FORBIDDEN.getStatusCode());
         }
         JsonElement verificationElement;
-        switch (provider) {
-            case GOOGLE:
-                verificationElement = jsonObject.get("issued_to");
-                return verificationElement != null && verificationElement.getAsString().startsWith(identityProvider.getClientId());
-            case FACEBOOK:
-                verificationElement = jsonObject.get("id");
-                return verificationElement != null && verificationElement.getAsString().equals(identityProvider.getClientId());
-            default: throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProvider.getId()),
-                    Response.Status.BAD_REQUEST.getStatusCode());
+        final Long providerId = identityProvider.getId();
+        if (providerId.equals(googleIdentityProviderId)) {
+            verificationElement = jsonObject.get("issued_to");
+            return verificationElement != null && verificationElement.getAsString().startsWith(propertiesService.getProperty("google.identity.client.id"));
+        } else if (providerId.equals(facebookIdentityProviderId)) {
+            verificationElement = jsonObject.get("id");
+            return verificationElement != null && verificationElement.getAsString().equals(propertiesService.getProperty("facebook.identity.client.id"));
         }
+        throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProvider.getId()),
+                Response.Status.BAD_REQUEST.getStatusCode());
     }
 
-    public String getEmailFromResponse (final String response, final Long providerId) throws HiveException {
+    public String getEmailFromResponse (final String response, @NotNull final Long providerId) throws HiveException {
         if (StringUtils.isBlank(response)) {
             return null;
         }
-        final OAuthProvider provider = OAuthProvider.forId(providerId);
         final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
-        switch (provider) {
-            case GOOGLE:
-                final JsonArray jsonArray = jsonObject.getAsJsonArray("emails");
-                if (jsonArray != null && jsonArray.size() > 0) {
-                    return jsonArray.get(0).getAsJsonObject().get("value").getAsString();
-                }
-            case FACEBOOK:
-                final JsonElement jsonElement = jsonObject.get("email");
-                if (jsonElement != null) {
-                    return jsonObject.get("email").getAsString();
-                }
-                throw new HiveException(Messages.WRONG_IDENTITY_PROVIDER_SCOPE, Response.Status.BAD_REQUEST.getStatusCode());
-            default: throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, providerId),
-                    Response.Status.BAD_REQUEST.getStatusCode());
+        if (providerId.equals(googleIdentityProviderId)) {
+            final JsonArray jsonArray = jsonObject.getAsJsonArray("emails");
+            if (jsonArray != null && jsonArray.size() > 0) {
+                return jsonArray.get(0).getAsJsonObject().get("value").getAsString();
+            }
+        } else if (providerId.equals(facebookIdentityProviderId)) {
+            final JsonElement jsonElement = jsonObject.get("email");
+            if (jsonElement != null) {
+                return jsonObject.get("email").getAsString();
+            }
         }
+        throw new HiveException(Messages.WRONG_IDENTITY_PROVIDER_SCOPE, Response.Status.BAD_REQUEST.getStatusCode());
     }
 
     public void validateActions(AccessKey accessKey) {

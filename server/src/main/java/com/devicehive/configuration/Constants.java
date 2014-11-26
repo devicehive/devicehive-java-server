@@ -88,9 +88,4 @@ public class Constants {
     public static final String ROLE = "role";
     public static final String DEVICE = "device";
 
-    public static final Long GOOGLE_IDENTITY_ID = 1l;
-    public static final Long FACEBOOK_IDENTITY_ID = 2l;
-    public static final String GOOGLE_CLIENT_ID = "googleClientId";
-    public static final String FACEBOOK_CLIENT_ID = "facebookClientId";
-
 }

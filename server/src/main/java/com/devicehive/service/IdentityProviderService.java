@@ -35,11 +35,6 @@ public class IdentityProviderService {
         return identityProviderDAO.get(name);
     }
 
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public IdentityProvider findByClientId(@NotNull String clientId) {
-        return identityProviderDAO.getByClientId(clientId);
-    }
-
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public boolean delete(@NotNull Long id) {
         return identityProviderDAO.delete(id);
@@ -53,9 +48,6 @@ public class IdentityProviderService {
         }
         if (identityProvider.getName() != null) {
             existing.setName(identityProvider.getName());
-        }
-        if (identityProvider.getClientId() != null) {
-            existing.setName(identityProvider.getClientId());
         }
         if (identityProvider.getApiEndpoint() != null) {
             existing.setApiEndpoint(identityProvider.getApiEndpoint());

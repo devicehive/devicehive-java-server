@@ -13,12 +13,10 @@ import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-import static com.devicehive.model.IdentityProvider.Queries.Names.GET_BY_NAME;
 import static com.devicehive.model.IdentityProvider.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.IdentityProvider.Queries.Names.GET_BY_CLIENT_ID;
-import static com.devicehive.model.IdentityProvider.Queries.Parameters.NAME;
+import static com.devicehive.model.IdentityProvider.Queries.Names.GET_BY_NAME;
 import static com.devicehive.model.IdentityProvider.Queries.Parameters.ID;
-import static com.devicehive.model.IdentityProvider.Queries.Parameters.CLIENT_ID;
+import static com.devicehive.model.IdentityProvider.Queries.Parameters.NAME;
 
 
 /**
@@ -45,16 +43,6 @@ public class IdentityProviderDAO {
         TypedQuery<IdentityProvider> query = em.createNamedQuery(GET_BY_NAME,
                 IdentityProvider.class);
         query.setParameter(NAME, name);
-        CacheHelper.cacheable(query);
-        List<IdentityProvider> result = query.getResultList();
-        return result.isEmpty() ? null : result.get(0);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public IdentityProvider getByClientId(String clientId) {
-        TypedQuery<IdentityProvider> query = em.createNamedQuery(GET_BY_CLIENT_ID,
-                IdentityProvider.class);
-        query.setParameter(CLIENT_ID, clientId);
         CacheHelper.cacheable(query);
         List<IdentityProvider> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
