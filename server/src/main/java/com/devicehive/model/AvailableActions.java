@@ -42,39 +42,39 @@ public class AvailableActions {
 
     private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
         {
-            add(GET_ACCESS_KEY.toUpperCase());
-            add(CREATE_ACCESS_KEY.toUpperCase());
-            add(UPDATE_ACCESS_KEY.toUpperCase());
-            add(DELETE_ACCESS_KEY.toUpperCase());
-            add(GET_DEVICE_CLASS.toUpperCase());
-            add(CREATE_DEVICE_CLASS.toUpperCase());
-            add(UPDATE_DEVICE_CLASS.toUpperCase());
-            add(DELETE_DEVICE_CLASS.toUpperCase());
-            add(GET_NETWORK.toUpperCase());
-            add(ASSIGN_NETWORK.toUpperCase());
-            add(CREATE_NETWORK.toUpperCase());
-            add(UPDATE_NETWORK.toUpperCase());
-            add(DELETE_NETWORK.toUpperCase());
-            add(CREATE_OAUTH_CLIENT.toUpperCase());
-            add(UPDATE_OAUTH_CLIENT.toUpperCase());
-            add(DELETE_OAUTH_CLIENT.toUpperCase());
-            add(GET_OAUTH_GRANT.toUpperCase());
-            add(CREATE_OAUTH_GRANT.toUpperCase());
-            add(UPDATE_OAUTH_GRANT.toUpperCase());
-            add(DELETE_OAUTH_GRANT.toUpperCase());
-            add(GET_DEVICE.toUpperCase());
-            add(DELETE_DEVICE.toUpperCase());
-            add(GET_DEVICE_STATE.toUpperCase());
-            add(GET_DEVICE_NOTIFICATION.toUpperCase());
-            add(GET_DEVICE_COMMAND.toUpperCase());
-            add(REGISTER_DEVICE.toUpperCase());
-            add(CREATE_DEVICE_NOTIFICATION.toUpperCase());
-            add(CREATE_DEVICE_COMMAND.toUpperCase());
-            add(UPDATE_DEVICE_COMMAND.toUpperCase());
-            add(GET_USER.toUpperCase());
-            add(CREATE_USER.toUpperCase());
-            add(UPDATE_USER.toUpperCase());
-            add(DELETE_USER.toUpperCase());
+            add(GET_ACCESS_KEY);
+            add(CREATE_ACCESS_KEY);
+            add(UPDATE_ACCESS_KEY);
+            add(DELETE_ACCESS_KEY);
+            add(GET_DEVICE_CLASS);
+            add(CREATE_DEVICE_CLASS);
+            add(UPDATE_DEVICE_CLASS);
+            add(DELETE_DEVICE_CLASS);
+            add(GET_NETWORK);
+            add(ASSIGN_NETWORK);
+            add(CREATE_NETWORK);
+            add(UPDATE_NETWORK);
+            add(DELETE_NETWORK);
+            add(CREATE_OAUTH_CLIENT);
+            add(UPDATE_OAUTH_CLIENT);
+            add(DELETE_OAUTH_CLIENT);
+            add(GET_OAUTH_GRANT);
+            add(CREATE_OAUTH_GRANT);
+            add(UPDATE_OAUTH_GRANT);
+            add(DELETE_OAUTH_GRANT);
+            add(GET_DEVICE);
+            add(DELETE_DEVICE);
+            add(GET_DEVICE_STATE);
+            add(GET_DEVICE_NOTIFICATION);
+            add(GET_DEVICE_COMMAND);
+            add(REGISTER_DEVICE);
+            add(CREATE_DEVICE_NOTIFICATION);
+            add(CREATE_DEVICE_COMMAND);
+            add(UPDATE_DEVICE_COMMAND);
+            add(GET_USER);
+            add(CREATE_USER);
+            add(UPDATE_USER);
+            add(DELETE_USER);
         }
 
         private static final long serialVersionUID = -6981208010851957614L;
@@ -82,8 +82,7 @@ public class AvailableActions {
 
     public static boolean validate(Set<String> actions) {
         for (String current : actions) {
-            String actionUpper = current.toUpperCase();
-            if (!KNOWN_ACTIONS.contains(actionUpper)) {
+            if (!KNOWN_ACTIONS.contains(current)) {
                 return false;
             }
         }
