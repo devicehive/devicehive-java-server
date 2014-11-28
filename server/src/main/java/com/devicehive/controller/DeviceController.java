@@ -191,11 +191,18 @@ public class DeviceController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = DELETE_DEVICE)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY, HiveRoles.DEVICE})
+    @AllowedKeyAction(action = REGISTER_DEVICE)
     public Response delete(@PathParam(ID) String guid) {
 
         logger.debug("Device delete requested");
+        final Device device = hiveSecurityContext.getHivePrincipal().getDevice();
+        if (device == null || !guid.equals(device.getGuid())) {
+            logger.debug("No device found for guid : {}", guid);
+            return ResponseFactory
+                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
+        }
 
         deviceService.deleteDevice(guid, hiveSecurityContext.getHivePrincipal());
 
@@ -219,8 +226,8 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment")
-    @AllowedKeyAction(action = GET_DEVICE_STATE)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_STATE)
     public Response equipment(@PathParam(ID) String guid) {
         logger.debug("Device equipment requested for device {}", guid);
 

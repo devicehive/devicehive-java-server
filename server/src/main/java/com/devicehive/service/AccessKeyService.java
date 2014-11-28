@@ -138,22 +138,22 @@ public class AccessKeyService {
             return null;
         }
         final String email = authenticationUtils.getEmailFromResponse(apiResponse, identityProvider.getId());
-        User user = userService.findByLoginAndIdentity(email, identityProvider);
+        User user = userService.findByLogin(email);
         if (user == null) {
-            user = userService.createExternalUser(email, identityProvider);
+            user = userService.createExternalUser(email);
         }
         userService.refreshUserLoginData(user);
         AccessKey accessKey = accessKeyDAO.get(user.getId(),
-                String.format(OAuthAuthenticationUtils.OAUTH_ACCESS_KEY_LABEL_FORMAT, identityProvider.getName(), email));
+                String.format(OAuthAuthenticationUtils.OAUTH_ACCESS_KEY_LABEL_FORMAT, email));
         if (accessKey == null) {
-            return createExternalAccessToken(user, identityProvider.getName(), email);
+            return createExternalAccessToken(user, email);
         }
         return accessKey;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    private AccessKey createExternalAccessToken(final User user, final String providerName, final String email) {
-        AccessKey accessKey = authenticationUtils.prepareAccessKey(user, providerName, email);
+    private AccessKey createExternalAccessToken(final User user, final String email) {
+        AccessKey accessKey = authenticationUtils.prepareAccessKey(user, email);
 
         Set<AccessKeyPermission> permissions = new HashSet<>();
         final AccessKeyPermission permission = authenticationUtils.preparePermission();

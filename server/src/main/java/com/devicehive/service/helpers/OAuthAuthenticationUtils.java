@@ -30,7 +30,7 @@ import java.util.Set;
 public class OAuthAuthenticationUtils {
 
     public static final String DEFAULT_EXPIRATION_DATE_PROPERTY = "access.key.default.expiration.date";
-    public static final String OAUTH_ACCESS_KEY_LABEL_FORMAT = "%s OAuth token for: %s";
+    public static final String OAUTH_ACCESS_KEY_LABEL_FORMAT = "OAuth token for: %s";
 
     @EJB
     private NetworkService networkService;
@@ -50,10 +50,10 @@ public class OAuthAuthenticationUtils {
         facebookIdentityProviderId = Long.valueOf(propertiesService.getProperty("facebook.identity.provider.id"));
     }
 
-    public AccessKey prepareAccessKey(final User user, final String providerName, final String email) {
+    public AccessKey prepareAccessKey(final User user, final String email) {
         AccessKey accessKey = new AccessKey();
         accessKey.setUser(user);
-        accessKey.setLabel(String.format(OAUTH_ACCESS_KEY_LABEL_FORMAT, providerName, email));
+        accessKey.setLabel(String.format(OAUTH_ACCESS_KEY_LABEL_FORMAT, email));
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         accessKey.setKey(keyProcessor.generateKey());
         Timestamp expirationDate = TimestampAdapter.parseTimestamp(propertiesService.getProperty(DEFAULT_EXPIRATION_DATE_PROPERTY));

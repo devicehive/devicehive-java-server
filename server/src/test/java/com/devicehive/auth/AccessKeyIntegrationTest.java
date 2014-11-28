@@ -141,9 +141,9 @@ public class AccessKeyIntegrationTest {
                     actionTestProcess(accessKey,
                                       "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.MANAGE_NETWORK)) {
                     actionTestProcess(accessKey,
-                                      "[CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
+                                      "[ManageNetwork,CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_STATE)) {
                     actionTestProcess(accessKey, "[GetDeviceState]");
@@ -206,18 +206,9 @@ public class AccessKeyIntegrationTest {
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
                     actionTestProcess(accessKey,
-                                      "[CreateDeviceNotification]");
+                            "[CreateDeviceNotification]");
                 }
-                if (allowedActions.contains(AllowedKeyAction.Action.DELETE_DEVICE)) {
-                    actionTestProcess(accessKey, "[GetDevice]");
-                }
-                if (allowedActions.contains(AllowedKeyAction.Action.DELETE_NETWORK)) {
-                    actionTestProcess(accessKey, "[GetNetwork]");
-                }
-                if (allowedActions.contains(AllowedKeyAction.Action.CREATE_NETWORK)) {
-                    actionTestProcess(accessKey, "[GetNetwork]");
-                }
-                if (allowedActions.contains(AllowedKeyAction.Action.UPDATE_NETWORK)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.MANAGE_NETWORK)) {
                     actionTestProcess(accessKey, "[GetNetwork]");
                 }
             } catch (HiveException e) {

@@ -24,9 +24,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_OAUTH_CLIENT;
-import static com.devicehive.auth.AllowedKeyAction.Action.DELETE_OAUTH_CLIENT;
-import static com.devicehive.auth.AllowedKeyAction.Action.UPDATE_OAUTH_CLIENT;
+import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_OAUTH_CLIENT;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -99,7 +97,7 @@ public class OAuthClientController {
 
     @POST
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_OAUTH_CLIENT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_CLIENT)
     public Response insert(OAuthClient clientToInsert) {
         logger.debug("OAuthClient insert requested. Client to insert: {}", clientToInsert);
         if (clientToInsert == null) {
@@ -116,7 +114,7 @@ public class OAuthClientController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_OAUTH_CLIENT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_CLIENT)
     public Response update(@PathParam(ID) Long clientId, OAuthClientUpdate clientToUpdate) {
         logger.debug("OAuthClient update requested. Client id: {}", clientId);
         clientService.update(clientToUpdate, clientId);
@@ -127,7 +125,7 @@ public class OAuthClientController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = DELETE_OAUTH_CLIENT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_CLIENT)
     public Response delete(@PathParam(ID) Long clientId) {
         logger.debug("OAuthClient delete requested");
         clientService.delete(clientId);

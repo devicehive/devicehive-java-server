@@ -2,7 +2,6 @@ package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
-import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.helpers.PasswordProcessor;
@@ -47,22 +46,6 @@ public class UserDAO {
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery(FIND_BY_NAME, User.class);
         query.setParameter(LOGIN, login);
-        CacheHelper.cacheable(query);
-        List<User> users = query.getResultList();
-        return users.isEmpty() ? null : users.get(0);
-    }
-
-    /**
-     * Search user by login and identity type
-     *
-     * @param login user's login
-     * @return User or null, if there is no such user
-     */
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User findByLoginAndIdentity(String login, IdentityProvider identityProvider) {
-        TypedQuery<User> query = em.createNamedQuery(FIND_BY_LOGIN_AND_IDENTITY, User.class);
-        query.setParameter(LOGIN, login);
-        query.setParameter(IDENTITY_PROVIDER, identityProvider);
         CacheHelper.cacheable(query);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);

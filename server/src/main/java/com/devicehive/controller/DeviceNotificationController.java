@@ -215,6 +215,7 @@ public class DeviceNotificationController {
     @GET
     @Path("/notification/poll")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public void pollMany(
         @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
         @QueryParam(WAIT_TIMEOUT) final long timeout,

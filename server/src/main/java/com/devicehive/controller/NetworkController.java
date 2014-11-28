@@ -149,7 +149,7 @@ public class NetworkController {
      */
     @POST
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_NETWORK)
+    @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response insert(Network network) {
         logger.debug("Network insert requested");
         Network result = networkService.create(network);
@@ -180,7 +180,7 @@ public class NetworkController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_NETWORK)
+    @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response update(NetworkUpdate networkToUpdate, @PathParam(ID) long id) {
 
         logger.debug("Network update requested. Id : {}", id);
@@ -198,7 +198,7 @@ public class NetworkController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = DELETE_NETWORK)
+    @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response delete(@PathParam(ID) long id) {
 
         logger.debug("Network delete requested");

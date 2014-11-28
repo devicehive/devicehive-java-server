@@ -7,7 +7,6 @@ import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
-import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
@@ -230,20 +229,18 @@ public class UserService {
         user.setPasswordSalt(salt);
         user.setPasswordHash(hash);
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
-        user.setIdentityProvider(identityProviderService.find(DH_IDENTITY_PROVIDER_ID));
 
         hiveValidator.validate(user);
         return userDAO.create(user);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User createExternalUser(@NotNull String email, @NotNull IdentityProvider identityProvider) {
+    public User createExternalUser(@NotNull String email) {
         User user = new User();
         user.setLogin(email);
         user.setRole(UserRole.ADMIN);
         user.setStatus(UserStatus.ACTIVE);
         user.setLastLogin(timestampService.getTimestamp());
-        user.setIdentityProvider(identityProvider);
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
         return  userDAO.create(user);
     }
@@ -270,8 +267,8 @@ public class UserService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User findByLoginAndIdentity(String login, IdentityProvider identityProvider) {
-        User user = userDAO.findByLoginAndIdentity(login, identityProvider);
+    public User findByLogin(String login) {
+        User user = userDAO.findByLogin(login);
         if (user == null) {
             return null;
         }

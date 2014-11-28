@@ -63,7 +63,7 @@ public class AccessKeyController {
      */
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_ACCESS_KEY)
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response list(@PathParam(USER_ID) String userId) {
 
         logger.debug("Access key : list requested for userId : {}", userId);
@@ -88,7 +88,7 @@ public class AccessKeyController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_ACCESS_KEY)
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response get(@PathParam(USER_ID) String userId, @PathParam(ID) long accessKeyId) {
 
         logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
@@ -119,7 +119,7 @@ public class AccessKeyController {
      */
     @POST
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_ACCESS_KEY)
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKey key) {
 
@@ -142,7 +142,7 @@ public class AccessKeyController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_ACCESS_KEY)
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response update(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate) {
         logger.debug("Access key : update requested for userId : {}, access key id : {}, access key : {} ", userId,
@@ -173,7 +173,7 @@ public class AccessKeyController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = DELETE_ACCESS_KEY)
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response delete(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId) {
         logger.debug("Access key : delete requested for userId : {}", userId);
 

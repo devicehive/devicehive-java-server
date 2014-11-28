@@ -56,7 +56,7 @@ public class OAuthGrantController {
 
     @GET
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_OAUTH_GRANT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response list(@PathParam(USER_ID) String userId,
                          @QueryParam(START) String startTs,
                          @QueryParam(END) String endTs,
@@ -103,7 +103,7 @@ public class OAuthGrantController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_OAUTH_GRANT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response get(@PathParam(USER_ID) String userId,
                         @PathParam(ID) long grantId) {
         logger.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
@@ -121,7 +121,7 @@ public class OAuthGrantController {
 
     @POST
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_OAUTH_GRANT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrant grant) {
         logger.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
@@ -138,7 +138,7 @@ public class OAuthGrantController {
     @PUT
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_OAUTH_GRANT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response update(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrantUpdate grant) {
@@ -159,7 +159,7 @@ public class OAuthGrantController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = DELETE_OAUTH_GRANT)
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response delete(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId) {
         logger.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);

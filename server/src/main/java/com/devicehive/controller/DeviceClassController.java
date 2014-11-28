@@ -59,7 +59,7 @@ public class DeviceClassController {
      */
     @GET
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_CLASS)
+    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
     public Response getDeviceClassList(
         @QueryParam(NAME) String name,
         @QueryParam(NAME_PATTERN) String namePattern,
@@ -100,7 +100,7 @@ public class DeviceClassController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_CLASS)
+    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
     public Response getDeviceClass(@PathParam(ID) long id) {
 
         logger.debug("Get device class by id requested");
@@ -135,7 +135,7 @@ public class DeviceClassController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_DEVICE_CLASS)
+    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
     public Response insertDeviceClass(DeviceClass insert) {
         logger.debug("Insert device class requested");
         DeviceClass result = deviceClassService.addDeviceClass(insert);
@@ -157,7 +157,7 @@ public class DeviceClassController {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_DEVICE_CLASS)
+    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
     public Response updateDeviceClass(
         @PathParam(ID) long id,
         @JsonPolicyApply(DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
@@ -177,7 +177,7 @@ public class DeviceClassController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = DELETE_DEVICE_CLASS)
+    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
     public Response deleteDeviceClass(@PathParam(ID) long id) {
         logger.debug("Device class delete requested");
         deviceClassService.delete(id);

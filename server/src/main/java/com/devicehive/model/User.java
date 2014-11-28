@@ -29,7 +29,6 @@ import static com.devicehive.model.User.Queries.Values;
 @Table(name = "\"user\"")
 @NamedQueries({
                   @NamedQuery(name = Names.FIND_BY_NAME, query = Values.FIND_BY_NAME),
-                  @NamedQuery(name = Names.FIND_BY_LOGIN_AND_IDENTITY, query = Values.FIND_BY_LOGIN_AND_IDENTITY),
                   @NamedQuery(name = Names.HAS_ACCESS_TO_NETWORK, query = Values.HAS_ACCESS_TO_NETWORK),
                   @NamedQuery(name = Names.HAS_ACCESS_TO_DEVICE, query = Values.HAS_ACCESS_TO_DEVICE),
                   @NamedQuery(name = Names.GET_WITH_NETWORKS_BY_ID, query = Values.GET_WITH_NETWORKS_BY_ID),
@@ -76,11 +75,6 @@ public class User implements HiveEntity {
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
-    @SerializedName("identityProvider")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "identity_provider_id")
-    @NotNull(message = "identityProvider field cannot be null.")
-    private IdentityProvider identityProvider;
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -172,14 +166,6 @@ public class User implements HiveEntity {
         this.entityVersion = entityVersion;
     }
 
-    public IdentityProvider getIdentityProvider() {
-        return identityProvider;
-    }
-
-    public void setIdentityProvider(IdentityProvider identityProvider) {
-        this.identityProvider = identityProvider;
-    }
-
     @Override
     public boolean equals(Object o) {
 
@@ -206,7 +192,6 @@ public class User implements HiveEntity {
         public static interface Names {
 
             static final String FIND_BY_NAME = "User.findByName";
-            static final String FIND_BY_LOGIN_AND_IDENTITY = "User.findByLoginAndIdentity";
             static final String HAS_ACCESS_TO_NETWORK = "User.hasAccessToNetwork";
             static final String HAS_ACCESS_TO_DEVICE = "User.hasAccessToDevice";
             static final String GET_WITH_NETWORKS_BY_ID = "User.getWithNetworksById";
@@ -216,7 +201,6 @@ public class User implements HiveEntity {
         static interface Values {
 
             static final String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
-            static final String FIND_BY_LOGIN_AND_IDENTITY = "select u from User u where u.login = :login and u.identityProvider = :identityProvider and u.status <> 3";
             static final String HAS_ACCESS_TO_NETWORK =
                 "select count(distinct u) from User u " +
                 "join u.networks n " +
@@ -238,7 +222,6 @@ public class User implements HiveEntity {
             static final String DEVICE = "device";
             static final String ID = "id";
             static final String LOGIN = "login";
-            static final String IDENTITY_PROVIDER = "identityProvider";
         }
     }
 }
