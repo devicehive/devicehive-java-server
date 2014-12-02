@@ -112,6 +112,11 @@ public class HiveSecurityFilter implements Filter {
             if (request.getParameter(Constants.OAUTH_STATE) == null) {
                 return null;
             }
+            final String code = request.getParameter(Constants.CODE);
+            if (code != null) {
+                return accessKeyService.exchangeCode(code,
+                        request.getParameter(Constants.OAUTH_STATE));
+            }
             final String expiresIn = request.getParameter(Constants.OAUTH_EXPIRES_IN);
             if (expiresIn == null) {
                 return null;

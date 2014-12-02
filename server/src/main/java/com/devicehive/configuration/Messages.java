@@ -24,6 +24,8 @@ public class Messages {
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
     public static final String OAUTH_CLIENT_NOT_FOUND = BidBundle.get("OAUTH_CLIENT_NOT_FOUND");
+    public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
+    public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
     public static final String IDENTITY_PROVIDER_NOT_FOUND = BidBundle.get("IDENTITY_PROVIDER_NOT_FOUND");
     public static final String WRONG_IDENTITY_PROVIDER_SCOPE = BidBundle.get("WRONG_IDENTITY_PROVIDER_SCOPE");
     public static final String OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED = BidBundle.get("OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED");
@@ -69,6 +71,7 @@ public class Messages {
     public static final String COMMAND_ID_REQUIRED = BidBundle.get("COMMAND_ID_REQUIRED");
     public static final String VALIDATION_FAILED = BidBundle.get("VALIDATION_FAILED");
     public static final String DUPLICATE_LOGIN = BidBundle.get("DUPLICATE_LOGIN");
+    public static final String DUPLICATE_IDENTITY_LOGIN = BidBundle.get("DUPLICATE_IDENTITY_LOGIN");
     public static final String PASSWORD_REQUIRED = BidBundle.get("PASSWORD_REQUIRED");
     public static final String INTERNAL_SERVER_ERROR = BidBundle.get("INTERNAL_SERVER_ERROR");
     public static final String INCORRECT_ACCESS_TYPE = BidBundle.get("INCORRECT_ACCESS_TYPE");

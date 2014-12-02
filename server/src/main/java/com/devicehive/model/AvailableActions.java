@@ -28,7 +28,7 @@ public class AvailableActions {
     public static final String MANAGE_NETWORK = "ManageNetwork";
     public static final String MANAGE_OAUTH_CLIENT = "ManageOAuthClient";
 
-    private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
+    private static Set<String> CLIENT_ACTIONS = new HashSet<String>() {
         {
             add(GET_NETWORK);
             add(GET_DEVICE);
@@ -44,6 +44,14 @@ public class AvailableActions {
             add(UPDATE_CURRENT_USER);
             add(MANAGE_ACCESS_KEY);
             add(MANAGE_OAUTH_GRANT);
+        }
+
+        private static final long serialVersionUID = -6981208010851957614L;
+    };
+
+    private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
+        {
+            addAll(CLIENT_ACTIONS);
 
             add(MANAGE_USER);
             add(MANAGE_DEVICE_CLASS);
@@ -51,7 +59,7 @@ public class AvailableActions {
             add(MANAGE_OAUTH_CLIENT);
         }
 
-        private static final long serialVersionUID = -6981208010851957614L;
+        private static final long serialVersionUID = -1571200010251977615L;
     };
 
     public static boolean validate(Set<String> actions) {
@@ -65,6 +73,10 @@ public class AvailableActions {
 
     public static String[] getAllActions() {
         return KNOWN_ACTIONS.toArray(new String[KNOWN_ACTIONS.size()]);
+    }
+
+    public static String[] getClientActions() {
+        return CLIENT_ACTIONS.toArray(new String[CLIENT_ACTIONS.size()]);
     }
 
 }

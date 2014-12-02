@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.configuration.PropertiesService;
 import com.devicehive.dao.AccessKeyDAO;
@@ -14,9 +15,7 @@ import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.util.LogExecutionTime;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -31,9 +30,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Stateless
 @LogExecutionTime
@@ -121,26 +118,34 @@ public class AccessKeyService {
         return accessKeyDAO.get(key);
     }
 
+    public AccessKey exchangeCode(@NotNull String code, @NotNull String state) {
+        final IdentityProvider identityProvider = authenticationUtils.getIdentityProvider(state);
+        final Long githubProviderId = Long.parseLong(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID));
+        if (githubProviderId.equals(identityProvider.getId())) {
+            final String githubAccessToken = getGithubAccessToken(code);
+            if (githubAccessToken != null) {
+                return authenticate(githubAccessToken, state);
+            }
+        }
+        return null;
+    }
+
     public AccessKey authenticate(@NotNull String accessToken, @NotNull String state) {
         final IdentityProvider identityProvider = authenticationUtils.getIdentityProvider(state);
-        String apiResponse = null;
-        try {
-            final String verificationResponse =  executeGet(new NetHttpTransport(),
+        if (identityProvider.getVerificationEndpoint() != null) {
+            final JsonObject verificationResponse =  executeGet(new NetHttpTransport(),
                     BearerToken.queryParameterAccessMethod(), accessToken, identityProvider.getVerificationEndpoint(), identityProvider.getName());
             if (!authenticationUtils.validateVerificationResponse(verificationResponse, identityProvider)) {
                 throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, identityProvider.getName()),
                         Response.Status.FORBIDDEN.getStatusCode());
             }
-            apiResponse =  executeGet(new NetHttpTransport(), BearerToken.authorizationHeaderAccessMethod(),
-                    accessToken, identityProvider.getApiEndpoint(), identityProvider.getName());
-        } catch (IOException e) {
-            LOGGER.error("Exception has been caught during Identity Provider GET request execution", e);
-            return null;
         }
-        final String email = authenticationUtils.getEmailFromResponse(apiResponse, identityProvider.getId());
-        User user = userService.findByLogin(email);
+        final JsonObject apiResponse =  executeGet(new NetHttpTransport(), BearerToken.authorizationHeaderAccessMethod(),
+                    accessToken, identityProvider.getApiEndpoint(), identityProvider.getName());
+        final String email = authenticationUtils.getLoginFromResponse(apiResponse, identityProvider.getId());
+        User user = userService.findByLoginAndIdentity(email, identityProvider);
         if (user == null) {
-            user = userService.createExternalUser(email);
+            return null;
         }
         userService.refreshUserLoginData(user);
         AccessKey accessKey = accessKeyDAO.get(user.getId(),
@@ -156,7 +161,7 @@ public class AccessKeyService {
         AccessKey accessKey = authenticationUtils.prepareAccessKey(user, email);
 
         Set<AccessKeyPermission> permissions = new HashSet<>();
-        final AccessKeyPermission permission = authenticationUtils.preparePermission();
+        final AccessKeyPermission permission = authenticationUtils.preparePermission(user.getRole());
         permissions.add(permission);
         accessKey.setPermissions(permissions);
         accessKeyDAO.insert(accessKey);
@@ -309,17 +314,59 @@ public class AccessKeyService {
         return accessKeyDAO.delete(userId, keyId);
     }
 
-    private static String executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
-                                           final String endpoint, final String providerName) throws IOException {
-        final Credential credential = new Credential(accessMethod).setAccessToken(accessToken);
-        final GenericUrl url = new GenericUrl(endpoint);
-        final HttpRequestFactory requestFactory = transport.createRequestFactory(credential);
-        final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
-        final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
-        if (jsonObject.get("error") != null) {
-            throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
-                    Response.Status.FORBIDDEN.getStatusCode());
+    private String getGithubAccessToken(final String code) {
+        final String endpoint = propertiesService.getProperty(Constants.GITHUB_IDENTITY_ACCESS_TOKEN_ENDPOINT);
+        Map<String, String> params = new HashMap(4);
+        params.put("code", code);
+        params.put("client_id", propertiesService.getProperty(Constants.GITHUB_IDENTITY_CLIENT_ID));
+        params.put("client_secret", propertiesService.getProperty(Constants.GITHUB_IDENTITY_CLIENT_SECRET));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept("application/json");
+        final JsonObject response = executePost(new NetHttpTransport(), params, headers, endpoint, "Github");
+        if (response.get("access_token") != null) {
+            return response.get("access_token").getAsString();
+        } else {
+            throw new HiveException(Messages.BAD_AUTHENTICATION_RESPONSE, Response.Status.BAD_REQUEST.getStatusCode());
         }
-        return response;
+    }
+
+    private static JsonObject executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
+                                           final String endpoint, final String providerName) {
+        try {
+            final Credential credential = new Credential(accessMethod).setAccessToken(accessToken);
+            final GenericUrl url = new GenericUrl(endpoint);
+            final HttpRequestFactory requestFactory = transport.createRequestFactory(credential);
+            final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
+            final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
+            if (jsonObject.get("error") != null) {
+                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
+                        Response.Status.FORBIDDEN.getStatusCode());
+            }
+            return jsonObject;
+        } catch (IOException e) {
+            LOGGER.error("Exception has been caught during Identity Provider GET request execution", e);
+            throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
+        }
+    }
+
+    private static JsonObject executePost(final HttpTransport transport, final Map<String, String> params, final HttpHeaders headers,
+                                     final String endpoint, final String providerName) {
+        try {
+            final HttpRequestFactory requestFactory = transport.createRequestFactory();
+            final GenericUrl url = new GenericUrl(endpoint);
+            HttpContent httpContent = new UrlEncodedContent(params);
+            HttpRequest request = requestFactory.buildPostRequest(url, httpContent);
+            request.setHeaders(headers);
+            final String response = request.execute().parseAsString();
+            final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
+            if (jsonObject.get("error") != null) {
+                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
+                        Response.Status.FORBIDDEN.getStatusCode());
+            }
+            return jsonObject;
+        } catch (IOException e) {
+            LOGGER.error("Exception has been caught during Identity Provider POST request execution", e);
+            throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
+        }
     }
 }

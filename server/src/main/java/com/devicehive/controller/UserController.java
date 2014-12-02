@@ -105,7 +105,7 @@ public class UserController {
     @GET
     @Path("/{id}")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_USER)
+    @AllowedKeyAction(action = GET_CURRENT_USER)
     public Response getUser(@PathParam(ID) Long userId) {
 
         User user = userService.findUserWithNetworks(userId);
@@ -124,7 +124,7 @@ public class UserController {
     @GET
     @Path("/current")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_USER)
+    @AllowedKeyAction(action = GET_CURRENT_USER)
     public Response getCurrent() {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();

@@ -3,13 +3,14 @@ package com.devicehive.service;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.configuration.PropertiesService;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
+import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
@@ -36,7 +37,6 @@ import static javax.ws.rs.core.Response.Status.*;
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
-    private static final Long DH_IDENTITY_PROVIDER_ID = 0L;
 
     @Inject
     private PasswordProcessor passwordService;
@@ -52,6 +52,8 @@ public class UserService {
     private HiveValidator hiveValidator;
     @EJB
     private IdentityProviderService identityProviderService;
+    @EJB
+    private PropertiesService propertiesService;
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
@@ -112,12 +114,29 @@ public class UserService {
             return existing;
         }
         if (userToUpdate.getLogin() != null) {
-            String newLogin = StringUtils.trim(userToUpdate.getLogin().getValue());
+            final String newLogin = StringUtils.trim(userToUpdate.getLogin().getValue());
+            final String oldLogin = existing.getLogin();
             User withSuchLogin = userDAO.findByLogin(newLogin);
             if (withSuchLogin != null && !withSuchLogin.getId().equals(id)) {
                 throw new HiveException(Messages.DUPLICATE_LOGIN, FORBIDDEN.getStatusCode());
             }
             existing.setLogin(newLogin);
+
+            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().getValue()) ?
+                    userToUpdate.getGoogleLogin().getValue() : null;
+            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().getValue()) ?
+                    userToUpdate.getFacebookLogin().getValue() : null;
+            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().getValue()) ?
+                    userToUpdate.getGithubLogin().getValue() : null;
+
+            if (googleLogin != null || facebookLogin != null || githubLogin != null) {
+                if (userDAO.findByIdentityLogin(oldLogin, googleLogin, facebookLogin, githubLogin) != null) {
+                    throw new HiveException(Messages.DUPLICATE_IDENTITY_LOGIN, FORBIDDEN.getStatusCode());
+                }
+            }
+            existing.setGoogleLogin(googleLogin);
+            existing.setFacebookLogin(facebookLogin);
+            existing.setGithubLogin(githubLogin);
         }
         if (userToUpdate.getPassword() != null) {
             if (StringUtils.isEmpty(userToUpdate.getPassword().getValue())) {
@@ -214,35 +233,34 @@ public class UserService {
         if (user.getId() != null) {
             throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
         }
-        user.setLogin(StringUtils.trim(user.getLogin()));
+        final String userLogin = StringUtils.trim(user.getLogin());
+        user.setLogin(userLogin);
         User existing = userDAO.findByLogin(user.getLogin());
         if (existing != null) {
             throw new HiveException(Messages.DUPLICATE_LOGIN,
                                     FORBIDDEN.getStatusCode());
         }
-        if (StringUtils.isEmpty(password)) {
-            throw new HiveException(Messages.PASSWORD_REQUIRED,
-                                    BAD_REQUEST.getStatusCode());
+        if (StringUtils.isNoneEmpty(password)) {
+            String salt = passwordService.generateSalt();
+            String hash = passwordService.hashPassword(password, salt);
+            user.setPasswordSalt(salt);
+            user.setPasswordHash(hash);
         }
-        String salt = passwordService.generateSalt();
-        String hash = passwordService.hashPassword(password, salt);
-        user.setPasswordSalt(salt);
-        user.setPasswordHash(hash);
+        final String googleLogin = StringUtils.isNotBlank(user.getGoogleLogin()) ? user.getGoogleLogin() : null;
+        final String facebookLogin = StringUtils.isNotBlank(user.getFacebookLogin()) ? user.getFacebookLogin() : null;
+        final String githubLogin = StringUtils.isNotBlank(user.getGithubLogin()) ? user.getGithubLogin() : null;
+        if (googleLogin != null || facebookLogin != null || githubLogin != null) {
+            if (userDAO.findByIdentityLogin(userLogin, googleLogin, facebookLogin, githubLogin) != null) {
+                throw new HiveException(Messages.DUPLICATE_IDENTITY_LOGIN, FORBIDDEN.getStatusCode());
+            }
+            user.setGoogleLogin(googleLogin);
+            user.setFacebookLogin(facebookLogin);
+            user.setGithubLogin(githubLogin);
+        }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
 
         hiveValidator.validate(user);
         return userDAO.create(user);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User createExternalUser(@NotNull String email) {
-        User user = new User();
-        user.setLogin(email);
-        user.setRole(UserRole.ADMIN);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setLastLogin(timestampService.getTimestamp());
-        user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
-        return  userDAO.create(user);
     }
 
     /**
@@ -267,10 +285,15 @@ public class UserService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User findByLogin(String login) {
-        User user = userDAO.findByLogin(login);
-        if (user == null) {
-            return null;
+    public User findByLoginAndIdentity(String login, IdentityProvider identityProvider) {
+        final Long providerId = identityProvider.getId();
+        User user = null;
+        if (providerId.equals(Long.valueOf(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID)))) {
+            user = userDAO.findByGoogleLogin(login);
+        } else if (providerId.equals(Long.valueOf(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID)))) {
+            user = userDAO.findByFacebookLogin(login);
+        } else if (providerId.equals(Long.valueOf(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID)))) {
+            user = userDAO.findByGithubLogin(login);
         }
         return user;
     }

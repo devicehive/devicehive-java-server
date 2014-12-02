@@ -52,6 +52,71 @@ public class UserDAO {
     }
 
     /**
+     * Search user by Google login
+     *
+     * @param login user's login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByGoogleLogin(String login) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_GOOGLE_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
+     * Search user by Facebook login
+     *
+     * @param login user's login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByFacebookLogin(String login) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_FACEBOOK_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
+     * Search user by Github login
+     *
+     * @param login user's login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByGithubLogin(String login) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_GITHUB_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
+     * Search user by one of identity providers login
+     *
+     * @param googleLogin user's google login
+     * @param facebookLogin user's facebook login
+     * @param githubLogin user's github login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByIdentityLogin(String login, String googleLogin, String facebookLogin, String githubLogin) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_IDENTITY_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        query.setParameter(GOOGLE_LOGIN, googleLogin);
+        query.setParameter(FACEBOOK_LOGIN, facebookLogin);
+        query.setParameter(GITHUB_LOGIN, githubLogin);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
      * @param login        user login ignored, when loginPattern is specified
      * @param loginPattern login pattern (LIKE %VALUE%) user login will be ignored, if not null
      * @param role         User's role ADMIN - 0, CLIENT - 1

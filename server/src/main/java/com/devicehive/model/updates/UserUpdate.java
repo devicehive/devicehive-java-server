@@ -13,6 +13,9 @@ public class UserUpdate implements HiveEntity {
     private NullableWrapper<Integer> role;
     private NullableWrapper<Integer> status;
     private NullableWrapper<String> password;
+    private NullableWrapper<String> googleLogin;
+    private NullableWrapper<String> facebookLogin;
+    private NullableWrapper<String> githubLogin;
 
     public NullableWrapper<String> getLogin() {
         return login;
@@ -46,6 +49,30 @@ public class UserUpdate implements HiveEntity {
         this.password = password;
     }
 
+    public NullableWrapper<String> getGoogleLogin() {
+        return googleLogin;
+    }
+
+    public void setGoogleLogin(NullableWrapper<String> googleLogin) {
+        this.googleLogin = googleLogin;
+    }
+
+    public NullableWrapper<String> getFacebookLogin() {
+        return facebookLogin;
+    }
+
+    public void setFacebookLogin(NullableWrapper<String> facebookLogin) {
+        this.facebookLogin = facebookLogin;
+    }
+
+    public NullableWrapper<String> getGithubLogin() {
+        return githubLogin;
+    }
+
+    public void setGithubLogin(NullableWrapper<String> githubLogin) {
+        this.githubLogin = githubLogin;
+    }
+
     public UserRole getRoleEnum() {
         if (role == null) {
             return null;
@@ -73,6 +100,9 @@ public class UserUpdate implements HiveEntity {
         if (login != null) {
             result.setLogin(login.getValue());
         }
+        result.setGoogleLogin(googleLogin.getValue());
+        result.setFacebookLogin(facebookLogin.getValue());
+        result.setGithubLogin(githubLogin.getValue());
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());
         return result;

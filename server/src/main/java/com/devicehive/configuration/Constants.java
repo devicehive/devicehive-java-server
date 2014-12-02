@@ -33,6 +33,7 @@ public class Constants {
     public static final String OAUTH_IDENTITY = "Identity";
     public static final String OAUTH_ACCESS_TOKEN = "access_token";
     public static final String OAUTH_STATE = "state";
+    public static final String OAUTH_CODE = "code";
     public static final String OAUTH_EXPIRES_IN = "expires_in";
     public static final String AUTH_DEVICE_ID_HEADER = "Auth-DeviceID";
     public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
@@ -87,5 +88,14 @@ public class Constants {
     public static final String LOGIN_PATTERN = "loginPattern";
     public static final String ROLE = "role";
     public static final String DEVICE = "device";
+
+    public static final String GOOGLE_IDENTITY_PROVIDER_ID = "google.identity.provider.id";
+    public static final String GOOGLE_IDENTITY_CLIENT_ID = "google.identity.client.id";
+    public static final String FACEBOOK_IDENTITY_PROVIDER_ID = "facebook.identity.provider.id";
+    public static final String FACEBOOK_IDENTITY_CLIENT_ID = "facebook.identity.client.id";
+    public static final String GITHUB_IDENTITY_PROVIDER_ID = "github.identity.provider.id";
+    public static final String GITHUB_IDENTITY_ACCESS_TOKEN_ENDPOINT = "github.identity.access.token.endpoint";
+    public static final String GITHUB_IDENTITY_CLIENT_ID = "github.identity.client.id";
+    public static final String GITHUB_IDENTITY_CLIENT_SECRET = "github.identity.client.secret";
 
 }
