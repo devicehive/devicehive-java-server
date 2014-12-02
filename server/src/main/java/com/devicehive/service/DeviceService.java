@@ -173,7 +173,7 @@ public class DeviceService {
                 String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                 UNAUTHORIZED.getStatusCode());
         }
-        Network network = networkService.verifyNetworkByKey(deviceUpdate.getNetwork(), key);
+        Network network = networkService.createOrVeriryNetworkByKey(deviceUpdate.getNetwork(), key);
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         if (existingDevice == null) {
@@ -385,7 +385,7 @@ public class DeviceService {
                                 HivePrincipal principal) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                                 deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
+            deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
