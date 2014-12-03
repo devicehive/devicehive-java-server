@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+
 @Stateless
 @LogExecutionTime
 @EJB(beanInterface = AccessKeyService.class, name = "AccessKeyService")
@@ -118,20 +120,18 @@ public class AccessKeyService {
         return accessKeyDAO.get(key);
     }
 
-    public AccessKey exchangeCode(@NotNull String code, @NotNull String state) {
-        final IdentityProvider identityProvider = authenticationUtils.getIdentityProvider(state);
+    public AccessKey exchangeCode(@NotNull String code, @NotNull IdentityProvider identityProvider) {
         final Long githubProviderId = Long.parseLong(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID));
         if (githubProviderId.equals(identityProvider.getId())) {
             final String githubAccessToken = getGithubAccessToken(code);
             if (githubAccessToken != null) {
-                return authenticate(githubAccessToken, state);
+                return authenticate(githubAccessToken, identityProvider);
             }
         }
         return null;
     }
 
-    public AccessKey authenticate(@NotNull String accessToken, @NotNull String state) {
-        final IdentityProvider identityProvider = authenticationUtils.getIdentityProvider(state);
+    public AccessKey authenticate(@NotNull String accessToken, @NotNull IdentityProvider identityProvider) {
         if (identityProvider.getVerificationEndpoint() != null) {
             final JsonObject verificationResponse =  executeGet(new NetHttpTransport(),
                     BearerToken.queryParameterAccessMethod(), accessToken, identityProvider.getVerificationEndpoint(), identityProvider.getName());
@@ -312,6 +312,22 @@ public class AccessKeyService {
             return accessKeyDAO.delete(keyId);
         }
         return accessKeyDAO.delete(userId, keyId);
+    }
+
+    public IdentityProvider getIdentityProvider(final String state) {
+        return authenticationUtils.getIdentityProvider(state);
+    }
+
+    public boolean isIdentityProviderAllowed(@NotNull final IdentityProvider identityProvider) {
+        final String identityProviderIdStr = String.valueOf(identityProvider.getId());
+        if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID))) {
+            return Boolean.valueOf(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_ALLOWED));
+        } else if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID))) {
+            return Boolean.valueOf(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_ALLOWED));
+        } else if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID))) {
+            return Boolean.valueOf(propertiesService.getProperty(Constants.GITHUB_IDENTITY_ALLOWED));
+        } else
+            throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProviderIdStr), BAD_REQUEST.getStatusCode());
     }
 
     private String getGithubAccessToken(final String code) {

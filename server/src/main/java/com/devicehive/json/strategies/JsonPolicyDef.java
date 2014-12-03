@@ -12,6 +12,7 @@ public @interface JsonPolicyDef {
     public static enum Policy {
         WEBSOCKET_SERVER_INFO,
         REST_SERVER_INFO,
+        REST_SERVER_CONFIG,
         ACCESS_KEY_LISTED,
         ACCESS_KEY_PUBLISHED,
         ACCESS_KEY_SUBMITTED,

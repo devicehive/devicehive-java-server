@@ -3,12 +3,14 @@ package com.devicehive.controller;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.PropertiesService;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.ApiConfig;
 import com.devicehive.model.ApiInfo;
+import com.devicehive.model.IdentityProviderConfig;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,8 @@ public class ApiInfoController {
     @EJB
     private ConfigurationService configurationService;
 
+    @EJB
+    private PropertiesService propertiesService;
 
     @GET
     @PermitAll
@@ -45,7 +49,39 @@ public class ApiInfoController {
         if (url != null) {
             apiInfo.setWebSocketServerUrl(url);
         }
+        apiInfo.setGoogleIdentityAllowed(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_ALLOWED));
+        apiInfo.setFacebookIdentityAllowed(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_ALLOWED));
+        apiInfo.setGithubIdentityAllowed(propertiesService.getProperty(Constants.GITHUB_IDENTITY_ALLOWED));
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
+    }
+
+    @GET
+    @Path("/config/oauth2")
+    @PermitAll
+    public Response getOauth2Config() {
+        logger.debug("ApiConfig requested");
+        ApiConfig apiConfig = new ApiConfig();
+
+        IdentityProviderConfig googleConfig = new IdentityProviderConfig();
+        googleConfig.setClientId(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_CLIENT_ID));
+        googleConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID)));
+        googleConfig.setIsAvailable(Boolean.parseBoolean(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_ALLOWED)));
+
+        IdentityProviderConfig facebookConfig = new IdentityProviderConfig();
+        facebookConfig.setClientId(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_CLIENT_ID));
+        facebookConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID)));
+        facebookConfig.setIsAvailable(Boolean.parseBoolean(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_ALLOWED)));
+
+        IdentityProviderConfig githubConfig = new IdentityProviderConfig();
+        githubConfig.setClientId(propertiesService.getProperty(Constants.GITHUB_IDENTITY_CLIENT_ID));
+        githubConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID)));
+        githubConfig.setIsAvailable(Boolean.parseBoolean(propertiesService.getProperty(Constants.GITHUB_IDENTITY_ALLOWED)));
+
+        apiConfig.setGoogle(googleConfig);
+        apiConfig.setFacebook(facebookConfig);
+        apiConfig.setGithub(githubConfig);
+
+        return ResponseFactory.response(Response.Status.OK, apiConfig, JsonPolicyDef.Policy.REST_SERVER_CONFIG);
     }
 
 }

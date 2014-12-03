@@ -1,12 +1,9 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessToken;
 import com.devicehive.model.ErrorResponse;
@@ -19,14 +16,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_ACCESS_KEY;
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.Response.Status.*;
@@ -100,24 +98,5 @@ public class OAuthTokenController {
         logger.debug("OAuthToken: token requested. Grant type: {}, code: {}, redirect URI: {}, client id: {}",
                      grantType, code, redirectUri, clientId);
         return ResponseFactory.response(OK, token);
-    }
-
-    @Path("/apply")
-    @POST
-    @RolesAllowed({HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
-    public Response login() {
-        return ResponseFactory.response(OK, hiveSecurityContext.getHivePrincipal().getKey(),
-                JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED);
-    }
-
-    @Path("/remove")
-    @DELETE
-    @RolesAllowed({HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
-    public Response logout() {
-        AccessKey accessKey = hiveSecurityContext.getHivePrincipal().getKey();
-        accessKeyService.delete(null, accessKey.getId());
-        return ResponseFactory.response(OK);
     }
 }

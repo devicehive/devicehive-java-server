@@ -12,7 +12,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 /**
  * Created by tmatvienko on 11/17/14.
@@ -44,7 +44,7 @@ public class IdentityProviderService {
     public IdentityProvider update(@NotNull Long identityProviderId, IdentityProvider identityProvider) {
         IdentityProvider existing = find(identityProviderId);
         if (existing == null) {
-            throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProviderId), NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProviderId), BAD_REQUEST.getStatusCode());
         }
         if (identityProvider.getName() != null) {
             existing.setName(identityProvider.getName());
