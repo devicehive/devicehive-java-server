@@ -89,6 +89,8 @@ public class Constants {
     public static final String ROLE = "role";
     public static final String DEVICE = "device";
 
+    public static final String DEFAULT_EXPIRATION_DATE_PROPERTY = "access.key.default.expiration.period";
+
     public static final String GOOGLE_IDENTITY_PROVIDER_ID = "google.identity.provider.id";
     public static final String GOOGLE_IDENTITY_CLIENT_ID = "google.identity.client.id";
     public static final String GOOGLE_IDENTITY_ALLOWED = "google.identity.allowed";
@@ -96,7 +98,7 @@ public class Constants {
     public static final String FACEBOOK_IDENTITY_CLIENT_ID = "facebook.identity.client.id";
     public static final String FACEBOOK_IDENTITY_ALLOWED = "facebook.identity.allowed";
     public static final String GITHUB_IDENTITY_PROVIDER_ID = "github.identity.provider.id";
-    public static final String GITHUB_IDENTITY_ACCESS_TOKEN_ENDPOINT = "github.identity.access.token.endpoint";
+    public static final String GITHUB_IDENTITY_ACCESS_TOKEN_ENDPOINT = "github.identity.token.endpoint";
     public static final String GITHUB_IDENTITY_CLIENT_ID = "github.identity.client.id";
     public static final String GITHUB_IDENTITY_CLIENT_SECRET = "github.identity.client.secret";
     public static final String GITHUB_IDENTITY_ALLOWED = "github.identity.allowed";

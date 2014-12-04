@@ -1,5 +1,6 @@
 package com.devicehive.service.helpers;
 
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.configuration.PropertiesService;
@@ -29,13 +30,14 @@ import java.util.Set;
 @Stateless
 public class OAuthAuthenticationUtils {
 
-    public static final String DEFAULT_EXPIRATION_DATE_PROPERTY = "access.key.default.expiration.period";
     public static final String OAUTH_ACCESS_KEY_LABEL_FORMAT = "OAuth token for: %s";
 
     @EJB
     private NetworkService networkService;
     @EJB
     private DeviceService deviceService;
+    @EJB
+    private ConfigurationService configurationService;
     @EJB
     private PropertiesService propertiesService;
     @EJB
@@ -61,7 +63,7 @@ public class OAuthAuthenticationUtils {
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         accessKey.setKey(keyProcessor.generateKey());
         Timestamp expirationDate = new Timestamp(timestampService.getTimestamp().getTime() +
-                Long.parseLong(propertiesService.getProperty(DEFAULT_EXPIRATION_DATE_PROPERTY)));
+                Long.parseLong(propertiesService.getProperty(Constants.DEFAULT_EXPIRATION_DATE_PROPERTY)));
         accessKey.setExpirationDate(expirationDate);
         return accessKey;
     }
@@ -105,11 +107,11 @@ public class OAuthAuthenticationUtils {
         if (providerId.equals(googleIdentityProviderId)) {
             verificationElement = jsonObject.get("issued_to");
             return verificationElement != null && verificationElement.getAsString().startsWith(
-                    propertiesService.getProperty(Constants.GOOGLE_IDENTITY_CLIENT_ID));
+                    configurationService.get(Constants.GOOGLE_IDENTITY_CLIENT_ID));
         } else if (providerId.equals(facebookIdentityProviderId)) {
             verificationElement = jsonObject.get("id");
             return verificationElement != null && verificationElement.getAsString().equals(
-                    propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_CLIENT_ID));
+                    configurationService.get(Constants.FACEBOOK_IDENTITY_CLIENT_ID));
         }
         throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProvider.getId()),
                 Response.Status.BAD_REQUEST.getStatusCode());

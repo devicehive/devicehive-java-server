@@ -49,9 +49,9 @@ public class ApiInfoController {
         if (url != null) {
             apiInfo.setWebSocketServerUrl(url);
         }
-        apiInfo.setGoogleIdentityAllowed(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_ALLOWED));
-        apiInfo.setFacebookIdentityAllowed(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_ALLOWED));
-        apiInfo.setGithubIdentityAllowed(propertiesService.getProperty(Constants.GITHUB_IDENTITY_ALLOWED));
+        apiInfo.setGoogleIdentityAllowed(configurationService.get(Constants.GOOGLE_IDENTITY_ALLOWED));
+        apiInfo.setFacebookIdentityAllowed(configurationService.get(Constants.FACEBOOK_IDENTITY_ALLOWED));
+        apiInfo.setGithubIdentityAllowed(configurationService.get(Constants.GITHUB_IDENTITY_ALLOWED));
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
 
@@ -63,19 +63,19 @@ public class ApiInfoController {
         ApiConfig apiConfig = new ApiConfig();
 
         IdentityProviderConfig googleConfig = new IdentityProviderConfig();
-        googleConfig.setClientId(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_CLIENT_ID));
+        googleConfig.setClientId(configurationService.get(Constants.GOOGLE_IDENTITY_CLIENT_ID));
         googleConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID)));
-        googleConfig.setIsAvailable(Boolean.parseBoolean(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_ALLOWED)));
+        googleConfig.setIsAvailable(Boolean.parseBoolean(configurationService.get(Constants.GOOGLE_IDENTITY_ALLOWED)));
 
         IdentityProviderConfig facebookConfig = new IdentityProviderConfig();
-        facebookConfig.setClientId(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_CLIENT_ID));
+        facebookConfig.setClientId(configurationService.get(Constants.FACEBOOK_IDENTITY_CLIENT_ID));
         facebookConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID)));
-        facebookConfig.setIsAvailable(Boolean.parseBoolean(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_ALLOWED)));
+        facebookConfig.setIsAvailable(Boolean.parseBoolean(configurationService.get(Constants.FACEBOOK_IDENTITY_ALLOWED)));
 
         IdentityProviderConfig githubConfig = new IdentityProviderConfig();
-        githubConfig.setClientId(propertiesService.getProperty(Constants.GITHUB_IDENTITY_CLIENT_ID));
+        githubConfig.setClientId(configurationService.get(Constants.GITHUB_IDENTITY_CLIENT_ID));
         githubConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID)));
-        githubConfig.setIsAvailable(Boolean.parseBoolean(propertiesService.getProperty(Constants.GITHUB_IDENTITY_ALLOWED)));
+        githubConfig.setIsAvailable(Boolean.parseBoolean(configurationService.get(Constants.GITHUB_IDENTITY_ALLOWED)));
 
         apiConfig.setGoogle(googleConfig);
         apiConfig.setFacebook(facebookConfig);

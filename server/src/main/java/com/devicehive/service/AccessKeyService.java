@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.configuration.PropertiesService;
@@ -59,7 +60,9 @@ public class AccessKeyService {
     @EJB
     private DeviceService deviceService;
     @EJB
-    PropertiesService propertiesService;
+    private ConfigurationService configurationService;
+    @EJB
+    private PropertiesService propertiesService;
     @EJB
     OAuthAuthenticationUtils authenticationUtils;
 
@@ -321,11 +324,11 @@ public class AccessKeyService {
     public boolean isIdentityProviderAllowed(@NotNull final IdentityProvider identityProvider) {
         final String identityProviderIdStr = String.valueOf(identityProvider.getId());
         if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID))) {
-            return Boolean.valueOf(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_ALLOWED));
+            return Boolean.valueOf(configurationService.get(Constants.GOOGLE_IDENTITY_ALLOWED));
         } else if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID))) {
-            return Boolean.valueOf(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_ALLOWED));
+            return Boolean.valueOf(configurationService.get(Constants.FACEBOOK_IDENTITY_ALLOWED));
         } else if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID))) {
-            return Boolean.valueOf(propertiesService.getProperty(Constants.GITHUB_IDENTITY_ALLOWED));
+            return Boolean.valueOf(configurationService.get(Constants.GITHUB_IDENTITY_ALLOWED));
         } else
             throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProviderIdStr), BAD_REQUEST.getStatusCode());
     }
@@ -334,8 +337,8 @@ public class AccessKeyService {
         final String endpoint = propertiesService.getProperty(Constants.GITHUB_IDENTITY_ACCESS_TOKEN_ENDPOINT);
         Map<String, String> params = new HashMap(4);
         params.put("code", code);
-        params.put("client_id", propertiesService.getProperty(Constants.GITHUB_IDENTITY_CLIENT_ID));
-        params.put("client_secret", propertiesService.getProperty(Constants.GITHUB_IDENTITY_CLIENT_SECRET));
+        params.put("client_id", configurationService.get(Constants.GITHUB_IDENTITY_CLIENT_ID));
+        params.put("client_secret", configurationService.get(Constants.GITHUB_IDENTITY_CLIENT_SECRET));
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept("application/json");
         final JsonObject response = executePost(new NetHttpTransport(), params, headers, endpoint, "Github");
