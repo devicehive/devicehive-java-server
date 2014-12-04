@@ -358,6 +358,7 @@ public class AccessKeyService {
             final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
             final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
             if (jsonObject.get("error") != null) {
+                LOGGER.error("Exception has been caught during Identity Provider GET request execution", jsonObject.get("error"));
                 throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
                         Response.Status.FORBIDDEN.getStatusCode());
             }
@@ -379,6 +380,7 @@ public class AccessKeyService {
             final String response = request.execute().parseAsString();
             final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
             if (jsonObject.get("error") != null) {
+                LOGGER.error("Exception has been caught during Identity Provider GET request execution", jsonObject.get("error"));
                 throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
                         Response.Status.FORBIDDEN.getStatusCode());
             }
