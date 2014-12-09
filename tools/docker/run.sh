@@ -56,6 +56,15 @@ docker run -d --name $PG_CONTAINER $DOCKER_POSTGRES
 echo "wait 10 seconds before going on..."
 sleep 10
 
+echo "Giving access to PostgreSQL service"
+docker stop $PG_CONTAINER > /dev/null
+data_dir=`docker inspect $PG_CONTAINER|grep "/var/lib/postgresql/data.*vfs"|awk '{print $2}'|sed 's/\"//g'`
+echo -e "host all all 0.0.0.0/0 trust" >> $data_dir/pg_hba.conf
+docker start $PG_CONTAINER > /dev/null
+
+echo "wait 10 seconds before going on..."
+sleep 10
+
 echo "Step 2: Create user and database in PostgreSQL container instance"
 # new temp container laucnhed that inits the newly created postgresql server
 echo "CREATE DATABASE $PG_DATABASE;CREATE USER $PG_USER WITH password '$PG_PASSWORD';GRANT ALL privileges ON DATABASE $PG_DATABASE TO $PG_USER;\q" |
