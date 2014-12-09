@@ -239,6 +239,10 @@ public class DeviceService {
         if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
             existingDevice.setDeviceClass(deviceClass);
         }
+        if (deviceUpdate.getNetwork() != null) {
+            Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
+            existingDevice.setNetwork(network);
+        }
         if (deviceUpdate.getStatus() != null) {
             existingDevice.setStatus(deviceUpdate.getStatus().getValue());
         }
