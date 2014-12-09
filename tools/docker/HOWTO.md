@@ -9,7 +9,14 @@ Run a PostgreSQL container:
 
     docker run -d --name postgresql-devicehive postgres:9.3.5
     
-PostgreSQL needs few seconds to become ready. After that you need to create database `dh` and user `dh_user`:
+PostgreSQL needs few seconds to become ready. Now you need to give access to PostgreSQL for all users (in the current version of `postgres` container access is enabled only for `postgres` user):
+
+    docker stop postgresql-devicehive
+    data_dir=`docker inspect $PG_CONTAINER|grep "/var/lib/postgresql/data.*vfs"|awk '{print $2}'|sed 's/\"//g'`
+    echo -e "host all all 0.0.0.0/0 trust" >> $data_dir/pg_hba.conf
+    docker start postgresql-devicehive
+    
+After that you need to create database `dh` and user `dh_user`:
 
     echo "CREATE DATABASE dh;CREATE USER dh_user WITH password 'dh_StrOngPasSWorD';GRANT ALL privileges ON DATABASE dh TO dh_user;\q" |
     docker run -ti --link postgresql-devicehive:postgres --rm postgres:9.3.5 sh -c 'exec psql -h "$POSTGRES_PORT_5432_TCP_ADDR" -p "$POSTGRES_PORT_5432_TCP_PORT" -U postgres'
