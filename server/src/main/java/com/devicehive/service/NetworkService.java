@@ -161,7 +161,9 @@ public class NetworkService {
             if (update.getId() != null) {
                 throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
             }
-            stored = networkDAO.createNetwork(update);
+            if (configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
+                stored = networkDAO.createNetwork(update);
+            }
         }
         assert (stored != null);
         return stored;
