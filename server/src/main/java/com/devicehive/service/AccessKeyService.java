@@ -113,10 +113,10 @@ public class AccessKeyService {
     private void validateActions(AccessKey accessKey) {
         Set<String> actions = new HashSet<>();
         for (AccessKeyPermission permission : accessKey.getPermissions()) {
-            if (permission.getActionsAsSet() == null) {
-                throw new HiveException(Messages.ACTIONS_ARE_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
+            Set<String> pActions = permission.getActionsAsSet();
+            if (pActions != null) {
+                actions.addAll(pActions);
             }
-            actions.addAll(permission.getActionsAsSet());
         }
         if (!AvailableActions.validate(actions)) {
             throw new HiveException(Messages.UNKNOWN_ACTION, Response.Status.BAD_REQUEST.getStatusCode());

@@ -25,9 +25,9 @@ public class CheckPermissionsHelper {
                         break;
                     }
                 }
-            }
-            if (!isCurrentPermissionAllowed) {
-                permissionsToRemove.add(currentPermission);
+                if (!isCurrentPermissionAllowed) {
+                    permissionsToRemove.add(currentPermission);
+                }
             }
         }
         permissions.removeAll(permissionsToRemove);
