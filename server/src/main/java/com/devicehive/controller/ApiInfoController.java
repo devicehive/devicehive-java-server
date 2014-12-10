@@ -49,9 +49,6 @@ public class ApiInfoController {
         if (url != null) {
             apiInfo.setWebSocketServerUrl(url);
         }
-        apiInfo.setGoogleIdentityAllowed(configurationService.get(Constants.GOOGLE_IDENTITY_ALLOWED));
-        apiInfo.setFacebookIdentityAllowed(configurationService.get(Constants.FACEBOOK_IDENTITY_ALLOWED));
-        apiInfo.setGithubIdentityAllowed(configurationService.get(Constants.GITHUB_IDENTITY_ALLOWED));
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
 

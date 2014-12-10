@@ -28,15 +28,6 @@ public class ApiInfo implements HiveEntity {
     @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String restServerUrl;
 
-    @JsonPolicyDef(REST_SERVER_INFO)
-    private String googleIdentityAllowed;
-
-    @JsonPolicyDef(REST_SERVER_INFO)
-    private String facebookIdentityAllowed;
-
-    @JsonPolicyDef(REST_SERVER_INFO)
-    private String githubIdentityAllowed;
-
     public ApiInfo() {
     }
 
@@ -71,29 +62,5 @@ public class ApiInfo implements HiveEntity {
 
     public void setRestServerUrl(String restServerUrl) {
         this.restServerUrl = restServerUrl;
-    }
-
-    public String getGoogleIdentityAllowed() {
-        return googleIdentityAllowed;
-    }
-
-    public void setGoogleIdentityAllowed(String googleIdentityAllowed) {
-        this.googleIdentityAllowed = googleIdentityAllowed;
-    }
-
-    public String getFacebookIdentityAllowed() {
-        return facebookIdentityAllowed;
-    }
-
-    public void setFacebookIdentityAllowed(String facebookIdentityAllowed) {
-        this.facebookIdentityAllowed = facebookIdentityAllowed;
-    }
-
-    public String getGithubIdentityAllowed() {
-        return githubIdentityAllowed;
-    }
-
-    public void setGithubIdentityAllowed(String githubIdentityAllowed) {
-        this.githubIdentityAllowed = githubIdentityAllowed;
     }
 }

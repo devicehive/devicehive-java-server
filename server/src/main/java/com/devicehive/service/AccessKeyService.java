@@ -349,7 +349,7 @@ public class AccessKeyService {
         }
     }
 
-    private static JsonObject executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
+    private JsonObject executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
                                            final String endpoint, final String providerName) {
         try {
             final Credential credential = new Credential(accessMethod).setAccessToken(accessToken);
@@ -369,7 +369,7 @@ public class AccessKeyService {
         }
     }
 
-    private static JsonObject executePost(final HttpTransport transport, final Map<String, String> params, final HttpHeaders headers,
+    private JsonObject executePost(final HttpTransport transport, final Map<String, String> params, final HttpHeaders headers,
                                      final String endpoint, final String providerName) {
         try {
             final HttpRequestFactory requestFactory = transport.createRequestFactory();
