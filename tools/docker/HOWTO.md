@@ -12,7 +12,7 @@ Run a PostgreSQL container:
 PostgreSQL needs few seconds to become ready. Now you need to give access to PostgreSQL for all users (in the current version of `postgres` container access is enabled only for `postgres` user):
 
     docker stop postgresql-devicehive
-    data_dir=`docker inspect $PG_CONTAINER|grep "/var/lib/postgresql/data.*vfs"|awk '{print $2}'|sed 's/\"//g'`
+    data_dir=`docker inspect postgresql-devicehive|grep "/var/lib/postgresql/data.*vfs"|awk '{print $2}'|sed 's/\"//g'`
     echo -e "host all all 0.0.0.0/0 trust" >> $data_dir/pg_hba.conf
     docker start postgresql-devicehive
     
