@@ -18,20 +18,16 @@ public class CheckPermissionsHelper {
         for (AccessKeyPermission currentPermission : permissions) {
             boolean isCurrentPermissionAllowed = false;
             Set<String> actions = currentPermission.getActionsAsSet();
-            if (actions == null) {
-                isCurrentPermissionAllowed = true;
-            } else if (actions.isEmpty()) {
-                isCurrentPermissionAllowed = false;
-            } else {
+            if (actions != null) {
                 for (String accessKeyAction : actions) {
                     isCurrentPermissionAllowed = accessKeyAction.equalsIgnoreCase(allowedAction.getValue());
                     if (isCurrentPermissionAllowed) {
                         break;
                     }
                 }
-            }
-            if (!isCurrentPermissionAllowed) {
-                permissionsToRemove.add(currentPermission);
+                if (!isCurrentPermissionAllowed) {
+                    permissionsToRemove.add(currentPermission);
+                }
             }
         }
         permissions.removeAll(permissionsToRemove);

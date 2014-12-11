@@ -28,7 +28,7 @@ import static com.devicehive.configuration.Constants.UTF8;
 @WebFilter(value = "/*", asyncSupported = true)
 public class HiveSecurityFilter implements Filter {
 
-    private static final Logger logger = LoggerFactory.getLogger(HiveSecurityFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HiveSecurityFilter.class);
     @Inject
     private DeviceService deviceService;
     @Inject
@@ -107,6 +107,7 @@ public class HiveSecurityFilter implements Filter {
         }
         if (Constants.OAUTH_IDENTITY.equals(auth)) {
             if (request.getParameter(Constants.OAUTH_STATE) == null) {
+                LOGGER.debug("No state parameter found in the request {}", request.getRequestURI());
                 return null;
             }
             final IdentityProvider identityProvider = accessKeyService.getIdentityProvider(request.getParameter(Constants.OAUTH_STATE));
