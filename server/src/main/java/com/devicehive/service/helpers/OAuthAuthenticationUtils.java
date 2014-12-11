@@ -21,8 +21,6 @@ import javax.ejb.Stateless;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by tmatvienko on 11/21/14.
@@ -72,7 +70,6 @@ public class OAuthAuthenticationUtils {
         AccessKeyPermission permission = new AccessKeyPermission();
         switch (userRole) {
             case ADMIN:
-                permission.setActions(AvailableActions.getAllActions());
                 break;
             case CLIENT: default:
                 permission.setActions(AvailableActions.getClientActions());
@@ -134,15 +131,12 @@ public class OAuthAuthenticationUtils {
     }
 
     public void validateActions(AccessKey accessKey) {
-        Set<String> actions = new HashSet<>();
         for (AccessKeyPermission permission : accessKey.getPermissions()) {
-            if (permission.getActionsAsSet() == null) {
-                throw new HiveException(Messages.ACTIONS_ARE_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
+            if (permission.getActionsAsSet() != null && !permission.getActionsAsSet().isEmpty()) {
+                if (!AvailableActions.validate(permission.getActionsAsSet())) {
+                    throw new HiveException(Messages.UNKNOWN_ACTION, Response.Status.BAD_REQUEST.getStatusCode());
+                }
             }
-            actions.addAll(permission.getActionsAsSet());
-        }
-        if (!AvailableActions.validate(actions)) {
-            throw new HiveException(Messages.UNKNOWN_ACTION, Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
 }

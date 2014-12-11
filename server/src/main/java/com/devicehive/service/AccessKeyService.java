@@ -70,7 +70,11 @@ public class AccessKeyService {
         if (accessKey.getLabel() == null) {
             throw new HiveException(Messages.LABEL_IS_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
         }
-        if (accessKey.getId() != null || accessKey.getPermissions() == null || accessKey.getPermissions().isEmpty()) {
+        if (accessKeyDAO.get(user.getId(), accessKey.getLabel()) != null) {
+            throw new HiveException(Messages.DUPLICATE_LABEL_FOUND,
+                    Response.Status.BAD_REQUEST.getStatusCode());
+        }
+        if (accessKey.getId() != null) {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                                     Response.Status.BAD_REQUEST.getStatusCode());
         }
@@ -80,7 +84,8 @@ public class AccessKeyService {
         accessKey.setKey(key);
         accessKey.setUser(user);
         accessKeyDAO.insert(accessKey);
-        for (AccessKeyPermission permission : accessKey.getPermissions()) {
+        for (AccessKeyPermission current : accessKey.getPermissions()) {
+            AccessKeyPermission permission = preparePermission(current);
             permission.setAccessKey(accessKey);
             permissionDAO.insert(permission);
         }
@@ -111,8 +116,9 @@ public class AccessKeyService {
             authenticationUtils.validateActions(toValidate);
             permissionDAO.deleteByAccessKey(existing);
             for (AccessKeyPermission current : permissionsToReplace) {
-                current.setAccessKey(existing);
-                permissionDAO.insert(current);
+                AccessKeyPermission permission = preparePermission(current);
+                permission.setAccessKey(existing);
+                permissionDAO.insert(permission);
             }
         }
         return true;
@@ -154,6 +160,10 @@ public class AccessKeyService {
         AccessKey accessKey = accessKeyDAO.get(user.getId(),
                 String.format(OAuthAuthenticationUtils.OAUTH_ACCESS_KEY_LABEL_FORMAT, email));
         if (accessKey == null) {
+            return createExternalAccessToken(user, email);
+        }
+        if (accessKey.getExpirationDate().before(new Timestamp(System.currentTimeMillis()))) {
+            delete(null, accessKey.getId());
             return createExternalAccessToken(user, email);
         }
         return accessKey;
@@ -389,5 +399,25 @@ public class AccessKeyService {
             LOGGER.error("Exception has been caught during Identity Provider POST request execution", e);
             throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
         }
+    }
+
+    private AccessKeyPermission preparePermission(AccessKeyPermission current) {
+        AccessKeyPermission newPermission = new AccessKeyPermission();
+        if (current.getDomainsAsSet() != null) {
+            newPermission.setDomains(current.getDomains());
+        }
+        if (current.getSubnetsAsSet() != null) {
+            newPermission.setSubnets(current.getSubnets());
+        }
+        if (current.getActionsAsSet() != null) {
+            newPermission.setActions(current.getActions());
+        }
+        if (current.getNetworkIdsAsSet() != null) {
+            newPermission.setNetworkIds(current.getNetworkIds());
+        }
+        if (current.getDeviceGuidsAsSet() != null) {
+            newPermission.setDeviceGuids(current.getDeviceGuids());
+        }
+        return newPermission;
     }
 }

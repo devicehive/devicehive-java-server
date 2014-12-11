@@ -14,6 +14,7 @@ public class Messages {
     public static final String UNPARSEABLE_SORT_ORDER = BidBundle.get("UNPARSEABLE_SORT_ORDER");
     public static final String SORT_ORDER_IS_NULL = BidBundle.get("SORT_ORDER_IS_NULL");
     public static final String INVALID_REQUEST_PARAMETERS = BidBundle.get("INVALID_REQUEST_PARAMETERS");
+    public static final String DUPLICATE_LABEL_FOUND = BidBundle.get("DUPLICATE_LABEL_FOUND");
     public static final String JSON_SYNTAX_ERROR = BidBundle.get("JSON_SYNTAX_ERROR");
     public static final String DEVICE_NOT_FOUND = BidBundle.get("DEVICE_NOT_FOUND");
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");

@@ -18,8 +18,12 @@ public class CheckPermissionsHelper {
         for (AccessKeyPermission currentPermission : permissions) {
             boolean isCurrentPermissionAllowed = false;
             Set<String> actions = currentPermission.getActionsAsSet();
-            if (actions != null) {
-                for (String accessKeyAction : currentPermission.getActionsAsSet()) {
+            if (actions == null) {
+                isCurrentPermissionAllowed = true;
+            } else if (actions.isEmpty()) {
+                isCurrentPermissionAllowed = false;
+            } else {
+                for (String accessKeyAction : actions) {
                     isCurrentPermissionAllowed = accessKeyAction.equalsIgnoreCase(allowedAction.getValue());
                     if (isCurrentPermissionAllowed) {
                         break;
