@@ -103,3 +103,39 @@ ALTER TABLE configuration
 
 ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (id);
 ALTER TABLE configuration ADD CONSTRAINT configuration_name_unique UNIQUE (name);
+
+CREATE TABLE identity_provider (
+id BIGSERIAL NOT NULL,
+name VARCHAR(64) NOT NULL,
+api_endpoint VARCHAR(128),
+verification_endpoint VARCHAR(128),
+entity_version BIGINT NOT NULL DEFAULT 0);
+
+ALTER TABLE identity_provider ADD CONSTRAINT identity_provider_pk PRIMARY KEY (id);
+
+INSERT INTO identity_provider(id, name) VALUES (0,'devicehive');
+INSERT INTO identity_provider(id, name, api_endpoint, verification_endpoint) VALUES (1,'google', 'https://www.googleapis.com/plus/v1/people/me', 'https://www.googleapis.com/oauth2/v1/tokeninfo');
+INSERT INTO identity_provider(id, name, api_endpoint, verification_endpoint) VALUES (2,'facebook', 'https://graph.facebook.com/me', 'https://graph.facebook.com/app');
+INSERT INTO identity_provider(id, name, api_endpoint) VALUES (3,'github', 'https://api.github.com/user');
+
+alter table "user" add column google_login VARCHAR(64) UNIQUE;
+alter table "user" add column facebook_login VARCHAR(64) UNIQUE;
+alter table "user" add column github_login VARCHAR(64) UNIQUE;
+
+ALTER TABLE "user" ALTER COLUMN password_hash  DROP NOT NULL;
+ALTER TABLE "user" ALTER COLUMN password_salt  DROP NOT NULL;
+
+ALTER TABLE access_key ADD CONSTRAINT access_key_label_user_unique UNIQUE (label, user_id);
+
+INSERT INTO configuration (name, value) VALUES ('google.identity.client.id', 'googleClientId');
+INSERT INTO configuration (name, value) VALUES ('google.identity.client.secret', 'googleClientSecret');
+INSERT INTO configuration (name, value) VALUES ('google.identity.allowed', 'true');
+
+INSERT INTO configuration (name, value) VALUES ('facebook.identity.client.id', 'facebookClientId');
+INSERT INTO configuration (name, value) VALUES ('facebook.identity.client.secret', 'facebookClientSecret');
+INSERT INTO configuration (name, value) VALUES ('facebook.identity.allowed', 'true');
+
+INSERT INTO configuration (name, value) VALUES ('github.identity.client.id', 'githubClientId');
+INSERT INTO configuration (name, value) VALUES ('github.identity.client.secret', 'githubClientSecret');
+INSERT INTO configuration (name, value) VALUES ('github.identity.allowed', 'true');
+
