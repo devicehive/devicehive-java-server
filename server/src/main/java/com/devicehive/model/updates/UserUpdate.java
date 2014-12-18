@@ -100,9 +100,15 @@ public class UserUpdate implements HiveEntity {
         if (login != null) {
             result.setLogin(login.getValue());
         }
-        result.setGoogleLogin(googleLogin.getValue());
-        result.setFacebookLogin(facebookLogin.getValue());
-        result.setGithubLogin(githubLogin.getValue());
+        if (googleLogin != null) {
+            result.setGoogleLogin(googleLogin.getValue());
+        }
+        if (facebookLogin != null) {
+            result.setFacebookLogin(facebookLogin.getValue());
+        }
+        if (githubLogin != null) {
+            result.setGithubLogin(githubLogin.getValue());
+        }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());
         return result;
