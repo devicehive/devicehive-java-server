@@ -84,6 +84,8 @@ public class Messages {
     public static final String NO_ACCESS_TO_NETWORK = BidBundle.get("NO_ACCESS_TO_NETWORK");
     public static final String NETWORK_CREATION_NOT_ALLOWED = BidBundle.get("NETWORK_CREATION_NOT_ALLOWED");
     public static final String PARAMS_NOT_JSON = BidBundle.get("PARAMS_NOT_JSON");
+    public static final String NO_NOTIFICATION_PARAMS = BidBundle.get("NO_NOTIFICATION_PARAMS");
+    public static final String NO_EQUIPMENT_IN_JSON = BidBundle.get("NO_EQUIPMENT_IN_JSON");
     public static final String UNKNOWN_ACTION_REQUESTED_WS = BidBundle.get("UNKNOWN_ACTION_REQUESTED_WS");
     public static final String EMPTY_NAMES = BidBundle.get("EMPTY_NAMES");
     public static final String COLUMN_CANNOT_BE_NULL = BidBundle.get("COLUMN_CANNOT_BE_NULL");
