@@ -11,6 +11,7 @@ import com.devicehive.model.ApiInfo;
 import com.devicehive.model.IdentityProviderConfig;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,7 @@ public class ApiInfoController {
         final String facebookClientId = configurationService.get(Constants.FACEBOOK_IDENTITY_CLIENT_ID);
         final String githubClientId = configurationService.get(Constants.GITHUB_IDENTITY_CLIENT_ID);
 
-        if (googleClientId != null) {
+        if (!StringUtils.isBlank(googleClientId)) {
             IdentityProviderConfig googleConfig = new IdentityProviderConfig();
             googleConfig.setClientId(googleClientId);
             googleConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID)));
@@ -71,7 +72,7 @@ public class ApiInfoController {
             apiConfig.setGoogle(googleConfig);
         }
 
-        if (facebookClientId != null) {
+        if (!StringUtils.isBlank(facebookClientId)) {
             IdentityProviderConfig facebookConfig = new IdentityProviderConfig();
             facebookConfig.setClientId(facebookClientId);
             facebookConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID)));
@@ -79,7 +80,7 @@ public class ApiInfoController {
             apiConfig.setFacebook(facebookConfig);
         }
 
-        if (githubClientId != null) {
+        if (!StringUtils.isBlank(githubClientId)) {
             IdentityProviderConfig githubConfig = new IdentityProviderConfig();
             githubConfig.setClientId(githubClientId);
             githubConfig.setProviderId(Long.parseLong(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID)));

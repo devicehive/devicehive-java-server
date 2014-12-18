@@ -127,15 +127,15 @@ ALTER TABLE "user" ALTER COLUMN password_salt  DROP NOT NULL;
 
 ALTER TABLE access_key ADD CONSTRAINT access_key_label_user_unique UNIQUE (label, user_id);
 
-INSERT INTO configuration (name, value) VALUES ('google.identity.client.id', 'googleClientId');
-INSERT INTO configuration (name, value) VALUES ('google.identity.client.secret', 'googleClientSecret');
+INSERT INTO configuration (name, value) VALUES ('google.identity.client.id', '');
+INSERT INTO configuration (name, value) VALUES ('google.identity.client.secret', '');
 INSERT INTO configuration (name, value) VALUES ('google.identity.allowed', 'false');
 
-INSERT INTO configuration (name, value) VALUES ('facebook.identity.client.id', 'facebookClientId');
-INSERT INTO configuration (name, value) VALUES ('facebook.identity.client.secret', 'facebookClientSecret');
+INSERT INTO configuration (name, value) VALUES ('facebook.identity.client.id', '');
+INSERT INTO configuration (name, value) VALUES ('facebook.identity.client.secret', '');
 INSERT INTO configuration (name, value) VALUES ('facebook.identity.allowed', 'false');
 
-INSERT INTO configuration (name, value) VALUES ('github.identity.client.id', 'githubClientId');
-INSERT INTO configuration (name, value) VALUES ('github.identity.client.secret', 'githubClientSecret');
+INSERT INTO configuration (name, value) VALUES ('github.identity.client.id', '');
+INSERT INTO configuration (name, value) VALUES ('github.identity.client.secret', '');
 INSERT INTO configuration (name, value) VALUES ('github.identity.allowed', 'false');
 
