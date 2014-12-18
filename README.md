@@ -159,15 +159,15 @@ To save them you should use link below:
 
 For Google:
 The parameter “name” should be “google.identity.client.id” and “google.identity.client.secret”.
-To allow google authentication flow set “google.identity.allowed” to "true" (by default is's false)
+To allow google authentication flow set “google.identity.allowed” to "true" (by default it's false)
 
 For Facebook:
 The parameter “name” should be “facebook.identity.client.id” and “facebook.identity.client.secret”.
-To allow facebook authentication flow set “facebook.identity.allowed” to "true" (by default is's false)
+To allow facebook authentication flow set “facebook.identity.allowed” to "true" (by default it's false)
 
 For Github:
 The parameter “name” should be “github.identity.client.id” and “github.identity.client.secret”.
-To allow github authentication flow set “github.identity.allowed” to "true" (by default is's false)
+To allow github authentication flow set “github.identity.allowed” to "true" (by default it's false)
 
 * Use it.
 
