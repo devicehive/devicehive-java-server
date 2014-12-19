@@ -118,10 +118,8 @@ public class OAuthAuthenticationUtils {
         try {
             if (providerId.equals(googleIdentityProviderId)) {
                 return jsonObject.getAsJsonArray("emails").get(0).getAsJsonObject().get("value").getAsString();
-            } else if (providerId.equals(facebookIdentityProviderId)) {
+            } else if (providerId.equals(facebookIdentityProviderId) || providerId.equals(githubIdentityProviderId)) {
                 return jsonObject.get("email").getAsString();
-            } else if (providerId.equals(githubIdentityProviderId)) {
-                return jsonObject.get("login").getAsString();
             } else {
                 throw new HiveException(Messages.IDENTITY_PROVIDER_NOT_FOUND, Response.Status.BAD_REQUEST.getStatusCode());
             }

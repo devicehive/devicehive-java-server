@@ -18,6 +18,7 @@ import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
@@ -142,16 +143,16 @@ public class AccessKeyService {
 
     public AccessKey authenticate(@NotNull String accessToken, @NotNull IdentityProvider identityProvider) {
         if (identityProvider.getVerificationEndpoint() != null) {
-            final JsonObject verificationResponse =  executeGet(new NetHttpTransport(),
+            final JsonElement verificationResponse =  executeGet(new NetHttpTransport(),
                     BearerToken.queryParameterAccessMethod(), accessToken, identityProvider.getVerificationEndpoint(), identityProvider.getName());
-            if (!authenticationUtils.validateVerificationResponse(verificationResponse, identityProvider)) {
+            if (!authenticationUtils.validateVerificationResponse(verificationResponse.getAsJsonObject(), identityProvider)) {
                 throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, identityProvider.getName()),
                         Response.Status.FORBIDDEN.getStatusCode());
             }
         }
-        final JsonObject apiResponse =  executeGet(new NetHttpTransport(), BearerToken.authorizationHeaderAccessMethod(),
+        final JsonElement apiResponse =  executeGet(new NetHttpTransport(), BearerToken.authorizationHeaderAccessMethod(),
                     accessToken, identityProvider.getApiEndpoint(), identityProvider.getName());
-        final String email = authenticationUtils.getLoginFromResponse(apiResponse, identityProvider.getId());
+        final String email = authenticationUtils.getLoginFromResponse(apiResponse.getAsJsonObject(), identityProvider.getId());
         User user = userService.findByLoginAndIdentity(email, identityProvider);
         if (user == null) {
             return null;
@@ -359,20 +360,24 @@ public class AccessKeyService {
         }
     }
 
-    private JsonObject executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
+    private JsonElement executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
                                            final String endpoint, final String providerName) {
         try {
             final Credential credential = new Credential(accessMethod).setAccessToken(accessToken);
             final GenericUrl url = new GenericUrl(endpoint);
             final HttpRequestFactory requestFactory = transport.createRequestFactory(credential);
             final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
-            final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
-            if (jsonObject.get("error") != null) {
-                LOGGER.error("Exception has been caught during Identity Provider GET request execution", jsonObject.get("error"));
-                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
-                        Response.Status.FORBIDDEN.getStatusCode());
+            JsonElement jsonElement = new JsonParser().parse(response);
+            try {
+                if (jsonElement.getAsJsonObject().get("error") != null) {
+                    LOGGER.error("Exception has been caught during Identity Provider GET request execution", jsonElement.getAsJsonObject().get("error"));
+                    throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
+                            Response.Status.FORBIDDEN.getStatusCode());
+                }
+            } catch (IllegalStateException ex) {
+                return jsonElement.getAsJsonArray().get(0);
             }
-            return jsonObject;
+            return jsonElement;
         } catch (IOException e) {
             LOGGER.error("Exception has been caught during Identity Provider GET request execution", e);
             throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
