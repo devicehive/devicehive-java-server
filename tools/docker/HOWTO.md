@@ -5,15 +5,18 @@ Quick start
 -----------
 
 DeviceHive requires PostgreSQL database in order to operate.
+Create directory for PostgreSQL data:
+
+    mkdir -p /data/devicehive
+
 Run a PostgreSQL container:
 
-    docker run -d --name postgresql-devicehive postgres:9.3.5
+    docker run -d -v /data/devicehive:/data -e "PGDATA=/data" --name postgresql-devicehive postgres:9.3.5
     
 PostgreSQL needs few seconds to become ready. Now you need to give access to PostgreSQL for all users (in the current version of `postgres` container access is enabled only for `postgres` user):
 
     docker stop postgresql-devicehive
-    data_dir=`docker inspect postgresql-devicehive|grep "/var/lib/postgresql/data.*vfs"|awk '{print $2}'|sed 's/\"//g'`
-    echo -e "host all all 0.0.0.0/0 trust" >> $data_dir/pg_hba.conf
+    echo -e "host all all 0.0.0.0/0 trust" >> /data/devicehive/pg_hba.conf
     docker start postgresql-devicehive
     
 After that you need to create database `dh` and user `dh_user`:

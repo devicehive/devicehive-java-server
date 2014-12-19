@@ -30,8 +30,10 @@ DOCKER_DEVICEHIVE=${DH_DOCKER_NAME}:${DH_VERSION} # Docker image for DeviceHive 
 # PG_ - constants for Postgres
 PG_CONTAINER="postgresql-$UUID" # Docker container name for postgres
 PG_USER="dh_user" # username for database access
-PG_PASSWORD="dh_StrOngPasSWorD" # password for database access
 PG_DATABASE="dh" # database name
+PG_DATADIR="/data/devicehive-$UUID" # directory which will be mapped on postgre docker container
+PG_DATA="/data" # directory inside postgres container where database should be stored
+PG_ACCESS_STRING="host all all 0.0.0.0/0 trust" # String which should be placed into pg_hba.conf
 # DG_ - constants for DeviceHive
 DH_CONTAINER="devicehive-$UUID" # Docker container name for DeviceHive Java server
 DH_PROTOCOL="http" # Protocol for accessing DeviceHive instance from the internet
@@ -51,27 +53,28 @@ echo "$UUID"
 
 echo "Create devicehive-java server instance with PostgreSQL database"
 echo "Step 1: Instantiate PostgreSQL database"
-docker run -d --name $PG_CONTAINER $DOCKER_POSTGRES
+mkdir -p $PG_DATADIR
+docker run -d -v $PG_DATADIR:$PG_DATA -e "PGDATA=$PG_DATA" --name $PG_CONTAINER $DOCKER_POSTGRES
 
 echo "wait 10 seconds before going on..."
 sleep 10
 
-echo "Giving access to PostgreSQL service"
-docker stop $PG_CONTAINER > /dev/null
-data_dir=`docker inspect $PG_CONTAINER|grep "/var/lib/postgresql/data.*vfs"|awk '{print $2}'|sed 's/\"//g'`
-echo -e "host all all 0.0.0.0/0 trust" >> $data_dir/pg_hba.conf
-docker start $PG_CONTAINER > /dev/null
-
-echo "wait 10 seconds before going on..."
-sleep 10
+echo "Checking access to PostgreSQL service"
+if ! grep -Fxq "$PG_ACCESS_STRING" $PG_DATADIR/pg_hba.conf; then
+    docker stop $PG_CONTAINER > /dev/null
+    echo -e "$PG_ACCESS_STRING" >> $PG_DATADIR/pg_hba.conf
+    docker start $PG_CONTAINER > /dev/null
+    echo "wait 10 seconds before going on..."
+    sleep 10
+fi
 
 echo "Step 2: Create user and database in PostgreSQL container instance"
 # new temp container laucnhed that inits the newly created postgresql server
-echo "CREATE DATABASE $PG_DATABASE;CREATE USER $PG_USER WITH password '$PG_PASSWORD';GRANT ALL privileges ON DATABASE $PG_DATABASE TO $PG_USER;\q" |
+echo "CREATE DATABASE $PG_DATABASE;CREATE USER $PG_USER;GRANT ALL privileges ON DATABASE $PG_DATABASE TO $PG_USER;\q" |
 docker run -ti --link $PG_CONTAINER:postgres --rm $DOCKER_POSTGRES sh -c 'exec psql -h "$POSTGRES_PORT_5432_TCP_ADDR" -p "$POSTGRES_PORT_5432_TCP_PORT" -U postgres'
 
 echo "Step 3: Migrate database"
-docker run -ti --link $PG_CONTAINER:postgres --rm -e "PG_USER=$PG_USER" -e "PG_PASSWORD=$PG_PASSWORD" -e "PG_DATABASE=$PG_DATABASE" "${DOCKER_DEVICEHIVE}" sh -c 'java -jar /root/dh_dbtool.jar -migrate -url jdbc:postgresql://${POSTGRES_PORT_5432_TCP_ADDR}/${PG_DATABASE} -user ${PG_USER} -password ${PG_PASSWORD}'
+docker run -ti --link $PG_CONTAINER:postgres --rm -e "PG_USER=$PG_USER" -e "PG_DATABASE=$PG_DATABASE" "${DOCKER_DEVICEHIVE}" sh -c 'java -jar /root/dh_dbtool.jar -migrate -url jdbc:postgresql://${POSTGRES_PORT_5432_TCP_ADDR}/${PG_DATABASE} -user ${PG_USER}'
 
 echo "Step 4: Run GlassFish with DeviceHive"
 docker run -d -p ${DOCKER_PORT}:8080 --name ${DH_CONTAINER} --link $PG_CONTAINER:postgres -e "PG_USER=$PG_USER" -e "PG_PASSWORD=$PG_PASSWORD" -e "PG_DATABASE=$PG_DATABASE" -e "DH_DOMAIN=$DH_DOMAIN" -e "DH_PORT=$DH_PORT" -e "DH_PROTOCOL=$DH_PROTOCOL" ${DOCKER_DEVICEHIVE}

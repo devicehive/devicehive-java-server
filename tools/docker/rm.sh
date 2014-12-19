@@ -42,4 +42,14 @@ else
     EXIT=`expr $EXIT + 4`
 fi
 
+env echo "Removing PostgreSQL database files..."
+rm -R /data/devicehive-${UUID}
+if [ $? -eq 0 ]; then
+    echo "SUCCESS"
+else
+    echo "FAIL:("
+    EXIT=`expr $EXIT + 8`
+fi
+
+
 exit $EXIT
