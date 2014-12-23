@@ -30,7 +30,7 @@ highly encouraged to do so!
 
 Docker Container
 =========================================
-We have published DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. Check out [DeviceHive on Docker Hub](https://registry.hub.docker.com/u/devicehive/devicehive-java/) with the instructions on how to use it. If you are a Linux user you can use [DeviceHive Docker Deployment Script](/tools/docker) for setting up a new instance running under nginx.
+We have published DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. Check out docker [DeviceHive on Docker Hub](https://registry.hub.docker.com/u/devicehive/devicehive-java/) with the instructions on how to use it. You can check dockerfile implemetation as well as the script for setting up a new instance running under nginx on [DeviceHive Java Docker](https://github.com/devicehive/devicehive-java-docker) 
 
 DeviceHive Java installation instructions
 =========================================
