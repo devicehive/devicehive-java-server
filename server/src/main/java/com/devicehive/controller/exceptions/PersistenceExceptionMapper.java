@@ -23,7 +23,7 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
     public Response toResponse(PersistenceException exception) {
         if (exception.getCause() instanceof ConstraintViolationException) {
             return ResponseFactory
-                .response(Response.Status.CONFLICT, new ErrorResponse(Messages.CONFLICT_MESSAGE));
+                .response(Response.Status.CONFLICT, new ErrorResponse(Response.Status.CONFLICT.getStatusCode(), Messages.CONFLICT_MESSAGE));
         }
         logger.error("Error: ", exception);
         return ResponseFactory

@@ -15,6 +15,6 @@ public class OptimisticLockExceptionMapper implements ExceptionMapper<Optimistic
 
     @Override
     public Response toResponse(OptimisticLockException exception) {
-        return ResponseFactory.response(Response.Status.CONFLICT, new ErrorResponse(Messages.CONFLICT_MESSAGE));
+        return ResponseFactory.response(Response.Status.CONFLICT, new ErrorResponse(Response.Status.CONFLICT.getStatusCode(), Messages.CONFLICT_MESSAGE));
     }
 }

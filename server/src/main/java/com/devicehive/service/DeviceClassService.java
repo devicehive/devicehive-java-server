@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceClassDAO;
 import com.devicehive.exceptions.HiveException;
@@ -18,6 +19,9 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 
@@ -27,6 +31,9 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Stateless
 public class DeviceClassService {
+
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
+    private EntityManager em;
 
     @EJB
     private DeviceClassDAO deviceClassDAO;
@@ -39,7 +46,7 @@ public class DeviceClassService {
         return deviceClassDAO.delete(id);
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public DeviceClass getWithEquipment(@NotNull long id) {
         return deviceClassDAO.getWithEquipment(id);
     }
@@ -62,6 +69,7 @@ public class DeviceClassService {
         if (stored != null) {
             //update
             if (!stored.getPermanent()) {
+                em.refresh(stored, LockModeType.PESSIMISTIC_WRITE);
                 if (deviceClass.getValue().getData() != null) {
                     stored.setData(deviceClassFromMessage.getData());
                 }
