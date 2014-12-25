@@ -369,9 +369,10 @@ public class AccessKeyService {
             final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
             JsonElement jsonElement = new JsonParser().parse(response);
             try {
-                if (jsonElement.getAsJsonObject().get("error") != null) {
-                    LOGGER.error("Exception has been caught during Identity Provider GET request execution", jsonElement.getAsJsonObject().get("error"));
-                    throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
+                final JsonElement error = jsonElement.getAsJsonObject().get("error");
+                if (error != null) {
+                    LOGGER.error("Exception has been caught during Identity Provider GET request execution", error);
+                    throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName, error),
                             Response.Status.FORBIDDEN.getStatusCode());
                 }
             } catch (IllegalStateException ex) {
@@ -394,9 +395,10 @@ public class AccessKeyService {
             request.setHeaders(headers);
             final String response = request.execute().parseAsString();
             final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
-            if (jsonObject.get("error") != null) {
-                LOGGER.error("Exception has been caught during Identity Provider GET request execution", jsonObject.get("error"));
-                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName),
+            final JsonElement error = jsonObject.get("error");
+            if (error != null) {
+                LOGGER.error("Exception has been caught during Identity Provider GET request execution", error);
+                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName, error),
                         Response.Status.FORBIDDEN.getStatusCode());
             }
             return jsonObject;

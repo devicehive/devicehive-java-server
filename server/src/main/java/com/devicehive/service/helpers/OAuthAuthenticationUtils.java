@@ -84,7 +84,8 @@ public class OAuthAuthenticationUtils {
                     Response.Status.BAD_REQUEST.getStatusCode());
         }
         final int index = state.indexOf("=") + 1;
-        final String identityProviderId = state.substring(index, state.length());
+        int lastIndex = state.contains("&") ? state.indexOf("&") : state.length();
+        final String identityProviderId = state.substring(index, lastIndex);
         if (!StringUtils.isNumeric(identityProviderId)) {
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                     Response.Status.BAD_REQUEST.getStatusCode());
