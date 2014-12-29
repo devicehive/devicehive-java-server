@@ -246,9 +246,9 @@ public class User implements HiveEntity {
         static interface Values {
 
             static final String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
-            static final String FIND_BY_GOOGLE_NAME = "select u from User u where u.googleLogin = :login and u.status <> 3";
-            static final String FIND_BY_FACEBOOK_NAME = "select u from User u where u.facebookLogin = :login and u.status <> 3";
-            static final String FIND_BY_GITHUB_NAME = "select u from User u where u.githubLogin = :login and u.status <> 3";
+            static final String FIND_BY_GOOGLE_NAME = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3";
+            static final String FIND_BY_FACEBOOK_NAME = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3";
+            static final String FIND_BY_GITHUB_NAME = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3";
             static final String FIND_BY_IDENTITY_NAME = "select u from User u where u.login<> :login and (u.googleLogin = :googleLogin " +
                     "or u.facebookLogin = :facebookLogin or u.githubLogin = :githubLogin) and u.status <> 3";
             static final String HAS_ACCESS_TO_NETWORK =

@@ -107,17 +107,19 @@ public class HiveSecurityFilter implements Filter {
         }
         if (Constants.OAUTH_IDENTITY.equals(auth)) {
             if (request.getParameter(Constants.OAUTH_STATE) == null) {
-                LOGGER.debug("No state parameter found in the request {}", request.getRequestURI());
+                LOGGER.error("No state parameter found in the request {}", request.getRequestURI());
                 return null;
             }
             final IdentityProvider identityProvider = accessKeyService.getIdentityProvider(request.getParameter(Constants.OAUTH_STATE));
             if (accessKeyService.isIdentityProviderAllowed(identityProvider)) {
                 final String code = request.getParameter(Constants.CODE);
                 if (code != null) {
+                    LOGGER.debug("Authentication code: {}", code);
                     return accessKeyService.exchangeCode(code, identityProvider);
                 }
                 final String expiresIn = request.getParameter(Constants.OAUTH_EXPIRES_IN);
                 if (expiresIn == null) {
+                    LOGGER.error("Access token has expired");
                     return null;
                 }
                 return accessKeyService.authenticate(request.getParameter(Constants.OAUTH_ACCESS_TOKEN), identityProvider);

@@ -11,6 +11,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.TimestampService;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +22,7 @@ import javax.ejb.Stateless;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
+import java.util.Iterator;
 
 /**
  * Created by tmatvienko on 11/21/14.
@@ -115,18 +117,33 @@ public class OAuthAuthenticationUtils {
                 Response.Status.BAD_REQUEST.getStatusCode());
     }
 
-    public String getLoginFromResponse(final JsonObject jsonObject, @NotNull final Long providerId) throws HiveException {
+    public String getLoginFromResponse(final JsonElement jsonElement, @NotNull final Long providerId) throws HiveException {
         try {
             if (providerId.equals(googleIdentityProviderId)) {
-                return jsonObject.getAsJsonArray("emails").get(0).getAsJsonObject().get("value").getAsString();
-            } else if (providerId.equals(facebookIdentityProviderId) || providerId.equals(githubIdentityProviderId)) {
-                return jsonObject.get("email").getAsString();
+                return jsonElement.getAsJsonObject().get("emails").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString();
+            } else if (providerId.equals(facebookIdentityProviderId)) {
+                return jsonElement.getAsJsonObject().get("email").getAsString();
+            } else if (providerId.equals(githubIdentityProviderId)) {
+                return getPrimaryGithubEmail(jsonElement);
             } else {
                 throw new HiveException(Messages.IDENTITY_PROVIDER_NOT_FOUND, Response.Status.BAD_REQUEST.getStatusCode());
             }
         } catch (NullPointerException e) {
             throw new HiveException(Messages.WRONG_IDENTITY_PROVIDER_SCOPE, Response.Status.BAD_REQUEST.getStatusCode());
         }
+    }
+
+    private String getPrimaryGithubEmail(JsonElement jsonElement) {
+        JsonArray jsonArray = jsonElement.getAsJsonArray();
+        Iterator<JsonElement> iterator = jsonArray.iterator();
+        JsonObject jsonObject;
+        while (iterator.hasNext()) {
+            jsonObject = iterator.next().getAsJsonObject();
+            if (jsonObject.get("primary").getAsBoolean()) {
+                return jsonObject.get("email").getAsString();
+            }
+        }
+        return null;
     }
 
     public void validateActions(AccessKey accessKey) {

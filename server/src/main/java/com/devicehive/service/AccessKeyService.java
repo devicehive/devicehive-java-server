@@ -152,18 +152,23 @@ public class AccessKeyService {
         }
         final JsonElement apiResponse =  executeGet(new NetHttpTransport(), BearerToken.authorizationHeaderAccessMethod(),
                     accessToken, identityProvider.getApiEndpoint(), identityProvider.getName());
-        final String email = authenticationUtils.getLoginFromResponse(apiResponse.getAsJsonObject(), identityProvider.getId());
+        final String email = authenticationUtils.getLoginFromResponse(apiResponse, identityProvider.getId());
         User user = userService.findByLoginAndIdentity(email, identityProvider);
         if (user == null) {
-            return null;
+            LOGGER.error("No user with email {} found for identity provider {}", email, identityProvider.getName());
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, email),
+                    Response.Status.NOT_FOUND.getStatusCode());
         }
+        LOGGER.debug("User authentication success: {}", user.getLogin());
         userService.refreshUserLoginData(user);
         AccessKey accessKey = accessKeyDAO.get(user.getId(),
                 String.format(OAuthAuthenticationUtils.OAUTH_ACCESS_KEY_LABEL_FORMAT, email));
         if (accessKey == null) {
+            LOGGER.debug("No access key found for user {}. A new one will be created");
             return createExternalAccessToken(user, email);
         }
         if (accessKey.getExpirationDate().before(new Timestamp(System.currentTimeMillis()))) {
+            LOGGER.debug("Access key has expired");
             delete(null, accessKey.getId());
             return createExternalAccessToken(user, email);
         }
@@ -356,18 +361,21 @@ public class AccessKeyService {
         if (response.get("access_token") != null) {
             return response.get("access_token").getAsString();
         } else {
+            LOGGER.warn("No access token found in provider response: {}", response);
             throw new HiveException(Messages.BAD_AUTHENTICATION_RESPONSE, Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
 
     private JsonElement executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
                                            final String endpoint, final String providerName) {
+        LOGGER.debug("executeGet: endpoint {}, providerName {}", endpoint, providerName);
         try {
             final Credential credential = new Credential(accessMethod).setAccessToken(accessToken);
             final GenericUrl url = new GenericUrl(endpoint);
             final HttpRequestFactory requestFactory = transport.createRequestFactory(credential);
             final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
             JsonElement jsonElement = new JsonParser().parse(response);
+            LOGGER.debug("executeGet response: {}", jsonElement);
             try {
                 final JsonElement error = jsonElement.getAsJsonObject().get("error");
                 if (error != null) {
@@ -376,7 +384,7 @@ public class AccessKeyService {
                             Response.Status.FORBIDDEN.getStatusCode());
                 }
             } catch (IllegalStateException ex) {
-                return jsonElement.getAsJsonArray().get(0);
+                return jsonElement;
             }
             return jsonElement;
         } catch (IOException e) {
@@ -387,6 +395,7 @@ public class AccessKeyService {
 
     private JsonObject executePost(final HttpTransport transport, final Map<String, String> params, final HttpHeaders headers,
                                      final String endpoint, final String providerName) {
+        LOGGER.debug("executePost: endpoint {}, providerName {}", endpoint, providerName);
         try {
             final HttpRequestFactory requestFactory = transport.createRequestFactory();
             final GenericUrl url = new GenericUrl(endpoint);
@@ -395,9 +404,11 @@ public class AccessKeyService {
             request.setHeaders(headers);
             final String response = request.execute().parseAsString();
             final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
+            LOGGER.debug("executeGet response: {}", jsonObject);
             final JsonElement error = jsonObject.get("error");
             if (error != null) {
-                LOGGER.error("Exception has been caught during Identity Provider GET request execution", error);
+                LOGGER.error("Exception has been caught during Identity Provider POST request execution, CODE: {}",
+                        params.get("code"), error);
                 throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName, error),
                         Response.Status.FORBIDDEN.getStatusCode());
             }
