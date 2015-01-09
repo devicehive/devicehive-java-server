@@ -17,7 +17,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate-version>4.3.5.Final</hibernate-version>
-        <hazelcast-version>3.1.7</hazelcast-version>
+        <ehcache-version>2.6.9</ehcache-version>
         <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
         <glassfish.tyrus>1.8.2</glassfish.tyrus>
         <instance.id/>
@@ -49,16 +49,28 @@
             </dependency>
 
             <!-- Hazelcast -->
+            <!--<dependency>-->
+                <!--<groupId>com.hazelcast</groupId>-->
+                <!--<artifactId>hazelcast</artifactId>-->
+                <!--<version>${hazelcast-version}</version>-->
+            <!--</dependency>-->
+
+            <!--<dependency>-->
+                <!--<groupId>com.hazelcast</groupId>-->
+                <!--<artifactId>hazelcast-hibernate4</artifactId>-->
+                <!--<version>${hazelcast-version}</version>-->
+            <!--</dependency>-->
+
             <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${hazelcast-version}</version>
+                <groupId>net.sf.ehcache</groupId>
+                <artifactId>ehcache-core</artifactId>
+                <version>${ehcache-version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast-hibernate4</artifactId>
-                <version>${hazelcast-version}</version>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-ehcache</artifactId>
+                <version>4.3.5.Final</version>
             </dependency>
 
 

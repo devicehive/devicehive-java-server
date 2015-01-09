@@ -7,7 +7,7 @@ import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.DeviceNotificationMessage;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.util.SessionMonitor;
@@ -57,7 +57,7 @@ public class LocalMessageBus {
                 !subscription.getCommandNames().contains(deviceCommand.getCommand())) {
                 continue;
             }
-            boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceCommand.getDevice());
+            boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceCommand.getDevice().getGuid());
             if (hasAccess) {
                 mes.submit(
                     subscription.getHandlerCreator().getHandler(deviceCommand, subscription.getSubscriptionId()));
@@ -74,7 +74,7 @@ public class LocalMessageBus {
                 continue;
             }
             if (!subscribersIds.contains(subscription.getSubscriptionId())) {
-                boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceCommand.getDevice());
+                boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceCommand.getDevice().getGuid());
                 if (hasAccess) {
                     mes.submit(
                         subscription.getHandlerCreator().getHandler(deviceCommand, subscription.getSubscriptionId()));
@@ -106,44 +106,42 @@ public class LocalMessageBus {
     }
 
     @Asynchronous
-    public void submitDeviceNotification(@LocalMessage @Create
-                                         @Observes(
-                                             during = TransactionPhase.AFTER_SUCCESS) final DeviceNotification deviceNotification) {
+    public void submitDeviceNotification(final DeviceNotificationMessage deviceNotificationMessage) {
 
-        logger.debug("Device notification was submitted: {}", deviceNotification.getId());
+        logger.debug("Device notification was submitted: {}", deviceNotificationMessage.getNotification());
 
         Set<UUID> subscribersIds = new HashSet<>();
         Set<NotificationSubscription> subs =
-            subscriptionManager.getNotificationSubscriptionStorage().getByDeviceId(
-                deviceNotification.getDevice().getId());
+            subscriptionManager.getNotificationSubscriptionStorage().getByDeviceGuid(
+                    deviceNotificationMessage.getDeviceGuid());
         for (NotificationSubscription subscription : subs) {
             if (subscription.getNotificationNames() != null
-                && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
+                && !subscription.getNotificationNames().contains(deviceNotificationMessage.getNotification())) {
                 continue;
             }
-            boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceNotification.getDevice());
+            boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), deviceNotificationMessage.getDeviceGuid());
             if (hasAccess) {
                 mes.submit(
-                    subscription.getHandlerCreator().getHandler(deviceNotification, subscription.getSubscriptionId()));
+                    subscription.getHandlerCreator().getHandler(deviceNotificationMessage, subscription.getSubscriptionId()));
             }
             subscribersIds.add(subscription.getSubscriptionId());
         }
 
         Set<NotificationSubscription> subsForAll = (subscriptionManager.getNotificationSubscriptionStorage()
-                                                        .getByDeviceId(Constants.NULL_ID_SUBSTITUTE));
+                                                        .getByDeviceGuid(Constants.NULL_SUBSTITUTE));
 
         for (NotificationSubscription subscription : subsForAll) {
             if (subscription.getNotificationNames() != null
-                && !subscription.getNotificationNames().contains(deviceNotification.getNotification())) {
+                && !subscription.getNotificationNames().contains(deviceNotificationMessage.getNotification())) {
                 continue;
             }
             if (!subscribersIds.contains(subscription.getSubscriptionId())) {
                 boolean
                     hasAccess =
-                    deviceService.hasAccessTo(subscription.getPrincipal(), deviceNotification.getDevice());
+                    deviceService.hasAccessTo(subscription.getPrincipal(), deviceNotificationMessage.getDeviceGuid());
                 if (hasAccess) {
                     mes.submit(subscription.getHandlerCreator()
-                                         .getHandler(deviceNotification, subscription.getSubscriptionId()));
+                                         .getHandler(deviceNotificationMessage, subscription.getSubscriptionId()));
                 }
             }
         }

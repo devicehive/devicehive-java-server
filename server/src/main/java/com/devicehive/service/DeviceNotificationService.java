@@ -6,22 +6,16 @@ import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.Create;
-import com.devicehive.messages.bus.GlobalMessage;
 import com.devicehive.messages.bus.LocalMessage;
+import com.devicehive.messages.kafka.Message;
+import com.devicehive.messages.kafka.Notification;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.DeviceNotificationMessage;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
-
 import org.apache.commons.lang3.StringUtils;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -31,6 +25,8 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
+import java.util.*;
 
 @Stateless
 @LogExecutionTime
@@ -53,9 +49,13 @@ public class DeviceNotificationService {
     private Event<DeviceNotification> eventLocal;
 
     @Inject
-    @Create
-    @GlobalMessage
+    @Message
     private Event<DeviceNotification> eventGlobal;
+
+    @Inject
+    @Message
+    @Notification
+    private Event<DeviceNotificationMessage> deviceNotificationMessageReceivedEvent;
 
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -106,44 +106,43 @@ public class DeviceNotificationService {
 
     //device should be already set
 
-    public List<DeviceNotification> saveDeviceNotification(List<DeviceNotification> notifications) {
-        for (DeviceNotification notification : notifications) {
-            notification.setTimestamp(timestampService.getTimestamp());
-            deviceNotificationDAO.createNotification(notification);
+//    public List<DeviceNotification> saveDeviceNotification(List<DeviceNotification> notifications) {
+//        for (DeviceNotification notification : notifications) {
+//            notification.setTimestamp(timestampService.getTimestamp());
+//            deviceNotificationDAO.createNotification(notification);
+//        }
+//        return notifications;
+//    }
+
+    public void submitDeviceNotification(DeviceNotificationMessage notification, Device device) {
+        List<DeviceNotificationMessage> proceedNotifications = processDeviceNotification(notification, device);
+        for (DeviceNotificationMessage currentNotification : proceedNotifications) {
+            deviceNotificationMessageReceivedEvent.fire(currentNotification);
         }
-        return notifications;
     }
 
-    public void submitDeviceNotification(DeviceNotification notification, Device device) {
-        List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
-        for (DeviceNotification currentNotification : proceedNotifications) {
-            eventGlobal.fire(currentNotification);
-            eventLocal.fire(currentNotification);
-        }
-    }
-
-    public List<DeviceNotification> processDeviceNotification(DeviceNotification notification, Device device) {
-        List<DeviceNotification> notificationsToCreate = new ArrayList<>();
-        switch (notification.getNotification()) {
+    public List<DeviceNotificationMessage> processDeviceNotification(DeviceNotificationMessage notificationMessage, Device device) {
+        List<DeviceNotificationMessage> notificationsToCreate = new ArrayList<>();
+        switch (notificationMessage.getNotification()) {
             case SpecialNotifications.EQUIPMENT:
-                deviceEquipmentService.refreshDeviceEquipment(notification, device);
+                deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
                 break;
             case SpecialNotifications.DEVICE_STATUS:
-                notificationsToCreate.add(refreshDeviceStatusCase(notification, device));
+                notificationsToCreate.add(refreshDeviceStatusCase(notificationMessage, device));
                 break;
             default:
                 break;
 
         }
-        notification.setDevice(device);
-        notificationsToCreate.add(notification);
-        return saveDeviceNotification(notificationsToCreate);
+        //notification.setDevice(device);
+        notificationsToCreate.add(notificationMessage);
+        return notificationsToCreate;
 
     }
 
-    public DeviceNotification refreshDeviceStatusCase(DeviceNotification notification, Device device) {
+    public DeviceNotificationMessage refreshDeviceStatusCase(DeviceNotificationMessage notificationMessage, Device device) {
         device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
-        String status = ServerResponsesFactory.parseNotificationStatus(notification);
+        String status = ServerResponsesFactory.parseNotificationStatus(notificationMessage);
         device.setStatus(status);
         return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_UPDATE);
     }

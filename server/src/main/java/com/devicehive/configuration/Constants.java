@@ -88,6 +88,7 @@ public class Constants {
     public static final String LOGIN_PATTERN = "loginPattern";
     public static final String ROLE = "role";
     public static final String DEVICE = "device";
+    public static final String TOPIC = "topic";
 
     public static final String DEFAULT_EXPIRATION_DATE_PROPERTY = "access.key.default.expiration.period";
 
@@ -102,5 +103,15 @@ public class Constants {
     public static final String GITHUB_IDENTITY_CLIENT_ID = "github.identity.client.id";
     public static final String GITHUB_IDENTITY_CLIENT_SECRET = "github.identity.client.secret";
     public static final String GITHUB_IDENTITY_ALLOWED = "github.identity.allowed";
+
+    public static final String METADATA_BROKER_LIST = "metadata.broker.list";
+    public static final String SERIALIZER_CLASS = "serializer.class";
+    public static final String DEVICE_NOTIFICATION_TOPIC_NAME = "device.notification.topic.name";
+    public static final String ZOOKEEPER_CONNECT = "zookeeper.connect";
+    public static final String GROOP_ID = "group.id";
+    public static final String ZOOKEEPER_SESSION_TIMEOUT_MS = "zookeeper.session.timeout.ms";
+    public static final String ZOOKEEPER_SYNC_TIME_MS = "zookeeper.sync.time.ms";
+    public static final String AUTO_COMMIT_INTERVAL_MS = "auto.commit.interval.ms";
+    public static final String THREADS_COUNT = "threads.count";
 
 }

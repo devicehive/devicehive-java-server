@@ -19,6 +19,7 @@ import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.DeviceNotificationMessage;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
@@ -291,17 +292,17 @@ public class DeviceNotificationController {
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
-            RestHandlerCreator<DeviceNotification> restHandlerCreator = new RestHandlerCreator<>();
+            RestHandlerCreator<DeviceNotificationMessage> restHandlerCreator = new RestHandlerCreator<>();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
             if (devices != null) {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 for (Device d : actualDevices) {
                     subscriptionSet
-                        .add(new NotificationSubscription(principal, d.getId(), reqId, names, restHandlerCreator));
+                        .add(new NotificationSubscription(principal, d.getGuid(), reqId, names, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
-                    .add(new NotificationSubscription(principal, Constants.NULL_ID_SUBSTITUTE,
+                    .add(new NotificationSubscription(principal, Constants.NULL_SUBSTITUTE,
                                                       reqId,
                                                       names,
                                                       restHandlerCreator));
@@ -337,10 +338,14 @@ public class DeviceNotificationController {
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     public Response insert(@PathParam(DEVICE_GUID) String guid,
-                           @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification notification) {
+                           @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
+                           DeviceNotificationMessage notification) {
         logger.debug("DeviceNotification insertAll requested");
+        DeviceNotification deviceNotification = new DeviceNotification();
+        deviceNotification.setNotification(notification.getNotification());
+
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        if (notification == null || notification.getNotification() == null) {
+        if (notification == null || notification.getNotification() == null){
             logger.debug(
                 "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
             return ResponseFactory.response(BAD_REQUEST,
@@ -364,6 +369,5 @@ public class DeviceNotificationController {
         logger.debug("DeviceNotification insertAll proceed successfully");
         return ResponseFactory.response(CREATED, notification, NOTIFICATION_TO_DEVICE);
     }
-
 
 }

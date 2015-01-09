@@ -1,7 +1,6 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.helpers.PasswordProcessor;
@@ -202,10 +201,10 @@ public class UserDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean hasAccessToDevice(User user, Device device) {
+    public boolean hasAccessToDevice(User user, String deviceGuid) {
         TypedQuery<Long> query = em.createNamedQuery(HAS_ACCESS_TO_DEVICE, Long.class);
         query.setParameter(USER, user);
-        query.setParameter(DEVICE, device);
+        query.setParameter(GUID, deviceGuid);
         Long count = query.getSingleResult();
         return count != null && count > 0;
     }

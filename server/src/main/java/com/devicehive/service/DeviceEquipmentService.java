@@ -3,17 +3,16 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceEquipmentDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.DeviceNotificationMessage;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.util.ServerResponsesFactory;
-
-import java.util.List;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 //TODO:javadoc
 @Stateless
@@ -49,15 +48,15 @@ public class DeviceEquipmentService {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotification refreshDeviceEquipment(DeviceNotification notification, Device device) {
+    public DeviceNotificationMessage refreshDeviceEquipment(DeviceNotificationMessage notificationMessage, Device device) {
         DeviceEquipment deviceEquipment = null;
-        if (notification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
-            deviceEquipment = ServerResponsesFactory.parseDeviceEquipmentNotification(notification, device);
+        if (notificationMessage.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
+            deviceEquipment = ServerResponsesFactory.parseDeviceEquipmentNotification(notificationMessage, device);
             if (deviceEquipment.getTimestamp() == null) {
                 deviceEquipment.setTimestamp(timestampService.getTimestamp());
             }
         }
         createDeviceEquipment(deviceEquipment);
-        return notification;
+        return notificationMessage;
     }
 }

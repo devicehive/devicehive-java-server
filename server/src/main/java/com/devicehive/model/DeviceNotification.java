@@ -57,7 +57,7 @@ public class DeviceNotification implements HiveEntity {
     @AttributeOverrides({
                             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
                         })
-    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
+    //@JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
     private JsonStringWrapper parameters;
     @SerializedName("id")
     @Id

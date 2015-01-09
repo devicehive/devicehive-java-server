@@ -7,7 +7,6 @@ import com.devicehive.configuration.PropertiesService;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.Device;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
@@ -275,8 +274,8 @@ public class UserService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean hasAccessToDevice(User user, Device device) {
-        return user.isAdmin() || userDAO.hasAccessToDevice(user, device);
+    public boolean hasAccessToDevice(User user, String deviceGuid) {
+        return user.isAdmin() || userDAO.hasAccessToDevice(user, deviceGuid);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

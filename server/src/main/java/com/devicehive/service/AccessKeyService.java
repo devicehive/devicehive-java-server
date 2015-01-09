@@ -257,8 +257,8 @@ public class AccessKeyService {
         permissions.removeAll(toRemove);
         boolean hasAccess;
         hasAccess = allowedDevices.contains(null) ?
-                    userService.hasAccessToDevice(accessKeyUser, device) :
-                    allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(accessKeyUser, device);
+                    userService.hasAccessToDevice(accessKeyUser, device.getGuid()) :
+                    allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(accessKeyUser, device.getGuid());
 
         hasAccess = hasAccess && allowedNetworks.contains(null) ?
                     accessKeyUser.isAdmin() || accessKeyUser.getNetworks().contains(device.getNetwork()) :
