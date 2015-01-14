@@ -6,6 +6,7 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -27,11 +28,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.USER_ID;
+import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_ACCESS_KEY;
+import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
-import static com.devicehive.auth.AllowedKeyAction.Action.*;
 
 /**
  * REST Controller for access keys: <i>/user/{userId}/accesskey</i> See <a href="http://www.devicehive.com/restful/#Reference/AccessKey">DeviceHive
@@ -64,12 +64,25 @@ public class AccessKeyController {
     @GET
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
-    public Response list(@PathParam(USER_ID) String userId) {
+    public Response list(@PathParam(USER_ID) String userId, @QueryParam(LABEL) String label,
+                         @QueryParam(LABEL_PATTERN) String labelPattern, @QueryParam(TYPE) Integer type,
+                         @QueryParam(SORT_FIELD) String sortField, @QueryParam(SORT_ORDER) String sortOrderSt,
+                         @QueryParam(TAKE) Integer take, @QueryParam(SKIP) Integer skip) {
 
         logger.debug("Access key : list requested for userId : {}", userId);
 
         Long id = getUser(userId).getId();
-        List<AccessKey> keyList = accessKeyService.list(id);
+
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+
+        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LABEL.equalsIgnoreCase(sortField)) {
+            return ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
+        }
+        List<AccessKey> keyList = accessKeyService.list(id, label, labelPattern, type, sortField, sortOrder, take, skip);
 
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
 

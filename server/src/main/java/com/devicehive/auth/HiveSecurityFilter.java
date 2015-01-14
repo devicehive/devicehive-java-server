@@ -1,7 +1,10 @@
 package com.devicehive.auth;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKey;
+import com.devicehive.model.Device;
+import com.devicehive.model.OAuthClient;
+import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.OAuthClientService;
@@ -100,30 +103,10 @@ public class HiveSecurityFilter implements Filter {
         return null;
     }
 
-    private AccessKey authKey(HttpServletRequest request) {
+    private AccessKey authKey(HttpServletRequest request) throws IOException {
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;
-        }
-        if (Constants.OAUTH_IDENTITY.equals(auth)) {
-            if (request.getParameter(Constants.OAUTH_STATE) == null) {
-                LOGGER.error("No state parameter found in the request {}", request.getRequestURI());
-                return null;
-            }
-            final IdentityProvider identityProvider = accessKeyService.getIdentityProvider(request.getParameter(Constants.OAUTH_STATE));
-            if (accessKeyService.isIdentityProviderAllowed(identityProvider)) {
-                final String code = request.getParameter(Constants.CODE);
-                if (code != null) {
-                    LOGGER.debug("Authentication code: {}", code);
-                    return accessKeyService.exchangeCode(code, identityProvider);
-                }
-                final String expiresIn = request.getParameter(Constants.OAUTH_EXPIRES_IN);
-                if (expiresIn == null) {
-                    LOGGER.error("Access token has expired");
-                    return null;
-                }
-                return accessKeyService.authenticate(request.getParameter(Constants.OAUTH_ACCESS_TOKEN), identityProvider);
-            }
         }
         if (auth.substring(0, 6).equalsIgnoreCase(Constants.OAUTH_AUTH_SCEME)) {
             String key = auth.substring(6).trim();

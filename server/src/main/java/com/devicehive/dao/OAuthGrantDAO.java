@@ -7,10 +7,6 @@ import com.devicehive.model.OAuthClient;
 import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -18,21 +14,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.devicehive.model.OAuthGrant.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.OAuthGrant.Queries.Names.DELETE_BY_USER_AND_ID;
-import static com.devicehive.model.OAuthGrant.Queries.Names.GET_BY_CODE_AND_OAUTH_ID;
-import static com.devicehive.model.OAuthGrant.Queries.Names.GET_BY_ID;
-import static com.devicehive.model.OAuthGrant.Queries.Names.GET_BY_ID_AND_USER;
-import static com.devicehive.model.OAuthGrant.Queries.Parameters.AUTH_CODE;
-import static com.devicehive.model.OAuthGrant.Queries.Parameters.GRANT_ID;
-import static com.devicehive.model.OAuthGrant.Queries.Parameters.OAUTH_ID;
-import static com.devicehive.model.OAuthGrant.Queries.Parameters.USER;
+import static com.devicehive.model.OAuthGrant.Queries.Names.*;
+import static com.devicehive.model.OAuthGrant.Queries.Parameters.*;
 
 @Stateless
 public class OAuthGrantDAO {
@@ -140,8 +128,8 @@ public class OAuthGrantDAO {
 
         if (take == null) {
             take = Constants.DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
         }
+        resultQuery.setMaxResults(take);
 
         return resultQuery.getResultList();
     }

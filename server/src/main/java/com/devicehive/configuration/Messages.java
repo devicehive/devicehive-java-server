@@ -16,6 +16,7 @@ public class Messages {
     public static final String INVALID_REQUEST_PARAMETERS = BidBundle.get("INVALID_REQUEST_PARAMETERS");
     public static final String DUPLICATE_LABEL_FOUND = BidBundle.get("DUPLICATE_LABEL_FOUND");
     public static final String JSON_SYNTAX_ERROR = BidBundle.get("JSON_SYNTAX_ERROR");
+    public static final String CONFIG_NOT_FOUND = BidBundle.get("CONFIG_NOT_FOUND");
     public static final String DEVICE_NOT_FOUND = BidBundle.get("DEVICE_NOT_FOUND");
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");
     public static final String EQUIPMENT_NOT_FOUND = BidBundle.get("EQUIPMENT_NOT_FOUND");
@@ -28,7 +29,9 @@ public class Messages {
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
     public static final String IDENTITY_PROVIDER_NOT_FOUND = BidBundle.get("IDENTITY_PROVIDER_NOT_FOUND");
+    public static final String IDENTITY_PROVIDER_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NOT_ALLOWED");
     public static final String WRONG_IDENTITY_PROVIDER_SCOPE = BidBundle.get("WRONG_IDENTITY_PROVIDER_SCOPE");
+    public static final String GETTING_OAUTH_ACCESS_TOKEN_FAILED = BidBundle.get("GETTING_OAUTH_ACCESS_TOKEN_FAILED");
     public static final String OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED = BidBundle.get("OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
     public static final String NO_NOTIFICATIONS_FROM_DEVICE = BidBundle.get("NO_NOTIFICATIONS_FROM_DEVICE");

@@ -131,3 +131,12 @@ INSERT INTO configuration (name, value) VALUES ('google.identity.allowed', 'fals
 INSERT INTO configuration (name, value) VALUES ('facebook.identity.allowed', 'false');
 INSERT INTO configuration (name, value) VALUES ('github.identity.allowed', 'false');
 
+ALTER TABLE identity_provider ADD COLUMN token_endpoint VARCHAR(128);
+
+UPDATE identity_provider SET token_endpoint='https://www.googleapis.com/oauth2/v3/token' WHERE id = 1;
+UPDATE identity_provider SET token_endpoint='https://graph.facebook.com/oauth/access_token' WHERE id = 2;
+UPDATE identity_provider SET token_endpoint='https://github.com/login/oauth/access_token' WHERE id = 3;
+
+ALTER TABLE access_key DROP CONSTRAINT access_key_label_user_unique;
+ALTER TABLE access_key ADD COLUMN type INT NOT NULL DEFAULT 0;
+INSERT INTO configuration (name, value) VALUES ('session.timeout', '1200000');

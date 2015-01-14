@@ -3,38 +3,31 @@ package com.devicehive.service;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.AccessKeyPermissionDAO;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.AccessType;
+import com.devicehive.model.oauth.*;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.util.LogExecutionTime;
-import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.http.*;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import javax.ejb.*;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
-
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Stateless
 @LogExecutionTime
@@ -53,19 +46,22 @@ public class AccessKeyService {
     @EJB
     private AccessKeyService self;
     @EJB
-    private IdentityProviderService identityProviderService;
+    private OAuthAuthenticationUtils authenticationUtils;
     @EJB
-    private TimestampService timestampService;
+    private GoogleAuthProvider googleAuthProvider;
     @EJB
-    private NetworkService networkService;
+    private FacebookAuthProvider facebookAuthProvider;
     @EJB
-    private DeviceService deviceService;
+    private GithubAuthProvider githubAuthProvider;
+    @EJB
+    private PasswordIdentityProvider passwordIdentityProvider;
     @EJB
     private ConfigurationService configurationService;
     @EJB
-    private PropertiesService propertiesService;
-    @EJB
-    OAuthAuthenticationUtils authenticationUtils;
+    private TimestampService timestampService;
+
+    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
+    private EntityManager em;
 
     public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
         if (accessKey.getLabel() == null) {
@@ -125,59 +121,42 @@ public class AccessKeyService {
         return true;
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public AccessKey authenticate(@NotNull String key) {
-        return accessKeyDAO.get(key);
-    }
-
-    public AccessKey exchangeCode(@NotNull String code, @NotNull IdentityProvider identityProvider) {
-        final Long githubProviderId = Long.parseLong(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID));
-        if (githubProviderId.equals(identityProvider.getId())) {
-            final String githubAccessToken = getGithubAccessToken(code);
-            if (githubAccessToken != null) {
-                return authenticate(githubAccessToken, identityProvider);
-            }
-        }
-        return null;
-    }
-
-    public AccessKey authenticate(@NotNull String accessToken, @NotNull IdentityProvider identityProvider) {
-        if (identityProvider.getVerificationEndpoint() != null) {
-            final JsonElement verificationResponse =  executeGet(new NetHttpTransport(),
-                    BearerToken.queryParameterAccessMethod(), accessToken, identityProvider.getVerificationEndpoint(), identityProvider.getName());
-            if (!authenticationUtils.validateVerificationResponse(verificationResponse.getAsJsonObject(), identityProvider)) {
-                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, identityProvider.getName()),
-                        Response.Status.FORBIDDEN.getStatusCode());
-            }
-        }
-        final JsonElement apiResponse =  executeGet(new NetHttpTransport(), BearerToken.authorizationHeaderAccessMethod(),
-                    accessToken, identityProvider.getApiEndpoint(), identityProvider.getName());
-        final String email = authenticationUtils.getLoginFromResponse(apiResponse, identityProvider.getId());
-        User user = userService.findByLoginAndIdentity(email, identityProvider);
-        if (user == null) {
-            LOGGER.error("No user with email {} found for identity provider {}", email, identityProvider.getName());
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, email),
-                    Response.Status.NOT_FOUND.getStatusCode());
-        }
-        LOGGER.debug("User authentication success: {}", user.getLogin());
-        userService.refreshUserLoginData(user);
-        AccessKey accessKey = accessKeyDAO.get(user.getId(),
-                String.format(OAuthAuthenticationUtils.OAUTH_ACCESS_KEY_LABEL_FORMAT, email));
+        AccessKey accessKey = accessKeyDAO.get(key);
         if (accessKey == null) {
-            LOGGER.debug("No access key found for user {}. A new one will be created");
-            return createExternalAccessToken(user, email);
+            return null;
         }
-        if (accessKey.getExpirationDate().before(new Timestamp(System.currentTimeMillis()))) {
-            LOGGER.debug("Access key has expired");
-            delete(null, accessKey.getId());
-            return createExternalAccessToken(user, email);
+        final Long expirationPeriod = configurationService.getLong(Constants.SESSION_TIMEOUT, Constants.DEFAULT_SESSION_TIMEOUT);
+        final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
+        if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod/2) {
+            em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
+            accessKey.setExpirationDate(new Timestamp(timestampService.getTimestamp().getTime() + expirationPeriod));
+            return accessKeyDAO.update(accessKey);
         }
         return accessKey;
     }
 
+    public AccessKey createAccessKey(@NotNull AccessKeyRequest request, IdentityProviderEnum identityProviderEnum) {
+        switch (identityProviderEnum) {
+            case GOOGLE:
+                return googleAuthProvider.createAccessKey(request);
+            case FACEBOOK:
+                return facebookAuthProvider.createAccessKey(request);
+            case GITHUB:
+                return githubAuthProvider.createAccessKey(request);
+            case PASSWORD: default:
+                return passwordIdentityProvider.createAccessKey(request);
+        }
+    }
+
+    public AccessKey authenticate(@NotNull User user) {
+        userService.refreshUserLoginData(user);
+        return createExternalAccessToken(user);
+    }
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    private AccessKey createExternalAccessToken(final User user, final String email) {
-        AccessKey accessKey = authenticationUtils.prepareAccessKey(user, email);
+    private AccessKey createExternalAccessToken(final User user) {
+        AccessKey accessKey = authenticationUtils.prepareAccessKey(user);
 
         Set<AccessKeyPermission> permissions = new HashSet<>();
         final AccessKeyPermission permission = authenticationUtils.preparePermission(user.getRole());
@@ -270,6 +249,7 @@ public class AccessKeyService {
 
     public AccessKey createAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
         AccessKey newKey = new AccessKey();
+        newKey.setType(AccessKeyType.OAUTH);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
             Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
             newKey.setExpirationDate(expirationDate);
@@ -317,8 +297,11 @@ public class AccessKeyService {
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public List<AccessKey> list(@NotNull Long userId) {
-        return accessKeyDAO.list(userId);
+    public List<AccessKey> list(Long userId, String label,
+                                String labelPattern, Integer type,
+                                String sortField, Boolean sortOrderAsc,
+                                Integer take, Integer skip) {
+        return accessKeyDAO.list(userId, label, labelPattern, type, sortField, sortOrderAsc, take, skip);
     }
 
     public AccessKey get(@NotNull Long userId, @NotNull Long keyId) {
@@ -331,92 +314,6 @@ public class AccessKeyService {
             return accessKeyDAO.delete(keyId);
         }
         return accessKeyDAO.delete(userId, keyId);
-    }
-
-    public IdentityProvider getIdentityProvider(final String state) {
-        return authenticationUtils.getIdentityProvider(state);
-    }
-
-    public boolean isIdentityProviderAllowed(@NotNull final IdentityProvider identityProvider) {
-        final String identityProviderIdStr = String.valueOf(identityProvider.getId());
-        if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID))) {
-            return Boolean.valueOf(configurationService.get(Constants.GOOGLE_IDENTITY_ALLOWED));
-        } else if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID))) {
-            return Boolean.valueOf(configurationService.get(Constants.FACEBOOK_IDENTITY_ALLOWED));
-        } else if (identityProviderIdStr.equals(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID))) {
-            return Boolean.valueOf(configurationService.get(Constants.GITHUB_IDENTITY_ALLOWED));
-        } else
-            throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, identityProviderIdStr), BAD_REQUEST.getStatusCode());
-    }
-
-    private String getGithubAccessToken(final String code) {
-        final String endpoint = propertiesService.getProperty(Constants.GITHUB_IDENTITY_ACCESS_TOKEN_ENDPOINT);
-        Map<String, String> params = new HashMap(4);
-        params.put("code", code);
-        params.put("client_id", configurationService.get(Constants.GITHUB_IDENTITY_CLIENT_ID));
-        params.put("client_secret", configurationService.get(Constants.GITHUB_IDENTITY_CLIENT_SECRET));
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept("application/json");
-        final JsonObject response = executePost(new NetHttpTransport(), params, headers, endpoint, "Github");
-        if (response.get("access_token") != null) {
-            return response.get("access_token").getAsString();
-        } else {
-            LOGGER.warn("No access token found in provider response: {}", response);
-            throw new HiveException(Messages.BAD_AUTHENTICATION_RESPONSE, Response.Status.BAD_REQUEST.getStatusCode());
-        }
-    }
-
-    private JsonElement executeGet(final HttpTransport transport, final Credential.AccessMethod accessMethod, final String accessToken,
-                                           final String endpoint, final String providerName) {
-        LOGGER.debug("executeGet: endpoint {}, providerName {}", endpoint, providerName);
-        try {
-            final Credential credential = new Credential(accessMethod).setAccessToken(accessToken);
-            final GenericUrl url = new GenericUrl(endpoint);
-            final HttpRequestFactory requestFactory = transport.createRequestFactory(credential);
-            final String response = requestFactory.buildGetRequest(url).execute().parseAsString();
-            JsonElement jsonElement = new JsonParser().parse(response);
-            LOGGER.debug("executeGet response: {}", jsonElement);
-            try {
-                final JsonElement error = jsonElement.getAsJsonObject().get("error");
-                if (error != null) {
-                    LOGGER.error("Exception has been caught during Identity Provider GET request execution", error);
-                    throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName, error),
-                            Response.Status.FORBIDDEN.getStatusCode());
-                }
-            } catch (IllegalStateException ex) {
-                return jsonElement;
-            }
-            return jsonElement;
-        } catch (IOException e) {
-            LOGGER.error("Exception has been caught during Identity Provider GET request execution", e);
-            throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
-        }
-    }
-
-    private JsonObject executePost(final HttpTransport transport, final Map<String, String> params, final HttpHeaders headers,
-                                     final String endpoint, final String providerName) {
-        LOGGER.debug("executePost: endpoint {}, providerName {}", endpoint, providerName);
-        try {
-            final HttpRequestFactory requestFactory = transport.createRequestFactory();
-            final GenericUrl url = new GenericUrl(endpoint);
-            HttpContent httpContent = new UrlEncodedContent(params);
-            HttpRequest request = requestFactory.buildPostRequest(url, httpContent);
-            request.setHeaders(headers);
-            final String response = request.execute().parseAsString();
-            final JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
-            LOGGER.debug("executeGet response: {}", jsonObject);
-            final JsonElement error = jsonObject.get("error");
-            if (error != null) {
-                LOGGER.error("Exception has been caught during Identity Provider POST request execution, CODE: {}",
-                        params.get("code"), error);
-                throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, providerName, error),
-                        Response.Status.FORBIDDEN.getStatusCode());
-            }
-            return jsonObject;
-        } catch (IOException e) {
-            LOGGER.error("Exception has been caught during Identity Provider POST request execution", e);
-            throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
-        }
     }
 
     private AccessKeyPermission preparePermission(AccessKeyPermission current) {
@@ -437,5 +334,12 @@ public class AccessKeyService {
             newPermission.setDeviceGuids(current.getDeviceGuids());
         }
         return newPermission;
+    }
+
+    @Schedule(dayOfWeek = "Wed", hour = "16", persistent = false)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void removeExpiredKeys() {
+        LOGGER.debug("Removing expired access keys");
+        accessKeyDAO.deleteOlderThan(timestampService.getTimestamp());
     }
 }
