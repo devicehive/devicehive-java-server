@@ -3,6 +3,7 @@ package com.devicehive.auth;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import org.slf4j.Logger;
@@ -22,9 +23,9 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 @Interceptor
 @AllowedKeyAction
 @Priority(Interceptor.Priority.APPLICATION + 300)
-public class AccessKeyInterceptor {
+public class RequestInterceptor {
 
-    private static Logger logger = LoggerFactory.getLogger(AccessKeyInterceptor.class);
+    private static Logger logger = LoggerFactory.getLogger(RequestInterceptor.class);
 
 
     private HiveSecurityContext hiveSecurityContext;
@@ -38,6 +39,10 @@ public class AccessKeyInterceptor {
     public Object checkPermissions(InvocationContext context) throws Exception {
         try {
             HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+            User user = principal.getUser();
+            if (user != null && user.getStatus() != UserStatus.ACTIVE) {
+                throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
+            }
             AccessKey key = principal.getKey();
             if (key == null) {
                 return context.proceed();

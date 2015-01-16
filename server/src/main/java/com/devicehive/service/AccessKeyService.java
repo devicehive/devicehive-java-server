@@ -103,6 +103,9 @@ public class AccessKeyService {
         if (toUpdate.getExpirationDate() != null) {
             existing.setExpirationDate(toUpdate.getExpirationDate().getValue());
         }
+        if (toUpdate.getType() != null) {
+            existing.setType(toUpdate.getTypeEnum());
+        }
         if (toUpdate.getPermissions() != null) {
             Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().getValue();
             if (permissionsToReplace == null) {

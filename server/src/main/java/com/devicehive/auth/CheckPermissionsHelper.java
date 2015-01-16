@@ -1,5 +1,7 @@
 package com.devicehive.auth;
 
+import com.devicehive.model.AvailableActions;
+import com.devicehive.model.enums.UserRole;
 import com.google.common.collect.Sets;
 
 import com.devicehive.model.AccessKeyPermission;
@@ -18,6 +20,9 @@ public class CheckPermissionsHelper {
         for (AccessKeyPermission currentPermission : permissions) {
             boolean isCurrentPermissionAllowed = false;
             Set<String> actions = currentPermission.getActionsAsSet();
+            if (currentPermission.getAccessKey() != null  && currentPermission.getAccessKey().getUser().getRole() != UserRole.ADMIN) {
+                actions.removeAll(AvailableActions.getAdminActions());
+            }
             if (actions != null) {
                 for (String accessKeyAction : actions) {
                     isCurrentPermissionAllowed = accessKeyAction.equalsIgnoreCase(allowedAction.getValue());

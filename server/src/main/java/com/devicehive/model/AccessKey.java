@@ -40,7 +40,7 @@ public class AccessKey implements HiveEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({ACCESS_KEY_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_LISTED_ADMIN,
-                    OAUTH_GRANT_LISTED})
+                    OAUTH_GRANT_LISTED, ACCESS_KEY_SUBMITTED})
     private Long id;
 
     @Column

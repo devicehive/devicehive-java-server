@@ -6,6 +6,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.NullableWrapper;
+import com.devicehive.model.enums.AccessKeyType;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -24,6 +25,9 @@ public class AccessKeyUpdate implements HiveEntity {
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
     private NullableWrapper<Set<AccessKeyPermission>> permissions;
+
+    @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
+    private NullableWrapper<Integer> type;
 
 
     public NullableWrapper<String> getLabel() {
@@ -49,6 +53,25 @@ public class AccessKeyUpdate implements HiveEntity {
 
     public void setPermissions(NullableWrapper<Set<AccessKeyPermission>> permissions) {
         this.permissions = permissions;
+    }
+
+    public NullableWrapper<Integer> getType() {
+        return type;
+    }
+
+    public void setType(NullableWrapper<Integer> type) {
+        this.type = type;
+    }
+
+    public AccessKeyType getTypeEnum() {
+        if (type == null) {
+            return null;
+        }
+        Integer typeValue = type.getValue();
+        if (typeValue == null) {
+            return null;
+        }
+        return AccessKeyType.values()[typeValue];
     }
 
     public AccessKey convertTo() {
