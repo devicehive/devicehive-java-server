@@ -9,6 +9,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyRequest;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
@@ -17,6 +18,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,8 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * Created by tmatvienko on 1/9/15.
@@ -71,10 +75,14 @@ public class GoogleAuthProvider extends AuthProvider {
         }
         LOGGER.error(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, GOOGLE_PROVIDER_NAME));
         throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, GOOGLE_PROVIDER_NAME),
-                Response.Status.FORBIDDEN.getStatusCode());
+                Response.Status.UNAUTHORIZED.getStatusCode());
     }
 
-    private String getAccessToken(@NotNull final String code, @NotNull final String redirectUrl) {
+    private String getAccessToken(final String code, final String redirectUrl) {
+        if (StringUtils.isBlank(code) || StringUtils.isBlank(redirectUrl)) {
+            LOGGER.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
+            throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
+        }
         final String endpoint = identityProvider.getTokenEndpoint();
         Map<String, String> params = new HashMap<>();
         params.put("code", code);
@@ -89,7 +97,7 @@ public class GoogleAuthProvider extends AuthProvider {
         } catch (IllegalStateException ex) {
             LOGGER.error("Exception has been caught during Identity Provider GET request execution", response);
             throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED, GOOGLE_PROVIDER_NAME, response),
-                    Response.Status.FORBIDDEN.getStatusCode());
+                    Response.Status.UNAUTHORIZED.getStatusCode());
         }
     }
 
@@ -101,7 +109,7 @@ public class GoogleAuthProvider extends AuthProvider {
         if (!isValid) {
             LOGGER.error("OAuth token verification for Google identity provider failed. Provider response: {}", verificationResponse);
             throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED,
-                    GOOGLE_PROVIDER_NAME), Response.Status.FORBIDDEN.getStatusCode());
+                    GOOGLE_PROVIDER_NAME), Response.Status.UNAUTHORIZED.getStatusCode());
         }
         return verificationResponse.getAsJsonObject().get("email").getAsString();
     }
@@ -112,6 +120,9 @@ public class GoogleAuthProvider extends AuthProvider {
             LOGGER.error("No user with email {} found for identity provider {}", email, GOOGLE_PROVIDER_NAME);
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, email),
                     Response.Status.NOT_FOUND.getStatusCode());
+        } else if (user.getStatus() != UserStatus.ACTIVE) {
+            LOGGER.error(String.format(Messages.USER_NOT_ACTIVE, user.getId()));
+            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
         }
         return user;
     }

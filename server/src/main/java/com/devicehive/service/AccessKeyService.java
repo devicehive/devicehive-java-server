@@ -336,7 +336,7 @@ public class AccessKeyService {
         return newPermission;
     }
 
-    @Schedule(dayOfWeek = "Wed", hour = "16", persistent = false)
+    @Schedule(dayOfWeek = "Sun", hour = "0", persistent = false)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void removeExpiredKeys() {
         LOGGER.debug("Removing expired access keys");

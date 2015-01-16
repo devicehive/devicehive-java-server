@@ -25,6 +25,7 @@ public class Messages {
     public static final String NOTIFICATION_NOT_FOUND = BidBundle.get("NOTIFICATION_NOT_FOUND");
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
+    public static final String USER_NOT_ACTIVE = BidBundle.get("USER_NOT_ACTIVE");
     public static final String OAUTH_CLIENT_NOT_FOUND = BidBundle.get("OAUTH_CLIENT_NOT_FOUND");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
@@ -66,6 +67,7 @@ public class Messages {
     public static final String DUPLICATE_OAUTH_ID = BidBundle.get("DUPLICATE_OAUTH_ID");
     public static final String CLIENT_IS_NULL = BidBundle.get("CLIENT_IS_NULL");
     public static final String INVALID_AUTH_CODE = BidBundle.get("INVALID_AUTH_CODE");
+    public static final String INVALID_AUTH_REQUEST_PARAMETERS = BidBundle.get("INVALID_AUTH_REQUEST_PARAMETERS");
     public static final String INVALID_URI = BidBundle.get("INVALID_URI");
     public static final String EXPIRED_GRANT = BidBundle.get("EXPIRED_GRANT");
     public static final String CLIENT_REQUIRED = BidBundle.get("CLIENT_REQUIRED");
@@ -82,6 +84,7 @@ public class Messages {
     public static final String PARSING_MICROSECONDS_ERROR = BidBundle.get("PARSING_MICROSECONDS_ERROR");
     public static final String INVALID_USER_ROLE = BidBundle.get("INVALID_USER_ROLE");
     public static final String INVALID_USER_STATUS = BidBundle.get("INVALID_USER_STATUS");
+    public static final String INVALID_ACCESS_KEY_TYPE = BidBundle.get("INVALID_ACCESS_KEY_TYPE");
     public static final String DUPLICATE_NETWORK = BidBundle.get("DUPLICATE_NETWORK");
     public static final String INVALID_NETWORK_KEY = BidBundle.get("INVALID_NETWORK_KEY");
     public static final String NO_ACCESS_TO_NETWORK = BidBundle.get("NO_ACCESS_TO_NETWORK");

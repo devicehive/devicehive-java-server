@@ -17,12 +17,6 @@ public class IdentityProviderConfig implements HiveEntity {
     @JsonPolicyDef(REST_SERVER_CONFIG)
     private String clientId;
 
-    @JsonPolicyDef(REST_SERVER_CONFIG)
-    private Long providerId;
-
-    @JsonPolicyDef(REST_SERVER_CONFIG)
-    private Boolean isAvailable;
-
     public IdentityProviderConfig(String name) {
         this.name = name;
     }
@@ -41,21 +35,5 @@ public class IdentityProviderConfig implements HiveEntity {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
-    }
-
-    public Long getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(Long providerId) {
-        this.providerId = providerId;
-    }
-
-    public Boolean getIsAvailable() {
-        return isAvailable;
-    }
-
-    public void setIsAvailable(Boolean isAvailable) {
-        this.isAvailable = isAvailable;
     }
 }

@@ -98,7 +98,7 @@ public class UserService {
                 configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
-            return null;
+            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), FORBIDDEN.getStatusCode());
         }
     }
 
@@ -106,6 +106,9 @@ public class UserService {
         User user = userDAO.findByLogin(login);
         if (user == null) {
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, login), NOT_FOUND.getStatusCode());
+        }
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
         }
         if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             return user;

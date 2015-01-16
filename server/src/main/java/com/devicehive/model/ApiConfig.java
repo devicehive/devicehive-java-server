@@ -19,7 +19,7 @@ public class ApiConfig implements HiveEntity {
     private Set<IdentityProviderConfig> providerConfigs;
 
     @JsonPolicyDef(REST_SERVER_CONFIG)
-    private String sessionTimeout;
+    private Long sessionTimeout;
 
     public ApiConfig() {
     }
@@ -32,11 +32,11 @@ public class ApiConfig implements HiveEntity {
         this.providerConfigs = providerConfigs;
     }
 
-    public String getSessionTimeout() {
+    public Long getSessionTimeout() {
         return sessionTimeout;
     }
 
-    public void setSessionTimeout(String sessionTimeout) {
+    public void setSessionTimeout(Long sessionTimeout) {
         this.sessionTimeout = sessionTimeout;
     }
 }

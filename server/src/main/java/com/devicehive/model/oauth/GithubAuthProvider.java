@@ -9,6 +9,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyRequest;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.devicehive.configuration.Constants.UTF8;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * Created by tmatvienko on 1/9/15.
@@ -82,7 +84,7 @@ public class GithubAuthProvider extends AuthProvider {
         } else {
             LOGGER.error(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, GITHUB_PROVIDER_NAME));
             throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, GITHUB_PROVIDER_NAME),
-                    Response.Status.FORBIDDEN.getStatusCode());
+                    Response.Status.UNAUTHORIZED.getStatusCode());
         }
     }
 
@@ -97,7 +99,7 @@ public class GithubAuthProvider extends AuthProvider {
         if (!"access_token".equals(responseParams.get(0).getName())) {
             LOGGER.error("Exception has been caught during Identity Provider GET request execution", response);
             throw new HiveException(String.format(Messages.GETTING_OAUTH_ACCESS_TOKEN_FAILED, GITHUB_PROVIDER_NAME, response),
-                    Response.Status.FORBIDDEN.getStatusCode());
+                    Response.Status.UNAUTHORIZED.getStatusCode());
         }
         return responseParams.get(0).getValue();
     }
@@ -123,6 +125,9 @@ public class GithubAuthProvider extends AuthProvider {
             LOGGER.error("No user with email {} found for identity provider {}", email, GITHUB_PROVIDER_NAME);
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, email),
                     Response.Status.NOT_FOUND.getStatusCode());
+        } else if (user.getStatus() != UserStatus.ACTIVE) {
+            LOGGER.error(String.format(Messages.USER_NOT_ACTIVE, user.getId()));
+            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
         }
         return user;
     }

@@ -9,12 +9,14 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyRequest;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonElement;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
@@ -31,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.devicehive.configuration.Constants.UTF8;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * Created by tmatvienko on 1/9/15.
@@ -81,10 +84,14 @@ public class FacebookAuthProvider extends AuthProvider {
         }
         LOGGER.error(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, FACEBOOK_PROVIDER_NAME));
         throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, FACEBOOK_PROVIDER_NAME),
-                Response.Status.FORBIDDEN.getStatusCode());
+                Response.Status.UNAUTHORIZED.getStatusCode());
     }
 
-    private String getAccessToken(@NotNull final String code, @NotNull final String redirectUrl) {
+    private String getAccessToken(final String code, final String redirectUrl) {
+        if (StringUtils.isBlank(code) || StringUtils.isBlank(redirectUrl)) {
+            LOGGER.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
+            throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
+        }
         final String endpoint = identityProvider.getTokenEndpoint();
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("code", code));
@@ -96,7 +103,7 @@ public class FacebookAuthProvider extends AuthProvider {
         if (!"access_token".equals(responseParams.get(0).getName())) {
             LOGGER.error("Exception has been caught during Identity Provider GET request execution", response);
             throw new HiveException(String.format(Messages.GETTING_OAUTH_ACCESS_TOKEN_FAILED, FACEBOOK_PROVIDER_NAME, response),
-                    Response.Status.FORBIDDEN.getStatusCode());
+                    Response.Status.UNAUTHORIZED.getStatusCode());
         }
         return responseParams.get(0).getValue();
     }
@@ -111,7 +118,7 @@ public class FacebookAuthProvider extends AuthProvider {
         if (!isValid) {
             LOGGER.error("OAuth token verification for Facebook identity provider failed. Provider response: {}", verificationResponse);
             throw new HiveException(String.format(Messages.OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED,
-                    FACEBOOK_PROVIDER_NAME), Response.Status.FORBIDDEN.getStatusCode());
+                    FACEBOOK_PROVIDER_NAME), Response.Status.UNAUTHORIZED.getStatusCode());
         }
     }
 
@@ -127,6 +134,9 @@ public class FacebookAuthProvider extends AuthProvider {
             LOGGER.error("No user with email {} found for identity provider {}", email, FACEBOOK_PROVIDER_NAME);
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, email),
                     Response.Status.NOT_FOUND.getStatusCode());
+        } else if (user.getStatus() != UserStatus.ACTIVE) {
+            LOGGER.error(String.format(Messages.USER_NOT_ACTIVE, user.getId()));
+            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
         }
         return user;
     }

@@ -2,6 +2,7 @@ package com.devicehive.model.oauth;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +27,16 @@ public enum IdentityProviderEnum {
     }
 
     public static IdentityProviderEnum forName(String value) {
+        if (StringUtils.isBlank(value)) {
+            LOGGER.error(String.format(Messages.INVALID_REQUEST_PARAMETERS, value));
+            throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, HttpServletResponse.SC_BAD_REQUEST);
+        }
         for (IdentityProviderEnum type : values()) {
             if (type.value.equalsIgnoreCase(value)) {
                 return type;
             }
         }
         LOGGER.error(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, value));
-        throw new HiveException("Illegal provider name was found: " + value, HttpServletResponse.SC_BAD_REQUEST);
+        throw new HiveException("Illegal provider name was found: " + value, HttpServletResponse.SC_UNAUTHORIZED);
     }
 }

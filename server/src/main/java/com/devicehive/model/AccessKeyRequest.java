@@ -12,8 +12,7 @@ public class AccessKeyRequest implements HiveEntity {
 
     private String code;
 
-    private String state;
-
+    @SerializedName("redirect_url")
     private String redirectUri;
 
     @SerializedName("access_token")
@@ -64,14 +63,6 @@ public class AccessKeyRequest implements HiveEntity {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
     }
 
     public String getRedirectUri() {
