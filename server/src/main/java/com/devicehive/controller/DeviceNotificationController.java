@@ -341,8 +341,6 @@ public class DeviceNotificationController {
                            @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
                            DeviceNotificationMessage notification) {
         logger.debug("DeviceNotification insertAll requested");
-        DeviceNotification deviceNotification = new DeviceNotification();
-        deviceNotification.setNotification(notification.getNotification());
 
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (notification == null || notification.getNotification() == null){

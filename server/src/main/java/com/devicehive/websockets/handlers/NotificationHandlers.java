@@ -8,12 +8,12 @@ import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.DeviceNotificationMessage;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -65,6 +65,8 @@ public class NotificationHandlers extends WebsocketHandlers {
     @Inject
     @FlushQueue
     private Event<Session> event;
+    @EJB
+    private DeviceNotificationService notificationService;
 
     @Action(value = "notification/subscribe")
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
@@ -224,12 +226,12 @@ public class NotificationHandlers extends WebsocketHandlers {
     @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
-                                                       @JsonPolicyApply(NOTIFICATION_FROM_DEVICE)
-                                                       DeviceNotification notification,
+                                                       @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
+                                                       DeviceNotificationMessage notificationMessage,
                                                        Session session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        if (notification == null || notification.getNotification() == null) {
+        if (notificationMessage == null || notificationMessage.getNotification() == null) {
             logger.debug(
                 "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
@@ -249,11 +251,11 @@ public class NotificationHandlers extends WebsocketHandlers {
                 "notification/insert. No network specified for device with guid = {}", deviceGuid);
             throw new HiveException(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, SC_FORBIDDEN);
         }
-        //deviceNotificationService.submitDeviceNotification(notification, device);
+        notificationService.submitDeviceNotification(notificationMessage, device);
         logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(NOTIFICATION, notification, NOTIFICATION_TO_DEVICE);
+        response.addValue(NOTIFICATION, notificationMessage, NOTIFICATION_TO_DEVICE);
         return response;
     }
 

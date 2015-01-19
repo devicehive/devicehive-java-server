@@ -134,7 +134,7 @@ public class DeviceNotificationService {
                 break;
 
         }
-        //notification.setDevice(device);
+        notificationMessage.setDeviceGuid(device.getGuid());
         notificationsToCreate.add(notificationMessage);
         return notificationsToCreate;
 
