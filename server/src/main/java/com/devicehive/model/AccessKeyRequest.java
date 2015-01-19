@@ -12,7 +12,7 @@ public class AccessKeyRequest implements HiveEntity {
 
     private String code;
 
-    @SerializedName("redirect_url")
+    @SerializedName("redirect_uri")
     private String redirectUri;
 
     @SerializedName("access_token")

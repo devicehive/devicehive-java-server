@@ -124,7 +124,7 @@ public class GithubAuthProvider extends AuthProvider {
         if (user == null) {
             LOGGER.error("No user with email {} found for identity provider {}", email, GITHUB_PROVIDER_NAME);
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, email),
-                    Response.Status.NOT_FOUND.getStatusCode());
+                    Response.Status.UNAUTHORIZED.getStatusCode());
         } else if (user.getStatus() != UserStatus.ACTIVE) {
             LOGGER.error(String.format(Messages.USER_NOT_ACTIVE, user.getId()));
             throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());

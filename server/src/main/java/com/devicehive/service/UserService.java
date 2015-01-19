@@ -105,7 +105,7 @@ public class UserService {
     public User findUser(String login, String password) {
         User user = userDAO.findByLogin(login);
         if (user == null) {
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, login), NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, login), UNAUTHORIZED.getStatusCode());
         }
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
@@ -113,7 +113,7 @@ public class UserService {
         if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
             return user;
         } else {
-            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), FORBIDDEN.getStatusCode());
+            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), UNAUTHORIZED.getStatusCode());
         }
     }
 
