@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +45,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.ClientEndpointConfig.Builder;
+import javax.websocket.ClientEndpointConfig.Configurator;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
@@ -134,7 +138,16 @@ public class WebsocketAgent extends RestAgent {
         }
         final URI wsUri = URI.create(basicUrl + "/" + role);
         try {
-            createClient().connectToServer(endpoint, ClientEndpointConfig.Builder.create().build(), wsUri);
+            Builder configBuilder = ClientEndpointConfig.Builder.create();
+            configBuilder.configurator(new Configurator() {
+                @Override
+                public void beforeRequest(Map<String, List<String>> headers) {
+                    List<String> origins = new ArrayList<String>();
+                    origins.add(basicUrl);
+                    headers.put("Origin", origins);
+                }
+            });
+            createClient().connectToServer(endpoint, configBuilder.build(), wsUri);
         } catch (IOException | DeploymentException e) {
             throw new HiveException("Cannot connect to websockets", e);
         }
