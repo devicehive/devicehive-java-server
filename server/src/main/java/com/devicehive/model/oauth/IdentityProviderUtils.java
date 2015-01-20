@@ -52,7 +52,7 @@ public class IdentityProviderUtils {
             return jsonElement;
         } catch (IOException e) {
             LOGGER.error("Exception has been caught during Identity Provider GET request execution", e);
-            throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
+            throw new HiveException(Messages.IDENTITY_PROVIDER_API_REQUEST_ERROR, Response.Status.UNAUTHORIZED.getStatusCode());
         }
     }
 
