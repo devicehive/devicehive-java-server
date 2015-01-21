@@ -49,14 +49,21 @@ public class AvailableActions {
         private static final long serialVersionUID = -6981208010851957614L;
     };
 
-    private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
+    private static Set<String> ADMIN_ACTIONS = new HashSet<String>() {
         {
-            addAll(CLIENT_ACTIONS);
-
             add(MANAGE_USER);
             add(MANAGE_DEVICE_CLASS);
             add(MANAGE_NETWORK);
             add(MANAGE_OAUTH_CLIENT);
+        }
+
+        private static final long serialVersionUID = -1946208903850253584L;
+    };
+
+    private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
+        {
+            addAll(CLIENT_ACTIONS);
+            addAll(ADMIN_ACTIONS);
         }
 
         private static final long serialVersionUID = -1571200010251977615L;
@@ -77,6 +84,10 @@ public class AvailableActions {
 
     public static String[] getClientActions() {
         return CLIENT_ACTIONS.toArray(new String[CLIENT_ACTIONS.size()]);
+    }
+
+    public static Set<String> getAdminActions() {
+        return ADMIN_ACTIONS;
     }
 
 }

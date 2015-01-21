@@ -171,8 +171,8 @@ public class UserDAO {
 
         if (take == null) {
             take = Constants.DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
         }
+        resultQuery.setMaxResults(take);
 
         return resultQuery.getResultList();
     }

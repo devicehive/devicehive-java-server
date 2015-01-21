@@ -12,15 +12,21 @@ public class IdentityProviderConfig implements HiveEntity {
     private static final long serialVersionUID = -2274848199115698341L;
 
     @JsonPolicyDef(REST_SERVER_CONFIG)
+    private String name;
+
+    @JsonPolicyDef(REST_SERVER_CONFIG)
     private String clientId;
 
-    @JsonPolicyDef(REST_SERVER_CONFIG)
-    private Long providerId;
+    public IdentityProviderConfig(String name) {
+        this.name = name;
+    }
 
-    @JsonPolicyDef(REST_SERVER_CONFIG)
-    private Boolean isAvailable;
+    public String getName() {
+        return name;
+    }
 
-    public IdentityProviderConfig() {
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getClientId() {
@@ -29,21 +35,5 @@ public class IdentityProviderConfig implements HiveEntity {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
-    }
-
-    public Long getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(Long providerId) {
-        this.providerId = providerId;
-    }
-
-    public Boolean getIsAvailable() {
-        return isAvailable;
-    }
-
-    public void setIsAvailable(Boolean isAvailable) {
-        this.isAvailable = isAvailable;
     }
 }

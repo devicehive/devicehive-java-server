@@ -16,6 +16,7 @@ public class Messages {
     public static final String INVALID_REQUEST_PARAMETERS = BidBundle.get("INVALID_REQUEST_PARAMETERS");
     public static final String DUPLICATE_LABEL_FOUND = BidBundle.get("DUPLICATE_LABEL_FOUND");
     public static final String JSON_SYNTAX_ERROR = BidBundle.get("JSON_SYNTAX_ERROR");
+    public static final String CONFIG_NOT_FOUND = BidBundle.get("CONFIG_NOT_FOUND");
     public static final String DEVICE_NOT_FOUND = BidBundle.get("DEVICE_NOT_FOUND");
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");
     public static final String EQUIPMENT_NOT_FOUND = BidBundle.get("EQUIPMENT_NOT_FOUND");
@@ -24,11 +25,14 @@ public class Messages {
     public static final String NOTIFICATION_NOT_FOUND = BidBundle.get("NOTIFICATION_NOT_FOUND");
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
+    public static final String USER_NOT_ACTIVE = BidBundle.get("USER_NOT_ACTIVE");
     public static final String OAUTH_CLIENT_NOT_FOUND = BidBundle.get("OAUTH_CLIENT_NOT_FOUND");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
     public static final String IDENTITY_PROVIDER_NOT_FOUND = BidBundle.get("IDENTITY_PROVIDER_NOT_FOUND");
+    public static final String IDENTITY_PROVIDER_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NOT_ALLOWED");
     public static final String WRONG_IDENTITY_PROVIDER_SCOPE = BidBundle.get("WRONG_IDENTITY_PROVIDER_SCOPE");
+    public static final String GETTING_OAUTH_ACCESS_TOKEN_FAILED = BidBundle.get("GETTING_OAUTH_ACCESS_TOKEN_FAILED");
     public static final String OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED = BidBundle.get("OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
     public static final String NO_NOTIFICATIONS_FROM_DEVICE = BidBundle.get("NO_NOTIFICATIONS_FROM_DEVICE");
@@ -63,6 +67,7 @@ public class Messages {
     public static final String DUPLICATE_OAUTH_ID = BidBundle.get("DUPLICATE_OAUTH_ID");
     public static final String CLIENT_IS_NULL = BidBundle.get("CLIENT_IS_NULL");
     public static final String INVALID_AUTH_CODE = BidBundle.get("INVALID_AUTH_CODE");
+    public static final String INVALID_AUTH_REQUEST_PARAMETERS = BidBundle.get("INVALID_AUTH_REQUEST_PARAMETERS");
     public static final String INVALID_URI = BidBundle.get("INVALID_URI");
     public static final String EXPIRED_GRANT = BidBundle.get("EXPIRED_GRANT");
     public static final String CLIENT_REQUIRED = BidBundle.get("CLIENT_REQUIRED");
@@ -79,6 +84,7 @@ public class Messages {
     public static final String PARSING_MICROSECONDS_ERROR = BidBundle.get("PARSING_MICROSECONDS_ERROR");
     public static final String INVALID_USER_ROLE = BidBundle.get("INVALID_USER_ROLE");
     public static final String INVALID_USER_STATUS = BidBundle.get("INVALID_USER_STATUS");
+    public static final String INVALID_ACCESS_KEY_TYPE = BidBundle.get("INVALID_ACCESS_KEY_TYPE");
     public static final String DUPLICATE_NETWORK = BidBundle.get("DUPLICATE_NETWORK");
     public static final String INVALID_NETWORK_KEY = BidBundle.get("INVALID_NETWORK_KEY");
     public static final String NO_ACCESS_TO_NETWORK = BidBundle.get("NO_ACCESS_TO_NETWORK");

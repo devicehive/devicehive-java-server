@@ -11,6 +11,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.devicehive.model.AccessKey.Queries.Names.*;
@@ -23,10 +28,52 @@ public class AccessKeyDAO {
     private EntityManager em;
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<AccessKey> list(Long userId) {
-        TypedQuery<AccessKey> query = em.createNamedQuery(GET_BY_USER_ID, AccessKey.class);
-        query.setParameter(USER_ID, userId);
-        return query.getResultList();
+    public List<AccessKey> list(Long userId, String label,
+                                String labelPattern, Integer type,
+                                String sortField, Boolean sortOrderAsc,
+                                Integer take, Integer skip) {
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<AccessKey> criteria = criteriaBuilder.createQuery(AccessKey.class);
+        Root<AccessKey> from = criteria.from(AccessKey.class);
+        from.fetch(USER, JoinType.LEFT);
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(criteriaBuilder.equal(from.get(USER).get(ID), userId));
+
+        if (labelPattern != null) {
+            predicates.add(criteriaBuilder.like(from.<String>get(LABEL), labelPattern));
+        } else {
+            if (label != null) {
+                predicates.add(criteriaBuilder.equal(from.get(LABEL), label));
+            }
+        }
+
+        if (type != null) {
+            predicates.add(criteriaBuilder.equal(from.get(TYPE), type));
+        }
+
+        criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+
+        if (sortField != null) {
+            if (sortOrderAsc == null || sortOrderAsc) {
+                criteria.orderBy(criteriaBuilder.asc(from.get(sortField)));
+            } else {
+                criteria.orderBy(criteriaBuilder.desc(from.get(sortField)));
+            }
+        }
+
+        TypedQuery<AccessKey> resultQuery = em.createQuery(criteria);
+
+        if (skip != null) {
+            resultQuery.setFirstResult(skip);
+        }
+
+        if (take == null) {
+            take = Constants.DEFAULT_TAKE;
+        }
+        resultQuery.setMaxResults(take);
+
+        return resultQuery.getResultList();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -81,6 +128,17 @@ public class AccessKeyDAO {
     public boolean delete(Long accessKeyId) {
         Query query = em.createNamedQuery(DELETE_BY_ID);
         query.setParameter(ACCESS_KEY_ID, accessKeyId);
+        return query.executeUpdate() > 0;
+    }
+
+    public AccessKey update(@NotNull @Valid AccessKey accessKey) {
+        em.merge(accessKey);
+        return accessKey;
+    }
+
+    public boolean deleteOlderThan(Timestamp timestamp) {
+        Query query = em.createNamedQuery(DELETE_OLDER_THAN);
+        query.setParameter(EXPIRATION_DATE, timestamp);
         return query.executeUpdate() > 0;
     }
 

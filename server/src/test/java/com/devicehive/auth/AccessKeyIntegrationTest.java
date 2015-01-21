@@ -66,7 +66,7 @@ public class AccessKeyIntegrationTest {
     private AccessKeyPermissionDAO permissionDAO;
     @Mock
     private UserDAO userDAO;
-    private AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
+    private RequestInterceptor interceptor = new RequestInterceptor();
     @Mock
     private InvocationContext context;
     private int methodCalls;
@@ -101,7 +101,7 @@ public class AccessKeyIntegrationTest {
          * Only actions field is not null
          */
         AccessKey accessKey = new AccessKey();
-        accessKey.setUser(CLIENT);
+        accessKey.setUser(ADMIN);
 
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
@@ -241,7 +241,7 @@ public class AccessKeyIntegrationTest {
          * Only subnets field and actions field are not null
          */
         AccessKey accessKey = new AccessKey();
-        accessKey.setUser(CLIENT);
+        accessKey.setUser(ADMIN);
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
@@ -322,7 +322,7 @@ public class AccessKeyIntegrationTest {
          * Only subnets field and actions field are not null
          */
         AccessKey accessKey = new AccessKey();
-        accessKey.setUser(CLIENT);
+        accessKey.setUser(ADMIN);
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);

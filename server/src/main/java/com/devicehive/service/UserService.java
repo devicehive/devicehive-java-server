@@ -8,6 +8,7 @@ import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.IdentityProvider;
+import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
@@ -98,7 +99,22 @@ public class UserService {
                 configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
             }
-            return null;
+            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), FORBIDDEN.getStatusCode());
+        }
+    }
+
+    public User findUser(String login, String password) {
+        User user = userDAO.findByLogin(login);
+        if (user == null) {
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, login), UNAUTHORIZED.getStatusCode());
+        }
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
+        }
+        if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
+            return user;
+        } else {
+            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), UNAUTHORIZED.getStatusCode());
         }
     }
 
@@ -284,17 +300,18 @@ public class UserService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public User findByLoginAndIdentity(String login, IdentityProvider identityProvider) {
-        final Long providerId = identityProvider.getId();
-        User user = null;
-        if (providerId.equals(Long.valueOf(propertiesService.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID)))) {
-            user = userDAO.findByGoogleLogin(login);
-        } else if (providerId.equals(Long.valueOf(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID)))) {
-            user = userDAO.findByFacebookLogin(login);
-        } else if (providerId.equals(Long.valueOf(propertiesService.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID)))) {
-            user = userDAO.findByGithubLogin(login);
-        }
-        return user;
+    public User findGoogleUser(String login) {
+        return userDAO.findByGoogleLogin(login);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findFacebookUser(String login) {
+        return userDAO.findByFacebookLogin(login);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findGithubUser(String login) {
+        return userDAO.findByGithubLogin(login);
     }
 
     public User refreshUserLoginData(User user) {

@@ -1,6 +1,9 @@
 package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.annotations.SerializedName;
+
+import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_CONFIG;
 
@@ -12,38 +15,28 @@ public class ApiConfig implements HiveEntity {
     private static final long serialVersionUID = -4819848129715601667L;
 
     @JsonPolicyDef(REST_SERVER_CONFIG)
-    private IdentityProviderConfig google;
+    @SerializedName("providers")
+    private Set<IdentityProviderConfig> providerConfigs;
 
     @JsonPolicyDef(REST_SERVER_CONFIG)
-    private IdentityProviderConfig facebook;
-
-    @JsonPolicyDef(REST_SERVER_CONFIG)
-    private IdentityProviderConfig github;
+    private Long sessionTimeout;
 
     public ApiConfig() {
     }
 
-    public IdentityProviderConfig getGoogle() {
-        return google;
+    public Set<IdentityProviderConfig> getProviderConfigs() {
+        return providerConfigs;
     }
 
-    public void setGoogle(IdentityProviderConfig google) {
-        this.google = google;
+    public void setProviderConfigs(Set<IdentityProviderConfig> providerConfigs) {
+        this.providerConfigs = providerConfigs;
     }
 
-    public IdentityProviderConfig getFacebook() {
-        return facebook;
+    public Long getSessionTimeout() {
+        return sessionTimeout;
     }
 
-    public void setFacebook(IdentityProviderConfig facebook) {
-        this.facebook = facebook;
-    }
-
-    public IdentityProviderConfig getGithub() {
-        return github;
-    }
-
-    public void setGithub(IdentityProviderConfig github) {
-        this.github = github;
+    public void setSessionTimeout(Long sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
     }
 }

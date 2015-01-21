@@ -50,6 +50,12 @@ public class IdentityProvider implements HiveEntity {
     @JsonPolicyDef({IDENTITY_PROVIDER_LISTED})
     private String verificationEndpoint;
 
+    @Column(name = "token_endpoint")
+    @NotNull(message = "identity provider's access token endpoint can't be null.")
+    @SerializedName("tokenEndpoint")
+    @JsonPolicyDef({IDENTITY_PROVIDER_LISTED})
+    private String tokenEndpoint;
+
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -84,6 +90,14 @@ public class IdentityProvider implements HiveEntity {
 
     public void setVerificationEndpoint(String verificationEndpoint) {
         this.verificationEndpoint = verificationEndpoint;
+    }
+
+    public String getTokenEndpoint() {
+        return tokenEndpoint;
+    }
+
+    public void setTokenEndpoint(String tokenEndpoint) {
+        this.tokenEndpoint = tokenEndpoint;
     }
 
     public long getEntityVersion() {
