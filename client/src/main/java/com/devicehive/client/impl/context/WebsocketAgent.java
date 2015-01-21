@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -138,12 +139,13 @@ public class WebsocketAgent extends RestAgent {
         }
         final URI wsUri = URI.create(basicUrl + "/" + role);
         try {
+            final String hostname = InetAddress.getLocalHost().getHostName();
             Builder configBuilder = ClientEndpointConfig.Builder.create();
             configBuilder.configurator(new Configurator() {
                 @Override
                 public void beforeRequest(Map<String, List<String>> headers) {
                     List<String> origins = new ArrayList<String>();
-                    origins.add(basicUrl);
+                    origins.add("device://" + hostname);
                     headers.put("Origin", origins);
                 }
             });
