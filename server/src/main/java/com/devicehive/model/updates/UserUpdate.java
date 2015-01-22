@@ -13,6 +13,7 @@ public class UserUpdate implements HiveEntity {
     private NullableWrapper<Integer> role;
     private NullableWrapper<Integer> status;
     private NullableWrapper<String> password;
+    private NullableWrapper<String> oldPassword;
     private NullableWrapper<String> googleLogin;
     private NullableWrapper<String> facebookLogin;
     private NullableWrapper<String> githubLogin;
@@ -47,6 +48,14 @@ public class UserUpdate implements HiveEntity {
 
     public void setPassword(NullableWrapper<String> password) {
         this.password = password;
+    }
+
+    public NullableWrapper<String> getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(NullableWrapper<String> oldPassword) {
+        this.oldPassword = oldPassword;
     }
 
     public NullableWrapper<String> getGoogleLogin() {

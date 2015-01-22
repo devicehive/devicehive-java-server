@@ -42,7 +42,7 @@ import static javax.ws.rs.core.Response.Status.*;
 @LogExecutionTime
 public class OAuthGrantController {
 
-    private static final Logger logger = LoggerFactory.getLogger(OAuthGrantController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthGrantController.class);
 
     @EJB
     private OAuthGrantService grantService;
@@ -89,7 +89,7 @@ public class OAuthGrantController {
                                                                                     : AccessType.forName(accessType)
                                                                      .ordinal(), sortField,
                                                     sortOrder, take, skip);
-        logger.debug(
+        LOGGER.debug(
             "OAuthGrant: list proceed successfully. User id: {}, start: {}, end: {}, clientOAuthID: {}, " +
             "type: {}, scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
             userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
@@ -106,13 +106,13 @@ public class OAuthGrantController {
     @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response get(@PathParam(USER_ID) String userId,
                         @PathParam(ID) long grantId) {
-        logger.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         OAuthGrant grant = grantService.get(user, grantId);
         if (grant == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }
-        logger.debug("OAuthGrant: proceed successfully. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: proceed successfully. User id: {}, grant id: {}", userId, grantId);
         if (user.isAdmin()) {
             return ResponseFactory.response(OK, grant, OAUTH_GRANT_LISTED_ADMIN);
         }
@@ -124,10 +124,10 @@ public class OAuthGrantController {
     @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrant grant) {
-        logger.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
+        LOGGER.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
         User user = getUser(userId);
         grantService.save(grant, user);
-        logger.debug("OAuthGrant: insert proceed successfully. User id: {}, grant: {}", userId, grant);
+        LOGGER.debug("OAuthGrant: insert proceed successfully. User id: {}, grant: {}", userId, grant);
         if (grant.getType().equals(Type.TOKEN)) {
             return ResponseFactory.response(CREATED, grant, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
@@ -142,13 +142,13 @@ public class OAuthGrantController {
     public Response update(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrantUpdate grant) {
-        logger.debug("OAuthGrant: update requested. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: update requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         OAuthGrant updated = grantService.update(user, grantId, grant);
         if (updated == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }
-        logger.debug("OAuthGrant: update proceed successfully. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: update proceed successfully. User id: {}, grant id: {}", userId, grantId);
         if (updated.getType().equals(Type.TOKEN)) {
             return ResponseFactory.response(OK, updated, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
@@ -162,10 +162,10 @@ public class OAuthGrantController {
     @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response delete(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId) {
-        logger.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         grantService.delete(user, grantId);
-        logger.debug("OAuthGrant: delete proceed successfully. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: delete proceed successfully. User id: {}, grant id: {}", userId, grantId);
         return ResponseFactory.response(NO_CONTENT);
     }
 
@@ -182,7 +182,8 @@ public class OAuthGrantController {
             } else if (current.isAdmin()) {
                 User result = userService.findById(id);
                 if (result == null) {
-                    throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+                    LOGGER.error("OAuthGrant: user with id {} not found", id);
+                    throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
                 }
                 return result;
             }

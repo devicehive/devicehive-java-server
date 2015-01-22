@@ -118,11 +118,10 @@ public class GoogleAuthProvider extends AuthProvider {
         final User user = userService.findGoogleUser(email);
         if (user == null) {
             LOGGER.error("No user with email {} found for identity provider {}", email, GOOGLE_PROVIDER_NAME);
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, email),
-                    Response.Status.UNAUTHORIZED.getStatusCode());
+            throw new HiveException(Messages.USER_NOT_FOUND, Response.Status.UNAUTHORIZED.getStatusCode());
         } else if (user.getStatus() != UserStatus.ACTIVE) {
-            LOGGER.error(String.format(Messages.USER_NOT_ACTIVE, user.getId()));
-            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
+            LOGGER.error("User {} is locked, disabled or deleted", email);
+            throw new HiveException(Messages.USER_NOT_ACTIVE, UNAUTHORIZED.getStatusCode());
         }
         return user;
     }

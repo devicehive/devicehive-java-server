@@ -79,6 +79,7 @@ public class Messages {
     public static final String DUPLICATE_LOGIN = BidBundle.get("DUPLICATE_LOGIN");
     public static final String DUPLICATE_IDENTITY_LOGIN = BidBundle.get("DUPLICATE_IDENTITY_LOGIN");
     public static final String PASSWORD_REQUIRED = BidBundle.get("PASSWORD_REQUIRED");
+    public static final String OLD_PASSWORD_REQUIRED = BidBundle.get("OLD_PASSWORD_REQUIRED");
     public static final String INTERNAL_SERVER_ERROR = BidBundle.get("INTERNAL_SERVER_ERROR");
     public static final String INCORRECT_ACCESS_TYPE = BidBundle.get("INCORRECT_ACCESS_TYPE");
     public static final String PARSING_MICROSECONDS_ERROR = BidBundle.get("PARSING_MICROSECONDS_ERROR");
