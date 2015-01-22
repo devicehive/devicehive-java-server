@@ -89,36 +89,61 @@ public class UserService {
         em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         // repeat whole auth procedure on locked entity
         if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            if (user.getLoginAttempts() != 0) {
-                user.setLoginAttempts(0);
-            }
-            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
-                user.setLastLogin(timestampService.getTimestamp());
-            }
-            return user;
+            return updateUserOnSuccessfullLogin(user, loginTimeout);
         } else {
-            user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >=
-                configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
-                user.setStatus(UserStatus.LOCKED_OUT);
-            }
+            updateUserOnFailedLogin(user);
             throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), FORBIDDEN.getStatusCode());
         }
     }
 
     public User findUser(String login, String password) {
         User user = userDAO.findByLogin(login);
+        String message;
         if (user == null) {
             LOGGER.error("Can't find user with login {} and password {}", login, password);
             throw new HiveException(Messages.USER_NOT_FOUND, UNAUTHORIZED.getStatusCode());
-        }
-        if (user.getStatus() != UserStatus.ACTIVE) {
+        } else if (user.getStatus() != UserStatus.ACTIVE) {
+            LOGGER.error("User with login {} is not active", login);
             throw new HiveException(Messages.USER_NOT_ACTIVE, UNAUTHORIZED.getStatusCode());
-        }
-        if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            return user;
+        } else if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
+            long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
+            boolean willBeChanged = user.getLoginAttempts() != 0
+                    || user.getLastLogin() == null
+                    || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
+
+            // No changes to user, successful authentication
+            if (!willBeChanged) {
+                return user;
+            }
+
+            em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+            return updateUserOnSuccessfullLogin(user, loginTimeout);
         } else {
-            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), UNAUTHORIZED.getStatusCode());
+            message = String.format(Messages.INCORRECT_CREDENTIALS, login);
+        }
+
+        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+        updateUserOnFailedLogin(user);
+        throw new HiveException(message, UNAUTHORIZED.getStatusCode());
+    }
+
+    private User updateUserOnSuccessfullLogin(User user, long loginTimeout) {
+        if (user.getLoginAttempts() != 0) {
+            user.setLoginAttempts(0);
+        }
+        if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
+            user.setLastLogin(timestampService.getTimestamp());
+        }
+        return user;
+    }
+
+    private void updateUserOnFailedLogin(User user) {
+        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+        user.setLoginAttempts(user.getLoginAttempts() + 1);
+        if (user.getLoginAttempts() >=
+                configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
+            user.setStatus(UserStatus.LOCKED_OUT);
+            user.setLoginAttempts(0);
         }
     }
 
