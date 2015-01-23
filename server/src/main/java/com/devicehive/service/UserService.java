@@ -7,15 +7,16 @@ import com.devicehive.configuration.PropertiesService;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.IdentityProvider;
-import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.util.HiveValidator;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -37,6 +38,7 @@ import static javax.ws.rs.core.Response.Status.*;
 @Stateless
 @EJB(beanInterface = UserService.class, name = "UserService")
 public class UserService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     @Inject
     private PasswordProcessor passwordService;
@@ -86,44 +88,71 @@ public class UserService {
         em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         // repeat whole auth procedure on locked entity
         if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            if (user.getLoginAttempts() != 0) {
-                user.setLoginAttempts(0);
-            }
-            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
-                user.setLastLogin(timestampService.getTimestamp());
-            }
-            return user;
+            return updateUserOnSuccessfullLogin(user, loginTimeout);
         } else {
-            user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >=
-                configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
-                user.setStatus(UserStatus.LOCKED_OUT);
-            }
+            updateUserOnFailedLogin(user);
             throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), FORBIDDEN.getStatusCode());
         }
     }
 
     public User findUser(String login, String password) {
         User user = userDAO.findByLogin(login);
+        String message;
         if (user == null) {
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, login), UNAUTHORIZED.getStatusCode());
-        }
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
-        }
-        if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            return user;
+            LOGGER.error("Can't find user with login {} and password {}", login, password);
+            throw new HiveException(Messages.USER_NOT_FOUND, UNAUTHORIZED.getStatusCode());
+        } else if (user.getStatus() != UserStatus.ACTIVE) {
+            LOGGER.error("User with login {} is not active", login);
+            throw new HiveException(Messages.USER_NOT_ACTIVE, UNAUTHORIZED.getStatusCode());
+        } else if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
+            long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
+            boolean willBeChanged = user.getLoginAttempts() != 0
+                    || user.getLastLogin() == null
+                    || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
+
+            // No changes to user, successful authentication
+            if (!willBeChanged) {
+                return user;
+            }
+
+            em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+            return updateUserOnSuccessfullLogin(user, loginTimeout);
         } else {
-            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), UNAUTHORIZED.getStatusCode());
+            message = String.format(Messages.INCORRECT_CREDENTIALS, login);
+        }
+
+        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+        updateUserOnFailedLogin(user);
+        throw new HiveException(message, UNAUTHORIZED.getStatusCode());
+    }
+
+    private User updateUserOnSuccessfullLogin(User user, long loginTimeout) {
+        if (user.getLoginAttempts() != 0) {
+            user.setLoginAttempts(0);
+        }
+        if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
+            user.setLastLogin(timestampService.getTimestamp());
+        }
+        return user;
+    }
+
+    private void updateUserOnFailedLogin(User user) {
+        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+        user.setLoginAttempts(user.getLoginAttempts() + 1);
+        if (user.getLoginAttempts() >=
+                configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
+            user.setStatus(UserStatus.LOCKED_OUT);
+            user.setLoginAttempts(0);
         }
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public User updateUser(@NotNull Long id, UserUpdate userToUpdate) {
+    public User updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
         User existing = userDAO.findById(id);
 
         if (existing == null) {
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, id), NOT_FOUND.getStatusCode());
+            LOGGER.error("Can't update user with id {}: user not found", id);
+            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
         }
         if (userToUpdate == null) {
             return existing;
@@ -154,7 +183,19 @@ public class UserService {
             existing.setGithubLogin(githubLogin);
         }
         if (userToUpdate.getPassword() != null) {
+            if (userToUpdate.getOldPassword() != null && StringUtils.isNotBlank(userToUpdate.getOldPassword().getValue())) {
+                final String hash = passwordService.hashPassword(userToUpdate.getOldPassword().getValue(),
+                        existing.getPasswordSalt());
+                if (!hash.equals(existing.getPasswordHash())) {
+                    LOGGER.error("Can't update user with id {}: incorrect password provided", id);
+                    throw new HiveException(Messages.INCORRECT_CREDENTIALS, FORBIDDEN.getStatusCode());
+                }
+            } else if (role == UserRole.CLIENT) {
+                LOGGER.error("Can't update user with id {}: old password required", id);
+                throw new HiveException(Messages.OLD_PASSWORD_REQUIRED, FORBIDDEN.getStatusCode());
+            }
             if (StringUtils.isEmpty(userToUpdate.getPassword().getValue())) {
+                LOGGER.error("Can't update user with id {}: password required", id);
                 throw new HiveException(Messages.PASSWORD_REQUIRED, BAD_REQUEST.getStatusCode());
             }
             String salt = passwordService.generateSalt();
@@ -183,7 +224,8 @@ public class UserService {
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+            LOGGER.error("Can't assign network with id {}: user {} not found", networkId, userId);
+            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
         if (existingNetwork == null) {
@@ -205,7 +247,8 @@ public class UserService {
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+            LOGGER.error("Can't unassign network with id {}: user {} not found", networkId, userId);
+            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
         }
         Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
         if (existingNetwork != null) {
