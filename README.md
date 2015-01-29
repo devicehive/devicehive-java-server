@@ -28,6 +28,10 @@ highly encouraged to do so!
 
 &copy; Copyright 2013 DataArt Apps &copy; All Rights Reserved
 
+Docker Container
+=========================================
+We have published DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. Check out docker [DeviceHive on Docker Hub](https://registry.hub.docker.com/u/devicehive/devicehive-java/) with the instructions on how to use it. You can check dockerfile implemetation as well as the script for setting up a new instance running under nginx on [DeviceHive Java Docker](https://github.com/devicehive/devicehive-java-docker) 
+
 DeviceHive Java installation instructions
 =========================================
 
@@ -181,7 +185,7 @@ Go to dh_dbtool.jar installation directory and run this application using comman
 * Click on “Select file” button. In the dialog box select DeviceHiveJava.war. Click on “Ok” button
 * Launch DeviceHiveJava
 
-**Glassfish 4.1 is requiered!**
+**Glassfish 4.1 is required!**
 
 Notice, that the all parameters set up for configuration of RESTful and websocket services will be the same. If it is
  required to change these parameters use:

@@ -7,7 +7,7 @@ public class Constants {
 
     public static final String ARGUMENTS_FILE = "/arguments.properties";
 
-    public static final String MIGRATION_TOOL_NAME = "dh_dbtool-1.3.0.0";
+    public static final String MIGRATION_TOOL_NAME = "dh_dbtool-1.3.1";
 
     public static final String READ_OPTIONS_EXCEPTION = "Unexpected read options exception";
 

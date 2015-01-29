@@ -2,6 +2,7 @@ package com.devicehive.auth.rest;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.model.ErrorResponse;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -13,6 +14,7 @@ import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.ResponseBuilder;
@@ -40,7 +42,9 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
         boolean
             isOauth =
             Constants.OAUTH_AUTH_SCEME.equals(requestContext.getSecurityContext().getAuthenticationScheme());
-        ResponseBuilder responseBuilder = Response.status(UNAUTHORIZED).entity(Messages.NOT_AUTHORIZED);
+        ResponseBuilder responseBuilder = Response.status(UNAUTHORIZED)
+            .entity(new ErrorResponse(Messages.NOT_AUTHORIZED))
+            .type(MediaType.APPLICATION_JSON_TYPE);
         if (isWwwAutheticateRequired) {
            responseBuilder = responseBuilder.header(HttpHeaders.WWW_AUTHENTICATE,
                                    isOauth ? Messages.OAUTH_REALM : Messages.BASIC_REALM);

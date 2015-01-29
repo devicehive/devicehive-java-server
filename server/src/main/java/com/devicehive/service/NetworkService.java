@@ -4,6 +4,7 @@ import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.NetworkDAO;
@@ -35,6 +36,8 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 @Stateless
 public class NetworkService {
 
+    public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
+
     @EJB
     private NetworkDAO networkDAO;
     @EJB
@@ -45,6 +48,8 @@ public class NetworkService {
     private AccessKeyDAO accessKeyDAO;
     @EJB
     private DeviceService deviceService;
+    @EJB
+    private ConfigurationService configurationService;
     @EJB
     private HiveValidator hiveValidator;
 
@@ -156,7 +161,9 @@ public class NetworkService {
             if (update.getId() != null) {
                 throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
             }
-            stored = networkDAO.createNetwork(update);
+            if (configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
+                stored = networkDAO.createNetwork(update);
+            }
         }
         assert (stored != null);
         return stored;
@@ -188,20 +195,21 @@ public class NetworkService {
             if (!userService.hasAccessToNetwork(user, stored)) {
                 throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
             }
-        } else if (user.isAdmin()) {
-            if (update.getId() != null) {
-                throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
-            }
-            stored = networkDAO.createNetwork(update);
-
         } else {
-            throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
+            if (update.getId() != null) {
+                throw new HiveException(Messages.NETWORK_NOT_FOUND, BAD_REQUEST.getStatusCode());
+            }
+            if (user.isAdmin() || configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
+                stored = networkDAO.createNetwork(update);
+            } else {
+                throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
+            }
         }
         return stored;
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Network verifyNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
+    public Network createOrVeriryNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
         Network stored;
 
         //case network is not defined
@@ -224,6 +232,12 @@ public class NetworkService {
                 if (!accessKeyService.hasAccessToNetwork(key, stored)) {
                     throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
                 }
+            }
+        } else {
+            if (configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
+                stored = networkDAO.createNetwork(update);
+            } else {
+                throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
             }
         }
         return stored;
