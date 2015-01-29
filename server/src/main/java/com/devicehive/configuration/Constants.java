@@ -21,7 +21,7 @@ public class Constants {
     public static final int INITIAL_LOGIN_ATTEMPTS = 0;
     public static final int MAX_LOGIN_ATTEMPTS_DEFAULT = 10;
     public static final String LAST_LOGIN_TIMEOUT = "user.login.lastTimeout"; // 1 hour
-    public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 60 * 60 * 1000; // 1 hour
+    public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 1000; // 1 hour
     public static final String WEBSOCKET_SESSION_PING_TIMEOUT = "websocket.ping.timeout";
     public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
@@ -30,6 +30,11 @@ public class Constants {
     public static final String CURRENT_USER = "current";
     public static final String BASIC_AUTH_SCHEME = "Basic";
     public static final String OAUTH_AUTH_SCEME = "Bearer";
+    public static final String OAUTH_IDENTITY = "Identity";
+    public static final String OAUTH_ACCESS_TOKEN = "access_token";
+    public static final String OAUTH_STATE = "state";
+    public static final String OAUTH_CODE = "code";
+    public static final String OAUTH_EXPIRES_IN = "expires_in";
     public static final String AUTH_DEVICE_ID_HEADER = "Auth-DeviceID";
     public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
     public static final ByteBuffer PING = ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8)));
@@ -49,6 +54,8 @@ public class Constants {
     public static final String ID = "id";
     public static final String NAME = "name";
     public static final String VALUE = "value";
+    public static final String LABEL = "label";
+    public static final String LABEL_PATTERN = "labelPattern";
     public static final String NAME_PATTERN = "namePattern";
     public static final String VERSION = "version";
     public static final String SORT_FIELD = "sortField";
@@ -69,6 +76,7 @@ public class Constants {
     public static final String DEVICE_CLASS = "deviceClass";
     public static final String EQUIPMENT = "equipment";
     public static final String CODE = "code";
+    public static final String PROVIDER_NAME = "providerName";
     public static final String DOMAIN = "domain";
     public static final String OAUTH_ID = "oauthId";
     public static final String CLIENT_OAUTH_ID = "clientOAuthId";
@@ -80,8 +88,24 @@ public class Constants {
     public static final String CLIENT_ID = "client_id";
     public static final String USERNAME = "username";
     public static final String LOGIN = "login";
+    public static final String PASSWORD = "password";
     public static final String LOGIN_PATTERN = "loginPattern";
     public static final String ROLE = "role";
     public static final String DEVICE = "device";
+    public static final String SESSION_TIMEOUT = "session.timeout";
+    public static final long DEFAULT_SESSION_TIMEOUT = 1200000;
+
+    public static final String GOOGLE_IDENTITY_PROVIDER_ID = "google.identity.provider.id";
+    public static final String GOOGLE_IDENTITY_CLIENT_ID = "google.identity.client.id";
+    public static final String GOOGLE_IDENTITY_CLIENT_SECRET = "google.identity.client.secret";
+    public static final String GOOGLE_IDENTITY_ALLOWED = "google.identity.allowed";
+    public static final String FACEBOOK_IDENTITY_PROVIDER_ID = "facebook.identity.provider.id";
+    public static final String FACEBOOK_IDENTITY_CLIENT_ID = "facebook.identity.client.id";
+    public static final String FACEBOOK_IDENTITY_CLIENT_SECRET = "facebook.identity.client.secret";
+    public static final String FACEBOOK_IDENTITY_ALLOWED = "facebook.identity.allowed";
+    public static final String GITHUB_IDENTITY_PROVIDER_ID = "github.identity.provider.id";
+    public static final String GITHUB_IDENTITY_CLIENT_ID = "github.identity.client.id";
+    public static final String GITHUB_IDENTITY_CLIENT_SECRET = "github.identity.client.secret";
+    public static final String GITHUB_IDENTITY_ALLOWED = "github.identity.allowed";
 
 }

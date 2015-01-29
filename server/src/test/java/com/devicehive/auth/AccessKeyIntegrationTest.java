@@ -14,9 +14,8 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
-
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,18 +23,12 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import javax.interceptor.InvocationContext;
+import javax.ws.rs.core.Response;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.interceptor.InvocationContext;
-import javax.ws.rs.core.Response;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -73,7 +66,7 @@ public class AccessKeyIntegrationTest {
     private AccessKeyPermissionDAO permissionDAO;
     @Mock
     private UserDAO userDAO;
-    private AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
+    private RequestInterceptor interceptor = new RequestInterceptor();
     @Mock
     private InvocationContext context;
     private int methodCalls;
@@ -108,7 +101,7 @@ public class AccessKeyIntegrationTest {
          * Only actions field is not null
          */
         AccessKey accessKey = new AccessKey();
-        accessKey.setUser(CLIENT);
+        accessKey.setUser(ADMIN);
 
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
@@ -148,9 +141,9 @@ public class AccessKeyIntegrationTest {
                     actionTestProcess(accessKey,
                                       "[CreateDeviceNotification,GetDeviceNotification,UpdateDeviceCommand]");
                 }
-                if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
+                if (allowedActions.contains(AllowedKeyAction.Action.MANAGE_NETWORK)) {
                     actionTestProcess(accessKey,
-                                      "[CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
+                                      "[ManageNetwork,CreateDeviceNotification,GetNetwork,UpdateDeviceCommand]");
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_DEVICE_STATE)) {
                     actionTestProcess(accessKey, "[GetDeviceState]");
@@ -213,7 +206,10 @@ public class AccessKeyIntegrationTest {
                 }
                 if (allowedActions.contains(AllowedKeyAction.Action.GET_NETWORK)) {
                     actionTestProcess(accessKey,
-                                      "[CreateDeviceNotification]");
+                            "[CreateDeviceNotification]");
+                }
+                if (allowedActions.contains(AllowedKeyAction.Action.MANAGE_NETWORK)) {
+                    actionTestProcess(accessKey, "[GetNetwork]");
                 }
             } catch (HiveException e) {
                 if (e.getCode() != Response.Status.UNAUTHORIZED.getStatusCode()) {
@@ -245,7 +241,7 @@ public class AccessKeyIntegrationTest {
          * Only subnets field and actions field are not null
          */
         AccessKey accessKey = new AccessKey();
-        accessKey.setUser(CLIENT);
+        accessKey.setUser(ADMIN);
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);
@@ -326,7 +322,7 @@ public class AccessKeyIntegrationTest {
          * Only subnets field and actions field are not null
          */
         AccessKey accessKey = new AccessKey();
-        accessKey.setUser(CLIENT);
+        accessKey.setUser(ADMIN);
         for (Method method : allAvailableMethods) {
             when(context.getMethod()).thenReturn(method);
             AllowedKeyAction allowedActionAnnotation = method.getAnnotation(AllowedKeyAction.class);

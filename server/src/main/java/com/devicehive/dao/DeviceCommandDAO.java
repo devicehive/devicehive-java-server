@@ -9,11 +9,6 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.util.LogExecutionTime;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -21,22 +16,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_DEVICE_AND_USER;
-import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_FOREIGN_KEY;
-import static com.devicehive.model.DeviceCommand.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.DeviceCommand.Queries.Names.GET_BY_DEVICE_UUID_AND_ID;
-import static com.devicehive.model.DeviceCommand.Queries.Parameters.DEVICE;
-import static com.devicehive.model.DeviceCommand.Queries.Parameters.GUID;
-import static com.devicehive.model.DeviceCommand.Queries.Parameters.ID;
-import static com.devicehive.model.DeviceCommand.Queries.Parameters.USER;
+import static com.devicehive.model.DeviceCommand.Queries.Names.*;
+import static com.devicehive.model.DeviceCommand.Queries.Parameters.*;
 
 @Stateless
 @LogExecutionTime
@@ -159,8 +147,8 @@ public class DeviceCommandDAO {
         }
         if (take == null) {
             take = Constants.DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
         }
+        resultQuery.setMaxResults(take);
         return resultQuery.getResultList();
 
     }

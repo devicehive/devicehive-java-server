@@ -26,16 +26,8 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.annotation.security.RolesAllowed;
@@ -44,42 +36,20 @@ import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
+import java.util.*;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
-import static com.devicehive.configuration.Constants.DEVICE_GUID;
-import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
-import static com.devicehive.configuration.Constants.END;
-import static com.devicehive.configuration.Constants.GRID_INTERVAL;
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.NAMES;
-import static com.devicehive.configuration.Constants.NOTIFICATION;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.START;
-import static com.devicehive.configuration.Constants.TAKE;
-import static com.devicehive.configuration.Constants.TIMESTAMP;
-import static com.devicehive.configuration.Constants.WAIT_TIMEOUT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
@@ -187,8 +157,8 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(ID) Long notificationId) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
@@ -228,9 +198,9 @@ public class DeviceNotificationController {
      *                   waiting.
      */
     @GET
+    @Path("/{deviceGuid}/notification/poll")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
-    @Path("/{deviceGuid}/notification/poll")
     public void poll(
         @PathParam(DEVICE_GUID) final String deviceGuid,
         @QueryParam(NAMES) final String namesString,
@@ -243,8 +213,9 @@ public class DeviceNotificationController {
     }
 
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @Path("/notification/poll")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public void pollMany(
         @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
         @QueryParam(WAIT_TIMEOUT) final long timeout,
@@ -361,10 +332,10 @@ public class DeviceNotificationController {
      *         <td>datetime</td> <td>Notification timestamp (UTC).</td> </tr> </table>
      */
     @POST
-    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyDef(NOTIFICATION_FROM_DEVICE) DeviceNotification notification) {
         logger.debug("DeviceNotification insertAll requested");

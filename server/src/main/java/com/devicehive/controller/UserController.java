@@ -1,6 +1,7 @@
 package com.devicehive.controller;
 
 
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
@@ -12,54 +13,32 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.LOGIN;
-import static com.devicehive.configuration.Constants.LOGIN_PATTERN;
-import static com.devicehive.configuration.Constants.NETWORK_ID;
-import static com.devicehive.configuration.Constants.ROLE;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.STATUS;
-import static com.devicehive.configuration.Constants.TAKE;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static com.devicehive.configuration.Constants.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/user")
 @LogExecutionTime
 public class UserController {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     @EJB
     private UserService userService;
@@ -85,7 +64,8 @@ public class UserController {
      * @return List of User
      */
     @GET
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_USER)
     public Response getUsersList(@QueryParam(LOGIN) String login,
                                  @QueryParam(LOGIN_PATTERN) String loginPattern,
                                  @QueryParam(ROLE) Integer role,
@@ -107,7 +87,7 @@ public class UserController {
 
         List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
 
-        logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
+        LOGGER.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
                      "sortField = {}, " +
                      "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
                      take, skip);
@@ -125,15 +105,17 @@ public class UserController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_CURRENT_USER)
     public Response getUser(@PathParam(ID) Long userId) {
 
         User user = userService.findUserWithNetworks(userId);
 
         if (user == null) {
+            LOGGER.error("Can't get user with id {}: user not found", userId);
             return ResponseFactory.response(NOT_FOUND,
                                             new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                                              String.format(Messages.USER_NOT_FOUND, userId)));
+                                                              Messages.USER_NOT_FOUND));
         }
 
         return ResponseFactory.response(OK,
@@ -143,10 +125,11 @@ public class UserController {
 
     @GET
     @Path("/current")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_CURRENT_USER)
     public Response getCurrent() {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        Long id = principal.getUser().getId();
+        Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();
         User currentUser = userService.findUserWithNetworks(id);
 
         if (currentUser == null) {
@@ -166,8 +149,9 @@ public class UserController {
      * @return Empty body, status 201 if success, 403 if forbidden, 400 otherwise
      */
     @POST
-    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_USER)
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserUpdate userToCreate) {
         String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
@@ -186,20 +170,23 @@ public class UserController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_USER)
     public Response updateUser(UserUpdate user, @PathParam("id") Long userId) {
-        userService.updateUser(userId, user);
+        userService.updateUser(userId, user, UserRole.ADMIN);
         return ResponseFactory.response(NO_CONTENT);
     }
 
     @PUT
     @Path("/current")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = UPDATE_CURRENT_USER)
     public Response updateCurrentUser(UserUpdate user) {
-        Long id = hiveSecurityContext.getHivePrincipal().getUser().getId();
-        userService.updateUser(id, user);
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        User curUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        userService.updateUser(curUser.getId(), user, curUser.getRole());
         return ResponseFactory.response(NO_CONTENT);
     }
 
@@ -211,7 +198,8 @@ public class UserController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_USER)
     public Response deleteUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
         return ResponseFactory.response(NO_CONTENT);
@@ -227,11 +215,13 @@ public class UserController {
      */
     @GET
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_NETWORK)
     public Response getNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, id), NOT_FOUND.getStatusCode());
+            LOGGER.error("Can't get network with id {}: user {} not found", networkId, id);
+            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
         }
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
@@ -251,7 +241,8 @@ public class UserController {
      */
     @PUT
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response assignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.assignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);
@@ -266,7 +257,8 @@ public class UserController {
      */
     @DELETE
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed(HiveRoles.ADMIN)
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response unassignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.unassignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);

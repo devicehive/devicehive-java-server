@@ -1,7 +1,5 @@
 package com.devicehive.auth;
 
-import com.google.common.base.Charsets;
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
@@ -11,25 +9,19 @@ import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
-
+import com.google.common.base.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.charset.Charset;
-
 import javax.inject.Inject;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.HttpHeaders;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.charset.Charset;
 
 import static com.devicehive.configuration.Constants.UTF8;
 
@@ -39,7 +31,7 @@ import static com.devicehive.configuration.Constants.UTF8;
 @WebFilter(value = "/*", asyncSupported = true)
 public class HiveSecurityFilter implements Filter {
 
-    private static final Logger logger = LoggerFactory.getLogger(HiveSecurityFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HiveSecurityFilter.class);
     @Inject
     private DeviceService deviceService;
     @Inject
@@ -111,7 +103,7 @@ public class HiveSecurityFilter implements Filter {
         return null;
     }
 
-    private AccessKey authKey(HttpServletRequest request) {
+    private AccessKey authKey(HttpServletRequest request) throws IOException {
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;

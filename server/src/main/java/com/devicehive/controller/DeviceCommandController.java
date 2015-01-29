@@ -13,11 +13,7 @@ import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
-import com.devicehive.messages.subscriptions.CommandSubscription;
-import com.devicehive.messages.subscriptions.CommandSubscriptionStorage;
-import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
-import com.devicehive.messages.subscriptions.CommandUpdateSubscriptionStorage;
-import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
@@ -29,16 +25,8 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.annotation.security.RolesAllowed;
@@ -47,42 +35,18 @@ import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
+import java.util.*;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_COMMAND;
-import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_COMMAND;
-import static com.devicehive.auth.AllowedKeyAction.Action.UPDATE_DEVICE_COMMAND;
-import static com.devicehive.configuration.Constants.COMMAND;
-import static com.devicehive.configuration.Constants.COMMAND_ID;
-import static com.devicehive.configuration.Constants.DEVICE_GUID;
-import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
-import static com.devicehive.configuration.Constants.END;
-import static com.devicehive.configuration.Constants.GRID_INTERVAL;
-import static com.devicehive.configuration.Constants.NAMES;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.START;
-import static com.devicehive.configuration.Constants.STATUS;
-import static com.devicehive.configuration.Constants.TAKE;
-import static com.devicehive.configuration.Constants.TIMESTAMP;
-import static com.devicehive.configuration.Constants.WAIT_TIMEOUT;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static com.devicehive.configuration.Constants.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>. See <a
@@ -118,9 +82,9 @@ public class DeviceCommandController {
      *                   waiting.
      */
     @GET
+    @Path("/{deviceGuid}/command/poll")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    @Path("/{deviceGuid}/command/poll")
     public void poll(
         @PathParam(DEVICE_GUID) final String deviceGuid,
         @QueryParam(NAMES) final String namesString,
@@ -132,8 +96,9 @@ public class DeviceCommandController {
     }
 
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
     @Path("/command/poll")
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
     public void pollMany(
         @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
         @QueryParam(NAMES) final String namesString,
@@ -240,9 +205,9 @@ public class DeviceCommandController {
      *                waiting.
      */
     @GET
+    @Path("/{deviceGuid}/command/{commandId}/poll")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    @Path("/{deviceGuid}/command/{commandId}/poll")
     public void wait(
         @PathParam(DEVICE_GUID) final String deviceGuid,
         @PathParam(COMMAND_ID) final Long commandId,
@@ -401,9 +366,9 @@ public class DeviceCommandController {
      * @param id   command id
      */
     @GET
+    @Path("/{deviceGuid}/command/{commandId}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    @Path("/{deviceGuid}/command/{commandId}")
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long id) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
 
@@ -445,9 +410,9 @@ public class DeviceCommandController {
      */
     @POST
     @Path("/{deviceGuid}/command")
+    @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = CREATE_DEVICE_COMMAND)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand) {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
@@ -484,9 +449,9 @@ public class DeviceCommandController {
      */
     @PUT
     @Path("/{deviceGuid}/command/{commandId}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command) {
 

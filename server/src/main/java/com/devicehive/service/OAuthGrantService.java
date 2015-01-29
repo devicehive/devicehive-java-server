@@ -4,20 +4,14 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.OAuthGrantDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessType;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.OAuthGrant;
-import com.devicehive.model.Type;
 import com.devicehive.model.User;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.AccessType;
+import com.devicehive.model.enums.Type;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.OAuthGrantUpdate;
-
 import org.apache.commons.lang3.StringUtils;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -25,6 +19,10 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 

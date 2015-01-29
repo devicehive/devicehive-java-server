@@ -103,3 +103,40 @@ ALTER TABLE configuration
 
 ALTER TABLE configuration ADD CONSTRAINT configuration_pk PRIMARY KEY (id);
 ALTER TABLE configuration ADD CONSTRAINT configuration_name_unique UNIQUE (name);
+
+CREATE TABLE identity_provider (
+id BIGSERIAL NOT NULL,
+name VARCHAR(64) NOT NULL,
+api_endpoint VARCHAR(128),
+verification_endpoint VARCHAR(128),
+entity_version BIGINT NOT NULL DEFAULT 0);
+
+ALTER TABLE identity_provider ADD CONSTRAINT identity_provider_pk PRIMARY KEY (id);
+
+INSERT INTO identity_provider(id, name) VALUES (0,'devicehive');
+INSERT INTO identity_provider(id, name, api_endpoint, verification_endpoint) VALUES (1,'google', 'https://www.googleapis.com/plus/v1/people/me', 'https://www.googleapis.com/oauth2/v1/tokeninfo');
+INSERT INTO identity_provider(id, name, api_endpoint, verification_endpoint) VALUES (2,'facebook', 'https://graph.facebook.com/me', 'https://graph.facebook.com/app');
+INSERT INTO identity_provider(id, name, api_endpoint) VALUES (3,'github', 'https://api.github.com/user/emails');
+
+alter table "user" add column google_login VARCHAR(64) UNIQUE;
+alter table "user" add column facebook_login VARCHAR(64) UNIQUE;
+alter table "user" add column github_login VARCHAR(64) UNIQUE;
+
+ALTER TABLE "user" ALTER COLUMN password_hash  DROP NOT NULL;
+ALTER TABLE "user" ALTER COLUMN password_salt  DROP NOT NULL;
+
+ALTER TABLE access_key ADD CONSTRAINT access_key_label_user_unique UNIQUE (label, user_id);
+
+INSERT INTO configuration (name, value) VALUES ('google.identity.allowed', 'false');
+INSERT INTO configuration (name, value) VALUES ('facebook.identity.allowed', 'false');
+INSERT INTO configuration (name, value) VALUES ('github.identity.allowed', 'false');
+
+ALTER TABLE identity_provider ADD COLUMN token_endpoint VARCHAR(128);
+
+UPDATE identity_provider SET token_endpoint='https://www.googleapis.com/oauth2/v3/token' WHERE id = 1;
+UPDATE identity_provider SET token_endpoint='https://graph.facebook.com/oauth/access_token' WHERE id = 2;
+UPDATE identity_provider SET token_endpoint='https://github.com/login/oauth/access_token' WHERE id = 3;
+
+ALTER TABLE access_key DROP CONSTRAINT access_key_label_user_unique;
+ALTER TABLE access_key ADD COLUMN type INT NOT NULL DEFAULT 0;
+INSERT INTO configuration (name, value) VALUES ('session.timeout', '1200000');

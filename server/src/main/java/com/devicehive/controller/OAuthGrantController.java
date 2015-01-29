@@ -1,6 +1,8 @@
 package com.devicehive.controller;
 
 
+import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
@@ -10,67 +12,37 @@ import com.devicehive.controller.converters.TimestampQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.model.AccessType;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.OAuthGrant;
-import com.devicehive.model.Type;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.AccessType;
+import com.devicehive.model.enums.Type;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Timestamp;
-import java.util.List;
-
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
+import java.util.List;
 
-import static com.devicehive.configuration.Constants.ACCESS_TYPE;
-import static com.devicehive.configuration.Constants.CLIENT_OAUTH_ID;
-import static com.devicehive.configuration.Constants.END;
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.REDIRECT_URI;
-import static com.devicehive.configuration.Constants.SCOPE;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.START;
-import static com.devicehive.configuration.Constants.TAKE;
-import static com.devicehive.configuration.Constants.TIMESTAMP;
-import static com.devicehive.configuration.Constants.TYPE;
-import static com.devicehive.configuration.Constants.USER_ID;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED_ADMIN;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_SUBMITTED_CODE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_SUBMITTED_TOKEN;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static com.devicehive.auth.AllowedKeyAction.Action.*;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/user/{userId}/oauth/grant")
 @LogExecutionTime
 public class OAuthGrantController {
 
-    private static final Logger logger = LoggerFactory.getLogger(OAuthGrantController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthGrantController.class);
 
     @EJB
     private OAuthGrantService grantService;
@@ -83,7 +55,8 @@ public class OAuthGrantController {
 
 
     @GET
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response list(@PathParam(USER_ID) String userId,
                          @QueryParam(START) String startTs,
                          @QueryParam(END) String endTs,
@@ -116,7 +89,7 @@ public class OAuthGrantController {
                                                                                     : AccessType.forName(accessType)
                                                                      .ordinal(), sortField,
                                                     sortOrder, take, skip);
-        logger.debug(
+        LOGGER.debug(
             "OAuthGrant: list proceed successfully. User id: {}, start: {}, end: {}, clientOAuthID: {}, " +
             "type: {}, scope: {}, redirectURI: {}, accessType: {}, sortField: {}, sortOrder: {}, take: {}, skip: {}",
             userId, start, end, clientOAuthId, type, scope, redirectUri, accessType, sortField, sortOrder, take,
@@ -129,16 +102,17 @@ public class OAuthGrantController {
 
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response get(@PathParam(USER_ID) String userId,
                         @PathParam(ID) long grantId) {
-        logger.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         OAuthGrant grant = grantService.get(user, grantId);
         if (grant == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }
-        logger.debug("OAuthGrant: proceed successfully. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: proceed successfully. User id: {}, grant id: {}", userId, grantId);
         if (user.isAdmin()) {
             return ResponseFactory.response(OK, grant, OAUTH_GRANT_LISTED_ADMIN);
         }
@@ -146,13 +120,14 @@ public class OAuthGrantController {
     }
 
     @POST
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrant grant) {
-        logger.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
+        LOGGER.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
         User user = getUser(userId);
         grantService.save(grant, user);
-        logger.debug("OAuthGrant: insert proceed successfully. User id: {}, grant: {}", userId, grant);
+        LOGGER.debug("OAuthGrant: insert proceed successfully. User id: {}, grant: {}", userId, grant);
         if (grant.getType().equals(Type.TOKEN)) {
             return ResponseFactory.response(CREATED, grant, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
@@ -162,17 +137,18 @@ public class OAuthGrantController {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response update(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrantUpdate grant) {
-        logger.debug("OAuthGrant: update requested. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: update requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         OAuthGrant updated = grantService.update(user, grantId, grant);
         if (updated == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }
-        logger.debug("OAuthGrant: update proceed successfully. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: update proceed successfully. User id: {}, grant id: {}", userId, grantId);
         if (updated.getType().equals(Type.TOKEN)) {
             return ResponseFactory.response(OK, updated, OAUTH_GRANT_SUBMITTED_TOKEN);
         } else {
@@ -182,18 +158,20 @@ public class OAuthGrantController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT})
+    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
     public Response delete(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId) {
-        logger.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
         grantService.delete(user, grantId);
-        logger.debug("OAuthGrant: delete proceed successfully. User id: {}, grant id: {}", userId, grantId);
+        LOGGER.debug("OAuthGrant: delete proceed successfully. User id: {}, grant id: {}", userId, grantId);
         return ResponseFactory.response(NO_CONTENT);
     }
 
     private User getUser(String userId) {
-        User current = hiveSecurityContext.getHivePrincipal().getUser();
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        User current = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             return current;
         }
@@ -204,7 +182,8 @@ public class OAuthGrantController {
             } else if (current.isAdmin()) {
                 User result = userService.findById(id);
                 if (result == null) {
-                    throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+                    LOGGER.error("OAuthGrant: user with id {} not found", id);
+                    throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
                 }
                 return result;
             }

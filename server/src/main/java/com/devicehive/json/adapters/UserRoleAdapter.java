@@ -6,7 +6,7 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.model.UserRole;
+import com.devicehive.model.enums.UserRole;
 
 import java.io.IOException;
 

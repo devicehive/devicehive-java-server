@@ -1,27 +1,19 @@
 package com.devicehive.util;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.JsonStringWrapper;
-
-import java.util.UUID;
+import com.devicehive.model.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.UUID;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ServerResponsesFactory {
 
@@ -86,7 +78,11 @@ public class ServerResponsesFactory {
     }
 
     public static DeviceEquipment parseDeviceEquipmentNotification(DeviceNotification notification, Device device) {
-        String jsonParametersString = notification.getParameters().getJsonString();
+        final JsonStringWrapper notificationParameters = notification.getParameters();
+        if (notificationParameters == null) {
+            throw new HiveException(Messages.NO_NOTIFICATION_PARAMS, HttpServletResponse.SC_BAD_REQUEST);
+        }
+        final String jsonParametersString = notificationParameters.getJsonString();
         Gson gson = GsonFactory.createGson();
         JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
         JsonObject jsonEquipmentObject;
@@ -100,7 +96,11 @@ public class ServerResponsesFactory {
 
     private static DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
         DeviceEquipment result = new DeviceEquipment();
-        String deviceEquipmentCode = jsonEquipmentObject.get(Constants.EQUIPMENT).getAsString();
+        final JsonElement jsonElement = jsonEquipmentObject.get(Constants.EQUIPMENT);
+        if (jsonElement == null) {
+            throw new HiveException(Messages.NO_EQUIPMENT_IN_JSON, HttpServletResponse.SC_BAD_REQUEST);
+        }
+        String deviceEquipmentCode = jsonElement.getAsString();
         result.setCode(deviceEquipmentCode);
         jsonEquipmentObject.remove(Constants.EQUIPMENT);
         result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));

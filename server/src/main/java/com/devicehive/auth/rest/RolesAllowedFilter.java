@@ -4,11 +4,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.model.ErrorResponse;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -16,6 +11,10 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static javax.ws.rs.core.Response.ResponseBuilder;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;

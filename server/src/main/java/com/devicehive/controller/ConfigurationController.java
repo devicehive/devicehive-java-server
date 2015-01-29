@@ -1,31 +1,21 @@
 package com.devicehive.controller;
 
 
-import com.google.common.net.HttpHeaders;
-
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.WwwAuthenticateRequired;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.util.LogExecutionTime;
-
+import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 
 import static com.devicehive.configuration.Constants.NAME;
 import static com.devicehive.configuration.Constants.VALUE;

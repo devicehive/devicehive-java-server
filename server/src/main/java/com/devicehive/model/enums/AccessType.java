@@ -1,4 +1,4 @@
-package com.devicehive.model;
+package com.devicehive.model.enums;
 
 import com.devicehive.exceptions.HiveException;
 

@@ -4,9 +4,6 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.OAuthClient;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -18,15 +15,11 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.devicehive.model.OAuthClient.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.OAuthClient.Queries.Names.GET_BY_NAME;
-import static com.devicehive.model.OAuthClient.Queries.Names.GET_BY_OAUTH_ID;
-import static com.devicehive.model.OAuthClient.Queries.Names.GET_BY_OAUTH_ID_AND_SECRET;
-import static com.devicehive.model.OAuthClient.Queries.Parameters.ID;
-import static com.devicehive.model.OAuthClient.Queries.Parameters.NAME;
-import static com.devicehive.model.OAuthClient.Queries.Parameters.OAUTH_ID;
-import static com.devicehive.model.OAuthClient.Queries.Parameters.SECRET;
+import static com.devicehive.model.OAuthClient.Queries.Names.*;
+import static com.devicehive.model.OAuthClient.Queries.Parameters.*;
 
 @Stateless
 public class OAuthClientDAO {
@@ -113,8 +106,8 @@ public class OAuthClientDAO {
         }
         if (take == null) {
             take = Constants.DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
         }
+        resultQuery.setMaxResults(take);
 
         return resultQuery.getResultList();
 

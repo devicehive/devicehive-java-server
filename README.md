@@ -155,6 +155,24 @@ Example:
 
 `http://localhost:8080/DeviceHiveJava/rest/configuration/websocket.url/set?value=ws://localhost:8080/devicehive/websocket`
 
+* Set up OAuth2 providers properties. At the moment DeviceHive supports Google Plus, Facebook, Github OAuth2 identity providers.
+After registering your application at Google/Facebook/Github you'll be provided with your client id and client secret.
+To save them you should use link below:
+
+`http://localhost:8080/DeviceHiveJava/rest/configuration/${name}/set?value=${value}`
+
+For Google:
+The parameter “name” should be “google.identity.client.id” and “google.identity.client.secret”.
+To allow google authentication flow set “google.identity.allowed” to "true" (by default it's false)
+
+For Facebook:
+The parameter “name” should be “facebook.identity.client.id” and “facebook.identity.client.secret”.
+To allow facebook authentication flow set “facebook.identity.allowed” to "true" (by default it's false)
+
+For Github:
+The parameter “name” should be “github.identity.client.id” and “github.identity.client.secret”.
+To allow github authentication flow set “github.identity.allowed” to "true" (by default it's false)
+
 * Use it.
 
 DeviceHive Java update instructions

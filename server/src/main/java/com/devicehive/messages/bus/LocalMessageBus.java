@@ -11,25 +11,18 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.util.SessionMonitor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import javax.annotation.Resource;
-import javax.ejb.Asynchronous;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
+import javax.ejb.*;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.TransactionPhase;
 import javax.websocket.Session;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 

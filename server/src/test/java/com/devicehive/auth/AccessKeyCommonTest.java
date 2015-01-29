@@ -4,8 +4,8 @@ import com.devicehive.Constants;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +47,7 @@ public class AccessKeyCommonTest {
         key.setUser(ADMIN);
         HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
         hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
-        AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
+        RequestInterceptor interceptor = new RequestInterceptor();
         interceptor.setHiveSecurityContext(hiveSecurityContext);
         Exception thrown = null;
         try {
@@ -70,7 +70,7 @@ public class AccessKeyCommonTest {
         key.setUser(ADMIN);
         hiveSecurityContext = new HiveSecurityContext();
         hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
-        interceptor = new AccessKeyInterceptor();
+        interceptor = new RequestInterceptor();
         interceptor.setHiveSecurityContext(hiveSecurityContext);
         thrown = null;
         try {
@@ -93,7 +93,7 @@ public class AccessKeyCommonTest {
         key.setUser(ADMIN);
         hiveSecurityContext = new HiveSecurityContext();
         hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
-        interceptor = new AccessKeyInterceptor();
+        interceptor = new RequestInterceptor();
         interceptor.setHiveSecurityContext(hiveSecurityContext);
         thrown = null;
         try {
@@ -121,7 +121,7 @@ public class AccessKeyCommonTest {
         key.setExpirationDate(inPast);
         HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
         hiveSecurityContext.setHivePrincipal(new HivePrincipal(null, null, key));
-        AccessKeyInterceptor interceptor = new AccessKeyInterceptor();
+        RequestInterceptor interceptor = new RequestInterceptor();
         interceptor.setHiveSecurityContext(hiveSecurityContext);
         try {
             interceptor.checkPermissions(null);

@@ -1,11 +1,10 @@
 package com.devicehive.auth;
 
 import com.devicehive.model.OAuthClient;
-import com.devicehive.model.UserRole;
-
-import java.net.InetAddress;
+import com.devicehive.model.enums.UserRole;
 
 import javax.enterprise.context.RequestScoped;
+import java.net.InetAddress;
 
 @RequestScoped
 public class HiveSecurityContext {
