@@ -28,22 +28,22 @@ public class ServerResponsesFactory {
         return resultMessage;
     }
 
-    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, UUID subId) {
+    public static JsonObject createCommandInsertMessage(DeviceCommandMessage deviceCommandMessage, UUID subId) {
 
-        JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
-                                                                                             DeviceCommand.class);
+        JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommandMessage,
+                                                                                             DeviceCommandMessage.class);
 
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
-        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDevice().getGuid());
+        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommandMessage.getDeviceGuid());
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subId.toString());
         return resultJsonObject;
     }
 
-    public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
+    public static JsonObject createCommandUpdateMessage(DeviceCommandMessage deviceCommand) {
         if (deviceCommand.getUserId() == null) {
-            deviceCommand.setUserId(deviceCommand.getUser().getId());
+            deviceCommand.setUserId(deviceCommand.getId());
         }
         JsonElement deviceCommandJson =
             GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);

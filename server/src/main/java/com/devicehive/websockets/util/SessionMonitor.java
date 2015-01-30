@@ -50,7 +50,7 @@ public class SessionMonitor {
         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
-                logger.info("Pong received for session " + session.getId());
+                logger.debug("Pong received for session " + session.getId());
                 updateDeviceSession(session);
             }
         });
@@ -76,7 +76,7 @@ public class SessionMonitor {
         Set<UUID> commandSubscriptions = HiveWebsocketSessionState.get(session).getCommandSubscriptions();
         for (UUID subId : commandSubscriptions) {
             for (CommandSubscription subscription : subscriptionManager.getCommandSubscriptionStorage().get(subId)) {
-                if (subscription.getDeviceId() != Constants.NULL_ID_SUBSTITUTE) {
+                if (subscription.getDeviceGuid() != Constants.NULL_SUBSTITUTE) {
                     //deviceActivityService.update(subscription.getDeviceId());
                 }
             }
@@ -87,7 +87,7 @@ public class SessionMonitor {
     public synchronized void ping() {
         for (Session session : sessionMap.values()) {
             if (session.isOpen()) {
-                logger.info("Pinging session " + session.getId());
+                logger.debug("Pinging session " + session.getId());
                 try {
                     session.getAsyncRemote().sendPing(Constants.PING);
                 } catch (IOException ex) {

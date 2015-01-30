@@ -24,7 +24,7 @@ public class NotificationSubscription extends Subscription<String, DeviceNotific
         this.notificationNames = notificationNames != null ? new HashSet<>(notificationNames) : null;
     }
 
-    public String getDeviceId() {
+    public String getDeviceGuid() {
         return getEventSource();
     }
 

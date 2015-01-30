@@ -1,23 +1,20 @@
 package com.devicehive.service;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceCommandDAO;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.bus.Create;
 import com.devicehive.messages.bus.GlobalMessage;
 import com.devicehive.messages.bus.LocalMessage;
 import com.devicehive.messages.bus.Update;
+import com.devicehive.messages.kafka.Command;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceCommandMessage;
 import com.devicehive.model.User;
-import com.devicehive.model.updates.DeviceCommandUpdate;
+import com.devicehive.model.updates.DeviceCommandUpdateMessage;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
-
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.List;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -26,8 +23,9 @@ import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.List;
 
 
 @Stateless
@@ -62,6 +60,16 @@ public class DeviceCommandService {
     @Update
     @LocalMessage
     private Event<DeviceCommand> updateEventLocal;
+
+    @Inject
+    @Command
+    @Create
+    private Event<DeviceCommandMessage> deviceCommandMessageReceivedEvent;
+
+    @Inject
+    @Command
+    @Update
+    private Event<DeviceCommandMessage> deviceCommandUpdateMessageReceivedEvent;
 
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -99,56 +107,57 @@ public class DeviceCommandService {
         return commandDAO.getByDeviceGuidAndId(guid, id);
     }
 
-    public void submitDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
-        DeviceCommand saved = saveDeviceCommandUpdate(update, device);
-        updateEventGlobal.fire(saved);
-        updateEventLocal.fire(saved);
+    public void submitDeviceCommandUpdate(DeviceCommandUpdateMessage update, Device device) {
+        DeviceCommandMessage saved = saveDeviceCommandUpdate(update, device);
+        deviceCommandUpdateMessageReceivedEvent.fire(saved);
     }
 
-    public void submitDeviceCommand(DeviceCommand command, Device device, User user) {
-        command.setDevice(device);
-        command.setUser(user);
+    public void submitDeviceCommand(DeviceCommandMessage command, Device device, User user) {
+        command.setId(UUIDs.unixTimestamp(UUIDs.timeBased()));
+        command.setDeviceGuid(device.getGuid());
         command.setUserId(user.getId());
         command.setTimestamp(timestampService.getTimestamp());
-        commandDAO.createCommand(command);
-        commandEventGlobal.fire(command);
-        commandEventLocal.fire(command);
+        deviceCommandMessageReceivedEvent.fire(command);
     }
 
-    private DeviceCommand saveDeviceCommandUpdate(DeviceCommandUpdate update, Device device) {
+    private DeviceCommandMessage saveDeviceCommandUpdate(DeviceCommandUpdateMessage update, Device device) {
 
-        DeviceCommand cmd = commandDAO.findById(update.getId());
+        //TODO: implement updateing an exidting DeviceCommand object
+        //DeviceCommand cmd = commandDAO.findById(update.getId());
+        DeviceCommandMessage cmd = new DeviceCommandMessage();
+        cmd.setId(update.getId());
 
-        if (cmd == null) {
-            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
-                                    NOT_FOUND.getStatusCode());
-        }
+//        if (cmd == null) {
+//            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
+//                                    NOT_FOUND.getStatusCode());
+//        }
+        cmd.setDeviceGuid(device.getGuid());
 
-        if (!cmd.getDevice().getId().equals(device.getId())) {
-            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
-                                    NOT_FOUND.getStatusCode());
-        }
+//        if (!cmd.getDevice().getId().equals(device.getId())) {
+//            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
+//                                    NOT_FOUND.getStatusCode());
+//        }
 
         if (update.getCommand() != null) {
-            cmd.setCommand(update.getCommand().getValue());
+            cmd.setCommand(update.getCommand());
         }
         if (update.getFlags() != null) {
-            cmd.setFlags(update.getFlags().getValue());
+            cmd.setFlags(update.getFlags());
         }
         if (update.getLifetime() != null) {
-            cmd.setLifetime(update.getLifetime().getValue());
+            cmd.setLifetime(update.getLifetime());
         }
         if (update.getParameters() != null) {
-            cmd.setParameters(update.getParameters().getValue());
+            cmd.setParameters(update.getParameters());
         }
         if (update.getResult() != null) {
-            cmd.setResult(update.getResult().getValue());
+            cmd.setResult(update.getResult());
         }
         if (update.getStatus() != null) {
-            cmd.setStatus(update.getStatus().getValue());
+            cmd.setStatus(update.getStatus());
         }
         if (update.getTimestamp() != null) {
-            cmd.setTimestamp(update.getTimestamp().getValue());
+            cmd.setTimestamp(update.getTimestamp());
         }
         hiveValidator.validate(cmd);
         return cmd;

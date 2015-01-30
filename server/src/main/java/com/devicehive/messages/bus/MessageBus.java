@@ -2,9 +2,10 @@ package com.devicehive.messages.bus;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.PropertiesService;
-import com.devicehive.messages.kafka.KafkaExecutor;
-import com.devicehive.messages.kafka.Message;
+import com.devicehive.messages.kafka.Command;
+import com.devicehive.messages.kafka.KafkaProducer;
 import com.devicehive.messages.kafka.Notification;
+import com.devicehive.model.DeviceCommandMessage;
 import com.devicehive.model.DeviceNotificationMessage;
 import org.slf4j.Logger;
 
@@ -23,15 +24,34 @@ public class MessageBus {
     public static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(MessageBus.class);
 
     @EJB
-    private KafkaExecutor<DeviceNotificationMessage> kafkaDeviceNotificationExecutor;
+    private KafkaProducer kafkaProducer;
     @EJB
     private PropertiesService propertiesService;
 
     @Asynchronous
     public void publishDeviceNotification(
-            @Message @Notification @Observes DeviceNotificationMessage deviceNotificationMessage) {
+            @Notification @Observes DeviceNotificationMessage deviceNotificationMessage) {
         LOGGER.debug("Sending device notification {} to kafka", deviceNotificationMessage.getNotification());
-        kafkaDeviceNotificationExecutor.produce(deviceNotificationMessage, propertiesService.getProperty(Constants.DEVICE_NOTIFICATION_TOPIC_NAME));
+        kafkaProducer.produceDeviceNotificationMsg(deviceNotificationMessage,
+                propertiesService.getProperty(Constants.NOTIFICATION_TOPIC_NAME) + "." + deviceNotificationMessage.getDeviceGuid());
+        LOGGER.debug("Sent");
+    }
+
+    @Asynchronous
+    public void publishDeviceCommand(
+            @Command @Create @Observes DeviceCommandMessage deviceCommandMessage) {
+        LOGGER.info("Sending device command to kafka");
+        kafkaProducer.produceDeviceCommandMsg(deviceCommandMessage,
+                propertiesService.getProperty(Constants.COMMAND_TOPIC_NAME) + "." + deviceCommandMessage.getDeviceGuid());
+        LOGGER.debug("Sent");
+    }
+
+    @Asynchronous
+    public void publishDeviceCommandUpdate(
+            @Command @Update @Observes DeviceCommandMessage deviceCommandMessage) {
+        LOGGER.info("Sending device command to kafka");
+        kafkaProducer.produceDeviceCommandUpdateMsg(deviceCommandMessage,
+                propertiesService.getProperty(Constants.COMMAND_UPDATE_TOPIC_NAME) + "." + deviceCommandMessage.getDeviceGuid());
         LOGGER.debug("Sent");
     }
 

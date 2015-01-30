@@ -14,12 +14,9 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.response.CommandPollManyResponse;
-import com.devicehive.model.updates.DeviceCommandUpdate;
+import com.devicehive.model.updates.DeviceCommandUpdateMessage;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -170,17 +167,17 @@ public class DeviceCommandController {
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
-            RestHandlerCreator<DeviceCommand> restHandlerCreator = new RestHandlerCreator<>();
+            RestHandlerCreator<DeviceCommandMessage> restHandlerCreator = new RestHandlerCreator<>();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
             if (devices != null) {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 for (Device d : actualDevices) {
                     subscriptionSet
-                        .add(new CommandSubscription(principal, d.getId(), reqId, names, restHandlerCreator));
+                        .add(new CommandSubscription(principal, d.getGuid(), reqId, names, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
-                    .add(new CommandSubscription(principal, Constants.NULL_ID_SUBSTITUTE,
+                    .add(new CommandSubscription(principal, Constants.NULL_SUBSTITUTE,
                                                  reqId,
                                                  names,
                                                  restHandlerCreator));
@@ -283,7 +280,7 @@ public class DeviceCommandController {
         if (command.getEntityVersion() == 0) {
             CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
-            RestHandlerCreator<DeviceCommand> restHandlerCreator = new RestHandlerCreator<>();
+            RestHandlerCreator<DeviceCommandMessage> restHandlerCreator = new RestHandlerCreator<>();
             CommandUpdateSubscription commandSubscription =
                 new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
 
@@ -414,7 +411,7 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = CREATE_DEVICE_COMMAND)
     public Response insert(@PathParam(DEVICE_GUID) String guid,
-                           @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommand deviceCommand) {
+                           @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommandMessage deviceCommand) {
         logger.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         User authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
@@ -429,8 +426,8 @@ public class DeviceCommandController {
         commandService.submitDeviceCommand(deviceCommand, device, authUser);
         deviceCommand.setUserId(authUser.getId());
 
-        logger.debug("Device command insertAll proceed successfully. deviceId = {} commandId = {}", guid,
-                     deviceCommand.getId());
+        logger.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
+                     deviceCommand.getCommand());
         return ResponseFactory.response(CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
     }
 
@@ -453,7 +450,7 @@ public class DeviceCommandController {
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
     public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long commandId,
-                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdate command) {
+                           @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandUpdateMessage command) {
 
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         logger.debug("Device command update requested. deviceId = {} commandId = {}", guid, commandId);

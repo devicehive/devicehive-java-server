@@ -1,6 +1,6 @@
 package com.devicehive.messages.handler;
 
-import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceCommandMessage;
 import com.devicehive.model.DeviceNotificationMessage;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
@@ -30,23 +30,23 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
         this.lock = lock;
     }
 
-    public static WebsocketHandlerCreator<DeviceCommand> createCommandInsert(Session session) {
-        return new WebsocketHandlerCreator<DeviceCommand>(session,
+    public static WebsocketHandlerCreator<DeviceCommandMessage> createCommandInsert(Session session) {
+        return new WebsocketHandlerCreator<DeviceCommandMessage>(session,
                                                           HiveWebsocketSessionState.get(session)
                                                               .getCommandSubscriptionsLock()) {
             @Override
-            protected JsonObject createJsonObject(DeviceCommand message, UUID subId) {
+            protected JsonObject createJsonObject(DeviceCommandMessage message, UUID subId) {
                 return ServerResponsesFactory.createCommandInsertMessage(message, subId);
             }
         };
     }
 
-    public static WebsocketHandlerCreator<DeviceCommand> createCommandUpdate(Session session) {
-        return new WebsocketHandlerCreator<DeviceCommand>(session,
+    public static WebsocketHandlerCreator<DeviceCommandMessage> createCommandUpdate(Session session) {
+        return new WebsocketHandlerCreator<DeviceCommandMessage>(session,
                                                           HiveWebsocketSessionState.get(session)
                                                               .getCommandUpdateSubscriptionsLock()) {
             @Override
-            protected JsonObject createJsonObject(DeviceCommand message, UUID subId) {
+            protected JsonObject createJsonObject(DeviceCommandMessage message, UUID subId) {
                 return ServerResponsesFactory.createCommandUpdateMessage(message);
             }
         };

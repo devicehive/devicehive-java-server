@@ -5,9 +5,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.messages.bus.Create;
-import com.devicehive.messages.bus.LocalMessage;
-import com.devicehive.messages.kafka.Message;
 import com.devicehive.messages.kafka.Notification;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
@@ -44,16 +41,6 @@ public class DeviceNotificationService {
     private DeviceService deviceService;
 
     @Inject
-    @Create
-    @LocalMessage
-    private Event<DeviceNotification> eventLocal;
-
-    @Inject
-    @Message
-    private Event<DeviceNotification> eventGlobal;
-
-    @Inject
-    @Message
     @Notification
     private Event<DeviceNotificationMessage> deviceNotificationMessageReceivedEvent;
 
@@ -135,6 +122,7 @@ public class DeviceNotificationService {
 
         }
         notificationMessage.setDeviceGuid(device.getGuid());
+        notificationMessage.setTimestamp(timestampService.getTimestamp());
         notificationsToCreate.add(notificationMessage);
         return notificationsToCreate;
 
