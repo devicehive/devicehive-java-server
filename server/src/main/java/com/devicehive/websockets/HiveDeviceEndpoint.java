@@ -19,7 +19,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/websocket/device", encoders = {JsonEncoder.class})
+@ServerEndpoint(value = "/websocket/device", encoders = {JsonEncoder.class}, configurator = HiveConfigurator.class)
 @Stateless
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class HiveDeviceEndpoint extends HiveServerEndpoint {
