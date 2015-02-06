@@ -26,9 +26,22 @@
         </interfaces>
     </network>
 
+    <map name="default">
+        <in-memory-format>BINARY</in-memory-format>
+        <backup-count>1</backup-count>
+        <async-backup-count>0</async-backup-count>
+        <time-to-live-seconds>120</time-to-live-seconds>
+        <max-idle-seconds>120</max-idle-seconds>
+        <eviction-policy>LRU</eviction-policy>
+        <max-size policy="PER_NODE">5120</max-size>
+        <eviction-percentage>25</eviction-percentage>
+        <merge-policy>com.hazelcast.map.merge.LatestUpdateMapMergePolicy</merge-policy>
+    </map>
+
     <serialization>
         <portable-version>0</portable-version>
     </serialization>
+
 
     <services enable-defaults="true"/>
 
