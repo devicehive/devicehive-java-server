@@ -160,3 +160,17 @@ INSERT INTO configuration (name, value) VALUES ('session.timeout', '1200000');
 INSERT INTO configuration (name, value) VALUES ('metadata.broker.list', '127.0.0.1:9092');
 INSERT INTO configuration (name, value) VALUES ('zookeeper.connect', '127.0.0.1:2181');
 INSERT INTO configuration (name, value) VALUES ('threads.count', '6');
+
+CREATE OR REPLACE FUNCTION insert_test_devices(first_index INT, last_index INT) RETURNS void AS $BODY$
+DECLARE
+idd text;
+BEGIN
+FOR r IN first_index..last_index LOOP
+select to_char(r, '09999999') into idd;
+     INSERT INTO device (guid, name, status, network_id, device_class_id, key) VALUES (
+replace('aaaaaaaa-aaaa-0000-0000-000000a' || idd, ' ', ''), 'Kafka device', 'Offline', 1, 1, 'TK_' || idd || '_A' );
+END LOOP;
+RETURN;
+END
+$BODY$
+LANGUAGE plpgsql;
