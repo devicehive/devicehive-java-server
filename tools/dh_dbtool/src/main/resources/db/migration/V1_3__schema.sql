@@ -168,7 +168,7 @@ BEGIN
 FOR r IN first_index..last_index LOOP
 select to_char(r, '09999999') into idd;
      INSERT INTO device (guid, name, status, network_id, device_class_id, key) VALUES (
-replace('aaaaaaaa-aaaa-0000-0000-000000a' || idd, ' ', ''), 'Kafka device', 'Offline', 1, 1, 'TK_' || idd || '_A' );
+replace('aaaaaaaa-aaaa-0000-0-000000a' || idd, ' ', ''), 'Kafka device', 'Offline', 1, 1, 'TK_' || idd || '_A' );
 END LOOP;
 RETURN;
 END
