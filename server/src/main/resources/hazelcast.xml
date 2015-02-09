@@ -26,7 +26,7 @@
         </interfaces>
     </network>
 
-    <map name="default">
+    <map name="com.devicehive.*">
         <in-memory-format>BINARY</in-memory-format>
         <backup-count>1</backup-count>
         <async-backup-count>0</async-backup-count>
@@ -35,7 +35,7 @@
         <eviction-policy>LRU</eviction-policy>
         <max-size policy="PER_NODE">5120</max-size>
         <eviction-percentage>25</eviction-percentage>
-        <merge-policy>com.hazelcast.map.merge.LatestUpdateMapMergePolicy</merge-policy>
+        <merge-policy>com.hazelcast.map.merge.PutIfAbsentMapMergePolicy</merge-policy>
     </map>
 
     <serialization>
