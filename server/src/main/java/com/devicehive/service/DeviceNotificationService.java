@@ -1,15 +1,13 @@
 package com.devicehive.service;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.dao.DeviceNotificationDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.kafka.Notification;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.DeviceNotificationMessage;
-import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.*;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -126,6 +124,16 @@ public class DeviceNotificationService {
         notificationsToCreate.add(notificationMessage);
         return notificationsToCreate;
 
+    }
+
+    public DeviceNotificationMessage convertToMessage(DeviceNotificationSubmit notificationSubmit, Device device) {
+        DeviceNotificationMessage message = new DeviceNotificationMessage();
+        message.setId(UUIDs.timeBased().toString());
+        message.setDeviceGuid(device.getGuid());
+        message.setTimestamp(timestampService.getTimestamp());
+        message.setNotification(notificationSubmit.getNotification());
+        message.setParameters(notificationSubmit.getParameters().getJsonString());
+        return message;
     }
 
     public DeviceNotificationMessage refreshDeviceStatusCase(DeviceNotificationMessage notificationMessage, Device device) {

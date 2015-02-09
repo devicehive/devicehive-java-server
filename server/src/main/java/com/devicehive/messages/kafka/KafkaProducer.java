@@ -1,5 +1,6 @@
 package com.devicehive.messages.kafka;
 
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.PropertiesService;
 import com.devicehive.model.DeviceCommandMessage;
@@ -26,11 +27,13 @@ public class KafkaProducer {
 
     @EJB
     PropertiesService propertiesService;
+    @EJB
+    ConfigurationService configurationService;
 
     @PostConstruct
     private void initialize() {
         Properties producerConfig = new Properties();
-        producerConfig.put("metadata.broker.list", propertiesService.getProperty(Constants.METADATA_BROKER_LIST));
+        producerConfig.put(Constants.METADATA_BROKER_LIST, configurationService.get(Constants.METADATA_BROKER_LIST));
         producerConfig.put("serializer.class", propertiesService.getProperty(Constants.NOTIFICATION_SERIALIZER_CLASS));
         this.notificationProducer = new Producer<String, DeviceNotificationMessage>(new ProducerConfig(producerConfig));
 

@@ -113,7 +113,7 @@ public class DeviceCommandService {
     }
 
     public void submitDeviceCommand(DeviceCommandMessage command, Device device, User user) {
-        command.setId(UUIDs.unixTimestamp(UUIDs.timeBased()));
+        command.setId(UUIDs.timeBased().timestamp());
         command.setDeviceGuid(device.getGuid());
         command.setUserId(user.getId());
         command.setTimestamp(timestampService.getTimestamp());

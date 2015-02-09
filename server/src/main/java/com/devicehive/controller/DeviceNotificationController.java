@@ -17,10 +17,7 @@ import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.DeviceNotificationMessage;
-import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.*;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -322,7 +319,7 @@ public class DeviceNotificationController {
      * RESTful API: DeviceNotification: insert</a> Creates new device notification.
      *
      * @param guid         Device unique identifier.
-     * @param notification In the request body, supply a DeviceNotification resource. <table> <tr> <td>Property
+     * @param notificationSubmit In the request body, supply a DeviceNotification resource. <table> <tr> <td>Property
      *                     Name</td> <td>Required</td> <td>Type</td> <td>Description</td> </tr> <tr>
      *                     <td>notification</td> <td>Yes</td> <td>string</td> <td>Notification name.</td> </tr> <tr>
      *                     <td>parameters</td> <td>No</td> <td>object</td> <td>Notification parameters, a JSON object
@@ -339,11 +336,11 @@ public class DeviceNotificationController {
     @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-                           DeviceNotificationMessage notification) {
+                           DeviceNotificationSubmit notificationSubmit) {
         logger.debug("DeviceNotification insertAll requested");
 
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        if (notification == null || notification.getNotification() == null){
+        if (notificationSubmit == null || notificationSubmit.getNotification() == null){
             logger.debug(
                 "DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
             return ResponseFactory.response(BAD_REQUEST,
@@ -362,10 +359,11 @@ public class DeviceNotificationController {
                                                               String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK,
                                                                             guid)));
         }
-        notificationService.submitDeviceNotification(notification, device);
+        DeviceNotificationMessage message = notificationService.convertToMessage(notificationSubmit, device);
+        notificationService.submitDeviceNotification(message, device);
 
         logger.debug("DeviceNotification insertAll proceed successfully");
-        return ResponseFactory.response(CREATED, notification, NOTIFICATION_TO_DEVICE);
+        return ResponseFactory.response(CREATED, message, NOTIFICATION_TO_DEVICE);
     }
 
 }

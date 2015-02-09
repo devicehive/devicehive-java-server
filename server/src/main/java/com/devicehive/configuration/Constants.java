@@ -30,11 +30,6 @@ public class Constants {
     public static final String CURRENT_USER = "current";
     public static final String BASIC_AUTH_SCHEME = "Basic";
     public static final String OAUTH_AUTH_SCEME = "Bearer";
-    public static final String OAUTH_IDENTITY = "Identity";
-    public static final String OAUTH_ACCESS_TOKEN = "access_token";
-    public static final String OAUTH_STATE = "state";
-    public static final String OAUTH_CODE = "code";
-    public static final String OAUTH_EXPIRES_IN = "expires_in";
     public static final String AUTH_DEVICE_ID_HEADER = "Auth-DeviceID";
     public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
     public static final ByteBuffer PING = ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8)));

@@ -15,7 +15,7 @@ public abstract class AbstractConsumer<T> {
 
     @Asynchronous
     public void subscribe(KafkaStream a_stream, int a_threadNumber) {
-        LOGGER.info("{}: Kafka device notifications consumer started... {} ", Thread.currentThread().getName(), a_threadNumber);
+        LOGGER.info("{}: Kafka consumer started... {} ", Thread.currentThread().getName(), a_threadNumber);
         ConsumerIterator<String, T> it = a_stream.iterator();
         while (it.hasNext()) {
             T message = it.next().message();

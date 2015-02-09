@@ -14,6 +14,7 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotificationMessage;
+import com.devicehive.model.DeviceNotificationSubmit;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -227,11 +228,11 @@ public class NotificationHandlers extends WebsocketHandlers {
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
                                                        @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-                                                       DeviceNotificationMessage notificationMessage,
+                                                       DeviceNotificationSubmit notificationSubmit,
                                                        Session session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        if (notificationMessage == null || notificationMessage.getNotification() == null) {
+        if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
             logger.debug(
                 "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
@@ -251,11 +252,12 @@ public class NotificationHandlers extends WebsocketHandlers {
                 "notification/insert. No network specified for device with guid = {}", deviceGuid);
             throw new HiveException(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, SC_FORBIDDEN);
         }
-        notificationService.submitDeviceNotification(notificationMessage, device);
+        DeviceNotificationMessage message = notificationService.convertToMessage(notificationSubmit, device);
+        notificationService.submitDeviceNotification(message, device);
         logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(NOTIFICATION, notificationMessage, NOTIFICATION_TO_DEVICE);
+        response.addValue(NOTIFICATION, message, NOTIFICATION_TO_DEVICE);
         return response;
     }
 

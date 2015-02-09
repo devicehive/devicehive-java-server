@@ -1,10 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceEquipmentDAO;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
-import com.devicehive.model.DeviceNotificationMessage;
-import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.*;
 import com.devicehive.util.ServerResponsesFactory;
 
 import javax.ejb.EJB;
