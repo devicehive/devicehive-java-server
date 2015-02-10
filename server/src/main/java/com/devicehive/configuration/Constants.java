@@ -116,4 +116,6 @@ public class Constants {
     public static final String AUTO_COMMIT_INTERVAL_MS = "auto.commit.interval.ms";
     public static final String THREADS_COUNT = "threads.count";
 
+    public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
+
 }

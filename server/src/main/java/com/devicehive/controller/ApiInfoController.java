@@ -8,9 +8,12 @@ import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiConfig;
 import com.devicehive.model.ApiInfo;
+import com.devicehive.model.ClusterConfig;
 import com.devicehive.model.IdentityProviderConfig;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +32,7 @@ import java.util.Set;
 @LogExecutionTime
 public class ApiInfoController {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiInfoController.class);
 
     @EJB
     private TimestampService timestampService;
@@ -43,7 +46,7 @@ public class ApiInfoController {
     @GET
     @PermitAll
     public Response getApiInfo() {
-        logger.debug("ApiInfo requested");
+        LOGGER.debug("ApiInfo requested");
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
@@ -58,7 +61,7 @@ public class ApiInfoController {
     @Path("/config/auth")
     @PermitAll
     public Response getOauth2Config() {
-        logger.debug("ApiConfig requested");
+        LOGGER.debug("ApiConfig requested");
         ApiConfig apiConfig = new ApiConfig();
 
         Set<IdentityProviderConfig> providerConfigs = new HashSet<>();
@@ -89,6 +92,27 @@ public class ApiInfoController {
         apiConfig.setSessionTimeout(Long.parseLong(configurationService.get(Constants.SESSION_TIMEOUT)) / 1000);
 
         return ResponseFactory.response(Response.Status.OK, apiConfig, JsonPolicyDef.Policy.REST_SERVER_CONFIG);
+    }
+
+    @GET
+    @Path("/config/cluster")
+    @PermitAll
+    public Response getClusterConfig() {
+        LOGGER.debug("ClusterConfig requested");
+        ClusterConfig clusterConfig = new ClusterConfig();
+        clusterConfig.setMetadataBrokerList(configurationService.get(Constants.METADATA_BROKER_LIST));
+        clusterConfig.setZookeeperConnect(configurationService.get(Constants.ZOOKEEPER_CONNECT));
+        final String cassandraContactpoints = configurationService.get(Constants.CASSANDRA_CONTACTPOINTS);
+        if (StringUtils.isNotBlank(cassandraContactpoints)) {
+            clusterConfig.setCassandraContactpoints(cassandraContactpoints);
+        }
+        final String threadCount = configurationService.get(Constants.THREADS_COUNT);
+        if (StringUtils.isNotBlank(threadCount) && NumberUtils.isNumber(threadCount)) {
+            clusterConfig.setThreadsCount(Integer.parseInt(threadCount));
+        } else {
+            clusterConfig.setThreadsCount(1);
+        }
+        return ResponseFactory.response(Response.Status.OK, clusterConfig, JsonPolicyDef.Policy.REST_CLUSTER_CONFIG);
     }
 
 }
