@@ -73,7 +73,7 @@ public class ServerResponsesFactory {
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
         JsonElement deviceAsJson = gson.toJsonTree(device);
         //JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
-        notification.setParameters(deviceAsJson.getAsJsonObject().getAsString());
+        notification.setParameters(deviceAsJson.toString());
         return notification;
     }
 
