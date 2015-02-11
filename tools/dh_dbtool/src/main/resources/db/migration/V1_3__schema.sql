@@ -176,5 +176,5 @@ END
 $BODY$
 LANGUAGE plpgsql;
 
-INSERT INTO access_key (id, label, key, expiration_date, user_id) VALUES (1, 'Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1);
-INSERT INTO access_key_permission (access_key_id) VALUES (1);
+INSERT INTO access_key (id, label, key, expiration_date, user_id) VALUES (0,'Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 0);
+INSERT INTO access_key_permission (access_key_id) VALUES (0);

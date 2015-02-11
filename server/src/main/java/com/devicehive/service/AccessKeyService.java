@@ -130,11 +130,13 @@ public class AccessKeyService {
             return null;
         }
         final Long expirationPeriod = configurationService.getLong(Constants.SESSION_TIMEOUT, Constants.DEFAULT_SESSION_TIMEOUT);
-        final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
-        if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod/2) {
-            em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
-            accessKey.setExpirationDate(new Timestamp(timestampService.getTimestamp().getTime() + expirationPeriod));
-            return accessKeyDAO.update(accessKey);
+        if (accessKey.getExpirationDate() != null) {
+            final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
+            if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod/2) {
+                em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
+                accessKey.setExpirationDate(new Timestamp(timestampService.getTimestamp().getTime() + expirationPeriod));
+                return accessKeyDAO.update(accessKey);
+            }
         }
         return accessKey;
     }
