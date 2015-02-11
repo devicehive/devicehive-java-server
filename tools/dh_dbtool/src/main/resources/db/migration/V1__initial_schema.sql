@@ -144,9 +144,9 @@ CREATE VIEW get_timestamp AS
 
 -- 1. Default users
 INSERT INTO "user"
-(login, password_hash, password_salt, role, status, login_attempts)
+(id, login, password_hash, password_salt, role, status, login_attempts)
   VALUES
-  ('dhadmin', 'DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=', 'sjQbZgcCmFxqTV4CCmGwpIHO', 0, 0, 0);
+  (1, 'dhadmin', 'DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=', 'sjQbZgcCmFxqTV4CCmGwpIHO', 0, 0, 0);
 
 -- 2. Default device classes
 INSERT INTO device_class
