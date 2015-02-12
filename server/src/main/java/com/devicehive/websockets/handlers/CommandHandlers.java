@@ -13,9 +13,8 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommandMessage;
+import com.devicehive.model.DeviceCommandWrapper;
 import com.devicehive.model.User;
-import com.devicehive.model.updates.DeviceCommandUpdateMessage;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -234,7 +233,7 @@ public class CommandHandlers extends WebsocketHandlers {
     @AllowedKeyAction(action = CREATE_DEVICE_COMMAND)
     public WebSocketResponse processCommandInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                   @WsParam(COMMAND) @JsonPolicyApply(COMMAND_FROM_CLIENT)
-                                                  DeviceCommandMessage deviceCommand,
+                                                  DeviceCommandWrapper deviceCommand,
                                                   Session session) {
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
         if (deviceGuid == null) {
@@ -248,12 +247,8 @@ public class CommandHandlers extends WebsocketHandlers {
         if (deviceCommand == null) {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
-        User user = principal.getUser();
-        if (user == null) {
-            user = principal.getKey().getUser();
-        }
-        deviceCommand.setOriginSessionId(session.getId());
-        commandService.submitDeviceCommand(deviceCommand, device, user);
+        final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        commandService.submitDeviceCommand(deviceCommand, device, user, session.getId());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(COMMAND, deviceCommand, COMMAND_TO_CLIENT);
         return response;
@@ -263,10 +258,10 @@ public class CommandHandlers extends WebsocketHandlers {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
     public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
-                                                  @WsParam(COMMAND_ID) Long id,
+                                                  @WsParam(COMMAND_ID) String id,
                                                   @WsParam(COMMAND)
                                                   @JsonPolicyApply(REST_COMMAND_UPDATE_FROM_DEVICE)
-                                                  DeviceCommandUpdateMessage commandUpdate,
+                                                  DeviceCommandWrapper commandUpdate,
                                                   Session session) {
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
         if (guid == null) {
@@ -284,12 +279,12 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        commandUpdate.setId(id);
-        commandService.submitDeviceCommandUpdate(commandUpdate, device);
+        commandService.submitDeviceCommandUpdate(commandUpdate, device, user, id);
 
         logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                      guid, id);

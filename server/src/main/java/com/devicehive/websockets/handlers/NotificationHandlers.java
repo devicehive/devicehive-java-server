@@ -14,7 +14,7 @@ import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotificationMessage;
-import com.devicehive.model.DeviceNotificationSubmit;
+import com.devicehive.model.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
@@ -228,7 +228,7 @@ public class NotificationHandlers extends WebsocketHandlers {
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
                                                        @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-                                                       DeviceNotificationSubmit notificationSubmit,
+                                                       DeviceNotificationWrapper notificationSubmit,
                                                        Session session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();

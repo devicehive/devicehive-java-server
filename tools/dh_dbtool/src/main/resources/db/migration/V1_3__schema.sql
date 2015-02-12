@@ -159,8 +159,9 @@ INSERT INTO configuration (name, value) VALUES ('session.timeout', '1200000');
 
 INSERT INTO configuration (name, value) VALUES ('metadata.broker.list', '127.0.0.1:9092');
 INSERT INTO configuration (name, value) VALUES ('zookeeper.connect', '127.0.0.1:2181');
-INSERT INTO configuration (name, value) VALUES ('threads.count', '6');
+INSERT INTO configuration (name, value) VALUES ('threads.count', '3');
 INSERT INTO configuration (name, value) VALUES ('cassandra.contactpoints', '127.0.0.1');
+INSERT INTO configuration (name, value) VALUES ('websocket.ping.timeout', '120000');
 
 CREATE OR REPLACE FUNCTION insert_test_devices(first_index INT, last_index INT) RETURNS void AS $BODY$
 DECLARE

@@ -40,7 +40,7 @@ public class MessageBus {
     @Asynchronous
     public void publishDeviceCommand(
             @Command @Create @Observes DeviceCommandMessage deviceCommandMessage) {
-        LOGGER.info("Sending device command to kafka");
+        LOGGER.debug("Sending device command to kafka: {}", deviceCommandMessage);
         kafkaProducer.produceDeviceCommandMsg(deviceCommandMessage,
                 propertiesService.getProperty(Constants.COMMAND_TOPIC_NAME));
         LOGGER.debug("Sent");
@@ -49,7 +49,7 @@ public class MessageBus {
     @Asynchronous
     public void publishDeviceCommandUpdate(
             @Command @Update @Observes DeviceCommandMessage deviceCommandMessage) {
-        LOGGER.info("Sending device command to kafka");
+        LOGGER.debug("Sending device command update to kafka: {}", deviceCommandMessage);
         kafkaProducer.produceDeviceCommandUpdateMsg(deviceCommandMessage,
                 propertiesService.getProperty(Constants.COMMAND_UPDATE_TOPIC_NAME));
         LOGGER.debug("Sent");

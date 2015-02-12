@@ -8,11 +8,7 @@ import com.devicehive.messages.bus.GlobalMessage;
 import com.devicehive.messages.bus.LocalMessage;
 import com.devicehive.messages.bus.Update;
 import com.devicehive.messages.kafka.Command;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceCommandMessage;
-import com.devicehive.model.User;
-import com.devicehive.model.updates.DeviceCommandUpdateMessage;
+import com.devicehive.model.*;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 
@@ -107,60 +103,47 @@ public class DeviceCommandService {
         return commandDAO.getByDeviceGuidAndId(guid, id);
     }
 
-    public void submitDeviceCommandUpdate(DeviceCommandUpdateMessage update, Device device) {
-        DeviceCommandMessage saved = saveDeviceCommandUpdate(update, device);
-        deviceCommandUpdateMessageReceivedEvent.fire(saved);
+    public void submitDeviceCommandUpdate(DeviceCommandWrapper update, Device device, User user, String commandId) {
+        DeviceCommandMessage message = convertToDeviceCommandMessage(update, device, user, null, commandId);
+        deviceCommandUpdateMessageReceivedEvent.fire(message);
     }
 
-    public void submitDeviceCommand(DeviceCommandMessage command, Device device, User user) {
-        command.setId(UUIDs.timeBased().timestamp());
-        command.setDeviceGuid(device.getGuid());
-        command.setUserId(user.getId());
-        command.setTimestamp(timestampService.getTimestamp());
-        deviceCommandMessageReceivedEvent.fire(command);
+    public void submitDeviceCommand(DeviceCommandWrapper command, Device device, User user) {
+        DeviceCommandMessage message = convertToDeviceCommandMessage(command, device, user, null, UUIDs.timeBased().toString());
+        deviceCommandMessageReceivedEvent.fire(message);
     }
 
-    private DeviceCommandMessage saveDeviceCommandUpdate(DeviceCommandUpdateMessage update, Device device) {
+    public void submitDeviceCommand(DeviceCommandWrapper command, Device device, User user, String sessionId) {
+        DeviceCommandMessage message = convertToDeviceCommandMessage(command, device, user, sessionId, UUIDs.timeBased().toString());
+        deviceCommandMessageReceivedEvent.fire(message);
+    }
 
-        //TODO: implement updateing an exidting DeviceCommand object
-        //DeviceCommand cmd = commandDAO.findById(update.getId());
-        DeviceCommandMessage cmd = new DeviceCommandMessage();
-        cmd.setId(update.getId());
+    private DeviceCommandMessage convertToDeviceCommandMessage(DeviceCommandWrapper command, Device device, User user,
+                                                              String sessionId, String commandId) {
 
-//        if (cmd == null) {
-//            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
-//                                    NOT_FOUND.getStatusCode());
-//        }
-        cmd.setDeviceGuid(device.getGuid());
-
-//        if (!cmd.getDevice().getId().equals(device.getId())) {
-//            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, update.getId()),
-//                                    NOT_FOUND.getStatusCode());
-//        }
-
-        if (update.getCommand() != null) {
-            cmd.setCommand(update.getCommand());
+        DeviceCommandMessage message = new DeviceCommandMessage();
+        message.setId(commandId);
+        message.setDeviceGuid(device.getGuid());
+        message.setTimestamp(timestampService.getTimestamp());
+        message.setUserId(user.getId());
+        message.setCommand(command.getCommand());
+        if (command.getParameters() != null) {
+            message.setParameters(command.getParameters().getJsonString());
         }
-        if (update.getFlags() != null) {
-            cmd.setFlags(update.getFlags());
+        if (command.getLifetime() != null) {
+            message.setLifetime(command.getLifetime());
         }
-        if (update.getLifetime() != null) {
-            cmd.setLifetime(update.getLifetime());
+        if (command.getStatus() != null) {
+            message.setStatus(command.getStatus());
         }
-        if (update.getParameters() != null) {
-            cmd.setParameters(update.getParameters());
+        if (command.getResult() != null) {
+            message.setResult(command.getResult().getJsonString());
         }
-        if (update.getResult() != null) {
-            cmd.setResult(update.getResult());
+        if (sessionId != null) {
+            message.setOriginSessionId(sessionId);
         }
-        if (update.getStatus() != null) {
-            cmd.setStatus(update.getStatus());
-        }
-        if (update.getTimestamp() != null) {
-            cmd.setTimestamp(update.getTimestamp());
-        }
-        hiveValidator.validate(cmd);
-        return cmd;
+        hiveValidator.validate(message);
+        return message;
     }
 
 

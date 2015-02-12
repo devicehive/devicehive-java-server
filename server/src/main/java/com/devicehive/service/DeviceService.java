@@ -17,8 +17,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.*;
@@ -47,9 +45,6 @@ public class DeviceService {
     @EJB
     private HiveValidator hiveValidator;
 
-    @Inject
-    private Event<DeviceNotificationMessage> event;
-
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal) {
         validateDevice(device);
@@ -75,7 +70,7 @@ public class DeviceService {
         } else {
             dn = deviceSave(device, equipmentSet);
         }
-        event.fire(dn);
+        deviceNotificationService.submitDeviceNotification(dn, device.getGuid().getValue());
         //deviceActivityService.update(dn.getDevice().getId());
     }
 

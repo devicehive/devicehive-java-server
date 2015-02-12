@@ -106,6 +106,13 @@ public class DeviceNotificationService {
         }
     }
 
+    public void submitDeviceNotification(DeviceNotificationMessage notification, String deviceGuid) {
+        notification.setId(UUIDs.timeBased().toString());
+        notification.setDeviceGuid(deviceGuid);
+        notification.setTimestamp(timestampService.getTimestamp());
+        deviceNotificationMessageReceivedEvent.fire(notification);
+    }
+
     public List<DeviceNotificationMessage> processDeviceNotification(DeviceNotificationMessage notificationMessage, Device device) {
         List<DeviceNotificationMessage> notificationsToCreate = new ArrayList<>();
         switch (notificationMessage.getNotification()) {
@@ -126,7 +133,7 @@ public class DeviceNotificationService {
 
     }
 
-    public DeviceNotificationMessage convertToMessage(DeviceNotificationSubmit notificationSubmit, Device device) {
+    public DeviceNotificationMessage convertToMessage(DeviceNotificationWrapper notificationSubmit, Device device) {
         DeviceNotificationMessage message = new DeviceNotificationMessage();
         message.setId(UUIDs.timeBased().toString());
         message.setDeviceGuid(device.getGuid());

@@ -1,7 +1,6 @@
 package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 
 import java.sql.Timestamp;
@@ -16,7 +15,7 @@ public class DeviceCommandMessage implements HiveEntity  {
 
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private Long id;
+    private String id;
 
     @SerializedName("command")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
@@ -39,7 +38,7 @@ public class DeviceCommandMessage implements HiveEntity  {
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private JsonObject parameters;
+    private String parameters;
 
     @SerializedName("lifetime")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
@@ -60,15 +59,15 @@ public class DeviceCommandMessage implements HiveEntity  {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE,
             REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private JsonObject result;
+    private String result;
 
     private String originSessionId;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -104,11 +103,11 @@ public class DeviceCommandMessage implements HiveEntity  {
         this.deviceGuid = deviceGuid;
     }
 
-    public JsonObject getParameters() {
+    public String getParameters() {
         return parameters;
     }
 
-    public void setParameters(JsonObject parameters) {
+    public void setParameters(String parameters) {
         this.parameters = parameters;
     }
 
@@ -136,11 +135,11 @@ public class DeviceCommandMessage implements HiveEntity  {
         this.status = status;
     }
 
-    public JsonObject getResult() {
+    public String getResult() {
         return result;
     }
 
-    public void setResult(JsonObject result) {
+    public void setResult(String result) {
         this.result = result;
     }
 

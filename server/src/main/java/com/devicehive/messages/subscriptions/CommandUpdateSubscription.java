@@ -6,13 +6,13 @@ import com.devicehive.model.DeviceCommandMessage;
 
 import java.util.UUID;
 
-public class CommandUpdateSubscription extends Subscription<Long, DeviceCommandMessage> {
+public class CommandUpdateSubscription extends Subscription<String, DeviceCommandMessage> {
 
-    public CommandUpdateSubscription(Long commandId, UUID subscriberId, HandlerCreator<DeviceCommandMessage> handlerCreator) {
+    public CommandUpdateSubscription(String commandId, UUID subscriberId, HandlerCreator<DeviceCommandMessage> handlerCreator) {
         super(commandId, subscriberId, handlerCreator);
     }
 
-    public Long getCommandId() {
+    public String getCommandId() {
         return getEventSource();
     }
 

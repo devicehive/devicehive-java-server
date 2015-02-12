@@ -8,7 +8,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 /**
  * Created by tmatvienko on 12/24/14.
  */
-public class DeviceNotificationSubmit implements HiveEntity {
+public class DeviceNotificationWrapper implements HiveEntity {
     private static final long serialVersionUID = 2377186341017341138L;
 
     @SerializedName("notification")
@@ -40,7 +40,7 @@ public class DeviceNotificationSubmit implements HiveEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DeviceNotificationSubmit message = (DeviceNotificationSubmit) o;
+        DeviceNotificationWrapper message = (DeviceNotificationWrapper) o;
 
         if (notification != null ? !notification.equals(message.notification) : message.notification != null)
             return false;

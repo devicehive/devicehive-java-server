@@ -42,9 +42,6 @@ public class ServerResponsesFactory {
     }
 
     public static JsonObject createCommandUpdateMessage(DeviceCommandMessage deviceCommand) {
-        if (deviceCommand.getUserId() == null) {
-            deviceCommand.setUserId(deviceCommand.getId());
-        }
         JsonElement deviceCommandJson =
             GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();

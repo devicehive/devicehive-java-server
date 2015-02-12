@@ -336,7 +336,7 @@ public class DeviceNotificationController {
     @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-                           DeviceNotificationSubmit notificationSubmit) {
+                           DeviceNotificationWrapper notificationSubmit) {
         logger.debug("DeviceNotification insertAll requested");
 
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
