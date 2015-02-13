@@ -95,7 +95,7 @@ public class DeviceCommandService {
                                                   String status, String sortField, Boolean sortOrderAsc,
                                                   Integer take, Integer skip, Integer gridInterval) {
         return commandDAO.queryDeviceCommand(device, start, end, command, status, sortField, sortOrderAsc, take,
-                                             skip, gridInterval);
+                skip, gridInterval);
     }
 
     public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {
@@ -133,6 +133,8 @@ public class DeviceCommandService {
         }
         if (sessionId != null) {
             message.setOriginSessionId(sessionId);
+        } else if (command.getOriginSessionId() != null) {
+            message.setOriginSessionId(command.getOriginSessionId());
         }
         hiveValidator.validate(message);
         return message;

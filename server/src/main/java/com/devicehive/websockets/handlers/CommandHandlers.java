@@ -264,7 +264,7 @@ public class CommandHandlers extends WebsocketHandlers {
     public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
                                                   @WsParam(COMMAND_ID) String id,
                                                   @WsParam(COMMAND)
-                                                  @JsonPolicyApply(REST_COMMAND_UPDATE_FROM_DEVICE)
+                                                  @JsonPolicyApply(COMMAND_UPDATE_FROM_DEVICE)
                                                   DeviceCommandWrapper commandUpdate,
                                                   Session session) {
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
