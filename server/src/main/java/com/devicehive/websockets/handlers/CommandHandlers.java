@@ -1,6 +1,7 @@
 package com.devicehive.websockets.handlers;
 
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
@@ -13,6 +14,7 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommandMessage;
 import com.devicehive.model.DeviceCommandWrapper;
 import com.devicehive.model.User;
 import com.devicehive.service.DeviceCommandService;
@@ -248,9 +250,11 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        commandService.submitDeviceCommand(deviceCommand, device, user, session.getId());
+        final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device, user,
+                session.getId(), UUIDs.timeBased().toString());
+        commandService.submitDeviceCommand(message);
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(COMMAND, deviceCommand, COMMAND_TO_CLIENT);
+        response.addValue(COMMAND, message, COMMAND_TO_CLIENT);
         return response;
     }
 
@@ -284,7 +288,8 @@ public class CommandHandlers extends WebsocketHandlers {
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        commandService.submitDeviceCommandUpdate(commandUpdate, device, user, id);
+        DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(commandUpdate, device, user, null, id);
+        commandService.submitDeviceCommandUpdate(message);
 
         logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                      guid, id);

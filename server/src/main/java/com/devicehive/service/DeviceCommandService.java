@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceCommandDAO;
 import com.devicehive.messages.bus.Create;
@@ -103,22 +102,15 @@ public class DeviceCommandService {
         return commandDAO.getByDeviceGuidAndId(guid, id);
     }
 
-    public void submitDeviceCommandUpdate(DeviceCommandWrapper update, Device device, User user, String commandId) {
-        DeviceCommandMessage message = convertToDeviceCommandMessage(update, device, user, null, commandId);
+    public void submitDeviceCommandUpdate(DeviceCommandMessage message) {
         deviceCommandUpdateMessageReceivedEvent.fire(message);
     }
 
-    public void submitDeviceCommand(DeviceCommandWrapper command, Device device, User user) {
-        DeviceCommandMessage message = convertToDeviceCommandMessage(command, device, user, null, UUIDs.timeBased().toString());
+    public void submitDeviceCommand(DeviceCommandMessage message) {
         deviceCommandMessageReceivedEvent.fire(message);
     }
 
-    public void submitDeviceCommand(DeviceCommandWrapper command, Device device, User user, String sessionId) {
-        DeviceCommandMessage message = convertToDeviceCommandMessage(command, device, user, sessionId, UUIDs.timeBased().toString());
-        deviceCommandMessageReceivedEvent.fire(message);
-    }
-
-    private DeviceCommandMessage convertToDeviceCommandMessage(DeviceCommandWrapper command, Device device, User user,
+    public DeviceCommandMessage convertToDeviceCommandMessage(DeviceCommandWrapper command, Device device, User user,
                                                               String sessionId, String commandId) {
 
         DeviceCommandMessage message = new DeviceCommandMessage();

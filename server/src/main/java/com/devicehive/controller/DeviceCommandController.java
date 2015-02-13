@@ -1,5 +1,6 @@
 package com.devicehive.controller;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
@@ -424,11 +425,13 @@ public class DeviceCommandController {
                                                               String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        commandService.submitDeviceCommand(deviceCommand, device, authUser);
+        final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device,
+                authUser, null, UUIDs.timeBased().toString());
+        commandService.submitDeviceCommand(message);
 
         logger.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
                      deviceCommand.getCommand());
-        return ResponseFactory.response(CREATED, deviceCommand, Policy.COMMAND_TO_CLIENT);
+        return ResponseFactory.response(CREATED, message, Policy.COMMAND_TO_CLIENT);
     }
 
     /**
@@ -467,7 +470,8 @@ public class DeviceCommandController {
                                                               String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
 
-        commandService.submitDeviceCommandUpdate(command, device, authUser, commandId);
+        DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(command, device, authUser, null, commandId);
+        commandService.submitDeviceCommandUpdate(message);
         logger.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
         return ResponseFactory.response(NO_CONTENT);
