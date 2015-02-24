@@ -12,6 +12,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
+import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommandMessage;
@@ -187,6 +188,28 @@ public class CommandHandlers extends WebsocketHandlers {
         }
     }
 
+    private void commandsUpdateSubscribeAction(Session session, Long commandId) throws IOException {
+        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        if (commandId == null) {
+            throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
+        }
+        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
+        state.getCommandUpdateSubscriptionsLock().lock();
+        try {
+            logger.debug("commandUpdate/subscribe action. Session {}", session.getId());
+            UUID reqId = UUID.randomUUID();
+            CommandUpdateSubscription subscription = new CommandUpdateSubscription(commandId, reqId,
+                    WebsocketHandlerCreator.createCommandUpdate(session));
+            subscriptionSessionMap.put(reqId, session);
+            state.getCommandUpdateSubscriptions().add(reqId);
+            subscriptionManager.getCommandUpdateSubscriptionStorage().insert(subscription);
+        } finally {
+            HiveWebsocketSessionState.get(session).getCommandUpdateSubscriptionsLock().unlock();
+            logger.debug("deliver messages process for session" + session.getId());
+            asyncMessageDeliverer.deliverMessages(session);
+        }
+    }
+
     @Action("command/unsubscribe")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
@@ -236,7 +259,7 @@ public class CommandHandlers extends WebsocketHandlers {
     public WebSocketResponse processCommandInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                   @WsParam(COMMAND) @JsonPolicyApply(COMMAND_FROM_CLIENT)
                                                   DeviceCommandWrapper deviceCommand,
-                                                  Session session) {
+                                                  Session session) throws IOException {
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
         if (deviceGuid == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
@@ -251,7 +274,8 @@ public class CommandHandlers extends WebsocketHandlers {
         }
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device, user,
-                session.getId(), UUIDs.timeBased().toString());
+                session.getId(), UUIDs.timeBased().timestamp());
+        commandsUpdateSubscribeAction(session, message.getId());
         commandService.submitDeviceCommand(message);
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(COMMAND, message, COMMAND_TO_CLIENT);
@@ -262,7 +286,7 @@ public class CommandHandlers extends WebsocketHandlers {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
     public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
-                                                  @WsParam(COMMAND_ID) String id,
+                                                  @WsParam(COMMAND_ID) Long id,
                                                   @WsParam(COMMAND)
                                                   @JsonPolicyApply(COMMAND_UPDATE_FROM_DEVICE)
                                                   DeviceCommandWrapper commandUpdate,

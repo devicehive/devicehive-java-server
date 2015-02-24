@@ -36,11 +36,6 @@ public class DeviceCommandWrapper implements HiveEntity {
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
 
-    @SerializedName("originSessionId")
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private String originSessionId;
-
     public String getCommand() {
         return command;
     }
@@ -81,14 +76,6 @@ public class DeviceCommandWrapper implements HiveEntity {
         this.result = result;
     }
 
-    public String getOriginSessionId() {
-        return originSessionId;
-    }
-
-    public void setOriginSessionId(String originSessionId) {
-        this.originSessionId = originSessionId;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -101,7 +88,6 @@ public class DeviceCommandWrapper implements HiveEntity {
         if (parameters != null ? !parameters.equals(that.parameters) : that.parameters != null) return false;
         if (result != null ? !result.equals(that.result) : that.result != null) return false;
         if (status != null ? !status.equals(that.status) : that.status != null) return false;
-        if (originSessionId != null ? !originSessionId.equals(that.originSessionId) : that.originSessionId != null) return false;
 
         return true;
     }
@@ -113,7 +99,6 @@ public class DeviceCommandWrapper implements HiveEntity {
         result1 = 31 * result1 + (lifetime != null ? lifetime.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
         result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
-        result1 = 31 * result1 + (originSessionId != null ? originSessionId.hashCode() : 0);
         return result1;
     }
 }

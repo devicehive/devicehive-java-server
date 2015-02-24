@@ -56,7 +56,6 @@ public class DeviceCommand implements HiveEntity {
     public static final String DEVICE_COLUMN = "device";
     public static final String COMMAND_COLUMN = "command";
     public static final String STATUS_COLUMN = "status";
-    public static final String ID_COLUMN = "id";
     private static final long serialVersionUID = -1062670903456135249L;
     @SerializedName("id")
     @Id
@@ -123,10 +122,6 @@ public class DeviceCommand implements HiveEntity {
                     POST_COMMAND_TO_DEVICE,
                     REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
-    @Column(name = "origin_session_id")
-    @Size(min = 1, max = 64,
-          message = "The length of origin_session_id should not be more than 64 symbols.")
-    private String originSessionId;
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -225,14 +220,6 @@ public class DeviceCommand implements HiveEntity {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public String getOriginSessionId() {
-        return originSessionId;
-    }
-
-    public void setOriginSessionId(String originSessionId) {
-        this.originSessionId = originSessionId;
     }
 
     public static class Queries {

@@ -16,7 +16,7 @@ public class DeviceCommandMessage implements HiveEntity  {
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
             COMMAND_LISTED})
-    private String id;
+    private Long id;
 
     @SerializedName("command")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
@@ -39,7 +39,7 @@ public class DeviceCommandMessage implements HiveEntity  {
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private String parameters;
+    private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
@@ -59,18 +59,13 @@ public class DeviceCommandMessage implements HiveEntity  {
     @SerializedName("result")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private String result;
+    private JsonStringWrapper result;
 
-    @SerializedName("originSessionId")
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
-            COMMAND_LISTED})
-    private String originSessionId;
-
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -106,11 +101,11 @@ public class DeviceCommandMessage implements HiveEntity  {
         this.deviceGuid = deviceGuid;
     }
 
-    public String getParameters() {
+    public JsonStringWrapper getParameters() {
         return parameters;
     }
 
-    public void setParameters(String parameters) {
+    public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
 
@@ -138,20 +133,12 @@ public class DeviceCommandMessage implements HiveEntity  {
         this.status = status;
     }
 
-    public String getResult() {
+    public JsonStringWrapper getResult() {
         return result;
     }
 
-    public void setResult(String result) {
+    public void setResult(JsonStringWrapper result) {
         this.result = result;
-    }
-
-    public String getOriginSessionId() {
-        return originSessionId;
-    }
-
-    public void setOriginSessionId(String originSessionId) {
-        this.originSessionId = originSessionId;
     }
 
     @Override
@@ -167,7 +154,6 @@ public class DeviceCommandMessage implements HiveEntity  {
                 ", flags=" + flags +
                 ", status='" + status + '\'' +
                 ", result=" + result +
-                ", originSessionId='" + originSessionId + '\'' +
                 '}';
     }
 }

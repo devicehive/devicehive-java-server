@@ -1,6 +1,5 @@
 package com.devicehive.messages.kafka;
 
-import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceCommandMessage;
@@ -14,7 +13,6 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.enterprise.concurrent.ManagedExecutorService;
-import javax.websocket.Session;
 import java.util.Set;
 
 /**
@@ -37,13 +35,6 @@ public class CommandUpdateConsumer extends AbstractConsumer<DeviceCommandMessage
     @Override
     public void submitMessage(DeviceCommandMessage message) {
         LOGGER.debug("Device command update was submitted: {}", message.getId());
-
-        if (message.getOriginSessionId() != null) {
-            Session session = sessionMonitor.getSession(message.getOriginSessionId());
-            if (session != null) {
-                mes.submit(WebsocketHandlerCreator.createCommandUpdate(session).getHandler(message, null));
-            }
-        }
 
         Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()
                 .getByCommandId(message.getId());

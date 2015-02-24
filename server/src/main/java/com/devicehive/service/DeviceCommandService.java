@@ -111,7 +111,7 @@ public class DeviceCommandService {
     }
 
     public DeviceCommandMessage convertToDeviceCommandMessage(DeviceCommandWrapper command, Device device, User user,
-                                                              String sessionId, String commandId) {
+                                                              String sessionId, Long commandId) {
 
         DeviceCommandMessage message = new DeviceCommandMessage();
         message.setId(commandId);
@@ -120,7 +120,7 @@ public class DeviceCommandService {
         message.setUserId(user.getId());
         message.setCommand(command.getCommand());
         if (command.getParameters() != null) {
-            message.setParameters(command.getParameters().getJsonString());
+            message.setParameters(command.getParameters());
         }
         if (command.getLifetime() != null) {
             message.setLifetime(command.getLifetime());
@@ -129,16 +129,9 @@ public class DeviceCommandService {
             message.setStatus(command.getStatus());
         }
         if (command.getResult() != null) {
-            message.setResult(command.getResult().getJsonString());
-        }
-        if (sessionId != null) {
-            message.setOriginSessionId(sessionId);
-        } else if (command.getOriginSessionId() != null) {
-            message.setOriginSessionId(command.getOriginSessionId());
+            message.setResult(command.getResult());
         }
         hiveValidator.validate(message);
         return message;
     }
-
-
 }

@@ -51,7 +51,7 @@ public class ServerResponsesFactory {
     }
 
     public static String parseNotificationStatus(DeviceNotificationMessage notificationMessage) {
-        String jsonParametersString = notificationMessage.getParameters();
+        String jsonParametersString = notificationMessage.getParameters().getJsonString();
         Gson gson = GsonFactory.createGson();
         JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
         JsonObject statusJsonObject;
@@ -69,13 +69,13 @@ public class ServerResponsesFactory {
         notification.setDeviceGuid(device.getGuid());
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
         JsonElement deviceAsJson = gson.toJsonTree(device);
-        //JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
-        notification.setParameters(deviceAsJson.toString());
+        JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
+        notification.setParameters(wrapperOverDevice);
         return notification;
     }
 
     public static DeviceEquipment parseDeviceEquipmentNotification(DeviceNotificationMessage notification, Device device) {
-        final String notificationParameters = notification.getParameters();
+        final String notificationParameters = notification.getParameters().getJsonString();
         if (notificationParameters == null) {
             throw new HiveException(Messages.NO_NOTIFICATION_PARAMS, HttpServletResponse.SC_BAD_REQUEST);
         }

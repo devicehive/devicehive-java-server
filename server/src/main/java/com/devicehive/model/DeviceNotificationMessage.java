@@ -16,7 +16,7 @@ public class DeviceNotificationMessage implements HiveEntity {
 
     @SerializedName("id")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
-    private String id;
+    private Long id;
 
     @SerializedName("notification")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
@@ -32,13 +32,13 @@ public class DeviceNotificationMessage implements HiveEntity {
 
     @SerializedName("parameters")
     @JsonPolicyDef({NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_CLIENT})
-    private String parameters;
+    private JsonStringWrapper parameters;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -58,11 +58,11 @@ public class DeviceNotificationMessage implements HiveEntity {
         this.notification = notification;
     }
 
-    public String getParameters() {
+    public JsonStringWrapper getParameters() {
         return parameters;
     }
 
-    public void setParameters(String parameters) {
+    public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
 

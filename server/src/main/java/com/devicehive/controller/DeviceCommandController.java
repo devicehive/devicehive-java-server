@@ -426,7 +426,7 @@ public class DeviceCommandController {
         }
 
         final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device,
-                authUser, null, UUIDs.timeBased().toString());
+                authUser, null, UUIDs.timeBased().timestamp());
         commandService.submitDeviceCommand(message);
 
         logger.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
@@ -452,7 +452,7 @@ public class DeviceCommandController {
     @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
-    public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) String commandId,
+    public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) Long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandWrapper command) {
 
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
