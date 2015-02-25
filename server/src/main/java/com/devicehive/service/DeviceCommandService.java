@@ -117,8 +117,10 @@ public class DeviceCommandService {
         message.setId(commandId);
         message.setDeviceGuid(device.getGuid());
         message.setTimestamp(timestampService.getTimestamp());
-        message.setUserId(user.getId());
         message.setCommand(command.getCommand());
+        if (user != null) {
+            message.setUserId(user.getId());
+        }
         if (command.getParameters() != null) {
             message.setParameters(command.getParameters());
         }

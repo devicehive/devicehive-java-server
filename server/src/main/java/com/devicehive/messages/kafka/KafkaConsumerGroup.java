@@ -34,6 +34,10 @@ public class KafkaConsumerGroup {
     private ConsumerConnector commandConnector;
     private ConsumerConnector commandUpdateConnector;
 
+    private static final String NOTIFICATION_GROUP_ID = "notification.group";
+    private static final String COMMAND_GROUP_ID = "command.group";
+    private static final String COMMAND_UPDATE_GROUP_ID = "command.update.group";
+
     @EJB
     PropertiesService propertiesService;
     @EJB
@@ -49,12 +53,14 @@ public class KafkaConsumerGroup {
     private void subscribe() {
         Properties consumerProperties = new Properties();
         consumerProperties.put(Constants.ZOOKEEPER_CONNECT, configurationService.get(Constants.ZOOKEEPER_CONNECT));
-        consumerProperties.put(Constants.GROOP_ID, propertiesService.getProperty(Constants.GROOP_ID));
         consumerProperties.put(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS, propertiesService.getProperty(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS));
         consumerProperties.put(Constants.ZOOKEEPER_SYNC_TIME_MS, propertiesService.getProperty(Constants.ZOOKEEPER_SYNC_TIME_MS));
         consumerProperties.put(Constants.AUTO_COMMIT_INTERVAL_MS, propertiesService.getProperty(Constants.AUTO_COMMIT_INTERVAL_MS));
+        consumerProperties.put(Constants.GROOP_ID, NOTIFICATION_GROUP_ID);
         this.notificationConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
+        consumerProperties.put(Constants.GROOP_ID, COMMAND_GROUP_ID);
         this.commandConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
+        consumerProperties.put(Constants.GROOP_ID, COMMAND_UPDATE_GROUP_ID);
         this.commandUpdateConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
 
         final String threadsCountStr = configurationService.get(Constants.THREADS_COUNT);

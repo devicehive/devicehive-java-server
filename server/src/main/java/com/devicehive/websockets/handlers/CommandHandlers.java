@@ -307,7 +307,8 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        final User user = principal.getUser() != null ? principal.getUser() :
+                (principal.getKey() != null ? principal.getKey().getUser() : null);
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
