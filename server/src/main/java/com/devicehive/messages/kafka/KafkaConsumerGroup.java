@@ -58,9 +58,9 @@ public class KafkaConsumerGroup {
         consumerProperties.put(Constants.AUTO_COMMIT_INTERVAL_MS, propertiesService.getProperty(Constants.AUTO_COMMIT_INTERVAL_MS));
         consumerProperties.put(Constants.GROOP_ID, NOTIFICATION_GROUP_ID);
         this.notificationConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
-        consumerProperties.put(Constants.GROOP_ID, COMMAND_GROUP_ID);
+        consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_GROUP_ID);
         this.commandConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
-        consumerProperties.put(Constants.GROOP_ID, COMMAND_UPDATE_GROUP_ID);
+        consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_UPDATE_GROUP_ID);
         this.commandUpdateConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
 
         final String threadsCountStr = configurationService.get(Constants.THREADS_COUNT);
