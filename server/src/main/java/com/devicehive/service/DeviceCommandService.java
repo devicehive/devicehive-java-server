@@ -1,60 +1,54 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.dao.DeviceCommandDAO;
+import com.devicehive.configuration.PropertiesService;
+import com.devicehive.controller.converters.TimestampQueryParamParser;
+import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.messages.bus.Create;
-import com.devicehive.messages.bus.GlobalMessage;
-import com.devicehive.messages.bus.LocalMessage;
 import com.devicehive.messages.bus.Update;
 import com.devicehive.messages.kafka.Command;
 import com.devicehive.model.*;
+import com.devicehive.model.enums.WorkerPath;
+import com.devicehive.service.helpers.WorkerUtils;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.websockets.converters.DeviceCommandConverter;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 
 @Stateless
 @LogExecutionTime
 public class DeviceCommandService {
+    private static final DeviceCommandConverter CONVERTER = new DeviceCommandConverter(null);
+    private static final Random RANDOM = new Random();
 
-    @EJB
-    private DeviceCommandDAO commandDAO;
+    //TODO: Log more errors
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceCommand.class);
+
     @EJB
     private DeviceService deviceService;
     @EJB
     private TimestampService timestampService;
     @EJB
     private HiveValidator hiveValidator;
-
-    @Inject
-    @Create
-    @GlobalMessage
-    private Event<DeviceCommand> commandEventGlobal;
-
-    @Inject
-    @Create
-    @LocalMessage
-    private Event<DeviceCommand> commandEventLocal;
-
-    @Inject
-    @Update
-    @GlobalMessage
-    private Event<DeviceCommand> updateEventGlobal;
-
-    @Inject
-    @Update
-    @LocalMessage
-    private Event<DeviceCommand> updateEventLocal;
+    @EJB
+    private PropertiesService propertiesService;
+    @EJB
+    private WorkerUtils workerUtils;
 
     @Inject
     @Command
@@ -67,39 +61,58 @@ public class DeviceCommandService {
     private Event<DeviceCommandMessage> deviceCommandUpdateMessageReceivedEvent;
 
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public DeviceCommand getByGuidAndId(@NotNull String guid, @NotNull long id) {
-        return commandDAO.getByDeviceGuidAndId(guid, id);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public DeviceCommand findById(Long id) {
-        return commandDAO.findById(id);
-    }
-
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public List<DeviceCommand> getDeviceCommandsList(Collection<String> devices, Collection<String> names,
-                                                     Timestamp timestamp,
-                                                     HivePrincipal principal) {
-        if (devices != null) {
-            return commandDAO
-                .findCommands(deviceService.findByGuidWithPermissionsCheck(devices, principal), names, timestamp,
-                              null);
+    public DeviceCommandMessage getByGuidAndId(List<Device> devices, String commandId) {
+        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, devices, null, WorkerPath.COMMANDS);
+        if (!commands.isEmpty()) {
+            return commands.get(0);
         } else {
-            return commandDAO.findCommands(null, names, timestamp, principal);
+            return null;
         }
     }
 
-    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public List<DeviceCommand> queryDeviceCommand(Device device, Timestamp start, Timestamp end, String command,
-                                                  String status, String sortField, Boolean sortOrderAsc,
-                                                  Integer take, Integer skip, Integer gridInterval) {
-        return commandDAO.queryDeviceCommand(device, start, end, command, status, sortField, sortOrderAsc, take,
-                skip, gridInterval);
+    public DeviceCommandMessage findById(String commandId) {
+        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, null, null, WorkerPath.COMMANDS);
+        if (!commands.isEmpty()) {
+            return commands.get(0);
+        } else {
+            return null;
+        }
     }
 
-    public DeviceCommand getByDeviceGuidAndId(@NotNull String guid, @NotNull long id) {
-        return commandDAO.getByDeviceGuidAndId(guid, id);
+    public List<DeviceCommandMessage> getDeviceCommandsList(Collection<String> devices, Collection<String> names,
+                                                     Timestamp timestamp,
+                                                     HivePrincipal principal) {
+        final String timestampStr = TimestampAdapter.formatTimestamp(timestamp);
+        if (devices != null && !devices.isEmpty()) {
+            return getDeviceCommands(null, deviceService.findByGuidWithPermissionsCheck(devices, principal), timestampStr,
+                    WorkerPath.COMMANDS);
+        } else {
+            return getDeviceCommands(null, null, timestampStr, WorkerPath.COMMANDS);
+        }
+    }
+
+    public List<DeviceCommandMessage> queryDeviceCommand(final Device device, final String start, final String endTime, String command,
+                                                  final String status, final String sortField, final Boolean sortOrderAsc,
+                                                  Integer take, Integer skip, Integer gridInterval) {
+        final List<DeviceCommandMessage> commands = getDeviceCommands(null, Arrays.asList(device), start, WorkerPath.COMMANDS);
+        if (endTime != null) {
+            final Timestamp end = TimestampQueryParamParser.parse(endTime);
+            CollectionUtils.filter(commands, new Predicate() {
+                @Override
+                public boolean evaluate(Object o) {
+                    return end.before(((DeviceCommandMessage) o).getTimestamp());
+                }
+            });
+        }
+        if (StringUtils.isNotBlank(status)) {
+            CollectionUtils.filter(commands, new Predicate() {
+                @Override
+                public boolean evaluate(Object o) {
+                    return status.equals(((DeviceCommandMessage) o).getStatus());
+                }
+            });
+        }
+        return commands;
     }
 
     public void submitDeviceCommandUpdate(DeviceCommandMessage message) {
@@ -110,11 +123,15 @@ public class DeviceCommandService {
         deviceCommandMessageReceivedEvent.fire(message);
     }
 
-    public DeviceCommandMessage convertToDeviceCommandMessage(DeviceCommandWrapper command, Device device, User user,
-                                                              String sessionId, Long commandId) {
+    public DeviceCommandMessage convertToDeviceCommandMessage(DeviceCommandWrapper command, Device device, User user, Long commandId) {
 
         DeviceCommandMessage message = new DeviceCommandMessage();
-        message.setId(commandId);
+        if (commandId == null) {
+            //TODO: Replace with UUID
+            message.setId((long) Math.abs(RANDOM.nextInt()));
+        } else {
+            message.setId(commandId);
+        }
         message.setDeviceGuid(device.getGuid());
         message.setTimestamp(timestampService.getTimestamp());
         message.setCommand(command.getCommand());
@@ -135,5 +152,20 @@ public class DeviceCommandService {
         }
         hiveValidator.validate(message);
         return message;
+    }
+
+    private List<DeviceCommandMessage> getDeviceCommands(String commandId, List<Device> devices, String timestamp,
+                                                         WorkerPath path) {
+        try {
+            final JsonArray jsonArray = workerUtils.getDataFromWorker(commandId, devices, timestamp, path);
+            List<DeviceCommandMessage> messages = new ArrayList<>();
+            for (JsonElement command : jsonArray) {
+                messages.add(CONVERTER.fromString(command.toString()));
+            }
+            return messages;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Collections.EMPTY_LIST;
     }
 }

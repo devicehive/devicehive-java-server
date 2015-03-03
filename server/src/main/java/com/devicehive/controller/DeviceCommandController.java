@@ -1,6 +1,5 @@
 package com.devicehive.controller;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
@@ -14,9 +13,7 @@ import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
-import com.devicehive.messages.subscriptions.CommandSubscription;
-import com.devicehive.messages.subscriptions.CommandSubscriptionStorage;
-import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.*;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.service.DeviceCommandService;
@@ -132,13 +129,13 @@ public class DeviceCommandController {
                 final List<String> devices = ParseUtil.getList(deviceGuidsString);
                 final List<String> names = ParseUtil.getList(namesString);
                 try {
-                    List<DeviceCommand> list =
+                    List<DeviceCommandMessage> list =
                         getOrWaitForCommands(principal, devices, names, ts, timeout);
                     Response response;
                     if (isMany) {
                         List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
-                        for (DeviceCommand command : list) {
-                            resultList.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
+                        for (DeviceCommandMessage command : list) {
+                            resultList.add(new CommandPollManyResponse(command, command.getDeviceGuid()));
                         }
                         response = ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
                     } else {
@@ -153,7 +150,7 @@ public class DeviceCommandController {
         });
     }
 
-    private List<DeviceCommand> getOrWaitForCommands(HivePrincipal principal,
+    private List<DeviceCommandMessage> getOrWaitForCommands(HivePrincipal principal,
                                                      List<String> devices,
                                                      List<String> names,
                                                      Timestamp timestamp,
@@ -164,7 +161,7 @@ public class DeviceCommandController {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        List<DeviceCommand> list = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
+        List<DeviceCommandMessage> list = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
 
         if (list.isEmpty()) {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
@@ -190,9 +187,6 @@ public class DeviceCommandController {
                 list = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
             }
         }
-        for (DeviceCommand dc : list) {
-            dc.setUserId(dc.getUser().getId());
-        }
         return list;
     }
 
@@ -209,7 +203,7 @@ public class DeviceCommandController {
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
     public void wait(
         @PathParam(DEVICE_GUID) final String deviceGuid,
-        @PathParam(COMMAND_ID) final Long commandId,
+        @PathParam(COMMAND_ID) final String commandId,
         @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
         @QueryParam(WAIT_TIMEOUT) final long timeout,
         @Suspended final AsyncResponse asyncResponse) {
@@ -228,7 +222,7 @@ public class DeviceCommandController {
             @Override
             public void run() {
                 try {
-                    //waitAction(deviceGuid, commandId, timeout, asyncResponse, principal);
+                    waitAction(deviceGuid, commandId, timeout, asyncResponse, principal);
                 } catch (Exception e) {
                     asyncResponse.resume(e);
                 }
@@ -236,66 +230,66 @@ public class DeviceCommandController {
         });
     }
 
-//    private void waitAction(String deviceGuid, String commandId, long timeout, AsyncResponse asyncResponse,
-//                            HivePrincipal principal) {
-//        logger.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
-//
-//        if (deviceGuid == null || commandId == null) {
-//            logger.debug("DeviceCommand wait request failed. Bad request for sortOrder.");
-//            Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
-//            asyncResponse.resume(response);
-//            return;
-//        }
-//
-//        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
-//
-//        if (device == null) {
-//            logger.debug("DeviceCommand wait request failed. No device found with guid = {} ", deviceGuid);
-//            Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
-//            asyncResponse.resume(response);
-//            return;
-//        }
-//        /*    No need to check user permissions on command.
-//         *    We'll fail request, if this command is not sent for device user has access to.
-//         */
-//
-//        DeviceCommand command = commandService.findById(commandId);
-//
-//        if (command == null) {
-//            logger.debug("DeviceCommand wait request failed. No command found with id = {} for deviceId = {} ",
-//                         commandId, deviceGuid);
-//            Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
-//            asyncResponse.resume(response);
-//            return;
-//        }
-//
-//        //command is not for requested device
-//        if (!command.getDevice().getId().equals(device.getId())) {
-//            logger.debug(
-//                "DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}",
-//                commandId, deviceGuid);
-//            Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
-//            asyncResponse.resume(response);
-//            return;
-//        }
-//
-//        if (command.getEntityVersion() == 0) {
-//            CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
-//            UUID reqId = UUID.randomUUID();
-//            RestHandlerCreator<DeviceCommandMessage> restHandlerCreator = new RestHandlerCreator<>();
-//            CommandUpdateSubscription commandSubscription =
-//                new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
-//
-//            if (SimpleWaiter
-//                .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
-//                command = commandService.findById(commandId);
-//            }
-//        }
-//
-//        DeviceCommand response = command.getEntityVersion() > 0 ? command : null;
-//        Response result = ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
-//        asyncResponse.resume(result);
-//    }
+    private void waitAction(String deviceGuid, String commandId, long timeout, AsyncResponse asyncResponse,
+                            HivePrincipal principal) {
+        logger.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
+
+        if (deviceGuid == null || commandId == null) {
+            logger.debug("DeviceCommand wait request failed. Bad request for sortOrder.");
+            Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
+            asyncResponse.resume(response);
+            return;
+        }
+
+        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+
+        if (device == null) {
+            logger.debug("DeviceCommand wait request failed. No device found with guid = {} ", deviceGuid);
+            Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
+            asyncResponse.resume(response);
+            return;
+        }
+        /*    No need to check user permissions on command.
+         *    We'll fail request, if this command is not sent for device user has access to.
+         */
+
+        DeviceCommandMessage command = commandService.findById(commandId);
+
+        if (command == null) {
+            logger.debug("DeviceCommand wait request failed. No command found with id = {} for deviceId = {} ",
+                         commandId, deviceGuid);
+            Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
+            asyncResponse.resume(response);
+            return;
+        }
+
+        //command is not for requested device
+        if (!command.getDeviceGuid().equals(device.getGuid())) {
+            logger.debug(
+                "DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}",
+                commandId, deviceGuid);
+            Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
+            asyncResponse.resume(response);
+            return;
+        }
+
+        if (!command.getIsUpdated()) {
+            CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
+            UUID reqId = UUID.randomUUID();
+            RestHandlerCreator<DeviceCommandMessage> restHandlerCreator = new RestHandlerCreator<>();
+            CommandUpdateSubscription commandSubscription =
+                new CommandUpdateSubscription(command.getId(), reqId, restHandlerCreator);
+
+            if (SimpleWaiter
+                .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
+                command = commandService.findById(commandId);
+            }
+        }
+
+        DeviceCommandMessage response = command.getIsUpdated() ? command : null;
+        Response result = ResponseFactory.response(Response.Status.OK, response, Policy.COMMAND_TO_DEVICE);
+        asyncResponse.resume(result);
+    }
 
     /**
      * Example response: <p/> <code> [ { "id": 1 "timestamp":     "1970-01-01 00:00:00.0", "userId":    1, "command":
@@ -333,9 +327,6 @@ public class DeviceCommandController {
         logger.debug("Device command query requested");
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
-        Timestamp start = TimestampQueryParamParser.parse(startTs);
-        Timestamp end = TimestampQueryParamParser.parse(endTs);
-
         if (!TIMESTAMP.equalsIgnoreCase(sortField)
             && !COMMAND.equalsIgnoreCase(sortField)
             && !STATUS.equalsIgnoreCase(sortField)) {
@@ -348,8 +339,8 @@ public class DeviceCommandController {
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        List<DeviceCommand> commandList =
-            commandService.queryDeviceCommand(device, start, end, command, status, sortField, sortOrder, take,
+        List<DeviceCommandMessage> commandList =
+            commandService.queryDeviceCommand(device, startTs, endTs, command, status, sortField, sortOrder, take,
                                               skip, gridInterval);
 
         logger.debug("Device command query request proceed successfully");
@@ -362,14 +353,14 @@ public class DeviceCommandController {
      * "comand_status" "result":    { / * JSON Object* /} } </code>
      *
      * @param guid String with Device GUID like "550e8400-e29b-41d4-a716-446655440000"
-     * @param id   command id
+     * @param commandId   command id
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) long id) {
-        logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, id);
+    public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) String commandId) {
+        logger.debug("Device command get requested. deviceId = {}, commandId = {}", guid, commandId);
 
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
@@ -378,21 +369,17 @@ public class DeviceCommandController {
                                             new ErrorResponse(NOT_FOUND.getStatusCode(),
                                                               String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        DeviceCommand result = commandService.getByGuidAndId(device.getGuid(), id);
+        DeviceCommandMessage result = commandService.getByGuidAndId(Arrays.asList(device), commandId);
 
         if (result == null) {
-            logger.debug("Device command get failed. No command with id = {} found for device with guid = {}", id,
-                         guid);
+            logger.debug("Device command get failed. No command with id = {} found for device with guid = {}", commandId,
+                    guid);
             return ResponseFactory
                 .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                                       String.format(Messages.COMMAND_NOT_FOUND, id)));
+                                                       String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
 
-        if (result.getUser() != null) {
-            result.setUserId(result.getUser().getId());
-        }
-
-        logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, id);
+        logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, commandId);
         return ResponseFactory.response(OK, result, Policy.COMMAND_TO_DEVICE);
     }
 
@@ -426,7 +413,7 @@ public class DeviceCommandController {
         }
 
         final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device,
-                authUser, null, UUIDs.timeBased().timestamp());
+                authUser, null);
         commandService.submitDeviceCommand(message);
 
         logger.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
@@ -470,7 +457,7 @@ public class DeviceCommandController {
                                                               String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
 
-        DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(command, device, authUser, null, commandId);
+        DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(command, device, authUser, commandId);
         commandService.submitDeviceCommandUpdate(message);
         logger.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 

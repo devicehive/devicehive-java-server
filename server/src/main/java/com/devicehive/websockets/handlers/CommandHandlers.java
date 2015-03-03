@@ -1,7 +1,6 @@
 package com.devicehive.websockets.handlers;
 
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
@@ -21,6 +20,7 @@ import com.devicehive.model.User;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
+import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -49,7 +49,7 @@ import static javax.servlet.http.HttpServletResponse.*;
 
 public class CommandHandlers extends WebsocketHandlers {
 
-    private static final Logger logger = LoggerFactory.getLogger(CommandHandlers.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandHandlers.class);
     @EJB
     private SubscriptionManager subscriptionManager;
     @EJB
@@ -92,11 +92,11 @@ public class CommandHandlers extends WebsocketHandlers {
                                                      @WsParam(NAMES) Set<String> names,
                                                      @WsParam(DEVICE_GUID) String deviceId,
                                                      Session session) throws IOException {
-        logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                     devices, deviceId, timestamp, names, session);
+        LOGGER.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
+                devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
         UUID subId = commandsSubscribeAction(session, devices, names, timestamp);
-        logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
+        LOGGER.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                      devices, deviceId, timestamp, names, session);
 
         WebSocketResponse response = new WebSocketResponse();
@@ -142,7 +142,7 @@ public class CommandHandlers extends WebsocketHandlers {
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
         state.getCommandSubscriptionsLock().lock();
         try {
-            logger.debug("command/subscribe action. Session {}", session.getId());
+            LOGGER.debug("command/subscribe action. Session {}", session.getId());
             List<CommandSubscription> csList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
             if (devices != null) {
@@ -174,29 +174,28 @@ public class CommandHandlers extends WebsocketHandlers {
             state.getCommandSubscriptions().add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
-//            List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
-//            if (!commands.isEmpty()) {
-//                for (DeviceCommand deviceCommand : commands) {
-//                    state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
-//                }
-//            }
+            List<DeviceCommandMessage> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
+            if (!commands.isEmpty()) {
+                for (DeviceCommandMessage deviceCommand : commands) {
+                    state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
+                }
+            }
             return reqId;
         } finally {
             HiveWebsocketSessionState.get(session).getCommandSubscriptionsLock().unlock();
-            logger.debug("deliver messages process for session" + session.getId());
+            LOGGER.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }
     }
 
     private void commandsUpdateSubscribeAction(Session session, Long commandId) throws IOException {
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (commandId == null) {
             throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
         }
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
         state.getCommandUpdateSubscriptionsLock().lock();
         try {
-            logger.debug("commandUpdate/subscribe action. Session {}", session.getId());
+            LOGGER.debug("commandUpdate/subscribe action. Session {}", session.getId());
             UUID reqId = UUID.randomUUID();
             CommandUpdateSubscription subscription = new CommandUpdateSubscription(commandId, reqId,
                     WebsocketHandlerCreator.createCommandUpdate(session));
@@ -205,7 +204,7 @@ public class CommandHandlers extends WebsocketHandlers {
             subscriptionManager.getCommandUpdateSubscriptionStorage().insert(subscription);
         } finally {
             HiveWebsocketSessionState.get(session).getCommandUpdateSubscriptionsLock().unlock();
-            logger.debug("deliver messages process for session" + session.getId());
+            LOGGER.debug("deliver messages process for session" + session.getId());
             asyncMessageDeliverer.deliverMessages(session);
         }
     }
@@ -216,7 +215,7 @@ public class CommandHandlers extends WebsocketHandlers {
     public WebSocketResponse processCommandUnsubscribe(Session session,
                                                        @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
-        logger.debug("command/unsubscribe action. Session {} ", session.getId());
+        LOGGER.debug("command/unsubscribe action. Session {} ", session.getId());
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
         state.getCommandSubscriptionsLock().lock();
         try {
@@ -246,10 +245,10 @@ public class CommandHandlers extends WebsocketHandlers {
             }
         } finally {
             state.getCommandSubscriptionsLock().unlock();
-            logger.debug("deliver messages process for session" + session.getId());
+            LOGGER.debug("deliver messages process for session" + session.getId());
             event.fire(session);
         }
-        logger.debug("command/unsubscribe completed for session {}", session.getId());
+        LOGGER.debug("command/unsubscribe completed for session {}", session.getId());
         return new WebSocketResponse();
     }
 
@@ -260,7 +259,7 @@ public class CommandHandlers extends WebsocketHandlers {
                                                   @WsParam(COMMAND) @JsonPolicyApply(COMMAND_FROM_CLIENT)
                                                   DeviceCommandWrapper deviceCommand,
                                                   Session session) throws IOException {
-        logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
+        LOGGER.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
         if (deviceGuid == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
@@ -273,8 +272,7 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device, user,
-                session.getId(), UUIDs.timeBased().timestamp());
+        final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device, user, null);
         commandsUpdateSubscribeAction(session, message.getId());
         commandService.submitDeviceCommand(message);
         WebSocketResponse response = new WebSocketResponse();
@@ -291,7 +289,7 @@ public class CommandHandlers extends WebsocketHandlers {
                                                   @JsonPolicyApply(COMMAND_UPDATE_FROM_DEVICE)
                                                   DeviceCommandWrapper commandUpdate,
                                                   Session session) {
-        logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
+        LOGGER.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
         if (guid == null) {
             HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
             if (principal.getDevice() != null) {
@@ -299,11 +297,11 @@ public class CommandHandlers extends WebsocketHandlers {
             }
         }
         if (guid == null) {
-            logger.debug("command/update canceled for session: {}. Guid is not provided", session);
+            LOGGER.debug("command/update canceled for session: {}. Guid is not provided", session);
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
         if (id == null) {
-            logger.debug("command/update canceled for session: {}. Command id is not provided", session);
+            LOGGER.debug("command/update canceled for session: {}. Command id is not provided", session);
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
@@ -313,10 +311,10 @@ public class CommandHandlers extends WebsocketHandlers {
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(commandUpdate, device, user, null, id);
+        DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(commandUpdate, device, user, id);
         commandService.submitDeviceCommandUpdate(message);
 
-        logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
+        LOGGER.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                      guid, id);
         return new WebSocketResponse();
     }

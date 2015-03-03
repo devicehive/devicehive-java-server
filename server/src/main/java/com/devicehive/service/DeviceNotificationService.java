@@ -26,6 +26,7 @@ import java.util.*;
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationService {
+    private static final Random random = new Random();
 
     @EJB
     private DeviceNotificationDAO deviceNotificationDAO;
@@ -135,7 +136,7 @@ public class DeviceNotificationService {
 
     public DeviceNotificationMessage convertToMessage(DeviceNotificationWrapper notificationSubmit, Device device) {
         DeviceNotificationMessage message = new DeviceNotificationMessage();
-        message.setId(UUIDs.timeBased().timestamp());
+        message.setId(UUIDs.timeBased().timestamp() + random.nextInt(1000));
         message.setDeviceGuid(device.getGuid());
         message.setTimestamp(timestampService.getTimestamp());
         message.setNotification(notificationSubmit.getNotification());

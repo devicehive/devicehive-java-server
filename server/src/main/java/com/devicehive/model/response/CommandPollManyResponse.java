@@ -1,11 +1,10 @@
 package com.devicehive.model.response;
 
 
-import com.google.gson.annotations.SerializedName;
-
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceCommandMessage;
 import com.devicehive.model.HiveEntity;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,22 +17,22 @@ public class CommandPollManyResponse implements HiveEntity {
 
     @SerializedName("command")
     @JsonPolicyDef(COMMAND_LISTED)
-    private DeviceCommand command;
+    private DeviceCommandMessage command;
 
     @SerializedName("deviceGuid")
     @JsonPolicyDef(COMMAND_LISTED)
     private String guid;
 
-    public CommandPollManyResponse(DeviceCommand command, String guid) {
+    public CommandPollManyResponse(DeviceCommandMessage command, String guid) {
         this.command = command;
         this.guid = guid;
     }
 
-    public DeviceCommand getCommand() {
+    public DeviceCommandMessage getCommand() {
         return command;
     }
 
-    public void setCommand(DeviceCommand command) {
+    public void setCommand(DeviceCommandMessage command) {
         this.command = command;
     }
 
@@ -45,10 +44,10 @@ public class CommandPollManyResponse implements HiveEntity {
         this.guid = guid;
     }
 
-    public static List<CommandPollManyResponse> getList(List<DeviceCommand> commands) {
+    public static List<CommandPollManyResponse> getList(List<DeviceCommandMessage> commands) {
         List<CommandPollManyResponse> result = new ArrayList<>(commands.size());
-        for (DeviceCommand command : commands) {
-            result.add(new CommandPollManyResponse(command, command.getDevice().getGuid()));
+        for (DeviceCommandMessage command : commands) {
+            result.add(new CommandPollManyResponse(command, command.getDeviceGuid()));
         }
         return result;
     }

@@ -54,13 +54,14 @@ public class KafkaConsumerGroup {
         Properties consumerProperties = new Properties();
         consumerProperties.put(Constants.ZOOKEEPER_CONNECT, configurationService.get(Constants.ZOOKEEPER_CONNECT));
         consumerProperties.put(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS, propertiesService.getProperty(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS));
+        consumerProperties.put(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS, propertiesService.getProperty(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS));
         consumerProperties.put(Constants.ZOOKEEPER_SYNC_TIME_MS, propertiesService.getProperty(Constants.ZOOKEEPER_SYNC_TIME_MS));
         consumerProperties.put(Constants.AUTO_COMMIT_INTERVAL_MS, propertiesService.getProperty(Constants.AUTO_COMMIT_INTERVAL_MS));
-        consumerProperties.put(Constants.GROOP_ID, NOTIFICATION_GROUP_ID);
+        consumerProperties.put(Constants.GROOP_ID, NOTIFICATION_GROUP_ID + Math.random());
         this.notificationConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
-        consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_GROUP_ID);
+        consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_GROUP_ID + Math.random());
         this.commandConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
-        consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_UPDATE_GROUP_ID);
+        consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_UPDATE_GROUP_ID + Math.random());
         this.commandUpdateConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
 
         final String threadsCountStr = configurationService.get(Constants.THREADS_COUNT);
