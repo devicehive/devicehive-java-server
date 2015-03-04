@@ -2,7 +2,6 @@ package com.devicehive.service.helpers;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.PropertiesService;
-import com.devicehive.model.Device;
 import com.devicehive.model.enums.WorkerPath;
 import com.devicehive.service.TimestampService;
 import com.google.api.client.http.GenericUrl;
@@ -36,17 +35,13 @@ public class WorkerUtils {
     @EJB
     private PropertiesService propertiesService;
 
-    public JsonArray getDataFromWorker(String commandId, List<Device> devices, String timestamp, WorkerPath path) throws IOException {
+    public JsonArray getDataFromWorker(String commandId, List<String> deviceGuids, String timestamp, WorkerPath path) throws IOException {
         final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
         List<NameValuePair> params = new ArrayList<>();
         if (StringUtils.isNotBlank(commandId)) {
             params.add(new BasicNameValuePair("id", commandId));
         }
-        if (devices != null && !devices.isEmpty()) {
-            List<String> deviceGuids = new ArrayList<>();
-            for (Device device : devices) {
-                deviceGuids.add(device.getGuid());
-            }
+        if (deviceGuids != null && !deviceGuids.isEmpty()) {
             params.add(new BasicNameValuePair("deviceGuids", StringUtils.join(deviceGuids, ",")));
         }
         if (StringUtils.isNotBlank(timestamp)) {

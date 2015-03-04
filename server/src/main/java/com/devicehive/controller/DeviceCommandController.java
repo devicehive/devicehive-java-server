@@ -340,7 +340,7 @@ public class DeviceCommandController {
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         List<DeviceCommandMessage> commandList =
-            commandService.queryDeviceCommand(device, startTs, endTs, command, status, sortField, sortOrder, take,
+            commandService.queryDeviceCommand(device.getGuid(), startTs, endTs, command, status, sortField, sortOrder, take,
                                               skip, gridInterval);
 
         logger.debug("Device command query request proceed successfully");
@@ -369,7 +369,7 @@ public class DeviceCommandController {
                                             new ErrorResponse(NOT_FOUND.getStatusCode(),
                                                               String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        DeviceCommandMessage result = commandService.getByGuidAndId(Arrays.asList(device), commandId);
+        DeviceCommandMessage result = commandService.getByGuidAndId(Arrays.asList(device.getGuid()), commandId);
 
         if (result == null) {
             logger.debug("Device command get failed. No command with id = {} found for device with guid = {}", commandId,

@@ -277,6 +277,19 @@ public class DeviceService {
         return deviceDAO.getDeviceList(principal, guids);
     }
 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<String> findGuidsWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
+        final List<Device> devices =  deviceDAO.getDeviceList(principal, guids);
+        if (!devices.isEmpty()) {
+            List<String> deviceGuids = new ArrayList<>();
+            for (Device device : devices) {
+                deviceGuids.add(device.getGuid());
+            }
+            return deviceGuids;
+        }
+        return Collections.EMPTY_LIST;
+    }
+
     /**
      * Implementation for model: if field exists and null - error if field does not exists - use field from database
      *

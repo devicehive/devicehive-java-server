@@ -128,16 +128,15 @@ public class DeviceNotificationController {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        List<DeviceNotification> result = notificationService.queryDeviceNotification(device, start, end,
-                                                                                      notification, sortField,
-                                                                                      sortOrder, take, skip,
-                                                                                      gridInterval);
+        List<DeviceNotificationMessage> notifications =
+                notificationService.queryDeviceNotification(device.getGuid(), startTs, endTs, notification, sortField, sortOrder, take,
+                        skip, gridInterval);
 
         logger.debug("Device notification query succeed. Guid {}, start {}, end {}, notification {}, sort field {}," +
                      "sort order {}, take {}, skip {}", guid, start, end, notification, sortField, sortOrder, take,
                      skip);
 
-        return ResponseFactory.response(Response.Status.OK, result, Policy.NOTIFICATION_TO_CLIENT);
+        return ResponseFactory.response(Response.Status.OK, notifications, Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**
@@ -157,15 +156,15 @@ public class DeviceNotificationController {
     @Path("/{deviceGuid}/notification/{id}")
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
-    public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(ID) Long notificationId) {
+    public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(ID) String notificationId) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        DeviceNotification deviceNotification = notificationService.findById(notificationId);
+        DeviceNotificationMessage deviceNotification = notificationService.findById(notificationId);
         if (deviceNotification == null) {
             throw new HiveException(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId),
                                     NOT_FOUND.getStatusCode());
         }
-        String deviceGuidFromNotification = deviceNotification.getDevice().getGuid();
+        String deviceGuidFromNotification = deviceNotification.getDeviceGuid();
         if (!deviceGuidFromNotification.equals(guid)) {
             logger.debug("No device notifications found for device with guid : {}", guid);
             return ResponseFactory.response(NOT_FOUND,
@@ -249,14 +248,14 @@ public class DeviceNotificationController {
                 final List<String> names = ParseUtil.getList(namesString);
 
                 try {
-                    List<DeviceNotification> list =
+                    List<DeviceNotificationMessage> list =
                         getOrWaitForNotifications(principal, devices, names, timestamp, timeout);
                     Response response;
                     if (isMany) {
                         List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
-                        for (DeviceNotification notification : list) {
+                        for (DeviceNotificationMessage notification : list) {
                             resultList.add(new NotificationPollManyResponse(notification,
-                                                                            notification.getDevice().getGuid()));
+                                                                            notification.getDeviceGuid()));
                         }
                         response =
                             ResponseFactory.response(Response.Status.OK, resultList, Policy.NOTIFICATION_TO_CLIENT);
@@ -272,7 +271,7 @@ public class DeviceNotificationController {
         });
     }
 
-    private List<DeviceNotification> getOrWaitForNotifications(HivePrincipal principal,
+    private List<DeviceNotificationMessage> getOrWaitForNotifications(HivePrincipal principal,
                                                                List<String> devices,
                                                                List<String> names,
                                                                Timestamp timestamp,
@@ -283,8 +282,9 @@ public class DeviceNotificationController {
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
         }
-        List<DeviceNotification> list =
-            deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
+        final List<String> availableDeviceGuids = devices != null ? deviceService.findGuidsWithPermissionsCheck(devices, principal) : null;
+        List<DeviceNotificationMessage> list =
+            deviceNotificationService.getDeviceNotificationList(availableDeviceGuids, names, timestamp);
 
         if (list.isEmpty()) {
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
@@ -292,10 +292,9 @@ public class DeviceNotificationController {
             RestHandlerCreator<DeviceNotificationMessage> restHandlerCreator = new RestHandlerCreator<>();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
             if (devices != null) {
-                List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
-                for (Device d : actualDevices) {
+                for (String guid : availableDeviceGuids) {
                     subscriptionSet
-                        .add(new NotificationSubscription(principal, d.getGuid(), reqId, names, restHandlerCreator));
+                        .add(new NotificationSubscription(principal, guid, reqId, names, restHandlerCreator));
                 }
             } else {
                 subscriptionSet
@@ -307,7 +306,7 @@ public class DeviceNotificationController {
 
             if (SimpleWaiter
                 .subscribeAndWait(storage, subscriptionSet, restHandlerCreator.getFutureTask(), timeout)) {
-                list = deviceNotificationService.getDeviceNotificationList(devices, names, timestamp, principal);
+                list = deviceNotificationService.getDeviceNotificationList(devices, names, timestamp);
             }
             return list;
         }

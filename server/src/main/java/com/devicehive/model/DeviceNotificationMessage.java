@@ -22,7 +22,7 @@ public class DeviceNotificationMessage implements HiveEntity {
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private String notification;
 
-    @SerializedName("device_guid")
+    @SerializedName("deviceGuid")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private String deviceGuid;
 

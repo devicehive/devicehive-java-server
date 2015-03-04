@@ -1,5 +1,6 @@
 package com.devicehive.websockets.converters;
 
+import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.DeviceNotificationMessage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,6 +9,7 @@ import kafka.serializer.Encoder;
 import kafka.utils.VerifiableProperties;
 
 import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
 
 /**
  * Created by tmatvienko on 12/24/14.
@@ -15,7 +17,7 @@ import java.io.UnsupportedEncodingException;
 public class DeviceNotificationConverter implements Encoder<DeviceNotificationMessage>, Decoder<DeviceNotificationMessage> {
     private Gson gson;
     public DeviceNotificationConverter(VerifiableProperties verifiableProperties) {
-        gson = new GsonBuilder().disableHtmlEscaping().create();
+        gson = new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(Timestamp.class, new TimestampAdapter()).create();
     }
 
     @Override
@@ -31,5 +33,9 @@ public class DeviceNotificationConverter implements Encoder<DeviceNotificationMe
             e.printStackTrace();
         }
         return null;
+    }
+
+    public DeviceNotificationMessage fromString(String string) {
+        return gson.fromJson(string, DeviceNotificationMessage.class);
     }
 }

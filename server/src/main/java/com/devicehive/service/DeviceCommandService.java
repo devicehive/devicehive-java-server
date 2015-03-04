@@ -61,8 +61,8 @@ public class DeviceCommandService {
     private Event<DeviceCommandMessage> deviceCommandUpdateMessageReceivedEvent;
 
 
-    public DeviceCommandMessage getByGuidAndId(List<Device> devices, String commandId) {
-        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, devices, null, WorkerPath.COMMANDS);
+    public DeviceCommandMessage getByGuidAndId(List<String> deviceGuids, String commandId) {
+        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, deviceGuids, null);
         if (!commands.isEmpty()) {
             return commands.get(0);
         } else {
@@ -71,7 +71,7 @@ public class DeviceCommandService {
     }
 
     public DeviceCommandMessage findById(String commandId) {
-        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, null, null, WorkerPath.COMMANDS);
+        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, null, null);
         if (!commands.isEmpty()) {
             return commands.get(0);
         } else {
@@ -84,17 +84,16 @@ public class DeviceCommandService {
                                                      HivePrincipal principal) {
         final String timestampStr = TimestampAdapter.formatTimestamp(timestamp);
         if (devices != null && !devices.isEmpty()) {
-            return getDeviceCommands(null, deviceService.findByGuidWithPermissionsCheck(devices, principal), timestampStr,
-                    WorkerPath.COMMANDS);
+            return getDeviceCommands(null, deviceService.findGuidsWithPermissionsCheck(devices, principal), timestampStr);
         } else {
-            return getDeviceCommands(null, null, timestampStr, WorkerPath.COMMANDS);
+            return getDeviceCommands(null, null, timestampStr);
         }
     }
 
-    public List<DeviceCommandMessage> queryDeviceCommand(final Device device, final String start, final String endTime, String command,
+    public List<DeviceCommandMessage> queryDeviceCommand(final String deviceGuid, final String start, final String endTime, final String command,
                                                   final String status, final String sortField, final Boolean sortOrderAsc,
                                                   Integer take, Integer skip, Integer gridInterval) {
-        final List<DeviceCommandMessage> commands = getDeviceCommands(null, Arrays.asList(device), start, WorkerPath.COMMANDS);
+        final List<DeviceCommandMessage> commands = getDeviceCommands(null, Arrays.asList(deviceGuid), start);
         if (endTime != null) {
             final Timestamp end = TimestampQueryParamParser.parse(endTime);
             CollectionUtils.filter(commands, new Predicate() {
@@ -109,6 +108,14 @@ public class DeviceCommandService {
                 @Override
                 public boolean evaluate(Object o) {
                     return status.equals(((DeviceCommandMessage) o).getStatus());
+                }
+            });
+        }
+        if (StringUtils.isNotBlank(command)) {
+            CollectionUtils.filter(commands, new Predicate() {
+                @Override
+                public boolean evaluate(Object o) {
+                    return command.equals(((DeviceCommandMessage) o).getCommand());
                 }
             });
         }
@@ -154,10 +161,9 @@ public class DeviceCommandService {
         return message;
     }
 
-    private List<DeviceCommandMessage> getDeviceCommands(String commandId, List<Device> devices, String timestamp,
-                                                         WorkerPath path) {
+    private List<DeviceCommandMessage> getDeviceCommands(String commandId, List<String> deviceGuids, String timestamp) {
         try {
-            final JsonArray jsonArray = workerUtils.getDataFromWorker(commandId, devices, timestamp, path);
+            final JsonArray jsonArray = workerUtils.getDataFromWorker(commandId, deviceGuids, timestamp, WorkerPath.COMMANDS);
             List<DeviceCommandMessage> messages = new ArrayList<>();
             for (JsonElement command : jsonArray) {
                 messages.add(CONVERTER.fromString(command.toString()));
