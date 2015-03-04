@@ -127,10 +127,9 @@ public class DeviceCommandController {
             public void run() {
 
                 final List<String> devices = ParseUtil.getList(deviceGuidsString);
-                final List<String> names = ParseUtil.getList(namesString);
                 try {
                     List<DeviceCommandMessage> list =
-                        getOrWaitForCommands(principal, devices, names, ts, timeout);
+                        getOrWaitForCommands(principal, devices, namesString, ts, timeout);
                     Response response;
                     if (isMany) {
                         List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
@@ -151,8 +150,8 @@ public class DeviceCommandController {
     }
 
     private List<DeviceCommandMessage> getOrWaitForCommands(HivePrincipal principal,
-                                                     List<String> devices,
-                                                     List<String> names,
+                                                     final List<String> devices,
+                                                     final String names,
                                                      Timestamp timestamp,
                                                      long timeout) {
         logger.debug("Device command pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp,

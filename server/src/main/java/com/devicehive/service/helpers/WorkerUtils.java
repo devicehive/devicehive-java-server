@@ -35,7 +35,7 @@ public class WorkerUtils {
     @EJB
     private PropertiesService propertiesService;
 
-    public JsonArray getDataFromWorker(String commandId, List<String> deviceGuids, String timestamp, WorkerPath path) throws IOException {
+    public JsonArray getDataFromWorker(final String commandId, final List<String> deviceGuids, final String names, final String timestamp, final WorkerPath path) throws IOException {
         final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
         List<NameValuePair> params = new ArrayList<>();
         if (StringUtils.isNotBlank(commandId)) {
@@ -43,6 +43,9 @@ public class WorkerUtils {
         }
         if (deviceGuids != null && !deviceGuids.isEmpty()) {
             params.add(new BasicNameValuePair("deviceGuids", StringUtils.join(deviceGuids, ",")));
+        }
+        if (StringUtils.isNotBlank(names)) {
+            params.add(new BasicNameValuePair("names", names));
         }
         if (StringUtils.isNotBlank(timestamp)) {
             params.add(new BasicNameValuePair("timestamp", timestamp));

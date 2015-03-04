@@ -62,7 +62,7 @@ public class DeviceCommandService {
 
 
     public DeviceCommandMessage getByGuidAndId(List<String> deviceGuids, String commandId) {
-        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, deviceGuids, null);
+        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, deviceGuids, null, null);
         if (!commands.isEmpty()) {
             return commands.get(0);
         } else {
@@ -71,7 +71,7 @@ public class DeviceCommandService {
     }
 
     public DeviceCommandMessage findById(String commandId) {
-        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, null, null);
+        final List<DeviceCommandMessage> commands = getDeviceCommands(commandId, null, null, null);
         if (!commands.isEmpty()) {
             return commands.get(0);
         } else {
@@ -79,21 +79,21 @@ public class DeviceCommandService {
         }
     }
 
-    public List<DeviceCommandMessage> getDeviceCommandsList(Collection<String> devices, Collection<String> names,
+    public List<DeviceCommandMessage> getDeviceCommandsList(Collection<String> devices, String commandNames,
                                                      Timestamp timestamp,
                                                      HivePrincipal principal) {
         final String timestampStr = TimestampAdapter.formatTimestamp(timestamp);
         if (devices != null && !devices.isEmpty()) {
-            return getDeviceCommands(null, deviceService.findGuidsWithPermissionsCheck(devices, principal), timestampStr);
+            return getDeviceCommands(null, deviceService.findGuidsWithPermissionsCheck(devices, principal), commandNames, timestampStr);
         } else {
-            return getDeviceCommands(null, null, timestampStr);
+            return getDeviceCommands(null, null, commandNames, timestampStr);
         }
     }
 
     public List<DeviceCommandMessage> queryDeviceCommand(final String deviceGuid, final String start, final String endTime, final String command,
                                                   final String status, final String sortField, final Boolean sortOrderAsc,
                                                   Integer take, Integer skip, Integer gridInterval) {
-        final List<DeviceCommandMessage> commands = getDeviceCommands(null, Arrays.asList(deviceGuid), start);
+        final List<DeviceCommandMessage> commands = getDeviceCommands(null, Arrays.asList(deviceGuid), null, start);
         if (endTime != null) {
             final Timestamp end = TimestampQueryParamParser.parse(endTime);
             CollectionUtils.filter(commands, new Predicate() {
@@ -161,9 +161,9 @@ public class DeviceCommandService {
         return message;
     }
 
-    private List<DeviceCommandMessage> getDeviceCommands(String commandId, List<String> deviceGuids, String timestamp) {
+    private List<DeviceCommandMessage> getDeviceCommands(final String commandId, final List<String> deviceGuids, final String names, final String timestamp) {
         try {
-            final JsonArray jsonArray = workerUtils.getDataFromWorker(commandId, deviceGuids, timestamp, WorkerPath.COMMANDS);
+            final JsonArray jsonArray = workerUtils.getDataFromWorker(commandId, deviceGuids, names, timestamp, WorkerPath.COMMANDS);
             List<DeviceCommandMessage> messages = new ArrayList<>();
             for (JsonElement command : jsonArray) {
                 messages.add(CONVERTER.fromString(command.toString()));

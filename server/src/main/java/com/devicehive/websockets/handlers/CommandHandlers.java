@@ -95,7 +95,7 @@ public class CommandHandlers extends WebsocketHandlers {
         LOGGER.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
-        UUID subId = commandsSubscribeAction(session, devices, names, timestamp);
+        UUID subId = commandsSubscribeAction(session, devices, StringUtils.join(names, ','), timestamp);
         LOGGER.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                      devices, deviceId, timestamp, names, session);
 
@@ -126,15 +126,12 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     private UUID commandsSubscribeAction(Session session,
-                                         Set<String> devices,
-                                         Set<String> names,
+                                         final Set<String> devices,
+                                         final String names,
                                          Timestamp timestamp) throws IOException {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (timestamp == null) {
             timestamp = timestampService.getTimestamp();
-        }
-        if (names != null) {
-            names.remove(null);
         }
         if (names != null && names.isEmpty()) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);

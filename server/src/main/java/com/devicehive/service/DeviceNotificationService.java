@@ -140,7 +140,7 @@ public class DeviceNotificationService {
 
     private List<DeviceNotificationMessage> getDeviceNotifications(String notificationId, List<String> deviceGuids, String timestamp) {
         try {
-            final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, timestamp, WorkerPath.NOTIFICATIONS);
+            final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, null, timestamp, WorkerPath.NOTIFICATIONS);
             List<DeviceNotificationMessage> messages = new ArrayList<>();
             for (JsonElement command : jsonArray) {
                 messages.add(CONVERTER.fromString(command.toString()));
