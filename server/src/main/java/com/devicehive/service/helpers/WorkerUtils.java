@@ -1,7 +1,7 @@
 package com.devicehive.service.helpers;
 
+import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.model.enums.WorkerPath;
 import com.devicehive.service.TimestampService;
 import com.google.api.client.http.GenericUrl;
@@ -33,7 +33,7 @@ public class WorkerUtils {
     @EJB
     private TimestampService timestampService;
     @EJB
-    private PropertiesService propertiesService;
+    private ConfigurationService configurationService;
 
     public JsonArray getDataFromWorker(final String commandId, final List<String> deviceGuids, final String names, final String timestamp, final WorkerPath path) throws IOException {
         final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
@@ -52,7 +52,7 @@ public class WorkerUtils {
         }
         final String paramString = URLEncodedUtils.format(params, Charset.forName(UTF8));
         final GenericUrl url = new GenericUrl(String.format("%s?%s",
-                propertiesService.getProperty(Constants.CASSANDRA_REST_ENDPOINT) + path.getValue(), paramString));
+                configurationService.get(Constants.CASSANDRA_REST_ENDPOINT) + path.getValue(), paramString));
         final HttpRequest request = requestFactory.buildGetRequest(url);
         return  (JsonArray) new JsonParser().parse(request.execute().parseAsString());
     }
