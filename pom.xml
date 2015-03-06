@@ -306,6 +306,8 @@
         <module>tools/dh_dbtool</module>
         <module>tools/messaging</module>
         <module>examples</module>
+        <module>worker</module>
+        <module>common</module>
     </modules>
 
 
