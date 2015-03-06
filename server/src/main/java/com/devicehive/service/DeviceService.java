@@ -48,7 +48,7 @@ public class DeviceService {
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal) {
         validateDevice(device);
-        DeviceNotificationMessage dn;
+        DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
             switch (principal.getRole()) {
                 case HiveRoles.ADMIN:
@@ -74,7 +74,7 @@ public class DeviceService {
         //deviceActivityService.update(dn.getDevice().getId());
     }
 
-    public DeviceNotificationMessage deviceSaveByUser(DeviceUpdate deviceUpdate,
+    public DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
                                                Set<Equipment> equipmentSet,
                                                User user) {
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
@@ -90,7 +90,7 @@ public class DeviceService {
                 device.setNetwork(network);
             }
             existingDevice = deviceDAO.createDevice(device);
-            final DeviceNotificationMessage addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
+            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_ADD);
 //            List<DeviceNotification> resultList =
 //                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
@@ -117,7 +117,7 @@ public class DeviceService {
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
-            final DeviceNotificationMessage addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
+            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_UPDATE);
 //            List<DeviceNotification> resultList =
@@ -126,7 +126,7 @@ public class DeviceService {
         }
     }
 
-    public DeviceNotificationMessage deviceSaveByKey(DeviceUpdate deviceUpdate,
+    public DeviceNotification deviceSaveByKey(DeviceUpdate deviceUpdate,
                                               Set<Equipment> equipmentSet,
                                               AccessKey key) {
 
@@ -143,7 +143,7 @@ public class DeviceService {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
             existingDevice = deviceDAO.createDevice(device);
-            final DeviceNotificationMessage addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
+            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_ADD);
 //            List<DeviceNotification> resultList =
 //                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
@@ -172,7 +172,7 @@ public class DeviceService {
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
-            final DeviceNotificationMessage addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
+            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_UPDATE);
 //            List<DeviceNotification> resultList =
 //                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
@@ -180,7 +180,7 @@ public class DeviceService {
         }
     }
 
-    public DeviceNotificationMessage deviceUpdateByDevice(DeviceUpdate deviceUpdate,
+    public DeviceNotification deviceUpdateByDevice(DeviceUpdate deviceUpdate,
                                                    Set<Equipment> equipmentSet,
                                                    Device device) {
         if (deviceUpdate.getGuid() == null) {
@@ -211,7 +211,7 @@ public class DeviceService {
         if (deviceUpdate.getKey() != null) {
             existingDevice.setKey(deviceUpdate.getKey().getValue());
         }
-        final DeviceNotificationMessage addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
+        final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
             (existingDevice,
              SpecialNotifications.DEVICE_UPDATE);
 //        List<DeviceNotification> resultList =
@@ -219,7 +219,7 @@ public class DeviceService {
         return addDeviceNotification;
     }
 
-    public DeviceNotificationMessage deviceSave(DeviceUpdate deviceUpdate,
+    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
                                          Set<Equipment> equipmentSet) {
         Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
         DeviceClass deviceClass = deviceClassService
@@ -235,7 +235,7 @@ public class DeviceService {
                 device.setNetwork(network);
             }
             existingDevice = deviceDAO.createDevice(device);
-            final DeviceNotificationMessage addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
+            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_ADD);
 //            List<DeviceNotification> resultList =
@@ -257,7 +257,7 @@ public class DeviceService {
             if (deviceUpdate.getNetwork() != null) {
                 existingDevice.setNetwork(network);
             }
-            final DeviceNotificationMessage addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
+            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_UPDATE);
 //            List<DeviceNotification> resultList =

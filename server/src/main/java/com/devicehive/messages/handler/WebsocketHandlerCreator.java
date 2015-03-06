@@ -1,7 +1,7 @@
 package com.devicehive.messages.handler;
 
-import com.devicehive.model.DeviceCommandMessage;
-import com.devicehive.model.DeviceNotificationMessage;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.util.FlushQueue;
@@ -30,34 +30,34 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
         this.lock = lock;
     }
 
-    public static WebsocketHandlerCreator<DeviceCommandMessage> createCommandInsert(Session session) {
-        return new WebsocketHandlerCreator<DeviceCommandMessage>(session,
+    public static WebsocketHandlerCreator<DeviceCommand> createCommandInsert(Session session) {
+        return new WebsocketHandlerCreator<DeviceCommand>(session,
                                                           HiveWebsocketSessionState.get(session)
                                                               .getCommandSubscriptionsLock()) {
             @Override
-            protected JsonObject createJsonObject(DeviceCommandMessage message, UUID subId) {
+            protected JsonObject createJsonObject(DeviceCommand message, UUID subId) {
                 return ServerResponsesFactory.createCommandInsertMessage(message, subId);
             }
         };
     }
 
-    public static WebsocketHandlerCreator<DeviceCommandMessage> createCommandUpdate(Session session) {
-        return new WebsocketHandlerCreator<DeviceCommandMessage>(session,
+    public static WebsocketHandlerCreator<DeviceCommand> createCommandUpdate(Session session) {
+        return new WebsocketHandlerCreator<DeviceCommand>(session,
                                                           HiveWebsocketSessionState.get(session)
                                                               .getCommandUpdateSubscriptionsLock()) {
             @Override
-            protected JsonObject createJsonObject(DeviceCommandMessage message, UUID subId) {
+            protected JsonObject createJsonObject(DeviceCommand message, UUID subId) {
                 return ServerResponsesFactory.createCommandUpdateMessage(message);
             }
         };
     }
 
-    public static WebsocketHandlerCreator<DeviceNotificationMessage> createNotificationInsert(Session session) {
-        return new WebsocketHandlerCreator<DeviceNotificationMessage>(session,
+    public static WebsocketHandlerCreator<DeviceNotification> createNotificationInsert(Session session) {
+        return new WebsocketHandlerCreator<DeviceNotification>(session,
                                                                HiveWebsocketSessionState.get(session)
                                                                    .getNotificationSubscriptionsLock()) {
             @Override
-            protected JsonObject createJsonObject(DeviceNotificationMessage message, UUID subId) {
+            protected JsonObject createJsonObject(DeviceNotification message, UUID subId) {
                 return ServerResponsesFactory.createNotificationInsertMessage(message, subId);
             }
         };

@@ -2,7 +2,7 @@ package com.devicehive.messages.kafka;
 
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.DeviceCommandMessage;
+import com.devicehive.model.DeviceCommand;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.websockets.util.SessionMonitor;
@@ -20,7 +20,7 @@ import java.util.Set;
  */
 @Stateless
 @LogExecutionTime
-public class CommandUpdateConsumer extends AbstractConsumer<DeviceCommandMessage> {
+public class CommandUpdateConsumer extends AbstractConsumer<DeviceCommand> {
     public static final Logger LOGGER = LoggerFactory.getLogger(CommandUpdateConsumer.class);
 
     @EJB
@@ -33,7 +33,7 @@ public class CommandUpdateConsumer extends AbstractConsumer<DeviceCommandMessage
     private ManagedExecutorService mes;
 
     @Override
-    public void submitMessage(DeviceCommandMessage message) {
+    public void submitMessage(DeviceCommand message) {
         LOGGER.debug("Device command update was submitted: {}", message.getId());
 
         Set<CommandUpdateSubscription> subs = subscriptionManager.getCommandUpdateSubscriptionStorage()

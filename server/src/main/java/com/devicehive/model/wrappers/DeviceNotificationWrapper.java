@@ -1,6 +1,8 @@
-package com.devicehive.model;
+package com.devicehive.model.wrappers;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;

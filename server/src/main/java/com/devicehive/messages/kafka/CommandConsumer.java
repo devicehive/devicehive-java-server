@@ -3,7 +3,7 @@ package com.devicehive.messages.kafka;
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.DeviceCommandMessage;
+import com.devicehive.model.DeviceCommand;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ import java.util.UUID;
  */
 @Stateless
 @LogExecutionTime
-public class CommandConsumer extends AbstractConsumer<DeviceCommandMessage> {
+public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
     public static final Logger LOGGER = LoggerFactory.getLogger(CommandConsumer.class);
 
     @EJB
@@ -33,7 +33,7 @@ public class CommandConsumer extends AbstractConsumer<DeviceCommandMessage> {
     private ManagedExecutorService mes;
 
     @Override
-    public void submitMessage(final DeviceCommandMessage message) {
+    public void submitMessage(final DeviceCommand message) {
         LOGGER.debug("Device command was submitted: {}", message.getId());
 
         Set<UUID> subscribersIds = new HashSet<>();

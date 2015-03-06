@@ -3,7 +3,7 @@ package com.devicehive.messages.kafka;
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.DeviceNotificationMessage;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ import java.util.UUID;
  */
 @Stateless
 @LogExecutionTime
-public class NotificationConsumer extends AbstractConsumer<DeviceNotificationMessage>{
+public class NotificationConsumer extends AbstractConsumer<DeviceNotification>{
     public static final Logger LOGGER = LoggerFactory.getLogger(NotificationConsumer.class);
 
     @EJB
@@ -33,7 +33,7 @@ public class NotificationConsumer extends AbstractConsumer<DeviceNotificationMes
     private ManagedExecutorService mes;
 
     @Override
-    public void submitMessage(final DeviceNotificationMessage message) {
+    public void submitMessage(final DeviceNotification message) {
         Set<UUID> subscribersIds = new HashSet<>();
         Set<NotificationSubscription> subs =
                 subscriptionManager.getNotificationSubscriptionStorage().getByDeviceGuid(

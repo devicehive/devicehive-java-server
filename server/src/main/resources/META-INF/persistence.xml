@@ -9,9 +9,7 @@
         <class>com.devicehive.model.User</class>
         <class>com.devicehive.model.Device</class>
         <class>com.devicehive.model.DeviceClass</class>
-        <class>com.devicehive.model.DeviceCommand</class>
         <class>com.devicehive.model.DeviceEquipment</class>
-        <class>com.devicehive.model.DeviceNotification</class>
         <class>com.devicehive.model.Configuration</class>
         <class>com.devicehive.model.Equipment</class>
         <class>com.devicehive.model.Network</class>

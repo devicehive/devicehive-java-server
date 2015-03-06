@@ -14,8 +14,8 @@ import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommandMessage;
-import com.devicehive.model.DeviceCommandWrapper;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.model.User;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
@@ -171,9 +171,9 @@ public class CommandHandlers extends WebsocketHandlers {
             state.getCommandSubscriptions().add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
-            List<DeviceCommandMessage> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
+            List<DeviceCommand> commands = commandService.getDeviceCommandsList(StringUtils.join(devices, ","), names, timestamp, principal);
             if (!commands.isEmpty()) {
-                for (DeviceCommandMessage deviceCommand : commands) {
+                for (DeviceCommand deviceCommand : commands) {
                     state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
                 }
             }
@@ -269,7 +269,7 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        final DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(deviceCommand, device, user, null);
+        final DeviceCommand message = commandService.convertToDeviceCommand(deviceCommand, device, user, null);
         commandsUpdateSubscribeAction(session, message.getId());
         commandService.submitDeviceCommand(message);
         WebSocketResponse response = new WebSocketResponse();
@@ -308,7 +308,7 @@ public class CommandHandlers extends WebsocketHandlers {
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        DeviceCommandMessage message = commandService.convertToDeviceCommandMessage(commandUpdate, device, user, id);
+        DeviceCommand message = commandService.convertToDeviceCommand(commandUpdate, device, user, id);
         commandService.submitDeviceCommandUpdate(message);
 
         LOGGER.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,

@@ -3,25 +3,22 @@ package com.devicehive.messages.subscriptions;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.messages.handler.HandlerCreator;
-import com.devicehive.model.DeviceNotificationMessage;
+import com.devicehive.model.DeviceNotification;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
-public class NotificationSubscription extends Subscription<String, DeviceNotificationMessage> {
+public class NotificationSubscription extends Subscription<String, DeviceNotification> {
 
     private final HivePrincipal principal;
 
-    private final Set<String> notificationNames;
+    private final String notificationNames;
 
     public NotificationSubscription(HivePrincipal principal, String deviceGuid, UUID subscriberId,
-                                    Collection<String> notificationNames,
-                                    HandlerCreator<DeviceNotificationMessage> handlerCreator) {
+                                    String notificationNames,
+                                    HandlerCreator<DeviceNotification> handlerCreator) {
         super(deviceGuid, subscriberId, handlerCreator);
         this.principal = principal;
-        this.notificationNames = notificationNames != null ? new HashSet<>(notificationNames) : null;
+        this.notificationNames = notificationNames != null ? notificationNames : null;
     }
 
     public String getDeviceGuid() {
@@ -33,7 +30,7 @@ public class NotificationSubscription extends Subscription<String, DeviceNotific
         return principal;
     }
 
-    public Set<String> getNotificationNames() {
+    public String getNotificationNames() {
         return notificationNames;
     }
 

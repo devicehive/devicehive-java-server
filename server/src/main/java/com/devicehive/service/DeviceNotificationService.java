@@ -5,8 +5,12 @@ import com.devicehive.controller.converters.TimestampQueryParamParser;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.messages.kafka.Notification;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.enums.WorkerPath;
+import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.helpers.WorkerUtils;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
@@ -21,13 +25,13 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationService {
+    // TODO: change to deviceGuid
     private static final Random random = new Random();
     private static final DeviceNotificationConverter CONVERTER = new DeviceNotificationConverter(null);
 
@@ -44,18 +48,18 @@ public class DeviceNotificationService {
 
     @Inject
     @Notification
-    private Event<DeviceNotificationMessage> deviceNotificationMessageReceivedEvent;
+    private Event<DeviceNotification> deviceNotificationMessageReceivedEvent;
 
 
-    public List<DeviceNotificationMessage> getDeviceNotificationList(List<String> deviceGuids, Collection<String> names,
+    public List<DeviceNotification> getDeviceNotificationList(Collection<String> deviceGuids, String names,
                                                               Timestamp timestamp) {
         final String timestampStr = TimestampAdapter.formatTimestamp(timestamp);
-        return getDeviceNotifications(null, deviceGuids, timestampStr);
+        return getDeviceNotifications(null, deviceGuids, names, timestampStr);
 
     }
 
-    public DeviceNotificationMessage findById(String notificationId) {
-        final List<DeviceNotificationMessage> notifications = getDeviceNotifications(notificationId, null, null);
+    public DeviceNotification findById(String notificationId) {
+        final List<DeviceNotification> notifications = getDeviceNotifications(notificationId, null, null, null);
         if (!notifications.isEmpty()) {
             return notifications.get(0);
         } else {
@@ -63,16 +67,16 @@ public class DeviceNotificationService {
         }
     }
 
-    public List<DeviceNotificationMessage> queryDeviceNotification(final String deviceGuid, final String start, final String endTime, final String notification,
+    public List<DeviceNotification> queryDeviceNotification(final String deviceGuid, final String start, final String endTime, final String notification,
                                                                    final String sortField, final Boolean sortOrderAsc,
                                                          Integer take, Integer skip, Integer gridInterval) {
-        final List<DeviceNotificationMessage> notifications = getDeviceNotifications(null, Arrays.asList(deviceGuid), start);
+        final List<DeviceNotification> notifications = getDeviceNotifications(null, Arrays.asList(deviceGuid), null, start);
         if (endTime != null) {
             final Timestamp end = TimestampQueryParamParser.parse(endTime);
             CollectionUtils.filter(notifications, new Predicate() {
                 @Override
                 public boolean evaluate(Object o) {
-                    return end.before(((DeviceCommandMessage) o).getTimestamp());
+                    return end.before(((DeviceCommand) o).getTimestamp());
                 }
             });
         }
@@ -80,29 +84,29 @@ public class DeviceNotificationService {
             CollectionUtils.filter(notifications, new Predicate() {
                 @Override
                 public boolean evaluate(Object o) {
-                    return notification.equals(((DeviceNotificationMessage) o).getNotification());
+                    return notification.equals(((DeviceNotification) o).getNotification());
                 }
             });
         }
         return notifications;
     }
 
-    public void submitDeviceNotification(DeviceNotificationMessage notification, Device device) {
-        List<DeviceNotificationMessage> proceedNotifications = processDeviceNotification(notification, device);
-        for (DeviceNotificationMessage currentNotification : proceedNotifications) {
+    public void submitDeviceNotification(DeviceNotification notification, Device device) {
+        List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
+        for (DeviceNotification currentNotification : proceedNotifications) {
             deviceNotificationMessageReceivedEvent.fire(currentNotification);
         }
     }
 
-    public void submitDeviceNotification(DeviceNotificationMessage notification, String deviceGuid) {
+    public void submitDeviceNotification(DeviceNotification notification, String deviceGuid) {
         notification.setId(UUIDs.timeBased().timestamp());
         notification.setDeviceGuid(deviceGuid);
         notification.setTimestamp(timestampService.getTimestamp());
         deviceNotificationMessageReceivedEvent.fire(notification);
     }
 
-    public List<DeviceNotificationMessage> processDeviceNotification(DeviceNotificationMessage notificationMessage, Device device) {
-        List<DeviceNotificationMessage> notificationsToCreate = new ArrayList<>();
+    public List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, Device device) {
+        List<DeviceNotification> notificationsToCreate = new ArrayList<>();
         switch (notificationMessage.getNotification()) {
             case SpecialNotifications.EQUIPMENT:
                 deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
@@ -121,8 +125,8 @@ public class DeviceNotificationService {
 
     }
 
-    public DeviceNotificationMessage convertToMessage(DeviceNotificationWrapper notificationSubmit, Device device) {
-        DeviceNotificationMessage message = new DeviceNotificationMessage();
+    public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, Device device) {
+        DeviceNotification message = new DeviceNotification();
         message.setId(UUIDs.timeBased().timestamp() + random.nextInt(1000));
         message.setDeviceGuid(device.getGuid());
         message.setTimestamp(timestampService.getTimestamp());
@@ -131,25 +135,20 @@ public class DeviceNotificationService {
         return message;
     }
 
-    public DeviceNotificationMessage refreshDeviceStatusCase(DeviceNotificationMessage notificationMessage, Device device) {
+    public DeviceNotification refreshDeviceStatusCase(DeviceNotification notificationMessage, Device device) {
         device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
         String status = ServerResponsesFactory.parseNotificationStatus(notificationMessage);
         device.setStatus(status);
         return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_UPDATE);
     }
 
-    private List<DeviceNotificationMessage> getDeviceNotifications(String notificationId, List<String> deviceGuids, String timestamp) {
-        try {
-            final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, null, timestamp, WorkerPath.NOTIFICATIONS);
-            List<DeviceNotificationMessage> messages = new ArrayList<>();
-            for (JsonElement command : jsonArray) {
-                messages.add(CONVERTER.fromString(command.toString()));
-            }
-            return messages;
-        } catch (IOException e) {
-            e.printStackTrace();
+    private List<DeviceNotification> getDeviceNotifications(String notificationId, Collection<String> deviceGuids, String names, String timestamp) {
+        final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, names, timestamp, WorkerPath.NOTIFICATIONS);
+        List<DeviceNotification> messages = new ArrayList<>();
+        for (JsonElement command : jsonArray) {
+            messages.add(CONVERTER.fromString(command.toString()));
         }
-        return Collections.EMPTY_LIST;
+        return messages;
     }
 
 }

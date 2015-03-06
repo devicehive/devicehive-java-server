@@ -2,6 +2,8 @@ package com.devicehive.service.helpers;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.enums.WorkerPath;
 import com.devicehive.service.TimestampService;
 import com.google.api.client.http.GenericUrl;
@@ -9,17 +11,22 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.devicehive.configuration.Constants.UTF8;
@@ -29,17 +36,20 @@ import static com.devicehive.configuration.Constants.UTF8;
  */
 @Singleton
 public class WorkerUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerUtils.class);
 
     @EJB
     private TimestampService timestampService;
     @EJB
     private ConfigurationService configurationService;
 
-    public JsonArray getDataFromWorker(final String commandId, final List<String> deviceGuids, final String names, final String timestamp, final WorkerPath path) throws IOException {
+    public JsonArray getDataFromWorker(final String messageId, final Collection<String> deviceGuids, final String names, final String timestamp, final WorkerPath path) {
+        LOGGER.debug("Requesting data from DH cassandra worker: messageId {}, deviceGuids {}, names {}, timestamp {}, path {}",
+                messageId, deviceGuids, names, timestamp, path.getValue());
         final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
         List<NameValuePair> params = new ArrayList<>();
-        if (StringUtils.isNotBlank(commandId)) {
-            params.add(new BasicNameValuePair("id", commandId));
+        if (StringUtils.isNotBlank(messageId)) {
+            params.add(new BasicNameValuePair("id", messageId));
         }
         if (deviceGuids != null && !deviceGuids.isEmpty()) {
             params.add(new BasicNameValuePair("deviceGuids", StringUtils.join(deviceGuids, ",")));
@@ -53,7 +63,17 @@ public class WorkerUtils {
         final String paramString = URLEncodedUtils.format(params, Charset.forName(UTF8));
         final GenericUrl url = new GenericUrl(String.format("%s?%s",
                 configurationService.get(Constants.CASSANDRA_REST_ENDPOINT) + path.getValue(), paramString));
-        final HttpRequest request = requestFactory.buildGetRequest(url);
-        return  (JsonArray) new JsonParser().parse(request.execute().parseAsString());
+        String response = null;
+        try {
+            final HttpRequest request = requestFactory.buildGetRequest(url);
+            response = request.execute().parseAsString();
+            return  (JsonArray) new JsonParser().parse(response);
+        } catch (IOException e) {
+            LOGGER.error("IOException has been caught during exetunig GET request: {}", url.toURI().getQuery(), e);
+            throw new HiveException(Messages.CASSANDRA_WORKER_API_REQUEST_ERROR, Response.Status.NOT_FOUND.getStatusCode());
+        } catch (JsonParseException ex) {
+            LOGGER.error("Unexpected json format found in the cassandra worker response: {}", response, ex);
+            throw new HiveException(Messages.JSON_SYNTAX_ERROR, Response.Status.NOT_FOUND.getStatusCode());
+        }
     }
 }

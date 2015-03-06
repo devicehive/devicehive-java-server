@@ -45,7 +45,7 @@ public class DeviceEquipmentService {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public DeviceNotificationMessage refreshDeviceEquipment(DeviceNotificationMessage notificationMessage, Device device) {
+    public DeviceNotification refreshDeviceEquipment(DeviceNotification notificationMessage, Device device) {
         DeviceEquipment deviceEquipment = null;
         if (notificationMessage.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
             deviceEquipment = ServerResponsesFactory.parseDeviceEquipmentNotification(notificationMessage, device);
