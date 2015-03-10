@@ -307,7 +307,6 @@
         <module>tools/messaging</module>
         <module>examples</module>
         <module>worker</module>
-        <module>common</module>
     </modules>
 
 
