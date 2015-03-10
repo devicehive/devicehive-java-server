@@ -20,6 +20,7 @@
         <ehcache-version>2.6.9</ehcache-version>
         <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
         <glassfish.tyrus>1.8.2</glassfish.tyrus>
+        <skipTests>true</skipTests>
         <instance.id/>
     </properties>
 
@@ -295,6 +296,15 @@
                             </configuration>
                         </execution>
                     </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.18.1</version>
+                    <configuration>
+                        <skipTests>${skipTests}</skipTests>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

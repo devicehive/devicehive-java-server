@@ -4,6 +4,7 @@ package com.devicehive.utils;
  * Created by tmatvienko on 2/6/15.
  */
 public class Constants {
+    public static final String API_VERSION = "1.3.1";
     public static final String METADATA_BROKER_LIST = "metadata.broker.list";
     public static final String ZOOKEEPER_CONNECT = "zookeeper.connect";
     public static final String THREADS_COUNT = "threads.count";
