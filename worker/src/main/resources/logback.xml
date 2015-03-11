@@ -11,11 +11,11 @@
 
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${server.log.directory}/devicehive-worker.log</file>
+        <file>${com.sun.aas.instanceRoot}/logs/devicehive-worker.log</file>
         <append>false</append>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>${server.log.directory}/devicehive-worker.%i.log.zip</fileNamePattern>
+            <fileNamePattern>${com.sun.aas.instanceRoot}/logs/devicehive-worker.%i.log.zip</fileNamePattern>
             <minIndex>1</minIndex>
             <maxIndex>10</maxIndex>
         </rollingPolicy>
