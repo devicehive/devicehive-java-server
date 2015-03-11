@@ -71,7 +71,7 @@ public class DeviceService {
             dn = deviceSave(device, equipmentSet);
         }
         deviceNotificationService.submitDeviceNotification(dn, device.getGuid().getValue());
-        //deviceActivityService.update(dn.getDevice().getId());
+        deviceActivityService.update(device.getGuid().getValue());
     }
 
     public DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
@@ -92,8 +92,7 @@ public class DeviceService {
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_ADD);
-//            List<DeviceNotification> resultList =
-//                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
@@ -120,8 +119,7 @@ public class DeviceService {
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_UPDATE);
-//            List<DeviceNotification> resultList =
-//                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         }
     }
@@ -145,8 +143,7 @@ public class DeviceService {
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_ADD);
-//            List<DeviceNotification> resultList =
-//                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().getValue())) {
@@ -174,8 +171,7 @@ public class DeviceService {
             }
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_UPDATE);
-//            List<DeviceNotification> resultList =
-//                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         }
     }
@@ -214,8 +210,7 @@ public class DeviceService {
         final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
             (existingDevice,
              SpecialNotifications.DEVICE_UPDATE);
-//        List<DeviceNotification> resultList =
-//            deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+        deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
         return addDeviceNotification;
     }
 
@@ -238,8 +233,7 @@ public class DeviceService {
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_ADD);
-//            List<DeviceNotification> resultList =
-//                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         } else {
             if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
@@ -260,8 +254,7 @@ public class DeviceService {
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_UPDATE);
-//            List<DeviceNotification> resultList =
-//                deviceNotificationService.saveDeviceNotification(Arrays.asList(addDeviceNotification));
+            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         }
     }
@@ -331,7 +324,7 @@ public class DeviceService {
     public Device authenticate(String uuid, String key) {
         Device device = deviceDAO.findByUUIDAndKey(uuid, key);
         if (device != null) {
-            //deviceActivityService.update(device.getId());
+            deviceActivityService.update(device.getGuid());
         }
         return device;
     }

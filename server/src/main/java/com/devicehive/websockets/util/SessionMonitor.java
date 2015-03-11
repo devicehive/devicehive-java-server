@@ -71,13 +71,13 @@ public class SessionMonitor {
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
         Device authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
         if (authorizedDevice != null) {
-            //deviceActivityService.update(authorizedDevice.getId());
+            deviceActivityService.update(authorizedDevice.getGuid());
         }
         Set<UUID> commandSubscriptions = HiveWebsocketSessionState.get(session).getCommandSubscriptions();
         for (UUID subId : commandSubscriptions) {
             for (CommandSubscription subscription : subscriptionManager.getCommandSubscriptionStorage().get(subId)) {
                 if (subscription.getDeviceGuid() != Constants.NULL_SUBSTITUTE) {
-                    //deviceActivityService.update(subscription.getDeviceId());
+                    deviceActivityService.update(subscription.getDeviceGuid());
                 }
             }
         }

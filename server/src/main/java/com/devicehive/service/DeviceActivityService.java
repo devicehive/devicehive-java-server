@@ -1,11 +1,18 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceDAO;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceClass;
 import com.devicehive.util.LogExecutionTime;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.*;
+import java.util.List;
 
 @Singleton
 @Startup
@@ -16,49 +23,47 @@ public class DeviceActivityService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceActivityService.class);
 
-//    @EJB
-//    private HazelcastService hazelcastService;
     @EJB
     private DeviceDAO deviceDAO;
+    @EJB
+    private TimestampService timestampService;
 
-//    private HazelcastInstance hazelcast;
-//    private IMap<Long, Long> deviceTimestampMap;
+    private Cache deviceActivityCache;
 
-//    @PostConstruct
-//    public void postConstruct() {
-//        hazelcast = hazelcastService.getHazelcast();
-//        deviceTimestampMap = hazelcast.getMap(Constants.DEVICE_ACTIVITY_MAP);
-//    }
+    @PostConstruct
+    public void postConstruct() {
+        deviceActivityCache = CacheManager.getInstance().getCache("deviceActivity");
+    }
 
-//    public void update(long deviceId) {
-//        deviceTimestampMap.putAsync(deviceId, hazelcast.getCluster().getClusterTime());
-//    }
+    public void update(String deviceGuid) {
+        deviceActivityCache.put(new Element(deviceGuid, timestampService.getTimestamp().getTime()));
+    }
 
-//    @Schedule(hour = "*", minute = "*/5", persistent = false)
-//    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-//    public void processOfflineDevices() {
-//        logger.debug("Checking lost offline devices");
-//        long now = hazelcast.getCluster().getClusterTime();
-//        for (Long deviceId : deviceTimestampMap.localKeySet()) {
-//            Device device = deviceDAO.findById(deviceId);
-//            if (device == null) {
-//                logger.warn("Device with id {} does not exists", deviceId);
-//                deviceTimestampMap.remove(deviceId);
-//            } else {
-//                logger.debug("Checking device {} ", device.getGuid());
-//                DeviceClass deviceClass = device.getDeviceClass();
-//                if (deviceClass.getOfflineTimeout() != null) {
-//                    long time = deviceTimestampMap.get(deviceId);
-//                    if (now - time > deviceClass.getOfflineTimeout() * 1000) {
-//                        if (deviceTimestampMap.remove(deviceId, time)) {
-//                            deviceDAO.setOffline(deviceId);
-//                            logger.warn("Device {} is now offline", device.getGuid());
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        logger.debug("Checking lost offline devices complete");
-//    }
+    @Schedule(hour = "*", minute = "*/5", persistent = false)
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void processOfflineDevices() {
+        logger.debug("Checking lost offline devices");
+        long now = timestampService.getTimestamp().getTime();
+        for (final String deviceGuid : (List<String>) deviceActivityCache.getKeys()) {
+            Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceGuid);
+            if (device == null) {
+                logger.warn("Device with guid {} does not exists", deviceGuid);
+                deviceActivityCache.remove(deviceGuid);
+            } else {
+                logger.debug("Checking device {} ", device.getGuid());
+                DeviceClass deviceClass = device.getDeviceClass();
+                if (deviceClass.getOfflineTimeout() != null) {
+                    long time = (long) deviceActivityCache.get(deviceGuid).getObjectValue();
+                    if (now - time > deviceClass.getOfflineTimeout() * 1000) {
+                        if (deviceActivityCache.remove(deviceGuid)) {
+                            deviceDAO.setOffline(deviceGuid);
+                            logger.warn("Device {} is now offline", device.getGuid());
+                        }
+                    }
+                }
+            }
+        }
+        logger.debug("Checking lost offline devices complete");
+    }
 
 }

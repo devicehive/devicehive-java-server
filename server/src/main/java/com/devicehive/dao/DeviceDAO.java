@@ -71,6 +71,12 @@ public class DeviceDAO {
         return device;
     }
 
+    public Device setOffline(String guid) {
+        Device device = findByUUIDWithNetworkAndDeviceClass(guid);
+        device.setStatus("Offline");
+        return device;
+    }
+
     public boolean deleteDevice(@NotNull String guid) {
         Query query = em.createNamedQuery(DELETE_BY_UUID);
         query.setParameter(GUID, guid);

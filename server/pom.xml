@@ -139,6 +139,7 @@
     </dependencies>
 
     <build>
+        <finalName>devicehive</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -206,19 +207,6 @@
                 	<artifactId>hibernate-validator-cdi</artifactId>
                 	<version>5.1.2.Final</version>
                 </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>wildfly</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <jta.platform>JBossAS</jta.platform>
-                <server.log.directory>${jboss.server.log.dir}</server.log.directory>
-            </properties>
-            <dependencies>
-
             </dependencies>
         </profile>
     </profiles>

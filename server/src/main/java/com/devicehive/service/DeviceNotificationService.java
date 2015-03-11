@@ -91,14 +91,14 @@ public class DeviceNotificationService {
         return notifications;
     }
 
-    public void submitDeviceNotification(DeviceNotification notification, Device device) {
+    public void submitDeviceNotification(final DeviceNotification notification, final Device device) {
         List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
         for (DeviceNotification currentNotification : proceedNotifications) {
             deviceNotificationMessageReceivedEvent.fire(currentNotification);
         }
     }
 
-    public void submitDeviceNotification(DeviceNotification notification, String deviceGuid) {
+    public void submitDeviceNotification(final DeviceNotification notification, final String deviceGuid) {
         notification.setId(UUIDs.timeBased().timestamp());
         notification.setDeviceGuid(deviceGuid);
         notification.setTimestamp(timestampService.getTimestamp());

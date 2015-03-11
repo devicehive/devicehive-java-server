@@ -12,10 +12,10 @@
         <persistence strategy="localTempSwap" />
     </defaultCache>
 
-    <!--<cache name="employee" maxEntriesLocalHeap="10000" eternal="false"-->
-           <!--timeToIdleSeconds="5" timeToLiveSeconds="10">-->
-        <!--<persistence strategy="localTempSwap" />-->
-    <!--</cache>-->
+    <cache name="deviceActivity" maxEntriesLocalHeap="10000" eternal="false"
+           timeToIdleSeconds="400" timeToLiveSeconds="400">
+        <persistence strategy="localTempSwap" />
+    </cache>
 
     <!--<cache name="org.hibernate.cache.internal.StandardQueryCache"-->
            <!--maxEntriesLocalHeap="5" eternal="false" timeToLiveSeconds="120">-->
