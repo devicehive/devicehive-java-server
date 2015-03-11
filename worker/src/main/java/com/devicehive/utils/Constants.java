@@ -11,6 +11,8 @@ public class Constants {
     public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
     public static final String CASSANDRA_KEYSPACE = "cassandra.keyspace";
     public static final String CASSANDRA_KEYSPACE_TEST = "cassandra.keyspace.test";
+    public static final String CASSANDRA_USERNAME = "cassandra.username";
+    public static final String CASSANDRA_PASSWORD = "cassandra.password";
 
     public static final String GROUP_ID = "group.id";
     public static final String ZOOKEEPER_SESSION_TIMEOUT_MS = "zookeeper.session.timeout.ms";

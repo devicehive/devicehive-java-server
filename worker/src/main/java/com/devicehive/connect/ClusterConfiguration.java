@@ -1,5 +1,6 @@
 package com.devicehive.connect;
 
+import com.datastax.driver.core.PlainTextAuthProvider;
 import com.devicehive.domain.ClusterConfig;
 import com.devicehive.domain.DeviceCommand;
 import com.devicehive.domain.DeviceNotification;
@@ -45,11 +46,13 @@ public class ClusterConfiguration extends AbstractCassandraConfiguration impleme
     @Autowired
     protected Environment environment;
 
-    @Bean
+    @Override
     public CassandraClusterFactoryBean cluster() {
         final String contactPoints = clusterConfig.getCassandraContactpoints();
         final CassandraClusterFactoryBean cluster = new CassandraClusterFactoryBean();
         cluster.setContactPoints(contactPoints);
+        cluster.setAuthProvider(new PlainTextAuthProvider(environment.getProperty(Constants.CASSANDRA_USERNAME),
+                environment.getProperty(Constants.CASSANDRA_PASSWORD)));
         List<CreateKeyspaceSpecification> createKeyspaceSpecifications = Arrays.asList(
                 new CreateKeyspaceSpecification(environment.getProperty(Constants.CASSANDRA_KEYSPACE)).ifNotExists(),
                 new CreateKeyspaceSpecification(environment.getProperty(Constants.CASSANDRA_KEYSPACE_TEST)).ifNotExists()
