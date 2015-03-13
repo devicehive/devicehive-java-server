@@ -3,6 +3,8 @@ package com.devicehive.controller;
 import com.devicehive.domain.wrappers.DeviceNotificationWrapper;
 import com.devicehive.messages.converter.adapter.TimestampAdapter;
 import com.devicehive.service.DeviceNotificationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,8 @@ import java.util.List;
 @RequestMapping("/notifications")
 public class DeviceNotificationController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceNotificationController.class);
+
     @Autowired
     private DeviceNotificationService notificationService;
     @Autowired
@@ -27,6 +31,7 @@ public class DeviceNotificationController {
                                           @RequestParam(value = "deviceGuids", required = false) String deviceGuids,
                                           @RequestParam(value = "names", required = false) String notificationNames,
                                           @RequestParam(value = "timestamp", required = false) String timestamp) {
+        LOGGER.info("/notifications list GET method requested with parameters: {}, {}, {}", deviceGuids, notificationNames, timestamp);
         final Timestamp date = timestampAdapter.parseTimestamp(timestamp);
         return notificationService.get(count, id, deviceGuids, notificationNames, date);
     }

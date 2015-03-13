@@ -35,6 +35,7 @@
             <property name="hibernate.cache.use_query_cache" value="true"/>
             <property name="hibernate.cache.use_minimal_puts" value="true"/>
             <property name="net.sf.ehcache.configurationResourceName" value="ehcache.xml"/>
+            <property name="hibernate.enable_lazy_load_no_trans" value="true"/>
         </properties>
     </persistence-unit>
 

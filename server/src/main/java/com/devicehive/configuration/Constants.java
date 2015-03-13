@@ -26,7 +26,7 @@ public class Constants {
     public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final String DEVICE_ACTIVITY_MAP = "DEVICE_ACTIVITY_MAP";
-    public static final Integer DEFAULT_TAKE = 1000;
+    public static final Integer DEFAULT_TAKE = 100;
     public static final String CURRENT_USER = "current";
     public static final String BASIC_AUTH_SCHEME = "Basic";
     public static final String OAUTH_AUTH_SCEME = "Bearer";

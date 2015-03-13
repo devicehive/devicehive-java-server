@@ -9,7 +9,7 @@ import com.devicehive.service.TimestampService;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.http.apache.ApacheHttpTransport;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
@@ -44,9 +44,9 @@ public class WorkerUtils {
     private ConfigurationService configurationService;
 
     public JsonArray getDataFromWorker(final String messageId, final Collection<String> deviceGuids, final String names, final String timestamp, final WorkerPath path) {
-        LOGGER.debug("Requesting data from DH cassandra worker: messageId {}, deviceGuids {}, names {}, timestamp {}, path {}",
+        LOGGER.info("Requesting data from DH cassandra worker: messageId {}, deviceGuids {}, names {}, timestamp {}, path {}",
                 messageId, deviceGuids, names, timestamp, path.getValue());
-        final HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
+        final HttpRequestFactory requestFactory = new ApacheHttpTransport().createRequestFactory();
         List<NameValuePair> params = new ArrayList<>();
         if (StringUtils.isNotBlank(messageId)) {
             params.add(new BasicNameValuePair("id", messageId));

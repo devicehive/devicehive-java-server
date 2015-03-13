@@ -130,9 +130,6 @@ public class CommandHandlers extends WebsocketHandlers {
                                          final String names,
                                          Timestamp timestamp) throws IOException {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        if (timestamp == null) {
-            timestamp = timestampService.getTimestamp();
-        }
         if (names != null && names.isEmpty()) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
@@ -171,10 +168,12 @@ public class CommandHandlers extends WebsocketHandlers {
             state.getCommandSubscriptions().add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
-            List<DeviceCommand> commands = commandService.getDeviceCommandsList(StringUtils.join(devices, ","), names, timestamp, principal);
-            if (!commands.isEmpty()) {
-                for (DeviceCommand deviceCommand : commands) {
-                    state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
+            if (timestamp != null) {
+                List<DeviceCommand> commands = commandService.getDeviceCommandsList(StringUtils.join(devices, ","), names, timestamp, principal);
+                if (!commands.isEmpty()) {
+                    for (DeviceCommand deviceCommand : commands) {
+                        state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
+                    }
                 }
             }
             return reqId;

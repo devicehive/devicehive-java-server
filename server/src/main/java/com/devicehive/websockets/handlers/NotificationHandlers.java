@@ -157,12 +157,12 @@ public class NotificationHandlers extends WebsocketHandlers {
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (timestamp == null) {
                 timestamp = timestampService.getTimestamp();
-            }
-            List<DeviceNotification> notifications =
-                deviceNotificationService.getDeviceNotificationList(devices, StringUtils.join(names, ","), timestamp);
-            if (!notifications.isEmpty()) {
-                for (DeviceNotification notification : notifications) {
-                    state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));
+                List<DeviceNotification> notifications =
+                    deviceNotificationService.getDeviceNotificationList(devices, StringUtils.join(names, ","), timestamp);
+                if (!notifications.isEmpty()) {
+                    for (DeviceNotification notification : notifications) {
+                        state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));
+                    }
                 }
             }
             return reqId;
