@@ -26,7 +26,7 @@ public class DeviceNotificationController {
     private TimestampAdapter timestampAdapter;
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
-    public List<DeviceNotificationWrapper> get(@RequestParam(value = "count", required=false, defaultValue = "1000") int count,
+    public List<DeviceNotificationWrapper> get(@RequestParam(value = "count", required=false, defaultValue = "100") int count,
                                           @RequestParam(value = "id", required = false) final String id,
                                           @RequestParam(value = "deviceGuids", required = false) String deviceGuids,
                                           @RequestParam(value = "names", required = false) String notificationNames,

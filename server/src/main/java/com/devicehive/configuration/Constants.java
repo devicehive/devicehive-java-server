@@ -120,4 +120,6 @@ public class Constants {
     public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
     public static final String CASSANDRA_REST_ENDPOINT = "cassandra.rest.endpoint";
 
+    public static final String DEFAULT_ACCESS_KEY = "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=";
+
 }

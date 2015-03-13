@@ -1,14 +1,12 @@
 package com.devicehive.service;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.controller.converters.TimestampQueryParamParser;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.messages.kafka.Notification;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.*;
 import com.devicehive.model.enums.WorkerPath;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.helpers.WorkerUtils;
@@ -51,15 +49,15 @@ public class DeviceNotificationService {
     private Event<DeviceNotification> deviceNotificationMessageReceivedEvent;
 
 
-    public List<DeviceNotification> getDeviceNotificationList(Collection<String> deviceGuids, String names,
-                                                              Timestamp timestamp) {
+    public List<DeviceNotification> getDeviceNotificationList(final Collection<String> deviceGuids, final String names,
+                                                              final Timestamp timestamp, final AccessKey accessKey) {
         final String timestampStr = TimestampAdapter.formatTimestamp(timestamp);
-        return getDeviceNotifications(null, deviceGuids, names, timestampStr);
+        return getDeviceNotifications(null, deviceGuids, names, timestampStr, accessKey);
 
     }
 
-    public DeviceNotification findById(String notificationId) {
-        final List<DeviceNotification> notifications = getDeviceNotifications(notificationId, null, null, null);
+    public DeviceNotification findById(final String notificationId, final AccessKey accessKey) {
+        final List<DeviceNotification> notifications = getDeviceNotifications(notificationId, null, null, null, accessKey);
         if (!notifications.isEmpty()) {
             return notifications.get(0);
         } else {
@@ -69,8 +67,8 @@ public class DeviceNotificationService {
 
     public List<DeviceNotification> queryDeviceNotification(final String deviceGuid, final String start, final String endTime, final String notification,
                                                                    final String sortField, final Boolean sortOrderAsc,
-                                                         Integer take, Integer skip, Integer gridInterval) {
-        final List<DeviceNotification> notifications = getDeviceNotifications(null, Arrays.asList(deviceGuid), null, start);
+                                                         Integer take, Integer skip, Integer gridInterval, final AccessKey accessKey) {
+        final List<DeviceNotification> notifications = getDeviceNotifications(null, Arrays.asList(deviceGuid), null, start, accessKey);
         if (endTime != null) {
             final Timestamp end = TimestampQueryParamParser.parse(endTime);
             CollectionUtils.filter(notifications, new Predicate() {
@@ -142,8 +140,9 @@ public class DeviceNotificationService {
         return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_UPDATE);
     }
 
-    private List<DeviceNotification> getDeviceNotifications(String notificationId, Collection<String> deviceGuids, String names, String timestamp) {
-        final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, names, timestamp, WorkerPath.NOTIFICATIONS);
+    private List<DeviceNotification> getDeviceNotifications(final String notificationId, final Collection<String> deviceGuids,
+                                                            final String names, final String timestamp, final AccessKey accessKey) {
+        final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, names, timestamp, WorkerPath.NOTIFICATIONS, accessKey);
         List<DeviceNotification> messages = new ArrayList<>();
         for (JsonElement command : jsonArray) {
             messages.add(CONVERTER.fromString(command.toString()));

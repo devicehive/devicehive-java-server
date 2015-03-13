@@ -22,7 +22,7 @@ public class DeviceCommandController {
     private TimestampAdapter timestampAdapter;
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
-    public List<DeviceCommandWrapper> get(@RequestParam(value = "count", required=false, defaultValue = "1000") int count,
+    public List<DeviceCommandWrapper> get(@RequestParam(value = "count", required=false, defaultValue = "100") int count,
                                             @RequestParam(value = "id", required = false) final String id,
                                             @RequestParam(value = "deviceGuids", required = false) final String deviceGuids,
                                             @RequestParam(value = "names", required = false) final String commandNames,

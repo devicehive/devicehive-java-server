@@ -7,6 +7,7 @@ import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.messages.bus.Create;
 import com.devicehive.messages.bus.Update;
 import com.devicehive.messages.kafka.Command;
+import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
@@ -62,32 +63,32 @@ public class DeviceCommandService {
     private Event<DeviceCommand> deviceCommandUpdateMessageReceivedEvent;
 
 
-    public DeviceCommand getByGuidAndId(List<String> deviceGuids, String commandId) {
-        final List<DeviceCommand> commands = getDeviceCommands(commandId, deviceGuids, null, null);
+    public DeviceCommand getByGuidAndId(final List<String> deviceGuids, final String commandId, final AccessKey accessKey) {
+        final List<DeviceCommand> commands = getDeviceCommands(commandId, deviceGuids, null, null, accessKey);
         return !commands.isEmpty() ? commands.get(0) : null;
     }
 
-    public DeviceCommand findById(String commandId) {
-        final List<DeviceCommand> commands = getDeviceCommands(commandId, null, null, null);
+    public DeviceCommand findById(final String commandId, final AccessKey accessKey) {
+        final List<DeviceCommand> commands = getDeviceCommands(commandId, null, null, null, accessKey);
         return !commands.isEmpty() ? commands.get(0) : null;
     }
 
-    public List<DeviceCommand> getDeviceCommandsList(String devicesGuids, String commandNames,
-                                                     Timestamp timestamp,
-                                                     HivePrincipal principal) {
+    public List<DeviceCommand> getDeviceCommandsList(final String devicesGuids, final String commandNames,
+                                                     final Timestamp timestamp,
+                                                     final HivePrincipal principal) {
         final String timestampStr = TimestampAdapter.formatTimestamp(timestamp);
         if (StringUtils.isNotBlank(devicesGuids)) {
             return getDeviceCommands(null, deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devicesGuids),
-                    principal), commandNames, timestampStr);
+                    principal), commandNames, timestampStr, principal.getKey());
         } else {
-            return getDeviceCommands(null, null, commandNames, timestampStr);
+            return getDeviceCommands(null, null, commandNames, timestampStr, principal.getKey());
         }
     }
 
     public List<DeviceCommand> queryDeviceCommand(final String deviceGuid, final String start, final String endTime, final String command,
                                                   final String status, final String sortField, final Boolean sortOrderAsc,
-                                                  Integer take, Integer skip, Integer gridInterval) {
-        final List<DeviceCommand> commands = getDeviceCommands(null, Arrays.asList(deviceGuid), null, start);
+                                                  Integer take, Integer skip, Integer gridInterval, final AccessKey accessKey) {
+        final List<DeviceCommand> commands = getDeviceCommands(null, Arrays.asList(deviceGuid), null, start, accessKey);
         if (endTime != null) {
             final Timestamp end = TimestampQueryParamParser.parse(endTime);
             CollectionUtils.filter(commands, new Predicate() {
@@ -147,8 +148,9 @@ public class DeviceCommandService {
         return command;
     }
 
-    private List<DeviceCommand> getDeviceCommands(final String commandId, final List<String> deviceGuids, final String names, final String timestamp) {
-        final JsonArray jsonArray = workerUtils.getDataFromWorker(commandId, deviceGuids, names, timestamp, WorkerPath.COMMANDS);
+    private List<DeviceCommand> getDeviceCommands(final String commandId, final List<String> deviceGuids, final String names,
+                                                  final String timestamp, final AccessKey accessKey) {
+        final JsonArray jsonArray = workerUtils.getDataFromWorker(commandId, deviceGuids, names, timestamp, WorkerPath.COMMANDS, accessKey);
         List<DeviceCommand> commands = new ArrayList<>();
         for (JsonElement command : jsonArray) {
             commands.add(CONVERTER.fromString(command.toString()));

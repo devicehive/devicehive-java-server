@@ -1,12 +1,15 @@
 package com.devicehive.service.helpers;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.AccessKey;
 import com.devicehive.model.enums.WorkerPath;
 import com.devicehive.service.TimestampService;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.apache.ApacheHttpTransport;
@@ -43,7 +46,8 @@ public class WorkerUtils {
     @EJB
     private ConfigurationService configurationService;
 
-    public JsonArray getDataFromWorker(final String messageId, final Collection<String> deviceGuids, final String names, final String timestamp, final WorkerPath path) {
+    public JsonArray getDataFromWorker(final String messageId, final Collection<String> deviceGuids, final String names,
+                                       final String timestamp, final WorkerPath path, final AccessKey accessKey) {
         LOGGER.info("Requesting data from DH cassandra worker: messageId {}, deviceGuids {}, names {}, timestamp {}, path {}",
                 messageId, deviceGuids, names, timestamp, path.getValue());
         final HttpRequestFactory requestFactory = new ApacheHttpTransport().createRequestFactory();
@@ -66,6 +70,7 @@ public class WorkerUtils {
         String response = null;
         try {
             final HttpRequest request = requestFactory.buildGetRequest(url);
+            request.setHeaders(new HttpHeaders().setAuthorization("Bearer " + (accessKey != null ? accessKey.getKey() : Constants.DEFAULT_ACCESS_KEY)));
             response = request.execute().parseAsString();
             return  (JsonArray) new JsonParser().parse(response);
         } catch (IOException e) {

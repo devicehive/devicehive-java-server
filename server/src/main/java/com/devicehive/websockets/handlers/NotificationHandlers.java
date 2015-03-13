@@ -118,9 +118,6 @@ public class NotificationHandlers extends WebsocketHandlers {
                                              Set<String> names,
                                              Timestamp timestamp) throws IOException {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        if (timestamp == null) {
-            timestamp = timestampService.getTimestamp();
-        }
         if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
@@ -155,10 +152,9 @@ public class NotificationHandlers extends WebsocketHandlers {
             }
             state.getNotificationSubscriptions().add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
-            if (timestamp == null) {
-                timestamp = timestampService.getTimestamp();
+            if (timestamp != null) {
                 List<DeviceNotification> notifications =
-                    deviceNotificationService.getDeviceNotificationList(devices, StringUtils.join(names, ","), timestamp);
+                        deviceNotificationService.getDeviceNotificationList(devices, StringUtils.join(names, ","), timestamp, principal.getKey());
                 if (!notifications.isEmpty()) {
                     for (DeviceNotification notification : notifications) {
                         state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));
