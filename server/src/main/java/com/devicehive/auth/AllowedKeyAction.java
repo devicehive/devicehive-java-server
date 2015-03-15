@@ -41,6 +41,9 @@ public @interface AllowedKeyAction {
         MANAGE_DEVICE_CLASS(AvailableActions.MANAGE_DEVICE_CLASS),
         MANAGE_NETWORK(AvailableActions.MANAGE_NETWORK),
         MANAGE_OAUTH_CLIENT(AvailableActions.MANAGE_OAUTH_CLIENT),
+        
+        MANAGE_PUSH_INFO(AvailableActions.MANAGE_PUSH_INFO),
+        
         NONE(null);
 
         private String value;

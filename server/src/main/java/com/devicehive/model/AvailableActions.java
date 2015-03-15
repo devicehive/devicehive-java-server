@@ -21,6 +21,8 @@ public class AvailableActions {
     public static final String UPDATE_CURRENT_USER = "UpdateCurrentUser";
     public static final String MANAGE_ACCESS_KEY = "ManageAccessKey";
     public static final String MANAGE_OAUTH_GRANT = "ManageOAuthGrant";
+    
+    public static final String MANAGE_PUSH_INFO = "ManagePushInfo";
 
     //admin
     public static final String MANAGE_USER = "ManageUser";
@@ -44,6 +46,8 @@ public class AvailableActions {
             add(UPDATE_CURRENT_USER);
             add(MANAGE_ACCESS_KEY);
             add(MANAGE_OAUTH_GRANT);
+            
+            add(MANAGE_PUSH_INFO);
         }
 
         private static final long serialVersionUID = -6981208010851957614L;
