@@ -255,7 +255,7 @@ public class DeviceCommandController {
          *    We'll fail request, if this command is not sent for device user has access to.
          */
 
-        DeviceCommand command = commandService.findById(commandId, accessKey);
+        DeviceCommand command = commandService.findById(commandId);
 
         if (command == null) {
             LOGGER.debug("DeviceCommand wait request failed. No command found with id = {} for deviceId = {} ",
@@ -284,7 +284,7 @@ public class DeviceCommandController {
 
             if (SimpleWaiter
                 .subscribeAndWait(storage, commandSubscription, restHandlerCreator.getFutureTask(), timeout)) {
-                command = commandService.findById(commandId, accessKey);
+                command = commandService.findById(commandId);
             }
         }
 
@@ -371,7 +371,7 @@ public class DeviceCommandController {
                                             new ErrorResponse(NOT_FOUND.getStatusCode(),
                                                               String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        DeviceCommand result = commandService.getByGuidAndId(Arrays.asList(device.getGuid()), commandId, principal.getKey());
+        DeviceCommand result = commandService.getByGuidAndId(Arrays.asList(device.getGuid()), commandId);
 
         if (result == null) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId,

@@ -5,6 +5,7 @@ import com.devicehive.domain.AppInfo;
 import com.devicehive.domain.ClusterConfig;
 import com.devicehive.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,12 +25,12 @@ public class AppInfoController {
     @Autowired
     private ClusterConfiguration configuration;
 
-    @RequestMapping(value = "/version", method = RequestMethod.GET, headers = "Accept=application/json")
+    @RequestMapping(value = "/version", method = RequestMethod.GET, headers = "Accept=application/json", produces= MediaType.APPLICATION_JSON_VALUE)
     public AppInfo getAppInfo() {
         return APP_INFO;
     }
 
-    @RequestMapping(value = "/cluster", method = RequestMethod.GET, headers = "Accept=application/json")
+    @RequestMapping(value = "/cluster", method = RequestMethod.GET, headers = "Accept=application/json", produces= MediaType.APPLICATION_JSON_VALUE)
     public ClusterConfig getClusterConfig() {
         return configuration.getClusterConfig();
     }

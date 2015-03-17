@@ -1,7 +1,6 @@
 package com.devicehive.service;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.controller.converters.TimestampQueryParamParser;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.json.adapters.TimestampAdapter;
@@ -50,14 +49,14 @@ public class DeviceNotificationService {
 
 
     public List<DeviceNotification> getDeviceNotificationList(final Collection<String> deviceGuids, final String names,
-                                                              final Timestamp timestamp, final AccessKey accessKey) {
+                                                              final Timestamp timestamp) {
         final String timestampStr = TimestampAdapter.formatTimestamp(timestamp);
-        return getDeviceNotifications(null, deviceGuids, names, timestampStr, accessKey);
+        return getDeviceNotifications(null, deviceGuids, names, timestampStr);
 
     }
 
-    public DeviceNotification findById(final String notificationId, final AccessKey accessKey) {
-        final List<DeviceNotification> notifications = getDeviceNotifications(notificationId, null, null, null, accessKey);
+    public DeviceNotification findById(final String notificationId) {
+        final List<DeviceNotification> notifications = getDeviceNotifications(notificationId, null, null, null);
         if (!notifications.isEmpty()) {
             return notifications.get(0);
         } else {
@@ -67,8 +66,8 @@ public class DeviceNotificationService {
 
     public List<DeviceNotification> queryDeviceNotification(final String deviceGuid, final String start, final String endTime, final String notification,
                                                                    final String sortField, final Boolean sortOrderAsc,
-                                                         Integer take, Integer skip, Integer gridInterval, final AccessKey accessKey) {
-        final List<DeviceNotification> notifications = getDeviceNotifications(null, Arrays.asList(deviceGuid), null, start, accessKey);
+                                                         Integer take, Integer skip, Integer gridInterval) {
+        final List<DeviceNotification> notifications = getDeviceNotifications(null, Arrays.asList(deviceGuid), null, start);
         if (endTime != null) {
             final Timestamp end = TimestampQueryParamParser.parse(endTime);
             CollectionUtils.filter(notifications, new Predicate() {
@@ -141,8 +140,8 @@ public class DeviceNotificationService {
     }
 
     private List<DeviceNotification> getDeviceNotifications(final String notificationId, final Collection<String> deviceGuids,
-                                                            final String names, final String timestamp, final AccessKey accessKey) {
-        final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, names, timestamp, WorkerPath.NOTIFICATIONS, accessKey);
+                                                            final String names, final String timestamp) {
+        final JsonArray jsonArray = workerUtils.getDataFromWorker(notificationId, deviceGuids, names, timestamp, WorkerPath.NOTIFICATIONS);
         List<DeviceNotification> messages = new ArrayList<>();
         for (JsonElement command : jsonArray) {
             messages.add(CONVERTER.fromString(command.toString()));

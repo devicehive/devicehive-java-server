@@ -1,36 +1,36 @@
 package com.devicehive.exception;
 
-import org.springframework.http.HttpStatus;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 /**
  * Created by tatyana on 2/9/15.
  */
 public class HiveException extends RuntimeException {
 
-    private HttpStatus status;
+    private Integer code = null;
 
     public HiveException(String message, Throwable cause) {
-        this(message, cause, HttpStatus.INTERNAL_SERVER_ERROR);
+        this(message, cause, SC_INTERNAL_SERVER_ERROR);
     }
 
     public HiveException(String message) {
-        this(message, null, HttpStatus.INTERNAL_SERVER_ERROR);
+        this(message, null, SC_INTERNAL_SERVER_ERROR);
     }
 
-    public HiveException(String message, HttpStatus status) {
-        this(message, null, status);
+    public HiveException(String message, int code) {
+        this(message, null, code);
     }
 
-    public HiveException(String message, Throwable cause, HttpStatus status) {
+    public HiveException(String message, Throwable cause, int code) {
         super(message, cause);
-        this.status = status;
+        this.code = code;
     }
 
-    public HttpStatus getStatus() {
-        return status;
+    public Integer getCode() {
+        return code;
     }
 
-    public void setStatus(HttpStatus status) {
-        this.status = status;
+    public void setCode(Integer code) {
+        this.code = code;
     }
 }

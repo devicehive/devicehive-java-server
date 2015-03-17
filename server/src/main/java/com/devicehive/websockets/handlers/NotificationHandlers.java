@@ -154,7 +154,7 @@ public class NotificationHandlers extends WebsocketHandlers {
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
             if (timestamp != null) {
                 List<DeviceNotification> notifications =
-                        deviceNotificationService.getDeviceNotificationList(devices, StringUtils.join(names, ","), timestamp, principal.getKey());
+                        deviceNotificationService.getDeviceNotificationList(devices, StringUtils.join(names, ","), timestamp);
                 if (!notifications.isEmpty()) {
                     for (DeviceNotification notification : notifications) {
                         state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(notification, reqId));

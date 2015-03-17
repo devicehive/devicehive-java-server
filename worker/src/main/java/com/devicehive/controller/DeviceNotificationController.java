@@ -31,7 +31,7 @@ public class DeviceNotificationController {
                                           @RequestParam(value = "deviceGuids", required = false) String deviceGuids,
                                           @RequestParam(value = "names", required = false) String notificationNames,
                                           @RequestParam(value = "timestamp", required = false) String timestamp) {
-        LOGGER.info("/notifications list GET method requested with parameters: {}, {}, {}", deviceGuids, notificationNames, timestamp);
+        LOGGER.debug("/notifications list GET method requested with parameters: {}, {}, {}", deviceGuids, notificationNames, timestamp);
         final Timestamp date = timestampAdapter.parseTimestamp(timestamp);
         return notificationService.get(count, id, deviceGuids, notificationNames, date);
     }

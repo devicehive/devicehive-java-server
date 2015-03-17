@@ -5,10 +5,7 @@ package com.devicehive.utils;
  */
 public class Constants {
     public static final String API_VERSION = "1.3.1";
-    public static final String METADATA_BROKER_LIST = "metadata.broker.list";
     public static final String ZOOKEEPER_CONNECT = "zookeeper.connect";
-    public static final String THREADS_COUNT = "threads.count";
-    public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
     public static final String CASSANDRA_KEYSPACE = "cassandra.keyspace";
     public static final String CASSANDRA_KEYSPACE_TEST = "cassandra.keyspace.test";
     public static final String CASSANDRA_USERNAME = "cassandra.username";

@@ -1,21 +1,27 @@
 package com.devicehive.connect;
 
 import com.datastax.driver.core.PlainTextAuthProvider;
+import com.devicehive.dao.IConfigurationDAO;
 import com.devicehive.domain.ClusterConfig;
 import com.devicehive.domain.DeviceCommand;
 import com.devicehive.domain.DeviceNotification;
 import com.devicehive.utils.Constants;
+import org.springframework.cache.CacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.cassandra.core.cql.CqlIdentifier;
 import org.springframework.cassandra.core.keyspace.CreateKeyspaceSpecification;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.cassandra.config.CassandraClusterFactoryBean;
 import org.springframework.data.cassandra.config.java.AbstractCassandraConfiguration;
 import org.springframework.data.cassandra.core.CassandraAdminOperations;
@@ -34,10 +40,16 @@ import java.util.List;
  * Created by tmatvienko on 2/5/15.
  */
 @Configuration
+@EnableCaching
 @PropertySource(value = {"classpath:app.properties"})
 @EnableCassandraRepositories(basePackages = {"com.devicehive.repository"})
 public class ClusterConfiguration extends AbstractCassandraConfiguration implements InitializingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterConfiguration.class);
+
+    public static final String METADATA_BROKER_LIST = "metadata.broker.list";
+    public static final String ZOOKEEPER_CONNECT = "zookeeper.connect";
+    public static final String THREADS_COUNT = "threads.count";
+    public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
 
     protected ClusterConfig clusterConfig;
 
@@ -45,6 +57,8 @@ public class ClusterConfiguration extends AbstractCassandraConfiguration impleme
 
     @Autowired
     protected Environment environment;
+    @Autowired
+    private IConfigurationDAO configurationDAO;
 
     @Override
     public CassandraClusterFactoryBean cluster() {
@@ -84,11 +98,10 @@ public class ClusterConfiguration extends AbstractCassandraConfiguration impleme
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        final String selectQuery = "SELECT value FROM configuration WHERE name = ?";
-        final String metadataBrokerList = jdbcTemplate.queryForObject(selectQuery, new Object[]{Constants.METADATA_BROKER_LIST}, String.class);
-        final String zookeeperConnect = jdbcTemplate.queryForObject(selectQuery, new Object[]{Constants.ZOOKEEPER_CONNECT}, String.class);
-        final Integer threadsCount = jdbcTemplate.queryForObject(selectQuery, new Object[]{Constants.THREADS_COUNT}, Integer.class);
-        final String cassandraContactpoints = jdbcTemplate.queryForObject(selectQuery, new Object[]{Constants.CASSANDRA_CONTACTPOINTS}, String.class);
+        final String metadataBrokerList = configurationDAO.getStringConfig(METADATA_BROKER_LIST);
+        final String zookeeperConnect = configurationDAO.getStringConfig(ZOOKEEPER_CONNECT);
+        final Integer threadsCount = configurationDAO.getIntegerConfig(THREADS_COUNT);
+        final String cassandraContactpoints = configurationDAO.getStringConfig(CASSANDRA_CONTACTPOINTS);
         this.clusterConfig = new ClusterConfig(metadataBrokerList, zookeeperConnect, threadsCount, cassandraContactpoints);
     }
 
@@ -100,5 +113,18 @@ public class ClusterConfiguration extends AbstractCassandraConfiguration impleme
     @Qualifier("dbDataSource")
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    @Bean
+    public CacheManager cacheManager() {
+        return new EhCacheCacheManager(ehCacheCacheManager().getObject());
+    }
+
+    @Bean
+    public EhCacheManagerFactoryBean ehCacheCacheManager() {
+        EhCacheManagerFactoryBean cmfb = new EhCacheManagerFactoryBean();
+        cmfb.setConfigLocation(new ClassPathResource("ehcache.xml"));
+        cmfb.setShared(true);
+        return cmfb;
     }
 }
