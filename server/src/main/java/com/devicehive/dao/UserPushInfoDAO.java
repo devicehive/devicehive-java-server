@@ -27,12 +27,12 @@ public class UserPushInfoDAO {
     private EntityManager em;
 	
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public UserPushInfo findByUserId(Long userId) {
+    public List<UserPushInfo> findByUserId(Long userId) {
         TypedQuery<UserPushInfo> query = em.createNamedQuery(FIND_BY_USER_ID, UserPushInfo.class);
         query.setParameter(USER_ID, userId);
         CacheHelper.cacheable(query);
         List<UserPushInfo> userPushInfos = query.getResultList();
-        return userPushInfos.isEmpty() ? null : userPushInfos.get(0);
+        return userPushInfos;
     }
     
     public UserPushInfo findByUserIdRegId(Long userId, String regId) {

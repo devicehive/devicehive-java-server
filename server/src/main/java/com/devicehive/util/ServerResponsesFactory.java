@@ -65,6 +65,19 @@ public class ServerResponsesFactory {
         }
         return statusJsonObject.get(Constants.STATUS).getAsString();
     }
+    
+    public static int parseEquipmentState(DeviceNotification notification) {
+        String jsonParametersString = notification.getParameters().getJsonString();
+        Gson gson = GsonFactory.createGson();
+        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
+        JsonObject statusJsonObject;
+        if (parametersJsonElement instanceof JsonObject) {
+            statusJsonObject = (JsonObject) parametersJsonElement;
+        } else {
+            throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
+        }
+        return statusJsonObject.get("state").getAsInt();
+    }
 
     public static DeviceNotification createNotificationForDevice(Device device, String notificationName) {
         DeviceNotification notification = new DeviceNotification();

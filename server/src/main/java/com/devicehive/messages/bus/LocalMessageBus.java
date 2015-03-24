@@ -7,10 +7,19 @@ import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.UserPushInfo;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.GCMCccService;
+import com.devicehive.service.SmackCcsClient;
+import com.devicehive.service.UserPushService;
 import com.devicehive.util.LogExecutionTime;
+import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.util.SessionMonitor;
+
+import org.jivesoftware.smack.SmackException.NotConnectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +29,11 @@ import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.event.Observes;
 import javax.enterprise.event.TransactionPhase;
 import javax.websocket.Session;
+
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,7 +55,11 @@ public class LocalMessageBus {
     private SessionMonitor sessionMonitor;
     @Resource(name = "concurrent/DeviceHiveMessageService")
     private ManagedExecutorService mes;
-
+    @EJB
+    private GCMCccService gcmCcsService;
+    @EJB
+    private UserPushService userPushService;
+    
     @Asynchronous
     public void submitDeviceCommand(@LocalMessage @Create
                                     @Observes(
@@ -149,5 +166,43 @@ public class LocalMessageBus {
         }
 
     }
+    
+    @Asynchronous
+    public void submitPushNotification(@LocalMessage @Create
+                                         @Observes(
+                                             during = TransactionPhase.AFTER_SUCCESS) final DeviceNotification deviceNotification) {
 
+        logger.debug("Device notification was submitted: {}", deviceNotification.getId());
+
+        if (deviceNotification.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
+            DeviceEquipment deviceEquipment = 
+            	ServerResponsesFactory.parseDeviceEquipmentNotification(deviceNotification, deviceNotification.getDevice());
+            if (deviceEquipment.getCode().equals("LED") || 
+            	deviceEquipment.getCode().equals("INK_NOTI")) {
+            	int state = ServerResponsesFactory.parseEquipmentState(deviceNotification);
+            	if (state > 0) {
+            		List<UserPushInfo> userPushInfos = userPushService.getListByNetworkId(deviceNotification.getDevice().getGuid());
+            		for (UserPushInfo userPushInfo : userPushInfos) {
+            			// Send a downstream message to a device.
+                        String toRegId = userPushInfo.getRegId();
+                        String messageId = gcmCcsService.getGCMCcsClient().nextMessageId();
+                        Map<String, String> payload = new HashMap<String, String>();
+                        payload.put("state", Integer.toString(state));
+                        payload.put("name", deviceNotification.getDevice().getName());
+                        payload.put("EmbeddedMessageId", messageId);
+                        String collapseKey = "iblock2";
+                        Long timeToLive = 10000L;
+                        String message = 
+                        		SmackCcsClient.createJsonMessage(toRegId, messageId, payload,
+                                collapseKey, timeToLive, false);
+                        try {
+    						gcmCcsService.getGCMCcsClient().sendDownstreamMessage(message);
+    					} catch (NotConnectedException e) {
+    						e.printStackTrace();
+    					}
+					}
+            	}
+            }
+        }
+    }
 }

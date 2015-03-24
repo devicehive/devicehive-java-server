@@ -12,8 +12,12 @@
     <artifactId>devicehive-server</artifactId>
     <name>DeviceHive Java Server</name>
     <packaging>war</packaging>
-
-
+<repositories>
+<repository>
+    <id>opencast-public</id>
+    <url>http://repository.opencastproject.org/nexus/content/repositories/public/</url>
+  </repository>
+</repositories>
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -109,6 +113,25 @@
             <artifactId>google-http-client-jackson2</artifactId>
             <version>1.19.0</version>
         </dependency>
+
+		<dependency>
+	<groupId>org.igniterealtime.smack</groupId>
+	<artifactId>smack-core</artifactId>
+	<version>4.0.7</version>
+</dependency>
+
+<dependency>
+	<groupId>com.googlecode.json-simple</groupId>
+	<artifactId>json-simple</artifactId>
+	<version>1.1</version>
+</dependency>
+
+<dependency>
+	<groupId>org.igniterealtime.smack</groupId>
+	<artifactId>smack-tcp</artifactId>
+	<version>4.0.7</version>
+</dependency>
+
 
 
     </dependencies>
