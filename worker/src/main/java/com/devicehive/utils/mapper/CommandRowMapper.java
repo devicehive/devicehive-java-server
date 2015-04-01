@@ -2,7 +2,7 @@ package com.devicehive.utils.mapper;
 
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.DriverException;
-import com.devicehive.domain.JsonStringWrapper;
+import com.devicehive.domain.wrappers.JsonStringWrapper;
 import com.devicehive.domain.wrappers.DeviceCommandWrapper;
 import org.springframework.cassandra.core.RowMapper;
 

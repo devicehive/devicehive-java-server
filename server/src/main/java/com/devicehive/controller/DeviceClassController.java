@@ -71,13 +71,10 @@ public class DeviceClassController {
 
         logger.debug("DeviceClass list requested");
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
-        if (sortField != null
-            && !ID.equalsIgnoreCase(sortField)
-            && !NAME.equalsIgnoreCase(sortField)) {
+        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
-            return ResponseFactory
-                .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                                                                         Messages.INVALID_REQUEST_PARAMETERS));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                    Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }

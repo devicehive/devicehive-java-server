@@ -1,6 +1,6 @@
 package com.devicehive.security;
 
-import com.devicehive.service.AuthenticationService;
+import com.devicehive.services.AuthenticationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

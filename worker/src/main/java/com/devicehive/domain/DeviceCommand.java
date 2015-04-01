@@ -16,10 +16,10 @@ import java.util.Date;
 @Table(value = "device_command")
 public class DeviceCommand implements Serializable {
 
-    @PrimaryKeyColumn(name = "id", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
+    @PrimaryKeyColumn(name = "id", ordinal = 1, type = PrimaryKeyType.PARTITIONED, ordering = Ordering.DESCENDING)
     private String id;
 
-    @PrimaryKeyColumn(name = "device_guid", ordinal = 0, type = PrimaryKeyType.PARTITIONED, ordering = Ordering.DESCENDING)
+    @PrimaryKeyColumn(name = "device_guid", ordinal = 0, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
     private String deviceGuid;
 
     private Date timestamp;

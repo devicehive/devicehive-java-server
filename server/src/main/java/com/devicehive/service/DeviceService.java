@@ -11,7 +11,11 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -27,6 +31,7 @@ import static javax.ws.rs.core.Response.Status.*;
 @LogExecutionTime
 @EJB(beanInterface = DeviceService.class, name = "DeviceService")
 public class DeviceService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceService.class);
 
     @EJB
     private DeviceNotificationService deviceNotificationService;
@@ -42,6 +47,8 @@ public class DeviceService {
     private DeviceActivityService deviceActivityService;
     @EJB
     private AccessKeyService accessKeyService;
+    @EJB
+    private DeviceCommandService deviceCommandService;
     @EJB
     private HiveValidator hiveValidator;
 
@@ -96,6 +103,7 @@ public class DeviceService {
             return addDeviceNotification;
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
+                LOGGER.error("User {} has no access to device {}", user.getId(), existingDevice.getGuid());
                 throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null) {
@@ -130,9 +138,9 @@ public class DeviceService {
 
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
+            LOGGER.error("Access key {} has no access to device network {}", key, existingDevice.getGuid());
             throw new HiveException(
-                String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
-                UNAUTHORIZED.getStatusCode());
+                String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()), UNAUTHORIZED.getStatusCode());
         }
         Network network = networkService.verifyNetworkByKey(deviceUpdate.getNetwork(), key);
         DeviceClass deviceClass = deviceClassService
@@ -147,8 +155,8 @@ public class DeviceService {
             return addDeviceNotification;
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().getValue())) {
-                throw new HiveException(
-                    String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
+                LOGGER.error("Access key {} has no access to device network {}", key, existingDevice.getGuid());
+                throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                     UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
@@ -180,13 +188,18 @@ public class DeviceService {
                                                    Set<Equipment> equipmentSet,
                                                    Device device) {
         if (deviceUpdate.getGuid() == null) {
+            LOGGER.error("Device guid not found in deviceUpdate request");
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
         }
         if (!device.getGuid().equals(deviceUpdate.getGuid().getValue())) {
+            LOGGER.error("Device update guid {} doesn't equal to the authenticated device guid {}",
+                    deviceUpdate.getGuid().getValue(), device.getGuid());
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                                     UNAUTHORIZED.getStatusCode());
         }
         if (deviceUpdate.getKey() != null && !device.getKey().equals(deviceUpdate.getKey().getValue())) {
+            LOGGER.error("Device update key {} doesn't equal to the authenticated device key {}",
+                    deviceUpdate.getKey().getValue(), device.getKey());
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
         DeviceClass deviceClass = deviceClassService
@@ -237,6 +250,8 @@ public class DeviceService {
             return addDeviceNotification;
         } else {
             if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
+                LOGGER.error("Device update key {} doesn't equal to the authenticated device key {}",
+                        deviceUpdate.getKey().getValue(), existingDevice.getKey());
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null) {
@@ -271,16 +286,15 @@ public class DeviceService {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @SuppressWarnings("unchecked")
     public List<String> findGuidsWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
         final List<Device> devices =  deviceDAO.getDeviceList(principal, guids);
-        if (!devices.isEmpty()) {
-            List<String> deviceGuids = new ArrayList<>();
-            for (Device device : devices) {
-                deviceGuids.add(device.getGuid());
+        return (List<String>) CollectionUtils.collect(devices, new Transformer() {
+            @Override
+            public Object transform(Object o) {
+                return ((Device) o).getGuid();
             }
-            return deviceGuids;
-        }
-        return Collections.EMPTY_LIST;
+        });
     }
 
     /**
@@ -291,15 +305,19 @@ public class DeviceService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void validateDevice(DeviceUpdate device) throws HiveException {
         if (device == null) {
+            LOGGER.error("Device validation: device is empty");
             throw new HiveException(Messages.EMPTY_DEVICE);
         }
-        if (device.getName() != null && device.getName() == null) {
+        if (device.getName() != null && device.getName().getValue() == null) {
+            LOGGER.error("Device validation: device name is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_NAME);
         }
-        if (device.getKey() != null && device.getKey() == null) {
+        if (device.getKey() != null && device.getKey().getValue() == null) {
+            LOGGER.error("Device validation: device key is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_KEY);
         }
         if (device.getDeviceClass() != null && device.getDeviceClass().getValue() == null) {
+            LOGGER.error("Device validation: device class is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_CLASS);
         }
         hiveValidator.validate(device);
@@ -309,12 +327,14 @@ public class DeviceService {
     public Device getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
 
         if (getAllowedDevicesCount(principal, Arrays.asList(deviceId)) == 0) {
+            LOGGER.error("Allowed device count is equal to 0");
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
 
         Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceId);
 
         if (device == null) {
+            LOGGER.error("Device with guid {} not found", deviceId);
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
         return device;

@@ -6,16 +6,17 @@ import com.devicehive.domain.ClusterConfig;
 import com.devicehive.domain.DeviceCommand;
 import com.devicehive.domain.DeviceNotification;
 import com.devicehive.utils.Constants;
-import org.springframework.cache.CacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.cassandra.core.cql.CqlIdentifier;
+import org.springframework.cassandra.core.keyspace.CreateIndexSpecification;
 import org.springframework.cassandra.core.keyspace.CreateKeyspaceSpecification;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -93,6 +94,8 @@ public class ClusterConfiguration extends AbstractCassandraConfiguration impleme
                 new HashMap<String, Object>());
         adminTemplate.createTable(true, CqlIdentifier.cqlId("device_command"), DeviceCommand.class,
                 new HashMap<String, Object>());
+        //adminTemplate.execute(new CreateIndexSpecification().tableName("device_command").columnName("device_guid").ifNotExists());
+        adminTemplate.execute(new CreateIndexSpecification().tableName("device_command").columnName("command").ifNotExists());
         return adminTemplate;
     }
 

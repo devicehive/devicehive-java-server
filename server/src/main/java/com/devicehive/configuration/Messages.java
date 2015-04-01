@@ -49,6 +49,7 @@ public class Messages {
     public static final String LABEL_IS_REQUIRED = BidBundle.get("LABEL_IS_REQUIRED");
     public static final String ACTIONS_ARE_REQUIRED = BidBundle.get("ACTIONS_ARE_REQUIRED");
     public static final String UNKNOWN_ACTION = BidBundle.get("UNKNOWN_ACTION");
+    public static final String OAUTH_GRANT_TOKEN_LABEL = BidBundle.get("OAUTH_TOKEN_LABEL");
     public static final String OAUTH_TOKEN_LABEL = BidBundle.get("OAUTH_TOKEN_LABEL");
     public static final String ID_NOT_ALLOWED = BidBundle.get("ID_NOT_ALLOWED");
     public static final

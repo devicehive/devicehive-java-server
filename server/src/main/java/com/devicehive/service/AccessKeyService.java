@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+
 @Stateless
 @LogExecutionTime
 @EJB(beanInterface = AccessKeyService.class, name = "AccessKeyService")
@@ -68,10 +70,11 @@ public class AccessKeyService {
             throw new HiveException(Messages.LABEL_IS_REQUIRED, Response.Status.BAD_REQUEST.getStatusCode());
         }
         if (accessKeyDAO.get(user.getId(), accessKey.getLabel()) != null) {
-            throw new HiveException(Messages.DUPLICATE_LABEL_FOUND,
-                    Response.Status.BAD_REQUEST.getStatusCode());
+            LOGGER.error("Access key with label {} already exists", accessKey.getLabel());
+            throw new HiveException(Messages.DUPLICATE_LABEL_FOUND, SC_FORBIDDEN);
         }
         if (accessKey.getId() != null) {
+            LOGGER.error("Access key id shouldn't be present in request parameters");
             throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                                     Response.Status.BAD_REQUEST.getStatusCode());
         }
@@ -109,6 +112,7 @@ public class AccessKeyService {
         if (toUpdate.getPermissions() != null) {
             Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().getValue();
             if (permissionsToReplace == null) {
+                LOGGER.error("New permissions shouldn't be empty in request parameters");
                 throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS,
                                         Response.Status.BAD_REQUEST.getStatusCode());
             }
@@ -260,7 +264,7 @@ public class AccessKeyService {
             newKey.setExpirationDate(expirationDate);
         }
         newKey.setUser(user);
-        newKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, grant.getClient().getName()));
+        newKey.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setDomains(grant.getClient().getDomain());
@@ -282,7 +286,7 @@ public class AccessKeyService {
         } else {
             existing.setExpirationDate(null);
         }
-        existing.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, grant.getClient().getName()));
+        existing.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setDomains(grant.getClient().getDomain());

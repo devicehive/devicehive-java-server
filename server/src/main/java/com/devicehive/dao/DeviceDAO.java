@@ -5,6 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
@@ -107,7 +108,7 @@ public class DeviceDAO {
         Root<Device> from = criteria.from(Device.class);
         List<Predicate> predicates = new ArrayList<>();
         appendPrincipalPredicates(predicates, principal, from);
-        if (guids != null && !guids.isEmpty()) {
+        if (!CollectionUtils.isEmpty(guids)) {
             predicates.add(from.get(GUID).in(guids));
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
@@ -130,12 +131,12 @@ public class DeviceDAO {
                                 Integer skip,
                                 HivePrincipal principal) {
         final StringBuilder format = new StringBuilder("SELECT * FROM device d LEFT JOIN network n ON d.network_id = n.id LEFT JOIN device_class dc " +
-                "ON d.device_class_id = dc.id LEFT JOIN equipment e ON e.device_class_id = d.device_class_id ");
+                "ON d.device_class_id = dc.id LEFT JOIN equipment e ON e.device_class_id = d.device_class_id LEFT JOIN user_network un ON un.network_id = n.id ");
         List<String> conditions = new ArrayList<>();
 
         //device fields filters
         if (namePattern != null) {
-            conditions.add(String.format("d.name like '%s'", namePattern));
+            conditions.add(String.format("d.name LIKE '%s'", namePattern));
         } else {
             if (name != null) {
                 conditions.add(String.format("d.name = '%s'", name));
@@ -163,6 +164,32 @@ public class DeviceDAO {
 
         if (deviceClassVersion != null) {
             conditions.add(String.format("dc.version = '%s'", deviceClassVersion));
+        }
+
+        if (principal != null) {
+            User user = principal.getUser();
+            if (user == null && principal.getKey() != null) {
+                user = principal.getKey().getUser();
+            }
+            if (user != null && !user.isAdmin()) {
+                conditions.add(String.format("un.user_id = %s", user.getId()));
+            }
+            if (principal.getDevice() != null) {
+                conditions.add(String.format("d.id = %s", principal.getDevice().getId()));
+            }
+            if (principal.getKey() != null) {
+
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
+                        .createExtraFilters(principal.getKey().getPermissions())) {
+                    if (extraFilter.getDeviceGuids() != null) {
+                        conditions.add(String.format("d.guid IN (%s)", String.format("'%s'",
+                                StringUtils.join(extraFilter.getDeviceGuids(), "','"))));
+                    }
+                    if (extraFilter.getNetworkIds() != null) {
+                        conditions.add(String.format("n.id IN (%s)", StringUtils.join(extraFilter.getNetworkIds(), ",")));
+                    }
+                }
+            }
         }
 
         if (!conditions.isEmpty()) {

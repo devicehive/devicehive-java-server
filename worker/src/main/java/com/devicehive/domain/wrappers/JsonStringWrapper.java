@@ -1,4 +1,4 @@
-package com.devicehive.domain;
+package com.devicehive.domain.wrappers;
 
 import java.io.Serializable;
 

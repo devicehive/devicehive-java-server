@@ -1,12 +1,15 @@
-package com.devicehive.controller;
+package com.devicehive.controllers;
 
 import com.devicehive.domain.wrappers.DeviceCommandWrapper;
 import com.devicehive.messages.converter.adapter.TimestampAdapter;
-import com.devicehive.service.DeviceCommandService;
+import com.devicehive.services.DeviceCommandService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -27,7 +30,7 @@ public class DeviceCommandController {
                                             @RequestParam(value = "deviceGuids", required = false) final String deviceGuids,
                                             @RequestParam(value = "names", required = false) final String commandNames,
                                             @RequestParam(value = "timestamp", required = false) final String timestamp) {
-        final Timestamp date = timestampAdapter.parseTimestamp(timestamp);
+        final Date date = timestampAdapter.parseDate(timestamp);
         return commandsService.get(count, id, deviceGuids, commandNames, date);
     }
 
@@ -36,8 +39,8 @@ public class DeviceCommandController {
         return commandsService.getCommandsCount();
     }
 
-    @RequestMapping(value="/{deviceGuid}", method = RequestMethod.DELETE, produces = "application/json")
-    public void deleteByDeviceGuid(@PathVariable final String deviceGuid) {
-        commandsService.delete(deviceGuid);
+    @RequestMapping(method = RequestMethod.DELETE, produces = "application/json")
+    public void deleteByDeviceGuid(@RequestParam(value = "deviceGuids", required = false) final String deviceGuids) {
+        commandsService.delete(deviceGuids);
     }
 }

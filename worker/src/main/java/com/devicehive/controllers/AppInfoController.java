@@ -1,4 +1,4 @@
-package com.devicehive.controller;
+package com.devicehive.controllers;
 
 import com.devicehive.connect.ClusterConfiguration;
 import com.devicehive.domain.AppInfo;

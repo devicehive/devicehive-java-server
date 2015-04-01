@@ -3,15 +3,11 @@ package com.devicehive.controller.util;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.subscriptions.AbstractStorage;
 import com.devicehive.messages.subscriptions.Subscription;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public class SimpleWaiter {
 

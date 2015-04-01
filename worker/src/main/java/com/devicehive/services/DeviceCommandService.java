@@ -1,4 +1,4 @@
-package com.devicehive.service;
+package com.devicehive.services;
 
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -12,12 +12,14 @@ import com.devicehive.utils.mapper.CommandRowMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cassandra.core.CqlOperations;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,6 +27,7 @@ import java.util.List;
  */
 @Service
 public class DeviceCommandService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceCommandService.class);
 
     @Autowired
     private CqlOperations cqlTemplate;
@@ -33,7 +36,7 @@ public class DeviceCommandService {
     @Autowired
     private MessageUtils messageUtils;
 
-    public List<DeviceCommandWrapper> get(int count, final String commandId, final String deviceGuids, final String commandNames, final Timestamp timestamp) {
+    public List<DeviceCommandWrapper> get(int count, final String commandId, final String deviceGuids, final String commandNames, final Date date) {
         Select.Where select = QueryBuilder.select().from("device_command").where();
         if (StringUtils.isNotBlank(deviceGuids)) {
             select.and(QueryBuilder.in("device_guid", messageUtils.getDeviceGuids(deviceGuids)));
@@ -42,21 +45,25 @@ public class DeviceCommandService {
             select.and(QueryBuilder.in("id", commandId));
         }
         List<DeviceCommandWrapper> commands = cqlTemplate.query(select.limit(count).allowFiltering(), new CommandRowMapper());
-        if (timestamp != null) {
-            CollectionUtils.filter(commands, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return timestamp.before(((DeviceCommandWrapper) o).getTimestamp());
-                }
-            });
-        }
-        if (StringUtils.isNotEmpty(commandNames)) {
-            CollectionUtils.filter(commands, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return commandNames.contains(((DeviceCommandWrapper) o).getCommand());
-                }
-            });
+        if (!commands.isEmpty()) {
+            LOGGER.warn("Select query: {}, result: {}, timestamp: {}", select.getQueryString(), commands.size(), date);
+            if (date != null) {
+                CollectionUtils.filter(commands, new Predicate() {
+                    @Override
+                    public boolean evaluate(Object o) {
+                        return date.compareTo(((DeviceCommandWrapper) o).getTimestamp()) <= 0;
+                    }
+                });
+            }
+            LOGGER.warn("Filter result: {}", commands);
+            if (StringUtils.isNotEmpty(commandNames)) {
+                CollectionUtils.filter(commands, new Predicate() {
+                    @Override
+                    public boolean evaluate(Object o) {
+                        return commandNames.contains(((DeviceCommandWrapper) o).getCommand());
+                    }
+                });
+            }
         }
         return commands;
     }

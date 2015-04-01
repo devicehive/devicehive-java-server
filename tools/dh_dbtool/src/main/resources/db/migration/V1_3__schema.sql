@@ -163,6 +163,7 @@ INSERT INTO configuration (name, value) VALUES ('threads.count', '1');
 INSERT INTO configuration (name, value) VALUES ('cassandra.contactpoints', '127.0.0.1');
 INSERT INTO configuration (name, value) VALUES ('websocket.ping.timeout', '120000');
 INSERT INTO configuration (name, value) VALUES ('cassandra.rest.endpoint', 'http://127.0.0.1:8080/cassandra');
+INSERT INTO configuration (name, value) VALUES ('user.login.lastTimeout', '1000');
 
 CREATE OR REPLACE FUNCTION insert_test_devices(first_index INT, last_index INT) RETURNS void AS $BODY$
 DECLARE

@@ -1,6 +1,5 @@
 package com.devicehive.domain.wrappers;
 
-import com.devicehive.domain.JsonStringWrapper;
 import com.devicehive.messages.converter.adapter.TimestampAdapter;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.gson.annotations.SerializedName;

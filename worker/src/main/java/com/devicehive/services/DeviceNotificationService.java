@@ -1,4 +1,4 @@
-package com.devicehive.service;
+package com.devicehive.services;
 
 import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;

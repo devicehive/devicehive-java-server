@@ -4,7 +4,7 @@ import com.devicehive.domain.DeviceCommand;
 import com.devicehive.domain.DeviceNotification;
 import com.devicehive.domain.wrappers.DeviceCommandWrapper;
 import com.devicehive.domain.wrappers.DeviceNotificationWrapper;
-import com.devicehive.service.DeviceCommandService;
+import com.devicehive.services.DeviceCommandService;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 import org.slf4j.Logger;
@@ -32,8 +32,8 @@ public class MessageConsumer {
         ConsumerIterator<String, DeviceNotificationWrapper> it = a_stream.iterator();
         while (it.hasNext()) {
             DeviceNotificationWrapper message = it.next().message();
-            LOGGER.debug("Notification {}: Thread {}: {}", Thread.currentThread().getName(), a_threadNumber, message);
             final DeviceNotification notification = new DeviceNotification(message);
+            LOGGER.debug("Notification received: Thread {}: {}", Thread.currentThread().getName(), notification);
             cassandraTemplate.insertAsynchronously(notification);
         }
         LOGGER.info("Shutting down Thread: " + a_threadNumber);
@@ -45,10 +45,10 @@ public class MessageConsumer {
         ConsumerIterator<String, DeviceCommandWrapper> it = a_stream.iterator();
         while (it.hasNext()) {
             DeviceCommandWrapper message = it.next().message();
-            LOGGER.debug("Command {}: Thread {}: {}", Thread.currentThread().getName(), a_threadNumber, message);
             DeviceCommand command = new DeviceCommand(message);
             command.setIsUpdated(false);
-            cassandraTemplate.insert(command);
+            LOGGER.debug("Command received: Thread {}: {}", Thread.currentThread().getName(), command);
+            cassandraTemplate.insertAsynchronously(command);
         }
         LOGGER.info("Shutting down Thread: " + a_threadNumber);
     }
@@ -59,7 +59,7 @@ public class MessageConsumer {
         ConsumerIterator<String, DeviceCommandWrapper> it = a_stream.iterator();
         while (it.hasNext()) {
             DeviceCommandWrapper message = it.next().message();
-            LOGGER.debug("CommandUpdate {}: Thread {}: {}", Thread.currentThread().getName(), a_threadNumber, message);
+            LOGGER.debug("CommandUpdate received: Thread {}: {}", Thread.currentThread().getName(), message);
             DeviceCommand command = new DeviceCommand(message);
             commandService.updateDeviceCommmand(command);
         }

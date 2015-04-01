@@ -101,8 +101,8 @@ public class DeviceController {
             && !NETWORK.equalsIgnoreCase(sortField)
             && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                                                              Messages.INVALID_REQUEST_PARAMETERS));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -196,7 +196,7 @@ public class DeviceController {
     public Response delete(@PathParam(ID) String guid) {
 
         logger.debug("Device delete requested");
-        final Device device = hiveSecurityContext.getHivePrincipal().getDevice();
+        final Device device = deviceService.findByGuidWithPermissionsCheck(guid, hiveSecurityContext.getHivePrincipal());
         if (device == null || !guid.equals(device.getGuid())) {
             logger.debug("No device found for guid : {}", guid);
             return ResponseFactory

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.cassandra.core.CassandraAdminOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import java.util.Date;
 import java.util.UUID;
@@ -15,7 +16,7 @@ import java.util.UUID;
  * Created by tmatvienko on 2/2/15.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestCassandraConfiguration.class)
+@ContextConfiguration(loader = AnnotationConfigContextLoader.class, classes = {TestCassandraConfiguration.class})
 public class BaseIntegrationTest {
     final Date date = new Date();
     final String deviceGuid = UUID.randomUUID().toString();

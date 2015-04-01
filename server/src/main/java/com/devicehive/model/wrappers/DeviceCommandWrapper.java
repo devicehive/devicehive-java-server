@@ -20,7 +20,7 @@ public class DeviceCommandWrapper implements HiveEntity {
 
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
     private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
@@ -102,5 +102,16 @@ public class DeviceCommandWrapper implements HiveEntity {
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
         result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
         return result1;
+    }
+
+    @Override
+    public String toString() {
+        return "DeviceCommandWrapper{" +
+                "command='" + command + '\'' +
+                ", parameters=" + parameters +
+                ", lifetime=" + lifetime +
+                ", status='" + status + '\'' +
+                ", result=" + result +
+                '}';
     }
 }

@@ -1,8 +1,8 @@
-package com.devicehive.controller;
+package com.devicehive.controllers;
 
 import com.devicehive.domain.wrappers.DeviceNotificationWrapper;
 import com.devicehive.messages.converter.adapter.TimestampAdapter;
-import com.devicehive.service.DeviceNotificationService;
+import com.devicehive.services.DeviceNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

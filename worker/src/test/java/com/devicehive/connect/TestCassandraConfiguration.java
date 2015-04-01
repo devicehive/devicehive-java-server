@@ -5,6 +5,7 @@ import com.devicehive.utils.Constants;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 
@@ -28,6 +29,6 @@ public class TestCassandraConfiguration extends ClusterConfiguration {
 
     @Override
     public void setDataSource(DataSource dataSource) {
-        this.jdbcTemplate = null;
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 }

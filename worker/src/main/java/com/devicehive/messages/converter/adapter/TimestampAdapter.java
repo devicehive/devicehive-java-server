@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Created by tmatvienko on 3/2/15.
@@ -72,5 +73,17 @@ public class TimestampAdapter extends JsonSerializer<Timestamp> {
 
         timestamp.setNanos(microseconds * 1000);
         return timestamp;
+    }
+
+    public Date parseDate(String input) throws IllegalArgumentException {
+        input = StringUtils.trim(input);
+        input = StringUtils.removeEnd(input, "Z");
+        if (StringUtils.isEmpty(input)) {
+            return null;
+        }
+        int pos = input.indexOf(".");
+        String dateSeconds = pos >= 0 ? input.substring(0, pos) : input;
+
+        return new Date(FORMATTER.parseMillis(dateSeconds));
     }
 }

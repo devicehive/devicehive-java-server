@@ -1,4 +1,4 @@
-package com.devicehive.service;
+package com.devicehive.services;
 
 import com.devicehive.dao.IAccessKeyDAO;
 import org.slf4j.Logger;
