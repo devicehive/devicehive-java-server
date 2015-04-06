@@ -42,6 +42,7 @@ public class NetworkDAO {
     public Network getWithDevicesAndDeviceClasses(@NotNull long id) {
         TypedQuery<Network> query = em.createNamedQuery(GET_WITH_DEVICES_AND_DEVICE_CLASSES, Network.class);
         query.setParameter(ID, id);
+        CacheHelper.cacheable(query);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
@@ -80,6 +81,7 @@ public class NetworkDAO {
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         TypedQuery<Network> query = em.createQuery(criteria);
+        CacheHelper.cacheable(query);
         return query.getResultList();
     }
 
@@ -149,6 +151,7 @@ public class NetworkDAO {
             take = Constants.DEFAULT_TAKE;
         }
         resultQuery.setMaxResults(take);
+        CacheHelper.cacheable(resultQuery);
 
         return resultQuery.getResultList();
     }
@@ -157,6 +160,7 @@ public class NetworkDAO {
     public Network getByIdWithUsers(@NotNull long id) {
         TypedQuery<Network> query = em.createNamedQuery(FIND_WITH_USERS, Network.class);
         query.setParameter(ID, id);
+        CacheHelper.cacheable(query);
         List<Network> networks = query.getResultList();
         return networks.isEmpty() ? null : networks.get(0);
     }

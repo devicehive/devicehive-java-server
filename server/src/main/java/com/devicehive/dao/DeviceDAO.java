@@ -49,6 +49,7 @@ public class DeviceDAO {
         TypedQuery<Device> query = em.createNamedQuery(FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS,
                                                        Device.class);
         query.setParameter(GUID, uuid);
+        CacheHelper.cacheable(query);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);
     }
@@ -113,6 +114,7 @@ public class DeviceDAO {
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         TypedQuery<Device> query = em.createQuery(criteria);
+        CacheHelper.cacheable(query);
         return query.getResultList();
     }
 
@@ -210,6 +212,7 @@ public class DeviceDAO {
         }
         format.append(String.format(" LIMIT %s", take));
         Query  resultQuery = em.createNativeQuery(format.toString(), Device.class);
+        CacheHelper.cacheable(resultQuery);
         return (List<Device>) resultQuery.getResultList();
     }
 

@@ -173,6 +173,7 @@ public class UserDAO {
             take = Constants.DEFAULT_TAKE;
         }
         resultQuery.setMaxResults(take);
+        CacheHelper.cacheable(resultQuery);
 
         return resultQuery.getResultList();
     }
@@ -186,6 +187,7 @@ public class UserDAO {
     public User findUserWithNetworks(Long id) {
         TypedQuery<User> query = em.createNamedQuery(GET_WITH_NETWORKS_BY_ID, User.class);
         query.setParameter(ID, id);
+        CacheHelper.cacheable(query);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
 

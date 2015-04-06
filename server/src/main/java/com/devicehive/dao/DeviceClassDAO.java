@@ -3,29 +3,20 @@ package com.devicehive.dao;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.DeviceClass;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.devicehive.model.DeviceClass.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.DeviceClass.Queries.Names.FIND_BY_NAME_AND_VERSION;
-import static com.devicehive.model.DeviceClass.Queries.Names.GET_ALL;
-import static com.devicehive.model.DeviceClass.Queries.Names.GET_WITH_EQUIPMENT;
-import static com.devicehive.model.DeviceClass.Queries.Parameters.ID;
-import static com.devicehive.model.DeviceClass.Queries.Parameters.NAME;
-import static com.devicehive.model.DeviceClass.Queries.Parameters.VERSION;
+import static com.devicehive.model.DeviceClass.Queries.Names.*;
+import static com.devicehive.model.DeviceClass.Queries.Parameters.*;
 
 /**
  * TODO JavaDoc
@@ -75,6 +66,7 @@ public class DeviceClassDAO {
             take = Constants.DEFAULT_TAKE;
         }
         resultQuery.setMaxResults(take);
+        CacheHelper.cacheable(resultQuery);
         return resultQuery.getResultList();
     }
 
@@ -88,13 +80,16 @@ public class DeviceClassDAO {
     public DeviceClass getWithEquipment(@NotNull long id) {
         TypedQuery<DeviceClass> tq = em.createNamedQuery(GET_WITH_EQUIPMENT, DeviceClass.class);
         tq.setParameter(ID, id);
+        CacheHelper.cacheable(tq);
         List<DeviceClass> result = tq.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<DeviceClass> getList() {
-        return em.createNamedQuery(GET_ALL, DeviceClass.class).getResultList();
+        TypedQuery<DeviceClass> query = em.createNamedQuery(GET_ALL, DeviceClass.class);
+        CacheHelper.cacheable(query);
+        return query.getResultList();
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
@@ -122,6 +117,7 @@ public class DeviceClassDAO {
         TypedQuery<DeviceClass> query = em.createNamedQuery(FIND_BY_NAME_AND_VERSION, DeviceClass.class);
         query.setParameter(VERSION, version);
         query.setParameter(NAME, name);
+        CacheHelper.cacheable(query);
         List<DeviceClass> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
