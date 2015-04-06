@@ -45,7 +45,7 @@ public class DeviceNotificationService {
             CollectionUtils.filter(notifications, new Predicate() {
                 @Override
                 public boolean evaluate(Object o) {
-                    return timestamp.before(((DeviceNotificationWrapper) o).getTimestamp());
+                    return timestamp.before(((DeviceNotification) o).getTimestamp());
                 }
             });
         }
@@ -53,7 +53,7 @@ public class DeviceNotificationService {
             CollectionUtils.filter(notifications, new Predicate() {
                 @Override
                 public boolean evaluate(Object o) {
-                    return notificationNames.contains(((DeviceNotificationWrapper) o).getNotification());
+                    return notificationNames.contains(((DeviceNotification) o).getNotification());
                 }
             });
         }

@@ -15,6 +15,7 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Stateless
 @LogExecutionTime
@@ -40,7 +41,7 @@ public class DeviceNotificationService {
 
     public void submitDeviceNotification(final DeviceNotification notification, final String deviceGuid) {
         notification.setTimestamp(timestampService.getTimestamp());
-        notification.setId(notification.getTimestamp().getTime());
+        notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);
         deviceNotificationMessageReceivedEvent.fire(notification);
     }
@@ -67,7 +68,7 @@ public class DeviceNotificationService {
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, Device device) {
         DeviceNotification message = new DeviceNotification();
-        message.setId(System.nanoTime());
+        message.setId(Math.abs(new Random().nextInt()));
         message.setDeviceGuid(device.getGuid());
         message.setTimestamp(timestampService.getTimestamp());
         message.setNotification(notificationSubmit.getNotification());

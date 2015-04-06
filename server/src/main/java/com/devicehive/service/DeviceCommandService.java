@@ -14,6 +14,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import java.util.Random;
 
 
 @Stateless
@@ -40,7 +41,7 @@ public class DeviceCommandService {
         command.setTimestamp(timestampService.getTimestamp());
         if (commandId == null) {
             //TODO: Replace with UUID
-            command.setId(command.getTimestamp().getTime());
+            command.setId(Math.abs(new Random().nextInt()));
         } else {
             command.setId(commandId);
         }

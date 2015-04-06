@@ -5,7 +5,6 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
 import com.devicehive.domain.DeviceCommand;
-import com.devicehive.domain.wrappers.DeviceCommandWrapper;
 import com.devicehive.repository.DeviceCommandRepository;
 import com.devicehive.utils.MessageUtils;
 import com.devicehive.utils.mapper.CommandRowMapper;
@@ -51,7 +50,7 @@ public class DeviceCommandService {
                 CollectionUtils.filter(commands, new Predicate() {
                     @Override
                     public boolean evaluate(Object o) {
-                        return date.compareTo(((DeviceCommandWrapper) o).getTimestamp()) <= 0;
+                        return date.compareTo(((DeviceCommand) o).getTimestamp()) <= 0;
                     }
                 });
             }
@@ -60,7 +59,7 @@ public class DeviceCommandService {
                 CollectionUtils.filter(commands, new Predicate() {
                     @Override
                     public boolean evaluate(Object o) {
-                        return commandNames.contains(((DeviceCommandWrapper) o).getCommand());
+                        return commandNames.contains(((DeviceCommand) o).getCommand());
                     }
                 });
             }
