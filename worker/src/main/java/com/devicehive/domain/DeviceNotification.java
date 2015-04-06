@@ -75,6 +75,26 @@ public class DeviceNotification implements Serializable {
         return parameters;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setDeviceGuid(String deviceGuid) {
+        this.deviceGuid = deviceGuid;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setNotification(String notification) {
+        this.notification = notification;
+    }
+
+    public void setParameters(String parameters) {
+        this.parameters = parameters;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

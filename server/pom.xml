@@ -13,6 +13,12 @@
     <name>DeviceHive Java Server</name>
     <packaging>war</packaging>
 
+    <!--<repositories>-->
+        <!--<repository>-->
+            <!--<id>terracotta-releases</id>-->
+            <!--<url>http://www.terracotta.org/download/reflector/releases</url>-->
+        <!--</repository>-->
+    <!--</repositories>-->
 
     <dependencies>
         <dependency>
@@ -70,7 +76,7 @@
 
         <dependency>
             <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
+            <artifactId>ehcache</artifactId>
         </dependency>
 
         <dependency>
@@ -136,6 +142,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>org.terracotta</groupId>-->
+            <!--<artifactId>ehcache-probe</artifactId>-->
+            <!--<version>1.0.2</version>-->
+        <!--</dependency>-->
     </dependencies>
 
     <build>

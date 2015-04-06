@@ -115,6 +115,46 @@ public class DeviceCommand implements Serializable {
         return userId;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setDeviceGuid(String deviceGuid) {
+        this.deviceGuid = deviceGuid;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
+    public void setParameters(String parameters) {
+        this.parameters = parameters;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setLifetime(Integer lifetime) {
+        this.lifetime = lifetime;
+    }
+
+    public void setFlags(Integer flags) {
+        this.flags = flags;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
+    }
+
     public Integer getLifetime() {
         return lifetime;
     }

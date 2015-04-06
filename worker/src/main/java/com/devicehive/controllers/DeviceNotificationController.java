@@ -1,6 +1,6 @@
 package com.devicehive.controllers;
 
-import com.devicehive.domain.wrappers.DeviceNotificationWrapper;
+import com.devicehive.domain.DeviceNotification;
 import com.devicehive.messages.converter.adapter.TimestampAdapter;
 import com.devicehive.services.DeviceNotificationService;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class DeviceNotificationController {
     private TimestampAdapter timestampAdapter;
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
-    public List<DeviceNotificationWrapper> get(@RequestParam(value = "count", required=false, defaultValue = "100") int count,
+    public List<DeviceNotification> get(@RequestParam(value = "count", required=false, defaultValue = "100") int count,
                                           @RequestParam(value = "id", required = false) final String id,
                                           @RequestParam(value = "deviceGuids", required = false) String deviceGuids,
                                           @RequestParam(value = "names", required = false) String notificationNames,

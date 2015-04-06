@@ -1,6 +1,6 @@
 package com.devicehive.controllers;
 
-import com.devicehive.domain.wrappers.DeviceCommandWrapper;
+import com.devicehive.domain.DeviceCommand;
 import com.devicehive.messages.converter.adapter.TimestampAdapter;
 import com.devicehive.services.DeviceCommandService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class DeviceCommandController {
     private TimestampAdapter timestampAdapter;
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
-    public List<DeviceCommandWrapper> get(@RequestParam(value = "count", required=false, defaultValue = "100") int count,
+    public List<DeviceCommand> get(@RequestParam(value = "count", required=false, defaultValue = "100") int count,
                                             @RequestParam(value = "id", required = false) final String id,
                                             @RequestParam(value = "deviceGuids", required = false) final String deviceGuids,
                                             @RequestParam(value = "names", required = false) final String commandNames,

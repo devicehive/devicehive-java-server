@@ -36,7 +36,7 @@ public class DeviceCommandService {
     @Autowired
     private MessageUtils messageUtils;
 
-    public List<DeviceCommandWrapper> get(int count, final String commandId, final String deviceGuids, final String commandNames, final Date date) {
+    public List<DeviceCommand> get(int count, final String commandId, final String deviceGuids, final String commandNames, final Date date) {
         Select.Where select = QueryBuilder.select().from("device_command").where();
         if (StringUtils.isNotBlank(deviceGuids)) {
             select.and(QueryBuilder.in("device_guid", messageUtils.getDeviceGuids(deviceGuids)));
@@ -44,7 +44,7 @@ public class DeviceCommandService {
         if (StringUtils.isNotBlank(commandId)) {
             select.and(QueryBuilder.in("id", commandId));
         }
-        List<DeviceCommandWrapper> commands = cqlTemplate.query(select.limit(count).allowFiltering(), new CommandRowMapper());
+        List<DeviceCommand> commands = cqlTemplate.query(select.limit(count).allowFiltering(), new CommandRowMapper());
         if (!commands.isEmpty()) {
             LOGGER.warn("Select query: {}, result: {}, timestamp: {}", select.getQueryString(), commands.size(), date);
             if (date != null) {

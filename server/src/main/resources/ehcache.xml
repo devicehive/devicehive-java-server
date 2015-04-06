@@ -26,4 +26,8 @@
            <!--maxEntriesLocalHeap="5000" eternal="true">-->
         <!--<persistence strategy="localTempSwap" />-->
     <!--</cache>-->
+
+    <!--<cacheManagerPeerListenerFactory-->
+            <!--class="org.terracotta.ehcachedx.monitor.probe.ProbePeerListenerFactory"-->
+            <!--properties="monitorAddress=localhost, monitorPort=9889, memoryMeasurement=true" />-->
 </ehcache>
