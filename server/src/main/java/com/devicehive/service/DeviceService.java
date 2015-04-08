@@ -250,8 +250,7 @@ public class DeviceService {
             return addDeviceNotification;
         } else {
             if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
-                LOGGER.error("Device update key {} doesn't equal to the authenticated device key {}",
-                        deviceUpdate.getKey().getValue(), existingDevice.getKey());
+                LOGGER.error("Device update key is null or doesn't equal to the authenticated device key {}", existingDevice.getKey());
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null) {

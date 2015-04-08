@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.util.Set;
 
@@ -45,6 +46,7 @@ import static com.devicehive.model.DeviceClass.Queries.Values;
                   @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class DeviceClass implements HiveEntity {
 
     public static final String NAME_COLUMN = "name";

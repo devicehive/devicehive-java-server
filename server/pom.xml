@@ -76,7 +76,7 @@
 
         <dependency>
             <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
+            <artifactId>ehcache-core</artifactId>
         </dependency>
 
         <dependency>
@@ -143,11 +143,6 @@
             </exclusions>
         </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>org.terracotta</groupId>-->
-            <!--<artifactId>ehcache-probe</artifactId>-->
-            <!--<version>1.0.2</version>-->
-        <!--</dependency>-->
     </dependencies>
 
     <build>

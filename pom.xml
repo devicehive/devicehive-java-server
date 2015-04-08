@@ -17,12 +17,21 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hibernate-version>4.3.5.Final</hibernate-version>
-        <ehcache-version>2.8.1</ehcache-version>
+        <ehcache-version>2.6.9</ehcache-version>
         <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
         <glassfish.tyrus>1.8.2</glassfish.tyrus>
         <skipTests>true</skipTests>
         <instance.id/>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>terracotta-releases</id>
+            <url>http://www.terracotta.org/download/reflector/releases</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+    </repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -51,7 +60,7 @@
 
             <dependency>
                 <groupId>net.sf.ehcache</groupId>
-                <artifactId>ehcache</artifactId>
+                <artifactId>ehcache-core</artifactId>
                 <version>${ehcache-version}</version>
             </dependency>
 

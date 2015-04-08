@@ -3,6 +3,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
@@ -35,6 +36,7 @@ import static com.devicehive.model.OAuthClient.Queries.Values;
                   @NamedQuery(name = Names.GET_BY_OAUTH_ID_AND_SECRET, query = Values.GET_BY_OAUTH_ID_AND_SECRET)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class OAuthClient implements HiveEntity {
 
     public static final String NAME_COLUMN = "name";

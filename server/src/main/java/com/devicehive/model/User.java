@@ -9,6 +9,7 @@ import com.devicehive.model.enums.UserStatus;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -16,7 +17,6 @@ import java.util.Set;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.ws.rs.DefaultValue;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
@@ -40,6 +40,7 @@ import static com.devicehive.model.User.Queries.Values;
                   @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class User implements HiveEntity {
 
     public static final String ID_COLUMN = "id";
