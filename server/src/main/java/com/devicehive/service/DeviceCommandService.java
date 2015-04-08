@@ -1,5 +1,7 @@
 package com.devicehive.service;
 
+import com.devicehive.controller.util.ResponseFactory;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.bus.Create;
 import com.devicehive.messages.bus.Update;
 import com.devicehive.messages.kafka.Command;
@@ -14,6 +16,9 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
+import java.util.Collections;
 import java.util.Random;
 
 
@@ -72,5 +77,9 @@ public class DeviceCommandService {
 
     public void submitDeviceCommand(DeviceCommand message) {
         deviceCommandMessageReceivedEvent.fire(message);
+    }
+
+    public void submitEmptyResponse(final AsyncResponse asyncResponse) {
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_LISTED));
     }
 }

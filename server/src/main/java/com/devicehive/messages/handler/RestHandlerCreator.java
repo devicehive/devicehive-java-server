@@ -7,7 +7,6 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.response.NotificationPollManyResponse;
-import com.google.common.util.concurrent.Runnables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,15 +14,13 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.FutureTask;
 
 public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestHandlerCreator.class);
-    private static final FutureTask<Void> FUTURE_TASK = new FutureTask<Void>(Runnables.doNothing(), null);
 
     private final AsyncResponse asyncResponse;
 
-    private RestHandlerCreator(AsyncResponse asyncResponse) {
+    private RestHandlerCreator(final AsyncResponse asyncResponse) {
         this.asyncResponse = asyncResponse;
     }
 
@@ -70,9 +67,5 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
                 asyncResponse.resume(response);
             }
         };
-    }
-
-    public static FutureTask<Void> getFutureTask() {
-        return FUTURE_TASK;
     }
 }

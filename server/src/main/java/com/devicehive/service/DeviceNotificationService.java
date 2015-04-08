@@ -1,6 +1,8 @@
 package com.devicehive.service;
 
+import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.dao.DeviceDAO;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.kafka.Notification;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
@@ -13,7 +15,10 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -81,5 +86,10 @@ public class DeviceNotificationService {
         String status = ServerResponsesFactory.parseNotificationStatus(notificationMessage);
         device.setStatus(status);
         return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_UPDATE);
+    }
+
+    public void submitEmptyResponse(final AsyncResponse asyncResponse) {
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(),
+                JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
     }
 }

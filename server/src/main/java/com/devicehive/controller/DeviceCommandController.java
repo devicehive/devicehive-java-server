@@ -24,6 +24,7 @@ import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
 import com.google.common.util.concurrent.Runnables;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,18 +116,15 @@ public class DeviceCommandController {
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                LOGGER.debug("Device command poll request proceed successfully for devices: {}, names {}", deviceGuids, namesString);
-            }
-        });
+
+        final String devices = StringUtils.isNoneBlank(deviceGuids) ? deviceGuids : null;
+        final String names = StringUtils.isNoneBlank(namesString) ? namesString : null;
 
         mes.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    getOrWaitForCommands(principal, deviceGuids, namesString, timeout, asyncResponse, isMany);
+                    getOrWaitForCommands(principal, devices, names, timeout, asyncResponse, isMany);
                 } catch (Exception e) {
                     asyncResponse.resume(e);
                 }
@@ -139,8 +137,7 @@ public class DeviceCommandController {
         LOGGER.debug("Device command pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names,
                 timeout);
         if (timeout <= 0) {
-            asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(),
-                    JsonPolicyDef.Policy.COMMAND_LISTED));
+            commandService.submitEmptyResponse(asyncResponse);
         }
 
         CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
@@ -158,7 +155,9 @@ public class DeviceCommandController {
                     RestHandlerCreator.createCommandInsert(asyncResponse, isMany)));
         }
 
-        SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout);
+        if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
+            commandService.submitEmptyResponse(asyncResponse);
+        }
     }
 
     /**
@@ -228,7 +227,9 @@ public class DeviceCommandController {
         CommandUpdateSubscription commandSubscription =
                 new CommandUpdateSubscription(Long.valueOf(commandId), reqId, RestHandlerCreator.createCommandUpdate(asyncResponse));
 
-        SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<Void>(Runnables.doNothing(), null), timeout);
+        if (!SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
+            commandService.submitEmptyResponse(asyncResponse);
+        }
     }
 
     /**

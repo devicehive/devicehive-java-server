@@ -9,7 +9,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.controller.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
@@ -23,6 +22,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ParseUtil;
+import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +36,14 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.FutureTask;
 
 import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
 import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
@@ -121,17 +124,14 @@ public class DeviceNotificationController {
                       final boolean isMany) {
         final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
 
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-            }
-        });
+        final String devices = StringUtils.isNoneBlank(deviceGuidsString) ? deviceGuidsString : null;
+        final String names = StringUtils.isNoneBlank(namesString) ? namesString : null;
 
         mes.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    getOrWaitForNotifications(principal, deviceGuidsString, namesString, timeout, asyncResponse, isMany);
+                    getOrWaitForNotifications(principal, devices, names, timeout, asyncResponse, isMany);
                 } catch (Exception e) {
                     asyncResponse.resume(e);
                 }
@@ -144,8 +144,7 @@ public class DeviceNotificationController {
                                                                final AsyncResponse asyncResponse, final boolean isMany) {
         LOGGER.debug("Device notification pollMany requested for : {}, {}.  Timeout = {}", deviceGuids, names, timeout);
         if (timeout <= 0) {
-            asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(),
-                    Policy.NOTIFICATION_TO_CLIENT));
+            notificationService.submitEmptyResponse(asyncResponse);
         }
         final List<String> availableDeviceGuids = deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(deviceGuids), principal);
 
@@ -162,7 +161,9 @@ public class DeviceNotificationController {
                     RestHandlerCreator.createNotificationInsert(asyncResponse, isMany)));
         }
 
-        SimpleWaiter.subscribeAndWait(storage, subscriptionSet, RestHandlerCreator.getFutureTask(), timeout);
+        if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
+            notificationService.submitEmptyResponse(asyncResponse);
+        }
     }
 
     /**
