@@ -105,10 +105,12 @@ public class DeviceService {
                                                User user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
-        if (existingDevice == null) {
+        boolean isExistingDevice = (existingDevice != null);
+        DeviceClass deviceClass = deviceClassService
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, isExistingDevice);
+
+        if (isExistingDevice) {
             Device device = deviceUpdate.convertTo();
             if (deviceClass != null) {
                 device.setDeviceClass(deviceClass);
@@ -158,15 +160,16 @@ public class DeviceService {
                                               AccessKey key) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
-        if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
+        boolean isExistingDevice = (existingDevice != null);
+        if (isExistingDevice && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
             throw new HiveException(
                 String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                 UNAUTHORIZED.getStatusCode());
         }
         Network network = networkService.createOrVeriryNetworkByKey(deviceUpdate.getNetwork(), key);
         DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
-        if (existingDevice == null) {
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, isExistingDevice);
+        if (isExistingDevice) {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
             device.setNetwork(network);
@@ -223,9 +226,10 @@ public class DeviceService {
         if (deviceUpdate.getKey() != null && !device.getKey().equals(deviceUpdate.getKey().getValue())) {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
+        boolean isExistingDevice = (existingDevice != null);
+        DeviceClass deviceClass = deviceClassService
+                .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, isExistingDevice);
         if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
             existingDevice.setDeviceClass(deviceClass);
         }
@@ -257,11 +261,12 @@ public class DeviceService {
                                          Set<Equipment> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
+        boolean isExistingDevice = (existingDevice != null);
+        DeviceClass deviceClass = deviceClassService
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet, isExistingDevice);
 
-        if (existingDevice == null) {
+        if (isExistingDevice) {
             Device device = deviceUpdate.convertTo();
             if (deviceClass != null) {
                 device.setDeviceClass(deviceClass);

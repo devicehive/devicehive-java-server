@@ -8,6 +8,7 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
+import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.util.HiveValidator;
 
 import java.util.Collection;
@@ -52,7 +53,7 @@ public class DeviceClassService {
     }
 
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
-                                                 Set<Equipment> customEquipmentSet) {
+                                                 Set<Equipment> customEquipmentSet, boolean isExistingDevice) {
         DeviceClass stored;
         //use existing
         if (deviceClass == null) {
@@ -82,7 +83,10 @@ public class DeviceClassService {
                 Set<Equipment> eq = deviceClassFromMessage.getEquipment();
                 eq = eq != null ? eq : customEquipmentSet;
                 if (eq != null) {
-                    replaceEquipment(eq, stored);
+                    if (isExistingDevice)
+                        replaceEquipment(eq, stored);
+                    else
+                        createEquipment(stored, eq);
                 }
             }
             return stored;
@@ -202,6 +206,25 @@ public class DeviceClassService {
         }
         equipment.setDeviceClass(deviceClass);
         return equipmentService.create(equipment);
+    }
+
+    public void createEquipment(@NotNull DeviceClass deviceClass, Equipment equipment) {
+        if (deviceClass.getPermanent()) {
+            throw new HiveException(Messages.UPDATE_PERMANENT_EQUIPMENT, NOT_FOUND.getStatusCode());
+        }
+        List<Equipment> equipments = equipmentService.getByDeviceClass(deviceClass);
+        String newCode = equipment.getCode();
+        if (equipments != null) {
+            for (Equipment e : equipments) {
+                if (newCode.equals(e.getCode())) {
+                    throw new HiveException(
+                            String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, e.getCode(), deviceClass.getId()),
+                            FORBIDDEN.getStatusCode());
+                }
+            }
+        }
+        equipment.setDeviceClass(deviceClass);
+        equipmentService.create(equipment);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
