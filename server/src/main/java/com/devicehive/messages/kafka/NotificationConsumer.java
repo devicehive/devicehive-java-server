@@ -1,6 +1,7 @@
 package com.devicehive.messages.kafka;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.bus.redis.RedisConnector;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceNotification;
@@ -31,6 +32,8 @@ public class NotificationConsumer extends AbstractConsumer<DeviceNotification>{
     private DeviceService deviceService;
     @Resource(name = "concurrent/DeviceHiveMessageService")
     private ManagedExecutorService mes;
+    @EJB
+    private RedisConnector redis;
 
     @Override
     public void submitMessage(final DeviceNotification message) {

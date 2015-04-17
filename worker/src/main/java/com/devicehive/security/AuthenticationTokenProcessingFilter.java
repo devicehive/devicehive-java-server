@@ -15,8 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
-
 /**
  * Created by tatyana on 3/13/15.
  */
@@ -33,19 +31,19 @@ public class AuthenticationTokenProcessingFilter extends GenericFilterBean {
         HttpServletRequest req = (HttpServletRequest)request;
         HttpServletResponse res = (HttpServletResponse)response;
 
-        final String authHeader = req.getHeader(AUTH_HEADER);
-        if (authHeader == null) {
-            LOGGER.error("Authentication header not found. Authentication failed.");
-            res.sendError(SC_UNAUTHORIZED);
-        } else {
-            if (authHeader.substring(0, 6).equalsIgnoreCase("Bearer")) {
-                final String key = authHeader.substring(6).trim();
-                if (authenticationService.authenticate(key) == null) {
-                    LOGGER.error("Access key {} not found. Authentication failed.", key);
-                    res.sendError(SC_UNAUTHORIZED);
-                }
-            }
-        }
+//        final String authHeader = req.getHeader(AUTH_HEADER);
+//        if (authHeader == null) {
+//            LOGGER.error("Authentication header not found. Authentication failed.");
+//            res.sendError(SC_UNAUTHORIZED);
+//        } else {
+//            if (authHeader.substring(0, 6).equalsIgnoreCase("Bearer")) {
+//                final String key = authHeader.substring(6).trim();
+//                if (authenticationService.authenticate(key) == null) {
+//                    LOGGER.error("Access key {} not found. Authentication failed.", key);
+//                    res.sendError(SC_UNAUTHORIZED);
+//                }
+//            }
+//        }
         chain.doFilter(req, res);
     }
 }

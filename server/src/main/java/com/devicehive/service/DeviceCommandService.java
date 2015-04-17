@@ -1,9 +1,11 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.bus.Create;
 import com.devicehive.messages.bus.Update;
+import com.devicehive.messages.bus.redis.RedisCommandService;
 import com.devicehive.messages.kafka.Command;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
@@ -11,6 +13,8 @@ import com.devicehive.model.User;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -18,7 +22,10 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 
@@ -29,7 +36,11 @@ public class DeviceCommandService {
     @EJB
     private TimestampService timestampService;
     @EJB
+    private DeviceService deviceService;
+    @EJB
     private HiveValidator hiveValidator;
+    @EJB
+    private RedisCommandService redisCommandService;
 
     @Inject
     @Command
@@ -40,6 +51,39 @@ public class DeviceCommandService {
     @Command
     @Update
     private Event<DeviceCommand> deviceCommandUpdateMessageReceivedEvent;
+
+    public DeviceCommand findByIdAndGuid(final Long id, final String guid) {
+        return redisCommandService.getByIdAndGuid(id, guid);
+    }
+
+    public List<DeviceCommand> getDeviceCommandsList(Collection<String> devices, final Collection<String> names,
+                                                     final Timestamp timestamp,
+                                                     HivePrincipal principal) {
+        List<DeviceCommand> commands;
+        if (devices != null) {
+            final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
+            commands = redisCommandService.getByGuids(availableDevices);
+        } else {
+            commands = redisCommandService.getAll();
+        }
+        if (timestamp != null) {
+            CollectionUtils.filter(commands, new Predicate() {
+                @Override
+                public boolean evaluate(Object o) {
+                    return timestamp.compareTo(((DeviceCommand) o).getTimestamp()) <= 0;
+                }
+            });
+        }
+        if (CollectionUtils.isNotEmpty(names)) {
+            CollectionUtils.filter(commands, new Predicate() {
+                @Override
+                public boolean evaluate(Object o) {
+                    return names.contains(((DeviceCommand) o).getCommand());
+                }
+            });
+        }
+        return commands;
+    }
 
     public DeviceCommand convertToDeviceCommand(DeviceCommandWrapper commandWrapper, Device device, User user, Long commandId) {
         DeviceCommand command = new DeviceCommand();
@@ -71,12 +115,16 @@ public class DeviceCommandService {
         return command;
     }
 
-    public void submitDeviceCommandUpdate(DeviceCommand message) {
-        deviceCommandUpdateMessageReceivedEvent.fire(message);
+    public void submitDeviceCommand(DeviceCommand message) {
+        message.setIsUpdated(false);
+        redisCommandService.save(message);
+        deviceCommandMessageReceivedEvent.fire(message);
     }
 
-    public void submitDeviceCommand(DeviceCommand message) {
-        deviceCommandMessageReceivedEvent.fire(message);
+    public void submitDeviceCommandUpdate(DeviceCommand message) {
+        message.setIsUpdated(true);
+        redisCommandService.save(message);
+        deviceCommandUpdateMessageReceivedEvent.fire(message);
     }
 
     public void submitEmptyResponse(final AsyncResponse asyncResponse) {

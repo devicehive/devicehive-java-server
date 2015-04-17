@@ -227,11 +227,11 @@
                 <version>2.1.4</version>
             </dependency>
 
-            <!--<dependency>-->
-                <!--<groupId>org.terracotta</groupId>-->
-                <!--<artifactId>ehcache-probe</artifactId>-->
-                <!--<version>1.0.3</version>-->
-            <!--</dependency>-->
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>2.6.2</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>

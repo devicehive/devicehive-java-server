@@ -35,7 +35,7 @@ public class DeviceCommandService {
     @Autowired
     private MessageUtils messageUtils;
 
-    public List<DeviceCommand> get(int count, final String commandId, final String deviceGuids, final String commandNames, final Date date) {
+    public List<DeviceCommand> get(final Integer count, final String commandId, final String deviceGuids, final String commandNames, final Date date) {
         Select.Where select = QueryBuilder.select().from("device_command").where();
         if (StringUtils.isNotBlank(deviceGuids)) {
             select.and(QueryBuilder.in("device_guid", messageUtils.getDeviceGuids(deviceGuids)));

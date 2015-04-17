@@ -18,6 +18,7 @@ import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
+import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -82,7 +83,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         LOGGER.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                      devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
-        UUID subId = notificationSubscribeAction(session, devices, names);
+        UUID subId = notificationSubscribeAction(session, devices, names, timestamp);
         LOGGER.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                      devices, deviceId, timestamp, names, session);
         WebSocketResponse response = new WebSocketResponse();
@@ -114,7 +115,8 @@ public class NotificationHandlers extends WebsocketHandlers {
 
     private UUID notificationSubscribeAction(Session session,
                                              Set<String> devices,
-                                             Set<String> names) throws IOException {
+                                             Set<String> names,
+                                             Timestamp timestamp) throws IOException {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
@@ -143,6 +145,15 @@ public class NotificationHandlers extends WebsocketHandlers {
             }
             state.getNotificationSubscriptions().add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
+
+            if (timestamp != null) {
+                List<DeviceNotification> notifications = notificationService.getDeviceNotificationsList(devices, names, timestamp, principal);
+                if (!notifications.isEmpty()) {
+                    for (DeviceNotification deviceNotification : notifications) {
+                        state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(deviceNotification, reqId));
+                    }
+                }
+            }
             return reqId;
         } finally {
             state.getNotificationSubscriptionsLock().unlock();

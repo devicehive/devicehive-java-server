@@ -199,7 +199,7 @@ public class DeviceCommand implements HiveEntity  {
 
     @Override
     public String toString() {
-        return "DeviceCommandMessage{" +
+        return "DeviceCommand{" +
                 "id=" + id +
                 ", command='" + command + '\'' +
                 ", timestamp=" + timestamp +

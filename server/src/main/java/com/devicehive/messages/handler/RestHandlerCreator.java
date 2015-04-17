@@ -46,7 +46,6 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
 
     public static RestHandlerCreator<DeviceCommand> createCommandUpdate(final AsyncResponse asyncResponse) {
         return new RestHandlerCreator<DeviceCommand>(asyncResponse) {
-
             @Override
             protected Response createResponse(DeviceCommand message) {
                 return ResponseFactory.response(Response.Status.OK, message, JsonPolicyDef.Policy.COMMAND_TO_DEVICE);

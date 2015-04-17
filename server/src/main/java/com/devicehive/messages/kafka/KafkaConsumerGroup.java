@@ -68,13 +68,13 @@ public class KafkaConsumerGroup {
         final Integer threadsCount = threadsCountStr != null ? Integer.valueOf(threadsCountStr) : 1;
 
         Map<String, Integer> notificationTopicCountMap = new HashMap();
-        notificationTopicCountMap.put(propertiesService.getProperty(Constants.NOTIFICATION_TOPIC_NAME), threadsCount);
+        notificationTopicCountMap.put(Constants.NOTIFICATION_TOPIC_NAME, threadsCount);
 
         Map<String, Integer> commandTopicCountMap = new HashMap();
-        commandTopicCountMap.put(propertiesService.getProperty(Constants.COMMAND_TOPIC_NAME), threadsCount);
+        commandTopicCountMap.put(Constants.COMMAND_TOPIC_NAME, threadsCount);
 
         Map<String, Integer> commandUpdateTopicCountMap = new HashMap();
-        commandUpdateTopicCountMap.put(propertiesService.getProperty(Constants.COMMAND_UPDATE_TOPIC_NAME), threadsCount);
+        commandUpdateTopicCountMap.put(Constants.COMMAND_UPDATE_TOPIC_NAME, threadsCount);
 
         Map<String, List<KafkaStream<String, DeviceNotification>>> notificationStreams = notificationConnector.createMessageStreams(
                 notificationTopicCountMap, new StringDecoder(new VerifiableProperties()),
@@ -88,14 +88,11 @@ public class KafkaConsumerGroup {
                 commandUpdateTopicCountMap, new StringDecoder(new VerifiableProperties()),
                 new DeviceCommandConverter(new VerifiableProperties()));
 
-        List<KafkaStream<String, DeviceNotification>> notificationStream = notificationStreams.get(
-                propertiesService.getProperty(Constants.NOTIFICATION_TOPIC_NAME));
+        List<KafkaStream<String, DeviceNotification>> notificationStream = notificationStreams.get(Constants.NOTIFICATION_TOPIC_NAME);
 
-        List<KafkaStream<String, DeviceCommand>> commandStream = commandStreams.get(
-                propertiesService.getProperty(Constants.COMMAND_TOPIC_NAME));
+        List<KafkaStream<String, DeviceCommand>> commandStream = commandStreams.get(Constants.COMMAND_TOPIC_NAME);
 
-        List<KafkaStream<String, DeviceCommand>> commandUpdateStream = commandUpdateStreams.get(
-                propertiesService.getProperty(Constants.COMMAND_UPDATE_TOPIC_NAME));
+        List<KafkaStream<String, DeviceCommand>> commandUpdateStream = commandUpdateStreams.get(Constants.COMMAND_UPDATE_TOPIC_NAME);
 
         int threadNumber = 0;
         for (final KafkaStream stream : notificationStream) {

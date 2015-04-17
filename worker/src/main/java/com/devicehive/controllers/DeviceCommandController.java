@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.ws.rs.PathParam;
 import java.util.Date;
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * Created by tmatvienko on 2/13/15.
  */
 @RestController
-@RequestMapping("/commands")
+@RequestMapping("/command")
 public class DeviceCommandController {
 
     @Autowired
@@ -26,12 +27,16 @@ public class DeviceCommandController {
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     public List<DeviceCommand> get(@RequestParam(value = "count", required=false, defaultValue = "100") int count,
-                                            @RequestParam(value = "id", required = false) final String id,
                                             @RequestParam(value = "deviceGuids", required = false) final String deviceGuids,
                                             @RequestParam(value = "names", required = false) final String commandNames,
                                             @RequestParam(value = "timestamp", required = false) final String timestamp) {
         final Date date = timestampAdapter.parseDate(timestamp);
-        return commandsService.get(count, id, deviceGuids, commandNames, date);
+        return commandsService.get(count, null, deviceGuids, commandNames, date);
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json")
+    public List<DeviceCommand> get(@PathParam(value = "id") final String commandId) {
+        return commandsService.get(null, commandId, null, null, null);
     }
 
     @RequestMapping(value="/count", method = RequestMethod.GET, produces = "application/json")

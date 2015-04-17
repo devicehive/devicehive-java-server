@@ -22,7 +22,11 @@ public class DeviceNotificationConverter implements Encoder<DeviceNotification>,
 
     @Override
     public byte[] toBytes(DeviceNotification deviceNotification) {
-        return gson.toJson(deviceNotification).getBytes();
+        return toJsonString(deviceNotification).getBytes();
+    }
+
+    public String toJsonString(DeviceNotification deviceNotification) {
+        return gson.toJson(deviceNotification);
     }
 
     @Override

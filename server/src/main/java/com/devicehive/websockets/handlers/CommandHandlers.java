@@ -20,6 +20,7 @@ import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.TimestampService;
+import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -27,6 +28,7 @@ import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.FlushQueue;
 import com.devicehive.websockets.util.SubscriptionSessionMap;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +96,7 @@ public class CommandHandlers extends WebsocketHandlers {
         LOGGER.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
-        UUID subId = commandsSubscribeAction(session, devices, StringUtils.join(names, ','));
+        UUID subId = commandsSubscribeAction(session, devices, names, timestamp);
         LOGGER.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                      devices, deviceId, timestamp, names, session);
 
@@ -126,7 +128,9 @@ public class CommandHandlers extends WebsocketHandlers {
 
     private UUID commandsSubscribeAction(Session session,
                                          final Set<String> devices,
-                                         final String names) throws IOException {
+                                         final Set<String> names,
+                                         final Timestamp timestamp) throws IOException {
+        final String namesStr = CollectionUtils.isNotEmpty(names) ? StringUtils.join(names, ',') : null;
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         if (names != null && names.isEmpty()) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
@@ -143,20 +147,12 @@ public class CommandHandlers extends WebsocketHandlers {
                     throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
                 }
                 for (Device d : actualDevices) {
-                    csList.add(new CommandSubscription(principal, d.getGuid(),
-                                                       reqId,
-                                                       names,
-                                                       WebsocketHandlerCreator.createCommandInsert(session)
-                    ));
+                    csList.add(new CommandSubscription(principal, d.getGuid(), reqId, namesStr,
+                            WebsocketHandlerCreator.createCommandInsert(session)));
                 }
             } else {
-                CommandSubscription forAll =
-                    new CommandSubscription(principal,
-                                            Constants.NULL_SUBSTITUTE,
-                                            reqId,
-                                            names,
-                                            WebsocketHandlerCreator.createCommandInsert(session)
-                    );
+                CommandSubscription forAll = new CommandSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, namesStr,
+                                            WebsocketHandlerCreator.createCommandInsert(session));
                 csList.add(forAll);
             }
             subscriptionSessionMap.put(reqId, session);
@@ -165,6 +161,15 @@ public class CommandHandlers extends WebsocketHandlers {
             }
             state.getCommandSubscriptions().add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
+
+            if (timestamp != null) {
+                List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
+                if (!commands.isEmpty()) {
+                    for (DeviceCommand deviceCommand : commands) {
+                        state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
+                    }
+                }
+            }
             return reqId;
         } finally {
             HiveWebsocketSessionState.get(session).getCommandSubscriptionsLock().unlock();

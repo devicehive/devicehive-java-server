@@ -46,8 +46,7 @@ public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
             }
             boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), message.getDeviceGuid());
             if (hasAccess) {
-                mes.submit(
-                        subscription.getHandlerCreator().getHandler(message, subscription.getSubscriptionId()));
+                mes.submit(subscription.getHandlerCreator().getHandler(message, subscription.getSubscriptionId()));
             }
             subscribersIds.add(subscription.getSubscriptionId());
         }
@@ -63,8 +62,7 @@ public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
             if (!subscribersIds.contains(subscription.getSubscriptionId())) {
                 boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), message.getDeviceGuid());
                 if (hasAccess) {
-                    mes.submit(
-                            subscription.getHandlerCreator().getHandler(message, subscription.getSubscriptionId()));
+                    mes.submit(subscription.getHandlerCreator().getHandler(message, subscription.getSubscriptionId()));
                 }
             }
         }

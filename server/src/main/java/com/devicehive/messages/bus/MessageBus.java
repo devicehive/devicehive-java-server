@@ -1,7 +1,6 @@
 package com.devicehive.messages.bus;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.messages.kafka.Command;
 import com.devicehive.messages.kafka.KafkaProducer;
 import com.devicehive.messages.kafka.Notification;
@@ -25,15 +24,12 @@ public class MessageBus {
 
     @EJB
     private KafkaProducer kafkaProducer;
-    @EJB
-    private PropertiesService propertiesService;
 
     @Asynchronous
     public void publishDeviceNotification(
             @Notification @Observes DeviceNotification deviceNotification) {
         LOGGER.debug("Sending device notification {} to kafka", deviceNotification.getNotification());
-        kafkaProducer.produceDeviceNotificationMsg(deviceNotification,
-                propertiesService.getProperty(Constants.NOTIFICATION_TOPIC_NAME));
+        kafkaProducer.produceDeviceNotificationMsg(deviceNotification, Constants.NOTIFICATION_TOPIC_NAME);
         LOGGER.debug("Sent");
     }
 
@@ -41,8 +37,7 @@ public class MessageBus {
     public void publishDeviceCommand(
             @Command @Create @Observes DeviceCommand deviceCommand) {
         LOGGER.debug("Sending device command to kafka: {}", deviceCommand);
-        kafkaProducer.produceDeviceCommandMsg(deviceCommand,
-                propertiesService.getProperty(Constants.COMMAND_TOPIC_NAME));
+        kafkaProducer.produceDeviceCommandMsg(deviceCommand, Constants.COMMAND_TOPIC_NAME);
         LOGGER.debug("Sent");
     }
 
@@ -50,8 +45,7 @@ public class MessageBus {
     public void publishDeviceCommandUpdate(
             @Command @Update @Observes DeviceCommand deviceCommand) {
         LOGGER.debug("Sending device command update to kafka: {}", deviceCommand);
-        kafkaProducer.produceDeviceCommandUpdateMsg(deviceCommand,
-                propertiesService.getProperty(Constants.COMMAND_UPDATE_TOPIC_NAME));
+        kafkaProducer.produceDeviceCommandUpdateMsg(deviceCommand, Constants.COMMAND_UPDATE_TOPIC_NAME);
         LOGGER.debug("Sent");
     }
 

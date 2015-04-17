@@ -3,7 +3,6 @@ package com.devicehive.controller;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiConfig;
@@ -39,9 +38,6 @@ public class ApiInfoController {
 
     @EJB
     private ConfigurationService configurationService;
-
-    @EJB
-    private PropertiesService propertiesService;
 
     @GET
     @PermitAll

@@ -22,7 +22,11 @@ public class DeviceCommandConverter implements Encoder<DeviceCommand>, Decoder<D
 
     @Override
     public byte[] toBytes(DeviceCommand deviceCommand) {
-        return gson.toJson(deviceCommand).getBytes();
+        return toJsonString(deviceCommand).getBytes();
+    }
+
+    public String toJsonString(DeviceCommand deviceCommand) {
+        return gson.toJson(deviceCommand);
     }
 
     @Override

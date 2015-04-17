@@ -103,7 +103,7 @@ public class DeviceNotification implements HiveEntity {
 
     @Override
     public String toString() {
-        return "DeviceNotificationMessage{" +
+        return "DeviceNotification{" +
                 "id=" + id +
                 ", notification='" + notification + '\'' +
                 ", deviceGuid='" + deviceGuid + '\'' +
