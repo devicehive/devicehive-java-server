@@ -424,10 +424,10 @@ public class DeviceCommandController {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        if (command == null) {
+        DeviceCommand savedCommand = commandService.findByIdAndGuid(commandId, guid);
+        if (savedCommand == null) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
-            return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(),
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                             String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
 

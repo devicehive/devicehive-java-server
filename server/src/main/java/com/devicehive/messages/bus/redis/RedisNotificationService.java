@@ -44,7 +44,7 @@ public class RedisNotificationService extends RedisService<DeviceNotification> {
     @Override
     public DeviceNotification getByKey(String key) {
         Map<String, String> notificationMap = redis.getAll(key);
-        if (notificationMap != null) {
+        if (!notificationMap.isEmpty()) {
             DeviceNotification notification = new DeviceNotification();
             notification.setId(Long.valueOf(notificationMap.get("id")));
             notification.setDeviceGuid(notificationMap.get("deviceGuid"));

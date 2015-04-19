@@ -70,7 +70,7 @@ public class DeviceCommandService {
             CollectionUtils.filter(commands, new Predicate() {
                 @Override
                 public boolean evaluate(Object o) {
-                    return timestamp.compareTo(((DeviceCommand) o).getTimestamp()) <= 0;
+                    return timestamp.before(((DeviceCommand) o).getTimestamp());
                 }
             });
         }

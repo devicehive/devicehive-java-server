@@ -3,6 +3,7 @@ package com.devicehive.controller;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.PropertiesService;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiConfig;
@@ -35,9 +36,10 @@ public class ApiInfoController {
 
     @EJB
     private TimestampService timestampService;
-
     @EJB
     private ConfigurationService configurationService;
+    @EJB
+    private PropertiesService propertiesService;
 
     @GET
     @PermitAll
@@ -96,13 +98,13 @@ public class ApiInfoController {
     public Response getClusterConfig() {
         LOGGER.debug("ClusterConfig requested");
         ClusterConfig clusterConfig = new ClusterConfig();
-        clusterConfig.setMetadataBrokerList(configurationService.get(Constants.METADATA_BROKER_LIST));
-        clusterConfig.setZookeeperConnect(configurationService.get(Constants.ZOOKEEPER_CONNECT));
-        final String cassandraContactpoints = configurationService.get(Constants.CASSANDRA_CONTACTPOINTS);
+        clusterConfig.setMetadataBrokerList(propertiesService.getProperty(Constants.METADATA_BROKER_LIST));
+        clusterConfig.setZookeeperConnect(propertiesService.getProperty(Constants.ZOOKEEPER_CONNECT));
+        final String cassandraContactpoints = propertiesService.getProperty(Constants.CASSANDRA_CONTACTPOINTS);
         if (StringUtils.isNotBlank(cassandraContactpoints)) {
             clusterConfig.setCassandraContactpoints(cassandraContactpoints);
         }
-        final String threadCount = configurationService.get(Constants.THREADS_COUNT);
+        final String threadCount = propertiesService.getProperty(Constants.THREADS_COUNT);
         if (StringUtils.isNotBlank(threadCount) && NumberUtils.isNumber(threadCount)) {
             clusterConfig.setThreadsCount(Integer.parseInt(threadCount));
         } else {

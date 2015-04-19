@@ -1,7 +1,6 @@
 package com.devicehive.connect;
 
 import com.datastax.driver.core.PlainTextAuthProvider;
-import com.devicehive.dao.IConfigurationDAO;
 import com.devicehive.domain.ClusterConfig;
 import com.devicehive.domain.DeviceCommand;
 import com.devicehive.domain.DeviceNotification;
@@ -10,11 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.cassandra.core.cql.CqlIdentifier;
 import org.springframework.cassandra.core.keyspace.CreateIndexSpecification;
 import org.springframework.cassandra.core.keyspace.CreateKeyspaceSpecification;
@@ -22,7 +16,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.cassandra.config.CassandraClusterFactoryBean;
 import org.springframework.data.cassandra.config.java.AbstractCassandraConfiguration;
 import org.springframework.data.cassandra.core.CassandraAdminOperations;
@@ -30,9 +23,7 @@ import org.springframework.data.cassandra.core.CassandraAdminTemplate;
 import org.springframework.data.cassandra.mapping.BasicCassandraMappingContext;
 import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
-import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +32,6 @@ import java.util.List;
  * Created by tmatvienko on 2/5/15.
  */
 @Configuration
-@EnableCaching
 @PropertySource(value = {"classpath:app.properties"})
 @EnableCassandraRepositories(basePackages = {"com.devicehive.repository"})
 public class ClusterConfiguration extends AbstractCassandraConfiguration implements InitializingBean {
@@ -54,12 +44,8 @@ public class ClusterConfiguration extends AbstractCassandraConfiguration impleme
 
     protected ClusterConfig clusterConfig;
 
-    protected JdbcTemplate jdbcTemplate;
-
     @Autowired
     protected Environment environment;
-    @Autowired
-    private IConfigurationDAO configurationDAO;
 
     @Override
     public CassandraClusterFactoryBean cluster() {
@@ -101,33 +87,14 @@ public class ClusterConfiguration extends AbstractCassandraConfiguration impleme
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        final String metadataBrokerList = configurationDAO.getStringConfig(METADATA_BROKER_LIST);
-        final String zookeeperConnect = configurationDAO.getStringConfig(ZOOKEEPER_CONNECT);
-        final Integer threadsCount = configurationDAO.getIntegerConfig(THREADS_COUNT);
-        final String cassandraContactpoints = configurationDAO.getStringConfig(CASSANDRA_CONTACTPOINTS);
+        final String metadataBrokerList = environment.getProperty(METADATA_BROKER_LIST);
+        final String zookeeperConnect = environment.getProperty(ZOOKEEPER_CONNECT);
+        final Integer threadsCount = Integer.parseInt(environment.getProperty(THREADS_COUNT));
+        final String cassandraContactpoints = environment.getProperty(CASSANDRA_CONTACTPOINTS);
         this.clusterConfig = new ClusterConfig(metadataBrokerList, zookeeperConnect, threadsCount, cassandraContactpoints);
     }
 
     public ClusterConfig getClusterConfig() {
         return clusterConfig;
-    }
-
-    @Autowired
-    @Qualifier("dbDataSource")
-    public void setDataSource(DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
-    @Bean
-    public CacheManager cacheManager() {
-        return new EhCacheCacheManager(ehCacheCacheManager().getObject());
-    }
-
-    @Bean
-    public EhCacheManagerFactoryBean ehCacheCacheManager() {
-        EhCacheManagerFactoryBean cmfb = new EhCacheManagerFactoryBean();
-        cmfb.setConfigLocation(new ClassPathResource("ehcache.xml"));
-        cmfb.setShared(true);
-        return cmfb;
     }
 }

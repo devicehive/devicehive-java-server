@@ -24,68 +24,68 @@
     </cache>
 
     <cache name="com.devicehive.model.Device"
-            maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-            timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+            maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+            timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
             diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.User"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.Equipment"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.DeviceClass"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.DeviceEquipment"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.Network"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.AccessKey"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.AccessKeyPermission"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.IdentityProvider"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.OAuthClient"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 
     <cache name="com.devicehive.model.OAuthGrant"
-           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="120"
-           timeToLiveSeconds="120" overflowToDisk="true" diskPersistent="true"
+           maxEntriesLocalHeap="1000" eternal="false" timeToIdleSeconds="600"
+           timeToLiveSeconds="600" overflowToDisk="true" diskPersistent="true"
            diskExpiryThreadIntervalSeconds="120" memoryStoreEvictionPolicy="LFU" >
     </cache>
 

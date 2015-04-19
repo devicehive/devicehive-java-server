@@ -99,7 +99,7 @@ public class DeviceService {
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_ADD);
-            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
+            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
@@ -127,7 +127,7 @@ public class DeviceService {
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_UPDATE);
-            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
+            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         }
     }
@@ -151,7 +151,7 @@ public class DeviceService {
             existingDevice = deviceDAO.createDevice(device);
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_ADD);
-            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
+            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().getValue())) {
@@ -179,7 +179,7 @@ public class DeviceService {
             }
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice, SpecialNotifications.DEVICE_UPDATE);
-            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
+            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         }
     }
@@ -223,7 +223,7 @@ public class DeviceService {
         final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
             (existingDevice,
              SpecialNotifications.DEVICE_UPDATE);
-        deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
+        //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
         return addDeviceNotification;
     }
 
@@ -246,7 +246,7 @@ public class DeviceService {
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_ADD);
-            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
+            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         } else {
             if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
@@ -268,7 +268,7 @@ public class DeviceService {
             final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
                 (existingDevice,
                  SpecialNotifications.DEVICE_UPDATE);
-            deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
+            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
             return addDeviceNotification;
         }
     }

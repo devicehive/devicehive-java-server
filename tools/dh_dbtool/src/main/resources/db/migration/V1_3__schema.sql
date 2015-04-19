@@ -77,13 +77,7 @@ CREATE INDEX oauth_grant_user_id_idx ON oauth_grant(user_id);
 INSERT INTO configuration (name, value)
   VALUES ('debugMode', 'true');
 
-ALTER TABLE device_command
-    ADD COLUMN origin_session_id varchar(64);
-
 --Indexes
-CREATE INDEX device_notification_timestamp_device_id_idx ON device_notification(timestamp, device_id);
-CREATE INDEX device_command_timestamp_device_id_idx ON device_command(timestamp, device_id);
-CREATE INDEX device_command_origin_session_id_idx ON device_command (origin_session_id);
 CREATE UNIQUE INDEX device_guid_idx ON device(guid);
 CREATE INDEX device_network_id_idx ON device(network_id);
 CREATE UNIQUE INDEX device_class_name_version_idx ON device_class(name, version);
@@ -157,10 +151,6 @@ ALTER TABLE access_key DROP CONSTRAINT access_key_label_user_unique;
 ALTER TABLE access_key ADD COLUMN type INT NOT NULL DEFAULT 0;
 INSERT INTO configuration (name, value) VALUES ('session.timeout', '1200000');
 
-INSERT INTO configuration (name, value) VALUES ('metadata.broker.list', '127.0.0.1:9092');
-INSERT INTO configuration (name, value) VALUES ('zookeeper.connect', '127.0.0.1:2181');
-INSERT INTO configuration (name, value) VALUES ('threads.count', '1');
-INSERT INTO configuration (name, value) VALUES ('cassandra.contactpoints', '127.0.0.1');
 INSERT INTO configuration (name, value) VALUES ('websocket.ping.timeout', '120000');
 INSERT INTO configuration (name, value) VALUES ('cassandra.rest.endpoint', 'http://127.0.0.1:8080/cassandra');
 INSERT INTO configuration (name, value) VALUES ('user.login.lastTimeout', '1000');
@@ -179,5 +169,5 @@ END
 $BODY$
 LANGUAGE plpgsql;
 
-INSERT INTO access_key (id, label, key, expiration_date, user_id) VALUES (0,'Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 0);
-INSERT INTO access_key_permission (access_key_id) VALUES (0);
+INSERT INTO access_key (label, key, expiration_date, user_id) VALUES ('Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1);
+INSERT INTO access_key_permission (access_key_id) VALUES (1);

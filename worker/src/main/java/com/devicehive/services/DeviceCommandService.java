@@ -35,7 +35,7 @@ public class DeviceCommandService {
     @Autowired
     private MessageUtils messageUtils;
 
-    public List<DeviceCommand> get(final Integer count, final String commandId, final String deviceGuids, final String commandNames, final Date date) {
+    public List<DeviceCommand> get(final int count, final String commandId, final String deviceGuids, final String commandNames, final Date date) {
         Select.Where select = QueryBuilder.select().from("device_command").where();
         if (StringUtils.isNotBlank(deviceGuids)) {
             select.and(QueryBuilder.in("device_guid", messageUtils.getDeviceGuids(deviceGuids)));
@@ -50,7 +50,7 @@ public class DeviceCommandService {
                 CollectionUtils.filter(commands, new Predicate() {
                     @Override
                     public boolean evaluate(Object o) {
-                        return date.compareTo(((DeviceCommand) o).getTimestamp()) <= 0;
+                        return date.compareTo(((DeviceCommand) o).getTimestamp()) < 0;
                     }
                 });
             }
@@ -73,7 +73,8 @@ public class DeviceCommandService {
 
     @Async
     public void updateDeviceCommmand(final DeviceCommand command) {
-        Update.Assignments update = QueryBuilder.update("device_command").with();
+        Update.Assignments update = QueryBuilder.update("device_command")
+                .with(QueryBuilder.set("timestamp", command.getTimestamp()));
         if (command.getCommand() != null) {
             update.and(QueryBuilder.set("command", command.getCommand()));
         }

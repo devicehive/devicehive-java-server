@@ -4,7 +4,6 @@ import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.devicehive.domain.DeviceNotification;
-import com.devicehive.domain.wrappers.DeviceNotificationWrapper;
 import com.devicehive.repository.DeviceNotificationRepository;
 import com.devicehive.utils.MessageUtils;
 import com.devicehive.utils.mapper.NotificationRowMapper;
@@ -32,13 +31,13 @@ public class DeviceNotificationService {
     @Autowired
     private MessageUtils messageUtils;
 
-    public List<DeviceNotification> get(int count, final String commandId, final String deviceGuids, final String notificationNames, final Timestamp timestamp) {
+    public List<DeviceNotification> get(final int count, final String notificationId, final String deviceGuids, final String notificationNames, final Timestamp timestamp) {
         Select.Where select = QueryBuilder.select().from("device_notification").where();
         if (StringUtils.isNotBlank(deviceGuids)) {
             select.and(QueryBuilder.in("device_guid", messageUtils.getDeviceGuids(deviceGuids)));
         }
-        if (StringUtils.isNotBlank(commandId)) {
-            select.and(QueryBuilder.in("id", commandId));
+        if (StringUtils.isNotBlank(notificationId)) {
+            select.and(QueryBuilder.in("id", notificationId));
         }
         List<DeviceNotification> notifications = cqlTemplate.query(select.limit(count).allowFiltering(), new NotificationRowMapper());
         if (timestamp != null) {

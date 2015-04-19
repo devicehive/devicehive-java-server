@@ -156,16 +156,16 @@ public class DeviceNotificationController {
         DeviceNotification notification = notificationService.findByIdAndGuid(notificationId, guid);
 
         if (notification == null) {
-            LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", notificationId, guid);
+            LOGGER.warn("Device notification get failed. No notification with id = {} found for device with guid = {}", notificationId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                    String.format(Messages.COMMAND_NOT_FOUND, notificationId)));
+                    String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId)));
         }
 
         if (!notification.getDeviceGuid().equals(guid)) {
-            LOGGER.debug("DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}",
+            LOGGER.debug("Device notification wait request failed. Notification with id = {} was not sent for device with guid = {}",
                     notificationId, guid);
             return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    String.format(Messages.COMMAND_NOT_FOUND, notificationId)));
+                    String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId)));
         }
 
         LOGGER.debug("Device notification proceed successfully");
@@ -178,7 +178,7 @@ public class DeviceNotificationController {
      * RESTful API: DeviceNotification: poll</a>
      *
      * @param deviceGuid Device unique identifier.
-     * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken
+     * @param timestamp  Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken
      *                   instead.
      * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable
      *                   waiting.
@@ -246,24 +246,23 @@ public class DeviceNotificationController {
         }
 
         final List<String> deviceGuids = ParseUtil.getList(devices);
-        final List<String> commandNames = ParseUtil.getList(names);
+        final List<String> notificationNames = ParseUtil.getList(names);
         List<DeviceNotification> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = notificationService.getDeviceNotificationsList(deviceGuids, commandNames, timestamp, principal);
+            list = notificationService.getDeviceNotificationsList(deviceGuids, notificationNames, timestamp, principal);
         }
 
         if (!list.isEmpty()) {
             Response response;
-            LOGGER.warn("Messages present in Redis: {}, {}", list.size(), list.get(0));
             if (isMany) {
                 List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
                 for (DeviceNotification notification : list) {
                     resultList.add(new NotificationPollManyResponse(notification, notification.getDeviceGuid()));
                 }
-                response = ResponseFactory.response(Response.Status.OK, resultList, JsonPolicyDef.Policy.COMMAND_LISTED);
+                response = ResponseFactory.response(Response.Status.OK, resultList, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
             } else {
-                response = ResponseFactory.response(Response.Status.OK, list, JsonPolicyDef.Policy.COMMAND_LISTED);
+                response = ResponseFactory.response(Response.Status.OK, list, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
             }
             asyncResponse.resume(response);
         } else {

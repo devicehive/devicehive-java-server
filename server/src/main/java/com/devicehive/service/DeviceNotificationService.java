@@ -61,7 +61,7 @@ public class DeviceNotificationService {
             CollectionUtils.filter(notifications, new Predicate() {
                 @Override
                 public boolean evaluate(Object o) {
-                    return timestamp.compareTo(((DeviceNotification) o).getTimestamp()) <= 0;
+                    return timestamp.before(((DeviceNotification) o).getTimestamp());
                 }
             });
         }

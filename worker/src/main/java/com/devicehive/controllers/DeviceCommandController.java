@@ -1,15 +1,15 @@
 package com.devicehive.controllers;
 
 import com.devicehive.domain.DeviceCommand;
+import com.devicehive.exception.HiveException;
 import com.devicehive.messages.converter.adapter.TimestampAdapter;
 import com.devicehive.services.DeviceCommandService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.PathParam;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/command")
 public class DeviceCommandController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceCommandController.class);
 
     @Autowired
     private DeviceCommandService commandsService;
@@ -35,8 +36,13 @@ public class DeviceCommandController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json")
-    public List<DeviceCommand> get(@PathParam(value = "id") final String commandId) {
-        return commandsService.get(null, commandId, null, null, null);
+    public DeviceCommand get(@PathVariable String id) {
+        final List<DeviceCommand> commands = commandsService.get(1, id, null, null, null);
+        if (commands.isEmpty()) {
+            LOGGER.error("Command with id {} not found", id);
+            throw new HiveException("Command not found", HttpStatus.NOT_FOUND);
+        }
+        return commands.get(0);
     }
 
     @RequestMapping(value="/count", method = RequestMethod.GET, produces = "application/json")
