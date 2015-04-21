@@ -19,24 +19,27 @@ import java.util.*;
  */
 @Stateless
 @LogExecutionTime
-public class RedisCommandService extends RedisService<DeviceCommand> {
-    private static final String KEY_FORMAT = "command:%s:%s";
+public class RedisCommandService {
+    private static final String KEY_FORMAT = "command:%s:%s:%s";
 
     @EJB
     private RedisConnector redis;
     @EJB
     private PropertiesService propertiesService;
 
-    @Override
+    public DeviceCommand get(DeviceCommand deviceCommand) {
+        final String key = String.format(KEY_FORMAT, deviceCommand.getDeviceGuid(), deviceCommand.getId(), "false");
+        return getByKey(key);
+    }
+
     @Asynchronous
     public void save(DeviceCommand deviceCommand) {
-        final String key = String.format(KEY_FORMAT, deviceCommand.getDeviceGuid(), deviceCommand.getId());
+        final String key = String.format(KEY_FORMAT, deviceCommand.getDeviceGuid(), deviceCommand.getId(), deviceCommand.getIsUpdated());
         Map<String, String> commandMap = new HashMap<>();
+        commandMap.put("command", deviceCommand.getCommand());
         commandMap.put("id", deviceCommand.getId().toString());
         commandMap.put("deviceGuid", deviceCommand.getDeviceGuid());
-        if (deviceCommand.getCommand() != null) {
-            commandMap.put("command", deviceCommand.getCommand());
-        }
+        commandMap.put("isUpdated", deviceCommand.getIsUpdated().toString());
         commandMap.put("parameters", (deviceCommand.getParameters() != null && deviceCommand.getParameters().getJsonString() != null)
                 ? deviceCommand.getParameters().getJsonString() : "");
         commandMap.put("timestamp", deviceCommand.getTimestamp() != null ? TimestampAdapter.formatTimestamp(deviceCommand.getTimestamp()) : "");
@@ -46,11 +49,9 @@ public class RedisCommandService extends RedisService<DeviceCommand> {
         commandMap.put("result", (deviceCommand.getResult() != null && deviceCommand.getResult().getJsonString() != null)
                 ? deviceCommand.getResult().getJsonString() : "");
         commandMap.put("status", deviceCommand.getStatus() != null ? deviceCommand.getStatus() : "");
-        commandMap.put("isUpdated", deviceCommand.getIsUpdated() != null ? deviceCommand.getIsUpdated().toString() : "false");
         redis.setAll(key, commandMap, propertiesService.getProperty(Constants.COMMAND_EXPIRE_SEC));
     }
 
-    @Override
     public DeviceCommand getByKey(String key) {
         Map<String, String> commandMap = redis.getAll(key);
         if (commandMap != null && !commandMap.isEmpty()) {
@@ -83,55 +84,66 @@ public class RedisCommandService extends RedisService<DeviceCommand> {
         return null;
     }
 
-    @Override
     public DeviceCommand getByIdAndGuid(final Long id, final String guid) {
-        final String key = String.format(KEY_FORMAT, guid, id);
-        return getByKey(key);
+        final List<String> keys = Arrays.asList(String.format(KEY_FORMAT, guid, id, "true"),
+                    String.format(KEY_FORMAT, guid, id, "false"));
+        List<DeviceCommand> commands = new ArrayList<>();
+        for (final String key : keys) {
+            final DeviceCommand command = getByKey(key);
+            if (command != null) {
+                commands.add(getByKey(key));
+            }
+        }
+        return !commands.isEmpty() ? commands.get(0) : null;
     }
 
-    @Override
-    public List<DeviceCommand> getByGuids(Collection<String> guids) {
-        final List<String> keys = getAllKeysByGuids(guids);
+    public List<DeviceCommand> getByGuids(Collection<String> guids, final Boolean isUpdated) {
+        final List<String> keys = getAllKeysByGuids(guids, isUpdated);
         if (CollectionUtils.isNotEmpty(keys)) {
             List<DeviceCommand> commands = new ArrayList<>();
             for (final String key : keys) {
-                commands.add(getByKey(key));
+                final DeviceCommand command = getByKey(key);
+                if (command != null) {
+                    commands.add(getByKey(key));
+                }
             }
             return commands;
         }
         return Collections.emptyList();
     }
 
-    @Override
-    public List<String> getAllKeysByGuids(Collection<String> guids) {
+    public List<String> getAllKeysByGuids(Collection<String> guids, final Boolean isUpdated) {
+        final String isUpdatedKeyPart = isUpdated != null ? isUpdated.toString() : "*";
         if (CollectionUtils.isNotEmpty(guids)) {
             List<String> keys = new ArrayList<>();
             for (String guid : guids) {
-                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, guid, "*")));
+                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, guid, "*", isUpdatedKeyPart)));
             }
             return keys;
         }
         return Collections.emptyList();
     }
 
-    @Override
     public List<String> getAllKeysByIds(Collection<String> ids) {
         if (CollectionUtils.isNotEmpty(ids)) {
             List<String> keys = new ArrayList<>();
             for (String id : ids) {
-                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, "*", id)));
+                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, "*", id, "*")));
             }
             return keys;
         }
         return Collections.emptyList();
     }
 
-    @Override
-    public List<DeviceCommand> getAll() {
-        Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*"));
+    public List<DeviceCommand> getAll(final Boolean isUpdated) {
+        final String isUpdatedKeyPart = isUpdated != null ? isUpdated.toString() : "*";
+        Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*", isUpdatedKeyPart));
         List<DeviceCommand> commands = new ArrayList<>();
         for (final String key : keys) {
-            commands.add(getByKey(key));
+            final DeviceCommand command = getByKey(key);
+            if (command != null) {
+                commands.add(getByKey(key));
+            }
         }
         return commands;
     }

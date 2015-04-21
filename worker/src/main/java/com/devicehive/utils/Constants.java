@@ -4,7 +4,7 @@ package com.devicehive.utils;
  * Created by tmatvienko on 2/6/15.
  */
 public class Constants {
-    public static final String API_VERSION = "1.3.1";
+    public static final String API_VERSION = "2.0.0";
     public static final String ZOOKEEPER_CONNECT = "zookeeper.connect";
     public static final String CASSANDRA_KEYSPACE = "cassandra.keyspace";
     public static final String CASSANDRA_KEYSPACE_TEST = "cassandra.keyspace.test";

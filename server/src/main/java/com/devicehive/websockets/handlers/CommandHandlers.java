@@ -163,7 +163,7 @@ public class CommandHandlers extends WebsocketHandlers {
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
             if (timestamp != null) {
-                List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, principal);
+                List<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, false, principal);
                 if (!commands.isEmpty()) {
                     for (DeviceCommand deviceCommand : commands) {
                         state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
@@ -178,7 +178,7 @@ public class CommandHandlers extends WebsocketHandlers {
         }
     }
 
-    private void commandsUpdateSubscribeAction(Session session, Long commandId) throws IOException {
+    private void commandUpdateSubscribeAction(Session session, Long commandId) throws IOException {
         if (commandId == null) {
             throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
         }
@@ -264,6 +264,7 @@ public class CommandHandlers extends WebsocketHandlers {
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         final DeviceCommand message = commandService.convertToDeviceCommand(deviceCommand, device, user, null);
         commandService.submitDeviceCommand(message);
+        commandUpdateSubscribeAction(session, message.getId());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(COMMAND, message, COMMAND_TO_CLIENT);
         return response;

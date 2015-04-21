@@ -27,6 +27,7 @@ import java.util.*;
 @Stateless
 @LogExecutionTime
 public class DeviceNotificationService {
+    private static final int MAX_NOTIFICATION_COUNT = 100;
 
     @EJB
     private DeviceEquipmentService deviceEquipmentService;
@@ -72,6 +73,9 @@ public class DeviceNotificationService {
                     return names.contains(((DeviceNotification) o).getNotification());
                 }
             });
+        }
+        if (CollectionUtils.isNotEmpty(notifications) && notifications.size() > MAX_NOTIFICATION_COUNT) {
+            return notifications.subList(0, MAX_NOTIFICATION_COUNT);
         }
         return notifications;
     }

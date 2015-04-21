@@ -7,8 +7,6 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.util.LogExecutionTime;
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -20,8 +18,7 @@ import java.util.*;
  */
 @Stateless
 @LogExecutionTime
-public class RedisNotificationService extends RedisService<DeviceNotification> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RedisNotificationService.class);
+public class RedisNotificationService {
     private static final String KEY_FORMAT = "notification:%s:%s";
 
     @EJB
@@ -29,7 +26,6 @@ public class RedisNotificationService extends RedisService<DeviceNotification> {
     @EJB
     private PropertiesService propertiesService;
 
-    @Override
     @Asynchronous
     public void save(DeviceNotification deviceNotification) {
         final String key = String.format(KEY_FORMAT, deviceNotification.getDeviceGuid(), deviceNotification.getId());
@@ -44,7 +40,6 @@ public class RedisNotificationService extends RedisService<DeviceNotification> {
         redis.setAll(key, notificationMap, propertiesService.getProperty(Constants.NOTIFICATION_EXPIRE_SEC));
     }
 
-    @Override
     public DeviceNotification getByKey(String key) {
         Map<String, String> notificationMap = redis.getAll(key);
         if (!notificationMap.isEmpty()) {
@@ -61,13 +56,11 @@ public class RedisNotificationService extends RedisService<DeviceNotification> {
         return null;
     }
 
-    @Override
     public DeviceNotification getByIdAndGuid(Long id, String guid) {
         final String key = String.format(KEY_FORMAT, guid, id);
         return getByKey(key);
     }
 
-    @Override
     public List<DeviceNotification> getByGuids(Collection<String> guids) {
         final List<String> keys = getAllKeysByGuids(guids);
         if (CollectionUtils.isNotEmpty(keys)) {
@@ -80,7 +73,6 @@ public class RedisNotificationService extends RedisService<DeviceNotification> {
         return Collections.emptyList();
     }
 
-    @Override
     public List<String> getAllKeysByGuids(Collection<String> guids) {
         if (CollectionUtils.isNotEmpty(guids)) {
             List<String> keys = new ArrayList<>();
@@ -92,7 +84,6 @@ public class RedisNotificationService extends RedisService<DeviceNotification> {
         return Collections.emptyList();
     }
 
-    @Override
     public List<String> getAllKeysByIds(Collection<String> ids) {
         if (CollectionUtils.isNotEmpty(ids)) {
             List<String> keys = new ArrayList<>();
@@ -104,7 +95,6 @@ public class RedisNotificationService extends RedisService<DeviceNotification> {
         return Collections.emptyList();
     }
 
-    @Override
     public List<DeviceNotification> getAll() {
         Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*"));
         List<DeviceNotification> notifications = new ArrayList<>();

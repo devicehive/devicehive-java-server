@@ -32,6 +32,7 @@ import java.util.Random;
 @Stateless
 @LogExecutionTime
 public class DeviceCommandService {
+    private static final int MAX_COMMAND_COUNT = 100;
 
     @EJB
     private TimestampService timestampService;
@@ -57,14 +58,13 @@ public class DeviceCommandService {
     }
 
     public List<DeviceCommand> getDeviceCommandsList(Collection<String> devices, final Collection<String> names,
-                                                     final Timestamp timestamp,
-                                                     HivePrincipal principal) {
+                                                     final Timestamp timestamp, final Boolean isUpdated, HivePrincipal principal) {
         List<DeviceCommand> commands;
         if (devices != null) {
             final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-            commands = redisCommandService.getByGuids(availableDevices);
+            commands = redisCommandService.getByGuids(availableDevices, isUpdated);
         } else {
-            commands = redisCommandService.getAll();
+            commands = redisCommandService.getAll(isUpdated);
         }
         if (timestamp != null) {
             CollectionUtils.filter(commands, new Predicate() {
@@ -81,6 +81,9 @@ public class DeviceCommandService {
                     return names.contains(((DeviceCommand) o).getCommand());
                 }
             });
+        }
+        if (CollectionUtils.isNotEmpty(commands) && commands.size() > MAX_COMMAND_COUNT) {
+            return commands.subList(0, MAX_COMMAND_COUNT);
         }
         return commands;
     }
@@ -122,6 +125,12 @@ public class DeviceCommandService {
     }
 
     public void submitDeviceCommandUpdate(DeviceCommand message) {
+        if (message.getCommand() == null) {
+            final DeviceCommand existing = redisCommandService.get(message);
+            if (existing != null) {
+                message.setCommand(existing.getCommand());
+            }
+        }
         message.setIsUpdated(true);
         redisCommandService.save(message);
         deviceCommandUpdateMessageReceivedEvent.fire(message);

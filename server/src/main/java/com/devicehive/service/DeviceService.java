@@ -97,10 +97,7 @@ public class DeviceService {
                 device.setNetwork(network);
             }
             existingDevice = deviceDAO.createDevice(device);
-            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                (existingDevice, SpecialNotifications.DEVICE_ADD);
-            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
-            return addDeviceNotification;
+            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_ADD);
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
                 LOGGER.error("User {} has no access to device {}", user.getId(), existingDevice.getGuid());
@@ -124,11 +121,7 @@ public class DeviceService {
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
-            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                (existingDevice,
-                 SpecialNotifications.DEVICE_UPDATE);
-            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
-            return addDeviceNotification;
+            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
     }
 
@@ -149,10 +142,7 @@ public class DeviceService {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
             existingDevice = deviceDAO.createDevice(device);
-            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                (existingDevice, SpecialNotifications.DEVICE_ADD);
-            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
-            return addDeviceNotification;
+            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_ADD);
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().getValue())) {
                 LOGGER.error("Access key {} has no access to device network {}", key, existingDevice.getGuid());
@@ -177,10 +167,7 @@ public class DeviceService {
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
-            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                (existingDevice, SpecialNotifications.DEVICE_UPDATE);
-            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
-            return addDeviceNotification;
+            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
     }
 
@@ -205,8 +192,12 @@ public class DeviceService {
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());
+        Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
         if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
             existingDevice.setDeviceClass(deviceClass);
+        }
+        if (deviceUpdate.getNetwork() != null) {
+            existingDevice.setNetwork(network);
         }
         if (deviceUpdate.getStatus() != null) {
             existingDevice.setStatus(deviceUpdate.getStatus().getValue());
@@ -220,11 +211,7 @@ public class DeviceService {
         if (deviceUpdate.getKey() != null) {
             existingDevice.setKey(deviceUpdate.getKey().getValue());
         }
-        final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-            (existingDevice,
-             SpecialNotifications.DEVICE_UPDATE);
-        //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
-        return addDeviceNotification;
+        return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
     }
 
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
@@ -243,11 +230,7 @@ public class DeviceService {
                 device.setNetwork(network);
             }
             existingDevice = deviceDAO.createDevice(device);
-            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                (existingDevice,
-                 SpecialNotifications.DEVICE_ADD);
-            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
-            return addDeviceNotification;
+            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_ADD);
         } else {
             if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
                 LOGGER.error("Device update key is null or doesn't equal to the authenticated device key {}", existingDevice.getKey());
@@ -265,11 +248,7 @@ public class DeviceService {
             if (deviceUpdate.getNetwork() != null) {
                 existingDevice.setNetwork(network);
             }
-            final DeviceNotification addDeviceNotification = ServerResponsesFactory.createNotificationForDevice
-                (existingDevice,
-                 SpecialNotifications.DEVICE_UPDATE);
-            //deviceNotificationService.submitDeviceNotification(addDeviceNotification, existingDevice.getGuid());
-            return addDeviceNotification;
+            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
     }
 
