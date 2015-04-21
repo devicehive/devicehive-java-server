@@ -75,8 +75,7 @@ public class NotificationHandlers extends WebsocketHandlers {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
     public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
-                                                          @WsParam(DEVICE_GUIDS)
-                                                          Set<String> devices,
+                                                          @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                           @WsParam(NAMES) Set<String> names,
                                                           @WsParam(DEVICE_GUID) String deviceId,
                                                           Session session) throws IOException {

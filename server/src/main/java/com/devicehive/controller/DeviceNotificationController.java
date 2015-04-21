@@ -156,14 +156,14 @@ public class DeviceNotificationController {
         DeviceNotification notification = notificationService.findByIdAndGuid(notificationId, guid);
 
         if (notification == null) {
-            LOGGER.warn("Device notification get failed. No notification with id = {} found for device with guid = {}", notificationId, guid);
+            LOGGER.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                     String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId)));
         }
 
         if (!notification.getDeviceGuid().equals(guid)) {
-            LOGGER.debug("Device notification wait request failed. Notification with id = {} was not sent for device with guid = {}",
-                    notificationId, guid);
+            LOGGER.warn("Device notification get failed. BAD REQUEST: Notification with id = {} was not sent " +
+                            "for device with guid = {}", notificationId, guid);
             return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
                     String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId)));
         }
@@ -240,7 +240,7 @@ public class DeviceNotificationController {
     private void getOrWaitForNotifications(final HivePrincipal principal, final String devices,
                                                                final String names, final Timestamp timestamp, long timeout,
                                                                final AsyncResponse asyncResponse, final boolean isMany) {
-        LOGGER.debug("Device notification pollMany requested for : {}, {}.  Timeout = {}", devices, names, timeout);
+        LOGGER.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
         if (timeout <= 0) {
             notificationService.submitEmptyResponse(asyncResponse);
         }
@@ -264,6 +264,7 @@ public class DeviceNotificationController {
             } else {
                 response = ResponseFactory.response(Response.Status.OK, list, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
             }
+            LOGGER.debug("Notifications poll result: {}", response.getEntity());
             asyncResponse.resume(response);
         } else {
             final UUID reqId = UUID.randomUUID();
@@ -311,26 +312,25 @@ public class DeviceNotificationController {
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
                            DeviceNotificationWrapper notificationSubmit) {
-        LOGGER.debug("DeviceNotification insertAll requested");
+        LOGGER.debug("DeviceNotification insert requested: {}", notificationSubmit);
 
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        if (notificationSubmit == null || notificationSubmit.getNotification() == null){
-            LOGGER.debug("DeviceNotification insertAll proceed with error. Bad notification: notification is required.");
+        if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
+            LOGGER.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             return ResponseFactory.response(BAD_REQUEST,
                                             new ErrorResponse(BAD_REQUEST.getStatusCode(),
                                                               Messages.INVALID_REQUEST_PARAMETERS));
         }
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
-            return ResponseFactory.response(NOT_FOUND,
-                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+            LOGGER.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                                                               String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         if (device.getNetwork() == null) {
-            return ResponseFactory.response(FORBIDDEN,
-                                            new ErrorResponse(FORBIDDEN.getStatusCode(),
-                                                              String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK,
-                                                                            guid)));
+            LOGGER.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", guid);
+            return ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
+                                                              String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
         }
         DeviceNotification message = notificationService.convertToMessage(notificationSubmit, device);
         notificationService.submitDeviceNotification(message, device);

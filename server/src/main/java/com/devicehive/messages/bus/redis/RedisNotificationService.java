@@ -7,6 +7,8 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.util.LogExecutionTime;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -19,6 +21,7 @@ import java.util.*;
 @Stateless
 @LogExecutionTime
 public class RedisNotificationService extends RedisService<DeviceNotification> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisNotificationService.class);
     private static final String KEY_FORMAT = "notification:%s:%s";
 
     @EJB

@@ -263,7 +263,6 @@ public class CommandHandlers extends WebsocketHandlers {
         }
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         final DeviceCommand message = commandService.convertToDeviceCommand(deviceCommand, device, user, null);
-        commandsUpdateSubscribeAction(session, message.getId());
         commandService.submitDeviceCommand(message);
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(COMMAND, message, COMMAND_TO_CLIENT);

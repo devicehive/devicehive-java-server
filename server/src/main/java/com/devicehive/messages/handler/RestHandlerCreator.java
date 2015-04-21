@@ -28,6 +28,7 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
         return new RestHandlerCreator<DeviceNotification>(asyncResponse) {
             @Override
             protected Response createResponse(DeviceNotification message) {
+                LOGGER.debug("NotificationInsert created for message: {}", message);
                 final HiveEntity responseMessage = isMany ? new NotificationPollManyResponse(message, message.getDeviceGuid()) : message;
                 return ResponseFactory.response(Response.Status.OK, Arrays.asList(responseMessage), JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
             }
@@ -38,6 +39,7 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
         return new RestHandlerCreator<DeviceCommand>(asyncResponse) {
             @Override
             protected Response createResponse(DeviceCommand message) {
+                LOGGER.debug("CommandInsert created for message: {}", message);
                 final HiveEntity responseMessage = isMany ? new CommandPollManyResponse(message, message.getDeviceGuid()) : message;
                 return ResponseFactory.response(Response.Status.OK, Arrays.asList(responseMessage), JsonPolicyDef.Policy.COMMAND_LISTED);
             }
@@ -48,6 +50,7 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
         return new RestHandlerCreator<DeviceCommand>(asyncResponse) {
             @Override
             protected Response createResponse(DeviceCommand message) {
+                LOGGER.debug("CommandUpdateInsert created for message: {}", message);
                 return ResponseFactory.response(Response.Status.OK, message, JsonPolicyDef.Policy.COMMAND_TO_DEVICE);
             }
         };

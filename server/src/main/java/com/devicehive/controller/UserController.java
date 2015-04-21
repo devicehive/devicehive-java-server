@@ -230,7 +230,7 @@ public class UserController {
                                                 JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
-        throw new NotFoundException(String.format(Messages.USER_NETWORK_NOT_FOUND, id, networkId));
+        throw new NotFoundException(String.format(Messages.USER_NETWORK_NOT_FOUND, networkId, id));
     }
 
     /**

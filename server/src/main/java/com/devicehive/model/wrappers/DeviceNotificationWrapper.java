@@ -14,11 +14,11 @@ public class DeviceNotificationWrapper implements HiveEntity {
     private static final long serialVersionUID = 2377186341017341138L;
 
     @SerializedName("notification")
-    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE, NOTIFICATION_FROM_DEVICE})
     private String notification;
 
     @SerializedName("parameters")
-    @JsonPolicyDef({NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_CLIENT})
+    @JsonPolicyDef({NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private JsonStringWrapper parameters;
 
     public String getNotification() {
@@ -56,5 +56,13 @@ public class DeviceNotificationWrapper implements HiveEntity {
         int result = notification != null ? notification.hashCode() : 0;
         result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "DeviceNotificationWrapper{" +
+                "notification='" + notification + '\'' +
+                ", parameters=" + parameters +
+                '}';
     }
 }

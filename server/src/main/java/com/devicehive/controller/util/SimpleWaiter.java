@@ -35,6 +35,7 @@ public class SimpleWaiter {
             storage.insert(sub);
             return waitFor(future, seconds);
         } finally {
+            logger.debug("{} sub removed", sub.getSubscriptionId());
             storage.remove(sub);
         }
     }
@@ -47,7 +48,7 @@ public class SimpleWaiter {
             storage.insertAll(subs);
             return waitFor(future, seconds);
         } finally {
-            logger.warn("{} subs removed", subs.size());
+            logger.debug("{} subs removed", subs.size());
             storage.removeAll(subs);
         }
     }

@@ -37,12 +37,14 @@ public class RedisCommandService extends RedisService<DeviceCommand> {
         if (deviceCommand.getCommand() != null) {
             commandMap.put("command", deviceCommand.getCommand());
         }
-        commandMap.put("parameters", deviceCommand.getParameters() != null ? deviceCommand.getParameters().getJsonString() : "");
-        commandMap.put("timestamp", TimestampAdapter.formatTimestamp(deviceCommand.getTimestamp()));
+        commandMap.put("parameters", (deviceCommand.getParameters() != null && deviceCommand.getParameters().getJsonString() != null)
+                ? deviceCommand.getParameters().getJsonString() : "");
+        commandMap.put("timestamp", deviceCommand.getTimestamp() != null ? TimestampAdapter.formatTimestamp(deviceCommand.getTimestamp()) : "");
         commandMap.put("userId", deviceCommand.getUserId() != null ? deviceCommand.getUserId().toString() : "");
         commandMap.put("lifetime", deviceCommand.getLifetime() != null ? deviceCommand.getLifetime().toString() : "");
         commandMap.put("flags", deviceCommand.getFlags() != null ? deviceCommand.getFlags().toString() : "");
-        commandMap.put("result", deviceCommand.getResult() != null ? deviceCommand.getResult().getJsonString() : "");
+        commandMap.put("result", (deviceCommand.getResult() != null && deviceCommand.getResult().getJsonString() != null)
+                ? deviceCommand.getResult().getJsonString() : "");
         commandMap.put("status", deviceCommand.getStatus() != null ? deviceCommand.getStatus() : "");
         commandMap.put("isUpdated", deviceCommand.getIsUpdated() != null ? deviceCommand.getIsUpdated().toString() : "false");
         redis.setAll(key, commandMap, propertiesService.getProperty(Constants.COMMAND_EXPIRE_SEC));

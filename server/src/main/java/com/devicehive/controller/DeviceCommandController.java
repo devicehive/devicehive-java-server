@@ -166,6 +166,7 @@ public class DeviceCommandController {
             } else {
                 response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
             }
+            LOGGER.debug("Commands poll result: {}", response.getEntity());
             asyncResponse.resume(response);
         } else {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
@@ -235,7 +236,7 @@ public class DeviceCommandController {
             asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_TO_DEVICE));
         }
         if (deviceGuid == null || commandId == null) {
-            LOGGER.debug("DeviceCommand wait request failed. Bad request.");
+            LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: deviceGuid and commandId required", deviceGuid);
             Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
             asyncResponse.resume(response);
             return;
@@ -244,7 +245,7 @@ public class DeviceCommandController {
         Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
 
         if (device == null) {
-            LOGGER.debug("DeviceCommand wait request failed. No device found with guid = {} ", deviceGuid);
+            LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: device {} not found", deviceGuid);
             Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
             asyncResponse.resume(response);
             return;
@@ -253,7 +254,7 @@ public class DeviceCommandController {
         DeviceCommand command = commandService.findByIdAndGuid(Long.valueOf(commandId), device.getGuid());
 
         if (command == null) {
-            LOGGER.debug("DeviceCommand wait request failed. No command found with id = {} for deviceId = {} ",
+            LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
                     commandId, deviceGuid);
             Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
             asyncResponse.resume(response);
@@ -261,7 +262,7 @@ public class DeviceCommandController {
         }
 
         if (!command.getDeviceGuid().equals(device.getGuid())) {
-            LOGGER.debug("DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}",
+            LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: Command with id = {} was not sent for device with guid = {}",
                     commandId, deviceGuid);
             Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
             asyncResponse.resume(response);
@@ -384,8 +385,7 @@ public class DeviceCommandController {
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        final DeviceCommand message = commandService.convertToDeviceCommand(deviceCommand, device,
-                authUser, null);
+        final DeviceCommand message = commandService.convertToDeviceCommand(deviceCommand, device, authUser, null);
         commandService.submitDeviceCommand(message);
 
         LOGGER.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
