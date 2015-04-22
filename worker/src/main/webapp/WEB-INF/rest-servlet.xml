@@ -13,8 +13,6 @@
         http://www.springframework.org/schema/task/spring-task-4.0.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
     <context:component-scan base-package="com.devicehive" />
 
-    <jee:jndi-lookup id="dbDataSource" jndi-name="jdbc/DeviceHiveDataSource" />
-
     <mvc:annotation-driven />
     <task:annotation-driven />
 </beans>
