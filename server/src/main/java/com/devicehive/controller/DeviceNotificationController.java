@@ -117,7 +117,7 @@ public class DeviceNotificationController {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        List<DeviceNotification> result = notificationService.getDeviceNotificationsList(Arrays.asList(device.getGuid()),
+        Collection<DeviceNotification> result = notificationService.getDeviceNotificationsList(Arrays.asList(device.getGuid()),
                 StringUtils.isNoneEmpty(notification) ? Arrays.asList(notification) : null, timestamp, principal);
 
         LOGGER.debug("Device notification query request proceed successfully for device {}", guid);
@@ -247,7 +247,7 @@ public class DeviceNotificationController {
 
         final List<String> deviceGuids = ParseUtil.getList(devices);
         final List<String> notificationNames = ParseUtil.getList(names);
-        List<DeviceNotification> list = new ArrayList<>();
+        Collection<DeviceNotification> list = new ArrayList<>();
 
         if (timestamp != null) {
             list = notificationService.getDeviceNotificationsList(deviceGuids, notificationNames, timestamp, principal);

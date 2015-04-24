@@ -14,7 +14,6 @@ import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -23,10 +22,7 @@ import javax.inject.Inject;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 
 @Stateless
@@ -57,33 +53,17 @@ public class DeviceCommandService {
         return redisCommandService.getByIdAndGuid(id, guid);
     }
 
-    public List<DeviceCommand> getDeviceCommandsList(Collection<String> devices, final Collection<String> names,
+    public Collection<DeviceCommand> getDeviceCommandsList(Collection<String> devices, final Collection<String> names,
                                                      final Timestamp timestamp, final Boolean isUpdated, HivePrincipal principal) {
-        List<DeviceCommand> commands;
+        Collection<DeviceCommand> commands;
         if (devices != null) {
             final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-            commands = redisCommandService.getByGuids(availableDevices, isUpdated);
+            commands = redisCommandService.getByGuids(availableDevices, names, timestamp, isUpdated);
         } else {
-            commands = redisCommandService.getAll(isUpdated);
-        }
-        if (timestamp != null) {
-            CollectionUtils.filter(commands, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return timestamp.before(((DeviceCommand) o).getTimestamp());
-                }
-            });
-        }
-        if (CollectionUtils.isNotEmpty(names)) {
-            CollectionUtils.filter(commands, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return names.contains(((DeviceCommand) o).getCommand());
-                }
-            });
+            commands = redisCommandService.getAll(names, timestamp, isUpdated);
         }
         if (CollectionUtils.isNotEmpty(commands) && commands.size() > MAX_COMMAND_COUNT) {
-            return commands.subList(0, MAX_COMMAND_COUNT);
+            return new ArrayList<DeviceCommand>(commands).subList(0, MAX_COMMAND_COUNT);
         }
         return commands;
     }
@@ -125,14 +105,8 @@ public class DeviceCommandService {
     }
 
     public void submitDeviceCommandUpdate(DeviceCommand message) {
-        if (message.getCommand() == null) {
-            final DeviceCommand existing = redisCommandService.get(message);
-            if (existing != null) {
-                message.setCommand(existing.getCommand());
-            }
-        }
         message.setIsUpdated(true);
-        redisCommandService.save(message);
+        redisCommandService.update(message);
         deviceCommandUpdateMessageReceivedEvent.fire(message);
     }
 

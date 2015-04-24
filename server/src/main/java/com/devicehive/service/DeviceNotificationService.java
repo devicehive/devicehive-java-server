@@ -13,7 +13,6 @@ import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -48,34 +47,18 @@ public class DeviceNotificationService {
         return redisNotificationService.getByIdAndGuid(id, guid);
     }
 
-    public List<DeviceNotification> getDeviceNotificationsList(Collection<String> devices, final Collection<String> names,
+    public Collection<DeviceNotification> getDeviceNotificationsList(Collection<String> devices, final Collection<String> names,
                                                      final Timestamp timestamp,
                                                      HivePrincipal principal) {
-        List<DeviceNotification> notifications;
+        Collection<DeviceNotification> notifications;
         if (devices != null) {
             final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-            notifications = redisNotificationService.getByGuids(availableDevices);
+            notifications = redisNotificationService.getByGuids(availableDevices, timestamp, names);
         } else {
-            notifications = redisNotificationService.getAll();
-        }
-        if (timestamp != null) {
-            CollectionUtils.filter(notifications, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return timestamp.before(((DeviceNotification) o).getTimestamp());
-                }
-            });
-        }
-        if (CollectionUtils.isNotEmpty(names)) {
-            CollectionUtils.filter(notifications, new Predicate() {
-                @Override
-                public boolean evaluate(Object o) {
-                    return names.contains(((DeviceNotification) o).getNotification());
-                }
-            });
+            notifications = redisNotificationService.getAll(timestamp, names);
         }
         if (CollectionUtils.isNotEmpty(notifications) && notifications.size() > MAX_NOTIFICATION_COUNT) {
-            return notifications.subList(0, MAX_NOTIFICATION_COUNT);
+            return new ArrayList<DeviceNotification>(notifications).subList(0, MAX_NOTIFICATION_COUNT);
         }
         return notifications;
     }
