@@ -152,7 +152,7 @@ public class DeviceCommandController {
         Collection<DeviceCommand> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = commandService.getDeviceCommandsList(deviceGuids, commandNames, timestamp, false, principal);
+            list = commandService.getDeviceCommandsList(deviceGuids, commandNames, timestamp, null, false, principal);
         }
 
         if (!list.isEmpty()) {
@@ -308,7 +308,7 @@ public class DeviceCommandController {
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         final Collection<DeviceCommand> commandList = commandService.getDeviceCommandsList(Arrays.asList(guid),
-                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, true, principal);
+                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, true, principal);
 
         LOGGER.debug("Device command query request proceed successfully for device {}", guid);
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);

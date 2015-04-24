@@ -54,13 +54,13 @@ public class DeviceCommandService {
     }
 
     public Collection<DeviceCommand> getDeviceCommandsList(Collection<String> devices, final Collection<String> names,
-                                                     final Timestamp timestamp, final Boolean isUpdated, HivePrincipal principal) {
+                                                     final Timestamp timestamp, final String status, final Boolean isUpdated, HivePrincipal principal) {
         Collection<DeviceCommand> commands;
         if (devices != null) {
             final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-            commands = redisCommandService.getByGuids(availableDevices, names, timestamp, isUpdated);
+            commands = redisCommandService.getByGuids(availableDevices, names, timestamp, status, isUpdated);
         } else {
-            commands = redisCommandService.getAll(names, timestamp, isUpdated);
+            commands = redisCommandService.getAll(names, timestamp, status, isUpdated);
         }
         if (CollectionUtils.isNotEmpty(commands) && commands.size() > MAX_COMMAND_COUNT) {
             return new ArrayList<DeviceCommand>(commands).subList(0, MAX_COMMAND_COUNT);

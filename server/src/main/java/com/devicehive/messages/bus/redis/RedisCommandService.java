@@ -46,7 +46,7 @@ public class RedisCommandService {
         if (CollectionUtils.isNotEmpty(keys)) {
             TreeSet<DeviceCommand> commands = new TreeSet<>(new DeviceCommandComparator());
             for (final String key : keys) {
-                final DeviceCommand command = get(key, false, false, null, null, true);
+                final DeviceCommand command = get(key, false, false, null, null, null, true);
                 if (command != null) {
                     commands.add(command);
                 }
@@ -56,14 +56,15 @@ public class RedisCommandService {
         return null;
     }
 
-    public Collection<DeviceCommand> getByGuids(Collection<String> guids, final Collection<String> names, final Timestamp timestamp, final Boolean isUpdated) {
+    public Collection<DeviceCommand> getByGuids(Collection<String> guids, final Collection<String> names,
+                                                final Timestamp timestamp, final String status, final Boolean isUpdated) {
         final List<String> keys = getAllKeysByGuids(guids);
         final boolean filterByDate = timestamp != null;
         final boolean filterByName = CollectionUtils.isNotEmpty(names);
         if (CollectionUtils.isNotEmpty(keys)) {
             Set<DeviceCommand> commands = new TreeSet<DeviceCommand>(new DeviceCommandComparator());
             for (final String key : keys) {
-                final DeviceCommand command = get(key, filterByDate, filterByName, timestamp, names, isUpdated);
+                final DeviceCommand command = get(key, filterByDate, filterByName, names, timestamp, status, isUpdated);
                 if (command != null) {
                     commands.add(command);
                 }
@@ -73,14 +74,15 @@ public class RedisCommandService {
         return Collections.emptyList();
     }
 
-    public Collection<DeviceCommand> getAll(final Collection<String> names, final Timestamp timestamp, final Boolean isUpdated) {
+    public Collection<DeviceCommand> getAll(final Collection<String> names, final Timestamp timestamp,
+                                            final String status, final Boolean isUpdated) {
         final boolean filterByDate = timestamp != null;
         final boolean filterByName = CollectionUtils.isNotEmpty(names);
         final Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*", "*"));
         if (CollectionUtils.isNotEmpty(keys)) {
             Set<DeviceCommand> commands = new TreeSet<DeviceCommand>(new DeviceCommandComparator());
             for (final String key : keys) {
-                final DeviceCommand command = get(key, filterByDate, filterByName, timestamp, names, isUpdated);
+                final DeviceCommand command = get(key, filterByDate, filterByName, names, timestamp, status, isUpdated);
                 if (command != null) {
                     commands.add(command);
                 }
@@ -116,12 +118,13 @@ public class RedisCommandService {
         return null;
     }
 
-    private DeviceCommand get(String key, final boolean filterByDate, final boolean filterByName, final Timestamp timestamp, final Collection<String> names, final Boolean isUpdated) {
+    private DeviceCommand get(String key, final boolean filterByDate, final boolean filterByName, final Collection<String> names,
+                              final Timestamp timestamp, final String status, final Boolean isUpdated) {
         Map<String, String> commandMap = redis.getAll(key);
         if (commandMap != null && !commandMap.isEmpty()) {
             final Timestamp commandTimestamp = TimestampAdapter.parseTimestamp(commandMap.get("timestamp"));
             final boolean skip = (filterByDate && commandTimestamp.before(timestamp) || (filterByName && !names.contains(commandMap.get("command"))) ||
-                    (!isUpdated && Boolean.valueOf(commandMap.get("isUpdated"))));
+                    (!isUpdated && Boolean.valueOf(commandMap.get("isUpdated"))) || (StringUtils.isNotEmpty(status) && !status.equals(commandMap.get("status"))));
             if (!skip) {
                 DeviceCommand command = new DeviceCommand();
                 command.setId(Long.valueOf(commandMap.get("id")));
