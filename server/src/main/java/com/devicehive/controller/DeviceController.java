@@ -14,6 +14,7 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -114,7 +115,7 @@ public class DeviceController {
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(result), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
     /**
