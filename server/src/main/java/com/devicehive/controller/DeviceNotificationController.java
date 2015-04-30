@@ -62,7 +62,6 @@ import static javax.ws.rs.core.Response.Status.*;
 @Path("/device")
 @LogExecutionTime
 public class DeviceNotificationController {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceNotificationController.class);
     @EJB
     private DeviceNotificationService notificationService;
@@ -107,7 +106,7 @@ public class DeviceNotificationController {
                           @QueryParam(NOTIFICATION) String notification,
                           @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
                           @QueryParam(SORT_ORDER) String sortOrderSt,
-                          @QueryParam(TAKE) Integer take,
+                          @QueryParam(TAKE) @DefaultValue(Constants.DEFAULT_TAKE_STR) Integer take,
                           @QueryParam(SKIP) Integer skip,
                           @QueryParam(GRID_INTERVAL) Integer gridInterval) {
 
@@ -118,7 +117,7 @@ public class DeviceNotificationController {
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         Collection<DeviceNotification> result = notificationService.getDeviceNotificationsList(Arrays.asList(device.getGuid()),
-                StringUtils.isNoneEmpty(notification) ? Arrays.asList(notification) : null, timestamp, principal);
+                StringUtils.isNoneEmpty(notification) ? Arrays.asList(notification) : null, timestamp, take, principal);
 
         LOGGER.debug("Device notification query request proceed successfully for device {}", guid);
 
@@ -250,7 +249,7 @@ public class DeviceNotificationController {
         Collection<DeviceNotification> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = notificationService.getDeviceNotificationsList(deviceGuids, notificationNames, timestamp, principal);
+            list = notificationService.getDeviceNotificationsList(deviceGuids, notificationNames, timestamp, Integer.valueOf(DEFAULT_TAKE), principal);
         }
 
         if (!list.isEmpty()) {

@@ -30,7 +30,9 @@ public class RedisConnector {
 
     @PostConstruct
     private void connect() {
-        CLIENT = new Jedis(propertiesService.getProperty(Constants.REDDIS_CONNECTION_HOST));
+        CLIENT = new Jedis(propertiesService.getProperty(Constants.REDDIS_CONNECTION_HOST),
+                Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_PORT)),
+                Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_TIMEOUT)));
         try {
             CLIENT.connect();
         } catch (Exception ex) {

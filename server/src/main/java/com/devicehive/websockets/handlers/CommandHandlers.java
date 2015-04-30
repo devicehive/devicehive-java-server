@@ -163,7 +163,7 @@ public class CommandHandlers extends WebsocketHandlers {
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
             if (timestamp != null) {
-                Collection<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, null, false, principal);
+                Collection<DeviceCommand> commands = commandService.getDeviceCommandsList(devices, names, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
                 if (!commands.isEmpty()) {
                     for (DeviceCommand deviceCommand : commands) {
                         state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));

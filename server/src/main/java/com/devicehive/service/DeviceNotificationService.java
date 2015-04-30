@@ -48,14 +48,14 @@ public class DeviceNotificationService {
     }
 
     public Collection<DeviceNotification> getDeviceNotificationsList(Collection<String> devices, final Collection<String> names,
-                                                     final Timestamp timestamp,
+                                                     final Timestamp timestamp, final Integer take,
                                                      HivePrincipal principal) {
         Collection<DeviceNotification> notifications;
         if (devices != null) {
             final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-            notifications = redisNotificationService.getByGuids(availableDevices, timestamp, names);
+            notifications = redisNotificationService.getByGuids(availableDevices, timestamp, names, take);
         } else {
-            notifications = redisNotificationService.getAll(timestamp, names);
+            notifications = redisNotificationService.getAll(timestamp, names, take);
         }
         if (CollectionUtils.isNotEmpty(notifications) && notifications.size() > MAX_NOTIFICATION_COUNT) {
             return new ArrayList<DeviceNotification>(notifications).subList(0, MAX_NOTIFICATION_COUNT);

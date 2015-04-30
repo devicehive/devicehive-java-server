@@ -152,7 +152,7 @@ public class DeviceCommandController {
         Collection<DeviceCommand> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = commandService.getDeviceCommandsList(deviceGuids, commandNames, timestamp, null, false, principal);
+            list = commandService.getDeviceCommandsList(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
         }
 
         if (!list.isEmpty()) {
@@ -296,7 +296,7 @@ public class DeviceCommandController {
                           @QueryParam(STATUS) String status,
                           @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
                           @QueryParam(SORT_ORDER) String sortOrderSt,
-                          @QueryParam(TAKE) Integer take,
+                          @QueryParam(TAKE) @DefaultValue(Constants.DEFAULT_TAKE_STR) Integer take,
                           @QueryParam(SKIP) Integer skip,
                           @QueryParam(GRID_INTERVAL) Integer gridInterval) {
 
@@ -308,7 +308,7 @@ public class DeviceCommandController {
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         final Collection<DeviceCommand> commandList = commandService.getDeviceCommandsList(Arrays.asList(guid),
-                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, true, principal);
+                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, true, principal);
 
         LOGGER.debug("Device command query request proceed successfully for device {}", guid);
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);

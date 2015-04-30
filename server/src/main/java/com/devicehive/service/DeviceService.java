@@ -11,9 +11,11 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.LogExecutionTime;
 import com.devicehive.util.ServerResponsesFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.collections.Transformer;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;

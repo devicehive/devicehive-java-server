@@ -74,16 +74,20 @@ public class RedisNotificationService {
         return null;
     }
 
-    public Collection<DeviceNotification> getByGuids(final Collection<String> guids, final Timestamp timestamp, final Collection<String> names) {
+    public Collection<DeviceNotification> getByGuids(final Collection<String> guids, final Timestamp timestamp, final Collection<String> names, final Integer take) {
         final Set<String> keys = getAllKeysByGuids(guids);
         if (CollectionUtils.isNotEmpty(keys)) {
             TreeSet<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
             final boolean filterByDate = timestamp != null;
             final boolean filterByName = CollectionUtils.isNotEmpty(names);
             for (final String key : keys) {
-                final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
-                if (notification != null) {
-                    notifications.add(notification);
+                if (notifications.size() < take) {
+                    final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
+                    if (notification != null) {
+                        notifications.add(notification);
+                    }
+                } else {
+                    return notifications;
                 }
             }
             return notifications;
@@ -91,16 +95,20 @@ public class RedisNotificationService {
         return Collections.emptyList();
     }
 
-    public Collection<DeviceNotification> getAll(final Timestamp timestamp, final Collection<String> names) {
+    public Collection<DeviceNotification> getAll(final Timestamp timestamp, final Collection<String> names, final Integer take) {
         Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*", "*"));
         if (CollectionUtils.isNotEmpty(keys)) {
             Set<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
             final boolean filterByDate = timestamp != null;
             final boolean filterByName = CollectionUtils.isNotEmpty(names);
             for (final String key : keys) {
-                final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
-                if (notification != null) {
-                    notifications.add(notification);
+                if (notifications.size() < take) {
+                    final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
+                    if (notification != null) {
+                        notifications.add(notification);
+                    }
+                } else {
+                    return notifications;
                 }
             }
             return notifications;

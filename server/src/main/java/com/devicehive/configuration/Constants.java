@@ -27,6 +27,7 @@ public class Constants {
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final String DEVICE_ACTIVITY_MAP = "DEVICE_ACTIVITY_MAP";
     public static final Integer DEFAULT_TAKE = 100;
+    public static final String DEFAULT_TAKE_STR = "100";
     public static final String CURRENT_USER = "current";
     public static final String BASIC_AUTH_SCHEME = "Basic";
     public static final String OAUTH_AUTH_SCEME = "Bearer";
@@ -120,6 +121,8 @@ public class Constants {
     public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
 
     public static final String REDDIS_CONNECTION_HOST = "reddis.connection.host";
+    public static final String REDDIS_CONNECTION_PORT = "reddis.connection.port";
+    public static final String REDDIS_CONNECTION_TIMEOUT = "reddis.connection.timeout";
     public static final String NOTIFICATION_EXPIRE_SEC = "notification.expire.sec";
     public static final String COMMAND_EXPIRE_SEC = "command.expire.sec";
 
