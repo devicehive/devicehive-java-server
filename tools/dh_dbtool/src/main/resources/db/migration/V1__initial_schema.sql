@@ -66,26 +66,6 @@ ALTER TABLE device ADD CONSTRAINT device_network_fk FOREIGN KEY (network_id) REF
 ALTER TABLE device ADD CONSTRAINT device_device_class_fk FOREIGN KEY (device_class_id) REFERENCES device_class (id) ON DELETE CASCADE;
 ALTER TABLE device ADD CONSTRAINT device_guid_unique UNIQUE (guid);
 
-CREATE TABLE device_command (
-  id             BIGSERIAL                NOT NULL,
-  timestamp      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  command        VARCHAR(128)             NOT NULL,
-  parameters     TEXT                     NULL,
-  lifetime       INT                      NULL,
-  flags          INT                      NULL,
-  status         VARCHAR(128)             NULL,
-  result         TEXT                     NULL,
-  device_id      BIGINT                   NOT NULL,
-  user_id        BIGINT                   NULL,
-  entity_version BIGINT                   NOT NULL DEFAULT 0
-);
-
-ALTER TABLE device_command ADD CONSTRAINT device_command_pk PRIMARY KEY (id);
-ALTER TABLE device_command ADD CONSTRAINT device_command_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
-ALTER TABLE device_command ADD CONSTRAINT device_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE SET
-NULL;
-CREATE INDEX device_command_device_id_timestamp_idx ON device_command (device_id, timestamp);
-
 CREATE TABLE device_equipment (
   id             BIGSERIAL                NOT NULL,
   code           VARCHAR(128)             NOT NULL,
@@ -99,19 +79,6 @@ ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_pk PRIMARY KEY (id)
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
 ALTER TABLE device_equipment ADD CONSTRAINT device_equipment_device_id_code_unique UNIQUE (device_id, code);
 CREATE INDEX device_equipment_device_id_timestamp_idx ON device_equipment (device_id, timestamp);
-
-CREATE TABLE device_notification (
-  id             BIGSERIAL                NOT NULL,
-  timestamp      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  notification   VARCHAR(128)             NOT NULL,
-  parameters     TEXT                     NULL,
-  device_id      BIGINT                   NOT NULL,
-  entity_version BIGINT                   NOT NULL DEFAULT 0
-);
-
-ALTER TABLE device_notification ADD CONSTRAINT device_notification_pk PRIMARY KEY (id);
-ALTER TABLE device_notification ADD CONSTRAINT device_notification_device_fk FOREIGN KEY (device_id) REFERENCES device (id) ON DELETE CASCADE;
-CREATE INDEX device_notification_device_id_timestamp_idx ON device_notification (device_id, timestamp);
 
 CREATE TABLE equipment (
   id              BIGSERIAL    NOT NULL,

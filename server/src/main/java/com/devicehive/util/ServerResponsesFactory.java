@@ -22,7 +22,7 @@ public class ServerResponsesFactory {
             GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
-        resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDevice().getGuid());
+        resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDeviceGuid());
         resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
         resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId.toString());
         return resultMessage;
@@ -35,16 +35,13 @@ public class ServerResponsesFactory {
 
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
-        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDevice().getGuid());
+        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDeviceGuid());
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subId.toString());
         return resultJsonObject;
     }
 
     public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
-        if (deviceCommand.getUserId() == null) {
-            deviceCommand.setUserId(deviceCommand.getUser().getId());
-        }
         JsonElement deviceCommandJson =
             GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
@@ -53,8 +50,8 @@ public class ServerResponsesFactory {
         return resultJsonObject;
     }
 
-    public static String parseNotificationStatus(DeviceNotification notification) {
-        String jsonParametersString = notification.getParameters().getJsonString();
+    public static String parseNotificationStatus(DeviceNotification notificationMessage) {
+        String jsonParametersString = notificationMessage.getParameters().getJsonString();
         Gson gson = GsonFactory.createGson();
         JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
         JsonObject statusJsonObject;
@@ -69,7 +66,7 @@ public class ServerResponsesFactory {
     public static DeviceNotification createNotificationForDevice(Device device, String notificationName) {
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification(notificationName);
-        notification.setDevice(device);
+        notification.setDeviceGuid(device.getGuid());
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
         JsonElement deviceAsJson = gson.toJsonTree(device);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
@@ -78,13 +75,12 @@ public class ServerResponsesFactory {
     }
 
     public static DeviceEquipment parseDeviceEquipmentNotification(DeviceNotification notification, Device device) {
-        final JsonStringWrapper notificationParameters = notification.getParameters();
+        final String notificationParameters = notification.getParameters().getJsonString();
         if (notificationParameters == null) {
             throw new HiveException(Messages.NO_NOTIFICATION_PARAMS, HttpServletResponse.SC_BAD_REQUEST);
         }
-        final String jsonParametersString = notificationParameters.getJsonString();
         Gson gson = GsonFactory.createGson();
-        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
+        JsonElement parametersJsonElement = gson.fromJson(notificationParameters, JsonElement.class);
         JsonObject jsonEquipmentObject;
         if (parametersJsonElement instanceof JsonObject) {
             jsonEquipmentObject = (JsonObject) parametersJsonElement;

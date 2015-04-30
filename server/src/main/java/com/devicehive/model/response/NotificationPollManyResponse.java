@@ -1,11 +1,10 @@
 package com.devicehive.model.response;
 
 
-import com.google.gson.annotations.SerializedName;
-
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HiveEntity;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +30,7 @@ public class NotificationPollManyResponse implements HiveEntity {
     public static List<NotificationPollManyResponse> getList(List<DeviceNotification> notifications) {
         List<NotificationPollManyResponse> result = new ArrayList<>(notifications.size());
         for (DeviceNotification notification : notifications) {
-            result.add(new NotificationPollManyResponse(notification, notification.getDevice().getGuid()));
+            result.add(new NotificationPollManyResponse(notification, notification.getDeviceGuid()));
         }
         return result;
     }

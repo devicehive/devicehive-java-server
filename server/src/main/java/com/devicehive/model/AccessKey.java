@@ -4,6 +4,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessKeyType;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -28,6 +29,7 @@ import static com.devicehive.model.AccessKey.Queries.Values;
               })
 @Table(name = "access_key")
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class AccessKey implements HiveEntity {
 
     public static final String PERMISSIONS_COLUMN = "permissions";

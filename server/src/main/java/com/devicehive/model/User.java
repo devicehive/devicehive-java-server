@@ -9,6 +9,7 @@ import com.devicehive.model.enums.UserStatus;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -16,7 +17,6 @@ import java.util.Set;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.ws.rs.DefaultValue;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
@@ -40,6 +40,7 @@ import static com.devicehive.model.User.Queries.Values;
                   @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class User implements HiveEntity {
 
     public static final String ID_COLUMN = "id";
@@ -259,7 +260,7 @@ public class User implements HiveEntity {
                 "select count(distinct n) from Network n " +
                 "join n.devices d " +
                 "join n.users u " +
-                "where u = :user and d = :device";
+                "where u = :user and d.guid = :guid";
             static final String GET_WITH_NETWORKS_BY_ID =
                 "select u from User u left join fetch u.networks where u.id = :id";
             static final String DELETE_BY_ID = "delete from User u where u.id = :id";
@@ -271,6 +272,7 @@ public class User implements HiveEntity {
             static final String NETWORK = "network";
             static final String DEVICE = "device";
             static final String ID = "id";
+            static final String GUID = "guid";
             static final String LOGIN = "login";
             static final String GOOGLE_LOGIN = "googleLogin";
             static final String FACEBOOK_LOGIN = "facebookLogin";

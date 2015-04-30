@@ -94,7 +94,7 @@ public class AccessKeyPermissionDevicesTest {
         key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.hasAccessToDevice(any(User.class), any(Device.class))).thenReturn(true);
+        when(userService.hasAccessToDevice(any(User.class), any(String.class))).thenReturn(true);
 
         Device device = new Device();
         device.setGuid(usefulGuid.toString());
@@ -118,7 +118,7 @@ public class AccessKeyPermissionDevicesTest {
         key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.hasAccessToDevice(any(User.class), any(Device.class))).thenReturn(true);
+        when(userService.hasAccessToDevice(any(User.class), any(String.class))).thenReturn(true);
 
         Device device = new Device();
         device.setGuid(usefulGuid.toString());
@@ -155,7 +155,7 @@ public class AccessKeyPermissionDevicesTest {
         key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.hasAccessToDevice(any(User.class), any(Device.class))).thenReturn(true);
+        when(userService.hasAccessToDevice(any(User.class), any(String.class))).thenReturn(true);
 
         Device device = new Device();
         device.setGuid(usefulGuid.toString());
@@ -183,7 +183,7 @@ public class AccessKeyPermissionDevicesTest {
         key.setUser(CLIENT);
         key.setPermissions(permissions);
 
-        when(userService.hasAccessToDevice(any(User.class), any(Device.class))).thenReturn(true);
+        when(userService.hasAccessToDevice(any(User.class), any(String.class))).thenReturn(true);
 
         UUID usefulGuid = UUID.randomUUID();
         Device device = new Device();

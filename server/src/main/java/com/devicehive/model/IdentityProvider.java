@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -21,6 +22,7 @@ import static com.devicehive.model.IdentityProvider.Queries.Values;
         @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
 })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class IdentityProvider implements HiveEntity {
 
     private static final long serialVersionUID = 1959997436981843212L;

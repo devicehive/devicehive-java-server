@@ -1,158 +1,78 @@
 package com.devicehive.model;
 
-import com.google.gson.annotations.SerializedName;
-
 import com.devicehive.json.strategies.JsonPolicyDef;
-
-import org.apache.commons.lang3.ObjectUtils;
+import com.google.gson.annotations.SerializedName;
 
 import java.sql.Timestamp;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.Version;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE;
-import static com.devicehive.model.DeviceCommand.Queries.Names;
-import static com.devicehive.model.DeviceCommand.Queries.Values;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
- * TODO JavaDoc
+ * Created by tmatvienko on 1/27/15.
  */
-@Entity
-@Table(name = "device_command")
-@NamedQueries({
-                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-                  @NamedQuery(name = Names.DELETE_BY_DEVICE_AND_USER, query = Values.DELETE_BY_DEVICE_AND_USER),
-                  @NamedQuery(name = Names.DELETE_BY_FOREIGN_KEY, query = Values.DELETE_BY_FOREIGN_KEY),
-                  @NamedQuery(name = Names.GET_BY_DEVICE_UUID_AND_ID, query = Values.GET_BY_DEVICE_UUID_AND_ID)
-              })
-@Cacheable
-public class DeviceCommand implements HiveEntity {
+public class DeviceCommand implements HiveEntity  {
+    private static final long serialVersionUID = 4140545193474112756L;
 
-    public static final String TIMESTAMP_COLUMN = "timestamp";
-    public static final String DEVICE_COLUMN = "device";
-    public static final String COMMAND_COLUMN = "command";
-    public static final String STATUS_COLUMN = "status";
-    public static final String ID_COLUMN = "id";
-    private static final long serialVersionUID = -1062670903456135249L;
     @SerializedName("id")
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
-                    COMMAND_LISTED})
+            COMMAND_LISTED})
     private Long id;
+
+    @SerializedName("command")
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+    private String command;
+
     @SerializedName("timestamp")
-    @Column(insertable = false, updatable = false)
-    @JsonPolicyDef(
-        {COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Timestamp timestamp;
-    @SerializedName("user")
-    @ManyToOne
-    @JoinColumn(name = "user_id", updatable = false)
-    private User user;
+
     @SerializedName("userId")
-    @Transient
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
     private Long userId;
-    @SerializedName("device")
-    @ManyToOne
-    @JoinColumn(name = "device_id", updatable = false)
-    @NotNull(message = "device field cannot be null.")
-    private Device device;
-    @SerializedName("command")
-    @Column
-    @NotNull(message = "command field cannot be null.")
-    @Size(min = 1, max = 128,
-          message = "Field cannot be empty. The length of command should not be more than 128 symbols.")
+
+    @SerializedName("deviceGuid")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private String command;
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+    private String deviceGuid;
+
     @SerializedName("parameters")
-    @Embedded
-    @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
-                        })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-                    POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
+
     @SerializedName("lifetime")
-    @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-                    COMMAND_LISTED})
+            COMMAND_LISTED})
     private Integer lifetime;
+
     @SerializedName("flags")
-    @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-                    REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private Integer flags;
+
     @SerializedName("status")
-    @Column
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-                    POST_COMMAND_TO_DEVICE,
-                    REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+            POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private String status;
+
     @SerializedName("result")
-    @Embedded
-    @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "result"))
-                        })
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-                    POST_COMMAND_TO_DEVICE,
-                    REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+            POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
-    @Column(name = "origin_session_id")
-    @Size(min = 1, max = 64,
-          message = "The length of origin_session_id should not be more than 64 symbols.")
-    private String originSessionId;
-    @Version
-    @Column(name = "entity_version")
-    private long entityVersion;
+
+    @SerializedName("isUpdated")
+    private Boolean isUpdated;
+
+    public DeviceCommand() {
+    }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
-    }
-
-    public Timestamp getTimestamp() {
-        return ObjectUtils.cloneIfPossible(timestamp);
-    }
-
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public String getCommand() {
@@ -161,6 +81,34 @@ public class DeviceCommand implements HiveEntity {
 
     public void setCommand(String command) {
         this.command = command;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = new Timestamp(timestamp);
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getDeviceGuid() {
+        return deviceGuid;
+    }
+
+    public void setDeviceGuid(String deviceGuid) {
+        this.deviceGuid = deviceGuid;
     }
 
     public JsonStringWrapper getParameters() {
@@ -203,66 +151,66 @@ public class DeviceCommand implements HiveEntity {
         this.result = result;
     }
 
-    public Device getDevice() {
-        return device;
+    public Boolean getIsUpdated() {
+        return isUpdated;
     }
 
-    public void setDevice(Device device) {
-        this.device = device;
+    public void setIsUpdated(Boolean isUpdated) {
+        this.isUpdated = isUpdated;
     }
 
-    public long getEntityVersion() {
-        return entityVersion;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DeviceCommand message = (DeviceCommand) o;
+
+        if (command != null ? !command.equals(message.command) : message.command != null) return false;
+        if (deviceGuid != null ? !deviceGuid.equals(message.deviceGuid) : message.deviceGuid != null) return false;
+        if (flags != null ? !flags.equals(message.flags) : message.flags != null) return false;
+        if (id != null ? !id.equals(message.id) : message.id != null) return false;
+        if (isUpdated != null ? !isUpdated.equals(message.isUpdated) : message.isUpdated != null) return false;
+        if (lifetime != null ? !lifetime.equals(message.lifetime) : message.lifetime != null) return false;
+        if (parameters != null ? !parameters.equals(message.parameters) : message.parameters != null) return false;
+        if (result != null ? !result.equals(message.result) : message.result != null) return false;
+        if (status != null ? !status.equals(message.status) : message.status != null) return false;
+        if (timestamp != null ? !timestamp.equals(message.timestamp) : message.timestamp != null) return false;
+        if (userId != null ? !userId.equals(message.userId) : message.userId != null) return false;
+
+        return true;
     }
 
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
+    @Override
+    public int hashCode() {
+        int result1 = id != null ? id.hashCode() : 0;
+        result1 = 31 * result1 + (command != null ? command.hashCode() : 0);
+        result1 = 31 * result1 + (timestamp != null ? timestamp.hashCode() : 0);
+        result1 = 31 * result1 + (userId != null ? userId.hashCode() : 0);
+        result1 = 31 * result1 + (deviceGuid != null ? deviceGuid.hashCode() : 0);
+        result1 = 31 * result1 + (parameters != null ? parameters.hashCode() : 0);
+        result1 = 31 * result1 + (lifetime != null ? lifetime.hashCode() : 0);
+        result1 = 31 * result1 + (flags != null ? flags.hashCode() : 0);
+        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
+        result1 = 31 * result1 + (isUpdated != null ? isUpdated.hashCode() : 0);
+        return result1;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public String getOriginSessionId() {
-        return originSessionId;
-    }
-
-    public void setOriginSessionId(String originSessionId) {
-        this.originSessionId = originSessionId;
-    }
-
-    public static class Queries {
-
-        public static interface Names {
-
-            static final String DELETE_BY_ID = "DeviceCommand.deleteById";
-            static final String DELETE_BY_DEVICE_AND_USER = "DeviceCommand.deleteByDeviceAndUser";
-            static final String DELETE_BY_FOREIGN_KEY = "DeviceCommand.deleteByFK";
-            static final String GET_BY_DEVICE_UUID_AND_ID = "DeviceCommand.getByDeviceUuidAndId";
-        }
-
-        static interface Values {
-
-            static final String DELETE_BY_ID = "delete from DeviceCommand dc where dc.id = :id";
-            static final String DELETE_BY_DEVICE_AND_USER =
-                "delete from DeviceCommand dc " +
-                "where dc.user = :user and dc.device = :device";
-            static final String DELETE_BY_FOREIGN_KEY = "delete from DeviceCommand dc where dc.device = :device";
-            static final String GET_BY_DEVICE_UUID_AND_ID =
-                "select dc from DeviceCommand dc " +
-                "where dc.id = :id and dc.device.guid = :guid";
-        }
-
-        public static interface Parameters {
-
-            static final String ID = "id";
-            static final String USER = "user";
-            static final String DEVICE = "device";
-            static final String GUID = "guid";
-        }
+    @Override
+    public String toString() {
+        return "DeviceCommand{" +
+                "id=" + id +
+                ", command='" + command + '\'' +
+                ", timestamp=" + timestamp +
+                ", userId=" + userId +
+                ", deviceGuid='" + deviceGuid + '\'' +
+                ", parameters=" + parameters +
+                ", lifetime=" + lifetime +
+                ", flags=" + flags +
+                ", status='" + status + '\'' +
+                ", result=" + result +
+                ", isUpdated=" + isUpdated +
+                '}';
     }
 }

@@ -77,13 +77,7 @@ CREATE INDEX oauth_grant_user_id_idx ON oauth_grant(user_id);
 INSERT INTO configuration (name, value)
   VALUES ('debugMode', 'true');
 
-ALTER TABLE device_command
-    ADD COLUMN origin_session_id varchar(64);
-
 --Indexes
-CREATE INDEX device_notification_timestamp_device_id_idx ON device_notification(timestamp, device_id);
-CREATE INDEX device_command_timestamp_device_id_idx ON device_command(timestamp, device_id);
-CREATE INDEX device_command_origin_session_id_idx ON device_command (origin_session_id);
 CREATE UNIQUE INDEX device_guid_idx ON device(guid);
 CREATE INDEX device_network_id_idx ON device(network_id);
 CREATE UNIQUE INDEX device_class_name_version_idx ON device_class(name, version);
@@ -131,6 +125,22 @@ INSERT INTO configuration (name, value) VALUES ('google.identity.allowed', 'fals
 INSERT INTO configuration (name, value) VALUES ('facebook.identity.allowed', 'false');
 INSERT INTO configuration (name, value) VALUES ('github.identity.allowed', 'false');
 
+CREATE TABLE "EJB__TIMER__TBL" (
+"CREATIONTIMERAW"      BIGINT        NOT NULL,
+"BLOB"                 BYTEA,
+"TIMERID"              VARCHAR(255)  NOT NULL,
+"CONTAINERID"          BIGINT        NOT NULL,
+"OWNERID"              VARCHAR(255)  NULL,
+"STATE"                INTEGER       NOT NULL,
+"PKHASHCODE"           INTEGER       NOT NULL,
+"INTERVALDURATION"     BIGINT        NOT NULL,
+"INITIALEXPIRATIONRAW" BIGINT        NOT NULL,
+"LASTEXPIRATIONRAW"    BIGINT        NOT NULL,
+"SCHEDULE"             VARCHAR(255)  NULL,
+"APPLICATIONID"        BIGINT        NOT NULL,
+CONSTRAINT "PK_EJB__TIMER__TBL" PRIMARY KEY ("TIMERID")
+);
+
 ALTER TABLE identity_provider ADD COLUMN token_endpoint VARCHAR(128);
 
 UPDATE identity_provider SET token_endpoint='https://www.googleapis.com/oauth2/v3/token' WHERE id = 1;
@@ -140,3 +150,24 @@ UPDATE identity_provider SET token_endpoint='https://github.com/login/oauth/acce
 ALTER TABLE access_key DROP CONSTRAINT access_key_label_user_unique;
 ALTER TABLE access_key ADD COLUMN type INT NOT NULL DEFAULT 0;
 INSERT INTO configuration (name, value) VALUES ('session.timeout', '1200000');
+
+INSERT INTO configuration (name, value) VALUES ('websocket.ping.timeout', '120000');
+INSERT INTO configuration (name, value) VALUES ('cassandra.rest.endpoint', 'http://127.0.0.1:8080/cassandra');
+INSERT INTO configuration (name, value) VALUES ('user.login.lastTimeout', '1000');
+
+CREATE OR REPLACE FUNCTION insert_test_devices(first_index INT, last_index INT) RETURNS void AS $BODY$
+DECLARE
+idd text;
+BEGIN
+FOR r IN first_index..last_index LOOP
+select to_char(r, '09999999') into idd;
+     INSERT INTO device (guid, name, status, network_id, device_class_id, key) VALUES (
+replace('aaaaaaaa-aaaa-0000-0-000000a' || idd, ' ', ''), 'Kafka device', 'Offline', 1, 1, 'TK_' || idd || '_A' );
+END LOOP;
+RETURN;
+END
+$BODY$
+LANGUAGE plpgsql;
+
+INSERT INTO access_key (label, key, expiration_date, user_id) VALUES ('Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1);
+INSERT INTO access_key_permission (access_key_id) VALUES (1);

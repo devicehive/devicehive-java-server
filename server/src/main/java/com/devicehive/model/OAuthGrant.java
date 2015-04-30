@@ -12,6 +12,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -55,6 +56,7 @@ import static com.devicehive.model.OAuthGrant.Queries.Values;
                   @NamedQuery(name = Names.GET_BY_CODE_AND_OAUTH_ID, query = Values.GET_BY_CODE_AND_OAUTH_ID)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class OAuthGrant implements HiveEntity {
 
     public static final String ACCESS_KEY_COLUMN = "accessKey";

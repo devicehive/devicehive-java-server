@@ -31,7 +31,7 @@ import static javax.ws.rs.core.Response.Status.*;
 @LogExecutionTime
 public class NetworkController {
 
-    private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NetworkController.class);
 
     @EJB
     private NetworkService networkService;
@@ -76,14 +76,14 @@ public class NetworkController {
                                    @QueryParam(TAKE) Integer take,
                                    @QueryParam(SKIP) Integer skip) {
 
-        logger.debug("Network list requested");
+        LOGGER.debug("Network list requested");
 
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
-            logger.debug("Unable to proceed network list request. Invalid sortField");
+            LOGGER.error("Unable to proceed network list request. Invalid sortField");
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                                            new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
+                    new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -91,7 +91,7 @@ public class NetworkController {
         List<Network> result = networkService
             .list(name, namePattern, sortField, sortOrder, take, skip, principal);
 
-        logger.debug("Network list request proceed successfully.");
+        LOGGER.debug("Network list request proceed successfully.");
         return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
     }
 
@@ -113,14 +113,12 @@ public class NetworkController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_NETWORK)
     public Response getNetwork(@PathParam(ID) long id) {
-
-        logger.debug("Network get requested.");
+        LOGGER.debug("Network get requested.");
         Network existing = networkService.getWithDevicesAndDeviceClasses(id, hiveSecurityContext);
         if (existing == null) {
-            logger.debug("Network with id =  {} does not exists", id);
-            return ResponseFactory
-                .response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                                                       String.format(Messages.NETWORK_NOT_FOUND, id)));
+            LOGGER.error("Network with id =  {} does not exists", id);
+            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.NETWORK_NOT_FOUND, id)));
         }
         return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
     }
@@ -151,9 +149,9 @@ public class NetworkController {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response insert(Network network) {
-        logger.debug("Network insert requested");
+        LOGGER.debug("Network insert requested");
         Network result = networkService.create(network);
-        logger.debug("New network has been created");
+        LOGGER.debug("New network has been created");
         return ResponseFactory.response(CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
 
@@ -182,12 +180,10 @@ public class NetworkController {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response update(NetworkUpdate networkToUpdate, @PathParam(ID) long id) {
-
-        logger.debug("Network update requested. Id : {}", id);
+        LOGGER.debug("Network update requested. Id : {}", id);
         networkService.update(id, networkToUpdate);
-        logger.debug("Network has been updated successfully. Id : {}", id);
+        LOGGER.debug("Network has been updated successfully. Id : {}", id);
         return ResponseFactory.response(NO_CONTENT);
-
     }
 
     /**
@@ -200,11 +196,9 @@ public class NetworkController {
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = MANAGE_NETWORK)
     public Response delete(@PathParam(ID) long id) {
-
-        logger.debug("Network delete requested");
+        LOGGER.debug("Network delete requested");
         networkService.delete(id);
-        logger.debug("Network with id = {} does not exists any more.", id);
-
+        LOGGER.debug("Network with id = {} does not exists any more.", id);
         return ResponseFactory.response(NO_CONTENT);
     }
 }

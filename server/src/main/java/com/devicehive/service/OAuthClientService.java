@@ -8,22 +8,22 @@ import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.service.helpers.DefaultPasswordProcessor;
 import com.devicehive.service.helpers.PasswordProcessor;
-
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.*;
 
 @Stateless
 @EJB(beanInterface = OAuthClientService.class, name = "OAuthClientService")
 public class OAuthClientService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthClientService.class);
 
     @EJB
     private OAuthClientDAO clientDAO;
@@ -49,10 +49,12 @@ public class OAuthClientService {
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public OAuthClient insert(OAuthClient client) {
         if (client.getId() != null) {
+            LOGGER.error("OAuth client id shouldn't be empty");
             throw new HiveException(Messages.ID_NOT_ALLOWED, SC_BAD_REQUEST);
         }
         OAuthClient clientWithExistingID = clientDAO.get(client.getOauthId());
         if (clientWithExistingID != null) {
+            LOGGER.error("OAuth client with id {} not found", client.getOauthId());
             throw new HiveException(Messages.DUPLICATE_OAUTH_ID, SC_FORBIDDEN);
         }
         client.setOauthSecret(secretGenerator.generateSalt());
@@ -63,6 +65,7 @@ public class OAuthClientService {
     public boolean update(OAuthClientUpdate client, Long clientId) {
         OAuthClient existing = clientDAO.get(clientId);
         if (existing == null) {
+            LOGGER.error("OAuth client with id {} not found", clientId);
             throw new HiveException(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, clientId), SC_NOT_FOUND);
         }
         if (client == null) {
@@ -71,6 +74,7 @@ public class OAuthClientService {
         if (client.getOauthId() != null && !client.getOauthId().getValue().equals(existing.getOauthId())) {
             OAuthClient existingWithOAuthID = clientDAO.get(client.getOauthId().getValue());
             if (existingWithOAuthID != null) {
+                LOGGER.error("OAuth client with id {} already exists in the system", client.getOauthId().getValue());
                 throw new HiveException(Messages.DUPLICATE_OAUTH_ID, SC_FORBIDDEN);
             }
         }

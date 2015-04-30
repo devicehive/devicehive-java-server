@@ -1,6 +1,8 @@
 <beans xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
-http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd" version="1.1" bean-discovery-mode="all">
+http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
+       xmlns:weld="http://jboss.org/schema/weld/beans"
+       version="1.1" bean-discovery-mode="all">
 
     <interceptors>
         <class>com.devicehive.util.ExecutionTimeLoggerInterceptor</class>
@@ -8,5 +10,9 @@ http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd" version="1.1" bean-discovery-m
         <class>com.devicehive.auth.websockets.AuthorizationInterceptor</class>
         <class>com.devicehive.auth.RequestInterceptor</class>
     </interceptors>
+
+    <weld:scan>
+        <weld:exclude name="com.google.**"/>
+    </weld:scan>
 
 </beans>

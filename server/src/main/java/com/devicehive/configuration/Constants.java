@@ -10,7 +10,7 @@ public class Constants {
     public static final String UTF8 = "UTF-8";
     public static final Locale LOCALE = Locale.getDefault();
     public static final String PERSISTENCE_UNIT = "devicehive";
-    public static final String API_VERSION = "1.3.0";
+    public static final String API_VERSION = "2.0.0";
     public static final String WEBSOCKET_SERVER_URL = "websocket.url";
     public static final String REST_SERVER_URL = "rest.url";
     public static final long NULL_ID_SUBSTITUTE = -1L;
@@ -26,15 +26,10 @@ public class Constants {
     public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final String DEVICE_ACTIVITY_MAP = "DEVICE_ACTIVITY_MAP";
-    public static final Integer DEFAULT_TAKE = 1000;
+    public static final Integer DEFAULT_TAKE = 100;
     public static final String CURRENT_USER = "current";
     public static final String BASIC_AUTH_SCHEME = "Basic";
     public static final String OAUTH_AUTH_SCEME = "Bearer";
-    public static final String OAUTH_IDENTITY = "Identity";
-    public static final String OAUTH_ACCESS_TOKEN = "access_token";
-    public static final String OAUTH_STATE = "state";
-    public static final String OAUTH_CODE = "code";
-    public static final String OAUTH_EXPIRES_IN = "expires_in";
     public static final String AUTH_DEVICE_ID_HEADER = "Auth-DeviceID";
     public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
     public static final ByteBuffer PING = ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8)));
@@ -107,5 +102,25 @@ public class Constants {
     public static final String GITHUB_IDENTITY_CLIENT_ID = "github.identity.client.id";
     public static final String GITHUB_IDENTITY_CLIENT_SECRET = "github.identity.client.secret";
     public static final String GITHUB_IDENTITY_ALLOWED = "github.identity.allowed";
+
+    public static final String METADATA_BROKER_LIST = "metadata.broker.list";
+    public static final String NOTIFICATION_SERIALIZER_CLASS = "notification.serializer.class";
+    public static final String COMMAND_SERIALIZER_CLASS = "command.serializer.class";
+    public static final String NOTIFICATION_TOPIC_NAME = "device_notification";
+    public static final String COMMAND_TOPIC_NAME = "device_command";
+    public static final String COMMAND_UPDATE_TOPIC_NAME = "device_command_update";
+    public static final String ZOOKEEPER_CONNECT = "zookeeper.connect";
+    public static final String GROOP_ID = "group.id";
+    public static final String ZOOKEEPER_SESSION_TIMEOUT_MS = "zookeeper.session.timeout.ms";
+    public static final String ZOOKEEPER_CONNECTION_TIMEOUT_MS = "zookeeper.connection.timeout.ms";
+    public static final String ZOOKEEPER_SYNC_TIME_MS = "zookeeper.sync.time.ms";
+    public static final String AUTO_COMMIT_INTERVAL_MS = "auto.commit.interval.ms";
+    public static final String THREADS_COUNT = "threads.count";
+
+    public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
+
+    public static final String REDDIS_CONNECTION_HOST = "reddis.connection.host";
+    public static final String NOTIFICATION_EXPIRE_SEC = "notification.expire.sec";
+    public static final String COMMAND_EXPIRE_SEC = "command.expire.sec";
 
 }

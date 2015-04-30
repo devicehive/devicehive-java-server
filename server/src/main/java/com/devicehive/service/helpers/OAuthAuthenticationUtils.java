@@ -41,7 +41,7 @@ public class OAuthAuthenticationUtils {
     public AccessKey prepareAccessKey(final User user) {
         AccessKey accessKey = new AccessKey();
         accessKey.setUser(user);
-        accessKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, user.getLogin()));
+        accessKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, user.getLogin(), System.currentTimeMillis()));
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         accessKey.setKey(keyProcessor.generateKey());
         Timestamp expirationDate = new Timestamp(timestampService.getTimestamp().getTime() +

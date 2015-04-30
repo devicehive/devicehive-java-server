@@ -18,10 +18,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -73,11 +70,10 @@ public class NetworkService {
                 .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
                                    hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
             if (filtered.isEmpty()) {
-                result.setDevices(null);
+                result.setDevices(Collections.EMPTY_SET);
                 return result;
             }
-            Set<Device> devices =
-                new HashSet<>(deviceService.getList(result.getId(), principal));
+            Set<Device> devices = new HashSet<>(deviceService.getList(result.getId(), principal));
             result.setDevices(devices);
             return result;
         }

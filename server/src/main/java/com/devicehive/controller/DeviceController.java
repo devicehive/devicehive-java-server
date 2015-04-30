@@ -14,6 +14,7 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.LogExecutionTime;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -101,8 +102,8 @@ public class DeviceController {
             && !NETWORK.equalsIgnoreCase(sortField)
             && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
             return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                                                              Messages.INVALID_REQUEST_PARAMETERS));
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
@@ -114,7 +115,7 @@ public class DeviceController {
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());
 
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(result), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
     }
 
     /**
@@ -196,7 +197,7 @@ public class DeviceController {
     public Response delete(@PathParam(ID) String guid) {
 
         logger.debug("Device delete requested");
-        final Device device = hiveSecurityContext.getHivePrincipal().getDevice();
+        final Device device = deviceService.findByGuidWithPermissionsCheck(guid, hiveSecurityContext.getHivePrincipal());
         if (device == null || !guid.equals(device.getGuid())) {
             logger.debug("No device found for guid : {}", guid);
             return ResponseFactory

@@ -7,10 +7,7 @@ import com.devicehive.model.AccessKey;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -72,6 +69,7 @@ public class AccessKeyDAO {
             take = Constants.DEFAULT_TAKE;
         }
         resultQuery.setMaxResults(take);
+        CacheHelper.cacheable(resultQuery);
 
         return resultQuery.getResultList();
     }
@@ -81,6 +79,7 @@ public class AccessKeyDAO {
         TypedQuery<AccessKey> query = em.createNamedQuery(GET_BY_ID, AccessKey.class);
         query.setParameter(USER_ID, userId);
         query.setParameter(ACCESS_KEY_ID, accessKeyId);
+        CacheHelper.cacheable(query);
         List<AccessKey> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }
@@ -90,6 +89,7 @@ public class AccessKeyDAO {
         TypedQuery<AccessKey> query = em.createNamedQuery(GET_BY_USER_AND_LABEL, AccessKey.class);
         query.setParameter(USER_ID, userId);
         query.setParameter(LABEL, label);
+        CacheHelper.cacheable(query);
         List<AccessKey> resultList = query.getResultList();
         return resultList.isEmpty() ? null : resultList.get(0);
     }

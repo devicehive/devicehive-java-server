@@ -1,26 +1,21 @@
 package com.devicehive.websockets;
 
 
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Constants;
+import com.devicehive.websockets.util.HiveEndpoint;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Constants;
-import com.devicehive.websockets.util.HiveEndpoint;
-
+import javax.websocket.Session;
 import java.net.InetAddress;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import javax.websocket.Session;
 
 public class HiveWebsocketSessionState {
 
@@ -28,6 +23,7 @@ public class HiveWebsocketSessionState {
     private final Lock queueLock = new ReentrantLock(true);
     private final ConcurrentLinkedQueue<JsonElement> queue = new ConcurrentLinkedQueue<>();
     private final Set<UUID> commandSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+    private final Set<UUID> commandUpdateSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
     private final Lock commandSubscriptionsLock = new ReentrantLock(true);
     private final Set<UUID> notificationSubscriptions =
         Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
@@ -62,6 +58,10 @@ public class HiveWebsocketSessionState {
 
     public Set<UUID> getCommandSubscriptions() {
         return commandSubscriptions;
+    }
+
+    public Set<UUID> getCommandUpdateSubscriptions() {
+        return commandUpdateSubscriptions;
     }
 
     public Lock getCommandSubscriptionsLock() {

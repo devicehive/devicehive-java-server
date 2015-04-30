@@ -42,8 +42,8 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
             isOauth =
             Constants.OAUTH_AUTH_SCEME.equals(requestContext.getSecurityContext().getAuthenticationScheme());
         ResponseBuilder responseBuilder = Response.status(UNAUTHORIZED)
-            .entity(new ErrorResponse(Messages.NOT_AUTHORIZED))
-            .type(MediaType.APPLICATION_JSON_TYPE);
+                .entity(new ErrorResponse(UNAUTHORIZED.getReasonPhrase()))
+                .type(MediaType.APPLICATION_JSON_TYPE);
         if (isWwwAutheticateRequired) {
            responseBuilder = responseBuilder.header(HttpHeaders.WWW_AUTHENTICATE,
                                    isOauth ? Messages.OAUTH_REALM : Messages.BASIC_REALM);

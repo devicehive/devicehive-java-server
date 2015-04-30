@@ -9,9 +9,7 @@
         <class>com.devicehive.model.User</class>
         <class>com.devicehive.model.Device</class>
         <class>com.devicehive.model.DeviceClass</class>
-        <class>com.devicehive.model.DeviceCommand</class>
         <class>com.devicehive.model.DeviceEquipment</class>
-        <class>com.devicehive.model.DeviceNotification</class>
         <class>com.devicehive.model.Configuration</class>
         <class>com.devicehive.model.Equipment</class>
         <class>com.devicehive.model.Network</class>
@@ -32,12 +30,12 @@
             <property name="hibernate.id.new_generator_mappings" value="true"/>
             <property name="hibernate.transaction.jta.platform" value="${jta.platform}"/>
             <!--<property name="hibernate.transaction.jta.platform" value="JBossAS"/>-->
-            <property name="hibernate.cache.region.factory_class"
-                      value="com.hazelcast.hibernate.HazelcastCacheRegionFactory"/>
+            <property name="hibernate.cache.region.factory_class" value="org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory"/>
             <property name="hibernate.cache.use_second_level_cache" value="true"/>
             <property name="hibernate.cache.use_query_cache" value="false"/>
             <property name="hibernate.cache.use_minimal_puts" value="true"/>
-            <property name="hibernate.cache.hazelcast.configuration_file_path" value="hazelcast.xml"/>
+            <property name="net.sf.ehcache.configurationResourceName" value="ehcache.xml"/>
+            <property name="hibernate.enable_lazy_load_no_trans" value="true"/>
         </properties>
     </persistence-unit>
 

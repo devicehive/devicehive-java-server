@@ -4,6 +4,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +23,7 @@ import static com.devicehive.model.AccessKeyPermission.Queries.Values;
               })
 @Table(name = "access_key_permission")
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class AccessKeyPermission implements HiveEntity {
 
     private static final long serialVersionUID = 728578066176830685L;

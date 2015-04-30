@@ -5,6 +5,8 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.Device;
 import com.devicehive.model.User;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -47,6 +49,7 @@ public class DeviceDAO {
         TypedQuery<Device> query = em.createNamedQuery(FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS,
                                                        Device.class);
         query.setParameter(GUID, uuid);
+        CacheHelper.cacheable(query);
         List<Device> res = query.getResultList();
         return res.isEmpty() ? null : res.get(0);
     }
@@ -67,6 +70,12 @@ public class DeviceDAO {
 
     public Device setOffline(long id) {
         Device device = findById(id);
+        device.setStatus("Offline");
+        return device;
+    }
+
+    public Device setOffline(String guid) {
+        Device device = findByUUIDWithNetworkAndDeviceClass(guid);
         device.setStatus("Offline");
         return device;
     }
@@ -100,11 +109,12 @@ public class DeviceDAO {
         Root<Device> from = criteria.from(Device.class);
         List<Predicate> predicates = new ArrayList<>();
         appendPrincipalPredicates(predicates, principal, from);
-        if (guids != null && !guids.isEmpty()) {
+        if (!CollectionUtils.isEmpty(guids)) {
             predicates.add(from.get(GUID).in(guids));
         }
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         TypedQuery<Device> query = em.createQuery(criteria);
+        CacheHelper.cacheable(query);
         return query.getResultList();
     }
 
@@ -122,66 +132,88 @@ public class DeviceDAO {
                                 Integer take,
                                 Integer skip,
                                 HivePrincipal principal) {
-
-        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<Device> deviceCriteria = criteriaBuilder.createQuery(Device.class);
-        Root<Device> fromDevice = deviceCriteria.from(Device.class);
-        fromDevice.fetch("network", JoinType.LEFT);
-        fromDevice.fetch("deviceClass").fetch("equipment", JoinType.LEFT);
-        List<Predicate> devicePredicates = new ArrayList<>();
+        final StringBuilder format = new StringBuilder("SELECT * FROM device d LEFT JOIN network n ON d.network_id = n.id LEFT JOIN device_class dc " +
+                "ON d.device_class_id = dc.id LEFT JOIN equipment e ON e.device_class_id = d.device_class_id LEFT JOIN user_network un ON un.network_id = n.id ");
+        List<String> conditions = new ArrayList<>();
 
         //device fields filters
         if (namePattern != null) {
-            devicePredicates.add(criteriaBuilder.like(fromDevice.<String>get("name"), namePattern));
+            conditions.add(String.format("d.name LIKE '%s'", namePattern));
         } else {
             if (name != null) {
-                devicePredicates.add(criteriaBuilder.equal(fromDevice.get("name"), name));
+                conditions.add(String.format("d.name = '%s'", name));
             }
         }
         if (status != null) {
-            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("status"), status));
+            conditions.add(String.format("d.status = '%s'", status));
         }
 
         if (networkId != null) {
-            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("network").get("id"), networkId));
+            conditions.add(String.format("d.network_id = %s", networkId));
         }
 
         if (networkName != null) {
-            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("network").get("name"), networkName));
+            conditions.add(String.format("n.name = '%s'", networkName));
         }
 
         if (deviceClassId != null) {
-            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("id"), deviceClassId));
+            conditions.add(String.format("d.device_class_id = %s", deviceClassId));
         }
 
         if (deviceClassName != null) {
-            devicePredicates.add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("name"), deviceClassName));
+            conditions.add(String.format("dc.name = '%s'", deviceClassName));
         }
 
         if (deviceClassVersion != null) {
-            devicePredicates
-                .add(criteriaBuilder.equal(fromDevice.get("deviceClass").get("version"), deviceClassVersion));
+            conditions.add(String.format("dc.version = '%s'", deviceClassVersion));
         }
 
-        appendPrincipalPredicates(devicePredicates, principal, fromDevice);
+        if (principal != null) {
+            User user = principal.getUser();
+            if (user == null && principal.getKey() != null) {
+                user = principal.getKey().getUser();
+            }
+            if (user != null && !user.isAdmin()) {
+                conditions.add(String.format("un.user_id = %s", user.getId()));
+            }
+            if (principal.getDevice() != null) {
+                conditions.add(String.format("d.id = %s", principal.getDevice().getId()));
+            }
+            if (principal.getKey() != null) {
 
-        deviceCriteria.where(devicePredicates.toArray(new Predicate[devicePredicates.size()]));
-        if (sortField != null) {
-            if (sortOrderAsc == null || sortOrderAsc) {
-                deviceCriteria.orderBy(criteriaBuilder.asc(fromDevice.get(sortField)));
-            } else {
-                deviceCriteria.orderBy(criteriaBuilder.desc(fromDevice.get(sortField)));
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices
+                        .createExtraFilters(principal.getKey().getPermissions())) {
+                    if (extraFilter.getDeviceGuids() != null) {
+                        conditions.add(String.format("d.guid IN (%s)", String.format("'%s'",
+                                StringUtils.join(extraFilter.getDeviceGuids(), "','"))));
+                    }
+                    if (extraFilter.getNetworkIds() != null) {
+                        conditions.add(String.format("n.id IN (%s)", StringUtils.join(extraFilter.getNetworkIds(), ",")));
+                    }
+                }
             }
         }
-        TypedQuery<Device> resultQuery = em.createQuery(deviceCriteria);
+
+        if (!conditions.isEmpty()) {
+            format.append(" WHERE ").append(StringUtils.join(conditions, " AND "));
+        }
+
+        if (sortField != null) {
+            format.append(String.format(" ORDER BY %s ", sortField));
+            if (sortOrderAsc != null && !sortOrderAsc) {
+                format.append(" DESC ");
+            }
+        }
         if (skip != null) {
-            resultQuery.setFirstResult(skip);
+            format.append(String.format(" OFFSET %s ", skip));
         }
         if (take == null) {
             take = Constants.DEFAULT_TAKE;
         }
-        resultQuery.setMaxResults(take);
-        return resultQuery.getResultList();
+        format.append(String.format(" LIMIT %s", take));
+        Query  resultQuery = em.createNativeQuery(format.toString(), Device.class);
+        CacheHelper.cacheable(resultQuery);
+        return (List<Device>) resultQuery.getResultList();
     }
 
     private void appendPrincipalPredicates(List<Predicate> devicePredicates, HivePrincipal principal,
