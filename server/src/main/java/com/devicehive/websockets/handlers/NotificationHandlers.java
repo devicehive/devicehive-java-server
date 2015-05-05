@@ -238,9 +238,8 @@ public class NotificationHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_FORBIDDEN);
         }
         if (device.getNetwork() == null) {
-            LOGGER.debug(
-                "notification/insert. No network specified for device with guid = {}", deviceGuid);
-            throw new HiveException(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, SC_FORBIDDEN);
+            LOGGER.debug("notification/insert. No network specified for device with guid = {}", deviceGuid);
+            throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceGuid), SC_FORBIDDEN);
         }
         DeviceNotification message = notificationService.convertToMessage(notificationSubmit, device);
         notificationService.submitDeviceNotification(message, device);
