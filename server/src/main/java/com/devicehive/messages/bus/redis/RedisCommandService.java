@@ -6,9 +6,14 @@ import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.util.LogExecutionTime;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.sql.Timestamp;
@@ -42,7 +47,7 @@ public class RedisCommandService {
     }
 
     public DeviceCommand getByIdAndGuid(final Long id, final String guid) {
-        final Set<String> keys = getAllKeysByIdAndGuid(id, guid);
+        final Set<String> keys = redis.getFirstKeys(String.format(KEY_FORMAT, guid, id, "*"), Constants.DEFAULT_TAKE);
         if (CollectionUtils.isNotEmpty(keys)) {
             TreeSet<DeviceCommand> commands = new TreeSet<>(new DeviceCommandComparator());
             for (final String key : keys) {
@@ -58,7 +63,7 @@ public class RedisCommandService {
 
     public Collection<DeviceCommand> getByGuids(Collection<String> guids, final Collection<String> names,
                                                 final Timestamp timestamp, final String status, final Integer take, final Boolean isUpdated) {
-        final List<String> keys = getAllKeysByGuids(guids);
+        final List<String> keys = getAllKeysByGuids(guids, take);
         final boolean filterByDate = timestamp != null;
         final boolean filterByName = CollectionUtils.isNotEmpty(names);
         if (CollectionUtils.isNotEmpty(keys)) {
@@ -82,22 +87,19 @@ public class RedisCommandService {
                                             final String status, final Integer take, final Boolean isUpdated) {
         final boolean filterByDate = timestamp != null;
         final boolean filterByName = CollectionUtils.isNotEmpty(names);
-        final Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*", "*"));
-        if (CollectionUtils.isNotEmpty(keys)) {
-            Set<DeviceCommand> commands = new TreeSet<DeviceCommand>(new DeviceCommandComparator());
-            for (final String key : keys) {
-                if (commands.size() < take) {
-                    final DeviceCommand command = get(key, filterByDate, filterByName, names, timestamp, status, isUpdated);
-                    if (command != null) {
-                        commands.add(command);
+        final Set<String> keys = redis.getFirstKeys(String.format(KEY_FORMAT, "*", "*", "*"), take);
+        return FluentIterable.from(keys)
+                .transform(new Function<String, DeviceCommand>() {
+                    @Override
+                    public DeviceCommand apply(String s) {
+                        return get(s, filterByDate, filterByName, names, timestamp, status, isUpdated);
                     }
-                } else {
-                    return commands;
-                }
-            }
-            return commands;
-        }
-        return Collections.emptyList();
+                }).filter(new Predicate<DeviceCommand>() {
+                    @Override
+                    public boolean apply(@Nullable DeviceCommand deviceCommand) {
+                        return deviceCommand != null;
+                    }
+                }).toSortedSet(new DeviceCommandComparator());
     }
 
     private void save(DeviceCommand deviceCommand, final String key) {
@@ -164,31 +166,15 @@ public class RedisCommandService {
         return null;
     }
 
-    private List<String> getAllKeysByGuids(Collection<String> guids) {
+    private List<String> getAllKeysByGuids(Collection<String> guids, Integer count) {
         if (CollectionUtils.isNotEmpty(guids)) {
             List<String> keys = new ArrayList<>();
             for (String guid : guids) {
-                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, guid, "*", "*")));
+                keys.addAll(redis.getFirstKeys(String.format(KEY_FORMAT, guid, "*", "*"), count));
             }
             return keys;
         }
         return Collections.emptyList();
-    }
-
-    private List<String> getAllKeysByIds(Collection<String> ids) {
-        if (CollectionUtils.isNotEmpty(ids)) {
-            List<String> keys = new ArrayList<>();
-            for (String id : ids) {
-                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, "*", id, "*")));
-            }
-            return keys;
-        }
-        return Collections.emptyList();
-    }
-
-
-    private Set<String> getAllKeysByIdAndGuid(final Long id, final String guid) {
-        return redis.getAllKeys(String.format(KEY_FORMAT, guid, id, "*"));
     }
 
     private String getKey(final Long id, final String guid, final Timestamp timestamp) {
