@@ -3,18 +3,21 @@ package com.devicehive.messages.bus.redis;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.PropertiesService;
 import com.devicehive.exceptions.HiveException;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import java.util.Map;
-import java.util.Set;
+import javax.ejb.embeddable.EJBContainer;
+import java.util.*;
 
 /**
  * Created by tmatvienko on 4/15/15.
@@ -45,8 +48,19 @@ public class RedisConnector {
         return CLIENT.dbSize();
     }
 
-    public Set<String> getAllKeys(String pattern) {
-        return CLIENT.keys(pattern);
+    public Set<String> getFirstKeys(String pattern, Integer count) {
+        ScanResult<String> result = getKeys("0", pattern, count);
+        LOGGER.debug("Redis query [pattern: '{}', count: {}] result -> {}", pattern, count, result.getResult().size());
+        List<String> keys = result.getResult();
+        return keys == null ? Collections.<String>emptySet() : new HashSet<>(keys);
+    }
+
+    public ScanResult<String> getKeys(String cursor, String pattern, Integer count) {
+        assert cursor != null && pattern != null && count != null;
+        ScanParams params = new ScanParams()
+                .count(count)
+                .match(pattern);
+        return CLIENT.scan(cursor, params);
     }
 
     public boolean set(String sess, String key, String value, String expireSec) {

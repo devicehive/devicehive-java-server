@@ -6,8 +6,12 @@ import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.util.LogExecutionTime;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import org.apache.commons.collections.CollectionUtils;
 
+import javax.annotation.Nullable;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.sql.Timestamp;
@@ -60,7 +64,7 @@ public class RedisNotificationService {
     }
 
     public DeviceNotification getByIdAndGuid(final Long id, final String guid) {
-        final Set<String> keys = getAllKeysByIdAndGuid(id, guid);
+        final Set<String> keys = redis.getFirstKeys(String.format(KEY_FORMAT, guid, id, "*"), Constants.DEFAULT_TAKE);
         if (CollectionUtils.isNotEmpty(keys)) {
             TreeSet<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
             for (final String key : keys) {
@@ -75,56 +79,38 @@ public class RedisNotificationService {
     }
 
     public Collection<DeviceNotification> getByGuids(final Collection<String> guids, final Timestamp timestamp, final Collection<String> names, final Integer take) {
-        final Set<String> keys = getAllKeysByGuids(guids);
-        if (CollectionUtils.isNotEmpty(keys)) {
-            TreeSet<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
-            final boolean filterByDate = timestamp != null;
-            final boolean filterByName = CollectionUtils.isNotEmpty(names);
-            for (final String key : keys) {
-                if (notifications.size() < take) {
-                    final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
-                    if (notification != null) {
-                        notifications.add(notification);
-                    }
-                } else {
-                    return notifications;
-                }
+        final Set<String> keys = getAllKeysByGuids(guids, take);
+        final boolean filterByDate = timestamp != null;
+        final boolean filterByName = CollectionUtils.isNotEmpty(names);
+        final Set<DeviceNotification> notifications = new TreeSet<>(new DeviceNotificationComparator());
+        for (String key : keys) {
+            DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
+            if (notification != null) {
+                notifications.add(notification);
             }
-            return notifications;
         }
-        return Collections.emptyList();
+        return notifications;
     }
 
     public Collection<DeviceNotification> getAll(final Timestamp timestamp, final Collection<String> names, final Integer take) {
-        Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*", "*"));
-        if (CollectionUtils.isNotEmpty(keys)) {
-            Set<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
-            final boolean filterByDate = timestamp != null;
-            final boolean filterByName = CollectionUtils.isNotEmpty(names);
-            for (final String key : keys) {
-                if (notifications.size() < take) {
-                    final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
-                    if (notification != null) {
-                        notifications.add(notification);
-                    }
-                } else {
-                    return notifications;
-                }
+        final Set<String> keys = redis.getFirstKeys(String.format(KEY_FORMAT, "*", "*", "*"), take);
+        final boolean filterByDate = timestamp != null;
+        final boolean filterByName = CollectionUtils.isNotEmpty(names);
+        final Set<DeviceNotification> notifications = new TreeSet<>(new DeviceNotificationComparator());
+        for (String key : keys) {
+            DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
+            if (notification != null) {
+                notifications.add(notification);
             }
-            return notifications;
         }
-        return Collections.emptyList();
+        return notifications;
     }
 
-    private Set<String> getAllKeysByIdAndGuid(final Long id, final String guid) {
-        return redis.getAllKeys(String.format(KEY_FORMAT, guid, id, "*"));
-    }
-
-    private Set<String> getAllKeysByGuids(final Collection<String> guids) {
+    private Set<String> getAllKeysByGuids(final Collection<String> guids, Integer count) {
         if (CollectionUtils.isNotEmpty(guids)) {
             Set<String> keys = new HashSet<>();
             for (String guid : guids) {
-                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, guid, "*", "*")));
+                keys.addAll(redis.getFirstKeys(String.format(KEY_FORMAT, guid, "*", "*"), count));
             }
             return keys;
         }
