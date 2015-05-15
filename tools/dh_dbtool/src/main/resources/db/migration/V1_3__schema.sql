@@ -171,3 +171,11 @@ LANGUAGE plpgsql;
 
 INSERT INTO access_key (label, key, expiration_date, user_id) VALUES ('Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1);
 INSERT INTO access_key_permission (access_key_id) VALUES (1);
+
+ALTER TABLE device ADD COLUMN blocked BOOLEAN;
+CREATE OR REPLACE FUNCTION init_device_blocked_field() RETURNS void as $$
+BEGIN
+  UPDATE device SET blocked = false WHERE blocked IS NULL;
+END;
+$$ LANGUAGE plpgsql;
+SELECT init_device_blocked_field();
