@@ -36,6 +36,7 @@ public class Messages {
     public static final String GETTING_OAUTH_ACCESS_TOKEN_FAILED = BidBundle.get("GETTING_OAUTH_ACCESS_TOKEN_FAILED");
     public static final String OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED = BidBundle.get("OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
+    public static final String DEVICE_IS_BLOCKED = BidBundle.get("DEVICE_IS_BLOCKED");
     public static final String NO_NOTIFICATIONS_FROM_DEVICE = BidBundle.get("NO_NOTIFICATIONS_FROM_DEVICE");
     public static final String CONFLICT_MESSAGE = BidBundle.get("CONFLICT_MESSAGE");
     public static final String ACCESS_KEY_NOT_FOUND = BidBundle.get("ACCESS_KEY_NOT_FOUND");

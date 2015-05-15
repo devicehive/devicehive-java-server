@@ -137,8 +137,7 @@ public class DeviceController {
         logger.debug("Device register method requested. Guid : {}", deviceGuid);
 
         Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
-        DeviceUpdate device;
-        device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
+        DeviceUpdate device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
         device.setGuid(new NullableWrapper<>(deviceGuid));
         Gson gsonForEquipment = GsonFactory.createGson();
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
