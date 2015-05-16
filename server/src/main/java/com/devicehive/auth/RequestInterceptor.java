@@ -1,8 +1,10 @@
 package com.devicehive.auth;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -18,6 +20,7 @@ import java.lang.reflect.Method;
 import java.sql.Timestamp;
 import java.util.Set;
 
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Interceptor
@@ -42,6 +45,10 @@ public class RequestInterceptor {
             User user = principal.getUser();
             if (user != null && user.getStatus() != UserStatus.ACTIVE) {
                 throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
+            }
+            Device device = principal.getDevice();
+            if (device != null && Boolean.TRUE.equals(device.getBlocked())) {
+                throw new HiveException(String.format(Messages.DEVICE_IS_BLOCKED, device.getGuid()), FORBIDDEN.getStatusCode());
             }
             AccessKey key = principal.getKey();
             if (key == null) {
