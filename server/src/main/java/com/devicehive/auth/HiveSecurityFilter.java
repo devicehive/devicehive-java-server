@@ -35,7 +35,7 @@ import static com.devicehive.configuration.Constants.UTF8;
  * Created by stas on 03.08.14.
  */
 @Provider
-@Priority(Priorities.AUTHENTICATION - 1)
+@Priority(Priorities.AUTHENTICATION)
 public class HiveSecurityFilter implements ContainerRequestFilter {
 
     @Inject
@@ -62,7 +62,8 @@ public class HiveSecurityFilter implements ContainerRequestFilter {
         hiveSecurityContext.setClientInetAddress(InetAddress.getByName(servletRequest.getRemoteAddr()));
         hiveSecurityContext.setOrigin(requestContext.getHeaderString(com.google.common.net.HttpHeaders.ORIGIN));
         hiveSecurityContext.setAuthorization(requestContext.getHeaderString(com.google.common.net.HttpHeaders.AUTHORIZATION));
-        requestContext.setProperty(HiveSecurityContext.class.getName(), hiveSecurityContext);
+        hiveSecurityContext.setSecure(requestContext.getSecurityContext().isSecure());
+        requestContext.setSecurityContext(hiveSecurityContext);
     }
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {
