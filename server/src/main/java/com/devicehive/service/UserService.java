@@ -213,7 +213,9 @@ public class UserService {
                 existing.setStatus(userToUpdate.getStatusEnum());
             }
         }
-
+        if (userToUpdate.getData() != null) {
+            existing.setData(userToUpdate.getData().getValue());
+        }
         hiveValidator.validate(existing);
         return userDAO.update(existing);
     }
