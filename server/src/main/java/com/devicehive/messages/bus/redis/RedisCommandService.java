@@ -6,14 +6,9 @@ import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.util.LogExecutionTime;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.sql.Timestamp;
@@ -122,7 +117,7 @@ public class RedisCommandService {
         Map<String, String> commandMap = redis.getAll(key);
         if (commandMap != null && !commandMap.isEmpty()) {
             final Timestamp commandTimestamp = TimestampAdapter.parseTimestamp(commandMap.get("timestamp"));
-            final boolean skip = (filterByDate && commandTimestamp.before(timestamp) || (filterByName && !names.contains(commandMap.get("command"))) ||
+            final boolean skip = (filterByDate && commandTimestamp.compareTo(timestamp) <= 0 || (filterByName && !names.contains(commandMap.get("command"))) ||
                     (!isUpdated && Boolean.valueOf(commandMap.get("isUpdated"))) || (StringUtils.isNotEmpty(status) && !status.equals(commandMap.get("status"))));
             if (!skip) {
                 DeviceCommand command = new DeviceCommand();

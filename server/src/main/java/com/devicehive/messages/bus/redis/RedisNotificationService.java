@@ -6,12 +6,8 @@ import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.util.LogExecutionTime;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import org.apache.commons.collections.CollectionUtils;
 
-import javax.annotation.Nullable;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.sql.Timestamp;
@@ -47,7 +43,7 @@ public class RedisNotificationService {
         Map<String, String> notificationMap = redis.getAll(key);
         if (!notificationMap.isEmpty()) {
             final Timestamp notificationTimestamp = TimestampAdapter.parseTimestamp(notificationMap.get("timestamp"));
-            final boolean skip = (filterByDate && notificationTimestamp.before(timestamp) || (filterByName && !names.contains(notificationMap.get("notification"))));
+            final boolean skip = (filterByDate && notificationTimestamp.compareTo(timestamp) <= 0 || (filterByName && !names.contains(notificationMap.get("notification"))));
             if (!skip) {
                 DeviceNotification notification = new DeviceNotification();
                 notification.setId(Long.valueOf(notificationMap.get("id")));
