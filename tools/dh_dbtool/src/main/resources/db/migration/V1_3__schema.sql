@@ -179,3 +179,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 SELECT init_device_blocked_field();
+
+ALTER TABLE "user" ADD COLUMN data TEXT;
+

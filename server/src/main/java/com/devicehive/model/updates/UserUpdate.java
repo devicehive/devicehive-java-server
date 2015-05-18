@@ -1,6 +1,7 @@
 package com.devicehive.model.updates;
 
 import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
@@ -17,6 +18,7 @@ public class UserUpdate implements HiveEntity {
     private NullableWrapper<String> googleLogin;
     private NullableWrapper<String> facebookLogin;
     private NullableWrapper<String> githubLogin;
+    private NullableWrapper<JsonStringWrapper> data;
 
     public NullableWrapper<String> getLogin() {
         return login;
@@ -82,6 +84,14 @@ public class UserUpdate implements HiveEntity {
         this.githubLogin = githubLogin;
     }
 
+    public NullableWrapper<JsonStringWrapper> getData() {
+        return data;
+    }
+
+    public void setData(NullableWrapper<JsonStringWrapper> data) {
+        this.data = data;
+    }
+
     public UserRole getRoleEnum() {
         if (role == null) {
             return null;
@@ -117,6 +127,9 @@ public class UserUpdate implements HiveEntity {
         }
         if (githubLogin != null) {
             result.setGithubLogin(githubLogin.getValue());
+        }
+        if (data != null) {
+            result.setData(data.getValue());
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());

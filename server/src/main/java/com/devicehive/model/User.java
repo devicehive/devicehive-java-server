@@ -96,6 +96,13 @@ public class User implements HiveEntity {
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
+    @SerializedName("data")
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
+    })
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private JsonStringWrapper data;
 
     /**
      * @return true, if user is admin
@@ -206,6 +213,14 @@ public class User implements HiveEntity {
 
     public void setEntityVersion(long entityVersion) {
         this.entityVersion = entityVersion;
+    }
+
+    public JsonStringWrapper getData() {
+        return data;
+    }
+
+    public void setData(JsonStringWrapper data) {
+        this.data = data;
     }
 
     @Override
