@@ -43,7 +43,7 @@ public class RedisNotificationService {
         Map<String, String> notificationMap = redis.getAll(key);
         if (!notificationMap.isEmpty()) {
             final Timestamp notificationTimestamp = TimestampAdapter.parseTimestamp(notificationMap.get("timestamp"));
-            final boolean skip = (filterByDate && notificationTimestamp.before(timestamp) || (filterByName && !names.contains(notificationMap.get("notification"))));
+            final boolean skip = (filterByDate && notificationTimestamp.compareTo(timestamp) <= 0 || (filterByName && !names.contains(notificationMap.get("notification"))));
             if (!skip) {
                 DeviceNotification notification = new DeviceNotification();
                 notification.setId(Long.valueOf(notificationMap.get("id")));

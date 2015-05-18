@@ -131,7 +131,7 @@ public class RedisCommandService {
         Map<String, String> commandMap = redis.getAll(key);
         if (commandMap != null && !commandMap.isEmpty()) {
             final Timestamp commandTimestamp = TimestampAdapter.parseTimestamp(commandMap.get("timestamp"));
-            final boolean skip = (filterByDate && commandTimestamp.before(timestamp) || (filterByName && !names.contains(commandMap.get("command"))) ||
+            final boolean skip = (filterByDate && commandTimestamp.compareTo(timestamp) <= 0 || (filterByName && !names.contains(commandMap.get("command"))) ||
                     (!isUpdated && Boolean.valueOf(commandMap.get("isUpdated"))) || (StringUtils.isNotEmpty(status) && !status.equals(commandMap.get("status"))));
             if (!skip) {
                 DeviceCommand command = new DeviceCommand();
