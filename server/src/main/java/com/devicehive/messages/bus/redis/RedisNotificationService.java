@@ -60,73 +60,54 @@ public class RedisNotificationService {
     }
 
     public DeviceNotification getByIdAndGuid(final Long id, final String guid) {
-        final Set<String> keys = getAllKeysByIdAndGuid(id, guid);
-        if (CollectionUtils.isNotEmpty(keys)) {
-            TreeSet<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
-            for (final String key : keys) {
-                final DeviceNotification notification = get(key, false, false, null, null);
-                if (notification != null) {
-                    notifications.add(notification);
-                }
-            }
-            return !notifications.isEmpty() ? notifications.first() : null;
-        }
-        return null;
+        final SortedSet<DeviceNotification> notifications = redis.fetch(String.format(KEY_FORMAT, guid, id, "*"), Constants.DEFAULT_TAKE, new DeviceNotificationComparator(),
+                new Transformer<String, DeviceNotification>() {
+                    @Override
+                    public DeviceNotification apply(String key) {
+                        return get(key, false, false, null, null);
+                    }
+                });
+        return !(notifications == null || notifications.isEmpty()) ? notifications.first() : null;
     }
 
     public Collection<DeviceNotification> getByGuids(final Collection<String> guids, final Timestamp timestamp, final Collection<String> names, final Integer take) {
-        final Set<String> keys = getAllKeysByGuids(guids);
-        if (CollectionUtils.isNotEmpty(keys)) {
-            TreeSet<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
-            final boolean filterByDate = timestamp != null;
-            final boolean filterByName = CollectionUtils.isNotEmpty(names);
-            for (final String key : keys) {
-                if (notifications.size() < take) {
-                    final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
-                    if (notification != null) {
-                        notifications.add(notification);
-                    }
-                } else {
-                    return notifications;
-                }
+        final boolean filterByDate = timestamp != null;
+        final boolean filterByName = CollectionUtils.isNotEmpty(names);
+        return getAllKeysByGuids(guids, take, new Transformer<String, DeviceNotification>() {
+            @Override
+            public DeviceNotification apply(String key) {
+                return get(key, filterByDate, filterByName, timestamp, names);
             }
-            return notifications;
-        }
-        return Collections.emptyList();
+        });
     }
 
     public Collection<DeviceNotification> getAll(final Timestamp timestamp, final Collection<String> names, final Integer take) {
-        Set<String> keys = redis.getAllKeys(String.format(KEY_FORMAT, "*", "*", "*"));
-        if (CollectionUtils.isNotEmpty(keys)) {
-            Set<DeviceNotification> notifications = new TreeSet<DeviceNotification>(new DeviceNotificationComparator());
-            final boolean filterByDate = timestamp != null;
-            final boolean filterByName = CollectionUtils.isNotEmpty(names);
-            for (final String key : keys) {
-                if (notifications.size() < take) {
-                    final DeviceNotification notification = get(key, filterByDate, filterByName, timestamp, names);
-                    if (notification != null) {
-                        notifications.add(notification);
+        final boolean filterByDate = timestamp != null;
+        final boolean filterByName = CollectionUtils.isNotEmpty(names);
+        return redis.fetch(String.format(KEY_FORMAT, "*", "*", "*"), take, new DeviceNotificationComparator(),
+                new Transformer<String, DeviceNotification>() {
+                    @Override
+                    public DeviceNotification apply(String key) {
+                        return get(key, filterByDate, filterByName, timestamp, names);
                     }
-                } else {
-                    return notifications;
-                }
-            }
-            return notifications;
-        }
-        return Collections.emptyList();
+                });
     }
 
-    private Set<String> getAllKeysByIdAndGuid(final Long id, final String guid) {
-        return redis.getAllKeys(String.format(KEY_FORMAT, guid, id, "*"));
-    }
-
-    private Set<String> getAllKeysByGuids(final Collection<String> guids) {
+    private Set<DeviceNotification> getAllKeysByGuids(final Collection<String> guids, Integer count, Transformer<String, DeviceNotification> transformer) {
         if (CollectionUtils.isNotEmpty(guids)) {
-            Set<String> keys = new HashSet<>();
+            Comparator<DeviceNotification> comparator = new DeviceNotificationComparator();
+            Set<DeviceNotification> accumulator = new TreeSet<>(comparator);
             for (String guid : guids) {
-                keys.addAll(redis.getAllKeys(String.format(KEY_FORMAT, guid, "*", "*")));
+                accumulator.addAll(
+                        redis.fetch(String.format(KEY_FORMAT, guid, "*", "*"), count, comparator, transformer)
+                );
             }
-            return keys;
+            if (accumulator.size() > count) {
+                List<DeviceNotification> sliced = new ArrayList<>(accumulator).subList(0, count);
+                accumulator.clear();
+                accumulator.addAll(sliced);
+            }
+            return accumulator;
         }
         return Collections.emptySet();
     }
