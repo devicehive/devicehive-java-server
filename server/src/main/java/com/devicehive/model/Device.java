@@ -84,6 +84,9 @@ public class Device implements HiveEntity {
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
+    @Column(name = "blocked")
+    @SerializedName("blocked")
+    private Boolean blocked;
 
     public long getEntityVersion() {
         return entityVersion;
@@ -155,6 +158,14 @@ public class Device implements HiveEntity {
 
     public void setDeviceClass(DeviceClass deviceClass) {
         this.deviceClass = deviceClass;
+    }
+
+    public Boolean getBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(Boolean blocked) {
+        this.blocked = blocked;
     }
 
     public static class Queries {

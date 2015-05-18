@@ -60,8 +60,6 @@ public class DeviceService {
         if (principal != null && principal.isAuthenticated()) {
             switch (principal.getRole()) {
                 case HiveRoles.ADMIN:
-                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser());
-                    break;
                 case HiveRoles.CLIENT:
                     dn = deviceSaveByUser(device, equipmentSet, principal.getUser());
                     break;
@@ -98,6 +96,9 @@ public class DeviceService {
             if (network != null) {
                 device.setNetwork(network);
             }
+            if (device.getBlocked() == null) {
+                device.setBlocked(false);
+            }
             existingDevice = deviceDAO.createDevice(device);
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_ADD);
         } else {
@@ -122,6 +123,9 @@ public class DeviceService {
             }
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
+            }
+            if (deviceUpdate.getBlocked() != null) {
+                existingDevice.setBlocked(deviceUpdate.getBlocked().getValue());
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
@@ -170,6 +174,9 @@ public class DeviceService {
             if (deviceUpdate.getKey() != null) {
                 existingDevice.setKey(deviceUpdate.getKey().getValue());
             }
+            if (deviceUpdate.getBlocked() != null) {
+                existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().getValue()));
+            }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
     }
@@ -214,6 +221,9 @@ public class DeviceService {
         if (deviceUpdate.getKey() != null) {
             existingDevice.setKey(deviceUpdate.getKey().getValue());
         }
+        if (deviceUpdate.getBlocked() != null) {
+            existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().getValue()));
+        }
         return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
     }
 
@@ -251,6 +261,9 @@ public class DeviceService {
             }
             if (deviceUpdate.getNetwork() != null) {
                 existingDevice.setNetwork(network);
+            }
+            if (deviceUpdate.getBlocked() != null) {
+                existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().getValue()));
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
@@ -326,6 +339,9 @@ public class DeviceService {
     public Device authenticate(String uuid, String key) {
         Device device = deviceDAO.findByUUIDAndKey(uuid, key);
         if (device != null) {
+            if (Boolean.TRUE.equals(device.getBlocked())) {
+                throw new HiveException(String.format(Messages.DEVICE_IS_BLOCKED, device.getGuid()), FORBIDDEN.getStatusCode());
+            }
             deviceActivityService.update(device.getGuid());
         }
         return device;
