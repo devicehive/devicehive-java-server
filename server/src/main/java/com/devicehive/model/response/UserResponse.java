@@ -1,26 +1,20 @@
 package com.devicehive.model.response;
 
-import com.google.gson.annotations.SerializedName;
-
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
-
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
+import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
+import javax.persistence.Column;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Column;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * @author Nikolay Loboda

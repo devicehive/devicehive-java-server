@@ -33,11 +33,7 @@
         <appender-ref ref="FILE"/>
     </appender>
 
-    <logger name="org.hibernate.engine.transaction.internal" level="INFO">
-        <appender-ref ref="ASYNC"/>
-    </logger>
-
-    <logger name="com.hazelcast.cluster.MulticastService" level="ERROR">
+    <logger name="org.hibernate.engine.transaction.internal" level="DEBUG">
         <appender-ref ref="ASYNC"/>
     </logger>
 

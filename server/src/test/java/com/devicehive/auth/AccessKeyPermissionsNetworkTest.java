@@ -1,16 +1,11 @@
 package com.devicehive.auth;
 
 import com.devicehive.Constants;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.*;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,9 +17,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -68,7 +61,7 @@ public class AccessKeyPermissionsNetworkTest {
         permissions.add(permission2);
 
         AccessKeyPermission permission3 = new AccessKeyPermission();
-        permission3.setNetworkIds(null);
+        permission3.setNetworkIds((JsonStringWrapper)null);
         permissions.add(permission3);
 
         CheckPermissionsHelper.filterNetworks(permissions);

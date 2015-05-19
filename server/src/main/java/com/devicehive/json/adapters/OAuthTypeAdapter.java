@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.model.Type;
+import com.devicehive.model.enums.Type;
 
 import java.io.IOException;
 

@@ -1,14 +1,10 @@
 package com.devicehive.dao;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.util.LogExecutionTime;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -24,17 +20,11 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.devicehive.model.User.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.User.Queries.Names.FIND_BY_NAME;
-import static com.devicehive.model.User.Queries.Names.GET_WITH_NETWORKS_BY_ID;
-import static com.devicehive.model.User.Queries.Names.HAS_ACCESS_TO_DEVICE;
-import static com.devicehive.model.User.Queries.Names.HAS_ACCESS_TO_NETWORK;
-import static com.devicehive.model.User.Queries.Parameters.DEVICE;
-import static com.devicehive.model.User.Queries.Parameters.ID;
-import static com.devicehive.model.User.Queries.Parameters.LOGIN;
-import static com.devicehive.model.User.Queries.Parameters.NETWORK;
-import static com.devicehive.model.User.Queries.Parameters.USER;
+import static com.devicehive.model.User.Queries.Names.*;
+import static com.devicehive.model.User.Queries.Parameters.*;
 
 @Stateless
 @LogExecutionTime
@@ -55,6 +45,71 @@ public class UserDAO {
     public User findByLogin(String login) {
         TypedQuery<User> query = em.createNamedQuery(FIND_BY_NAME, User.class);
         query.setParameter(LOGIN, login);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
+     * Search user by Google login
+     *
+     * @param login user's login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByGoogleLogin(String login) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_GOOGLE_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
+     * Search user by Facebook login
+     *
+     * @param login user's login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByFacebookLogin(String login) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_FACEBOOK_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
+     * Search user by Github login
+     *
+     * @param login user's login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByGithubLogin(String login) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_GITHUB_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        CacheHelper.cacheable(query);
+        List<User> users = query.getResultList();
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /**
+     * Search user by one of identity providers login
+     *
+     * @param googleLogin user's google login
+     * @param facebookLogin user's facebook login
+     * @param githubLogin user's github login
+     * @return User or null, if there is no such user
+     */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public User findByIdentityLogin(String login, String googleLogin, String facebookLogin, String githubLogin) {
+        TypedQuery<User> query = em.createNamedQuery(FIND_BY_IDENTITY_NAME, User.class);
+        query.setParameter(LOGIN, login);
+        query.setParameter(GOOGLE_LOGIN, googleLogin);
+        query.setParameter(FACEBOOK_LOGIN, facebookLogin);
+        query.setParameter(GITHUB_LOGIN, githubLogin);
         CacheHelper.cacheable(query);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
@@ -116,8 +171,9 @@ public class UserDAO {
 
         if (take == null) {
             take = Constants.DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
         }
+        resultQuery.setMaxResults(take);
+        CacheHelper.cacheable(resultQuery);
 
         return resultQuery.getResultList();
     }
@@ -131,6 +187,7 @@ public class UserDAO {
     public User findUserWithNetworks(Long id) {
         TypedQuery<User> query = em.createNamedQuery(GET_WITH_NETWORKS_BY_ID, User.class);
         query.setParameter(ID, id);
+        CacheHelper.cacheable(query);
         List<User> users = query.getResultList();
         return users.isEmpty() ? null : users.get(0);
 
@@ -146,10 +203,10 @@ public class UserDAO {
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public boolean hasAccessToDevice(User user, Device device) {
+    public boolean hasAccessToDevice(User user, String deviceGuid) {
         TypedQuery<Long> query = em.createNamedQuery(HAS_ACCESS_TO_DEVICE, Long.class);
         query.setParameter(USER, user);
-        query.setParameter(DEVICE, device);
+        query.setParameter(GUID, deviceGuid);
         Long count = query.getSingleResult();
         return count != null && count > 0;
     }

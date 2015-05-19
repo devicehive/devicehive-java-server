@@ -4,8 +4,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 
-import java.util.List;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -14,14 +12,10 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
-import static com.devicehive.model.DeviceEquipment.Queries.Names.DELETE_BY_FK;
-import static com.devicehive.model.DeviceEquipment.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.DeviceEquipment.Queries.Names.GET_BY_DEVICE;
-import static com.devicehive.model.DeviceEquipment.Queries.Names.GET_BY_DEVICE_AND_CODE;
-import static com.devicehive.model.DeviceEquipment.Queries.Parameters.CODE;
-import static com.devicehive.model.DeviceEquipment.Queries.Parameters.DEVICE;
-import static com.devicehive.model.DeviceEquipment.Queries.Parameters.ID;
+import static com.devicehive.model.DeviceEquipment.Queries.Names.*;
+import static com.devicehive.model.DeviceEquipment.Queries.Parameters.*;
 
 @Stateless
 public class DeviceEquipmentDAO {
@@ -53,6 +47,7 @@ public class DeviceEquipmentDAO {
     public List<DeviceEquipment> findByFK(@NotNull Device device) {
         TypedQuery<DeviceEquipment> query = em.createNamedQuery(GET_BY_DEVICE, DeviceEquipment.class);
         query.setParameter(DEVICE, device);
+        CacheHelper.cacheable(query);
         return query.getResultList();
     }
 

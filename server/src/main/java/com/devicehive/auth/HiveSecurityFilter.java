@@ -1,7 +1,5 @@
 package com.devicehive.auth;
 
-import com.google.common.base.Charsets;
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
@@ -11,35 +9,35 @@ import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
-
+import com.google.common.base.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Priority;
+import javax.inject.Inject;
+import javax.servlet.*;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-
-import javax.inject.Inject;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.HttpHeaders;
 
 import static com.devicehive.configuration.Constants.UTF8;
 
 /**
  * Created by stas on 03.08.14.
  */
-@WebFilter(value = "/*", asyncSupported = true)
-public class HiveSecurityFilter implements Filter {
+@Provider
+@Priority(Priorities.AUTHENTICATION)
+public class HiveSecurityFilter implements ContainerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(HiveSecurityFilter.class);
     @Inject
     private DeviceService deviceService;
     @Inject
@@ -50,45 +48,36 @@ public class HiveSecurityFilter implements Filter {
     private OAuthClientService clientService;
     @Inject
     private HiveSecurityContext hiveSecurityContext;
+    @Context
+    private HttpServletRequest servletRequest;
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
+    public void filter(ContainerRequestContext requestContext) throws IOException {
+        HivePrincipal principal = new HivePrincipal(
+                authUser(requestContext),
+                authDevice(requestContext),
+                authKey(requestContext));
+        hiveSecurityContext.setHivePrincipal(principal);
+        hiveSecurityContext.setoAuthClient(authClient(requestContext));
+        hiveSecurityContext.setClientInetAddress(InetAddress.getByName(servletRequest.getRemoteAddr()));
+        hiveSecurityContext.setOrigin(requestContext.getHeaderString(com.google.common.net.HttpHeaders.ORIGIN));
+        hiveSecurityContext.setAuthorization(requestContext.getHeaderString(com.google.common.net.HttpHeaders.AUTHORIZATION));
+        hiveSecurityContext.setSecure(requestContext.getSecurityContext().isSecure());
+        requestContext.setSecurityContext(hiveSecurityContext);
     }
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
-        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-        hiveSecurityContext
-            .setHivePrincipal(new HivePrincipal(authUser(httpServletRequest), authDevice(httpServletRequest),
-                                                authKey(httpServletRequest)));
-        hiveSecurityContext.setoAuthClient(authClient(httpServletRequest));
-        hiveSecurityContext.setClientInetAddress(InetAddress.getByName(request.getRemoteAddr()));
-        hiveSecurityContext.setOrigin(httpServletRequest.getHeader(com.google.common.net.HttpHeaders.ORIGIN));
-        hiveSecurityContext
-            .setAuthorization(httpServletRequest.getHeader(com.google.common.net.HttpHeaders.AUTHORIZATION));
-        httpServletRequest.setAttribute(HiveSecurityContext.class.getName(), hiveSecurityContext);
-        chain.doFilter(request, response);
-    }
-
-    @Override
-    public void destroy() {
-
-    }
-
-    private Device authDevice(HttpServletRequest request) throws IOException {
-        String deviceId = request.getHeader(Constants.AUTH_DEVICE_ID_HEADER);
+    private Device authDevice(ContainerRequestContext requestContext) throws IOException {
+        String deviceId = requestContext.getHeaderString(Constants.AUTH_DEVICE_ID_HEADER);
         if (deviceId == null) {
             return null;
         }
-        String deviceKey = request.getHeader(Constants.AUTH_DEVICE_KEY_HEADER);
+        String deviceKey = requestContext.getHeaderString(Constants.AUTH_DEVICE_KEY_HEADER);
         return deviceService.authenticate(deviceId, deviceKey);
 
     }
 
-    private User authUser(HttpServletRequest request) throws IOException {
-        String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+    private User authUser(ContainerRequestContext requestContext) throws IOException {
+        String auth = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;
         }
@@ -111,8 +100,8 @@ public class HiveSecurityFilter implements Filter {
         return null;
     }
 
-    private AccessKey authKey(HttpServletRequest request) {
-        String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+    private AccessKey authKey(ContainerRequestContext requestContext) throws IOException {
+        String auth = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;
         }
@@ -123,8 +112,8 @@ public class HiveSecurityFilter implements Filter {
         return null;
     }
 
-    private OAuthClient authClient(HttpServletRequest request) {
-        String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+    private OAuthClient authClient(ContainerRequestContext requestContext) {
+        String auth = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
         if (auth == null) {
             return null;
         }

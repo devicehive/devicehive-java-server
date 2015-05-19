@@ -3,6 +3,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.util.Set;
 
@@ -47,6 +48,7 @@ import static com.devicehive.model.Network.Queries.Values;
                               query = Values.GET_WITH_DEVICES_AND_DEVICE_CLASSES)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Network implements HiveEntity {
 
     public static final String USERS_ASSOCIATION = "users";

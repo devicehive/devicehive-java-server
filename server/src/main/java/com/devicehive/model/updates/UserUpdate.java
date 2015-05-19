@@ -1,10 +1,11 @@
 package com.devicehive.model.updates;
 
 import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 
 public class UserUpdate implements HiveEntity {
 
@@ -13,6 +14,11 @@ public class UserUpdate implements HiveEntity {
     private NullableWrapper<Integer> role;
     private NullableWrapper<Integer> status;
     private NullableWrapper<String> password;
+    private NullableWrapper<String> oldPassword;
+    private NullableWrapper<String> googleLogin;
+    private NullableWrapper<String> facebookLogin;
+    private NullableWrapper<String> githubLogin;
+    private NullableWrapper<JsonStringWrapper> data;
 
     public NullableWrapper<String> getLogin() {
         return login;
@@ -46,6 +52,46 @@ public class UserUpdate implements HiveEntity {
         this.password = password;
     }
 
+    public NullableWrapper<String> getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(NullableWrapper<String> oldPassword) {
+        this.oldPassword = oldPassword;
+    }
+
+    public NullableWrapper<String> getGoogleLogin() {
+        return googleLogin;
+    }
+
+    public void setGoogleLogin(NullableWrapper<String> googleLogin) {
+        this.googleLogin = googleLogin;
+    }
+
+    public NullableWrapper<String> getFacebookLogin() {
+        return facebookLogin;
+    }
+
+    public void setFacebookLogin(NullableWrapper<String> facebookLogin) {
+        this.facebookLogin = facebookLogin;
+    }
+
+    public NullableWrapper<String> getGithubLogin() {
+        return githubLogin;
+    }
+
+    public void setGithubLogin(NullableWrapper<String> githubLogin) {
+        this.githubLogin = githubLogin;
+    }
+
+    public NullableWrapper<JsonStringWrapper> getData() {
+        return data;
+    }
+
+    public void setData(NullableWrapper<JsonStringWrapper> data) {
+        this.data = data;
+    }
+
     public UserRole getRoleEnum() {
         if (role == null) {
             return null;
@@ -72,6 +118,18 @@ public class UserUpdate implements HiveEntity {
         User result = new User();
         if (login != null) {
             result.setLogin(login.getValue());
+        }
+        if (googleLogin != null) {
+            result.setGoogleLogin(googleLogin.getValue());
+        }
+        if (facebookLogin != null) {
+            result.setFacebookLogin(facebookLogin.getValue());
+        }
+        if (githubLogin != null) {
+            result.setGithubLogin(githubLogin.getValue());
+        }
+        if (data != null) {
+            result.setData(data.getValue());
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());

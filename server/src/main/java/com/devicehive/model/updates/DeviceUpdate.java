@@ -46,6 +46,10 @@ public class DeviceUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private NullableWrapper<DeviceClassUpdate> deviceClass;
 
+    @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
+    @SerializedName("blocked")
+    private NullableWrapper<Boolean> blocked;
+
     public NullableWrapper<DeviceClassUpdate> getDeviceClass() {
         return deviceClass;
     }
@@ -102,6 +106,14 @@ public class DeviceUpdate implements HiveEntity {
         this.network = network;
     }
 
+    public NullableWrapper<Boolean> getBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(NullableWrapper<Boolean> blocked) {
+        this.blocked = blocked;
+    }
+
     public Device convertTo() {
         Device device = new Device();
         if (guid != null) {
@@ -125,6 +137,9 @@ public class DeviceUpdate implements HiveEntity {
         }
         if (status != null) {
             device.setStatus(status.getValue());
+        }
+        if (blocked != null) {
+            device.setBlocked(Boolean.TRUE.equals(blocked.getValue()));
         }
         return device;
     }

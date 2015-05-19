@@ -4,6 +4,7 @@ package com.devicehive.model;
 import com.google.gson.annotations.SerializedName;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
@@ -42,6 +43,7 @@ import static com.devicehive.model.Equipment.Queries.Values;
                   @NamedQuery(name = Names.DELETE_BY_ID_AND_DEVICE_CLASS, query = Values.DELETE_BY_ID_AND_DEVICE_CLASS)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Equipment implements HiveEntity {
 
     private static final long serialVersionUID = -107312669477890926L;

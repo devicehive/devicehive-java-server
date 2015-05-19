@@ -6,7 +6,7 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.model.UserStatus;
+import com.devicehive.model.enums.UserStatus;
 
 import java.io.IOException;
 

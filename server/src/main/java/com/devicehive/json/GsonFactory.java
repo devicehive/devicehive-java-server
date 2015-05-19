@@ -1,21 +1,12 @@
 package com.devicehive.json;
 
 
+import com.devicehive.json.adapters.*;
+import com.devicehive.model.enums.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import com.devicehive.json.adapters.AccessTypeAdapter;
-import com.devicehive.json.adapters.JsonStringWrapperAdapterFactory;
-import com.devicehive.json.adapters.NullableWrapperAdapterFactory;
-import com.devicehive.json.adapters.OAuthTypeAdapter;
-import com.devicehive.json.adapters.TimestampAdapter;
-import com.devicehive.json.adapters.UserRoleAdapter;
-import com.devicehive.json.adapters.UserStatusAdapter;
 import com.devicehive.json.strategies.AnnotatedStrategy;
-import com.devicehive.model.AccessType;
-import com.devicehive.model.Type;
-import com.devicehive.model.UserRole;
-import com.devicehive.model.UserStatus;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -56,7 +47,8 @@ public class GsonFactory {
             .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
             .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
             .registerTypeAdapter(Type.class, new OAuthTypeAdapter())
-            .registerTypeAdapter(AccessType.class, new AccessTypeAdapter());
+            .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
+            .registerTypeAdapter(AccessKeyType.class, new AccessKeyStatusAdapter());
     }
 
 }

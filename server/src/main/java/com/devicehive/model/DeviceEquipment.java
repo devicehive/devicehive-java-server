@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import com.devicehive.json.strategies.JsonPolicyDef;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.sql.Timestamp;
 
@@ -43,6 +44,7 @@ import static com.devicehive.model.DeviceEquipment.Queries.Values;
                   @NamedQuery(name = Names.GET_BY_DEVICE, query = Values.GET_BY_DEVICE)
               })
 @Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class DeviceEquipment implements HiveEntity {
 
     private static final long serialVersionUID = 479737367629574073L;

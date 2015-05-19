@@ -5,25 +5,22 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.messages.handler.HandlerCreator;
 import com.devicehive.model.DeviceCommand;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
-public class CommandSubscription extends Subscription<Long, DeviceCommand> {
+public class CommandSubscription extends Subscription<String, DeviceCommand> {
 
     private final HivePrincipal principal;
-    private final Set<String> commandNames;
+    private final String commandNames;
 
-    public CommandSubscription(HivePrincipal principal, Long deviceId, UUID subscriptionId,
-                               Collection<String> commandNames,
+    public CommandSubscription(HivePrincipal principal, String guid, UUID subscriptionId,
+                               String commandNames,
                                HandlerCreator<DeviceCommand> handlerCreator) {
-        super(deviceId, subscriptionId, handlerCreator);
+        super(guid, subscriptionId, handlerCreator);
         this.principal = principal;
-        this.commandNames = commandNames != null ? new HashSet<>(commandNames) : null;
+        this.commandNames = commandNames;
     }
 
-    public Long getDeviceId() {
+    public String getDeviceGuid() {
         return getEventSource();
     }
 
@@ -31,7 +28,7 @@ public class CommandSubscription extends Subscription<Long, DeviceCommand> {
         return principal;
     }
 
-    public Set<String> getCommandNames() {
+    public String getCommandNames() {
         return commandNames;
     }
 

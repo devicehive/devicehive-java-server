@@ -8,10 +8,10 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessToken;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.OAuthClient;
+import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.TimestampService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,17 +25,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.CLIENT_ID;
-import static com.devicehive.configuration.Constants.CODE;
-import static com.devicehive.configuration.Constants.GRANT_TYPE;
-import static com.devicehive.configuration.Constants.OAUTH_AUTH_SCEME;
-import static com.devicehive.configuration.Constants.REDIRECT_URI;
-import static com.devicehive.configuration.Constants.SCOPE;
-import static com.devicehive.configuration.Constants.USERNAME;
+import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
@@ -51,6 +43,9 @@ public class OAuthTokenController {
 
     @EJB
     private TimestampService timestampService;
+
+    @EJB
+    private AccessKeyService accessKeyService;
 
     @Inject
     private HiveSecurityContext hiveSecurityContext;

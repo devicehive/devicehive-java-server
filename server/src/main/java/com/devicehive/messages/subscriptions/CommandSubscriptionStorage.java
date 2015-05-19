@@ -2,14 +2,14 @@ package com.devicehive.messages.subscriptions;
 
 import java.util.Set;
 
-public class CommandSubscriptionStorage extends AbstractStorage<Long, CommandSubscription> {
+public class CommandSubscriptionStorage extends AbstractStorage<String, CommandSubscription> {
 
-    public Set<CommandSubscription> getByDeviceId(Long id) {
-        return get(id);
+    public Set<CommandSubscription> getByDeviceGuid(String guid) {
+        return get(guid);
     }
 
-    public synchronized void removeByDevice(Long deviceId) {
-        removeByEventSource(deviceId);
+    public synchronized void removeByDeviceGuid(String guid) {
+        removeByEventSource(guid);
     }
 
 }

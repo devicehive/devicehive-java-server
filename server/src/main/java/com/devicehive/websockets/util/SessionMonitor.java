@@ -10,29 +10,21 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceActivityService;
 import com.devicehive.websockets.HiveWebsocketSessionState;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.*;
+import javax.websocket.CloseReason;
+import javax.websocket.MessageHandler;
+import javax.websocket.PongMessage;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.Asynchronous;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.EJB;
-import javax.ejb.Schedule;
-import javax.ejb.Singleton;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.websocket.CloseReason;
-import javax.websocket.MessageHandler;
-import javax.websocket.PongMessage;
-import javax.websocket.Session;
 
 import static javax.ejb.ConcurrencyManagementType.BEAN;
 
@@ -58,7 +50,7 @@ public class SessionMonitor {
         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
-                logger.info("Pong received for session " + session.getId());
+                logger.debug("Pong received for session " + session.getId());
                 updateDeviceSession(session);
             }
         });
@@ -79,13 +71,13 @@ public class SessionMonitor {
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
         Device authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
         if (authorizedDevice != null) {
-            deviceActivityService.update(authorizedDevice.getId());
+            deviceActivityService.update(authorizedDevice.getGuid());
         }
         Set<UUID> commandSubscriptions = HiveWebsocketSessionState.get(session).getCommandSubscriptions();
         for (UUID subId : commandSubscriptions) {
             for (CommandSubscription subscription : subscriptionManager.getCommandSubscriptionStorage().get(subId)) {
-                if (subscription.getDeviceId() != Constants.NULL_ID_SUBSTITUTE) {
-                    deviceActivityService.update(subscription.getDeviceId());
+                if (subscription.getDeviceGuid() != Constants.NULL_SUBSTITUTE) {
+                    deviceActivityService.update(subscription.getDeviceGuid());
                 }
             }
         }
@@ -95,7 +87,7 @@ public class SessionMonitor {
     public synchronized void ping() {
         for (Session session : sessionMap.values()) {
             if (session.isOpen()) {
-                logger.info("Pinging session " + session.getId());
+                logger.debug("Pinging session " + session.getId());
                 try {
                     session.getAsyncRemote().sendPing(Constants.PING);
                 } catch (IOException ex) {

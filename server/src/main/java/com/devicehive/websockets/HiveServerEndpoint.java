@@ -45,7 +45,7 @@ abstract class HiveServerEndpoint {
     private HiveSecurityContext hiveSecurityContext;
 
     public void onOpen(Session session) {
-        logger.info("Opening session id {} ", session.getId());
+        logger.debug("Opening session id {} ", session.getId());
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getUserProperties().put(HiveWebsocketSessionState.KEY, state);
         state.setOrigin(hiveSecurityContext.getOrigin());
@@ -69,7 +69,7 @@ abstract class HiveServerEndpoint {
 
 
     public void onClose(Session session, CloseReason closeReason) {
-        logger.info("Closing session id {}, close reason is {} ", session.getId(), closeReason);
+        logger.debug("Closing session id {}, close reason is {} ", session.getId(), closeReason);
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
         for (UUID subId : state.getCommandSubscriptions()) {
             subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
@@ -77,7 +77,7 @@ abstract class HiveServerEndpoint {
         for (UUID subId : state.getNotificationSubscriptions()) {
             subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
         }
-        logger.info("Session {} is closed", session.getId());
+        logger.debug("Session {} is closed", session.getId());
     }
 
     public void onError(Throwable exception, Session session) {

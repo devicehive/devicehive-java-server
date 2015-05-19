@@ -1,49 +1,37 @@
 package com.devicehive.controller;
 
+import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
-import com.devicehive.model.UserRole;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.LogExecutionTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
 import javax.inject.Inject;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.USER_ID;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_ACCESS_KEY;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * REST Controller for access keys: <i>/user/{userId}/accesskey</i> See <a href="http://www.devicehive.com/restful/#Reference/AccessKey">DeviceHive
@@ -74,13 +62,27 @@ public class AccessKeyController {
      *         specification.
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
-    public Response list(@PathParam(USER_ID) String userId) {
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
+    public Response list(@PathParam(USER_ID) String userId, @QueryParam(LABEL) String label,
+                         @QueryParam(LABEL_PATTERN) String labelPattern, @QueryParam(TYPE) Integer type,
+                         @QueryParam(SORT_FIELD) String sortField, @QueryParam(SORT_ORDER) String sortOrderSt,
+                         @QueryParam(TAKE) Integer take, @QueryParam(SKIP) Integer skip) {
 
         logger.debug("Access key : list requested for userId : {}", userId);
 
         Long id = getUser(userId).getId();
-        List<AccessKey> keyList = accessKeyService.list(id);
+
+        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+
+        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LABEL.equalsIgnoreCase(sortField)) {
+            return ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
+        }
+        List<AccessKey> keyList = accessKeyService.list(id, label, labelPattern, type, sortField, sortOrder, take, skip);
 
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
 
@@ -98,7 +100,8 @@ public class AccessKeyController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response get(@PathParam(USER_ID) String userId, @PathParam(ID) long accessKeyId) {
 
         logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
@@ -128,7 +131,8 @@ public class AccessKeyController {
      *         resource in the response body according to the specification.
      */
     @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKey key) {
 
@@ -150,7 +154,8 @@ public class AccessKeyController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response update(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate) {
         logger.debug("Access key : update requested for userId : {}, access key id : {}, access key : {} ", userId,
@@ -180,7 +185,8 @@ public class AccessKeyController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN})
+    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response delete(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId) {
         logger.debug("Access key : delete requested for userId : {}", userId);
 
@@ -195,7 +201,7 @@ public class AccessKeyController {
 
     private User getUser(String userId) {
         HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
-        User currentUser = principal.getUser();
+        User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         Long id;
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {

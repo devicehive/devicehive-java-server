@@ -1,15 +1,18 @@
 package com.devicehive.auth;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.model.OAuthClient;
-import com.devicehive.model.UserRole;
-
-import java.net.InetAddress;
+import com.devicehive.model.enums.UserRole;
 
 import javax.enterprise.context.RequestScoped;
+import javax.ws.rs.core.SecurityContext;
+import java.net.InetAddress;
+import java.security.Principal;
 
 @RequestScoped
-public class HiveSecurityContext {
+public class HiveSecurityContext implements SecurityContext {
 
+    private boolean secure;
 
     private HivePrincipal hivePrincipal;
 
@@ -20,7 +23,6 @@ public class HiveSecurityContext {
     private String authorization;
 
     private OAuthClient oAuthClient;
-
 
     public HivePrincipal getHivePrincipal() {
         return hivePrincipal;
@@ -62,7 +64,29 @@ public class HiveSecurityContext {
         this.authorization = authorization;
     }
 
+    @Override
+    public Principal getUserPrincipal() {
+        return hivePrincipal;
+    }
 
+    @Override
+    public boolean isSecure() {
+        return secure;
+    }
+
+    public void setSecure(boolean secure) {
+        this.secure = secure;
+    }
+
+    @Override
+    public String getAuthenticationScheme() {
+        if (hivePrincipal.getKey() != null) {
+            return Constants.OAUTH_AUTH_SCEME;
+        }
+        return BASIC_AUTH;
+    }
+
+    @Override
     public boolean isUserInRole(String roleString) {
         switch (roleString) {
             case HiveRoles.DEVICE:

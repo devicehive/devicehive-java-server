@@ -1,105 +1,45 @@
 package com.devicehive.model;
 
-
-import com.google.gson.annotations.SerializedName;
-
 import com.devicehive.json.strategies.JsonPolicyDef;
-
+import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.sql.Timestamp;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Version;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static com.devicehive.model.DeviceNotification.Queries.Names;
-import static com.devicehive.model.DeviceNotification.Queries.Values;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
- * TODO JavaDoc
+ * Created by tmatvienko on 12/24/14.
  */
-@Entity
-@Table(name = "device_notification")
-@NamedQueries(value = {
-    @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_FK),
-    @NamedQuery(name = Names.DELETE_BY_FK, query = Values.DELETE_BY_FK)
-
-})
-@Cacheable
 public class DeviceNotification implements HiveEntity {
+    private static final long serialVersionUID = 1834383778016225837L;
 
-    public static final String TIMESTAMP_COLUMN = "timestamp";
-    public static final String DEVICE_COLUMN = "device";
-    public static final String NOTIFICATION_COLUMN = "notification";
-    public static final String ID_COLUMN = "id";
-    private static final long serialVersionUID = 8704321978956225955L;
-    @SerializedName("parameters")
-    @Embedded
-    @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
-                        })
-    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
-    private JsonStringWrapper parameters;
     @SerializedName("id")
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Long id;
+
+    @SerializedName("notification")
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
+    private String notification;
+
+    @SerializedName("deviceGuid")
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
+    private String deviceGuid;
+
     @SerializedName("timestamp")
-    @Column(insertable = false, updatable = false)
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Timestamp timestamp;
-    @SerializedName("notification")
-    @Column
-    @NotNull(message = "notification field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of notification should not be more than " +
-                                        "128 symbols.")
-    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_FROM_DEVICE})
-    private String notification;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "device_id", updatable = false)
-    @NotNull(message = "device field cannot be null.")
-    private Device device;
-    @Version
-    @Column(name = "entity_version")
-    private long entityVersion;
 
-    public DeviceNotification() {
-    }
+    @SerializedName("parameters")
+    @JsonPolicyDef({NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_CLIENT})
+    private JsonStringWrapper parameters;
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
-    }
-
-    public long getEntityVersion() {
-        return entityVersion;
-    }
-
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
     }
 
     public Timestamp getTimestamp() {
@@ -126,32 +66,49 @@ public class DeviceNotification implements HiveEntity {
         this.parameters = parameters;
     }
 
-    public Device getDevice() {
-        return device;
+    public String getDeviceGuid() {
+        return deviceGuid;
     }
 
-    public void setDevice(Device device) {
-        this.device = device;
+    public void setDeviceGuid(String deviceGuid) {
+        this.deviceGuid = deviceGuid;
     }
 
-    public static class Queries {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        public static interface Names {
+        DeviceNotification message = (DeviceNotification) o;
 
-            static final String DELETE_BY_ID = "DeviceNotification.deleteById";
-            static final String DELETE_BY_FK = "DeviceNotification.deleteByFK";
-        }
+        if (deviceGuid != null ? !deviceGuid.equals(message.deviceGuid) : message.deviceGuid != null) return false;
+        if (id != null ? !id.equals(message.id) : message.id != null) return false;
+        if (notification != null ? !notification.equals(message.notification) : message.notification != null)
+            return false;
+        if (parameters != null ? !parameters.equals(message.parameters) : message.parameters != null) return false;
+        if (timestamp != null ? !timestamp.equals(message.timestamp) : message.timestamp != null) return false;
 
-        static interface Values {
+        return true;
+    }
 
-            static final String DELETE_BY_ID = "delete from DeviceNotification dn where dn.id = :id";
-            static final String DELETE_BY_FK = "delete from DeviceNotification dn where dn.device = :device";
-        }
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (notification != null ? notification.hashCode() : 0);
+        result = 31 * result + (deviceGuid != null ? deviceGuid.hashCode() : 0);
+        result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
+        result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
+        return result;
+    }
 
-        public static interface Parameters {
-
-            static final String ID = "id";
-            static final String DEVICE = "device";
-        }
+    @Override
+    public String toString() {
+        return "DeviceNotification{" +
+                "id=" + id +
+                ", notification='" + notification + '\'' +
+                ", deviceGuid='" + deviceGuid + '\'' +
+                ", timestamp=" + timestamp +
+                ", parameters='" + parameters + '\'' +
+                '}';
     }
 }

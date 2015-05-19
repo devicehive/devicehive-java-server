@@ -9,29 +9,18 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.Device;
-import com.devicehive.model.Network;
-import com.devicehive.model.NullableWrapper;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.validation.constraints.NotNull;
+import java.util.*;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Stateless
 public class NetworkService {
@@ -81,11 +70,10 @@ public class NetworkService {
                 .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
                                    hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
             if (filtered.isEmpty()) {
-                result.setDevices(null);
+                result.setDevices(Collections.EMPTY_SET);
                 return result;
             }
-            Set<Device> devices =
-                new HashSet<>(deviceService.getList(result.getId(), principal));
+            Set<Device> devices = new HashSet<>(deviceService.getList(result.getId(), principal));
             result.setDevices(devices);
             return result;
         }

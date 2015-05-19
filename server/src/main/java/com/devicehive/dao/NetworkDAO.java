@@ -9,11 +9,6 @@ import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -21,17 +16,14 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-import static com.devicehive.model.Network.Queries.Names.DELETE_BY_ID;
-import static com.devicehive.model.Network.Queries.Names.FIND_BY_NAME;
-import static com.devicehive.model.Network.Queries.Names.FIND_WITH_USERS;
-import static com.devicehive.model.Network.Queries.Names.GET_WITH_DEVICES_AND_DEVICE_CLASSES;
+import static com.devicehive.model.Network.Queries.Names.*;
 import static com.devicehive.model.Network.Queries.Parameters.ID;
 import static com.devicehive.model.Network.Queries.Parameters.NAME;
 
@@ -50,6 +42,7 @@ public class NetworkDAO {
     public Network getWithDevicesAndDeviceClasses(@NotNull long id) {
         TypedQuery<Network> query = em.createNamedQuery(GET_WITH_DEVICES_AND_DEVICE_CLASSES, Network.class);
         query.setParameter(ID, id);
+        CacheHelper.cacheable(query);
         List<Network> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
     }
@@ -88,6 +81,7 @@ public class NetworkDAO {
 
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         TypedQuery<Network> query = em.createQuery(criteria);
+        CacheHelper.cacheable(query);
         return query.getResultList();
     }
 
@@ -155,8 +149,9 @@ public class NetworkDAO {
         }
         if (take == null) {
             take = Constants.DEFAULT_TAKE;
-            resultQuery.setMaxResults(take);
         }
+        resultQuery.setMaxResults(take);
+        CacheHelper.cacheable(resultQuery);
 
         return resultQuery.getResultList();
     }
@@ -165,6 +160,7 @@ public class NetworkDAO {
     public Network getByIdWithUsers(@NotNull long id) {
         TypedQuery<Network> query = em.createNamedQuery(FIND_WITH_USERS, Network.class);
         query.setParameter(ID, id);
+        CacheHelper.cacheable(query);
         List<Network> networks = query.getResultList();
         return networks.isEmpty() ? null : networks.get(0);
     }

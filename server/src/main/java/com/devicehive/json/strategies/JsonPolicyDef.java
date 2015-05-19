@@ -12,6 +12,8 @@ public @interface JsonPolicyDef {
     public static enum Policy {
         WEBSOCKET_SERVER_INFO,
         REST_SERVER_INFO,
+        REST_SERVER_CONFIG,
+        REST_CLUSTER_CONFIG,
         ACCESS_KEY_LISTED,
         ACCESS_KEY_PUBLISHED,
         ACCESS_KEY_SUBMITTED,
@@ -49,6 +51,7 @@ public @interface JsonPolicyDef {
         OAUTH_GRANT_LISTED,
         OAUTH_GRANT_SUBMITTED_TOKEN,
         OAUTH_GRANT_SUBMITTED_CODE,
-        OAUTH_GRANT_PUBLISHED
+        OAUTH_GRANT_PUBLISHED,
+        IDENTITY_PROVIDER_LISTED
     }
 }

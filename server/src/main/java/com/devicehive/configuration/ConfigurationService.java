@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 @Startup
 public class ConfigurationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationService.class);
 
     @EJB
     private ConfigurationDAO configurationDAO;
@@ -27,7 +27,11 @@ public class ConfigurationService {
 
     public String get(@NotNull String name) {
         Configuration configuration = configurationDAO.findByName(name);
-        return configuration != null ? configuration.getValue() : null;
+        if (configuration == null) {
+            LOGGER.warn(String.format(Messages.CONFIG_NOT_FOUND, name));
+            return null;
+        }
+        return configuration.getValue();
     }
 
     public long getLong(@NotNull String name, long defaultValue) {

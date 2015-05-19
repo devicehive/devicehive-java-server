@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 import com.google.gson.annotations.SerializedName;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import java.sql.Date;
 import java.util.HashSet;
@@ -32,7 +33,8 @@ import static com.devicehive.model.Configuration.Queries.Values;
                   @NamedQuery(name = Names.GET_BY_NAME, query = Values.GET_BY_NAME),
                   @NamedQuery(name = Names.DELETE, query = Values.DELETE)
               })
-@Cacheable(true)
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Configuration implements HiveEntity {
 
 

@@ -1,22 +1,19 @@
 package com.devicehive.messages.handler;
 
-import com.google.gson.JsonObject;
-
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.util.FlushQueue;
-
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.UUID;
-import java.util.concurrent.locks.Lock;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.AnnotationLiteral;
 import javax.websocket.Session;
+import java.util.UUID;
+import java.util.concurrent.locks.Lock;
 
 public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
 

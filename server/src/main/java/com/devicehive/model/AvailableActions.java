@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class AvailableActions {
+    private static final String ADMIN_ACTION = "(Admin)";
 
     public static final String GET_NETWORK = "GetNetwork";
     public static final String GET_DEVICE = "GetDevice";
@@ -16,30 +17,77 @@ public class AvailableActions {
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
     public static final String UPDATE_DEVICE_COMMAND = "UpdateDeviceCommand";
 
-    private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
+    public static final String GET_CURRENT_USER = "GetCurrentUser";
+    public static final String UPDATE_CURRENT_USER = "UpdateCurrentUser";
+    public static final String MANAGE_ACCESS_KEY = "ManageAccessKey";
+    public static final String MANAGE_OAUTH_GRANT = "ManageOAuthGrant";
+
+    //admin
+    public static final String MANAGE_USER = "ManageUser";
+    public static final String MANAGE_DEVICE_CLASS = "ManageDeviceClass";
+    public static final String MANAGE_NETWORK = "ManageNetwork";
+    public static final String MANAGE_OAUTH_CLIENT = "ManageOAuthClient";
+
+    private static Set<String> CLIENT_ACTIONS = new HashSet<String>() {
         {
-            add(GET_NETWORK.toUpperCase());
-            add(GET_DEVICE.toUpperCase());
-            add(GET_DEVICE_STATE.toUpperCase());
-            add(GET_DEVICE_NOTIFICATION.toUpperCase());
-            add(GET_DEVICE_COMMAND.toUpperCase());
-            add(REGISTER_DEVICE.toUpperCase());
-            add(CREATE_DEVICE_NOTIFICATION.toUpperCase());
-            add(CREATE_DEVICE_COMMAND.toUpperCase());
-            add(UPDATE_DEVICE_COMMAND.toUpperCase());
+            add(GET_NETWORK);
+            add(GET_DEVICE);
+            add(GET_DEVICE_STATE);
+            add(GET_DEVICE_NOTIFICATION);
+            add(GET_DEVICE_COMMAND);
+            add(REGISTER_DEVICE);
+            add(CREATE_DEVICE_NOTIFICATION);
+            add(CREATE_DEVICE_COMMAND);
+            add(UPDATE_DEVICE_COMMAND);
+
+            add(GET_CURRENT_USER);
+            add(UPDATE_CURRENT_USER);
+            add(MANAGE_ACCESS_KEY);
+            add(MANAGE_OAUTH_GRANT);
         }
 
         private static final long serialVersionUID = -6981208010851957614L;
     };
 
+    private static Set<String> ADMIN_ACTIONS = new HashSet<String>() {
+        {
+            add(MANAGE_USER);
+            add(MANAGE_DEVICE_CLASS);
+            add(MANAGE_NETWORK);
+            add(MANAGE_OAUTH_CLIENT);
+        }
+
+        private static final long serialVersionUID = -1946208903850253584L;
+    };
+
+    private static Set<String> KNOWN_ACTIONS = new HashSet<String>() {
+        {
+            addAll(CLIENT_ACTIONS);
+            addAll(ADMIN_ACTIONS);
+        }
+
+        private static final long serialVersionUID = -1571200010251977615L;
+    };
+
     public static boolean validate(Set<String> actions) {
         for (String current : actions) {
-            String actionUpper = current.toUpperCase();
-            if (!KNOWN_ACTIONS.contains(actionUpper)) {
+            if (!KNOWN_ACTIONS.contains(current)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public static String[] getAllActions() {
+        return KNOWN_ACTIONS.toArray(new String[KNOWN_ACTIONS.size()]);
+    }
+
+    public static String[] getClientActions() {
+        return CLIENT_ACTIONS.toArray(new String[CLIENT_ACTIONS.size()]);
+    }
+
+    public static Set<String> getAdminActions() {
+        return ADMIN_ACTIONS;
     }
 
 }
