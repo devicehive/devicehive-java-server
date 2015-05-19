@@ -42,48 +42,38 @@ public class RedisCommandService {
     }
 
     public DeviceCommand getByIdAndGuid(final Long id, final String guid) {
-        final Set<String> keys = redis.getFirstKeys(String.format(KEY_FORMAT, guid, id, "*"), Constants.DEFAULT_TAKE);
-        if (CollectionUtils.isNotEmpty(keys)) {
-            TreeSet<DeviceCommand> commands = new TreeSet<>(new DeviceCommandComparator());
-            for (final String key : keys) {
-                final DeviceCommand command = get(key, false, false, null, null, null, true);
-                if (command != null) {
-                    commands.add(command);
-                }
-            }
-            return !commands.isEmpty() ? commands.first() : null;
-        }
-        return null;
+        SortedSet<DeviceCommand> commands = redis.fetch(String.format(KEY_FORMAT, guid, id, "*"), Constants.DEFAULT_TAKE, new DeviceCommandComparator(),
+                new Transformer<String, DeviceCommand>() {
+                    @Override
+                    public DeviceCommand apply(String key) {
+                        return get(key, false, false, null, null, null, true);
+                    }
+                });
+        return !(commands == null || commands.isEmpty()) ? commands.first() : null;
     }
 
     public Collection<DeviceCommand> getByGuids(Collection<String> guids, final Collection<String> names,
                                                 final Timestamp timestamp, final String status, final Integer take, final Boolean isUpdated) {
-        final List<String> keys = getAllKeysByGuids(guids, take);
         final boolean filterByDate = timestamp != null;
         final boolean filterByName = CollectionUtils.isNotEmpty(names);
-        Set<DeviceCommand> commands = new TreeSet<>(new DeviceCommandComparator());
-        for (String key: keys) {
-            DeviceCommand command = get(key, filterByDate, filterByName, names, timestamp, status, isUpdated);
-            if (command != null) {
-                commands.add(command);
+        return getAllKeysByGuids(guids, take, new Transformer<String, DeviceCommand>() {
+            @Override
+            public DeviceCommand apply(String key) {
+                return get(key, filterByDate, filterByName, names, timestamp, status, isUpdated);
             }
-        }
-        return commands;
+        });
     }
 
     public Collection<DeviceCommand> getAll(final Collection<String> names, final Timestamp timestamp,
                                             final String status, final Integer take, final Boolean isUpdated) {
         final boolean filterByDate = timestamp != null;
         final boolean filterByName = CollectionUtils.isNotEmpty(names);
-        final Set<String> keys = redis.getFirstKeys(String.format(KEY_FORMAT, "*", "*", "*"), take);
-        final Set<DeviceCommand> commands = new TreeSet<>(new DeviceCommandComparator());
-        for (String key : keys) {
-            DeviceCommand command = get(key, filterByDate, filterByName, names, timestamp, status, isUpdated);
-            if (command != null) {
-                commands.add(command);
+        return redis.fetch(String.format(KEY_FORMAT, "*", "*", "*"), take, new DeviceCommandComparator(), new Transformer<String, DeviceCommand>() {
+            @Override
+            public DeviceCommand apply(String key) {
+                return get(key, filterByDate, filterByName, names, timestamp, status, isUpdated);
             }
-        }
-        return commands;
+        });
     }
 
     private void save(DeviceCommand deviceCommand, final String key) {
@@ -150,15 +140,23 @@ public class RedisCommandService {
         return null;
     }
 
-    private List<String> getAllKeysByGuids(Collection<String> guids, Integer count) {
+    private Set<DeviceCommand> getAllKeysByGuids(Collection<String> guids, Integer count, Transformer<String, DeviceCommand> transformer) {
         if (CollectionUtils.isNotEmpty(guids)) {
-            List<String> keys = new ArrayList<>();
+            Comparator<DeviceCommand> comparator = new DeviceCommandComparator();
+            Set<DeviceCommand> accumulator = new TreeSet<>(comparator);
             for (String guid : guids) {
-                keys.addAll(redis.getFirstKeys(String.format(KEY_FORMAT, guid, "*", "*"), count));
+                accumulator.addAll(
+                        redis.fetch(String.format(KEY_FORMAT, guid, "*", "*"), count, comparator, transformer)
+                );
             }
-            return keys;
+            if (accumulator.size() > count) {
+                List<DeviceCommand> sliced = new ArrayList<>(accumulator).subList(0, count);
+                accumulator.clear();
+                accumulator.addAll(sliced);
+            }
+            return accumulator;
         }
-        return Collections.emptyList();
+        return Collections.emptySet();
     }
 
     private String getKey(final Long id, final String guid, final Timestamp timestamp) {
