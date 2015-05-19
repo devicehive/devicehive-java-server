@@ -175,6 +175,115 @@ To allow github authentication flow set “github.identity.allowed” to "true" 
 
 * Use it.
 
+Docker integration
+=========================
+1. Build image
+
+Change Dockerfile or defs.sh if it's necessary.
+Replace dh.war, cassandra.war and db_tool.jar with new versions and then run build.sh.
+
+2. Publish image
+
+docker push devicehive/devicehive:2.0.0
+
+3. Run container
+
+docker run -d --name=devicehive -p 8080:8080 -p 2222:22 -p 5432:5432 -p 9042:9042 -p 2181:2181 -p 9092:9092 -p 4848:4848 -p 9001:9001 -p 9160:9160 devicehive/devicehive:2.0.0
+
+here are all ports/services proxied but if you don't need some of them just remove unnecessary section "-p port:port"
+shortly about ports/services inside the image:
+    22 - sshd
+    2181 - zookeeper
+    4848 - glassfish admin console
+    5432 - postgresql
+    8080 - devicehive, web access
+    9001 - supervisord web admin
+    9042 - cassandra CQL native transport
+    9092 - kafka broker
+    9160 - cassandra Thrift transport
+
+To control container use commands like
+
+docker ps -a
+
+docker stop devicehive (or CONTAINER_ID instead of NAME)
+docker start devicehive
+
+docker rm devicehive
+
+Juju integration
+=========================
+1 Deployment
+
+Devicehive service can be deployed in two ways - charm-by-charm or using bundle.
+
+2. Charm-by-charm deployment
+
+Order of run bash commands:
+
+    juju add-machine --constraints mem=7G
+    created machine 4
+    juju add-machine --constraints mem=3G
+    created machine 5
+
+    let's remember the ids of created machines
+
+    juju deploy cs:~x3v947pl/trusty/postgresql-dh --to 4
+    juju deploy cs:~x3v947pl/trusty/zookeeper-dh --to 4
+    juju deploy cs:~x3v947pl/trusty/kafka-dh --to 4
+    juju deploy cs:~x3v947pl/trusty/redis-dh --to 4
+    juju deploy cs:~x3v947pl/trusty/devicehive --to 4
+    juju deploy cs:~x3v947pl/trusty/devicehive-worker --to 5
+    juju deploy cs:~x3v947pl/trusty/cassandra-dh --to 5
+
+    juju add-relation zookeeper-dh kafka-dh
+    juju add-relation devicehive kafka-dh
+    juju add-relation devicehive zookeeper-dh
+    juju add-relation devicehive redis-dh
+    juju add-relation devicehive postgresql-dh
+    juju add-relation devicehive-worker zookeeper-dh
+    juju add-relation devicehive-worker cassandra-dh
+
+    juju expose devicehive
+    juju expose devicehive-worker
+
+Then using command "juju status" get the public addresses of two created machines, eg:
+
+ devicehive:
+    charm: cs:~x3v947pl/trusty/devicehive-9
+    can-upgrade-to: cs:~x3v947pl/trusty/devicehive-worker-2
+    exposed: true
+    relations:
+      ka:
+      - kafka-dh
+      pg:
+      - postgresql-dh
+      re:
+      - redis-dh
+      zk:
+      - zookeeper-dh
+    units:
+      devicehive/0:
+        agent-state: started
+        agent-version: 1.20.14
+        machine: "4"
+        open-ports:
+        - 8080/tcp
+        public-address: juju-azure-p0v49kbwr1.cloudapp.net
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+3. Deploying the bundle
+
+    Step 1 - Install quickstart
+
+    sudo add-apt-repository ppa:juju/stable
+    sudo apt-get update
+    sudo apt-get install juju-quickstart
+
+    Step 2 - Deploy bundle
+
+    juju-quickstart u/x3v947pl/devicehive-bundle/2
+
 DeviceHive Java update instructions
 ===================================
 
