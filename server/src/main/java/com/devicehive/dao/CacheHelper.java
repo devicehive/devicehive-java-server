@@ -13,7 +13,7 @@ public class CacheHelper {
     public static void cacheable(Query query) {
         query.setHint(CACHEBLE, true);
         query.setHint(RETRIEVE_MODE, CacheRetrieveMode.USE);
-        query.setHint(STORE_MODE, CacheStoreMode.REFRESH);
+        query.setHint(STORE_MODE, CacheStoreMode.USE);
     }
 
     public static void notCacheable(Query query) {
