@@ -7,9 +7,7 @@ import com.google.common.base.Function;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -25,22 +23,20 @@ public class RedisConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisConnector.class);
     private static final Integer PAGE_SIZE = 1000;
 
-    private Jedis CLIENT;
+    private JedisPool jedisPool;
 
     @EJB
     private PropertiesService propertiesService;
 
     @PostConstruct
     private void connect() {
-        CLIENT = new Jedis(propertiesService.getProperty(Constants.REDDIS_CONNECTION_HOST),
-                Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_PORT)),
-                Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_TIMEOUT)));
-        try {
-            CLIENT.connect();
-        } catch (Exception ex) {
-            LOGGER.error("Exception occured during connecting to Redis", ex);
-            ex.printStackTrace(System.err);
-        }
+        String host = propertiesService.getProperty(Constants.REDDIS_CONNECTION_HOST);
+        Integer port = Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_PORT));
+        Integer timeout = Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_TIMEOUT));
+
+        jedisPool = new JedisPool(new JedisPoolConfig(), host, port, timeout);
+
+        LOGGER.info("Jedis pool created for {}:{}, timeout = {}", host, port, timeout);
     }
 
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -66,7 +62,9 @@ public class RedisConnector {
     }
 
     public long getKeysCount() {
-        return CLIENT.dbSize();
+        try (Jedis client = jedisPool.getResource()) {
+            return client.dbSize();
+        }
     }
 
     public ScanResult<String> getKeys(String cursor, String pattern, Integer count) {
@@ -74,7 +72,9 @@ public class RedisConnector {
         ScanParams params = new ScanParams()
                 .count(count)
                 .match(pattern);
-        return CLIENT.scan(cursor, params);
+        try (Jedis client = jedisPool.getResource()) {
+            return client.scan(cursor, params);
+        }
     }
 
     public boolean set(String sess, String key, String value, String expireSec) {
@@ -88,35 +88,46 @@ public class RedisConnector {
     }
 
     public String get(String sess, String key) {
-        return CLIENT.hget(sess, key);
+        try (Jedis client = jedisPool.getResource()) {
+            return client.hget(sess, key);
+        }
     }
 
     public Map<String, String> getAll(String sess) {
-        return CLIENT.hgetAll(sess);
+        try (Jedis client = jedisPool.getResource()) {
+            return client.hgetAll(sess);
+        }
     }
 
     public boolean setAll(String sess, Map<String, String> m, String expireSec) {
         if (!NumberUtils.isNumber(expireSec)) {
             throw new HiveException(String.format("Wrong config format, should be numeric: %s", expireSec));
         }
-        String r = CLIENT.hmset(sess, m);
-        long er = CLIENT.expire(sess, Integer.parseInt(expireSec));
-        return  (r.equals("OK") && er>0);
+        try (Jedis client = jedisPool.getResource()) {
+            String r = client.hmset(sess, m);
+            long er = client.expire(sess, Integer.parseInt(expireSec));
+            return  (r.equals("OK") && er>0);
+        }
     }
 
     public boolean isExists(String sess) {
-        return CLIENT.exists(sess);
+        try (Jedis client = jedisPool.getResource()) {
+            return client.exists(sess);
+        }
     }
 
     public boolean del(String sess) {
-        Long del = CLIENT.del(sess);
-        return del>0;
+        try (Jedis client = jedisPool.getResource()) {
+            Long del = client.del(sess);
+            return del>0;
+        }
     }
 
     @PreDestroy
     public void close() {
-        if (CLIENT.isConnected()) {
-            CLIENT.disconnect();
+        if (jedisPool != null) {
+            jedisPool.close();
+            jedisPool.destroy();
         }
     }
 }
