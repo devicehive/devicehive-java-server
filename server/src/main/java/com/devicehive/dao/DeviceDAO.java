@@ -60,7 +60,8 @@ public class DeviceDAO {
         query.setParameter(GUID, uuid);
         query.setParameter(KEY, key);
         CacheHelper.cacheable(query);
-        return query.getResultList().isEmpty() ? null : query.getResultList().get(0);
+        List<Device> devices = query.getResultList();
+        return devices.isEmpty() ? null : devices.get(0);
     }
 
     public Device createDevice(Device device) {
