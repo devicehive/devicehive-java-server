@@ -1,11 +1,8 @@
-package com.devicehive.controller;
+package com.devicehive.resource;
 
 import com.devicehive.base.AbstractResourceTest;
-import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
