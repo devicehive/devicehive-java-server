@@ -368,7 +368,7 @@ public class DeviceService {
                                 HivePrincipal principal) {
 
         return deviceDAO.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                                 deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
     }
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)

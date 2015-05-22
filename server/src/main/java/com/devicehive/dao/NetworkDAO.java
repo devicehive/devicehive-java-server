@@ -12,10 +12,7 @@ import com.devicehive.model.User;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -82,6 +79,7 @@ public class NetworkDAO {
         criteria.where(predicates.toArray(new Predicate[predicates.size()]));
         TypedQuery<Network> query = em.createQuery(criteria);
         CacheHelper.cacheable(query);
+        query.setHint(CacheHelper.STORE_MODE, CacheStoreMode.REFRESH);
         return query.getResultList();
     }
 

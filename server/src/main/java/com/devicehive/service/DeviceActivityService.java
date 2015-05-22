@@ -25,8 +25,6 @@ public class DeviceActivityService {
 
     @EJB
     private DeviceDAO deviceDAO;
-    @EJB
-    private TimestampService timestampService;
 
     private Cache deviceActivityCache;
 
@@ -36,14 +34,14 @@ public class DeviceActivityService {
     }
 
     public void update(String deviceGuid) {
-        deviceActivityCache.put(new Element(deviceGuid, timestampService.getTimestamp().getTime()));
+        deviceActivityCache.put(new Element(deviceGuid, System.currentTimeMillis()));
     }
 
     @Schedule(hour = "*", minute = "*/5", persistent = false)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processOfflineDevices() {
         logger.debug("Checking lost offline devices");
-        long now = timestampService.getTimestamp().getTime();
+        long now = System.currentTimeMillis();
         for (final String deviceGuid : (List<String>) deviceActivityCache.getKeys()) {
             Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceGuid);
             if (device == null) {
