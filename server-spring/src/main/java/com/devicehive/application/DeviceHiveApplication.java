@@ -9,11 +9,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @ComponentScan("com.devicehive")
 public class DeviceHiveApplication {
 
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        return new PropertySourcesPlaceholderConfigurer();
-    }
-
     public static void main(String ... args) {
         SpringApplication.run(DeviceHiveApplication.class);
     }
