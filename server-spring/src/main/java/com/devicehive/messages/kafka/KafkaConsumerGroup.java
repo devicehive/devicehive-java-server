@@ -1,7 +1,6 @@
 package com.devicehive.messages.kafka;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.websockets.converters.DeviceCommandConverter;
@@ -14,6 +13,7 @@ import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -38,7 +38,7 @@ public class KafkaConsumerGroup {
     private static final String COMMAND_UPDATE_GROUP_ID = "command.update.group";
 
     @Autowired
-    PropertiesService propertiesService;
+    Environment env;
     @Autowired
     NotificationConsumer notificationConsumer;
     @Autowired
@@ -49,11 +49,11 @@ public class KafkaConsumerGroup {
     @PostConstruct
     private void subscribe() {
         Properties consumerProperties = new Properties();
-        consumerProperties.put(Constants.ZOOKEEPER_CONNECT, propertiesService.getProperty(Constants.ZOOKEEPER_CONNECT));
-        consumerProperties.put(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS, propertiesService.getProperty(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS));
-        consumerProperties.put(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS, propertiesService.getProperty(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS));
-        consumerProperties.put(Constants.ZOOKEEPER_SYNC_TIME_MS, propertiesService.getProperty(Constants.ZOOKEEPER_SYNC_TIME_MS));
-        consumerProperties.put(Constants.AUTO_COMMIT_INTERVAL_MS, propertiesService.getProperty(Constants.AUTO_COMMIT_INTERVAL_MS));
+        consumerProperties.put(Constants.ZOOKEEPER_CONNECT, env.getProperty(Constants.ZOOKEEPER_CONNECT));
+        consumerProperties.put(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS, env.getProperty(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS));
+        consumerProperties.put(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS, env.getProperty(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS));
+        consumerProperties.put(Constants.ZOOKEEPER_SYNC_TIME_MS, env.getProperty(Constants.ZOOKEEPER_SYNC_TIME_MS));
+        consumerProperties.put(Constants.AUTO_COMMIT_INTERVAL_MS, env.getProperty(Constants.AUTO_COMMIT_INTERVAL_MS));
         consumerProperties.put(Constants.GROOP_ID, NOTIFICATION_GROUP_ID + Math.random());
         this.notificationConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
         consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_GROUP_ID + Math.random());
@@ -61,7 +61,7 @@ public class KafkaConsumerGroup {
         consumerProperties.setProperty(Constants.GROOP_ID, COMMAND_UPDATE_GROUP_ID + Math.random());
         this.commandUpdateConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(consumerProperties));
 
-        final String threadsCountStr = propertiesService.getProperty(Constants.THREADS_COUNT);
+        final String threadsCountStr = env.getProperty(Constants.THREADS_COUNT);
         final Integer threadsCount = threadsCountStr != null ? Integer.valueOf(threadsCountStr) : 1;
 
         Map<String, Integer> notificationTopicCountMap = new HashMap();

@@ -3,7 +3,6 @@ package com.devicehive.controller;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiConfig;
@@ -16,6 +15,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
@@ -35,8 +35,9 @@ public class ApiInfoController {
     private TimestampService timestampService;
     @Autowired
     private ConfigurationService configurationService;
+
     @Autowired
-    private PropertiesService propertiesService;
+    private Environment env;
 
     @GET
     @PermitAll
@@ -95,13 +96,13 @@ public class ApiInfoController {
     public Response getClusterConfig() {
         logger.debug("ClusterConfig requested");
         ClusterConfig clusterConfig = new ClusterConfig();
-        clusterConfig.setMetadataBrokerList(propertiesService.getProperty(Constants.METADATA_BROKER_LIST));
-        clusterConfig.setZookeeperConnect(propertiesService.getProperty(Constants.ZOOKEEPER_CONNECT));
-        final String cassandraContactpoints = propertiesService.getProperty(Constants.CASSANDRA_CONTACTPOINTS);
+        clusterConfig.setMetadataBrokerList(env.getProperty(Constants.METADATA_BROKER_LIST));
+        clusterConfig.setZookeeperConnect(env.getProperty(Constants.ZOOKEEPER_CONNECT));
+        final String cassandraContactpoints = env.getProperty(Constants.CASSANDRA_CONTACTPOINTS);
         if (StringUtils.isNotBlank(cassandraContactpoints)) {
             clusterConfig.setCassandraContactpoints(cassandraContactpoints);
         }
-        final String threadCount = propertiesService.getProperty(Constants.THREADS_COUNT);
+        final String threadCount = env.getProperty(Constants.THREADS_COUNT);
         if (StringUtils.isNotBlank(threadCount) && NumberUtils.isNumber(threadCount)) {
             clusterConfig.setThreadsCount(Integer.parseInt(threadCount));
         } else {

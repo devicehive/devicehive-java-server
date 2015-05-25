@@ -3,7 +3,6 @@ package com.devicehive.model.oauth;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyRequest;
@@ -23,6 +22,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -48,7 +48,7 @@ public class FacebookAuthProvider extends AuthProvider {
     @Autowired
     private IdentityProviderService identityProviderService;
     @Autowired
-    private PropertiesService propertiesService;
+    private Environment env;
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
@@ -60,7 +60,7 @@ public class FacebookAuthProvider extends AuthProvider {
 
     @PostConstruct
     private void initialize() {
-        identityProvider = identityProviderService.find(Long.parseLong(propertiesService.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID)));
+        identityProvider = identityProviderService.find(Long.parseLong(env.getProperty(Constants.FACEBOOK_IDENTITY_PROVIDER_ID)));
     }
 
     @Override

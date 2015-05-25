@@ -238,6 +238,7 @@
                 <version>${springboot.version}</version>
                 <configuration>
                     <classifier>boot</classifier>
+                    <addResources>false</addResources>
                 </configuration>
                 <executions>
                     <execution>

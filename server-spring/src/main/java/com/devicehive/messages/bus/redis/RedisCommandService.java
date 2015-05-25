@@ -1,12 +1,12 @@
 package com.devicehive.messages.bus.redis;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -23,7 +23,7 @@ public class RedisCommandService {
     @Autowired
     private RedisConnector redis;
     @Autowired
-    private PropertiesService propertiesService;
+    private Environment env;
 
     public void save(DeviceCommand deviceCommand) {
         save(deviceCommand, getKey(deviceCommand.getId(), deviceCommand.getDeviceGuid(), deviceCommand.getTimestamp()));
@@ -89,7 +89,7 @@ public class RedisCommandService {
         commandMap.put("result", (deviceCommand.getResult() != null && deviceCommand.getResult().getJsonString() != null)
                 ? deviceCommand.getResult().getJsonString() : "");
         commandMap.put("status", deviceCommand.getStatus() != null ? deviceCommand.getStatus() : "");
-        redis.setAll(key, commandMap, propertiesService.getProperty(Constants.COMMAND_EXPIRE_SEC));
+        redis.setAll(key, commandMap, env.getProperty(Constants.COMMAND_EXPIRE_SEC));
     }
 
     private DeviceCommand get(DeviceCommand deviceCommand) {

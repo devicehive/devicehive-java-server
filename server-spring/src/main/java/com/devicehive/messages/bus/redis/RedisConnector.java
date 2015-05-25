@@ -1,13 +1,13 @@
 package com.devicehive.messages.bus.redis;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.PropertiesService;
 import com.devicehive.exceptions.HiveException;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.*;
 
@@ -27,13 +27,13 @@ public class RedisConnector {
     private JedisPool jedisPool;
 
     @Autowired
-    private PropertiesService propertiesService;
+    private Environment env;
 
     @PostConstruct
     private void connect() {
-        String host = propertiesService.getProperty(Constants.REDDIS_CONNECTION_HOST);
-        Integer port = Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_PORT));
-        Integer timeout = Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_TIMEOUT));
+        String host = env.getProperty(Constants.REDDIS_CONNECTION_HOST);
+        Integer port = Integer.valueOf(env.getProperty(Constants.REDDIS_CONNECTION_PORT));
+        Integer timeout = Integer.valueOf(env.getProperty(Constants.REDDIS_CONNECTION_TIMEOUT));
 
         jedisPool = new JedisPool(new JedisPoolConfig(), host, port, timeout);
 
