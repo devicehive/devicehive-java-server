@@ -47,6 +47,7 @@
         <jedis.version>2.6.2</jedis.version>
         <surefire-junit47.version>2.17</surefire-junit47.version>
         <slf4j.version>1.7.7</slf4j.version>
+        <jackson2.version>2.4.5</jackson2.version>
 
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
         <maven-assembly-plugin.version>2.4</maven-assembly-plugin.version>
@@ -279,6 +280,31 @@
                 <version>${jedis.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-base</artifactId>
+                <version>${jackson2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${jackson2.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
@@ -372,7 +398,6 @@
     </build>
 
     <modules>
-        <module>server</module>
         <module>server-spring</module>
         <module>client</module>
         <module>tools/dh_dbtool</module>
