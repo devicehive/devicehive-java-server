@@ -3,10 +3,8 @@ package com.devicehive.service;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.messages.bus.Create;
-import com.devicehive.messages.bus.Update;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.bus.redis.RedisCommandService;
-import com.devicehive.messages.kafka.Command;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
@@ -17,8 +15,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -38,16 +34,8 @@ public class DeviceCommandService {
     private HiveValidator hiveValidator;
     @EJB
     private RedisCommandService redisCommandService;
-
-    @Inject
-    @Command
-    @Create
-    private Event<DeviceCommand> deviceCommandMessageReceivedEvent;
-
-    @Inject
-    @Command
-    @Update
-    private Event<DeviceCommand> deviceCommandUpdateMessageReceivedEvent;
+    @EJB
+    private MessageBus messageBus;
 
     public DeviceCommand findByIdAndGuid(final Long id, final String guid) {
         return redisCommandService.getByIdAndGuid(id, guid);
@@ -101,13 +89,13 @@ public class DeviceCommandService {
     public void submitDeviceCommand(DeviceCommand message) {
         message.setIsUpdated(false);
         redisCommandService.save(message);
-        deviceCommandMessageReceivedEvent.fire(message);
+        messageBus.publishDeviceCommand(message);
     }
 
     public void submitDeviceCommandUpdate(DeviceCommand message) {
         message.setIsUpdated(true);
         redisCommandService.update(message);
-        deviceCommandUpdateMessageReceivedEvent.fire(message);
+        messageBus.publishDeviceCommandUpdate(message);
     }
 
     public void submitEmptyResponse(final AsyncResponse asyncResponse) {

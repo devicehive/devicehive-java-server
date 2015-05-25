@@ -4,8 +4,8 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.messages.bus.redis.RedisNotificationService;
-import com.devicehive.messages.kafka.Notification;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
@@ -16,8 +16,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -38,10 +36,8 @@ public class DeviceNotificationService {
     private DeviceDAO deviceDAO;
     @EJB
     private RedisNotificationService redisNotificationService;
-
-    @Inject
-    @Notification
-    private Event<DeviceNotification> deviceNotificationMessageReceivedEvent;
+    @EJB
+    private MessageBus messageBus;
 
     public DeviceNotification findByIdAndGuid(final Long id, final String guid) {
         return redisNotificationService.getByIdAndGuid(id, guid);
@@ -67,7 +63,7 @@ public class DeviceNotificationService {
         List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
         for (DeviceNotification currentNotification : proceedNotifications) {
             redisNotificationService.save(notification);
-            deviceNotificationMessageReceivedEvent.fire(currentNotification);
+            messageBus.publishDeviceNotification(currentNotification);
         }
     }
 
@@ -76,7 +72,7 @@ public class DeviceNotificationService {
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);
         redisNotificationService.save(notification);
-        deviceNotificationMessageReceivedEvent.fire(notification);
+        messageBus.publishDeviceNotification(notification);
     }
 
     public List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, Device device) {
