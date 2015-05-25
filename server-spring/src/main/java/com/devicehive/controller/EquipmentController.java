@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -26,6 +28,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
 import static javax.ws.rs.core.Response.Status.*;
 
+@Singleton
 @Path("/device/class/{deviceClassId}/equipment")
 @RolesAllowed(HiveRoles.ADMIN)
 public class EquipmentController {

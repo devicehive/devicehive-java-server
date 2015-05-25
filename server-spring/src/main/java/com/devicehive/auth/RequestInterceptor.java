@@ -23,8 +23,8 @@ import java.util.Set;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
-@Aspect
-@Component
+//@Aspect
+//@Component
 public class RequestInterceptor {
 
     @Autowired

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -32,6 +33,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * REST controller for device classes: <i>/DeviceClass</i>. See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive
  * RESTful API: DeviceClass</a> for details.
  */
+@Singleton
 @Path("/device/class")
 public class DeviceClassController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);

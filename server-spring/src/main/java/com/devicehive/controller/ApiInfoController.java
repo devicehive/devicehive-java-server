@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.security.PermitAll;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -27,6 +28,7 @@ import java.util.Set;
 /**
  * Provide API information
  */
+@Singleton
 @Path("/info")
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);

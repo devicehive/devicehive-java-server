@@ -26,7 +26,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.List;
@@ -36,6 +38,7 @@ import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
 
+@Singleton
 @Path("/user/{userId}/oauth/grant")
 public class OAuthGrantController {
 
@@ -47,7 +50,7 @@ public class OAuthGrantController {
     @Autowired
     private UserService userService;
 
-    @Autowired
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
 

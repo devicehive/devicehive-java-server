@@ -13,10 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -27,12 +29,13 @@ import static javax.ws.rs.core.Response.Status.OK;
 /**
  * Created by tmatvienko on 12/2/14.
  */
+@Singleton
 @Path("/auth/accesskey")
 public class AuthAccessKeyController {
 
     @Autowired
     private AccessKeyService accessKeyService;
-    @Autowired
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
     @POST

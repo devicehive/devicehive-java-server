@@ -31,11 +31,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -57,6 +59,7 @@ import static javax.ws.rs.core.Response.Status.*;
  *
  * @author rroschin
  */
+@Singleton
 @Path("/device")
 public class DeviceNotificationController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
@@ -70,7 +73,7 @@ public class DeviceNotificationController {
     @Autowired
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
-    @Autowired
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
     /**

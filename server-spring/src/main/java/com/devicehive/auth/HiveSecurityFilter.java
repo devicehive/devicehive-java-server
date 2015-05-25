@@ -41,8 +41,6 @@ public class HiveSecurityFilter implements ContainerRequestFilter {
     private AccessKeyService accessKeyService;
     @Autowired
     private OAuthClientService clientService;
-    @Autowired
-    private HiveSecurityContext hiveSecurityContext;
 
     @Context
     private HttpServletRequest servletRequest;
@@ -53,6 +51,7 @@ public class HiveSecurityFilter implements ContainerRequestFilter {
                 authUser(requestContext),
                 authDevice(requestContext),
                 authKey(requestContext));
+        HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
         hiveSecurityContext.setHivePrincipal(principal);
         hiveSecurityContext.setoAuthClient(authClient(requestContext));
         hiveSecurityContext.setClientInetAddress(InetAddress.getByName(servletRequest.getRemoteAddr()));

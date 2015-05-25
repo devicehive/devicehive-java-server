@@ -4,6 +4,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.service.helpers.PasswordProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,8 @@ public class UserDAO {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
-    @Inject
+
+    @Autowired
     private PasswordProcessor passwordService;
 
     /**

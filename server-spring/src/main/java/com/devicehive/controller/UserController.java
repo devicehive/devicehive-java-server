@@ -24,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -33,6 +35,7 @@ import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.Response.Status.*;
 
+@Singleton
 @Path("/user")
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -40,7 +43,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @Autowired
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
 

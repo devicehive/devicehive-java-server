@@ -14,7 +14,6 @@
     <packaging>war</packaging>
 
     <properties>
-        <spring.framework.version>4.0.7.RELEASE</spring.framework.version>
         <spring.security.version>3.2.5.RELEASE</spring.security.version>
     </properties>
 
@@ -49,33 +48,33 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>${spring.framework.version}</version>
+            <version>${springframework.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>${spring.framework.version}</version>
+            <version>${springframework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>${spring.framework.version}</version>
+            <version>${springframework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>${spring.framework.version}</version>
+            <version>${springframework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${spring.framework.version}</version>
+            <version>${springframework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
-            <version>${spring.framework.version}</version>
+            <version>${springframework.version}</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
@@ -116,6 +115,10 @@
                     <artifactId>jackson-mapper-asl</artifactId>
                     <groupId>org.codehaus.jackson</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -141,7 +144,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>4.0.6.RELEASE</version>
+            <version>${springframework.version}</version>
         </dependency>
     </dependencies>
 

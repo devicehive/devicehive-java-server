@@ -10,8 +10,6 @@ import javax.ws.rs.core.SecurityContext;
 import java.net.InetAddress;
 import java.security.Principal;
 
-@Component
-@Scope("request")
 public class HiveSecurityContext implements SecurityContext {
 
     private boolean secure;

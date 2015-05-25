@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -22,6 +23,7 @@ import static com.devicehive.configuration.Constants.VALUE;
 /**
  * Provide API information
  */
+@Singleton
 @Path("/configuration")
 public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);

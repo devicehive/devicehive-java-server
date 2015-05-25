@@ -14,17 +14,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.PermitAll;
+import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.Response.Status.*;
 
+@Singleton
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
 public class OAuthTokenController {
@@ -36,7 +39,7 @@ public class OAuthTokenController {
     @Autowired
     private OAuthGrantService grantService;
 
-    @Autowired
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
     @POST

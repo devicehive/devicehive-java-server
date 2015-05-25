@@ -23,9 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
@@ -41,6 +43,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * REST controller for devices: <i>/device</i>. See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive
  * RESTful API: Device</a> for details.
  */
+@Singleton
 @Path("/device")
 public class DeviceController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
@@ -49,7 +52,7 @@ public class DeviceController {
     private DeviceEquipmentService deviceEquipmentService;
     @Autowired
     private DeviceService deviceService;
-    @Autowired
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
 

@@ -18,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -27,13 +29,15 @@ import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
 
+@Singleton
 @Path("/oauth/client")
 public class OAuthClientController {
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientController.class);
 
     @Autowired
     private OAuthClientService clientService;
-    @Autowired
+
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
 

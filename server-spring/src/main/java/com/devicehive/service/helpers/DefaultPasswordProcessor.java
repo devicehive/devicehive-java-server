@@ -3,6 +3,7 @@ package com.devicehive.service.helpers;
 import com.devicehive.configuration.Constants;
 
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -14,6 +15,7 @@ import java.security.SecureRandom;
  * key-stretching scheme (scrypt, PBKDF2 or bcrypt)
  */
 
+@Component
 public class DefaultPasswordProcessor implements PasswordProcessor {
 
     private final SecureRandom secureRandom = new SecureRandom();

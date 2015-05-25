@@ -22,7 +22,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -35,6 +37,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * REST Controller for access keys: <i>/user/{userId}/accesskey</i> See <a href="http://www.devicehive.com/restful/#Reference/AccessKey">DeviceHive
  * RESTful API: AccessKey</a> for details.
  */
+@Singleton
 @Path("/user/{userId}/accesskey")
 public class AccessKeyController {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
@@ -45,7 +48,7 @@ public class AccessKeyController {
     @Autowired
     private AccessKeyService accessKeyService;
 
-    @Autowired
+    @Context
     private HiveSecurityContext hiveSecurityContext;
 
     /**
