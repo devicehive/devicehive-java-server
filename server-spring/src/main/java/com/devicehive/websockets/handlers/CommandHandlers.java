@@ -4,7 +4,7 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -58,8 +59,6 @@ public class CommandHandlers extends WebsocketHandlers {
     private AsyncMessageSupplier asyncMessageDeliverer;
     @Autowired
     private SubscriptionSessionMap subscriptionSessionMap;
-    @Autowired
-    private HiveSecurityContext hiveSecurityContext;
 
     public static String createAccessDeniedForGuidsMessage(List<String> guids,
                                                            List<Device> allowedDevices) {
@@ -123,7 +122,7 @@ public class CommandHandlers extends WebsocketHandlers {
                                          final Set<String> names,
                                          final Timestamp timestamp) throws IOException {
         final String namesStr = !CollectionUtils.isEmpty(names) ? StringUtils.join(names, ',') : null;
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (names != null && names.isEmpty()) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
@@ -245,7 +244,7 @@ public class CommandHandlers extends WebsocketHandlers {
         if (deviceGuid == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         if (device == null) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceGuid), SC_NOT_FOUND);
@@ -272,8 +271,8 @@ public class CommandHandlers extends WebsocketHandlers {
                                                   DeviceCommandWrapper commandUpdate,
                                                   Session session) {
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (guid == null) {
-            HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
             if (principal.getDevice() != null) {
                 guid = principal.getDevice().getGuid();
             }
@@ -286,7 +285,6 @@ public class CommandHandlers extends WebsocketHandlers {
             logger.debug("command/update canceled for session: {}. Command id is not provided", session);
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
         final User user = principal.getUser() != null ? principal.getUser() :
                 (principal.getKey() != null ? principal.getKey().getUser() : null);
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);

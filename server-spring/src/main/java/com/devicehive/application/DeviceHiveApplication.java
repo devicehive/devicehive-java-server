@@ -1,13 +1,12 @@
 package com.devicehive.application;
 
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.util.ApplicationContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -36,11 +35,6 @@ public class DeviceHiveApplication {
     @Bean
     public Validator localValidator() {
         return new LocalValidatorFactoryBean();
-    }
-
-    @Bean
-    public HiveSecurityContext securityContext() {
-        return new HiveSecurityContext();
     }
 
     public static void main(String ... args) {

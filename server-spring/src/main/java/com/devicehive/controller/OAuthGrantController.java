@@ -4,7 +4,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
@@ -49,10 +50,6 @@ public class OAuthGrantController {
 
     @Autowired
     private UserService userService;
-
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
-
 
     @GET
     @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
@@ -170,7 +167,7 @@ public class OAuthGrantController {
     }
 
     private User getUser(String userId) {
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User current = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             return current;

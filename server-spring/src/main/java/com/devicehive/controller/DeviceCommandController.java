@@ -4,7 +4,7 @@ import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.TimestampQueryParamParser;
@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
@@ -74,8 +75,6 @@ public class DeviceCommandController {
     @Autowired
     @Qualifier(DeviceHiveApplication.WAIT_EXECUTOR)
     private ExecutorService mes;
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful
@@ -121,7 +120,7 @@ public class DeviceCommandController {
                       final String timestamp,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         final Timestamp ts = TimestampQueryParamParser.parse(timestamp);
 
@@ -210,7 +209,7 @@ public class DeviceCommandController {
             @QueryParam(WAIT_TIMEOUT) final long timeout,
             @Suspended final AsyncResponse asyncResponse) {
 
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         asyncResponse.register(new CompletionCallback() {
             @Override
@@ -304,7 +303,7 @@ public class DeviceCommandController {
 
         LOGGER.debug("Device command query requested for device {}", guid);
 
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Timestamp timestamp = TimestampQueryParamParser.parse(startTs);
 
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
@@ -331,7 +330,7 @@ public class DeviceCommandController {
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) String commandId) {
         LOGGER.debug("Device command get requested. deviceId = {}, commandId = {}", guid, commandId);
 
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
@@ -376,7 +375,7 @@ public class DeviceCommandController {
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommandWrapper deviceCommand) {
         LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
 
@@ -416,7 +415,7 @@ public class DeviceCommandController {
     public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) Long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandWrapper command) {
 
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final User authUser = principal.getUser() != null ? principal.getUser() :
                 (principal.getKey() != null ? principal.getKey().getUser() : null);
         LOGGER.debug("Device command update requested. command {}", command);

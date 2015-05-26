@@ -3,6 +3,9 @@ package com.devicehive.auth.rest;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.model.ErrorResponse;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -32,8 +35,9 @@ public class RolesAllowedFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        Collection<? extends GrantedAuthority> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
         for (String role : allowedRoles) {
-            if (requestContext.getSecurityContext().isUserInRole(role)) {
+            if (authorities.contains(new SimpleGrantedAuthority(role))) {
                 return;
             }
         }

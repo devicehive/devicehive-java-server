@@ -1,7 +1,7 @@
 package com.devicehive.auth.websockets;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
@@ -27,16 +27,13 @@ public class AuthenticationInterceptor {
     @Autowired
     private DeviceService deviceService;
 
-    @Autowired
-    private HiveSecurityContext hiveSecurityContext;
-
     @Before("execution(public * com.devicehive.websockets.handlers.WebsocketHandlers+.*(..))")
     public void authenticate() throws Exception {
         Session session = ThreadLocalVariablesKeeper.getSession();
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
 
         if (state.getHivePrincipal() != null && state.getHivePrincipal().isAuthenticated()) {
-            hiveSecurityContext.setHivePrincipal(ObjectUtils.cloneIfPossible(state.getHivePrincipal()));
+//            hiveAuthentication.setHivePrincipal(ObjectUtils.cloneIfPossible(state.getHivePrincipal()));
         } else {
             JsonObject request = ThreadLocalVariablesKeeper.getRequest();
             String deviceId = null, deviceKey = null;
@@ -50,12 +47,12 @@ public class AuthenticationInterceptor {
                 Device device = deviceService.authenticate(deviceId, deviceKey);
                 if (device != null) {
                     HivePrincipal principal = new HivePrincipal(null, device, null);
-                    hiveSecurityContext.setHivePrincipal(principal);
+//                    hiveAuthentication.setHivePrincipal(principal);
                 }
             }
         }
-        hiveSecurityContext.setOrigin(state.getOrigin());
-        hiveSecurityContext.setClientInetAddress(state.getClientInetAddress());
+//        hiveAuthentication.setOrigin(state.getOrigin());
+//        hiveAuthentication.setClientInetAddress(state.getClientInetAddress());
 
     }
 

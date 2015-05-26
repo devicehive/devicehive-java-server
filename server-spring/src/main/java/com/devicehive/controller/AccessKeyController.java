@@ -3,7 +3,6 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
@@ -20,11 +19,11 @@ import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -47,9 +46,6 @@ public class AccessKeyController {
 
     @Autowired
     private AccessKeyService accessKeyService;
-
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/list">DeviceHive RESTful API:
@@ -199,7 +195,7 @@ public class AccessKeyController {
     }
 
     private User getUser(String userId) {
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         Long id;

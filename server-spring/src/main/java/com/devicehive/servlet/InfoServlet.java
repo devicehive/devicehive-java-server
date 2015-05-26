@@ -16,8 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Component
-@WebServlet("/index")
 public class InfoServlet extends HttpServlet {
     private static final long serialVersionUID = -4886819685195322L;
 

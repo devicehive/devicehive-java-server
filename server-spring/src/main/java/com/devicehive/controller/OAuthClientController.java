@@ -4,7 +4,6 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -15,12 +14,12 @@ import com.devicehive.service.OAuthClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -36,10 +35,6 @@ public class OAuthClientController {
 
     @Autowired
     private OAuthClientService clientService;
-
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
-
 
     @GET
     @PermitAll
@@ -68,7 +63,7 @@ public class OAuthClientController {
                      "sortField {}, sortOrder {}, take {}, skip {}. Result list contains {} elems", name, namePattern,
                      domain, oauthId, sortField, sortOrder, take, skip, result.size());
 
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal != null && principal.getUser() != null && principal.getUser().isAdmin()) {
             return ResponseFactory.response(OK, result, OAUTH_CLIENT_LISTED_ADMIN);
         }
@@ -87,7 +82,7 @@ public class OAuthClientController {
                                                               "OAuthClient with id " + clientId + " not found"));
         }
         logger.debug("OAuthClient proceed successfully. Client id: {}", clientId);
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal != null && principal.getUser() != null && principal.getUser().isAdmin()) {
             return ResponseFactory.response(OK, existing, OAUTH_CLIENT_LISTED_ADMIN);
         }

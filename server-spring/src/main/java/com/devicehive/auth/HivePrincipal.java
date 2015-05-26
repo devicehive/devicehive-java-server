@@ -18,6 +18,10 @@ public class HivePrincipal implements Principal {
         this.key = key;
     }
 
+    public HivePrincipal(User user) {
+        this.user = user;
+    }
+
     public Device getDevice() {
         return device;
     }

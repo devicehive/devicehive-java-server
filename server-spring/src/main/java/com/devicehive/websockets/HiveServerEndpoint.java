@@ -1,7 +1,8 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -13,6 +14,7 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.websocket.CloseReason;
@@ -31,16 +33,16 @@ abstract class HiveServerEndpoint {
     private SubscriptionManager subscriptionManager;
     @Autowired
     private WebsocketExecutor executor;
-    @Autowired
-    private HiveSecurityContext hiveSecurityContext;
 
     public void onOpen(Session session) {
         logger.debug("Opening session id {} ", session.getId());
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getUserProperties().put(HiveWebsocketSessionState.KEY, state);
-        state.setOrigin(hiveSecurityContext.getOrigin());
-        state.setHivePrincipal(hiveSecurityContext.getHivePrincipal());
-        state.setClientInetAddress(hiveSecurityContext.getClientInetAddress());
+        HiveAuthentication hiveAuthentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
+        state.setOrigin(details.getOrigin());
+        state.setHivePrincipal((HivePrincipal) hiveAuthentication.getPrincipal());
+        state.setClientInetAddress(details.getClientInetAddress());
         sessionMonitor.registerSession(session);
     }
 

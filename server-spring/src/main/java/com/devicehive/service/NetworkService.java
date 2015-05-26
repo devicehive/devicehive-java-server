@@ -3,10 +3,9 @@ package com.devicehive.service;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.AccessKeyDAO;
 import com.devicehive.dao.NetworkDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
@@ -42,8 +41,9 @@ public class NetworkService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId,
-                                                  @NotNull HiveSecurityContext hiveSecurityContext) {
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+                                                  @NotNull HiveAuthentication hiveAuthentication) {
+        HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
+        HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
         if (principal.getUser() != null) {
             List<Network> found = networkDAO.getNetworkList(principal.getUser(), null, Arrays.asList(networkId));
             if (found.isEmpty()) {
@@ -66,7 +66,7 @@ public class NetworkService {
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
             Set<AccessKeyPermission> filtered = CheckPermissionsHelper
                 .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
-                                   hiveSecurityContext.getClientInetAddress(), hiveSecurityContext.getOrigin());
+                                   details.getClientInetAddress(), details.getOrigin());
             if (filtered.isEmpty()) {
                 result.setDevices(Collections.EMPTY_SET);
                 return result;

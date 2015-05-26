@@ -1,8 +1,9 @@
 package com.devicehive.controller;
 
 import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.AccessKey;
@@ -10,6 +11,7 @@ import com.devicehive.model.AccessKeyRequest;
 import com.devicehive.model.oauth.IdentityProviderEnum;
 import com.devicehive.service.AccessKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -35,8 +37,6 @@ public class AuthAccessKeyController {
 
     @Autowired
     private AccessKeyService accessKeyService;
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
 
     @POST
     @PermitAll
@@ -51,7 +51,8 @@ public class AuthAccessKeyController {
     @RolesAllowed({HiveRoles.KEY})
     @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
     public Response logout() {
-        AccessKey accessKey = hiveSecurityContext.getHivePrincipal().getKey();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        AccessKey accessKey = principal.getKey();
         accessKeyService.delete(null, accessKey.getId());
         return ResponseFactory.response(NO_CONTENT);
     }

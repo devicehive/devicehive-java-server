@@ -13,7 +13,7 @@ import javax.ws.rs.ApplicationPath;
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
-        packages("com.devicehive.resource");
+        packages("com.devicehive.resource", "com.devicehive.controller");
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 

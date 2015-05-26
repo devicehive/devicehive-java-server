@@ -4,7 +4,7 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -17,7 +17,6 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.TimestampService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -29,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.security.RolesAllowed;
@@ -57,8 +57,6 @@ public class NotificationHandlers extends WebsocketHandlers {
     private AsyncMessageSupplier asyncMessageDeliverer;
     @Autowired
     private SubscriptionSessionMap subscriptionSessionMap;
-    @Autowired
-    private HiveSecurityContext hiveSecurityContext;
     @Autowired
     private DeviceNotificationService notificationService;
     @Autowired
@@ -109,7 +107,7 @@ public class NotificationHandlers extends WebsocketHandlers {
                                              Set<String> devices,
                                              Set<String> names,
                                              Timestamp timestamp) throws IOException {
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
@@ -214,7 +212,7 @@ public class NotificationHandlers extends WebsocketHandlers {
                                                        DeviceNotificationWrapper notificationSubmit,
                                                        Session session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");

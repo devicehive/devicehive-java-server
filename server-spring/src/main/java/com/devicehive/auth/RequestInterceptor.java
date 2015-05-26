@@ -13,7 +13,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -23,12 +23,9 @@ import java.util.Set;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
-//@Aspect
-//@Component
+@Aspect
+@Component
 public class RequestInterceptor {
-
-    @Autowired
-    private HiveSecurityContext hiveSecurityContext;
 
     @Pointcut("execution(public * com.devicehive.controller.*.*(..))")
     public void publicMethod() {}
@@ -36,7 +33,10 @@ public class RequestInterceptor {
     @Around("publicMethod() && @annotation(com.devicehive.auth.AllowedKeyAction)")
     public Object checkPermissions(ProceedingJoinPoint joinPoint) throws Throwable {
         try {
-            HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+            HiveAuthentication hiveAuthentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
+            HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
+            HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
+
             User user = principal.getUser();
             if (user != null && user.getStatus() != UserStatus.ACTIVE) {
                 throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
@@ -62,8 +62,8 @@ public class RequestInterceptor {
             Set<AccessKeyPermission>
                 filtered =
                 CheckPermissionsHelper.filterPermissions(key.getPermissions(), allowedActionAnnotation.action(),
-                                                         hiveSecurityContext.getClientInetAddress(),
-                                                         hiveSecurityContext.getOrigin());
+                                                         details.getClientInetAddress(),
+                                                         details.getOrigin());
             if (filtered.isEmpty()) {
                 throw new HiveException(UNAUTHORIZED.getReasonPhrase(), UNAUTHORIZED.getStatusCode());
             }

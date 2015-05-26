@@ -3,7 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -15,6 +15,7 @@ import com.devicehive.service.NetworkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
@@ -35,10 +36,6 @@ public class NetworkController {
 
     @Autowired
     private NetworkService networkService;
-
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
-
 
     /**
      * Produces following output:
@@ -87,7 +84,7 @@ public class NetworkController {
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<Network> result = networkService
             .list(name, namePattern, sortField, sortOrder, take, skip, principal);
 
@@ -114,7 +111,7 @@ public class NetworkController {
     @AllowedKeyAction(action = GET_NETWORK)
     public Response getNetwork(@PathParam(ID) long id) {
         logger.debug("Network get requested.");
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id, hiveSecurityContext);
+        Network existing = networkService.getWithDevicesAndDeviceClasses(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
         if (existing == null) {
             logger.error("Network with id =  {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

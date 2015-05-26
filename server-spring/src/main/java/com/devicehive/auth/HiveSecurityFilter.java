@@ -12,16 +12,12 @@ import com.devicehive.service.UserService;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Priority;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.ext.Provider;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.charset.Charset;
 
 import static com.devicehive.configuration.Constants.UTF8;
@@ -29,8 +25,6 @@ import static com.devicehive.configuration.Constants.UTF8;
 /**
  * Created by stas on 03.08.14.
  */
-@Provider
-@Priority(Priorities.AUTHENTICATION)
 public class HiveSecurityFilter implements ContainerRequestFilter {
 
     @Autowired
@@ -51,14 +45,6 @@ public class HiveSecurityFilter implements ContainerRequestFilter {
                 authUser(requestContext),
                 authDevice(requestContext),
                 authKey(requestContext));
-        HiveSecurityContext hiveSecurityContext = new HiveSecurityContext();
-        hiveSecurityContext.setHivePrincipal(principal);
-        hiveSecurityContext.setoAuthClient(authClient(requestContext));
-        hiveSecurityContext.setClientInetAddress(InetAddress.getByName(servletRequest.getRemoteAddr()));
-        hiveSecurityContext.setOrigin(requestContext.getHeaderString(org.springframework.http.HttpHeaders.ORIGIN));
-        hiveSecurityContext.setAuthorization(requestContext.getHeaderString(org.springframework.http.HttpHeaders.AUTHORIZATION));
-        hiveSecurityContext.setSecure(requestContext.getSecurityContext().isSecure());
-        requestContext.setSecurityContext(hiveSecurityContext);
     }
 
     private Device authDevice(ContainerRequestContext requestContext) throws IOException {

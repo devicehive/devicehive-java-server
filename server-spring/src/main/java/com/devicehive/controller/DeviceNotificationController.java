@@ -4,7 +4,6 @@ import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.TimestampQueryParamParser;
@@ -29,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
@@ -37,7 +37,6 @@ import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -73,8 +72,6 @@ public class DeviceNotificationController {
     @Autowired
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive
@@ -113,7 +110,7 @@ public class DeviceNotificationController {
         logger.debug("Device notification query requested for device {}", guid);
         Timestamp timestamp = TimestampQueryParamParser.parse(startTs);
 
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         Collection<DeviceNotification> result = notificationService.getDeviceNotificationsList(Arrays.asList(device.getGuid()),
@@ -144,7 +141,7 @@ public class DeviceNotificationController {
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(ID) Long notificationId) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
 
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
@@ -218,7 +215,7 @@ public class DeviceNotificationController {
                       final String timestamp,
                       final AsyncResponse asyncResponse,
                       final boolean isMany) {
-        final HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         final Timestamp ts = TimestampQueryParamParser.parse(timestamp);
         final String devices = StringUtils.isNoneBlank(deviceGuidsString) ? deviceGuidsString : null;
@@ -313,7 +310,7 @@ public class DeviceNotificationController {
                            DeviceNotificationWrapper notificationSubmit) {
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
 
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
             logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             return ResponseFactory.response(BAD_REQUEST,

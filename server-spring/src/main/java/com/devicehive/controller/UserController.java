@@ -4,7 +4,6 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -21,12 +20,11 @@ import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -42,10 +40,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
-
 
     /**
      * This method will generate following output <p/> <code> [ { "id": 2, "login": "login", "role": 0, "status": 0,
@@ -128,7 +122,7 @@ public class UserController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = GET_CURRENT_USER)
     public Response getCurrent() {
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();
         User currentUser = userService.findUserWithNetworks(id);
 
@@ -184,7 +178,7 @@ public class UserController {
     @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
     @AllowedKeyAction(action = UPDATE_CURRENT_USER)
     public Response updateCurrentUser(UserUpdate user) {
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User curUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         userService.updateUser(curUser.getId(), user, curUser.getRole());
         return ResponseFactory.response(NO_CONTENT);

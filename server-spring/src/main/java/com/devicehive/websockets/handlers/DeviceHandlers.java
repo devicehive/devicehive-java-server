@@ -1,7 +1,8 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
@@ -22,12 +23,11 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.ejb.EJB;
-import javax.inject.Inject;
 import javax.websocket.Session;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,8 +44,6 @@ public class DeviceHandlers extends WebsocketHandlers {
     private DeviceDAO deviceDAO;
     @Autowired
     private DeviceService deviceService;
-    @Autowired
-    private HiveSecurityContext hiveSecurityContext;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Device/deviceget">WebSocketAPI: Device:
@@ -82,7 +80,8 @@ public class DeviceHandlers extends WebsocketHandlers {
     @Action(value = "device/get")
     @RolesAllowed({HiveRoles.DEVICE})
     public WebSocketResponse processDeviceGet() {
-        Device device = hiveSecurityContext.getHivePrincipal().getDevice();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Device device = principal.getDevice();
         Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED_DEVICE_AUTH);
@@ -177,7 +176,7 @@ public class DeviceHandlers extends WebsocketHandlers {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        deviceService.deviceSaveAndNotify(device, equipmentSet, hiveSecurityContext.getHivePrincipal());
+        deviceService.deviceSaveAndNotify(device, equipmentSet, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
     }

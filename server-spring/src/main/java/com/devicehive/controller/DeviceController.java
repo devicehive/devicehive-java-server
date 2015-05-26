@@ -3,7 +3,7 @@ package com.devicehive.controller;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -20,6 +20,7 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -52,9 +53,6 @@ public class DeviceController {
     private DeviceEquipmentService deviceEquipmentService;
     @Autowired
     private DeviceService deviceService;
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
-
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -104,7 +102,7 @@ public class DeviceController {
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                                                     deviceClassName, deviceClassVersion, sortField, sortOrder, take,
@@ -145,7 +143,7 @@ public class DeviceController {
         if (equipmentSet != null) {
             equipmentSet.remove(null);
         }
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         deviceService.deviceSaveAndNotify(device, equipmentSet, principal);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
@@ -167,7 +165,7 @@ public class DeviceController {
     public Response get(@PathParam(ID) String guid) {
         logger.debug("Device get requested. Guid {}", guid);
 
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
@@ -193,7 +191,8 @@ public class DeviceController {
     public Response delete(@PathParam(ID) String guid) {
 
         logger.debug("Device delete requested");
-        final Device device = deviceService.findByGuidWithPermissionsCheck(guid, hiveSecurityContext.getHivePrincipal());
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null || !guid.equals(device.getGuid())) {
             logger.debug("No device found for guid : {}", guid);
             return ResponseFactory
@@ -201,7 +200,7 @@ public class DeviceController {
                                     String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        deviceService.deleteDevice(guid, hiveSecurityContext.getHivePrincipal());
+        deviceService.deleteDevice(guid, principal);
 
         logger.debug("Device with id = {} is deleted", guid);
 
@@ -228,7 +227,7 @@ public class DeviceController {
     public Response equipment(@PathParam(ID) String guid) {
         logger.debug("Device equipment requested for device {}", guid);
 
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
         List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
 
@@ -254,7 +253,7 @@ public class DeviceController {
                                     @PathParam(CODE) String code) {
 
         logger.debug("Device equipment by code requested");
-        HivePrincipal principal = hiveSecurityContext.getHivePrincipal();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);

@@ -1,7 +1,7 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.HiveSecurityContext;
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.AccessKey;
@@ -12,6 +12,7 @@ import com.devicehive.service.OAuthGrantService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Singleton;
@@ -20,7 +21,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import static com.devicehive.configuration.Constants.*;
@@ -39,9 +39,6 @@ public class OAuthTokenController {
     @Autowired
     private OAuthGrantService grantService;
 
-    @Context
-    private HiveSecurityContext hiveSecurityContext;
-
     @POST
     @PermitAll
     public Response accessTokenRequest(@FormParam(GRANT_TYPE) @NotNull String grantType,
@@ -53,7 +50,7 @@ public class OAuthTokenController {
                                        @FormParam(PASSWORD) String password) {
         logger.debug("OAuthToken: token requested. Grant type: {}, code: {}, redirect URI: {}, client id: {}",
                      grantType, code, redirectUri, clientId);
-        OAuthClient client = hiveSecurityContext.getoAuthClient();
+        OAuthClient client = ((HiveAuthentication) SecurityContextHolder.getContext().getAuthentication()).getoAuthClient();
         AccessKey key;
         switch (grantType) {
             case AUTHORIZATION_CODE:

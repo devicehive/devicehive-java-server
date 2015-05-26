@@ -13,7 +13,6 @@ import java.io.IOException;
 /**
  * Created by tmatvienko on 11/25/14.
  */
-@WebServlet(urlPatterns = {"/login", "/home"})
 public class OAuthLoginServlet extends HttpServlet {
     private static final long serialVersionUID = -2186819836195371L;
 
