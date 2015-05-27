@@ -1,9 +1,7 @@
 package com.devicehive.controller;
 
 import com.devicehive.application.DeviceHiveApplication;
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.TimestampQueryParamParser;
@@ -28,10 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -44,8 +42,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
-import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -58,7 +54,7 @@ import static javax.ws.rs.core.Response.Status.*;
  *
  * @author rroschin
  */
-@Singleton
+@Service
 @Path("/device")
 public class DeviceNotificationController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
@@ -95,8 +91,7 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public Response query(@PathParam(DEVICE_GUID) String guid,
                           @QueryParam(START) String startTs,
                           @QueryParam(END) String endTs,
@@ -136,8 +131,7 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(ID) Long notificationId) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
 
@@ -181,8 +175,7 @@ public class DeviceNotificationController {
      */
     @GET
     @Path("/{deviceGuid}/notification/poll")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void poll(
         @PathParam(DEVICE_GUID) final String deviceGuid,
         @QueryParam(NAMES) final String namesString,
@@ -196,8 +189,7 @@ public class DeviceNotificationController {
 
     @GET
     @Path("/notification/poll")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void pollMany(
         @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
         @QueryParam(WAIT_TIMEOUT) final long timeout,
@@ -303,8 +295,7 @@ public class DeviceNotificationController {
     @POST
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
+    @PreAuthorize("hasAnyRole('DEVICE', 'CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
                            DeviceNotificationWrapper notificationSubmit) {

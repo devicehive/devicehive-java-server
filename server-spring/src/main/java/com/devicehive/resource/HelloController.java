@@ -16,7 +16,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Service
-@Singleton
 @Path("/hello")
 public class HelloController {
     private static final Logger logger = LoggerFactory.getLogger(HelloController.class);
@@ -25,7 +24,7 @@ public class HelloController {
     private UserService userService;
 
     @GET
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
     @Produces(MediaType.TEXT_PLAIN)
     public String sayHello() {
         logger.info("Hello controller called");

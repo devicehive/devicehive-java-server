@@ -1,7 +1,6 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -14,11 +13,10 @@ import com.devicehive.service.EquipmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -28,9 +26,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
 import static javax.ws.rs.core.Response.Status.*;
 
-@Singleton
+@Service
 @Path("/device/class/{deviceClassId}/equipment")
-@RolesAllowed(HiveRoles.ADMIN)
 public class EquipmentController {
     private static final Logger logger = LoggerFactory.getLogger(EquipmentController.class);
 
@@ -51,6 +48,7 @@ public class EquipmentController {
      */
     @GET
     @Path("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Response getEquipment(@PathParam(DEVICE_CLASS_ID) long classId, @PathParam(ID) long eqId) {
 
         logger.debug("Device class's equipment get requested");
@@ -74,6 +72,7 @@ public class EquipmentController {
      * @param classId device class id
      */
     @POST
+    @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response insertEquipment(@PathParam(DEVICE_CLASS_ID) long classId, Equipment equipment) {
 
@@ -100,6 +99,7 @@ public class EquipmentController {
      */
     @PUT
     @Path("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateEquipment(
         @PathParam(DEVICE_CLASS_ID) long classId,
@@ -131,6 +131,7 @@ public class EquipmentController {
      */
     @DELETE
     @Path("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteEquipment(@PathParam(DEVICE_CLASS_ID) long classId, @PathParam(ID) long eqId) {
 
@@ -147,6 +148,7 @@ public class EquipmentController {
      * /} } ] <p/> </code>
      */
     @GET
+    @PreAuthorize("hasRole('ADMIN')")
     public Response getEquipment() {
         return ResponseFactory.response(METHOD_NOT_ALLOWED, new ErrorResponse(METHOD_NOT_ALLOWED.getStatusCode(),
                                                                               METHOD_NOT_ALLOWED.getReasonPhrase()));

@@ -1,9 +1,7 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -20,16 +18,15 @@ import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -58,8 +55,7 @@ public class UserController {
      * @return List of User
      */
     @GET
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_USER)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
     public Response getUsersList(@QueryParam(LOGIN) String login,
                                  @QueryParam(LOGIN_PATTERN) String loginPattern,
                                  @QueryParam(ROLE) Integer role,
@@ -99,8 +95,7 @@ public class UserController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_CURRENT_USER)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'GET_CURRENT_USER')")
     public Response getUser(@PathParam(ID) Long userId) {
 
         User user = userService.findUserWithNetworks(userId);
@@ -119,8 +114,7 @@ public class UserController {
 
     @GET
     @Path("/current")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_CURRENT_USER)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'GET_CURRENT_USER')")
     public Response getCurrent() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();
@@ -144,8 +138,7 @@ public class UserController {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_USER)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     public Response insertUser(UserUpdate userToCreate) {
         String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
@@ -165,8 +158,7 @@ public class UserController {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_USER)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
     public Response updateUser(UserUpdate user, @PathParam("id") Long userId) {
         userService.updateUser(userId, user, UserRole.ADMIN);
         return ResponseFactory.response(NO_CONTENT);
@@ -175,8 +167,7 @@ public class UserController {
     @PUT
     @Path("/current")
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_CURRENT_USER)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'UPDATE_CURRENT_USER')")
     public Response updateCurrentUser(UserUpdate user) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User curUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
@@ -192,8 +183,7 @@ public class UserController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_USER)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
     public Response deleteUser(@PathParam("id") long userId) {
         userService.deleteUser(userId);
         return ResponseFactory.response(NO_CONTENT);
@@ -209,8 +199,7 @@ public class UserController {
      */
     @GET
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_NETWORK)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     public Response getNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         User existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
@@ -235,8 +224,7 @@ public class UserController {
      */
     @PUT
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_NETWORK)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     public Response assignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.assignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);
@@ -251,8 +239,7 @@ public class UserController {
      */
     @DELETE
     @Path("/{id}/network/{networkId}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_NETWORK)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     public Response unassignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
         userService.unassignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);

@@ -1,10 +1,7 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
@@ -24,22 +21,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_OAUTH_GRANT;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
 
-@Singleton
+@Service
 @Path("/user/{userId}/oauth/grant")
 public class OAuthGrantController {
 
@@ -52,8 +47,7 @@ public class OAuthGrantController {
     private UserService userService;
 
     @GET
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     public Response list(@PathParam(USER_ID) String userId,
                          @QueryParam(START) String startTs,
                          @QueryParam(END) String endTs,
@@ -99,8 +93,7 @@ public class OAuthGrantController {
 
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     public Response get(@PathParam(USER_ID) String userId,
                         @PathParam(ID) long grantId) {
         logger.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
@@ -117,8 +110,7 @@ public class OAuthGrantController {
     }
 
     @POST
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrant grant) {
         logger.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
@@ -134,8 +126,7 @@ public class OAuthGrantController {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     public Response update(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId,
                            @JsonPolicyApply(OAUTH_GRANT_PUBLISHED) OAuthGrantUpdate grant) {
@@ -155,8 +146,7 @@ public class OAuthGrantController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_GRANT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     public Response delete(@PathParam(USER_ID) String userId,
                            @PathParam(ID) Long grantId) {
         logger.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);

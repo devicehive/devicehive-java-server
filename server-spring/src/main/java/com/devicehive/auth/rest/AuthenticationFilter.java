@@ -1,10 +1,13 @@
 package com.devicehive.auth.rest;
 
 import com.devicehive.auth.HiveAuthentication;
+import com.devicehive.auth.rest.providers.AccessTokenAuthenticationProvider;
+import com.devicehive.auth.rest.providers.DeviceAuthenticationToken;
 import com.devicehive.configuration.Constants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Base64;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.UrlPathHelper;
 
@@ -44,6 +48,8 @@ public class AuthenticationFilter extends GenericFilterBean {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         Optional<String> authHeader = Optional.ofNullable(httpRequest.getHeader(HttpHeaders.AUTHORIZATION));
+        Optional<String> deviceIdHeader = Optional.ofNullable(httpRequest.getHeader(Constants.AUTH_DEVICE_ID_HEADER));
+        Optional<String> deviceKeyHeader = Optional.ofNullable(httpRequest.getHeader(Constants.AUTH_DEVICE_KEY_HEADER));
 
         String resourcePath = new UrlPathHelper().getPathWithinApplication(httpRequest);
         logger.info("Security intercepted request to {}", resourcePath);
@@ -51,12 +57,22 @@ public class AuthenticationFilter extends GenericFilterBean {
         try {
             if (authHeader.isPresent()) {
                 String header = authHeader.get();
-                if (header.startsWith("Basic")) {
+                if (header.startsWith(Constants.BASIC_AUTH_SCHEME)) {
                     processBasicAuth(header);
+                } else if (header.startsWith(Constants.OAUTH_AUTH_SCEME)) {
+                    processKeyAuth(authHeader.get().substring(6).trim());
                 }
-                HiveAuthentication.HiveAuthDetails details = createUserDetails(httpRequest);
-                HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
-                authentication.setDetails(details);
+            } else if (deviceIdHeader.isPresent() && deviceKeyHeader.isPresent()) {
+                processDeviceAuth(deviceIdHeader.get(), deviceKeyHeader.get());
+            }
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null) {
+                MDC.put("usrinf", authentication.getName());
+                if (authentication.isAuthenticated()) {
+                    HiveAuthentication.HiveAuthDetails details = createUserDetails(httpRequest);
+                    ((HiveAuthentication) authentication).setDetails(details);
+                }
             }
 
             chain.doFilter(request, response);
@@ -67,6 +83,8 @@ public class AuthenticationFilter extends GenericFilterBean {
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+        } finally {
+            MDC.remove("usrinf");
         }
     }
 
@@ -80,7 +98,25 @@ public class AuthenticationFilter extends GenericFilterBean {
     private void processBasicAuth(String authHeader) throws UnsupportedEncodingException {
         Pair<String, String> credentials = extractAndDecodeHeader(authHeader);
         UsernamePasswordAuthenticationToken requestAuth = new UsernamePasswordAuthenticationToken(credentials.getLeft().trim(), credentials.getRight().trim());
+        tryAuthenticate(requestAuth);
+    }
+
+    private void processDeviceAuth(String deviceId, String deviceKey) {
+        DeviceAuthenticationToken requestAuth = new DeviceAuthenticationToken(deviceId, deviceKey);
+        tryAuthenticate(requestAuth);
+    }
+
+    private void processKeyAuth(String key) {
+        PreAuthenticatedAuthenticationToken requestAuth = new PreAuthenticatedAuthenticationToken(key, null);
+        tryAuthenticate(requestAuth);
+    }
+
+    private void tryAuthenticate(Authentication requestAuth) {
         Authentication authentication = authenticationManager.authenticate(requestAuth);
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new InternalAuthenticationServiceException("Unable to authenticate user with provided credetials");
+        }
+        logger.debug("Successfully authenticated");
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
@@ -99,5 +135,4 @@ public class AuthenticationFilter extends GenericFilterBean {
         }
         return Pair.of(token.substring(0, delim), token.substring(delim + 1));
     }
-
 }

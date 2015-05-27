@@ -334,14 +334,7 @@ public class DeviceService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Device authenticate(String uuid, String key) {
-        Device device = deviceDAO.findByUUIDAndKey(uuid, key);
-        if (device != null) {
-            if (Boolean.TRUE.equals(device.getBlocked())) {
-                throw new HiveException(String.format(Messages.DEVICE_IS_BLOCKED, device.getGuid()), FORBIDDEN.getStatusCode());
-            }
-            deviceActivityService.update(device.getGuid());
-        }
-        return device;
+        return deviceDAO.findByUUIDAndKey(uuid, key);
     }
 
     @Transactional

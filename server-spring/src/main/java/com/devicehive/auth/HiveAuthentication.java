@@ -11,21 +11,12 @@ import java.util.Collection;
 public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
     private HivePrincipal hivePrincipal;
 
-    private InetAddress clientInetAddress;
-    private String origin;
-    private String authorization;
-    private OAuthClient oAuthClient;
-
     public HiveAuthentication(Object aPrincipal, Collection<? extends GrantedAuthority> anAuthorities) {
         super(aPrincipal, null, anAuthorities);
     }
 
     public HiveAuthentication(Object aPrincipal) {
         super(aPrincipal, null);
-    }
-
-    public OAuthClient getoAuthClient() {
-        return oAuthClient;
     }
 
     public boolean isUserInRole(String roleString) {

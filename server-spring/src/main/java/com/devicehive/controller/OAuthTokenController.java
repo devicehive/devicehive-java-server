@@ -1,7 +1,6 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.util.ResponseFactory;
 import com.devicehive.model.AccessKey;
@@ -12,10 +11,10 @@ import com.devicehive.service.OAuthGrantService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.PermitAll;
-import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -27,7 +26,7 @@ import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.Response.Status.*;
 
-@Singleton
+@Service
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
 public class OAuthTokenController {
@@ -40,7 +39,7 @@ public class OAuthTokenController {
     private OAuthGrantService grantService;
 
     @POST
-    @PermitAll
+    @PreAuthorize("permitAll")
     public Response accessTokenRequest(@FormParam(GRANT_TYPE) @NotNull String grantType,
                                        @FormParam(CODE) String code,
                                        @FormParam(REDIRECT_URI) String redirectUri,
@@ -50,7 +49,7 @@ public class OAuthTokenController {
                                        @FormParam(PASSWORD) String password) {
         logger.debug("OAuthToken: token requested. Grant type: {}, code: {}, redirect URI: {}, client id: {}",
                      grantType, code, redirectUri, clientId);
-        OAuthClient client = ((HiveAuthentication) SecurityContextHolder.getContext().getAuthentication()).getoAuthClient();
+        OAuthClient client = (OAuthClient) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         AccessKey key;
         switch (grantType) {
             case AUTHORIZATION_CODE:

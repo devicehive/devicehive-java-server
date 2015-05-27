@@ -4,7 +4,6 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -37,8 +36,8 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.CREATE_DEVICE_NOTIFICATION;
-import static com.devicehive.auth.AllowedKeyAction.Action.GET_DEVICE_NOTIFICATION;
+import static com.devicehive.auth.AccessKeyAction.CREATE_DEVICE_NOTIFICATION;
+import static com.devicehive.auth.AccessKeyAction.GET_DEVICE_NOTIFICATION;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;

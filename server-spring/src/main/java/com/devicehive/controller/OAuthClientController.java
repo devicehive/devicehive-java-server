@@ -1,9 +1,7 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -14,21 +12,19 @@ import com.devicehive.service.OAuthClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_OAUTH_CLIENT;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
 
-@Singleton
+@Service
 @Path("/oauth/client")
 public class OAuthClientController {
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientController.class);
@@ -37,7 +33,7 @@ public class OAuthClientController {
     private OAuthClientService clientService;
 
     @GET
-    @PermitAll
+    @PreAuthorize("permitAll")
     public Response list(@QueryParam(NAME) String name,
                          @QueryParam(NAME_PATTERN) String namePattern,
                          @QueryParam(DOMAIN) String domain,
@@ -72,7 +68,7 @@ public class OAuthClientController {
 
     @GET
     @Path("/{id}")
-    @PermitAll
+    @PreAuthorize("permitAll")
     public Response get(@PathParam(ID) long clientId) {
         logger.debug("OAuthClient get requested. Client id: {}", clientId);
         OAuthClient existing = clientService.get(clientId);
@@ -90,8 +86,7 @@ public class OAuthClientController {
     }
 
     @POST
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_CLIENT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
     public Response insert(OAuthClient clientToInsert) {
         logger.debug("OAuthClient insert requested. Client to insert: {}", clientToInsert);
         if (clientToInsert == null) {
@@ -107,8 +102,7 @@ public class OAuthClientController {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_CLIENT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
     public Response update(@PathParam(ID) Long clientId, OAuthClientUpdate clientToUpdate) {
         logger.debug("OAuthClient update requested. Client id: {}", clientId);
         clientService.update(clientToUpdate, clientId);
@@ -118,8 +112,7 @@ public class OAuthClientController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_OAUTH_CLIENT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
     public Response delete(@PathParam(ID) Long clientId) {
         logger.debug("OAuthClient delete requested");
         clientService.delete(clientId);

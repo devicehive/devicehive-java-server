@@ -1,9 +1,7 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -20,22 +18,19 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -44,7 +39,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * REST controller for devices: <i>/device</i>. See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive
  * RESTful API: Device</a> for details.
  */
-@Singleton
+@Service
 @Path("/device")
 public class DeviceController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
@@ -73,8 +68,7 @@ public class DeviceController {
      * @return list of <a href="http://www.devicehive.com/restful#Reference/Device">Devices</a>
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
     public Response list(@QueryParam(NAME) String name,
                          @QueryParam(NAME_PATTERN) String namePattern,
                          @QueryParam(STATUS) String status,
@@ -126,8 +120,7 @@ public class DeviceController {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @AllowedKeyAction(action = REGISTER_DEVICE)
-    @PermitAll
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY', 'DEVICE') and hasPermission(null, 'REGISTER_DEVICE')")
     public Response register(JsonObject jsonObject, @PathParam(ID) String deviceGuid) {
         logger.debug("Device register method requested. Guid : {}", deviceGuid);
 
@@ -160,8 +153,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE)
+    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
     public Response get(@PathParam(ID) String guid) {
         logger.debug("Device get requested. Guid {}", guid);
 
@@ -186,8 +178,7 @@ public class DeviceController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY, HiveRoles.DEVICE})
-    @AllowedKeyAction(action = REGISTER_DEVICE)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY', 'DEVICE') and hasPermission(null, 'REGISTER_DEVICE')")
     public Response delete(@PathParam(ID) String guid) {
 
         logger.debug("Device delete requested");
@@ -222,8 +213,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_STATE)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
     public Response equipment(@PathParam(ID) String guid) {
         logger.debug("Device equipment requested for device {}", guid);
 
@@ -247,8 +237,7 @@ public class DeviceController {
      */
     @GET
     @Path("/{id}/equipment/{code}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_STATE)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
     public Response equipmentByCode(@PathParam(ID) String guid,
                                     @PathParam(CODE) String code) {
 

@@ -1,8 +1,6 @@
 package com.devicehive.controller;
 
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -14,9 +12,9 @@ import com.devicehive.service.DeviceClassService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
@@ -24,7 +22,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_DEVICE_CLASS;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -33,7 +30,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * REST controller for device classes: <i>/DeviceClass</i>. See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive
  * RESTful API: DeviceClass</a> for details.
  */
-@Singleton
+@Service
 @Path("/device/class")
 public class DeviceClassController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassController.class);
@@ -57,8 +54,7 @@ public class DeviceClassController {
      *         .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
      */
     @GET
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     public Response getDeviceClassList(
         @QueryParam(NAME) String name,
         @QueryParam(NAME_PATTERN) String namePattern,
@@ -95,8 +91,7 @@ public class DeviceClassController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     public Response getDeviceClass(@PathParam(ID) long id) {
 
         logger.debug("Get device class by id requested");
@@ -130,8 +125,7 @@ public class DeviceClassController {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     public Response insertDeviceClass(DeviceClass insert) {
         logger.debug("Insert device class requested");
         DeviceClass result = deviceClassService.addDeviceClass(insert);
@@ -152,8 +146,7 @@ public class DeviceClassController {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     public Response updateDeviceClass(
         @PathParam(ID) long id,
         @JsonPolicyApply(DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
@@ -172,8 +165,7 @@ public class DeviceClassController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_DEVICE_CLASS)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     public Response deleteDeviceClass(@PathParam(ID) long id) {
         logger.debug("Device class delete requested");
         deviceClassService.delete(id);

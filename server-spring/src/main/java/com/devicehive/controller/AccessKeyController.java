@@ -1,8 +1,6 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
@@ -19,15 +17,14 @@ import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_ACCESS_KEY;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -36,7 +33,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * REST Controller for access keys: <i>/user/{userId}/accesskey</i> See <a href="http://www.devicehive.com/restful/#Reference/AccessKey">DeviceHive
  * RESTful API: AccessKey</a> for details.
  */
-@Singleton
+@Service
 @Path("/user/{userId}/accesskey")
 public class AccessKeyController {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
@@ -57,8 +54,7 @@ public class AccessKeyController {
      *         specification.
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     public Response list(@PathParam(USER_ID) String userId, @QueryParam(LABEL) String label,
                          @QueryParam(LABEL_PATTERN) String labelPattern, @QueryParam(TYPE) Integer type,
                          @QueryParam(SORT_FIELD) String sortField, @QueryParam(SORT_ORDER) String sortOrderSt,
@@ -95,8 +91,7 @@ public class AccessKeyController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     public Response get(@PathParam(USER_ID) String userId, @PathParam(ID) long accessKeyId) {
 
         logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
@@ -126,8 +121,7 @@ public class AccessKeyController {
      *         resource in the response body according to the specification.
      */
     @POST
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     public Response insert(@PathParam(USER_ID) String userId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKey key) {
 
@@ -149,8 +143,7 @@ public class AccessKeyController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     public Response update(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId,
                            @JsonPolicyApply(ACCESS_KEY_PUBLISHED) AccessKeyUpdate accessKeyUpdate) {
         logger.debug("Access key : update requested for userId : {}, access key id : {}, access key : {} ", userId,
@@ -180,8 +173,7 @@ public class AccessKeyController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_ACCESS_KEY)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     public Response delete(@PathParam(USER_ID) String userId, @PathParam(ID) Long accessKeyId) {
         logger.debug("Access key : delete requested for userId : {}", userId);
 

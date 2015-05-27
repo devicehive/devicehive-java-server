@@ -6,70 +6,66 @@ import com.devicehive.auth.WwwAuthenticateRequired;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
-import static com.devicehive.configuration.Constants.NAME;
-import static com.devicehive.configuration.Constants.VALUE;
-
 /**
  * Provide API information
  */
-@Singleton
+@Service
 @Path("/configuration")
 public class ConfigurationController {
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
 
     @Autowired
     private ConfigurationService configurationService;
 
 
     @GET
-    @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{" + NAME + "}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Path("/{name}")
     @WwwAuthenticateRequired
-    public Response get(@PathParam(NAME) String name) {
+    public Response get(@PathParam("name") String name) {
         return Response.ok().entity(configurationService.get(name)).build();
     }
 
     @PUT
+    @PreAuthorize("hasRole('ADMIN')")
     @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{" + NAME + "}")
+    @Path("/{name}")
     @WwwAuthenticateRequired
-    public Response setProperty(@PathParam(NAME) String name, String value) {
+    public Response setProperty(@PathParam("name") String name, String value) {
         configurationService.save(name, value);
         return Response.ok().build();
     }
 
     @GET
-    @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{" + NAME + "}/set")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Path("/{name}/set")
     @WwwAuthenticateRequired
-    public Response setPropertyGet(@PathParam(NAME) String name, @QueryParam(VALUE) String value) {
+    public Response setPropertyGet(@PathParam("name") String name, @QueryParam("value") String value) {
         configurationService.save(name, value);
         return Response.ok().build();
     }
 
     @DELETE
-    @RolesAllowed(HiveRoles.ADMIN)
-    @Path("/{" + NAME + "}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Path("/{name}")
     @WwwAuthenticateRequired
-    public Response deleteProperty(@PathParam(NAME) String name) {
+    public Response deleteProperty(@PathParam("name") String name) {
         configurationService.delete(name);
         return Response.noContent().build();
     }
 
 
     @POST
-    @RolesAllowed(HiveRoles.ADMIN)
+    @PreAuthorize("hasRole('ADMIN')")
     @Path("/auto")
     @WwwAuthenticateRequired
     public Response auto(@HeaderParam(HttpHeaders.REFERER) String referrer) {

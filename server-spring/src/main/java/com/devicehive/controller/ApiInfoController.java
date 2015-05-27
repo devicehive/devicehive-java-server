@@ -16,9 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.PermitAll;
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * Provide API information
  */
-@Singleton
+@Service
 @Path("/info")
 public class ApiInfoController {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
@@ -42,7 +42,7 @@ public class ApiInfoController {
     private Environment env;
 
     @GET
-    @PermitAll
+    @PreAuthorize("permitAll")
     public Response getApiInfo() {
         logger.debug("ApiInfo requested");
         ApiInfo apiInfo = new ApiInfo();
@@ -57,7 +57,7 @@ public class ApiInfoController {
 
     @GET
     @Path("/config/auth")
-    @PermitAll
+    @PreAuthorize("permitAll")
     public Response getOauth2Config() {
         logger.debug("ApiConfig requested");
         ApiConfig apiConfig = new ApiConfig();
@@ -94,7 +94,7 @@ public class ApiInfoController {
 
     @GET
     @Path("/config/cluster")
-    @PermitAll
+    @PreAuthorize("permitAll")
     public Response getClusterConfig() {
         logger.debug("ClusterConfig requested");
         ClusterConfig clusterConfig = new ClusterConfig();

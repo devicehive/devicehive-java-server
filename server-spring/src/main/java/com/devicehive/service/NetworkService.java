@@ -1,9 +1,9 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.AllowedKeyAction;
+import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.CheckPermissionsHelper;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveAuthentication;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDAO;
@@ -65,10 +65,10 @@ public class NetworkService {
             }
             //to get proper devices 1) get access key with all permissions 2) get devices for required network
             Set<AccessKeyPermission> filtered = CheckPermissionsHelper
-                .filterPermissions(key.getPermissions(), AllowedKeyAction.Action.GET_DEVICE,
+                .filterPermissions(key.getPermissions(), AccessKeyAction.GET_DEVICE,
                                    details.getClientInetAddress(), details.getOrigin());
             if (filtered.isEmpty()) {
-                result.setDevices(Collections.EMPTY_SET);
+                result.setDevices(Collections.emptySet());
                 return result;
             }
             Set<Device> devices = new HashSet<>(deviceService.getList(result.getId(), principal));

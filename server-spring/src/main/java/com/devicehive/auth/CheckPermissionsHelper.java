@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class CheckPermissionsHelper {
 
-    public static void filterActions(AllowedKeyAction.Action allowedAction,
+    public static void filterActions(AccessKeyAction allowedAction,
                                      Set<AccessKeyPermission> permissions) {
         Set<AccessKeyPermission> permissionsToRemove = new HashSet<>();
         for (AccessKeyPermission currentPermission : permissions) {
@@ -105,7 +105,7 @@ public class CheckPermissionsHelper {
     }
 
     public static Set<AccessKeyPermission> filterPermissions(Set<AccessKeyPermission> permissions,
-                                                             AllowedKeyAction.Action action, InetAddress clientIP,
+                                                             AccessKeyAction action, InetAddress clientIP,
                                                              String clientDomain) {
         Set<AccessKeyPermission> filtered = new HashSet<>(permissions);
         filterActions(action, filtered);

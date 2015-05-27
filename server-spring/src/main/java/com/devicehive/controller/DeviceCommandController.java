@@ -1,10 +1,7 @@
 package com.devicehive.controller;
 
 import com.devicehive.application.DeviceHiveApplication;
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.TimestampQueryParamParser;
@@ -31,17 +28,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
@@ -49,7 +45,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.*;
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -58,7 +53,7 @@ import static javax.ws.rs.core.Response.Status.*;
  * href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for
  * details.
  */
-@Singleton
+@Service
 @Path("/device")
 public class DeviceCommandController {
 
@@ -88,8 +83,7 @@ public class DeviceCommandController {
      */
     @GET
     @Path("/{deviceGuid}/command/poll")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void poll(
             @PathParam(DEVICE_GUID) final String deviceGuid,
             @QueryParam(NAMES) final String namesString,
@@ -102,8 +96,7 @@ public class DeviceCommandController {
 
     @GET
     @Path("/command/poll")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void pollMany(
             @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
             @QueryParam(NAMES) final String namesString,
@@ -200,8 +193,7 @@ public class DeviceCommandController {
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}/poll")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void wait(
             @PathParam(DEVICE_GUID) final String deviceGuid,
             @PathParam(COMMAND_ID) final String commandId,
@@ -288,8 +280,7 @@ public class DeviceCommandController {
 
     @GET
     @Path("/{deviceGuid}/command")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public Response query(@PathParam(DEVICE_GUID) String guid,
                           @QueryParam(START) String startTs,
                           @QueryParam(END) String endTs,
@@ -325,8 +316,7 @@ public class DeviceCommandController {
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public Response get(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) String commandId) {
         LOGGER.debug("Device command get requested. deviceId = {}, commandId = {}", guid, commandId);
 
@@ -370,8 +360,7 @@ public class DeviceCommandController {
     @POST
     @Path("/{deviceGuid}/command")
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     public Response insert(@PathParam(DEVICE_GUID) String guid,
                            @JsonPolicyApply(Policy.COMMAND_FROM_CLIENT) DeviceCommandWrapper deviceCommand) {
         LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
@@ -410,8 +399,7 @@ public class DeviceCommandController {
     @PUT
     @Path("/{deviceGuid}/command/{commandId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @RolesAllowed({HiveRoles.DEVICE, HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission('UPDATE_DEVICE_COMMAND')")
     public Response update(@PathParam(DEVICE_GUID) String guid, @PathParam(COMMAND_ID) Long commandId,
                            @JsonPolicyApply(Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandWrapper command) {
 

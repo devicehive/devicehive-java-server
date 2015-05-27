@@ -1,9 +1,7 @@
 package com.devicehive.controller;
 
-import com.devicehive.auth.AllowedKeyAction;
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.HiveAuthentication;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.controller.converters.SortOrderQueryParamParser;
 import com.devicehive.controller.util.ResponseFactory;
@@ -15,21 +13,18 @@ import com.devicehive.service.NetworkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.auth.AllowedKeyAction.Action.GET_NETWORK;
-import static com.devicehive.auth.AllowedKeyAction.Action.MANAGE_NETWORK;
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.Response.Status.*;
 
-@Singleton
+@Service
 @Path("/network")
 public class NetworkController {
     private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
@@ -64,8 +59,7 @@ public class NetworkController {
      * @param skip        offset, default 0
      */
     @GET
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_NETWORK)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     public Response getNetworkList(@QueryParam(NAME) String name,
                                    @QueryParam(NAME_PATTERN) String namePattern,
                                    @QueryParam(SORT_FIELD) String sortField,
@@ -107,8 +101,7 @@ public class NetworkController {
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_NETWORK)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     public Response getNetwork(@PathParam(ID) long id) {
         logger.debug("Network get requested.");
         Network existing = networkService.getWithDevicesAndDeviceClasses(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
@@ -143,8 +136,7 @@ public class NetworkController {
      * provided anyway.
      */
     @POST
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_NETWORK)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     public Response insert(Network network) {
         logger.debug("Network insert requested");
         Network result = networkService.create(network);
@@ -174,8 +166,7 @@ public class NetworkController {
      */
     @PUT
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_NETWORK)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     public Response update(NetworkUpdate networkToUpdate, @PathParam(ID) long id) {
         logger.debug("Network update requested. Id : {}", id);
         networkService.update(id, networkToUpdate);
@@ -190,8 +181,7 @@ public class NetworkController {
      */
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = MANAGE_NETWORK)
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     public Response delete(@PathParam(ID) long id) {
         logger.debug("Network delete requested");
         networkService.delete(id);
