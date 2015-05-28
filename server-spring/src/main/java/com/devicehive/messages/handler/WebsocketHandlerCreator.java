@@ -9,24 +9,24 @@ import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.WebSocketSession;
 
-import javax.websocket.Session;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
 public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
     private static final Logger logger = LoggerFactory.getLogger(WebsocketHandlerCreator.class);
 
-    private final Session session;
+    private final WebSocketSession session;
     private final Lock lock;
 
 
-    private WebsocketHandlerCreator(Session session, Lock lock) {
+    private WebsocketHandlerCreator(WebSocketSession session, Lock lock) {
         this.session = session;
         this.lock = lock;
     }
 
-    public static WebsocketHandlerCreator<DeviceCommand> createCommandInsert(Session session) {
+    public static WebsocketHandlerCreator<DeviceCommand> createCommandInsert(WebSocketSession session) {
         return new WebsocketHandlerCreator<DeviceCommand>(session,
                                                           HiveWebsocketSessionState.get(session)
                                                               .getCommandSubscriptionsLock()) {
@@ -37,7 +37,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
         };
     }
 
-    public static WebsocketHandlerCreator<DeviceCommand> createCommandUpdate(Session session) {
+    public static WebsocketHandlerCreator<DeviceCommand> createCommandUpdate(WebSocketSession session) {
         return new WebsocketHandlerCreator<DeviceCommand>(session,
                                                           HiveWebsocketSessionState.get(session)
                                                               .getCommandUpdateSubscriptionsLock()) {
@@ -48,7 +48,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
         };
     }
 
-    public static WebsocketHandlerCreator<DeviceNotification> createNotificationInsert(Session session) {
+    public static WebsocketHandlerCreator<DeviceNotification> createNotificationInsert(WebSocketSession session) {
         return new WebsocketHandlerCreator<DeviceNotification>(session,
                                                                HiveWebsocketSessionState.get(session)
                                                                    .getNotificationSubscriptionsLock()) {

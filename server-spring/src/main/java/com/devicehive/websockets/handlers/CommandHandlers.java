@@ -1,9 +1,7 @@
 package com.devicehive.websockets.handlers;
 
 
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -29,17 +27,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.socket.WebSocketSession;
 
-import javax.annotation.security.RolesAllowed;
-import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static com.devicehive.auth.AccessKeyAction.*;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -76,13 +73,12 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/subscribe")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'DEVICE', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
                                                      @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                      @WsParam(NAMES) Set<String> names,
                                                      @WsParam(DEVICE_GUID) String deviceId,
-                                                     Session session) throws IOException {
+                                                     WebSocketSession session) throws IOException {
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
@@ -116,7 +112,7 @@ public class CommandHandlers extends WebsocketHandlers {
 
     }
 
-    private UUID commandsSubscribeAction(Session session,
+    private UUID commandsSubscribeAction(WebSocketSession session,
                                          final Set<String> devices,
                                          final Set<String> names,
                                          final Timestamp timestamp) throws IOException {
@@ -168,7 +164,7 @@ public class CommandHandlers extends WebsocketHandlers {
         }
     }
 
-    private void commandUpdateSubscribeAction(Session session, Long commandId) throws IOException {
+    private void commandUpdateSubscribeAction(WebSocketSession session, Long commandId) throws IOException {
         if (commandId == null) {
             throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
         }
@@ -190,9 +186,8 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/unsubscribe")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_COMMAND)
-    public WebSocketResponse processCommandUnsubscribe(Session session,
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'DEVICE', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    public WebSocketResponse processCommandUnsubscribe(WebSocketSession session,
                                                        @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
@@ -233,12 +228,11 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action(value = "command/insert")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                   @WsParam(COMMAND) @JsonPolicyApply(COMMAND_FROM_CLIENT)
                                                   DeviceCommandWrapper deviceCommand,
-                                                  Session session) throws IOException {
+                                                  WebSocketSession session) throws IOException {
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
         if (deviceGuid == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
@@ -261,14 +255,13 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/update")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = UPDATE_DEVICE_COMMAND)
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY', 'DEVICE') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
                                                   @WsParam(COMMAND_ID) Long id,
                                                   @WsParam(COMMAND)
                                                   @JsonPolicyApply(COMMAND_UPDATE_FROM_DEVICE)
                                                   DeviceCommandWrapper commandUpdate,
-                                                  Session session) {
+                                                  WebSocketSession session) {
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (guid == null) {

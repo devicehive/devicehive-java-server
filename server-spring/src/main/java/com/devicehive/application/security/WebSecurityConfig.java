@@ -2,6 +2,7 @@ package com.devicehive.application.security;
 
 import com.devicehive.auth.AccessKeyPermissionEvaluator;
 import com.devicehive.auth.rest.AuthenticationFilter;
+import com.devicehive.auth.rest.UserDetailsFilter;
 import com.devicehive.auth.rest.providers.AccessTokenAuthenticationProvider;
 import com.devicehive.auth.rest.providers.BasicAuthenticationProvider;
 import com.devicehive.auth.rest.providers.DeviceAuthenticationProvider;
@@ -15,6 +16,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,13 +24,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(Ordered.LOWEST_PRECEDENCE - 10)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private Gson gson = new GsonBuilder().create();
@@ -46,7 +49,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
 
         http
-                .addFilterBefore(new AuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
+                .addFilterBefore(new AuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class)
+                .addFilterAfter(new UserDetailsFilter(), AnonymousAuthenticationFilter.class);
     }
 
     @Override
@@ -55,6 +59,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationProvider(basicAuthenticationProvider())
                 .authenticationProvider(deviceAuthenticationProvider())
                 .authenticationProvider(accessTokenAuthenticationProvider());
+    }
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 
     @Bean

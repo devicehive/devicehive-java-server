@@ -7,10 +7,13 @@ import com.devicehive.websockets.util.HiveEndpoint;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
+import org.springframework.web.socket.WebSocketSession;
 
-import javax.websocket.Session;
 import java.net.InetAddress;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -22,22 +25,20 @@ public class HiveWebsocketSessionState {
     public static final String KEY = HiveWebsocketSessionState.class.getName();
     private final Lock queueLock = new ReentrantLock(true);
     private final ConcurrentLinkedQueue<JsonElement> queue = new ConcurrentLinkedQueue<>();
-    private final Set<UUID> commandSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
-    private final Set<UUID> commandUpdateSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+    private final Set<UUID> commandSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<UUID> commandUpdateSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Lock commandSubscriptionsLock = new ReentrantLock(true);
     private final Set<UUID> notificationSubscriptions =
-        Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+        Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Lock notificationSubscriptionsLock = new ReentrantLock(true);
     private final Lock commandUpdateSubscriptionsLock = new ReentrantLock(true);
     private final ConcurrentMap<Set<String>, Set<UUID>> oldFormatCommandSubscriptions = Maps.newConcurrentMap();
     private final ConcurrentMap<Set<String>, Set<UUID>> oldFormatNotificationSubscriptions = Maps.newConcurrentMap();
     private HiveEndpoint endpoint;
     private HivePrincipal hivePrincipal;
-    private InetAddress clientInetAddress;
-    private String origin;
 
-    public static HiveWebsocketSessionState get(Session session) {
-        return (HiveWebsocketSessionState) session.getUserProperties().get(HiveWebsocketSessionState.KEY);
+    public static HiveWebsocketSessionState get(WebSocketSession session) {
+        return (HiveWebsocketSessionState) session.getAttributes().get(HiveWebsocketSessionState.KEY);
     }
 
     public HiveEndpoint getEndpoint() {
@@ -86,22 +87,6 @@ public class HiveWebsocketSessionState {
 
     public Lock getCommandUpdateSubscriptionsLock() {
         return commandUpdateSubscriptionsLock;
-    }
-
-    public InetAddress getClientInetAddress() {
-        return clientInetAddress;
-    }
-
-    public void setClientInetAddress(InetAddress clientInetAddress) {
-        this.clientInetAddress = clientInetAddress;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
     }
 
     public synchronized void addOldFormatCommandSubscription(Set<String> guids, UUID subscriptionId) {

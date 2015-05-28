@@ -66,15 +66,6 @@ public class AuthenticationFilter extends GenericFilterBean {
                 processDeviceAuth(deviceIdHeader.get(), deviceKeyHeader.get());
             }
 
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null) {
-                MDC.put("usrinf", authentication.getName());
-                if (authentication.isAuthenticated()) {
-                    HiveAuthentication.HiveAuthDetails details = createUserDetails(httpRequest);
-                    ((HiveAuthentication) authentication).setDetails(details);
-                }
-            }
-
             chain.doFilter(request, response);
         } catch (InternalAuthenticationServiceException e) {
             SecurityContextHolder.clearContext();
@@ -83,8 +74,6 @@ public class AuthenticationFilter extends GenericFilterBean {
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
-        } finally {
-            MDC.remove("usrinf");
         }
     }
 

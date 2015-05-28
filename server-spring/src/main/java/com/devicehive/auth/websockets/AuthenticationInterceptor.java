@@ -1,20 +1,40 @@
 package com.devicehive.auth.websockets;
 
+import com.devicehive.application.websocket.WebSocketAuthenticationManager;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveAuthentication;
+import com.devicehive.auth.rest.providers.DeviceAuthenticationToken;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.HiveWebsocketSessionState;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.ObjectUtils;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketSession;
 
 import javax.websocket.Session;
+
+import java.net.InetAddress;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.devicehive.configuration.Constants.DEVICE_ID;
 import static com.devicehive.configuration.Constants.DEVICE_KEY;
@@ -25,35 +45,41 @@ import static com.devicehive.configuration.Constants.DEVICE_KEY;
 public class AuthenticationInterceptor {
 
     @Autowired
-    private DeviceService deviceService;
+    private WebSocketAuthenticationManager authenticationManager;
 
-    @Before("execution(public * com.devicehive.websockets.handlers.WebsocketHandlers+.*(..))")
+    @Pointcut("execution(public * com.devicehive.websockets.handlers.WebsocketHandlers+.*(..))")
+    public void publicHandlerMethod() {}
+
+    @Pointcut("@annotation(com.devicehive.websockets.handlers.annotations.Action)")
+    public void annotatedWithAction() {}
+
+    @Before("publicHandlerMethod() && annotatedWithAction()")
     public void authenticate() throws Exception {
-        Session session = ThreadLocalVariablesKeeper.getSession();
+        WebSocketSession session = ThreadLocalVariablesKeeper.getSession();
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
 
-        if (state.getHivePrincipal() != null && state.getHivePrincipal().isAuthenticated()) {
-//            hiveAuthentication.setHivePrincipal(ObjectUtils.cloneIfPossible(state.getHivePrincipal()));
-        } else {
+        AbstractAuthenticationToken authentication = (AbstractAuthenticationToken) session.getAttributes().get("authentication");
+        //if not authenticated - authenticate as device or anonymous
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
             JsonObject request = ThreadLocalVariablesKeeper.getRequest();
-            String deviceId = null, deviceKey = null;
-            if (request.get(DEVICE_ID) != null) {
-                deviceId = request.get(DEVICE_ID).getAsString();
-            }
-            if (request.get(DEVICE_KEY) != null) {
-                deviceKey = request.get(DEVICE_KEY).getAsString();
-            }
-            if (deviceId != null && deviceKey != null) {
-                Device device = deviceService.authenticate(deviceId, deviceKey);
-                if (device != null) {
-                    HivePrincipal principal = new HivePrincipal(null, device, null);
-//                    hiveAuthentication.setHivePrincipal(principal);
+
+            String deviceId = Optional.ofNullable(request.get(DEVICE_ID)).map(JsonElement::getAsString).orElse(null);
+            String deviceKey = Optional.ofNullable(request.get(DEVICE_KEY)).map(JsonElement::getAsString).orElse(null);
+
+            HiveAuthentication.HiveAuthDetails details = authenticationManager.getDetails(session);
+            if (deviceId == null && deviceKey == null) {
+                authentication = authenticationManager.authenticateAnonymous(details);
+            } else {
+                try {
+                    authentication = authenticationManager.authenticateDevice(deviceId, deviceKey, details);
+                    state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
+                } catch (AuthenticationException e) {
+                    throw new HiveException(e.getMessage(), HttpStatus.UNAUTHORIZED.value());
                 }
             }
+            session.getAttributes().put("authentication", authentication);
         }
-//        hiveAuthentication.setOrigin(state.getOrigin());
-//        hiveAuthentication.setClientInetAddress(state.getClientInetAddress());
-
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
 }

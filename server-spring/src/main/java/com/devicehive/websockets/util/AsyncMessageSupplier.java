@@ -6,8 +6,9 @@ import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
-import javax.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class AsyncMessageSupplier {
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageSupplier.class);
 
-    public void deliverMessages(Session session) {
+    public void deliverMessages(WebSocketSession session) {
         ConcurrentLinkedQueue<JsonElement> queue = HiveWebsocketSessionState.get(session).getQueue();
         boolean acquired = false;
         try {
@@ -30,7 +31,7 @@ public class AsyncMessageSupplier {
                     }
                     if (session.isOpen()) {
                         String data = GsonFactory.createGson().toJson(jsonElement);
-                        session.getBasicRemote().sendText(data);
+                        session.sendMessage(new TextMessage(data));
                         queue.poll();
                     } else {
                         logger.error("Session is closed. Unable to deliver message");

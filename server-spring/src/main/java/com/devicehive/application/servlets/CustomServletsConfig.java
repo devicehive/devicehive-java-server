@@ -24,4 +24,5 @@ public class CustomServletsConfig {
     public ServletRegistrationBean oAuthServlet() {
         return new ServletRegistrationBean(new OAuthServlet(), "/oauth2");
     }
+
 }

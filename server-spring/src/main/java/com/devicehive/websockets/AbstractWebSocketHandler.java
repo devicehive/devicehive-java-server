@@ -1,8 +1,6 @@
 package com.devicehive.websockets;
 
 
-import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -14,19 +12,19 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PongMessage;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.CloseReason;
-import javax.websocket.Session;
-import java.io.Reader;
 import java.util.UUID;
 
 
-abstract class HiveServerEndpoint {
+abstract class AbstractWebSocketHandler extends TextWebSocketHandler {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractWebSocketHandler.class);
 
-    protected static final long MAX_MESSAGE_SIZE = 1024 * 1024;
-    private static final Logger logger = LoggerFactory.getLogger(HiveServerEndpoint.class);
     @Autowired
     private SessionMonitor sessionMonitor;
     @Autowired
@@ -34,34 +32,37 @@ abstract class HiveServerEndpoint {
     @Autowired
     private WebsocketExecutor executor;
 
-    public void onOpen(Session session) {
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.debug("Opening session id {} ", session.getId());
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
-        session.getUserProperties().put(HiveWebsocketSessionState.KEY, state);
-        HiveAuthentication hiveAuthentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
-        state.setOrigin(details.getOrigin());
-        state.setHivePrincipal((HivePrincipal) hiveAuthentication.getPrincipal());
-        state.setClientInetAddress(details.getClientInetAddress());
+        session.getAttributes().put(HiveWebsocketSessionState.KEY, state);
         sessionMonitor.registerSession(session);
     }
 
-    public JsonObject onMessage(Reader reader, Session session) {
-        JsonObject request = null;
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        JsonObject request;
         try {
             logger.debug("Session id {} ", session.getId());
-            request = new JsonParser().parse(reader).getAsJsonObject();
+            request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
             logger.debug("Request is parsed correctly");
         } catch (IllegalStateException ex) {
             throw new JsonParseException(ex);
         }
-
-        return executor.execute(request, session);
+        JsonObject response = executor.execute(request, session);
+        session.sendMessage(new TextMessage(GsonFactory.createGson().toJson(response)));
     }
 
+    @Override
+    protected void handlePongMessage(WebSocketSession session, PongMessage message) throws Exception {
+        logger.debug("Pong received for session {}", session.getId());
+        sessionMonitor.updateDeviceSession(session);
+    }
 
-    public void onClose(Session session, CloseReason closeReason) {
-        logger.debug("Closing session id {}, close reason is {} ", session.getId(), closeReason);
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        logger.debug("Closing session id {}, close status is {} ", session.getId(), status);
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
         for (UUID subId : state.getCommandSubscriptions()) {
             subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
@@ -72,19 +73,19 @@ abstract class HiveServerEndpoint {
         logger.debug("Session {} is closed", session.getId());
     }
 
-    public void onError(Throwable exception, Session session) {
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
         logger.error("Error in session " + session.getId(), exception);
-
-        JsonMessageBuilder builder = null;
+        JsonMessageBuilder builder;
 
         if (exception instanceof JsonParseException) {
             builder = JsonMessageBuilder
-                .createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax");
+                    .createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST, "Incorrect JSON syntax");
         } else {
             builder = JsonMessageBuilder
-                .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
+                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
-        session.getAsyncRemote().sendText(GsonFactory.createGson().toJson(builder.build()));
-
+        session.sendMessage(
+                new TextMessage(GsonFactory.createGson().toJson(builder.build())));
     }
 }

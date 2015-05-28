@@ -2,6 +2,7 @@ package com.devicehive.websockets.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketSession;
 
 import javax.websocket.Session;
 import java.util.Collection;
@@ -21,11 +22,11 @@ public class SubscriptionSessionMap {
     private ConcurrentMap<UUID, String> map = new ConcurrentHashMap<>();
 
 
-    public void put(UUID subId, Session session) {
+    public void put(UUID subId, WebSocketSession session) {
         map.put(subId, session.getId());
     }
 
-    public Session get(UUID subId) {
+    public WebSocketSession get(UUID subId) {
         String sessionId = map.get(subId);
         if (sessionId != null) {
             return sessionMonitor.getSession(sessionId);

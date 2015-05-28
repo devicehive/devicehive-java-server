@@ -2,9 +2,7 @@ package com.devicehive.websockets.util;
 
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.Messages;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
@@ -15,13 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PingMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.websocket.CloseReason;
-import javax.websocket.MessageHandler;
-import javax.websocket.PongMessage;
-import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
@@ -32,36 +29,23 @@ import java.util.concurrent.ConcurrentMap;
 public class SessionMonitor {
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
 
-    private ConcurrentMap<String, Session> sessionMap;
-    @Autowired
-    private ConfigurationService configurationService;
+    private ConcurrentMap<String, WebSocketSession> sessionMap;
+
     @Autowired
     private DeviceActivityService deviceActivityService;
     @Autowired
     private SubscriptionManager subscriptionManager;
 
-    public void registerSession(final Session session) {
-        session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
-            @Override
-            public void onMessage(PongMessage message) {
-                logger.debug("Pong received for session " + session.getId());
-                updateDeviceSession(session);
-            }
-        });
+    public void registerSession(final WebSocketSession session) {
         sessionMap.put(session.getId(), session);
-        session.setMaxIdleTimeout(configurationService
-                                      .getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT,
-                                               Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT));
-        session.setMaxBinaryMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
-        session.setMaxTextMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
     }
 
-    public Session getSession(String sessionId) {
-        Session session = sessionMap.get(sessionId);
+    public WebSocketSession getSession(String sessionId) {
+        WebSocketSession session = sessionMap.get(sessionId);
         return session != null && session.isOpen() ? session : null;
     }
 
-    private void updateDeviceSession(Session session) {
+    public void updateDeviceSession(WebSocketSession session) {
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
         Device authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
         if (authorizedDevice != null) {
@@ -79,11 +63,11 @@ public class SessionMonitor {
 
     @Scheduled(cron = "0 */30 * * * *")//(hour = "*", minute = "*", second = "*/30", persistent = false)
     public synchronized void ping() {
-        for (Session session : sessionMap.values()) {
+        for (WebSocketSession session : sessionMap.values()) {
             if (session.isOpen()) {
                 logger.debug("Pinging session " + session.getId());
                 try {
-                    session.getAsyncRemote().sendPing(Constants.PING);
+                    session.sendMessage(new PingMessage(Constants.PING));
                 } catch (IOException ex) {
                     logger.error("Error sending ping", ex);
                     closePing(session);
@@ -95,9 +79,9 @@ public class SessionMonitor {
         }
     }
 
-    public void closePing(Session session) {
+    public void closePing(WebSocketSession session) {
         try {
-            session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, Messages.PING_ERROR));
+            session.close(CloseStatus.NO_CLOSE_FRAME);
         } catch (IOException ex) {
             logger.error("Error closing session", ex);
         }
@@ -110,9 +94,9 @@ public class SessionMonitor {
 
     @PreDestroy
     public void closeAllSessions() {
-        for (Session session : sessionMap.values()) {
+        for (WebSocketSession session : sessionMap.values()) {
             try {
-                session.close(new CloseReason(CloseReason.CloseCodes.SERVICE_RESTART, Messages.SHUTDOWN));
+                session.close(CloseStatus.SERVICE_RESTARTED);
             } catch (IOException ex) {
                 logger.error("Error closing session", ex);
             }

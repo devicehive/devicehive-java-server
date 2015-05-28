@@ -5,14 +5,14 @@ import com.google.gson.JsonObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.WebSocketSession;
 
 import javax.websocket.Session;
 
 public final class ThreadLocalVariablesKeeper {
 
-    private static Logger logger = LoggerFactory.getLogger(ThreadLocalVariablesKeeper.class);
     private static ThreadLocal<JsonObject> REQUEST = new ThreadLocal<>();
-    private static ThreadLocal<Session> SESSION = new ThreadLocal<>();
+    private static ThreadLocal<WebSocketSession> SESSION = new ThreadLocal<>();
 
     public static JsonObject getRequest() {
         return REQUEST.get();
@@ -22,11 +22,11 @@ public final class ThreadLocalVariablesKeeper {
         REQUEST.set(request);
     }
 
-    public static Session getSession() {
+    public static WebSocketSession getSession() {
         return SESSION.get();
     }
 
-    public static void setSession(Session session) {
+    public static void setSession(WebSocketSession session) {
         SESSION.set(session);
     }
 

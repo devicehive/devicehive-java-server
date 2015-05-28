@@ -2,7 +2,6 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDAO;
@@ -23,12 +22,13 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketSession;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.websocket.Session;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,7 +78,7 @@ public class DeviceHandlers extends WebsocketHandlers {
      *                                                                         </pre>
      */
     @Action(value = "device/get")
-    @RolesAllowed({HiveRoles.DEVICE})
+    @PreAuthorize("hasRole('DEVICE')")
     public WebSocketResponse processDeviceGet() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = principal.getDevice();
@@ -152,13 +152,13 @@ public class DeviceHandlers extends WebsocketHandlers {
      *                                                                         </pre>
      */
     @Action(value = "device/save")
-    @PermitAll
+    @PreAuthorize("permitAll")
     public WebSocketResponse processDeviceSave(@WsParam(Constants.DEVICE_ID) String deviceId,
                                                @WsParam(Constants.DEVICE_KEY) String deviceKey,
                                                @WsParam(Constants.DEVICE) @JsonPolicyApply(DEVICE_SUBMITTED)
                                                DeviceUpdate device,
                                                JsonObject message,
-                                               Session session) {
+                                               WebSocketSession session) {
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);

@@ -17,24 +17,25 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.web.socket.WebSocketSession;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
-import javax.websocket.Session;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
@@ -48,13 +49,28 @@ public class WebsocketExecutor {
     private ConcurrentMap<String, Pair<WebsocketHandlers, Method>> methodsCache = Maps.newConcurrentMap();
     private ConcurrentMap<Method, List<WebsocketParameterDescriptor>> parametersCache = Maps.newConcurrentMap();
 
+    @PostConstruct
+    public void init() {
+        for (WebsocketHandlers handler : handlers) {
+            ReflectionUtils.doWithMethods(handler.getClass(), m -> {
+                ReflectionUtils.makeAccessible(m);
+                Preconditions.checkArgument(m.getReturnType().equals(WebSocketResponse.class),
+                        "Method should have %s return type", WebSocketResponse.class.getName());
+                Action action = m.getAnnotation(Action.class);
+                methodsCache.put(action.value(), Pair.of(handler, m));
+            }, m -> m.isAnnotationPresent(Action.class));
+        }
+    }
 
-    public JsonObject execute(JsonObject request, Session session) {
+    public JsonObject execute(JsonObject request, WebSocketSession session) {
         JsonObject response = null;
         try {
             ThreadLocalVariablesKeeper.setRequest(request);
             ThreadLocalVariablesKeeper.setSession(session);
             response = tryExecute(request, session);
+        } catch (AccessDeniedException ex) {
+            logger.error("Access to action is denied", ex);
+            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_FORBIDDEN, "Forbidden").build();
         } catch (HiveException ex) {
             logger.error("Error executing the request", ex);
             response = JsonMessageBuilder.createError(ex).build();
@@ -102,10 +118,10 @@ public class WebsocketExecutor {
             .build();
     }
 
-    public JsonObject tryExecute(JsonObject request, Session session) {
+    public JsonObject tryExecute(JsonObject request, WebSocketSession session) {
         Pair<WebsocketHandlers, Method> methodPair = getMethod(request);
         List<Object> args = prepareArgumentValues(methodPair.getRight(), request, session);
-        WebSocketResponse response = null;
+        WebSocketResponse response;
         try {
             response = (WebSocketResponse) methodPair.getRight().invoke(methodPair.getLeft(), args.toArray());
         } catch (InvocationTargetException ex) {
@@ -134,40 +150,14 @@ public class WebsocketExecutor {
 
     private Pair<WebsocketHandlers, Method> getMethod(JsonObject request) {
         String action = getAction(request);
-
         if (action == null) {
             throw new JsonParseException("Action parameter is bad");
         }
-
         Pair<WebsocketHandlers, Method> methodPair = methodsCache.get(action);
-        if (methodPair != null) {
-            return methodPair;
-        }
-
-        for (Iterator<WebsocketHandlers> iter = handlers.iterator(); iter.hasNext(); ) {
-            WebsocketHandlers current = iter.next();
-            Class<? extends WebsocketHandlers> currentClass = current.getClass();
-            boolean found = false;
-            for (final Method method : currentClass.getMethods()) {
-                if (method.isAnnotationPresent(Action.class)) {
-                    if (method.getAnnotation(Action.class).value().equals(action)) {
-                        Preconditions.checkState(method.getReturnType().equals(WebSocketResponse.class),
-                                                 "Method should have %s return type", WebSocketResponse.class);
-                        methodPair = ImmutablePair.of(current, method);
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (found) {
-                break;
-            }
-        }
         if (methodPair == null) {
             throw new HiveException(String.format(Messages.UNKNOWN_ACTION_REQUESTED_WS, action),
                                     HttpServletResponse.SC_NOT_FOUND);
         }
-        methodsCache.put(action, methodPair);
         return methodPair;
     }
 
@@ -197,13 +187,13 @@ public class WebsocketExecutor {
         return descriptors;
     }
 
-    private List<Object> prepareArgumentValues(Method executedMethod, JsonObject request, Session session) {
+    private List<Object> prepareArgumentValues(Method executedMethod, JsonObject request, WebSocketSession session) {
         List<WebsocketParameterDescriptor> descriptors = getArguments(executedMethod);
         List<Object> values = new ArrayList<>(descriptors.size());
 
         for (WebsocketParameterDescriptor descriptor : descriptors) {
             Type type = descriptor.getType();
-            if (Session.class.equals(type)) {
+            if (WebSocketSession.class.equals(type)) {
                 values.add(session);
             } else {
                 String name = descriptor.getName();

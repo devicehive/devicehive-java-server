@@ -1,6 +1,5 @@
 package com.devicehive.application;
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.util.ApplicationContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;

@@ -1,9 +1,7 @@
 package com.devicehive.websockets.handlers;
 
 
-import com.devicehive.auth.AllowedKeyAction;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -27,17 +25,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketSession;
 
-import javax.annotation.security.RolesAllowed;
-import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static com.devicehive.auth.AccessKeyAction.CREATE_DEVICE_NOTIFICATION;
-import static com.devicehive.auth.AccessKeyAction.GET_DEVICE_NOTIFICATION;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -62,13 +58,12 @@ public class NotificationHandlers extends WebsocketHandlers {
     private AsyncMessageSupplier messageSupplier;
 
     @Action(value = "notification/subscribe")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
+    @PreAuthorize("hasRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
                                                           @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                           @WsParam(NAMES) Set<String> names,
                                                           @WsParam(DEVICE_GUID) String deviceId,
-                                                          Session session) throws IOException {
+                                                          WebSocketSession session) throws IOException {
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
@@ -102,7 +97,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
-    private UUID notificationSubscribeAction(Session session,
+    private UUID notificationSubscribeAction(WebSocketSession session,
                                              Set<String> devices,
                                              Set<String> names,
                                              Timestamp timestamp) throws IOException {
@@ -160,9 +155,8 @@ public class NotificationHandlers extends WebsocketHandlers {
      *         {object} } </code>
      */
     @Action(value = "notification/unsubscribe")
-    @RolesAllowed({HiveRoles.ADMIN, HiveRoles.CLIENT, HiveRoles.KEY})
-    @AllowedKeyAction(action = GET_DEVICE_NOTIFICATION)
-    public WebSocketResponse processNotificationUnsubscribe(Session session,
+    @PreAuthorize("hasRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    public WebSocketResponse processNotificationUnsubscribe(WebSocketSession session,
                                                             @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                             @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
@@ -203,13 +197,12 @@ public class NotificationHandlers extends WebsocketHandlers {
     }
 
     @Action("notification/insert")
-    @RolesAllowed({HiveRoles.CLIENT, HiveRoles.ADMIN, HiveRoles.DEVICE, HiveRoles.KEY})
-    @AllowedKeyAction(action = CREATE_DEVICE_NOTIFICATION)
+    @PreAuthorize("hasRole('ADMIN', 'CLIENT', 'KEY', 'DEVICE') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
                                                        @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
                                                        DeviceNotificationWrapper notificationSubmit,
-                                                       Session session) {
+                                                       WebSocketSession session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
