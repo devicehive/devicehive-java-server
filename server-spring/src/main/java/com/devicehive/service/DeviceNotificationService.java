@@ -1,7 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.controller.util.ResponseFactory;
+import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.dao.DeviceDAO;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.bus.MessageBus;

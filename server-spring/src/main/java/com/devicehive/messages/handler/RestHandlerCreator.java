@@ -1,6 +1,6 @@
 package com.devicehive.messages.handler;
 
-import com.devicehive.controller.util.ResponseFactory;
+import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;

@@ -43,7 +43,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                    .antMatchers("/index", "/info_page.jsp", "/login", "/home", "/oauth2").permitAll()
+                    .antMatchers("/index", "/info_page.jsp", "/login", "/home", "/oauth2/**").permitAll()
                     .antMatchers("/css/**", "/js/**", "/oauth2/**", "/oauthLogin/**").permitAll()
                     .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
