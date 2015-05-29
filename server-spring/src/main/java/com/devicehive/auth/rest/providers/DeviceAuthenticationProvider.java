@@ -39,7 +39,7 @@ public class DeviceAuthenticationProvider implements AuthenticationProvider {
                     AuthorityUtils.createAuthorityList(HiveRoles.DEVICE));
         }
 
-        throw new BadCredentialsException("Device authentication failed");
+        throw new BadCredentialsException("Invalid credentials");
     }
 
     @Override

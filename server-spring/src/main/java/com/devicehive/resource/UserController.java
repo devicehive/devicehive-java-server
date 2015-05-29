@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Singleton;
 import javax.ws.rs.*;
@@ -30,7 +31,7 @@ import java.util.List;
 import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.Response.Status.*;
 
-@Singleton
+@Service
 @Path("/user")
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);

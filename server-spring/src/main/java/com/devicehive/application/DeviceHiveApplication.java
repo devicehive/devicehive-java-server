@@ -19,7 +19,7 @@ import javax.validation.Validator;
 
 @SpringBootApplication(exclude = { JacksonAutoConfiguration.class })
 @ComponentScan("com.devicehive")
-@EnableTransactionManagement(mode = AdviceMode.PROXY, proxyTargetClass = true)
+@EnableTransactionManagement(proxyTargetClass = true)
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EntityScan(basePackages = {"com.devicehive.model"})
 public class DeviceHiveApplication {

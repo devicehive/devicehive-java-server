@@ -68,8 +68,10 @@ public class WebSocketActionAuthenticationAspect {
             String deviceId = Optional.ofNullable(request.get(DEVICE_ID)).map(JsonElement::getAsString).orElse(null);
             String deviceKey = Optional.ofNullable(request.get(DEVICE_KEY)).map(JsonElement::getAsString).orElse(null);
 
+            String action = Optional.ofNullable(request.get("action")).map(JsonElement::getAsString).orElse("");
+
             HiveAuthentication.HiveAuthDetails details = authenticationManager.getDetails(session);
-            if (deviceId == null && deviceKey == null) {
+            if ((deviceId == null && deviceKey == null) || action.equals("device/save")) {
                 authentication = authenticationManager.authenticateAnonymous(details);
             } else {
                 try {

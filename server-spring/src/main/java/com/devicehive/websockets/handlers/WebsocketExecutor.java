@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.socket.WebSocketSession;
@@ -68,9 +69,12 @@ public class WebsocketExecutor {
             ThreadLocalVariablesKeeper.setRequest(request);
             ThreadLocalVariablesKeeper.setSession(session);
             response = tryExecute(request, session);
+        } catch (BadCredentialsException ex) {
+            logger.error("Unauthorized access", ex);
+            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials").build();
         } catch (AccessDeniedException ex) {
             logger.error("Access to action is denied", ex);
-            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_FORBIDDEN, "Forbidden").build();
+            response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized").build();
         } catch (HiveException ex) {
             logger.error("Error executing the request", ex);
             response = JsonMessageBuilder.createError(ex).build();
@@ -84,7 +88,7 @@ public class WebsocketExecutor {
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_CONFLICT, ex.getMessage())
                 .build();
         } catch (JsonParseException ex) {
-            logger.error("Error executing the request", ex);
+            logger.error("Error e   xecuting the request", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_BAD_REQUEST,
                                                                      Messages.INVALID_REQUEST_PARAMETERS).build();
         } catch (OptimisticLockException ex) {

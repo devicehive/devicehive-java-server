@@ -61,7 +61,7 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
             }
         }
         logger.warn("Basic auth for {} failed", key);
-        throw new BadCredentialsException("Basic Auth credentials invalid");
+        throw new BadCredentialsException("Invalid credentials");
     }
 
     @Override
