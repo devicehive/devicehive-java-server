@@ -11,18 +11,13 @@ import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Collection;
-import java.util.Collections;
+import org.springframework.security.core.authority.AuthorityUtils;
 
 /**
  * Intercepts Authentication for ADMIN, CLIENT and external oAuth token (e.g. github, google, facebook)
@@ -54,7 +49,7 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
             logger.info("User {} authenticated with role {}", key, role);
             return new HiveAuthentication(
                     new HivePrincipal(user),
-                    Collections.singleton(new SimpleGrantedAuthority(role)));
+                    AuthorityUtils.createAuthorityList(role));
 
         } else {
             OAuthClient client = clientService.authenticate(key, pass);
@@ -62,7 +57,7 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
             if (client != null) {
                 return new HiveAuthentication(
                         new HivePrincipal(client),
-                        Collections.singleton(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+                        AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
             }
         }
         logger.warn("Basic auth for {} failed", key);

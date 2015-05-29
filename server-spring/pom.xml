@@ -20,6 +20,7 @@
         <servlet-api.version>3.1.0</servlet-api.version>
         <hsqldb.version>2.3.2</hsqldb.version>
         <postgresql.version>9.4-1201-jdbc4</postgresql.version>
+        <springloaded.version>1.2.3.RELEASE</springloaded.version>
 
         <build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
     </properties>
@@ -238,6 +239,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>springloaded</artifactId>
+                        <version>${springloaded.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

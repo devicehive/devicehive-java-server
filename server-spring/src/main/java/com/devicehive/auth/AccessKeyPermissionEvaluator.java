@@ -16,7 +16,7 @@ public class AccessKeyPermissionEvaluator implements PermissionEvaluator {
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        if (authentication != null && authentication instanceof HiveAuthentication && permission instanceof String) {
+        if (authentication != null && authentication instanceof HiveAuthentication) {
             HiveAuthentication hiveAuthentication = (HiveAuthentication) authentication;
 
             if (!hiveAuthentication.getAuthorities().contains(new SimpleGrantedAuthority(HiveRoles.KEY))) {
@@ -38,8 +38,8 @@ public class AccessKeyPermissionEvaluator implements PermissionEvaluator {
             logger.info("Successfully checked for permission {}", permission);
             return true;
         }
-        logger.error("Unknown authentication type '{}' or permission type '{}'. Access denied", authentication.getClass().getName(), permission.getClass().getName());
-        return false;
+        logger.error("Can't check access key permission for auth '{}'", authentication.getClass().getName());
+        return true;
     }
 
     @Override

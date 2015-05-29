@@ -13,9 +13,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Collections;
+import org.springframework.security.core.authority.AuthorityUtils;
 
 public class DeviceAuthenticationProvider implements AuthenticationProvider {
     private static final Logger logger = LoggerFactory.getLogger(DeviceAuthenticationProvider.class);
@@ -38,7 +36,7 @@ public class DeviceAuthenticationProvider implements AuthenticationProvider {
             deviceActivityService.update(device.getGuid());
             return new HiveAuthentication(
                     new HivePrincipal(device),
-                    Collections.singleton(new SimpleGrantedAuthority(HiveRoles.DEVICE)));
+                    AuthorityUtils.createAuthorityList(HiveRoles.DEVICE));
         }
 
         throw new BadCredentialsException("Device authentication failed");

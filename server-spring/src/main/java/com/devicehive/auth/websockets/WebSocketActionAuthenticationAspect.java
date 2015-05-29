@@ -16,6 +16,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -42,7 +44,7 @@ import static com.devicehive.configuration.Constants.DEVICE_KEY;
 @Aspect
 @Component
 @Order(0)
-public class AuthenticationInterceptor {
+public class WebSocketActionAuthenticationAspect {
 
     @Autowired
     private WebSocketAuthenticationManager authenticationManager;
@@ -58,9 +60,9 @@ public class AuthenticationInterceptor {
         WebSocketSession session = ThreadLocalVariablesKeeper.getSession();
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
 
-        AbstractAuthenticationToken authentication = (AbstractAuthenticationToken) session.getAttributes().get("authentication");
+        HiveAuthentication authentication = (HiveAuthentication) session.getAttributes().get("authentication");
         //if not authenticated - authenticate as device or anonymous
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+        if (authentication == null || authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))) {
             JsonObject request = ThreadLocalVariablesKeeper.getRequest();
 
             String deviceId = Optional.ofNullable(request.get(DEVICE_ID)).map(JsonElement::getAsString).orElse(null);

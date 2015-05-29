@@ -120,7 +120,7 @@ public class DeviceController {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY', 'DEVICE') and hasPermission(null, 'REGISTER_DEVICE')")
+    @PreAuthorize("hasPermission(null, 'REGISTER_DEVICE')")
     public Response register(JsonObject jsonObject, @PathParam(ID) String deviceGuid) {
         logger.debug("Device register method requested. Guid : {}", deviceGuid);
 

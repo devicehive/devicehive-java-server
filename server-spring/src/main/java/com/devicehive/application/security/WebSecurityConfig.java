@@ -1,11 +1,10 @@
 package com.devicehive.application.security;
 
-import com.devicehive.auth.AccessKeyPermissionEvaluator;
-import com.devicehive.auth.rest.AuthenticationFilter;
-import com.devicehive.auth.rest.UserDetailsFilter;
+import com.devicehive.auth.rest.HttpAuthenticationFilter;
 import com.devicehive.auth.rest.providers.AccessTokenAuthenticationProvider;
 import com.devicehive.auth.rest.providers.BasicAuthenticationProvider;
 import com.devicehive.auth.rest.providers.DeviceAuthenticationProvider;
+import com.devicehive.auth.rest.providers.HiveAnonymousAuthenticationProvider;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,17 +13,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.http.HttpServletResponse;
@@ -46,11 +41,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/index", "/info_page.jsp", "/login", "/home", "/oauth2/**").permitAll()
                     .antMatchers("/css/**", "/js/**", "/oauth2/**", "/oauthLogin/**").permitAll()
                     .and()
+                .anonymous().disable()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
 
         http
-                .addFilterBefore(new AuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class)
-                .addFilterAfter(new UserDetailsFilter(), AnonymousAuthenticationFilter.class);
+                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
     }
 
     @Override
@@ -58,7 +53,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         auth
                 .authenticationProvider(basicAuthenticationProvider())
                 .authenticationProvider(deviceAuthenticationProvider())
-                .authenticationProvider(accessTokenAuthenticationProvider());
+                .authenticationProvider(accessTokenAuthenticationProvider())
+                .authenticationProvider(anonymousAuthenticationProvider());
     }
 
     @Bean
@@ -80,6 +76,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AccessTokenAuthenticationProvider accessTokenAuthenticationProvider() {
         return new AccessTokenAuthenticationProvider();
+    }
+
+    @Bean
+    public HiveAnonymousAuthenticationProvider anonymousAuthenticationProvider() {
+        return new HiveAnonymousAuthenticationProvider();
     }
 
     @Bean

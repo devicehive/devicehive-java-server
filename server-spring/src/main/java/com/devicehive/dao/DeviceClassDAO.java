@@ -101,6 +101,7 @@ public class DeviceClassDAO {
         return em.find(DeviceClass.class, id);
     }
 
+    @Transactional
     public DeviceClass createDeviceClass(DeviceClass deviceClass) {
         if (deviceClass.getPermanent() == null) {
             deviceClass.setPermanent(false);

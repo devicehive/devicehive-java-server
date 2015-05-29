@@ -48,7 +48,7 @@ public class DeviceClassService {
         return deviceClassDAO.getWithEquipment(id);
     }
 
-    @Transactional
+
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
                                                  Set<Equipment> customEquipmentSet) {
         DeviceClass stored;

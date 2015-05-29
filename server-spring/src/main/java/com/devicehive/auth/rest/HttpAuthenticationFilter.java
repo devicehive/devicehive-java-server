@@ -1,7 +1,6 @@
 package com.devicehive.auth.rest;
 
 import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.auth.rest.providers.AccessTokenAuthenticationProvider;
 import com.devicehive.auth.rest.providers.DeviceAuthenticationToken;
 import com.devicehive.configuration.Constants;
 import org.apache.commons.lang3.tuple.Pair;
@@ -9,12 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -32,13 +29,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
+import java.util.UUID;
 
-public class AuthenticationFilter extends GenericFilterBean {
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+public class HttpAuthenticationFilter extends GenericFilterBean {
+    private static final Logger logger = LoggerFactory.getLogger(HttpAuthenticationFilter.class);
 
     private AuthenticationManager authenticationManager;
 
-    public AuthenticationFilter(AuthenticationManager authenticationManager) {
+    public HttpAuthenticationFilter(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
@@ -64,6 +62,15 @@ public class AuthenticationFilter extends GenericFilterBean {
                 }
             } else if (deviceIdHeader.isPresent() && deviceKeyHeader.isPresent()) {
                 processDeviceAuth(deviceIdHeader.get(), deviceKeyHeader.get());
+            } else {
+                processAnonymousAuth();
+            }
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication instanceof AbstractAuthenticationToken) {
+                MDC.put("usrinf", authentication.getName());
+                HiveAuthentication.HiveAuthDetails details = createUserDetails(httpRequest);
+                ((AbstractAuthenticationToken) authentication).setDetails(details);
             }
 
             chain.doFilter(request, response);
@@ -74,6 +81,8 @@ public class AuthenticationFilter extends GenericFilterBean {
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+        } finally {
+            MDC.remove("usrinf");
         }
     }
 
@@ -97,6 +106,11 @@ public class AuthenticationFilter extends GenericFilterBean {
 
     private void processKeyAuth(String key) {
         PreAuthenticatedAuthenticationToken requestAuth = new PreAuthenticatedAuthenticationToken(key, null);
+        tryAuthenticate(requestAuth);
+    }
+
+    private void processAnonymousAuth() {
+        AnonymousAuthenticationToken requestAuth = new AnonymousAuthenticationToken(UUID.randomUUID().toString(), "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
         tryAuthenticate(requestAuth);
     }
 

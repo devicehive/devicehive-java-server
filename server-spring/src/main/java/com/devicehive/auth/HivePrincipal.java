@@ -21,6 +21,10 @@ public class HivePrincipal implements Principal {
         this.key = key;
     }
 
+    public HivePrincipal() {
+        //anonymous
+    }
+
     public HivePrincipal(User user) {
         this.user = user;
     }
@@ -64,7 +68,10 @@ public class HivePrincipal implements Principal {
         if (key != null) {
             return key.getKey();
         }
-        return null;
+        if (oAuthClient != null) {
+            return oAuthClient.getName();
+        }
+        return "anonymousUser";
     }
 
     public boolean isAuthenticated() {

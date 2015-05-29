@@ -44,10 +44,9 @@ public class DeviceService {
     @Autowired
     private AccessKeyService accessKeyService;
     @Autowired
-    private DeviceCommandService deviceCommandService;
-    @Autowired
     private HiveValidator hiveValidator;
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
                                     HivePrincipal principal) {
         logger.debug("Device: {}. Current role: {}.", device.getGuid(), principal == null ? null : principal.getRole());
@@ -76,7 +75,6 @@ public class DeviceService {
         deviceActivityService.update(device.getGuid().getValue());
     }
 
-    @Transactional
     public DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
                                                Set<Equipment> equipmentSet,
                                                User user) {
@@ -128,7 +126,6 @@ public class DeviceService {
         }
     }
 
-    @Transactional
     public DeviceNotification deviceSaveByKey(DeviceUpdate deviceUpdate,
                                               Set<Equipment> equipmentSet,
                                               AccessKey key) {
@@ -179,7 +176,6 @@ public class DeviceService {
         }
     }
 
-    @Transactional
     public DeviceNotification deviceUpdateByDevice(DeviceUpdate deviceUpdate,
                                                    Set<Equipment> equipmentSet,
                                                    Device device) {
@@ -226,7 +222,6 @@ public class DeviceService {
         return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
     }
 
-    @Transactional
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
                                          Set<Equipment> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());

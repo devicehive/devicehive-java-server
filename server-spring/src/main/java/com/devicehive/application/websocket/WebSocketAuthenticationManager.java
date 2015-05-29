@@ -45,11 +45,12 @@ public class WebSocketAuthenticationManager {
         return authentication;
     }
 
-    public AnonymousAuthenticationToken authenticateAnonymous(HiveAuthentication.HiveAuthDetails details) {
+    public HiveAuthentication authenticateAnonymous(HiveAuthentication.HiveAuthDetails details) {
         AnonymousAuthenticationToken authenticationToken = new AnonymousAuthenticationToken(
                 UUID.randomUUID().toString(), "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
-        authenticationToken.setDetails(details);
-        return authenticationToken;
+        HiveAuthentication authentication = (HiveAuthentication) authenticationManager.authenticate(authenticationToken);
+        authentication.setDetails(details);
+        return authentication;
     }
 
     public void setAuthentication(Authentication authentication) {

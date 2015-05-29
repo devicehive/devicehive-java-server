@@ -36,7 +36,6 @@ public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
         private InetAddress clientInetAddress;
         private String origin;
         private String authorization;
-        private OAuthClient oAuthClient;
 
         public HiveAuthDetails(InetAddress clientInetAddress, String origin, String authorization) {
             this.clientInetAddress = clientInetAddress;
@@ -54,10 +53,6 @@ public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
 
         public String getAuthorization() {
             return authorization;
-        }
-
-        public OAuthClient getoAuthClient() {
-            return oAuthClient;
         }
     }
 }
