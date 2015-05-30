@@ -34,7 +34,7 @@ public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
 
     @Override
     public void submitMessage(final DeviceCommand message) {
-        logger.debug("Device command was submitted: {}", message.getId());
+        logger.debug("Device command was submitted: {}", message);
 
         Set<UUID> subscribersIds = new HashSet<>();
         Set<CommandSubscription> subs = subscriptionManager.getCommandSubscriptionStorage()
@@ -42,10 +42,13 @@ public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
         for (CommandSubscription subscription : subs) {
             if (subscription.getCommandNames() != null &&
                     !subscription.getCommandNames().contains(message.getCommand())) {
+                logger.debug("Skipping subscriber {}, Command name {} is not in subscription list {}",
+                        subscription.getPrincipal().getName(), message.getCommand(), subscription.getCommandNames());
                 continue;
             }
             boolean hasAccess = deviceService.hasAccessTo(subscription.getPrincipal(), message.getDeviceGuid());
             if (hasAccess) {
+                logger.debug("Sending command {} to user {}..", message, subscription.getPrincipal().getName());
                 mes.submit(subscription.getHandlerCreator().getHandler(message, subscription.getSubscriptionId()));
             }
             subscribersIds.add(subscription.getSubscriptionId());

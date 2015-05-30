@@ -93,4 +93,12 @@ public class HivePrincipal implements Principal {
         }
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "HivePrincipal{" +
+                "name=" + getName() +
+                '}';
+    }
+
 }

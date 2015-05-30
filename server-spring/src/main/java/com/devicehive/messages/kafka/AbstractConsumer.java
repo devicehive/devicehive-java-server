@@ -19,7 +19,7 @@ public abstract class AbstractConsumer<T> {
         ConsumerIterator<String, T> it = a_stream.iterator();
         while (it.hasNext()) {
             T message = it.next().message();
-            logger.debug("{}: Thread {}: {}", Thread.currentThread().getName(), a_threadNumber, message);
+            logger.debug("Message arrived -> 'thread_name': {}, 'thread_number': {}, 'message': {}", Thread.currentThread().getName(), a_threadNumber, message);
             submitMessage(message);
         }
         logger.info("Shutting down Thread: " + a_threadNumber);

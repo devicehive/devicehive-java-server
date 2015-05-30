@@ -36,4 +36,13 @@ public abstract class Subscription<EventSource, T> {
     public HandlerCreator<T> getHandlerCreator() {
         return handlerCreator;
     }
+
+    @Override
+    public String toString() {
+        return "Subscription{" +
+                "eventSource=" + eventSource +
+                ", subscriptionId=" + subscriptionId +
+                ", handlerCreator=" + handlerCreator +
+                '}';
+    }
 }

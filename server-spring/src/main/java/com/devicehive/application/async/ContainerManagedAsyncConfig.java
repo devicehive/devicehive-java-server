@@ -5,15 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jndi.JndiObjectFactoryBean;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.ExecutorService;
 
 @Configuration
 @Profile("container")
-@EnableScheduling
-@EnableAsync
 public class ContainerManagedAsyncConfig {
 
     @Bean(name = DeviceHiveApplication.WAIT_EXECUTOR)

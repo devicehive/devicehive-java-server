@@ -32,5 +32,12 @@ public class CommandSubscription extends Subscription<String, DeviceCommand> {
         return commandNames;
     }
 
+    @Override
+    public String toString() {
+        return "CommandSubscription{" +
+                "principal=" + principal +
+                ", commandNames='" + commandNames + '\'' +
+                "} " + super.toString();
+    }
 }
 
