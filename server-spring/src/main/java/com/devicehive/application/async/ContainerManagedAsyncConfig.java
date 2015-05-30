@@ -9,7 +9,7 @@ import org.springframework.jndi.JndiObjectFactoryBean;
 import java.util.concurrent.ExecutorService;
 
 @Configuration
-@Profile("container")
+@Profile({"jee-container", "!default", "!test"})
 public class ContainerManagedAsyncConfig {
 
     @Bean(name = DeviceHiveApplication.WAIT_EXECUTOR)

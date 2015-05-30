@@ -39,6 +39,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     /**
      * For tomcat, glassfish and wildfly only
+     * refer to <a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-server-runtime-configuration">Configuring the WebSocket Engine</a>
+     *
      * TODO: make profile specific
      */
     @Bean

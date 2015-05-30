@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AdviceMode;
@@ -26,7 +28,7 @@ import javax.validation.Validator;
 @EntityScan(basePackages = {"com.devicehive.model"})
 @EnableScheduling
 @EnableAsync(proxyTargetClass = true)
-public class DeviceHiveApplication {
+public class DeviceHiveApplication extends SpringBootServletInitializer {
     public static final String WAIT_EXECUTOR = "DeviceHiveWaitService";
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
@@ -47,4 +49,8 @@ public class DeviceHiveApplication {
         SpringApplication.run(DeviceHiveApplication.class);
     }
 
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(DeviceHiveApplication.class);
+    }
 }
