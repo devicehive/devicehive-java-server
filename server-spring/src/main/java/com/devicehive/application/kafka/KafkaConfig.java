@@ -18,6 +18,8 @@ import kafka.producer.ProducerConfig;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +31,8 @@ import java.util.*;
 
 @Configuration
 public class KafkaConfig {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaConfig.class);
+
     public static final String NOTIFICATION_PRODUCER = "notificationProducer";
     public static final String COMMAND_PRODUCER = "commandProducer";
     public static final String NOTIFICATION_CONSUMER_CONNECTOR = "notificationConnector";
@@ -51,19 +55,24 @@ public class KafkaConfig {
     @Value("${threads.count:1}")
     private Integer threadCount;
 
+    @Value("${metadata.broker.list}")
+    private String brokerList;
+
     @Bean(name = NOTIFICATION_PRODUCER, destroyMethod = "close")
     public Producer<String, DeviceNotification> notificationProducer() {
         Properties properties = new Properties();
-        properties.put("metadata.broker.list", env.getProperty("metadata.broker.list"));
+        properties.put("metadata.broker.list", brokerList);
         properties.put("serializer.class", env.getProperty("notification.serializer.class"));
+        logger.info("Creating kafka producer {} for broker list {}", NOTIFICATION_PRODUCER, brokerList);
         return new Producer<>(new ProducerConfig(properties));
     }
 
     @Bean(name = COMMAND_PRODUCER, destroyMethod = "close")
     public Producer<String, DeviceCommand> commandProducer() {
         Properties properties = new Properties();
-        properties.put("metadata.broker.list", env.getProperty("metadata.broker.list"));
+        properties.put("metadata.broker.list", brokerList);
         properties.put("serializer.class", env.getProperty("command.serializer.class"));
+        logger.info("Creating kafka producer {} for broker list {}", COMMAND_PRODUCER, brokerList);
         return new Producer<>(new ProducerConfig(properties));
     }
 

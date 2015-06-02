@@ -24,6 +24,9 @@ import javax.ws.rs.client.WebTarget;
 public abstract class AbstractResourceTest {
 
     @ClassRule
+    public static EmbeddedKafkaClusterRule kafkaClusterRule = new EmbeddedKafkaClusterRule();
+
+    @ClassRule
     public static EmbeddedRedisRule redisRule = new EmbeddedRedisRule();
 
     @Autowired

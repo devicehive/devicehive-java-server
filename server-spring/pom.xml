@@ -318,7 +318,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <argLine>
-                        -Dserver.port=${server.test.port}
+                        -Dport=${server.test.port} -Dzk.port=${zk.test.port} -Dkafka.port=${kafka.test.port}
                     </argLine>
                     <skipTests>false</skipTests>
                 </configuration>
@@ -337,6 +337,8 @@
                         <configuration>
                             <portNames>
                                 <portName>server.test.port</portName>
+                                <portName>kafka.test.port</portName>
+                                <portName>zk.test.port</portName>
                             </portNames>
                         </configuration>
                     </execution>
