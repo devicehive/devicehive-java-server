@@ -1,42 +1,26 @@
 package com.devicehive.auth.websockets;
 
 import com.devicehive.application.websocket.WebSocketAuthenticationManager;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.auth.rest.providers.DeviceAuthenticationToken;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.Device;
-import com.devicehive.service.DeviceService;
 import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.ObjectUtils;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import javax.websocket.Session;
-
-import java.net.InetAddress;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static com.devicehive.configuration.Constants.DEVICE_ID;
 import static com.devicehive.configuration.Constants.DEVICE_KEY;

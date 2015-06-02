@@ -2,12 +2,7 @@ package com.devicehive.util;
 
 
 import com.google.gson.JsonObject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.WebSocketSession;
-
-import javax.websocket.Session;
 
 public final class ThreadLocalVariablesKeeper {
 
