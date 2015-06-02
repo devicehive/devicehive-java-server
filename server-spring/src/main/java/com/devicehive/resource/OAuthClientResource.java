@@ -26,8 +26,8 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 @Path("/oauth/client")
-public class OAuthClientController {
-    private static final Logger logger = LoggerFactory.getLogger(OAuthClientController.class);
+public class OAuthClientResource {
+    private static final Logger logger = LoggerFactory.getLogger(OAuthClientResource.class);
 
     @Autowired
     private OAuthClientService clientService;

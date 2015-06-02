@@ -22,7 +22,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -33,8 +32,8 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 @Path("/user")
-public class UserController {
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+public class UserResource {
+    private static final Logger logger = LoggerFactory.getLogger(UserResource.class);
 
     @Autowired
     private UserService userService;

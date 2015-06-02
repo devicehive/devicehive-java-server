@@ -56,8 +56,8 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Service
 @Path("/device")
-public class DeviceNotificationController {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationController.class);
+public class DeviceNotificationResource {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationResource.class);
 
     @Autowired
     private DeviceNotificationService notificationService;

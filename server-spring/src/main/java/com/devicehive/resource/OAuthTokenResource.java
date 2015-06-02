@@ -29,9 +29,9 @@ import static javax.ws.rs.core.Response.Status.*;
 @Service
 @Path("/oauth2/token")
 @Consumes(APPLICATION_FORM_URLENCODED)
-public class OAuthTokenController {
+public class OAuthTokenResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(OAuthTokenController.class);
+    private static final Logger logger = LoggerFactory.getLogger(OAuthTokenResource.class);
     private static final String AUTHORIZATION_CODE = "authorization_code";
     private static final String PASSWORD = "password";
 

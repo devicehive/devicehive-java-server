@@ -30,8 +30,8 @@ import java.util.Set;
  */
 @Service
 @Path("/info")
-public class ApiInfoController {
-    private static final Logger logger = LoggerFactory.getLogger(ApiInfoController.class);
+public class ApiInfoResource {
+    private static final Logger logger = LoggerFactory.getLogger(ApiInfoResource.class);
 
     @Autowired
     private TimestampService timestampService;

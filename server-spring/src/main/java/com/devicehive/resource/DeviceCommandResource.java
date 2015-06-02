@@ -55,9 +55,9 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Service
 @Path("/device")
-public class DeviceCommandController {
+public class DeviceCommandResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceCommandController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceCommandResource.class);
 
     @Autowired
     private DeviceCommandService commandService;

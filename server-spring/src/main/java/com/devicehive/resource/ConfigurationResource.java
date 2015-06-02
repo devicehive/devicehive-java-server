@@ -21,7 +21,7 @@ import java.net.URI;
  */
 @Service
 @Path("/configuration")
-public class ConfigurationController {
+public class ConfigurationResource {
 
     @Autowired
     private ConfigurationService configurationService;

@@ -13,10 +13,13 @@ import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Validator;
@@ -35,14 +38,12 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired
+    private Environment env;
+
     @PostConstruct
     public void initApp() {
         ApplicationContextHolder.getInstance().set(context);
-    }
-
-    @Bean
-    public Validator localValidator() {
-        return new LocalValidatorFactoryBean();
     }
 
     public static void main(String ... args) {
@@ -52,5 +53,18 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
         return builder.sources(DeviceHiveApplication.class);
+    }
+
+    @Bean
+    public Validator localValidator() {
+        return new LocalValidatorFactoryBean();
+    }
+
+    @Bean(destroyMethod = "destroy")
+    public JedisPool jedisPool() {
+        String host = env.getProperty("spring.redis.host");
+        Integer port = Integer.parseInt(env.getProperty("spring.redis.port"));
+        Integer timeout = Integer.parseInt(env.getProperty("spring.redis.timeout"));
+        return new JedisPool(new JedisPoolConfig(), host, port, timeout);
     }
 }

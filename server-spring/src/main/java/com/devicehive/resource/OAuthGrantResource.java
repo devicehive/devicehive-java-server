@@ -36,9 +36,9 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 @Path("/user/{userId}/oauth/grant")
-public class OAuthGrantController {
+public class OAuthGrantResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(OAuthGrantController.class);
+    private static final Logger logger = LoggerFactory.getLogger(OAuthGrantResource.class);
 
     @Autowired
     private OAuthGrantService grantService;

@@ -41,8 +41,8 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Service
 @Path("/device")
-public class DeviceController {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
+public class DeviceResource {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceResource.class);
 
     @Autowired
     private DeviceEquipmentService deviceEquipmentService;

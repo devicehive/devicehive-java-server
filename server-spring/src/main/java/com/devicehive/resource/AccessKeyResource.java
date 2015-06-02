@@ -35,8 +35,8 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Service
 @Path("/user/{userId}/accesskey")
-public class AccessKeyController {
-    private static Logger logger = LoggerFactory.getLogger(AccessKeyController.class);
+public class AccessKeyResource {
+    private static Logger logger = LoggerFactory.getLogger(AccessKeyResource.class);
 
     @Autowired
     private UserService userService;

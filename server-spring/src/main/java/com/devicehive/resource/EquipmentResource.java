@@ -28,8 +28,8 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 @Path("/device/class/{deviceClassId}/equipment")
-public class EquipmentController {
-    private static final Logger logger = LoggerFactory.getLogger(EquipmentController.class);
+public class EquipmentResource {
+    private static final Logger logger = LoggerFactory.getLogger(EquipmentResource.class);
 
     @Autowired
     private DeviceClassService deviceClassService;

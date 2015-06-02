@@ -19,26 +19,12 @@ import java.util.*;
  * Created by tmatvienko on 4/15/15.
  */
 @Component
-@Lazy(false)
 public class RedisConnector {
     private static final Logger logger = LoggerFactory.getLogger(RedisConnector.class);
     private static final Integer PAGE_SIZE = 1000;
 
-    private JedisPool jedisPool;
-
     @Autowired
-    private Environment env;
-
-    @PostConstruct
-    private void connect() {
-        String host = env.getProperty(Constants.REDDIS_CONNECTION_HOST);
-        Integer port = Integer.valueOf(env.getProperty(Constants.REDDIS_CONNECTION_PORT));
-        Integer timeout = Integer.valueOf(env.getProperty(Constants.REDDIS_CONNECTION_TIMEOUT));
-
-        jedisPool = new JedisPool(new JedisPoolConfig(), host, port, timeout);
-
-        logger.info("Jedis pool created for {}:{}, timeout = {}", host, port, timeout);
-    }
+    private JedisPool jedisPool;
 
     public <T> SortedSet<T> fetch(String pattern, Integer count, Comparator<T> comparator, Transformer<String, T> transformer) {
         SortedSet<T> data = new TreeSet<>(comparator);
@@ -59,12 +45,6 @@ public class RedisConnector {
             }
         } while (!cursor.equals("0"));
         return data;
-    }
-
-    public long getKeysCount() {
-        try (Jedis client = jedisPool.getResource()) {
-            return client.dbSize();
-        }
     }
 
     public ScanResult<String> getKeys(String cursor, String pattern, Integer count) {
@@ -110,24 +90,4 @@ public class RedisConnector {
         }
     }
 
-    public boolean isExists(String sess) {
-        try (Jedis client = jedisPool.getResource()) {
-            return client.exists(sess);
-        }
-    }
-
-    public boolean del(String sess) {
-        try (Jedis client = jedisPool.getResource()) {
-            Long del = client.del(sess);
-            return del>0;
-        }
-    }
-
-    @PreDestroy
-    public void close() {
-        if (jedisPool != null) {
-            jedisPool.close();
-            jedisPool.destroy();
-        }
-    }
 }

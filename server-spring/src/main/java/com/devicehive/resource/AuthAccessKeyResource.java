@@ -27,7 +27,7 @@ import static javax.ws.rs.core.Response.Status.OK;
  */
 @Singleton
 @Path("/auth/accesskey")
-public class AuthAccessKeyController {
+public class AuthAccessKeyResource {
 
     @Autowired
     private AccessKeyService accessKeyService;

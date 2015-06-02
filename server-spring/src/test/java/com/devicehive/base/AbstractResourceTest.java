@@ -4,15 +4,16 @@ import com.devicehive.application.DeviceHiveApplication;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.web.client.RestTemplate;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = DeviceHiveApplication.class)
@@ -23,13 +24,15 @@ public abstract class AbstractResourceTest {
 
     @Autowired
     private Environment env;
-    protected String baseUri;
-    protected RestTemplate template;
+
+    protected static String baseUri;
+    protected static WebTarget target;
 
     @Before
     public void initSpringBootIntegrationTest() {
-        this.baseUri = "http://localhost:" + env.getProperty("server.port") + "/rest";
-        template = new TestRestTemplate();
+        baseUri = "http://localhost:" + env.getProperty("server.port");
+        Client client = ClientBuilder.newClient();
+        target = client.target(baseUri).path("rest");
     }
 
 }

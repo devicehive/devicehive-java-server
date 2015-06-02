@@ -26,8 +26,8 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 @Path("/network")
-public class NetworkController {
-    private static final Logger logger = LoggerFactory.getLogger(NetworkController.class);
+public class NetworkResource {
+    private static final Logger logger = LoggerFactory.getLogger(NetworkResource.class);
 
     @Autowired
     private NetworkService networkService;
