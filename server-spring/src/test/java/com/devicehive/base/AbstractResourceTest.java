@@ -2,6 +2,7 @@ package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.IntegrationTest;
@@ -21,6 +22,9 @@ import javax.ws.rs.client.WebTarget;
 @WebAppConfiguration
 @IntegrationTest
 public abstract class AbstractResourceTest {
+
+    @ClassRule
+    public static EmbeddedRedisRule redisRule = new EmbeddedRedisRule();
 
     @Autowired
     private Environment env;

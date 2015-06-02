@@ -24,6 +24,7 @@
         <httpclient.version>4.3.5</httpclient.version>
         <zookeeper.version>3.4.6</zookeeper.version>
         <zkclient.version>0.3</zkclient.version>
+        <embedded-redis.version>0.6</embedded-redis.version>
 
         <tomcat.version>8.0.21</tomcat.version>
 
@@ -41,6 +42,12 @@
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <version>${hsqldb.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kstyrc</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>${embedded-redis.version}</version>
             <scope>test</scope>
         </dependency>
 
