@@ -3,7 +3,6 @@ package com.devicehive.messages.bus.redis;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.PropertiesService;
 import com.devicehive.exceptions.HiveException;
-import com.google.common.base.Function;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +29,9 @@ public class RedisConnector {
 
     @PostConstruct
     private void connect() {
-        String host = propertiesService.getProperty(Constants.REDDIS_CONNECTION_HOST);
-        Integer port = Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_PORT));
-        Integer timeout = Integer.valueOf(propertiesService.getProperty(Constants.REDDIS_CONNECTION_TIMEOUT));
+        String host = propertiesService.getProperty(Constants.REDIS_CONNECTION_HOST);
+        Integer port = Integer.valueOf(propertiesService.getProperty(Constants.REDIS_CONNECTION_PORT));
+        Integer timeout = Integer.valueOf(propertiesService.getProperty(Constants.REDIS_CONNECTION_TIMEOUT));
 
         jedisPool = new JedisPool(new JedisPoolConfig(), host, port, timeout);
 
