@@ -34,8 +34,8 @@ public class EmbeddedKafkaClusterRule extends ExternalResource {
 
     @Override
     protected void before() throws Throwable {
-        String zkPort = Optional.ofNullable(System.getProperty("zk.port")).orElse(ZK_DEFAULT_PORT);
-        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.port")).orElse(KAFKA_DEFAULT_PORT);
+        String zkPort = Optional.ofNullable(System.getProperty("zk.test.port")).orElse(ZK_DEFAULT_PORT);
+        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.test.port")).orElse(KAFKA_DEFAULT_PORT);
 
         startZookeeper(Integer.parseInt(zkPort));
         startKafka("127.0.0.1:" + zkPort, kafkaPort);

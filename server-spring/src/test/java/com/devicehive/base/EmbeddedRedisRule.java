@@ -4,14 +4,16 @@ import org.junit.rules.ExternalResource;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class EmbeddedRedisRule extends ExternalResource {
 
     private RedisServer redisServer;
 
     public EmbeddedRedisRule() {
+        String port = Optional.ofNullable(System.getProperty("redis.test.port")).orElse("6379");
         try {
-            redisServer = new RedisServer(6379);
+            redisServer = new RedisServer(Integer.parseInt(port));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -30,6 +30,8 @@
 
         <build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
         <maven-enforcer-plugin.version>1.4</maven-enforcer-plugin.version>
+
+        <skipTests>false</skipTests>
     </properties>
 
     <dependencies>
@@ -323,9 +325,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <argLine>
-                        -Dport=${server.test.port} -Dzk.port=${zk.test.port} -Dkafka.port=${kafka.test.port}
+                        -Dport=${server.test.port} -Dkafka.test.port=${zk.test.port} -Dkafka.test.port=${kafka.test.port} -Dredis.test.port=${redis.test.port}
                     </argLine>
-                    <skipTests>false</skipTests>
+                    <skipTests>${skipTests}</skipTests>
                 </configuration>
             </plugin>
             <plugin>
@@ -344,6 +346,7 @@
                                 <portName>server.test.port</portName>
                                 <portName>kafka.test.port</portName>
                                 <portName>zk.test.port</portName>
+                                <portName>redis.test.port</portName>
                             </portNames>
                         </configuration>
                     </execution>
@@ -449,6 +452,34 @@
         </profile>
         <profile>
             <id>glassfish</id>
+            <properties>
+                <javax.websocket-api.version>1.1</javax.websocket-api.version>
+                <glassfish-maven-plugin.version>2.1</glassfish-maven-plugin.version>
+
+                <glassfish.home/>
+                <user>admin</user>
+                <domain>domain1</domain>
+                <httpPort>8080</httpPort>
+                <adminPort>4848</adminPort>
+                <passFile>${glassfish.home}/domains/${domain}/config/domain-passwords</passFile>
+                <spring.profile>jee-container</spring.profile>
+
+                <server.log.directory>${com.sun.aas.instanceRoot}/logs</server.log.directory>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <version>${springboot.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>javax.websocket</groupId>
+                    <artifactId>javax.websocket-api</artifactId>
+                    <version>${javax.websocket-api.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
             <dependencyManagement>
                 <dependencies>
                     <dependency>
@@ -475,6 +506,37 @@
                     </dependency>
                 </dependencies>
             </dependencyManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.glassfish.maven.plugin</groupId>
+                        <artifactId>maven-glassfish-plugin</artifactId>
+                        <version>${glassfish-maven-plugin.version}</version>
+                        <configuration>
+                            <glassfishDirectory>${glassfish.home}</glassfishDirectory>
+                            <user>${user}</user>
+                            <passwordFile>${passFile}</passwordFile>
+                            <domain>
+                                <name>${domain}</name>
+                                <httpPort>${httpPort}</httpPort>
+                                <adminPort>${adminPort}</adminPort>
+                                <jvmOptions>
+                                    <option>-Dspring.profiles.active=${spring.profile}</option>
+                                </jvmOptions>
+                            </domain>
+                            <components>
+                                <component>
+                                    <name>${project.artifactId}</name>
+                                    <artifact>${project.build.directory}/${project.build.finalName}-${project.version}.war</artifact>
+                                </component>
+                            </components>
+                            <debug>false</debug>
+                            <terse>false</terse>
+                            <echo>false</echo>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
