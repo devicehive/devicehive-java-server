@@ -1,10 +1,11 @@
-<html>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>DeviceHive OAuth Authorization</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <script type="text/javascript" src="../webjars/jquery/1.11.1/jquery.min.js"></script>
-    <script type="text/javascript" src="scripts/oauth.utils.js"></script>
+    <script type="text/javascript" src="" th:src="@{/webjars/jquery/1.11.1/jquery.min.js}"></script>
+    <script type="text/javascript" src="../scripts/oauth.utils.js" th:src="@{/scripts/oauth.utils.js}"></script>
     <style type="text/css">
         html, body {
             margin: 0px auto;
@@ -89,7 +90,8 @@
 </div>
 
 
-<script type="text/javascript">
+<script type="text/javascript" th:inline="javascript">
+    /*<![CDATA[*/
 $(function () {
 
     var viewModel = {
@@ -343,7 +345,7 @@ $(function () {
         }
     });
 });
-
+    /*]]>*/
 </script>
 </body>
 </html>

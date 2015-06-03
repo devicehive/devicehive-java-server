@@ -42,9 +42,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                    .antMatchers("/index", "/info_page.jsp", "/login", "/home", "/oauth2/**").permitAll()
-                    .antMatchers("/css/**", "/js/**", "/oauth2/**", "/oauthLogin/**").permitAll()
-                    .and()
+                    .antMatchers("/css/**", "/scripts/**", "/webjars/**", "/templates/**").permitAll()
+                .and()
                 .anonymous().disable()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
 
