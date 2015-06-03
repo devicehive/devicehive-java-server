@@ -65,8 +65,7 @@ public class ConfigurationResource {
 
 
     @POST
-    //fixme: make index.html show auth prompt on configuration action
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Path("/auto")
     @WwwAuthenticateRequired
     public Response auto(@HeaderParam(HttpHeaders.REFERER) String referrer) {
