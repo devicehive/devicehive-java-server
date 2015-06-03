@@ -42,7 +42,7 @@ public class ApiInfoResource {
     private Environment env;
 
     @GET
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("permitAll")
     public Response getApiInfo() {
         logger.debug("ApiInfo requested");
         ApiInfo apiInfo = new ApiInfo();
