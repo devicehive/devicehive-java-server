@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
  *
  */
 @Configuration
-@Profile({"default", "test"})
+@Profile({"default", "test", "!jee-container"})
 public class DefaultAsyncConfig {
 
     @Bean(name = DeviceHiveApplication.WAIT_EXECUTOR)

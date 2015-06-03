@@ -325,7 +325,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <argLine>
-                        -Dport=${server.test.port} -Dkafka.test.port=${zk.test.port} -Dkafka.test.port=${kafka.test.port} -Dredis.test.port=${redis.test.port}
+                        -Dport=${server.test.port} -Dkafka.test.port=${zk.test.port}
+                        -Dkafka.test.port=${kafka.test.port} -Dredis.test.port=${redis.test.port}
                     </argLine>
                     <skipTests>${skipTests}</skipTests>
                 </configuration>
@@ -451,6 +452,9 @@
             </dependencyManagement>
         </profile>
         <profile>
+            <!-- Setting spring profile through maven-glassfish-plugin jvmOptions doesn't work (glassfish 4.1)
+                so spring profile should be set through asadmin utility, e.g
+                asadmin create-jvm-options -Dspring.profiles.active=jee-container -->
             <id>glassfish</id>
             <properties>
                 <javax.websocket-api.version>1.1</javax.websocket-api.version>
@@ -462,11 +466,19 @@
                 <httpPort>8080</httpPort>
                 <adminPort>4848</adminPort>
                 <passFile>${glassfish.home}/domains/${domain}/config/domain-passwords</passFile>
-                <spring.profile>jee-container</spring.profile>
-
                 <server.log.directory>${com.sun.aas.instanceRoot}/logs</server.log.directory>
             </properties>
             <dependencies>
+                <dependency>
+                    <groupId>org.glassfish.tyrus</groupId>
+                    <artifactId>tyrus-container-servlet</artifactId>
+                    <version>${glassfish.tyrus}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.glassfish.tyrus</groupId>
+                    <artifactId>tyrus-client</artifactId>
+                    <version>${glassfish.tyrus}</version>
+                </dependency>
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
@@ -520,17 +532,16 @@
                                 <name>${domain}</name>
                                 <httpPort>${httpPort}</httpPort>
                                 <adminPort>${adminPort}</adminPort>
-                                <jvmOptions>
-                                    <option>-Dspring.profiles.active=${spring.profile}</option>
-                                </jvmOptions>
                             </domain>
                             <components>
                                 <component>
                                     <name>${project.artifactId}</name>
-                                    <artifact>${project.build.directory}/${project.build.finalName}-${project.version}.war</artifact>
+                                    <artifact>
+                                        ${project.build.directory}/${project.build.finalName}-${project.version}.war
+                                    </artifact>
                                 </component>
                             </components>
-                            <debug>false</debug>
+                            <debug>true</debug>
                             <terse>false</terse>
                             <echo>false</echo>
                         </configuration>
