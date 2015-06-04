@@ -15,6 +15,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import java.util.Base64;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -22,6 +23,8 @@ import javax.ws.rs.client.WebTarget;
 @WebAppConfiguration
 @IntegrationTest
 public abstract class AbstractResourceTest {
+    public static final String ADMIN_LOGIN = "test_admin";
+    public static final String ADMIN_PASS = "admin_pass";
 
     @ClassRule
     public static EmbeddedKafkaClusterRule kafkaClusterRule = new EmbeddedKafkaClusterRule();
@@ -32,8 +35,8 @@ public abstract class AbstractResourceTest {
     @Autowired
     private Environment env;
 
-    protected static String baseUri;
-    protected static WebTarget target;
+    private String baseUri;
+    private WebTarget target;
 
     @Before
     public void initSpringBootIntegrationTest() {
@@ -42,4 +45,17 @@ public abstract class AbstractResourceTest {
         target = client.target(baseUri).path("rest");
     }
 
+    protected WebTarget target() {
+        return target;
+    }
+
+    protected String baseUri() {
+        return baseUri;
+    }
+
+    protected String basicAuthHeader(String login, String password) {
+        String str = String.format("%s:%s", login, password);
+        String base64 = Base64.getEncoder().encodeToString(str.getBytes());
+        return String.format("Basic %s", base64);
+    }
 }
