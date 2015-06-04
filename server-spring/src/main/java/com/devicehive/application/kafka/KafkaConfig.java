@@ -120,8 +120,12 @@ public class KafkaConfig {
     }
 
     private Properties consumerSharedProps() {
+        String zkConnect = env.getProperty(Constants.ZOOKEEPER_CONNECT);
+
+        logger.info("Consumer properties zookeeper.connect={}", zkConnect);
+
         Properties props = new Properties();
-        props.put(Constants.ZOOKEEPER_CONNECT, env.getProperty(Constants.ZOOKEEPER_CONNECT));
+        props.put(Constants.ZOOKEEPER_CONNECT, zkConnect);
         props.put(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS, env.getProperty(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS));
         props.put(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS, env.getProperty(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS));
         props.put(Constants.ZOOKEEPER_SYNC_TIME_MS, env.getProperty(Constants.ZOOKEEPER_SYNC_TIME_MS));

@@ -1,6 +1,8 @@
 package com.devicehive.application;
 
 import com.devicehive.util.ApplicationContextHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -32,6 +34,8 @@ import javax.validation.Validator;
 @EnableScheduling
 @EnableAsync(proxyTargetClass = true)
 public class DeviceHiveApplication extends SpringBootServletInitializer {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceHiveApplication.class);
+
     public static final String WAIT_EXECUTOR = "DeviceHiveWaitService";
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
@@ -65,6 +69,7 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
         String host = env.getProperty("spring.redis.host");
         Integer port = Integer.parseInt(env.getProperty("spring.redis.port"));
         Integer timeout = Integer.parseInt(env.getProperty("spring.redis.timeout"));
+        logger.info("Creating JedisPool {}:{}", host, port);
         return new JedisPool(new JedisPoolConfig(), host, port, timeout);
     }
 }
