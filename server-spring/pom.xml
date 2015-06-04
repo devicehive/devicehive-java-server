@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>devicehive-server-spring</artifactId>
-    <packaging>war</packaging>
+    <packaging>${packaging.type}</packaging>
     <version>${parent.version}</version>
     <name>DeviceHive Spring-based Java Server</name>
 
@@ -32,6 +32,7 @@
         <maven-enforcer-plugin.version>1.4</maven-enforcer-plugin.version>
 
         <skipTests>false</skipTests>
+        <packaging.type>jar</packaging.type>
     </properties>
 
     <dependencies>
@@ -314,14 +315,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <warName>devicehive-${project.version}</warName>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <argLine>
@@ -380,6 +373,14 @@
         </plugins>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <configuration>
+                        <warName>${project.build.finalName}-${project.version}</warName>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -468,6 +469,9 @@
         </profile>
         <profile>
             <id>tomcat</id>
+            <properties>
+                <packaging.type>war</packaging.type>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.tomcat</groupId>
@@ -511,6 +515,8 @@
             <properties>
                 <javax.websocket-api.version>1.1</javax.websocket-api.version>
                 <glassfish-maven-plugin.version>2.1</glassfish-maven-plugin.version>
+
+                <packaging.type>war</packaging.type>
 
                 <glassfish.home/>
                 <user>admin</user>
@@ -572,6 +578,10 @@
             </dependencyManagement>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                    </plugin>
                     <plugin>
                         <groupId>org.glassfish.maven.plugin</groupId>
                         <artifactId>maven-glassfish-plugin</artifactId>
