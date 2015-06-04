@@ -45,22 +45,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
         return new ClientWebSocketHandler();
     }
 
-    /**
-     * Refer to <a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/html/websocket.html#websocket-server-runtime-configuration">Configuring the WebSocket Engine</a>
-     * (tomcat, glassfish, wildfly)
-     *
-     * Above link states that this is working in glassfish, but this bean causes following exception:
-     *
-     *  Caused by: java.lang.IllegalStateException: A ServletContext is required to access the javax.websocket.server.ServerContainer instance
-     *       at org.springframework.util.Assert.state(Assert.java:385) ~[spring-core-4.1.6.RELEASE.jar:4.1.6.RELEASE]
-     *       at org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean.afterPropertiesSet(ServletServerContainerFactoryBean.java:99) ~[spring-websocket-4.1.6.RELEASE.jar:4.1.6.RELEASE]
-     *       at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1633) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
-     *       at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1570) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
-     *       ... 45 common frames omitted
-     *
-     * TODO: make profile specific
-     */
-    @Profile({"!jee-container"})
     @Bean
     public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
