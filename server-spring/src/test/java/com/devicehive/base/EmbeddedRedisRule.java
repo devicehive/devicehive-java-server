@@ -1,5 +1,6 @@
 package com.devicehive.base;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.ExternalResource;
 import redis.embedded.RedisServer;
 
@@ -11,7 +12,12 @@ public class EmbeddedRedisRule extends ExternalResource {
     private RedisServer redisServer;
 
     public EmbeddedRedisRule() {
-        String port = Optional.ofNullable(System.getProperty("redis.test.port")).orElse("6379");
+        String port = Optional.ofNullable(System.getProperty("redis.test.port")).flatMap(p -> {
+            if (StringUtils.isBlank(p)) {
+                return Optional.empty();
+            }
+            return Optional.of(p);
+        }).orElse("6379");
         try {
             redisServer = new RedisServer(Integer.parseInt(port));
         } catch (IOException e) {

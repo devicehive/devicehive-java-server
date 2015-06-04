@@ -3,6 +3,7 @@ package com.devicehive.base;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.Time;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
 
 public class EmbeddedKafkaClusterRule extends ExternalResource {
     private static final Logger logger = LoggerFactory.getLogger(EmbeddedKafkaClusterRule.class);
@@ -34,8 +36,13 @@ public class EmbeddedKafkaClusterRule extends ExternalResource {
 
     @Override
     protected void before() throws Throwable {
-        String zkPort = Optional.ofNullable(System.getProperty("zk.test.port")).orElse(ZK_DEFAULT_PORT);
-        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.test.port")).orElse(KAFKA_DEFAULT_PORT);
+        Function<String, Optional<String>> func = p -> {
+            if (StringUtils.isBlank(p))
+                return Optional.empty();
+            return Optional.of(p);
+        };
+        String zkPort = Optional.ofNullable(System.getProperty("zk.test.port")).flatMap(func).orElse(ZK_DEFAULT_PORT);
+        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.test.port")).flatMap(func).orElse(KAFKA_DEFAULT_PORT);
 
         startZookeeper(Integer.parseInt(zkPort));
         startKafka("127.0.0.1:" + zkPort, kafkaPort);
