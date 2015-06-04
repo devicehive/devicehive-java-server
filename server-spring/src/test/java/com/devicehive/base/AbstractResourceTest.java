@@ -1,6 +1,8 @@
 package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.resource.converters.CollectionProvider;
+import com.devicehive.resource.converters.HiveEntityProvider;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -9,6 +11,7 @@ import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
@@ -22,6 +25,7 @@ import java.util.Base64;
 @SpringApplicationConfiguration(classes = DeviceHiveApplication.class)
 @WebAppConfiguration
 @IntegrationTest
+//@TestPropertySource("classpath:application-test.properties")
 public abstract class AbstractResourceTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
@@ -42,6 +46,8 @@ public abstract class AbstractResourceTest {
     public void initSpringBootIntegrationTest() {
         baseUri = "http://localhost:" + env.getProperty("server.port");
         Client client = ClientBuilder.newClient();
+        client.register(HiveEntityProvider.class);
+        client.register(CollectionProvider.class);
         target = client.target(baseUri).path("rest");
     }
 

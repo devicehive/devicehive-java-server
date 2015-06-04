@@ -8,13 +8,10 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.ApiInfo;
-import com.devicehive.model.Device;
-import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.TimestampService;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.service.UserService;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -28,8 +25,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
-
-import javax.annotation.security.PermitAll;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;

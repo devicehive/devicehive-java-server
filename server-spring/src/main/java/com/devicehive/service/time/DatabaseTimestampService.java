@@ -1,9 +1,7 @@
-package com.devicehive.service;
+package com.devicehive.service.time;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.ServerTimestamp;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,8 +12,8 @@ import java.sql.Timestamp;
 
 import static com.devicehive.model.ServerTimestamp.Queries.Names.GET;
 
-@Profile({"!test"})
-@Component
+//@Profile({"!test"})
+//@Component
 public class DatabaseTimestampService implements TimestampService {
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)

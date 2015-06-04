@@ -12,6 +12,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

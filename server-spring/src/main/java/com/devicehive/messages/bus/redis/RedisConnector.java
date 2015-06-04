@@ -79,6 +79,18 @@ public class RedisConnector {
         }
     }
 
+    public long getTime() {
+        try (Jedis client = jedisPool.getResource()) {
+            List<String> times = client.time();
+            if (times.size() != 2) {
+                throw new IllegalArgumentException("Redis TIME returned empty list");
+            }
+            Long seconds = Long.parseLong(times.get(0));
+            Long microseconds = Long.parseLong(times.get(1));
+            return seconds * 1000 + microseconds / 1000;
+        }
+    }
+
     public boolean setAll(String sess, Map<String, String> m, String expireSec) {
         if (!NumberUtils.isNumber(expireSec)) {
             throw new HiveException(String.format("Wrong config format, should be numeric: %s", expireSec));

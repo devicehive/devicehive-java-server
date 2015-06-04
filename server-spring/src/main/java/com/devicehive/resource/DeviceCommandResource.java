@@ -20,7 +20,7 @@ import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.TimestampService;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.ParseUtil;
 import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;

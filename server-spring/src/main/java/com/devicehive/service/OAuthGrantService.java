@@ -11,6 +11,7 @@ import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.OAuthGrantUpdate;
+import com.devicehive.service.time.TimestampService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

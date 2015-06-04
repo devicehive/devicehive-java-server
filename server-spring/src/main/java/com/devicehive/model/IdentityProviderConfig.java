@@ -2,6 +2,8 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 
+import java.util.Objects;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_CONFIG;
 
 /**
@@ -21,6 +23,11 @@ public class IdentityProviderConfig implements HiveEntity {
         this.name = name;
     }
 
+    public IdentityProviderConfig(String name, String clientId) {
+        this.name = name;
+        this.clientId = clientId;
+    }
+
     public String getName() {
         return name;
     }
@@ -35,5 +42,27 @@ public class IdentityProviderConfig implements HiveEntity {
 
     public void setClientId(String clientId) {
         this.clientId = clientId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IdentityProviderConfig)) return false;
+        IdentityProviderConfig that = (IdentityProviderConfig) o;
+        return Objects.equals(name, that.name) &&
+                Objects.equals(clientId, that.clientId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, clientId);
+    }
+
+    @Override
+    public String toString() {
+        return "IdentityProviderConfig{" +
+                "name='" + name + '\'' +
+                ", clientId='" + clientId + '\'' +
+                '}';
     }
 }

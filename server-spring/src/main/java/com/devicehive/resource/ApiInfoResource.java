@@ -9,7 +9,7 @@ import com.devicehive.model.ApiConfig;
 import com.devicehive.model.ApiInfo;
 import com.devicehive.model.ClusterConfig;
 import com.devicehive.model.IdentityProviderConfig;
-import com.devicehive.service.TimestampService;
+import com.devicehive.service.time.TimestampService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;

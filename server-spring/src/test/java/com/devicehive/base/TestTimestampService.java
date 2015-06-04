@@ -1,6 +1,6 @@
 package com.devicehive.base;
 
-import com.devicehive.service.TimestampService;
+import com.devicehive.service.time.TimestampService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

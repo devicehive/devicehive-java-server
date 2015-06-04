@@ -14,7 +14,7 @@ import com.devicehive.model.oauth.IdentityProviderEnum;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.NetworkService;
-import com.devicehive.service.TimestampService;
+import com.devicehive.service.time.TimestampService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

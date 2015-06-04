@@ -9,6 +9,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

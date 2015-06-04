@@ -1,4 +1,4 @@
-package com.devicehive.service;
+package com.devicehive.service.time;
 
 
 import java.sql.Timestamp;
