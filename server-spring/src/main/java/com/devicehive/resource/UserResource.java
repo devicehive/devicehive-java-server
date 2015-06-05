@@ -1,42 +1,16 @@
 package com.devicehive.resource;
 
-
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Messages;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
-import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import com.devicehive.model.enums.UserRole;
-import com.devicehive.model.response.UserNetworkResponse;
-import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 import static com.devicehive.configuration.Constants.*;
-import static javax.ws.rs.core.Response.Status.*;
 
-@Service
-@Path("/user")
-public class UserResource {
-    private static final Logger logger = LoggerFactory.getLogger(UserResource.class);
-
-    @Autowired
-    private UserService userService;
+public interface UserResource {
 
     /**
      * This method will generate following output <p/> <code> [ { "id": 2, "login": "login", "role": 0, "status": 0,
@@ -56,34 +30,16 @@ public class UserResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
-    public Response getUsersList(@QueryParam(LOGIN) String login,
-                                 @QueryParam(LOGIN_PATTERN) String loginPattern,
-                                 @QueryParam(ROLE) Integer role,
-                                 @QueryParam(STATUS) Integer status,
-                                 @QueryParam(SORT_FIELD) String sortField,
-                                 @QueryParam(SORT_ORDER) String sortOrderSt,
-                                 @QueryParam(TAKE) Integer take,
-                                 @QueryParam(SKIP) Integer skip) {
-
-        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
-
-        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
-            return ResponseFactory.response(BAD_REQUEST,
-                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                                                              Messages.INVALID_REQUEST_PARAMETERS));
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
-        }
-
-        List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
-
-        logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
-                        "sortField = {}, " +
-                        "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
-                take, skip);
-
-        return ResponseFactory.response(OK, result, JsonPolicyDef.Policy.USERS_LISTED);
-    }
+    Response getUsersList(
+            @QueryParam(LOGIN) String login,
+            @QueryParam(LOGIN_PATTERN) String loginPattern,
+            @QueryParam(ROLE) Integer role,
+            @QueryParam(STATUS) Integer status,
+            @QueryParam(SORT_FIELD) String sortField,
+            @QueryParam(SORT_ORDER) String sortOrderSt,
+            @QueryParam(TAKE) Integer take,
+            @QueryParam(SKIP) Integer skip
+    );
 
     /**
      * Method will generate following output: <p/> <code> { "id": 2, "login": "login", "status": 0, "networks": [ {
@@ -96,38 +52,12 @@ public class UserResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'GET_CURRENT_USER')")
-    public Response getUser(@PathParam(ID) Long userId) {
-
-        User user = userService.findUserWithNetworks(userId);
-
-        if (user == null) {
-            logger.error("Can't get user with id {}: user not found", userId);
-            return ResponseFactory.response(NOT_FOUND,
-                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                                              Messages.USER_NOT_FOUND));
-        }
-
-        return ResponseFactory.response(OK,
-                                        UserResponse.createFromUser(user),
-                                        JsonPolicyDef.Policy.USER_PUBLISHED);
-    }
+    Response getUser(@PathParam(ID) Long userId);
 
     @GET
     @Path("/current")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'GET_CURRENT_USER')")
-    public Response getCurrent() {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();
-        User currentUser = userService.findUserWithNetworks(id);
-
-        if (currentUser == null) {
-            return ResponseFactory.response(CONFLICT,
-                                            new ErrorResponse(CONFLICT.getStatusCode(),
-                                                              Messages.CAN_NOT_GET_CURRENT_USER));
-        }
-
-        return ResponseFactory.response(OK, currentUser, JsonPolicyDef.Policy.USER_PUBLISHED);
-    }
+    Response getCurrent();
 
     /**
      * One needs to provide user resource in request body (all parameters are mandatory): <p/> <code> { "login":"login"
@@ -140,11 +70,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
-    public Response insertUser(UserUpdate userToCreate) {
-        String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
-        User created = userService.createUser(userToCreate.convertTo(), password);
-        return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
-    }
+    Response insertUser(UserUpdate userToCreate);
 
     /**
      * Updates user. One should specify following json to update user (none of parameters are mandatory, bot neither of
@@ -159,21 +85,13 @@ public class UserResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
-    public Response updateUser(UserUpdate user, @PathParam("id") Long userId) {
-        userService.updateUser(userId, user, UserRole.ADMIN);
-        return ResponseFactory.response(NO_CONTENT);
-    }
+    Response updateUser(UserUpdate user, @PathParam("id") Long userId);
 
     @PUT
     @Path("/current")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'UPDATE_CURRENT_USER')")
-    public Response updateCurrentUser(UserUpdate user) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User curUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        userService.updateUser(curUser.getId(), user, curUser.getRole());
-        return ResponseFactory.response(NO_CONTENT);
-    }
+    Response updateCurrentUser(UserUpdate user);
 
     /**
      * Deletes user by id
@@ -184,10 +102,7 @@ public class UserResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
-    public Response deleteUser(@PathParam("id") long userId) {
-        userService.deleteUser(userId);
-        return ResponseFactory.response(NO_CONTENT);
-    }
+    Response deleteUser(@PathParam("id") long userId);
 
     /**
      * Method returns following body in case of success (status 200): <code> { "id": 5, "key": "network_key", "name":
@@ -200,21 +115,7 @@ public class UserResource {
     @GET
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
-    public Response getNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
-        User existingUser = userService.findUserWithNetworks(id);
-        if (existingUser == null) {
-            logger.error("Can't get network with id {}: user {} not found", networkId, id);
-            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
-        }
-        for (Network network : existingUser.getNetworks()) {
-            if (network.getId() == networkId) {
-                return ResponseFactory.response(OK,
-                                                UserNetworkResponse.fromNetwork(network),
-                                                JsonPolicyDef.Policy.NETWORKS_LISTED);
-            }
-        }
-        throw new NotFoundException(String.format(Messages.USER_NETWORK_NOT_FOUND, networkId, id));
-    }
+    Response getNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId);
 
     /**
      * Request body must be empty. Returns Empty body.
@@ -225,10 +126,7 @@ public class UserResource {
     @PUT
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    public Response assignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
-        userService.assignNetwork(id, networkId);
-        return ResponseFactory.response(NO_CONTENT);
-    }
+    Response assignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId);
 
     /**
      * Removes user permissions on network
@@ -240,9 +138,5 @@ public class UserResource {
     @DELETE
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    public Response unassignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId) {
-        userService.unassignNetwork(id, networkId);
-        return ResponseFactory.response(NO_CONTENT);
-    }
-
+    Response unassignNetwork(@PathParam(ID) long id, @PathParam(NETWORK_ID) long networkId);
 }
