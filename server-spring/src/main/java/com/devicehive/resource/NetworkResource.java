@@ -1,36 +1,15 @@
 package com.devicehive.resource;
 
-import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Messages;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
-import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.Network;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.service.NetworkService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 import static com.devicehive.configuration.Constants.*;
-import static javax.ws.rs.core.Response.Status.*;
 
-@Service
-@Path("/network")
-public class NetworkResource {
-    private static final Logger logger = LoggerFactory.getLogger(NetworkResource.class);
-
-    @Autowired
-    private NetworkService networkService;
+public interface NetworkResource {
 
     /**
      * Produces following output:
@@ -60,31 +39,14 @@ public class NetworkResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
-    public Response getNetworkList(@QueryParam(NAME) String name,
-                                   @QueryParam(NAME_PATTERN) String namePattern,
-                                   @QueryParam(SORT_FIELD) String sortField,
-                                   @QueryParam(SORT_ORDER) String sortOrderSt,
-                                   @QueryParam(TAKE) Integer take,
-                                   @QueryParam(SKIP) Integer skip) {
-
-        logger.debug("Network list requested");
-
-        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
-
-        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
-            logger.error("Unable to proceed network list request. Invalid sortField");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
-        }
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<Network> result = networkService
-            .list(name, namePattern, sortField, sortOrder, take, skip, principal);
-
-        logger.debug("Network list request proceed successfully.");
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
-    }
+    Response getNetworkList(
+            @QueryParam(NAME) String name,
+            @QueryParam(NAME_PATTERN) String namePattern,
+            @QueryParam(SORT_FIELD) String sortField,
+            @QueryParam(SORT_ORDER) String sortOrderSt,
+            @QueryParam(TAKE) Integer take,
+            @QueryParam(SKIP) Integer skip
+    );
 
     /**
      * Generates  JSON similar to this:
@@ -102,16 +64,7 @@ public class NetworkResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
-    public Response getNetwork(@PathParam(ID) long id) {
-        logger.debug("Network get requested.");
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
-        if (existing == null) {
-            logger.error("Network with id =  {} does not exists", id);
-            return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                    String.format(Messages.NETWORK_NOT_FOUND, id)));
-        }
-        return ResponseFactory.response(OK, existing, JsonPolicyDef.Policy.NETWORK_PUBLISHED);
-    }
+    Response getNetwork(@PathParam(ID) long id);
 
     /**
      * Inserts new Network into database. Consumes next input:
@@ -137,12 +90,7 @@ public class NetworkResource {
      */
     @POST
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    public Response insert(Network network) {
-        logger.debug("Network insert requested");
-        Network result = networkService.create(network);
-        logger.debug("New network has been created");
-        return ResponseFactory.response(CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
-    }
+    Response insert(Network network);
 
     /**
      * This method updates network with given Id. Consumes following input:
@@ -167,12 +115,10 @@ public class NetworkResource {
     @PUT
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    public Response update(NetworkUpdate networkToUpdate, @PathParam(ID) long id) {
-        logger.debug("Network update requested. Id : {}", id);
-        networkService.update(id, networkToUpdate);
-        logger.debug("Network has been updated successfully. Id : {}", id);
-        return ResponseFactory.response(NO_CONTENT);
-    }
+    Response update(
+            NetworkUpdate networkToUpdate,
+            @PathParam(ID) long id
+    );
 
     /**
      * Deletes network by specified id. If success, outputs empty response
@@ -182,10 +128,7 @@ public class NetworkResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    public Response delete(@PathParam(ID) long id) {
-        logger.debug("Network delete requested");
-        networkService.delete(id);
-        logger.debug("Network with id = {} does not exists any more.", id);
-        return ResponseFactory.response(NO_CONTENT);
-    }
+    Response delete(
+            @PathParam(ID) long id);
+
 }

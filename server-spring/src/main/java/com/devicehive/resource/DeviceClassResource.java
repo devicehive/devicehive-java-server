@@ -1,43 +1,24 @@
 package com.devicehive.resource;
 
-
-import com.devicehive.configuration.Messages;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.DeviceClass;
-import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
-import com.devicehive.service.DeviceClassService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED;
 
 /**
  * REST controller for device classes: <i>/DeviceClass</i>. See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive
  * RESTful API: DeviceClass</a> for details.
  */
-@Service
-@Path("/device/class")
-public class DeviceClassResource {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceClassResource.class);
-
-    @Autowired
-    private DeviceClassService deviceClassService;
-
+public interface DeviceClassResource {
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/list"> DeviceHive RESTful API:
@@ -55,31 +36,23 @@ public class DeviceClassResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    public Response getDeviceClassList(
-        @QueryParam(NAME) String name,
-        @QueryParam(NAME_PATTERN) String namePattern,
-        @QueryParam(VERSION) String version,
-        @QueryParam(SORT_FIELD) String sortField,
-        @QueryParam(SORT_ORDER) String sortOrderSt,
-        @QueryParam(TAKE) @Min(0) @Max(Integer.MAX_VALUE) Integer take,
-        @QueryParam(SKIP) Integer skip) {
+    Response getDeviceClassList(
+            @QueryParam(NAME)
+            String name,
+            @QueryParam(NAME_PATTERN)
+            String namePattern,
+            @QueryParam(VERSION)
+            String version,
+            @QueryParam(SORT_FIELD)
+            String sortField,
+            @QueryParam(SORT_ORDER)
+            String sortOrderSt,
 
-        logger.debug("DeviceClass list requested");
-        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
-        if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
-            logger.debug("DeviceClass list request failed. Bad request for sortField");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    Messages.INVALID_REQUEST_PARAMETERS));
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
-        }
+            @QueryParam(TAKE)
+            @Min(0) @Max(Integer.MAX_VALUE)
+            Integer take,
 
-        List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
-                                                                         sortOrder, take, skip);
-        logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
-
-        return ResponseFactory.response(OK, result, DEVICECLASS_LISTED);
-    }
+            @QueryParam(SKIP) Integer skip);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/get"> DeviceHive RESTful API:
@@ -92,23 +65,7 @@ public class DeviceClassResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    public Response getDeviceClass(@PathParam(ID) long id) {
-
-        logger.debug("Get device class by id requested");
-
-        DeviceClass result = deviceClassService.getWithEquipment(id);
-
-        if (result == null) {
-            logger.info("No device class with id = {} found", id);
-            return ResponseFactory.response(NOT_FOUND,
-                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                                              String.format(Messages.DEVICE_CLASS_NOT_FOUND, id)));
-        }
-
-        logger.debug("Requested device class found");
-
-        return ResponseFactory.response(OK, result, DEVICECLASS_PUBLISHED);
-    }
+    Response getDeviceClass(@PathParam(ID) long id);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/insert"> DeviceHive RESTful
@@ -126,13 +83,7 @@ public class DeviceClassResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    public Response insertDeviceClass(DeviceClass insert) {
-        logger.debug("Insert device class requested");
-        DeviceClass result = deviceClassService.addDeviceClass(insert);
-
-        logger.debug("Device class inserted");
-        return ResponseFactory.response(CREATED, result, DEVICECLASS_SUBMITTED);
-    }
+    Response insertDeviceClass(DeviceClass insert);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/update"> DeviceHive RESTful
@@ -147,14 +98,12 @@ public class DeviceClassResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    public Response updateDeviceClass(
-        @PathParam(ID) long id,
-        @JsonPolicyApply(DEVICECLASS_PUBLISHED) DeviceClassUpdate insert) {
-        logger.debug("Device class update requested for id {}", id);
-        deviceClassService.update(id, insert);
-        logger.debug("Device class updated. Id {}", id);
-        return ResponseFactory.response(NO_CONTENT);
-    }
+    Response updateDeviceClass(
+            @PathParam(ID)
+            long id,
+
+            @JsonPolicyApply(DEVICECLASS_PUBLISHED)
+            DeviceClassUpdate insert);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/delete"> DeviceHive RESTful
@@ -166,11 +115,5 @@ public class DeviceClassResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    public Response deleteDeviceClass(@PathParam(ID) long id) {
-        logger.debug("Device class delete requested");
-        deviceClassService.delete(id);
-        logger.debug("Device class deleted");
-        return ResponseFactory.response(NO_CONTENT);
-    }
-
+    Response deleteDeviceClass(@PathParam(ID) long id);
 }
