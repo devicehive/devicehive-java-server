@@ -10,10 +10,15 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.util.Collections;
+
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
@@ -25,39 +30,21 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_API_info() throws Exception {
-        Response response = target().path("info")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .get();
-        assertThat(response.getStatus(), is(OK.getStatusCode()));
-        ApiInfo apiInfo = response.readEntity(ApiInfo.class);
+        ApiInfo apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfo.class);
         assertThat(apiInfo.getApiVersion(), is(Constants.API_VERSION));
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
         assertThat(apiInfo.getWebSocketServerUrl(), nullValue());
 
         //configure rest.url and websocket.url
-        response = target().path("configuration")
-                .path(Constants.REST_SERVER_URL)
-                .queryParam("value", baseUri() + "/rest")
-                .request()
-                .header(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS))
-                .get();
-        assertThat(response.getStatus(), is(OK.getStatusCode()));
-        response = target().path("configuration")
-                .path(Constants.WEBSOCKET_SERVER_URL)
-                .path("set")
-                .queryParam("value", baseUri() + "/websocket")
-                .request()
-                .header(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS))
-                .get();
-        assertThat(response.getStatus(), is(OK.getStatusCode()));
+        String path = String.format("configuration/%s/set", Constants.REST_SERVER_URL);
+        performRequest(path, "GET", singletonMap("value", baseUri() + "/rest"),
+                singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
+        path = String.format("configuration/%s/set", Constants.WEBSOCKET_SERVER_URL);
+        performRequest(path, "GET", singletonMap("value", baseUri() + "/websocket"),
+                singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
 
-        response = target().path("info")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .get();
-        assertThat(response.getStatus(), is(OK.getStatusCode()));
-        apiInfo = response.readEntity(ApiInfo.class);
-
+        apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfo.class);
         assertThat(apiInfo.getApiVersion(), is(Constants.API_VERSION));
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
@@ -66,11 +53,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_OAUTH_config() throws Exception {
-        Response response = target().path("info/config/auth")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .get();
-        assertThat(response.getStatus(), is(OK.getStatusCode()));
-        ApiConfig apiConfig = response.readEntity(ApiConfig.class);
+        ApiConfig apiConfig = performRequest("info/config/auth", "GET", emptyMap(), emptyMap(), null, OK, ApiConfig.class);
         assertThat(apiConfig, notNullValue());
         assertThat(apiConfig.getProviderConfigs(), notNullValue());
         assertThat(apiConfig.getProviderConfigs().size(), is(4));
@@ -85,11 +68,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_cluster_config() throws Exception {
-        Response response = target().path("info/config/cluster")
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .get();
-        assertThat(response.getStatus(), is(OK.getStatusCode()));
-        ClusterConfig clusterConfig = response.readEntity(ClusterConfig.class);
+        ClusterConfig clusterConfig = performRequest("info/config/cluster", "GET", emptyMap(), emptyMap(), null, OK, ClusterConfig.class);
         assertThat(clusterConfig, notNullValue());
         assertThat(clusterConfig.getMetadataBrokerList(), is(env.getProperty(Constants.METADATA_BROKER_LIST)));
         assertThat(clusterConfig.getZookeeperConnect(), is(env.getProperty(Constants.ZOOKEEPER_CONNECT)));
