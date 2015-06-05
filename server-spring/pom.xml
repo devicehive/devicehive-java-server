@@ -30,9 +30,12 @@
 
         <build-helper-maven-plugin.version>1.9.1</build-helper-maven-plugin.version>
         <maven-enforcer-plugin.version>1.4</maven-enforcer-plugin.version>
+        <docker-maven-plugin.version>0.2.9</docker-maven-plugin.version>
 
         <skipTests>false</skipTests>
         <packaging.type>jar</packaging.type>
+
+        <server.log.directory>${project.build.directory}/logs</server.log.directory>
     </properties>
 
     <dependencies>
@@ -415,6 +418,22 @@
                             <version>${springloaded.version}</version>
                         </dependency>
                     </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>com.spotify</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>${docker-maven-plugin.version}</version>
+                    <configuration>
+                        <imageName>${project.build.finalName}/${project.build.finalName}-boot</imageName>
+                        <dockerDirectory>src/main/docker</dockerDirectory>
+                        <resources>
+                            <resource>
+                                <targetPath>/</targetPath>
+                                <directory>${project.build.directory}</directory>
+                                <include>${project.build.finalName}-boot.jar</include>
+                            </resource>
+                        </resources>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
