@@ -12,7 +12,7 @@ public class EmbeddedRedisRule extends ExternalResource {
     private RedisServer redisServer;
 
     public EmbeddedRedisRule() {
-        String port = Optional.ofNullable(System.getProperty("spring.redis.port")).flatMap(p -> {
+        String port = Optional.ofNullable(System.getProperty("redis.port")).flatMap(p -> {
             if (StringUtils.isBlank(p)) {
                 return Optional.empty();
             }

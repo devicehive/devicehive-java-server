@@ -14,7 +14,6 @@ import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.util.CollectionUtils;
@@ -33,7 +32,6 @@ import static org.junit.Assert.assertThat;
 @SpringApplicationConfiguration(classes = DeviceHiveApplication.class)
 @WebAppConfiguration
 @IntegrationTest
-//@TestPropertySource("classpath:application-test.properties")
 public abstract class AbstractResourceTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";

@@ -41,8 +41,8 @@ public class EmbeddedKafkaClusterRule extends ExternalResource {
                 return Optional.empty();
             return Optional.of(p);
         };
-        String zkPort = Optional.ofNullable(System.getProperty("zk.test.port")).flatMap(func).orElse(ZK_DEFAULT_PORT);
-        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.test.port")).flatMap(func).orElse(KAFKA_DEFAULT_PORT);
+        String zkPort = Optional.ofNullable(System.getProperty("zk.port")).flatMap(func).orElse(ZK_DEFAULT_PORT);
+        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.port")).flatMap(func).orElse(KAFKA_DEFAULT_PORT);
 
         startZookeeper(Integer.parseInt(zkPort));
         startKafka("127.0.0.1:" + zkPort, kafkaPort);
