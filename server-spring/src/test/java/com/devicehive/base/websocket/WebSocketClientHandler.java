@@ -1,4 +1,4 @@
-package com.devicehive.base;
+package com.devicehive.base.websocket;
 
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -11,11 +11,14 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
-public class SynchronousWebSocketClientHandler extends TextWebSocketHandler {
+public class WebSocketClientHandler extends TextWebSocketHandler {
 
-    private BlockingQueue<TextMessage> messages = new SynchronousQueue<>();
+    private BlockingQueue<TextMessage> messages;
+    private WebSocketSession session;
 
-    public WebSocketSession session;
+    public WebSocketClientHandler(BlockingQueue<TextMessage> messages) {
+        this.messages = messages;
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -26,15 +29,6 @@ public class SynchronousWebSocketClientHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         this.messages.put(message);
-    }
-
-    public void awaitMessage(long seconds, TextMessage expectedMessage) throws InterruptedException {
-        Object message = this.messages.poll(seconds, TimeUnit.SECONDS);
-        assertEquals(expectedMessage, message);
-    }
-
-    public TextMessage awaitMessage(long seconds) throws InterruptedException {
-        return this.messages.poll(seconds, TimeUnit.SECONDS);
     }
 
     public void sendMessage(TextMessage message) throws IOException {

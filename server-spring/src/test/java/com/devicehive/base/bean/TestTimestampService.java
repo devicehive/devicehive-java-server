@@ -1,4 +1,4 @@
-package com.devicehive.base;
+package com.devicehive.base.bean;
 
 import com.devicehive.service.time.TimestampService;
 import org.springframework.context.annotation.Profile;

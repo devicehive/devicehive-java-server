@@ -1,4 +1,4 @@
-package com.devicehive.base;
+package com.devicehive.base.rule;
 
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServerStartable;
@@ -44,7 +44,6 @@ public class EmbeddedKafkaRule extends ExternalResource {
             logger.info("Kafka stopped");
         }
         if (factory != null) {
-            factory.closeAll();
             factory.shutdown();
             logger.info("Zookeeper stopped");
         }

@@ -1,4 +1,4 @@
-package com.devicehive.base;
+package com.devicehive.base.bean;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;

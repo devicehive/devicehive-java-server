@@ -1,6 +1,8 @@
 package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.base.rule.EmbeddedKafkaRule;
+import com.devicehive.base.rule.EmbeddedRedisRule;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;

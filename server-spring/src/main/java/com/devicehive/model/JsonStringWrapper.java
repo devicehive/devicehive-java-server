@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 import javax.persistence.Embeddable;
+import java.util.Objects;
 
 @Embeddable
 public class JsonStringWrapper implements HiveEntity {
@@ -24,18 +25,16 @@ public class JsonStringWrapper implements HiveEntity {
     }
 
     @Override
-    public boolean equals(Object obj) {
-
-        if (obj == null || !(obj instanceof JsonStringWrapper)) {
-            return false;
-        }
-
-        return jsonString.equals(((JsonStringWrapper) obj).getJsonString());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof JsonStringWrapper)) return false;
+        JsonStringWrapper that = (JsonStringWrapper) o;
+        return Objects.equals(jsonString, that.jsonString);
     }
 
     @Override
     public int hashCode() {
-        return jsonString != null ? jsonString.hashCode() : 0;
+        return Objects.hash(jsonString);
     }
 
     @Override
