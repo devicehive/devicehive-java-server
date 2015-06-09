@@ -25,6 +25,7 @@
         <zookeeper.version>3.4.6</zookeeper.version>
         <zkclient.version>0.3</zkclient.version>
         <embedded-redis.version>0.6</embedded-redis.version>
+        <nekohtml.version>1.9.22</nekohtml.version>
 
         <tomcat.version>8.0.21</tomcat.version>
 
@@ -216,6 +217,11 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>jquery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.nekohtml</groupId>
+            <artifactId>nekohtml</artifactId>
+            <version>${nekohtml.version}</version>
         </dependency>
 
         <dependency>

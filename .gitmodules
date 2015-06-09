@@ -1,0 +1,3 @@
+[submodule "server-spring/admin-console"]
+	path = server-spring/admin-console
+	url = https://github.com/devicehive/devicehive-admin-console.git
