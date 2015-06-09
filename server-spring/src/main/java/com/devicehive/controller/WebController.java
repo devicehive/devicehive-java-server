@@ -23,21 +23,21 @@ public class WebController {
         model.addAttribute("wsUrl", configurationService.get(Constants.WEBSOCKET_SERVER_URL));
         model.addAttribute("buildVersion", env.getProperty("build.version"));
         model.addAttribute("buildTimestamp", env.getProperty("build.timestamp"));
-        return "templates/index";
+        return "server/templates/index";
     }
 
     @RequestMapping("/oauth2")
     public String oauth2() {
-        return "templates/oauth2/index";
+        return "server/templates/oauth2/index";
     }
 
     @RequestMapping("/login")
     public String oauth2Login() {
-        return "templates/oauthLogin/login";
+        return "server/templates/oauthLogin/login";
     }
 
     @RequestMapping("/home")
     public String oauth2Home() {
-        return "templates/oauthLogin/home";
+        return "server/templates/oauthLogin/home";
     }
 }
