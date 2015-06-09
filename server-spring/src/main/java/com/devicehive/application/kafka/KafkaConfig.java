@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
 import java.util.*;
@@ -58,7 +59,9 @@ public class KafkaConfig {
     @Value("${metadata.broker.list}")
     private String brokerList;
 
+    @Profile({"!test"})
     @Bean(name = NOTIFICATION_PRODUCER, destroyMethod = "close")
+    @Lazy(false)
     public Producer<String, DeviceNotification> notificationProducer() {
         Properties properties = new Properties();
         properties.put("metadata.broker.list", brokerList);
@@ -67,7 +70,9 @@ public class KafkaConfig {
         return new Producer<>(new ProducerConfig(properties));
     }
 
+    @Profile({"!test"})
     @Bean(name = COMMAND_PRODUCER, destroyMethod = "close")
+    @Lazy(false)
     public Producer<String, DeviceCommand> commandProducer() {
         Properties properties = new Properties();
         properties.put("metadata.broker.list", brokerList);

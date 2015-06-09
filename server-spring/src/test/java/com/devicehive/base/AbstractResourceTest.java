@@ -9,10 +9,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -37,26 +36,28 @@ public abstract class AbstractResourceTest {
     public static final String ADMIN_PASS = "admin_pass";
 
     @ClassRule
-    public static EmbeddedKafkaClusterRule kafkaClusterRule = new EmbeddedKafkaClusterRule();
+    public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
 
     @ClassRule
     public static EmbeddedRedisRule redisRule = new EmbeddedRedisRule();
 
-    @Autowired
-    private Environment env;
+    @Value("${server.port}")
+    protected Integer port;
 
-    private String baseUri;
+    private String httpBaseUri;
+    private String wsBaseUrl;
     private WebTarget target;
 
-    private Gson gson = GsonFactory.createGson();
+    protected final Gson gson = GsonFactory.createGson();
 
     @Before
     public void initSpringBootIntegrationTest() {
-        baseUri = "http://localhost:" + env.getProperty("server.port");
+        httpBaseUri = "http://localhost:" + port;
+        wsBaseUrl = "ws://localhost:" + port;
         Client client = ClientBuilder.newClient();
         client.register(HiveEntityProvider.class);
         client.register(CollectionProvider.class);
-        target = client.target(baseUri).path("rest");
+        target = client.target(httpBaseUri).path("rest");
     }
 
     protected WebTarget target() {
@@ -64,7 +65,11 @@ public abstract class AbstractResourceTest {
     }
 
     protected String baseUri() {
-        return baseUri;
+        return httpBaseUri;
+    }
+
+    protected String wsBaseUri() {
+        return wsBaseUrl;
     }
 
     protected String basicAuthHeader(String login, String password) {
