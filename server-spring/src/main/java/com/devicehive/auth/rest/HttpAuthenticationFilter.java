@@ -50,7 +50,7 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
         Optional<String> deviceKeyHeader = Optional.ofNullable(httpRequest.getHeader(Constants.AUTH_DEVICE_KEY_HEADER));
 
         String resourcePath = new UrlPathHelper().getPathWithinApplication(httpRequest);
-        logger.info("Security intercepted request to {}", resourcePath);
+        logger.debug("Security intercepted request to {}", resourcePath);
 
         try {
             if (authHeader.isPresent()) {

@@ -7,13 +7,16 @@ import com.devicehive.auth.rest.providers.DeviceAuthenticationProvider;
 import com.devicehive.auth.rest.providers.HiveAnonymousAuthenticationProvider;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.controller.filter.AdminConsoleConfigFilter;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,6 +38,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private Gson gson = new GsonBuilder().create();
 
+    @Autowired
+    private Environment environment;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -42,13 +48,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                    .antMatchers("/css/**", "/scripts/**", "/webjars/**", "/templates/**").permitAll()
+                    .antMatchers("/css/**", "/server/**", "/scripts/**", "/webjars/**", "/templates/**").permitAll()
                 .and()
                 .anonymous().disable()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
 
         http
-                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
+                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class)
+                .addFilterBefore(new AdminConsoleConfigFilter(environment), HttpAuthenticationFilter.class);
     }
 
     @Override

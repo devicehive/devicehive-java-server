@@ -328,6 +328,11 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
+            <resource>
+                <directory>admin-console</directory>
+                <filtering>true</filtering>
+                <targetPath>public</targetPath>
+            </resource>
         </resources>
         <plugins>
             <plugin>

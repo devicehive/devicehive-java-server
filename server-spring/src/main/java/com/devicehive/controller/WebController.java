@@ -17,7 +17,7 @@ public class WebController {
     @Autowired
     private Environment env;
 
-    @RequestMapping({"/", "/index"})
+    @RequestMapping("/config")
     public String index(Model model) {
         model.addAttribute("restUrl", configurationService.get(Constants.REST_SERVER_URL));
         model.addAttribute("wsUrl", configurationService.get(Constants.WEBSOCKET_SERVER_URL));
@@ -39,5 +39,10 @@ public class WebController {
     @RequestMapping("/home")
     public String oauth2Home() {
         return "server/templates/oauthLogin/home";
+    }
+
+    @RequestMapping({"", "/admin"})
+    public String adminConsole() {
+        return "index";
     }
 }
