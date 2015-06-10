@@ -3,6 +3,7 @@ package com.devicehive.application.async;
 import com.devicehive.application.DeviceHiveApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 
 import java.util.concurrent.ExecutorService;
@@ -14,7 +15,7 @@ import java.util.concurrent.Executors;
  *
  */
 @Configuration
-@Profile({"default", "test", "!jee-container"})
+@Profile({"!jee-container"})
 public class DefaultAsyncConfig {
 
     @Bean(name = DeviceHiveApplication.WAIT_EXECUTOR)

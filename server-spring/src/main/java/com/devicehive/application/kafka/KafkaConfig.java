@@ -1,5 +1,6 @@
 package com.devicehive.application.kafka;
 
+import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.kafka.AbstractConsumer;
 import com.devicehive.messages.kafka.CommandConsumer;
@@ -21,14 +22,13 @@ import kafka.utils.VerifiableProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 @Configuration
 public class KafkaConfig {
