@@ -15,14 +15,16 @@ import java.util.concurrent.Executors;
  *
  */
 @Configuration
-@Profile({"!jee-container"})
+//@Profile({"default", "test", "!jee-container"})
 public class DefaultAsyncConfig {
 
+    @Lazy(false)
     @Bean(name = DeviceHiveApplication.WAIT_EXECUTOR)
     public ExecutorService waitExecutorService() {
         return Executors.newFixedThreadPool(32);
     }
 
+    @Lazy(false)
     @Bean(name = DeviceHiveApplication.MESSAGE_EXECUTOR)
     public ExecutorService messageExecutorService() {
         return Executors.newFixedThreadPool(32);
