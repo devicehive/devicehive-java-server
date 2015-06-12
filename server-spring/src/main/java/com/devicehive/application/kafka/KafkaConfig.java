@@ -30,6 +30,7 @@ import org.springframework.core.env.Environment;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
+@Profile({"!test"})
 @Configuration
 public class KafkaConfig {
     private static final Logger logger = LoggerFactory.getLogger(KafkaConfig.class);
@@ -59,7 +60,6 @@ public class KafkaConfig {
     @Value("${metadata.broker.list}")
     private String brokerList;
 
-    @Profile({"!test"})
     @Bean(name = NOTIFICATION_PRODUCER, destroyMethod = "close")
     @Lazy(false)
     public Producer<String, DeviceNotification> notificationProducer() {
@@ -70,7 +70,6 @@ public class KafkaConfig {
         return new Producer<>(new ProducerConfig(properties));
     }
 
-    @Profile({"!test"})
     @Bean(name = COMMAND_PRODUCER, destroyMethod = "close")
     @Lazy(false)
     public Producer<String, DeviceCommand> commandProducer() {

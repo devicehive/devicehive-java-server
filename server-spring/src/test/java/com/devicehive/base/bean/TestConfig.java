@@ -1,9 +1,11 @@
 package com.devicehive.base.bean;
 
+import com.devicehive.messages.kafka.KafkaProducer;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,26 +32,9 @@ public class TestConfig {
     @Autowired
     private Environment env;
 
-    @Bean(name = NOTIFICATION_PRODUCER, destroyMethod = "close")
-    @Lazy(false)
-    public Producer<String, DeviceNotification> notificationProducer() {
-        Properties properties = new Properties();
-        properties.put("metadata.broker.list", brokerList);
-        properties.put("request.required.acks", "1");
-        properties.put("serializer.class", env.getProperty("notification.serializer.class"));
-        logger.info("Creating test kafka producer {} for broker list {}", NOTIFICATION_PRODUCER, brokerList);
-        return new Producer<>(new ProducerConfig(properties));
-    }
-
-    @Bean(name = COMMAND_PRODUCER, destroyMethod = "close")
-    @Lazy(false)
-    public Producer<String, DeviceCommand> commandProducer() {
-        Properties properties = new Properties();
-        properties.put("metadata.broker.list", brokerList);
-        properties.put("request.required.acks", "1");
-        properties.put("serializer.class", env.getProperty("command.serializer.class"));
-        logger.info("Creating test kafka producer {} for broker list {}", COMMAND_PRODUCER, brokerList);
-        return new Producer<>(new ProducerConfig(properties));
+    @Bean
+    public KafkaProducer kafkaProducer() {
+        return Mockito.spy(new TestKafkaProducer());
     }
 
 }

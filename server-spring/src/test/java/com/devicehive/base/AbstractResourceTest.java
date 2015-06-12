@@ -38,9 +38,6 @@ public abstract class AbstractResourceTest {
     public static final String ADMIN_PASS = "admin_pass";
 
     @ClassRule
-    public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
-
-    @ClassRule
     public static EmbeddedRedisRule redisRule = new EmbeddedRedisRule();
 
     @Value("${server.port}")

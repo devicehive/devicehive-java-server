@@ -1,6 +1,7 @@
 package com.devicehive.messages.bus;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.kafka.DefaultKafkaProducer;
 import com.devicehive.messages.kafka.KafkaProducer;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
