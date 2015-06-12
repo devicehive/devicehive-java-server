@@ -10,7 +10,6 @@ import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.springframework.web.socket.TextMessage;
 
@@ -19,6 +18,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static com.devicehive.base.websocket.WebSocketSynchronousConnection.WAIT_TIMEOUT;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -40,7 +40,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
         device.setNetwork(new NullableWrapper<>(network));
 
         //device/save
-        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, deviceKey, Pair.of("device", gson.toJsonTree(device)));
+        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, deviceKey, singletonMap("device", gson.toJsonTree(device)));
         TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(deviceSave)), WAIT_TIMEOUT);
         JsonObject jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
         assertThat(jsonResp.get("action").getAsString(), is("device/save"));
@@ -89,7 +89,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
         device.setNetwork(new NullableWrapper<>(network));
 
         //device/save
-        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, deviceKey, Pair.of("device", gson.toJsonTree(device)));
+        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, deviceKey, singletonMap("device", gson.toJsonTree(device)));
         TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(deviceSave)), WAIT_TIMEOUT);
         JsonObject jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
         assertThat(jsonResp.get("action").getAsString(), is("device/save"));

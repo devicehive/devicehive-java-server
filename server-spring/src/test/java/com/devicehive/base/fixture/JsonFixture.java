@@ -9,9 +9,9 @@ import java.util.Map;
 
 public class JsonFixture {
 
-    public static JsonObject createWsCommand(String action, String request, String deviceId, String deviceKey, Pair<String, JsonElement> data) {
+    public static JsonObject createWsCommand(String action, String request, String deviceId, String deviceKey, Map<String, JsonElement> otherFields) {
         JsonObject command = createWsCommand(action, request, deviceId, deviceKey);
-        command.add(data.getKey(), data.getValue());
+        otherFields.entrySet().stream().forEach(entry -> command.add(entry.getKey(), entry.getValue()));
         return command;
     }
 
@@ -36,6 +36,23 @@ public class JsonFixture {
         command.add("action", new JsonPrimitive(action));
         command.add("requestId", new JsonPrimitive(request));
         otherFields.entrySet().stream().forEach(entry -> command.add(entry.getKey(), entry.getValue()));
+        return command;
+    }
+
+    public static JsonObject userAuthCommand(String request, String login, String password) {
+        JsonObject command = new JsonObject();
+        command.add("action", new JsonPrimitive("authenticate"));
+        command.add("requestId", new JsonPrimitive(request));
+        command.add("login", new JsonPrimitive(login));
+        command.add("password", new JsonPrimitive(password));
+        return command;
+    }
+
+    public static JsonObject keyAuthCommand(String request, String accessKey) {
+        JsonObject command = new JsonObject();
+        command.add("action", new JsonPrimitive("authenticate"));
+        command.add("requestId", new JsonPrimitive(request));
+        command.add("accessKey", new JsonPrimitive(accessKey));
         return command;
     }
 }
