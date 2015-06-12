@@ -44,10 +44,11 @@ RUN sed -i "s/daemonize yes/daemonize no/;s/^bind 127.0.0.1/# bind 127.0.0.1/" /
 
 #building apps
 RUN git clone --recursive -b spring-proto https://github.com/devicehive/devicehive-java /home/devicehive-java
-COPY application-docker.properties /home/application-docker.properties
-RUN cd /home/devicehive-java && mvn -q clean package -DskipTests
+RUN cd /home/devicehive-java && mvn -q clean package -DskipTests -Dserver.log.directory=/var/log
 RUN cp /home/devicehive-java/server-spring/target/devicehive-boot.jar /root/
 RUN cp /home/devicehive-java/tools/dh_dbtool/target/dh_dbtool.jar /root/
 RUN rm -rf /home/devicehive-java
+
+COPY application-docker.properties /home/application-docker.properties
 
 CMD ["/devicehive-init.sh"]

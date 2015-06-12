@@ -436,7 +436,7 @@
                     <version>${docker-maven-plugin.version}</version>
                     <configuration>
                         <imageName>${project.build.finalName}/${project.build.finalName}-boot</imageName>
-                        <dockerDirectory>src/main/docker</dockerDirectory>
+                        <dockerDirectory>docker</dockerDirectory>
                         <resources>
                             <resource>
                                 <targetPath>/</targetPath>
