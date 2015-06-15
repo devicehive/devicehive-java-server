@@ -20,7 +20,6 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by tmatvienko on 1/29/15.
  */
-@Component
 public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
     private static final Logger logger = LoggerFactory.getLogger(CommandConsumer.class);
 

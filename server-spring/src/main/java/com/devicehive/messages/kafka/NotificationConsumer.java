@@ -20,7 +20,6 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by tmatvienko on 12/24/14.
  */
-@Component
 public class NotificationConsumer extends AbstractConsumer<DeviceNotification>{
     private static final Logger logger = LoggerFactory.getLogger(NotificationConsumer.class);
 

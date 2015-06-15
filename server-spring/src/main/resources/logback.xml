@@ -33,9 +33,13 @@
         <appender-ref ref="FILE"/>
     </appender>
 
-    <!--<logger name="org.hibernate.engine.transaction.internal" level="DEBUG">-->
-        <!--<appender-ref ref="ASYNC"/>-->
-    <!--</logger>-->
+    <logger name="com.devicehive.auth.rest.providers.DeviceAuthenticationProvider" level="WARN">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <logger name="com.devicehive.messages.kafka.AbstractConsumer" level="INFO">
+        <appender-ref ref="ASYNC"/>
+    </logger>
 
     <root level="INFO">
         <appender-ref ref="ASYNC"/>

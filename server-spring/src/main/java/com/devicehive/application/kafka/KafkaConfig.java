@@ -1,6 +1,5 @@
 package com.devicehive.application.kafka;
 
-import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.kafka.AbstractConsumer;
 import com.devicehive.messages.kafka.CommandConsumer;
@@ -22,15 +21,13 @@ import kafka.utils.VerifiableProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
-@Profile({"!test"})
 @Configuration
 public class KafkaConfig {
     private static final Logger logger = LoggerFactory.getLogger(KafkaConfig.class);
@@ -47,12 +44,6 @@ public class KafkaConfig {
 
     @Autowired
     private Environment env;
-    @Autowired
-    private NotificationConsumer notificationConsumer;
-    @Autowired
-    private CommandConsumer commandConsumer;
-    @Autowired
-    private CommandUpdateConsumer commandUpdateConsumer;
 
     @Value("${threads.count:1}")
     private Integer threadCount;
@@ -60,55 +51,83 @@ public class KafkaConfig {
     @Value("${metadata.broker.list}")
     private String brokerList;
 
+    @Bean
+    @Scope("prototype")
+    public NotificationConsumer notificationConsumer() {
+        return new NotificationConsumer();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public CommandConsumer commandConsumer() {
+        return new CommandConsumer();
+    }
+
+    @Bean
+    @Scope("prototype")
+    public CommandUpdateConsumer commandUpdateConsumer() {
+        return new CommandUpdateConsumer();
+    }
+
+    @Profile({"!test"})
     @Bean(name = NOTIFICATION_PRODUCER, destroyMethod = "close")
     @Lazy(false)
     public Producer<String, DeviceNotification> notificationProducer() {
         Properties properties = new Properties();
         properties.put("metadata.broker.list", brokerList);
+        properties.put("key.serializer.class", "kafka.serializer.StringEncoder");
         properties.put("serializer.class", env.getProperty("notification.serializer.class"));
+        properties.put("partitioner.class", "kafka.producer.DefaultPartitioner");
         logger.info("Creating kafka producer {} for broker list {}", NOTIFICATION_PRODUCER, brokerList);
         return new Producer<>(new ProducerConfig(properties));
     }
 
+    @Profile({"!test"})
     @Bean(name = COMMAND_PRODUCER, destroyMethod = "close")
     @Lazy(false)
     public Producer<String, DeviceCommand> commandProducer() {
         Properties properties = new Properties();
         properties.put("metadata.broker.list", brokerList);
+        properties.put("key.serializer.class", "kafka.serializer.StringEncoder");
         properties.put("serializer.class", env.getProperty("command.serializer.class"));
+        properties.put("partitioner.class", "kafka.producer.DefaultPartitioner");
         logger.info("Creating kafka producer {} for broker list {}", COMMAND_PRODUCER, brokerList);
         return new Producer<>(new ProducerConfig(properties));
     }
 
+    @Profile({"!test"})
     @Bean(name = NOTIFICATION_CONSUMER_CONNECTOR, destroyMethod = "shutdown")
     @Lazy(false)
     public ConsumerConnector notificationConsumerConnector() {
         String groupId = NOTIFICATION_GROUP_ID + UUID.randomUUID().toString();
-        return createAndSubscribe(groupId, Constants.NOTIFICATION_TOPIC_NAME, notificationConsumer,
+        return createAndSubscribe(groupId, Constants.NOTIFICATION_TOPIC_NAME, this::notificationConsumer,
                 new DeviceNotificationConverter(new VerifiableProperties()));
     }
 
+    @Profile({"!test"})
     @Bean(name = COMMAND_CONSUMER_CONNECTOR, destroyMethod = "shutdown")
     @Lazy(false)
     public ConsumerConnector commandConsumerConnector() {
         String groupId = COMMAND_GROUP_ID + UUID.randomUUID().toString();
-        return createAndSubscribe(groupId, Constants.COMMAND_TOPIC_NAME, commandConsumer,
+        return createAndSubscribe(groupId, Constants.COMMAND_TOPIC_NAME, this::commandConsumer,
                 new DeviceCommandConverter(new VerifiableProperties()));
     }
 
+    @Profile({"!test"})
     @Bean(name = COMMAND_UPDATE_CONSUMER_CONNECTOR, destroyMethod = "shutdown")
     @Lazy(false)
     public ConsumerConnector commandUpdateConsumerConnector() {
         String groupId = COMMAND_UPDATE_GROUP_ID + UUID.randomUUID().toString();
-        return createAndSubscribe(groupId, Constants.COMMAND_UPDATE_TOPIC_NAME, commandUpdateConsumer,
+        return createAndSubscribe(groupId, Constants.COMMAND_UPDATE_TOPIC_NAME, this::commandUpdateConsumer,
                 new DeviceCommandConverter(new VerifiableProperties()));
     }
 
-    private <T> ConsumerConnector createAndSubscribe(String groupId, String topicName, AbstractConsumer<T> consumer, Decoder<T> decoder) {
+    private <T> ConsumerConnector createAndSubscribe(String groupId, String topicName, Supplier<AbstractConsumer<T>> consumerCreator, Decoder<T> decoder) {
         Properties properties = consumerSharedProps();
         properties.put(Constants.GROOP_ID, groupId);
         ConsumerConnector connector = Consumer.createJavaConsumerConnector(new ConsumerConfig(properties));
 
+        logger.info("Creating consumer for topic {}, group {}, thread count {}", topicName, groupId, threadCount);
         Map<String, Integer> topicCountMap = new HashMap<>();
         topicCountMap.put(topicName, threadCount);
 
@@ -117,6 +136,8 @@ public class KafkaConfig {
 
         int thread = 0;
         for (final KafkaStream sm : stream) {
+            AbstractConsumer<T> consumer = consumerCreator.get();
+            logger.info("Subscribing to topic {}, thread {}, consumer {}", topicName, thread, consumer.toString());
             consumer.subscribe(sm, thread);
             thread++;
         }

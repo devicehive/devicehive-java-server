@@ -27,17 +27,17 @@ public class DefaultKafkaProducer implements KafkaProducer {
 
     @Override
     public void produceDeviceNotificationMsg(DeviceNotification message, String deviceNotificationTopicName) {
-        notificationProducer.send(new KeyedMessage<>(deviceNotificationTopicName, message));
+        notificationProducer.send(new KeyedMessage<>(deviceNotificationTopicName, message.getDeviceGuid(), message));
     }
 
     @Override
     public void produceDeviceCommandMsg(DeviceCommand message, String deviceCommandTopicName) {
-        commandProducer.send(new KeyedMessage<>(deviceCommandTopicName, message));
+        commandProducer.send(new KeyedMessage<>(deviceCommandTopicName, message.getDeviceGuid(), message));
     }
 
     @Override
     public void produceDeviceCommandUpdateMsg(DeviceCommand message, String deviceCommandTopicName) {
-        commandProducer.send(new KeyedMessage<>(deviceCommandTopicName, message));
+        commandProducer.send(new KeyedMessage<>(deviceCommandTopicName, message.getDeviceGuid(), message));
     }
 
 }
