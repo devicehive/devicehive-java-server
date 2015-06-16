@@ -51,4 +51,7 @@ RUN rm -rf /home/devicehive-java
 
 COPY application-docker.properties /home/application-docker.properties
 
+# Kafka partitions number
+ENV KAFKA_PARTITIONS 4
+
 CMD ["/devicehive-init.sh"]
