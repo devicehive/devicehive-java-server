@@ -87,8 +87,6 @@ public class DeviceNotificationService {
                 break;
 
         }
-        notificationMessage.setDeviceGuid(device.getGuid());
-        notificationMessage.setTimestamp(timestampService.getTimestamp());
         notificationsToCreate.add(notificationMessage);
         return notificationsToCreate;
 

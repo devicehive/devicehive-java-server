@@ -6,7 +6,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -22,8 +22,9 @@ public class RedisCommandService {
 
     @Autowired
     private RedisConnector redis;
-    @Autowired
-    private Environment env;
+
+    @Value("${command.expire.sec}")
+    private int expireSec;
 
     public void save(DeviceCommand deviceCommand) {
         save(deviceCommand, getKey(deviceCommand.getId(), deviceCommand.getDeviceGuid(), deviceCommand.getTimestamp()));
@@ -89,7 +90,7 @@ public class RedisCommandService {
         commandMap.put("result", (deviceCommand.getResult() != null && deviceCommand.getResult().getJsonString() != null)
                 ? deviceCommand.getResult().getJsonString() : "");
         commandMap.put("status", deviceCommand.getStatus() != null ? deviceCommand.getStatus() : "");
-        redis.setAll(key, commandMap, env.getProperty(Constants.COMMAND_EXPIRE_SEC));
+        redis.setAll(key, commandMap, expireSec);
     }
 
     private DeviceCommand get(DeviceCommand deviceCommand) {

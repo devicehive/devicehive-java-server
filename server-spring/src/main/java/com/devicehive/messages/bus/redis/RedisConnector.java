@@ -57,7 +57,7 @@ public class RedisConnector {
         }
     }
 
-    public boolean set(String sess, String key, String value, String expireSec) {
+    public boolean set(String sess, String key, String value, int expireSec) {
         boolean rez = false;
         Map<String, String> m = getAll(sess);
         if (m!=null) {
@@ -91,14 +91,13 @@ public class RedisConnector {
         }
     }
 
-    public boolean setAll(String sess, Map<String, String> m, String expireSec) {
-        if (!NumberUtils.isNumber(expireSec)) {
-            throw new HiveException(String.format("Wrong config format, should be numeric: %s", expireSec));
-        }
+    public boolean setAll(String sess, Map<String, String> m, int expireSec) {
         try (Jedis client = jedisPool.getResource()) {
-            String r = client.hmset(sess, m);
-            long er = client.expire(sess, Integer.parseInt(expireSec));
-            return  (r.equals("OK") && er>0);
+            Pipeline pipeline = client.pipelined();
+            Response<String> r = pipeline.hmset(sess, m);
+            Response<Long> er = pipeline.expire(sess, expireSec);
+            pipeline.sync();
+            return  (r.get().equals("OK") && er.get() > 0);
         }
     }
 

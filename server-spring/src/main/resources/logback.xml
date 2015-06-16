@@ -41,6 +41,10 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
+    <logger name="org.springframework.boot.actuate.audit.listener.AuditListener" level="WARN">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
     <root level="INFO">
         <appender-ref ref="ASYNC"/>
     </root>

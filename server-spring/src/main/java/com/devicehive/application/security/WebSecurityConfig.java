@@ -33,7 +33,7 @@ import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
-@Order(Ordered.LOWEST_PRECEDENCE - 10)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private Gson gson = new GsonBuilder().create();

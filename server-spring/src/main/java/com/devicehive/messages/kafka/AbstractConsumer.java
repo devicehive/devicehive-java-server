@@ -15,7 +15,7 @@ public abstract class AbstractConsumer<T> {
 
     @Async(DeviceHiveApplication.MESSAGE_EXECUTOR)
     public void subscribe(KafkaStream a_stream, int a_threadNumber) {
-        Thread.currentThread().setName("kafka-consumer-thread-" + a_threadNumber);
+        Thread.currentThread().setName("kafka-consumer-" + Thread.currentThread().getName());
         logger.info("Kafka consumer started, thread {} ", a_threadNumber);
         ConsumerIterator<String, T> it = a_stream.iterator();
         while (it.hasNext()) {

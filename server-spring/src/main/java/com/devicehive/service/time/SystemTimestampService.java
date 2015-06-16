@@ -1,6 +1,5 @@
-package com.devicehive.base.bean;
+package com.devicehive.service.time;
 
-import com.devicehive.service.time.TimestampService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -8,7 +7,7 @@ import java.sql.Timestamp;
 
 @Profile("test")
 @Component
-public class TestTimestampService implements TimestampService {
+public class SystemTimestampService implements TimestampService {
 
     @Override
     public Timestamp getTimestamp() {

@@ -5,7 +5,7 @@ import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -21,8 +21,9 @@ public class RedisNotificationService {
 
     @Autowired
     private RedisConnector redis;
-    @Autowired
-    private Environment env;
+
+    @Value("${notification.expire.sec}")
+    private int expireSec;
 
     public void save(DeviceNotification deviceNotification) {
         final String key = String.format(KEY_FORMAT, deviceNotification.getDeviceGuid(), deviceNotification.getId(), deviceNotification.getTimestamp());
@@ -34,7 +35,7 @@ public class RedisNotificationService {
             notificationMap.put("parameters", deviceNotification.getParameters().getJsonString());
         }
         notificationMap.put("timestamp", TimestampAdapter.formatTimestamp(deviceNotification.getTimestamp()));
-        redis.setAll(key, notificationMap, env.getProperty(Constants.NOTIFICATION_EXPIRE_SEC));
+        redis.setAll(key, notificationMap, expireSec);
     }
 
     public DeviceNotification get(final String key, final boolean filterByDate, final boolean filterByName, final Timestamp timestamp, final Collection<String> names) {
