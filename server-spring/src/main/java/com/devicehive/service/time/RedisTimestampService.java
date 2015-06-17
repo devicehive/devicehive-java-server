@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 
-@Profile({"!test"})
-@Component
-public class RedisTimestampService implements TimestampService {
-
-    @Autowired
-    private RedisConnector redisConnector;
-
-    @Override
-    public Timestamp getTimestamp() {
-        return new Timestamp(redisConnector.getTime());
-    }
-}
+//@Profile({"!test"})
+//@Component
+//public class RedisTimestampService implements TimestampService {
+//
+//    @Autowired
+//    private RedisConnector redisConnector;
+//
+//    @Override
+//    public Timestamp getTimestamp() {
+//        return new Timestamp(redisConnector.getTime());
+//    }
+//}

@@ -26,6 +26,7 @@
         <zkclient.version>0.3</zkclient.version>
         <embedded-redis.version>0.6</embedded-redis.version>
         <nekohtml.version>1.9.22</nekohtml.version>
+        <hazelcast.version>3.5-EA</hazelcast.version>
 
         <tomcat.version>8.0.21</tomcat.version>
 
@@ -250,6 +251,22 @@
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
             <version>1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-client</artifactId>
+            <version>${hazelcast.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-spring</artifactId>
+            <version>${hazelcast.version}</version>
         </dependency>
     </dependencies>
 
