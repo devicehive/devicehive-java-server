@@ -34,21 +34,21 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
         assertThat(apiInfo.getApiVersion(), is(Constants.API_VERSION));
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
-        assertThat(apiInfo.getWebSocketServerUrl(), nullValue());
+        assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
 
         //configure rest.url and websocket.url
         String path = String.format("configuration/%s/set", Constants.REST_SERVER_URL);
         performRequest(path, "GET", singletonMap("value", baseUri() + "/rest"),
                 singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
         path = String.format("configuration/%s/set", Constants.WEBSOCKET_SERVER_URL);
-        performRequest(path, "GET", singletonMap("value", baseUri() + "/websocket"),
+        performRequest(path, "GET", singletonMap("value", wsBaseUri() + "/websocket"),
                 singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
 
         apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfo.class);
         assertThat(apiInfo.getApiVersion(), is(Constants.API_VERSION));
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
-        assertThat(apiInfo.getWebSocketServerUrl(), is(baseUri() + "/websocket"));
+        assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
     }
 
     @Test

@@ -95,16 +95,16 @@ public class DeviceClass implements HiveEntity {
     private JsonStringWrapper data;
     @Version
     @Column(name = "entity_version")
-    private long entityVersion;
+    private Long entityVersion;
     @OneToMany(mappedBy = "deviceClass", fetch = FetchType.LAZY)
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_PUBLISHED})
     private Set<Equipment> equipment;
 
-    public long getEntityVersion() {
+    public Long getEntityVersion() {
         return entityVersion;
     }
 
-    public void setEntityVersion(long entityVersion) {
+    public void setEntityVersion(Long entityVersion) {
         this.entityVersion = entityVersion;
     }
 
@@ -188,30 +188,30 @@ public class DeviceClass implements HiveEntity {
 
         public interface Names {
 
-            static final String FIND_BY_NAME_AND_VERSION = "DeviceClass.findByNameAndVersion";
-            static final String GET_WITH_EQUIPMENT = "DeviceClass.getWithEquipment";
-            static final String DELETE_BY_ID = "DeviceClass.deleteById";
-            static final String GET_ALL = "DeviceClass.getAll";
+            String FIND_BY_NAME_AND_VERSION = "DeviceClass.findByNameAndVersion";
+            String GET_WITH_EQUIPMENT = "DeviceClass.getWithEquipment";
+            String DELETE_BY_ID = "DeviceClass.deleteById";
+            String GET_ALL = "DeviceClass.getAll";
         }
 
-        static interface Values {
+        interface Values {
 
-            static final String FIND_BY_NAME_AND_VERSION =
+            String FIND_BY_NAME_AND_VERSION =
                 "select d from DeviceClass d " +
                 "where d.name = :name and d.version = :version";
-            static final String GET_WITH_EQUIPMENT =
+            String GET_WITH_EQUIPMENT =
                 "select d from DeviceClass d " +
                 "left join fetch d.equipment " +
                 "where d.id = :id";
-            static final String DELETE_BY_ID = "delete from DeviceClass d where d.id = :id";
-            static final String GET_ALL = "select dc from DeviceClass dc";
+            String DELETE_BY_ID = "delete from DeviceClass d where d.id = :id";
+            String GET_ALL = "select dc from DeviceClass dc";
         }
 
-        public static interface Parameters {
+        public interface Parameters {
 
-            static final String NAME = "name";
-            static final String VERSION = "version";
-            static final String ID = "id";
+            String NAME = "name";
+            String VERSION = "version";
+            String ID = "id";
         }
     }
 }

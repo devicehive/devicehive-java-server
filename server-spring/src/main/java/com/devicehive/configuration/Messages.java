@@ -102,6 +102,7 @@ public class Messages {
     public static final String FIELD_LENGTH_CONSTRAINT = BidBundle.get("FIELD_LENGTH_CONSTRAINT");
     public static final String PING_ERROR = BidBundle.get("PING_ERROR");
     public static final String SHUTDOWN = BidBundle.get("SHUTDOWN");
+    public static final String NETWORK_AUTO_CREATE_NOT_ALLOWED = BidBundle.get("NETWORK_AUTO_CREATE_NOT_ALLOWED");
 
     /**
      * Bundle to extract localized strings from property files.

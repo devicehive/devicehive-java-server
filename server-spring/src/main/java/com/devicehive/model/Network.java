@@ -23,7 +23,8 @@ import static com.devicehive.model.Network.Queries.Values;
                   @NamedQuery(name = Names.FIND_WITH_USERS, query = Values.FIND_WITH_USERS),
                   @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
                   @NamedQuery(name = Names.GET_WITH_DEVICES_AND_DEVICE_CLASSES,
-                              query = Values.GET_WITH_DEVICES_AND_DEVICE_CLASSES)
+                              query = Values.GET_WITH_DEVICES_AND_DEVICE_CLASSES),
+                  @NamedQuery(name = Names.FILTER_BY_ID_AND_USER, query = Values.FILTER_BY_ID_AND_USER)
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -68,7 +69,7 @@ public class Network implements HiveEntity {
     private Set<Device> devices;
     @Version
     @Column(name = "entity_version")
-    private long entityVersion;
+    private Long entityVersion;
 
     public Set<Device> getDevices() {
         return devices;
@@ -118,11 +119,11 @@ public class Network implements HiveEntity {
         this.users = users;
     }
 
-    public long getEntityVersion() {
+    public Long getEntityVersion() {
         return entityVersion;
     }
 
-    public void setEntityVersion(long entityVersion) {
+    public void setEntityVersion(Long entityVersion) {
         this.entityVersion = entityVersion;
     }
 
@@ -137,11 +138,8 @@ public class Network implements HiveEntity {
 
         Network network = (Network) o;
 
-        if (id != null ? !id.equals(network.id) : network.id != null) {
-            return false;
-        }
+        return !(id != null ? !id.equals(network.id) : network.id != null);
 
-        return true;
     }
 
     @Override
@@ -149,31 +147,43 @@ public class Network implements HiveEntity {
         return id != null ? id.hashCode() : 0;
     }
 
-    public static interface Queries {
+    @Override
+    public String toString() {
+        return "Network{" +
+                "id=" + id +
+                ", key='" + key + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                '}';
+    }
 
-        public static interface Names {
+    public interface Queries {
 
-            public static final String FIND_BY_NAME = "Network.findByName";
-            public static final String FIND_WITH_USERS = "Network.findWithUsers";
-            public static final String DELETE_BY_ID = "Network.deleteById";
-            public static final String GET_WITH_DEVICES_AND_DEVICE_CLASSES = "Network.getWithDevicesAndDeviceClasses";
+        interface Names {
+
+            String FIND_BY_NAME = "Network.findByName";
+            String FIND_WITH_USERS = "Network.findWithUsers";
+            String DELETE_BY_ID = "Network.deleteById";
+            String GET_WITH_DEVICES_AND_DEVICE_CLASSES = "Network.getWithDevicesAndDeviceClasses";
+            String FILTER_BY_ID_AND_USER = "Network.getNetworksByIdsAndUsers";
         }
 
-        static interface Values {
+        interface Values {
 
-            static final String FIND_BY_NAME = "select n from Network n where name = :name";
-            static final String FIND_WITH_USERS = "select n from Network n left join fetch n.users where n.id = :id";
-            static final String DELETE_BY_ID = "delete from Network n where n.id = :id";
-            static final String GET_WITH_DEVICES_AND_DEVICE_CLASSES =
+            String FIND_BY_NAME = "select n from Network n where name = :name";
+            String FIND_WITH_USERS = "select n from Network n left join fetch n.users where n.id = :id";
+            String DELETE_BY_ID = "delete from Network n where n.id = :id";
+            String GET_WITH_DEVICES_AND_DEVICE_CLASSES =
                 "select n from Network n " +
                 "left join fetch n.devices " +
                 "where n.id = :id";
+            String FILTER_BY_ID_AND_USER = "select n from Network n left outer join n.users u where n.id in :networkIds and (u.id = :userId or :userId is null)";
         }
 
-        public static interface Parameters {
+        interface Parameters {
 
-            public static final String NAME = "name";
-            public static final String ID = "id";
+            String NAME = "name";
+            String ID = "id";
         }
     }
 }
