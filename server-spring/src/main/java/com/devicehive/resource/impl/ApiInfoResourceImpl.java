@@ -16,11 +16,13 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,16 +42,21 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
     @Autowired
     private Environment env;
 
+    @Value("${server.context-path}")
+    private String contextPath;
+
     @Override
-    public Response getApiInfo() {
+    public Response getApiInfo(UriInfo uriInfo) {
         logger.debug("ApiInfo requested");
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        String url = configurationService.get(Constants.WEBSOCKET_SERVER_URL);
-        if (url != null) {
-            apiInfo.setWebSocketServerUrl(url);
+        String wsUrl = configurationService.get(Constants.WEBSOCKET_SERVER_URL);
+        if (wsUrl == null) {
+            wsUrl = "ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket";
+            configurationService.save(Constants.WEBSOCKET_SERVER_URL, wsUrl);
         }
+        apiInfo.setWebSocketServerUrl(wsUrl);
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
 

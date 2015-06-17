@@ -45,6 +45,10 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
+    <logger name="kafka.utils" level="WARN">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
     <root level="INFO">
         <appender-ref ref="ASYNC"/>
     </root>

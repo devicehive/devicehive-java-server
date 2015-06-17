@@ -7,7 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 /**
  * Provide API information
@@ -48,5 +50,6 @@ public interface ConfigurationResource {
     @PreAuthorize("hasRole('ADMIN')")
     @Path("/auto")
     @WwwAuthenticateRequired
-    Response auto(@HeaderParam(HttpHeaders.REFERER) String referrer);
+    Response auto(@HeaderParam(HttpHeaders.REFERER) String referer, @Context UriInfo uriInfo);
+
 }

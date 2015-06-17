@@ -3,13 +3,18 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.ConfigurationResource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Path;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
 @Service
@@ -18,6 +23,9 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Value("${server.context-path}")
+    private String contextPath;
 
     @Override
     public Response get(String name) {
@@ -43,14 +51,19 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
     }
 
     @Override
-    public Response auto(String referrer) {
+    public Response auto(String referer, UriInfo uriInfo) {
         try {
-            URI ref = checkURI(referrer);
-            String refString = ref.toString();
-            String restUri = StringUtils.removeEnd(refString, "/") + "/rest";
-            String
-                wesocketUri =
-                StringUtils.removeEnd("ws" + StringUtils.removeStart(refString, "http"), "/") + "/websocket";
+            URI ref = URI.create(referer);
+
+            if (!("http".equals(ref.getScheme()) || "https".equals(ref.getScheme()))) {
+                throw new WebApplicationException(
+                        Response.status(Response.Status.BAD_REQUEST)
+                                .entity(new ErrorResponse("Wrong referer"))
+                                .build());
+            }
+
+            String restUri = uriInfo.getBaseUri().toString();
+            String wesocketUri = "ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket";
             configurationService.save(Constants.REST_SERVER_URL, restUri);
             configurationService.save(Constants.WEBSOCKET_SERVER_URL, wesocketUri);
             return Response.seeOther(ref).build();
@@ -58,15 +71,5 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
-
-
-    private URI checkURI(String referrer) {
-        URI uri = URI.create(referrer);
-        if (!("http".equals(uri.getScheme()) || "https".equals(uri.getScheme()))) {
-            throw new IllegalArgumentException();
-        }
-        return uri;
-    }
-
 
 }
