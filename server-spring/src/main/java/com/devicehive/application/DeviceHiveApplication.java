@@ -1,6 +1,12 @@
 package com.devicehive.application;
 
 import com.devicehive.util.ApplicationContextHolder;
+import com.hazelcast.cluster.impl.ClusterProxy;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
+import com.hazelcast.core.Cluster;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +17,6 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -71,5 +76,14 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
         Integer timeout = Integer.parseInt(env.getProperty("spring.redis.timeout"));
         logger.info("Creating JedisPool {}:{}", host, port);
         return new JedisPool(new JedisPoolConfig(), host, port, timeout);
+    }
+
+    @Bean
+    public HazelcastInstance hazelcastInstance() {
+        final Config config = new Config();
+        config.setGroupConfig(new GroupConfig(
+                env.getProperty("hazelcast.group.name"),
+                env.getProperty("hazelcast.group.pass")));
+        return Hazelcast.newHazelcastInstance(config);
     }
 }

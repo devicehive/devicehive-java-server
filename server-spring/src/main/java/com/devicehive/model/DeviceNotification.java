@@ -11,7 +11,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 /**
  * Created by tmatvienko on 12/24/14.
  */
-public class DeviceNotification implements HiveEntity {
+public class DeviceNotification implements HiveEntity, HazelcastEntity {
     private static final long serialVersionUID = 1834383778016225837L;
 
     @SerializedName("id")
@@ -110,5 +110,10 @@ public class DeviceNotification implements HiveEntity {
                 ", timestamp=" + timestamp +
                 ", parameters='" + parameters + '\'' +
                 '}';
+    }
+
+    @Override
+    public String getHazelcastKey() {
+        return id+"-"+deviceGuid;
     }
 }

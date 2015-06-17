@@ -78,8 +78,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        Collection<DeviceNotification> result = notificationService.getDeviceNotificationsList(Arrays.asList(device.getGuid()),
-                StringUtils.isNoneEmpty(notification) ? Arrays.asList(notification) : null, timestamp, take, principal);
+        Collection<DeviceNotification> result = notificationService.getDeviceNotificationsList(null, null,
+                Arrays.asList(device.getGuid()), StringUtils.isNoneEmpty(notification) ? Arrays.asList(notification) : null,
+                timestamp, take, principal);
 
         logger.debug("Device notification query request proceed successfully for device {}", guid);
 
@@ -163,7 +164,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                                                                final AsyncResponse asyncResponse, final boolean isMany) {
         logger.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
         if (timeout <= 0) {
-            notificationService.submitEmptyResponse(asyncResponse);
+            submitEmptyResponse(asyncResponse);
         }
 
         final List<String> deviceGuids = ParseUtil.getList(devices);
@@ -171,7 +172,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         Collection<DeviceNotification> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = notificationService.getDeviceNotificationsList(deviceGuids, notificationNames, timestamp, Integer.valueOf(DEFAULT_TAKE), principal);
+            list = notificationService.getDeviceNotificationsList(null, null, deviceGuids, notificationNames, timestamp,
+                    DEFAULT_TAKE, principal);
         }
 
         if (!list.isEmpty()) {
@@ -204,7 +206,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             }
 
             if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
-                notificationService.submitEmptyResponse(asyncResponse);
+                submitEmptyResponse(asyncResponse);
             }
         }
 
@@ -242,4 +244,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         return ResponseFactory.response(CREATED, message, NOTIFICATION_TO_DEVICE);
     }
 
+    private void submitEmptyResponse(final AsyncResponse asyncResponse) {
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(),
+                JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+    }
 }
