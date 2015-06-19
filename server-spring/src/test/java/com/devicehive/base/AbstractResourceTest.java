@@ -42,6 +42,9 @@ public abstract class AbstractResourceTest {
     @ClassRule
     public static EmbeddedRedisRule redisRule = new EmbeddedRedisRule();
 
+    @ClassRule
+    public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
+
     @Value("${server.port}")
     protected Integer port;
 

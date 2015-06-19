@@ -114,6 +114,6 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
 
     @Override
     public String getHazelcastKey() {
-        return id+"-"+deviceGuid;
+        return id+"-"+deviceGuid+"-"+timestamp;
     }
 }

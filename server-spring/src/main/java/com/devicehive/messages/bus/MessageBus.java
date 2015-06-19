@@ -5,6 +5,7 @@ import com.devicehive.messages.kafka.DefaultKafkaProducer;
 import com.devicehive.messages.kafka.KafkaProducer;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.HazelcastEntity;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -21,18 +22,19 @@ public class MessageBus {
     @Autowired
     private KafkaProducer kafkaProducer;
 
-    public void publishDeviceNotification(DeviceNotification deviceNotification) {
-        LOGGER.debug("Sending device notification {} to kafka", deviceNotification.getNotification());
-        kafkaProducer.produceDeviceNotificationMsg(deviceNotification, Constants.NOTIFICATION_TOPIC_NAME);
-        LOGGER.debug("Sent");
+    public <T extends HazelcastEntity> void publish(T hzEntity) {
+        if (hzEntity instanceof DeviceNotification) {
+            kafkaProducer.produceDeviceNotificationMsg((DeviceNotification) hzEntity, Constants.NOTIFICATION_TOPIC_NAME);
+        } else if (hzEntity instanceof DeviceCommand) {
+            kafkaProducer.produceDeviceCommandMsg((DeviceCommand) hzEntity, Constants.COMMAND_TOPIC_NAME);
+        } else {
+            final String msg = String.format("Unsupported hazelcast entity class: %s", hzEntity.getClass());
+            LOGGER.warn(msg);
+            throw new IllegalArgumentException(msg);
+        }
     }
 
-    public void publishDeviceCommand(DeviceCommand deviceCommand) {
-        LOGGER.debug("Sending device command to kafka: {}", deviceCommand);
-        kafkaProducer.produceDeviceCommandMsg(deviceCommand, Constants.COMMAND_TOPIC_NAME);
-        LOGGER.debug("Sent");
-    }
-
+    //FIXME: cannot remove it now because of architecture restrictions
     public void publishDeviceCommandUpdate(DeviceCommand deviceCommand) {
         LOGGER.debug("Sending device command update to kafka: {}", deviceCommand);
         kafkaProducer.produceDeviceCommandUpdateMsg(deviceCommand, Constants.COMMAND_UPDATE_TOPIC_NAME);

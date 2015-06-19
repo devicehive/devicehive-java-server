@@ -27,16 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.*;
@@ -44,7 +39,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
 
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -78,7 +72,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        Collection<DeviceNotification> result = notificationService.getDeviceNotificationsList(null, null,
+        Collection<DeviceNotification> result = notificationService.find(null, null,
                 Arrays.asList(device.getGuid()), StringUtils.isNoneEmpty(notification) ? Arrays.asList(notification) : null,
                 timestamp, take, principal);
 
@@ -102,7 +96,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        DeviceNotification notification = notificationService.findByIdAndGuid(notificationId, guid);
+        DeviceNotification notification = notificationService.find(notificationId, guid);
 
         if (notification == null) {
             logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
@@ -172,7 +166,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         Collection<DeviceNotification> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = notificationService.getDeviceNotificationsList(null, null, deviceGuids, notificationNames, timestamp,
+            list = notificationService.find(null, null, deviceGuids, notificationNames, timestamp,
                     DEFAULT_TAKE, principal);
         }
 

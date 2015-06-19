@@ -1,12 +1,6 @@
 package com.devicehive.application;
 
 import com.devicehive.util.ApplicationContextHolder;
-import com.hazelcast.cluster.impl.ClusterProxy;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.GroupConfig;
-import com.hazelcast.core.Cluster;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +19,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Validator;
@@ -67,23 +59,5 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     @Bean
     public Validator localValidator() {
         return new LocalValidatorFactoryBean();
-    }
-
-    @Bean(destroyMethod = "destroy")
-    public JedisPool jedisPool() {
-        String host = env.getProperty("spring.redis.host");
-        Integer port = Integer.parseInt(env.getProperty("spring.redis.port"));
-        Integer timeout = Integer.parseInt(env.getProperty("spring.redis.timeout"));
-        logger.info("Creating JedisPool {}:{}", host, port);
-        return new JedisPool(new JedisPoolConfig(), host, port, timeout);
-    }
-
-    @Bean
-    public HazelcastInstance hazelcastInstance() {
-        final Config config = new Config();
-        config.setGroupConfig(new GroupConfig(
-                env.getProperty("hazelcast.group.name"),
-                env.getProperty("hazelcast.group.pass")));
-        return Hazelcast.newHazelcastInstance(config);
     }
 }

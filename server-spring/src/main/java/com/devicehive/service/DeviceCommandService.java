@@ -1,10 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.bus.MessageBus;
-import com.devicehive.messages.bus.redis.RedisCommandService;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
@@ -12,47 +9,29 @@ import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
+import org.springframework.stereotype.Service;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.*;
 
 
-@Component
-public class DeviceCommandService {
-    private static final int MAX_COMMAND_COUNT = 100;
-
+@Service
+public class DeviceCommandService extends AbstractHazelcastEntityService {
     @Autowired
     private TimestampService timestampService;
     @Autowired
-    private DeviceService deviceService;
-    @Autowired
     private HiveValidator hiveValidator;
-    @Autowired
-    private RedisCommandService redisCommandService;
     @Autowired
     private MessageBus messageBus;
 
-    public DeviceCommand findByIdAndGuid(final Long id, final String guid) {
-        return redisCommandService.getByIdAndGuid(id, guid);
+    public DeviceCommand find(Long id, String guid) {
+        return find(id, guid, DeviceCommand.class);
     }
 
-    public Collection<DeviceCommand> getDeviceCommandsList(Collection<String> devices, final Collection<String> names,
-                                                     final Timestamp timestamp, final String status, final Integer take, final Boolean isUpdated, HivePrincipal principal) {
-        Collection<DeviceCommand> commands;
-        if (devices != null) {
-            final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-            commands = redisCommandService.getByGuids(availableDevices, names, timestamp, status, take, isUpdated);
-        } else {
-            commands = redisCommandService.getAll(names, timestamp, status, take, isUpdated);
-        }
-        if (!CollectionUtils.isEmpty(commands) && commands.size() > MAX_COMMAND_COUNT) {
-            return new ArrayList<>(commands).subList(0, MAX_COMMAND_COUNT);
-        }
-        return commands;
+    public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
+                                          Timestamp timestamp, String status, Integer take,
+                                          Boolean isUpdated, HivePrincipal principal) {
+        return find(devices, names, timestamp, status, take, isUpdated, principal, DeviceCommand.class);
     }
 
     public DeviceCommand convertToDeviceCommand(DeviceCommandWrapper commandWrapper, Device device, User user, Long commandId) {
@@ -85,19 +64,22 @@ public class DeviceCommandService {
         return command;
     }
 
-    public void submitDeviceCommand(DeviceCommand message) {
-        message.setIsUpdated(false);
-        redisCommandService.save(message);
-        messageBus.publishDeviceCommand(message);
+    public void store(DeviceCommand command) {
+        command.setIsUpdated(false);
+        store(command, DeviceCommand.class);
     }
 
-    public void submitDeviceCommandUpdate(DeviceCommand message) {
-        message.setIsUpdated(true);
-        redisCommandService.update(message);
-        messageBus.publishDeviceCommandUpdate(message);
-    }
+    //FIXME: temporary added, need to understand necessity of this method
+    public void submitDeviceCommandUpdate(DeviceCommand command) {
+        final DeviceCommand existing = find(command.getId(), command.getDeviceGuid());
+        if(existing != null) {
+            if(command.getCommand() == null) {
+                command.setCommand(existing.getCommand());
+            }
+            command.setIsUpdated(true);
+            store(command);
+        }
 
-    public void submitEmptyResponse(final AsyncResponse asyncResponse) {
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_LISTED));
+        messageBus.publishDeviceCommandUpdate(command);
     }
 }

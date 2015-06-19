@@ -34,7 +34,9 @@ public class EmbeddedKafkaRule extends ExternalResource {
 
         startZookeeper(Integer.parseInt(zkPort));
         String zookeeperConnect = "127.0.0.1:" + zkPort;
-        startKafka(zookeeperConnect, kafkaPort);
+
+        //TODO: need to find better approach to use kafka in test
+//        startKafka(zookeeperConnect, kafkaPort);
     }
 
     @Override
