@@ -104,7 +104,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 timeout);
 
         if (timeout <= 0) {
-            commandService.submitEmptyResponse(asyncResponse);
+            submitEmptyResponse(asyncResponse);
         }
 
         final List<String> deviceGuids = ParseUtil.getList(devices);
@@ -112,7 +112,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         Collection<DeviceCommand> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = commandService.getDeviceCommandsList(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
+            list = commandService.find(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
         }
 
         if (!list.isEmpty()) {
@@ -145,7 +145,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             }
 
             if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
-                commandService.submitEmptyResponse(asyncResponse);
+                submitEmptyResponse(asyncResponse);
             }
         }
     }
@@ -200,7 +200,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        DeviceCommand command = commandService.findByIdAndGuid(Long.valueOf(commandId), device.getGuid());
+        DeviceCommand command = commandService.find(Long.valueOf(commandId), device.getGuid());
 
         if (command == null) {
             LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
@@ -225,7 +225,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     new CommandUpdateSubscription(Long.valueOf(commandId), reqId, RestHandlerCreator.createCommandUpdate(asyncResponse));
 
             if (!SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
-                commandService.submitEmptyResponse(asyncResponse);
+                submitEmptyResponse(asyncResponse);
             }
         }
 
@@ -244,7 +244,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        final Collection<DeviceCommand> commandList = commandService.getDeviceCommandsList(Arrays.asList(guid),
+        final Collection<DeviceCommand> commandList = commandService.find(Arrays.asList(guid),
                 StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, true, principal);
 
         LOGGER.debug("Device command query request proceed successfully for device {}", guid);
@@ -266,7 +266,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        DeviceCommand command = commandService.findByIdAndGuid(Long.valueOf(commandId), device.getGuid());
+        DeviceCommand command = commandService.find(Long.valueOf(commandId), device.getGuid());
         if (command == null) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
@@ -301,12 +301,12 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        final DeviceCommand message = commandService.convertToDeviceCommand(deviceCommand, device, authUser, null);
-        commandService.submitDeviceCommand(message);
+        final DeviceCommand command = commandService.convertToDeviceCommand(deviceCommand, device, authUser, null);
+        commandService.store(command);
 
         LOGGER.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
                 deviceCommand.getCommand());
-        return ResponseFactory.response(CREATED, message, Policy.COMMAND_TO_CLIENT);
+        return ResponseFactory.response(CREATED, command, Policy.COMMAND_TO_CLIENT);
     }
 
     /**
@@ -325,7 +325,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        DeviceCommand savedCommand = commandService.findByIdAndGuid(commandId, guid);
+        DeviceCommand savedCommand = commandService.find(commandId, guid);
         if (savedCommand == null) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
@@ -337,6 +337,10 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
         return ResponseFactory.response(NO_CONTENT);
+    }
+
+    private void submitEmptyResponse(final AsyncResponse asyncResponse) {
+        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_LISTED));
     }
 
 }
