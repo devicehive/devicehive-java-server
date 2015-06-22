@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -31,6 +32,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
 import static java.util.Optional.*;
@@ -43,8 +47,6 @@ public class NetworkService {
     public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
 
     @Autowired
-    private NetworkDAO networkDAO;
-    @Autowired
     private UserService userService;
     @Autowired
     private AccessKeyService accessKeyService;
@@ -52,7 +54,6 @@ public class NetworkService {
     private ConfigurationService configurationService;
     @Autowired
     private HiveValidator hiveValidator;
-
     @Autowired
     private GenericDAO genericDAO;
 
@@ -171,6 +172,10 @@ public class NetworkService {
 
     @Transactional
     public Network createOrVerifyNetwork(NullableWrapper<Network> networkNullable) {
+        return createOrVerifyNetwork(networkNullable, network -> null, () -> false);
+    }
+
+    private Network createOrVerifyNetwork(NullableWrapper<Network> networkNullable, Function<Network, Object> onUpdate, Supplier<Boolean> onCreate) {
         //case network is not defined
         if (networkNullable == null || networkNullable.getValue() == null) {
             return null;
@@ -185,98 +190,45 @@ public class NetworkService {
                                 .setParameter(Network.Queries.Parameters.NAME, network.getName())
                                 .getResultList()
                                 .stream().findFirst());
-
         if (storedOpt.isPresent()) {
             Network stored = storedOpt.get();
             if (stored.getKey() != null && !stored.getKey().equals(network.getKey())) {
                 throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
             }
+            onUpdate.apply(stored);
             return stored;
         } else {
             if (network.getId() != null) {
                 throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
             }
             boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
-            if (!allowed) {
-                throw new HiveException(Messages.NETWORK_AUTO_CREATE_NOT_ALLOWED, FORBIDDEN.getStatusCode());
+            if (!onCreate.get() && !allowed) {
+                throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
             }
             genericDAO.persist(network);
             return network;
         }
+
     }
 
     @Transactional
     public Network createOrUpdateNetworkByUser(NullableWrapper<Network> network, User user) {
-        Network stored;
-
-        //case network is not defined
-        if (network == null || network.getValue() == null) {
-            return null;
-        }
-
-        Network update = network.getValue();
-
-        if (update.getId() != null) {
-            stored = networkDAO.getWithDevicesAndDeviceClasses(update.getId());
-        } else {
-            stored = networkDAO.findByName(update.getName());
-        }
-
-        if (stored != null) {
-            if (stored.getKey() != null) {
-                if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
-                }
-            }
+        return createOrVerifyNetwork(network, stored -> {
             if (!userService.hasAccessToNetwork(user, stored)) {
                 throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
             }
-        } else {
-            if (update.getId() != null) {
-                throw new HiveException(Messages.NETWORK_NOT_FOUND, BAD_REQUEST.getStatusCode());
-            }
-            if (user.isAdmin() || configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
-                stored = networkDAO.createNetwork(update);
-            } else {
-                throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
-            }
-        }
-        return stored;
+            return null;
+        }, user::isAdmin);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Network createOrVerifyNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
-        Network stored;
-
-        //case network is not defined
-        if (network == null || network.getValue() == null) {
+        return createOrVerifyNetwork(network, stored -> {
+            if (stored.getKey() != null && !accessKeyService.hasAccessToNetwork(key, stored)) {
+                throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
+            }
             return null;
-        }
-
-        Network update = network.getValue();
-
-        if (update.getId() != null) {
-            stored = networkDAO.getById(update.getId());
-        } else {
-            stored = networkDAO.findByName(update.getName());
-        }
-        if (stored != null) {
-            if (stored.getKey() != null) {
-                if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
-                }
-                if (!accessKeyService.hasAccessToNetwork(key, stored)) {
-                    throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
-                }
-            }
-        } else {
-            if (configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
-                stored = networkDAO.createNetwork(update);
-            } else {
-                throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
-            }
-        }
-        return stored;
+        }, () -> false);
     }
 
 }

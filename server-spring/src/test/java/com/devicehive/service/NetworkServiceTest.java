@@ -678,7 +678,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
 
         expectedException.expect(HiveException.class);
-        expectedException.expectMessage(Messages.NETWORK_AUTO_CREATE_NOT_ALLOWED);
+        expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
         expectedException.expect(HiveExceptionMatcher.code(403));
 
         Network network = new Network();
@@ -746,5 +746,86 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         created.setKey(randomUUID().toString());
         networkService.createOrVerifyNetwork(new NullableWrapper<>(created));
+    }
+
+    @Test
+    public void should_check_whether_user_is_admin_when_creates_or_updates_network_by_user() throws Exception {
+        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        network.setKey(randomUUID().toString());
+
+        Network created = networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(network), user);
+        assertThat(created, notNullValue());
+        assertThat(created.getId(), notNullValue());
+        assertThat(created.getName(), equalTo(network.getName()));
+    }
+
+    @Test
+    public void should_throw_exception_when_updates_network_by_user_if_user_is_client() throws Exception {
+        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        network.setKey(randomUUID().toString());
+
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
+        expectedException.expect(HiveExceptionMatcher.code(403));
+
+        networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(network), user);
+    }
+
+    @Test
+    public void should_verify_network_if_client_has_access() throws Exception {
+        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        network.setKey(randomUUID().toString());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+
+        userService.assignNetwork(user.getId(), created.getId());
+
+        Network stored = networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(created), user);
+        assertThat(created.getId(), equalTo(stored.getId()));
+    }
+
+    @Test
+    public void should_verify_network_key_if_access_key_has_access_to_network() throws Exception {
+        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        network.setKey(randomUUID().toString());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+
+        userService.assignNetwork(user.getId(), created.getId());
+
+        Network stored = networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(created), user);
+        assertThat(created.getId(), equalTo(stored.getId()));
     }
 }
