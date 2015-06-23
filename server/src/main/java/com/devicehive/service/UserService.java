@@ -6,6 +6,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.GenericDAO;
 import com.devicehive.dao.UserDAO;
+import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
@@ -29,6 +30,7 @@ import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Optional.of;
@@ -63,34 +65,33 @@ public class UserService {
      *
      * @return User object if authentication is successful or null if not
      */
-    @Transactional
+    @Transactional(noRollbackFor = ActionNotAllowedException.class)
     public User authenticate(String login, String password) {
-        User user = userDAO.findByLogin(login);
-        if (user == null) {
+        Optional<User> userOpt = genericDAO.createNamedQuery(User.class, "User.findByName", of(CacheConfig.get()))
+                .setParameter("login", login)
+                .getResultList()
+                .stream().findFirst();
+        if (!userOpt.isPresent()) {
             return null;
         }
+        User user = userOpt.get();
 
         long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
 
-        if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            boolean willBeChanged = user.getLoginAttempts() != 0
+        boolean mustUpdateLoginStatistic = user.getLoginAttempts() != 0
                 || user.getLastLogin() == null
                 || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
 
-            // No changes to user, successful authentication
-            if (!willBeChanged) {
-                return user;
-            }
-        }
+        boolean validPassword = passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash());
 
-        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
-        // repeat whole auth procedure on locked entity
-        if (passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash())) {
-            return updateUserOnSuccessfullLogin(user, loginTimeout);
-        } else {
+        genericDAO.refresh(user, LockModeType.PESSIMISTIC_WRITE);
+        if (validPassword && mustUpdateLoginStatistic) {
+            user = updateUserOnSuccessfullLogin(user, loginTimeout);
+        } else if (!validPassword) {
             updateUserOnFailedLogin(user);
-            throw new HiveException(String.format(Messages.INCORRECT_CREDENTIALS, login), FORBIDDEN.getStatusCode());
+            throw new ActionNotAllowedException(String.format(Messages.INCORRECT_CREDENTIALS, login));
         }
+        return user;
     }
 
     @Transactional
@@ -136,7 +137,6 @@ public class UserService {
     }
 
     private void updateUserOnFailedLogin(User user) {
-        em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
         user.setLoginAttempts(user.getLoginAttempts() + 1);
         if (user.getLoginAttempts() >=
                 configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
