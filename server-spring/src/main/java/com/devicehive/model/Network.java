@@ -24,7 +24,7 @@ import static com.devicehive.model.Network.Queries.Values;
                   @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
                   @NamedQuery(name = Names.GET_WITH_DEVICES_AND_DEVICE_CLASSES,
                               query = Values.GET_WITH_DEVICES_AND_DEVICE_CLASSES),
-                  @NamedQuery(name = Names.FILTER_BY_ID_AND_USER, query = Values.FILTER_BY_ID_AND_USER)
+                  @NamedQuery(name = "Network.getNetworksByIdsAndUsers", query = "select n from Network n left outer join n.users u where n.id in :networkIds and (u.id = :userId or :userId is null)")
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -165,7 +165,6 @@ public class Network implements HiveEntity {
             String FIND_WITH_USERS = "Network.findWithUsers";
             String DELETE_BY_ID = "Network.deleteById";
             String GET_WITH_DEVICES_AND_DEVICE_CLASSES = "Network.getWithDevicesAndDeviceClasses";
-            String FILTER_BY_ID_AND_USER = "Network.getNetworksByIdsAndUsers";
         }
 
         interface Values {
@@ -177,7 +176,6 @@ public class Network implements HiveEntity {
                 "select n from Network n " +
                 "left join fetch n.devices " +
                 "where n.id = :id";
-            String FILTER_BY_ID_AND_USER = "select n from Network n left outer join n.users u where n.id in :networkIds and (u.id = :userId or :userId is null)";
         }
 
         interface Parameters {

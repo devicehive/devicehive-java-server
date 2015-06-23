@@ -3,11 +3,11 @@ package com.devicehive.service;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.base.matcher.HiveExceptionMatcher;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.GenericDAO;
-import com.devicehive.exceptions.HiveException;
+import com.devicehive.exceptions.ActionNotAllowedException;
+import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
@@ -56,10 +56,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_HiveException_when_create_network_id() throws Exception {
-        expectedException.expect(HiveException.class);
+    public void should_throw_IllegalParametersException_when_create_network_with_id_provided() throws Exception {
+        expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.ID_NOT_ALLOWED);
-        expectedException.expect(HiveExceptionMatcher.code(400));
 
         Network network = new Network();
         network.setId(1L);
@@ -67,14 +66,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_HiveException_if_network_with_name_already_exists() throws Exception {
+    public void should_throw_ActionNotAllowedException_if_network_with_name_already_exists() throws Exception {
         Network network = new Network();
         network.setName("myNetwork");
         networkService.create(network);
 
-        expectedException.expect(HiveException.class);
+        expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.DUPLICATE_NETWORK);
-        expectedException.expect(HiveExceptionMatcher.code(403));
 
         network = new Network();
         network.setName("myNetwork");
@@ -114,10 +112,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_HiveException_when_update_non_existent_network() throws Exception {
-        expectedException.expect(HiveException.class);
+    public void should_throw_NoSuchElementException_when_update_non_existent_network() throws Exception {
+        expectedException.expect(NoSuchElementException.class);
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
-        expectedException.expect(HiveExceptionMatcher.code(404));
 
         NetworkUpdate network = new NetworkUpdate();
         network.setName(new NullableWrapper<>("network"));
@@ -260,9 +257,8 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_return_list_of_networks_for_device() throws Exception {
-        expectedException.expect(HiveException.class);
-        expectedException.expectMessage("Can not get access to networks");
-        expectedException.expect(HiveExceptionMatcher.code(403));
+        expectedException.expect(ActionNotAllowedException.class);
+        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
         HivePrincipal principal = new HivePrincipal(new Device());
         networkService.list(null, null, null, true, 100, 0, principal);
@@ -663,10 +659,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_HiveException_if_id_provided_when_creates_or_verifies_network() throws Exception {
-        expectedException.expect(HiveException.class);
+    public void should_throw_IllegalParametersException_if_id_provided_when_creates_or_verifies_network() throws Exception {
+        expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.INVALID_REQUEST_PARAMETERS);
-        expectedException.expect(HiveExceptionMatcher.code(400));
 
         Network network = new Network();
         network.setId(-1L);
@@ -674,12 +669,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_HiveException_if_network_auto_creation_is_not_allowed_when_creates_or_verifies_network() throws Exception {
+    public void should_throw_ActionNotAllowedException_if_network_auto_creation_is_not_allowed_when_creates_or_verifies_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
 
-        expectedException.expect(HiveException.class);
+        expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
-        expectedException.expect(HiveExceptionMatcher.code(403));
 
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
@@ -732,7 +726,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_HiveException_when_creates_or_verifies_network_if_network_key_is_corrupted() throws Exception {
+    public void should_throw_ActionNotAllowedException_when_creates_or_verifies_network_if_network_key_is_corrupted() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
@@ -740,9 +734,8 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Network created = networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
         assertThat(created, notNullValue());
 
-        expectedException.expect(HiveException.class);
+        expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.INVALID_NETWORK_KEY);
-        expectedException.expect(HiveExceptionMatcher.code(403));
 
         created.setKey(randomUUID().toString());
         networkService.createOrVerifyNetwork(new NullableWrapper<>(created));
@@ -780,9 +773,8 @@ public class NetworkServiceTest extends AbstractResourceTest {
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
 
-        expectedException.expect(HiveException.class);
+        expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
-        expectedException.expect(HiveExceptionMatcher.code(403));
 
         networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(network), user);
     }
@@ -809,6 +801,27 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_throw_ActionNotAllowedException_if_client_does_not_have_access_to_verifies_network() throws Exception {
+        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        network.setKey(randomUUID().toString());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+
+        expectedException.expect(ActionNotAllowedException.class);
+        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
+
+        networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(created), user);
+    }
+
+    @Test
     public void should_verify_network_key_if_access_key_has_access_to_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
 
@@ -825,7 +838,36 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), created.getId());
 
-        Network stored = networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(created), user);
+        AccessKey accessKey = new AccessKey();
+        accessKey.setUser(user);
+        accessKey.setPermissions(Collections.singleton(new AccessKeyPermission()));
+
+        Network stored = networkService.createOrVerifyNetworkByKey(new NullableWrapper<>(created), accessKey);
         assertThat(created.getId(), equalTo(stored.getId()));
+    }
+
+    @Test
+    public void should_throw_ActionNotAllowedException_if_access_key_does_not_have_access_to_network_when_verifies() throws Exception {
+        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        network.setKey(randomUUID().toString());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+
+        AccessKey accessKey = new AccessKey();
+        accessKey.setUser(user);
+        accessKey.setPermissions(Collections.singleton(new AccessKeyPermission()));
+
+        expectedException.expect(ActionNotAllowedException.class);
+        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
+
+        networkService.createOrVerifyNetworkByKey(new NullableWrapper<>(created), accessKey);
     }
 }
