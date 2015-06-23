@@ -28,8 +28,10 @@ public class UserServiceTest extends AbstractResourceTest {
     private UserService userService;
     @Autowired
     private NetworkService networkService;
+
     @Autowired
     private GenericDAO genericDAO;
+
     @Autowired
     private ConfigurationService configurationService;
 
