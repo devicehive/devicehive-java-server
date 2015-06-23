@@ -136,7 +136,7 @@ public class DeviceService {
             throw new HiveException(
                 String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()), UNAUTHORIZED.getStatusCode());
         }
-        Network network = networkService.createOrVeriryNetworkByKey(deviceUpdate.getNetwork(), key);
+        Network network = networkService.createOrVerifyNetworkByKey(deviceUpdate.getNetwork(), key);
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         if (existingDevice == null) {
@@ -201,7 +201,7 @@ public class DeviceService {
             existingDevice.setDeviceClass(deviceClass);
         }
         if (deviceUpdate.getNetwork() != null) {
-            Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
+            Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
             existingDevice.setNetwork(network);
         }
         if (deviceUpdate.getStatus() != null) {
@@ -222,10 +222,11 @@ public class DeviceService {
         return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
     }
 
+    @Transactional
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
                                          Set<Equipment> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
-        Network network = networkService.createOrVeriryNetwork(deviceUpdate.getNetwork());
+        Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceUpdate.getGuid().getValue());

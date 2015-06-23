@@ -6,98 +6,121 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.NetworkDAO;
-import com.devicehive.exceptions.HiveException;
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.GenericDAO;
+import com.devicehive.exceptions.ActionNotAllowedException;
+import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.*;
 
 @Component
 public class NetworkService {
+    private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
 
     public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
 
-    @Autowired
-    private NetworkDAO networkDAO;
     @Autowired
     private UserService userService;
     @Autowired
     private AccessKeyService accessKeyService;
     @Autowired
-    private DeviceService deviceService;
-    @Autowired
     private ConfigurationService configurationService;
     @Autowired
     private HiveValidator hiveValidator;
+    @Autowired
+    private GenericDAO genericDAO;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId,
-                                                  @NotNull HiveAuthentication hiveAuthentication) {
+    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
         HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
-        if (principal.getUser() != null) {
-            List<Network> found = networkDAO.getNetworkList(principal.getUser(), null, Arrays.asList(networkId));
-            if (found.isEmpty()) {
-                return null;
-            }
-            List<Device> devices = deviceService.getList(networkId, principal);
-            Network result = found.get(0);
-            result.setDevices(new HashSet<>(devices));
-            return result;
-        } else {
-            AccessKey key = principal.getKey();
-            User user = userService.findUserWithNetworks(key.getUser().getId());
-            List<Network> found = networkDAO.getNetworkList(user,
-                                                            key.getPermissions(),
-                                                            Arrays.asList(networkId));
-            Network result = found.isEmpty() ? null : found.get(0);
-            if (result == null) {
-                return result;
-            }
-            //to get proper devices 1) get access key with all permissions 2) get devices for required network
-            Set<AccessKeyPermission> filtered = CheckPermissionsHelper
-                .filterPermissions(key.getPermissions(), AccessKeyAction.GET_DEVICE,
-                                   details.getClientInetAddress(), details.getOrigin());
-            if (filtered.isEmpty()) {
-                result.setDevices(Collections.emptySet());
-                return result;
-            }
-            Set<Device> devices = new HashSet<>(deviceService.getList(result.getId(), principal));
-            result.setDevices(devices);
-            return result;
-        }
+
+        Optional<Network> result = of(principal)
+                .flatMap(pr -> {
+                    if (pr.getUser() != null)
+                        return of(pr.getUser());
+                    else if (pr.getKey() != null && pr.getKey().getUser() != null)
+                        return of(pr.getKey().getUser());
+                    else
+                        return empty();
+                }).flatMap(user -> {
+                    Long idForFiltering = user.isAdmin() ? null : user.getId();
+                    TypedQuery<Network> query = genericDAO.createNamedQuery(Network.class, "Network.getNetworksByIdsAndUsers", of(CacheConfig.bypass()))
+                            .setParameter("userId", idForFiltering)
+                            .setParameter("networkIds", singletonList(networkId));
+                    List<Network> found = query.getResultList();
+                    return found.stream().findFirst();
+                }).map(network -> {
+                    if (principal.getKey() != null) {
+                        Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
+                        Set<AccessKeyPermission> filtered = CheckPermissionsHelper
+                                .filterPermissions(permissions, AccessKeyAction.GET_DEVICE,
+                                        details.getClientInetAddress(), details.getOrigin());
+                        if (filtered.isEmpty()) {
+                            network.setDevices(Collections.emptySet());
+                        }
+                    }
+                    return network;
+                });
+
+        return result.orElse(null);
     }
 
+    @Transactional
     public boolean delete(long id) {
-        return networkDAO.delete(id);
+        logger.trace("About to execute named query {} for ", Network.Queries.Names.DELETE_BY_ID);
+        int result = genericDAO.createNamedQuery(Network.Queries.Names.DELETE_BY_ID, Optional.<CacheConfig>empty())
+                .setParameter("id", id)
+                .executeUpdate();
+        logger.debug("Deleted {} rows from Network table", result);
+        return result > 0;
     }
 
     @Transactional
     public Network create(Network newNetwork) {
+        logger.debug("Creating network {}", newNetwork);
         if (newNetwork.getId() != null) {
-            throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
+            logger.error("Can't create network entity with id={} specified", newNetwork.getId());
+            throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
-        Network existing = networkDAO.findByName(newNetwork.getName());
-        if (existing != null) {
-            throw new HiveException(Messages.DUPLICATE_NETWORK, FORBIDDEN.getStatusCode());
+        List<Network> existing = genericDAO.createNamedQuery(Network.class, Network.Queries.Names.FIND_BY_NAME, Optional.of(CacheConfig.get()))
+                .setParameter("name", newNetwork.getName())
+                .getResultList();
+        if (!existing.isEmpty()) {
+            logger.error("Network with name {} already exists", newNetwork.getName());
+            throw new ActionNotAllowedException(Messages.DUPLICATE_NETWORK);
         }
-        return networkDAO.createNetwork(newNetwork);
+        genericDAO.persist(newNetwork);
+        logger.info("Entity {} created successfully", newNetwork);
+        return newNetwork;
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional
     public Network update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
-        Network existing = getById(networkId);
+        Network existing = genericDAO.find(Network.class, networkId);
         if (existing == null) {
-            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
+            throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
         }
         if (networkUpdate.getKey() != null) {
             existing.setKey(networkUpdate.getKey().getValue());
@@ -109,128 +132,97 @@ public class NetworkService {
             existing.setDescription(networkUpdate.getDescription().getValue());
         }
         hiveValidator.validate(existing);
-        return networkDAO.updateNetwork(existing);
+        return genericDAO.merge(existing);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<Network> list(String name,
                               String namePattern,
                               String sortField,
-                              boolean sortOrder,
+                              boolean sortOrderAsc,
                               Integer take,
                               Integer skip,
                               HivePrincipal principal) {
-        return networkDAO.list(name, namePattern, sortField, sortOrder, take, skip, principal);
+        Optional<HivePrincipal> principalOpt = ofNullable(principal);
+        principalOpt.map(HivePrincipal::getDevice).ifPresent(device -> {
+            throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
+        });
+
+        CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        CriteriaQuery<Network> criteria = cb.createQuery(Network.class);
+        Root<Network> from = criteria.from(Network.class);
+
+        Predicate[] nameAndPrincipalPredicates = CriteriaHelper.networkListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), principalOpt);
+        criteria.where(nameAndPrincipalPredicates);
+
+        CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);
+
+        TypedQuery<Network> query = genericDAO.createQuery(criteria);
+        genericDAO.cacheQuery(query, of(CacheConfig.refresh()));
+        ofNullable(take).ifPresent(query::setMaxResults);
+        ofNullable(skip).ifPresent(query::setFirstResult);
+        return query.getResultList();
     }
 
     @Transactional
-    public Network createOrVeriryNetwork(NullableWrapper<Network> network) {
-        Network stored;
+    public Network createOrVerifyNetwork(NullableWrapper<Network> networkNullable) {
+        return createOrVerifyNetwork(networkNullable, network -> null, () -> false);
+    }
+
+    private Network createOrVerifyNetwork(NullableWrapper<Network> networkNullable, Function<Network, Object> onUpdate, Supplier<Boolean> onCreate) {
         //case network is not defined
-        if (network == null || network.getValue() == null) {
+        if (networkNullable == null || networkNullable.getValue() == null) {
             return null;
         }
-        Network update = network.getValue();
 
-        if (update.getId() != null) {
-            stored = networkDAO.getById(update.getId());
+        Network network = networkNullable.getValue();
+
+        Optional<Network> storedOpt = ofNullable(network.getId())
+                .map(id -> ofNullable(genericDAO.find(Network.class, id)))
+                .orElseGet(() ->
+                        genericDAO.createNamedQuery(Network.class, Network.Queries.Names.FIND_BY_NAME, empty())
+                                .setParameter("name", network.getName())
+                                .getResultList()
+                                .stream().findFirst());
+        if (storedOpt.isPresent()) {
+            Network stored = storedOpt.get();
+            if (stored.getKey() != null && !stored.getKey().equals(network.getKey())) {
+                throw new ActionNotAllowedException(Messages.INVALID_NETWORK_KEY);
+            }
+            onUpdate.apply(stored);
+            return stored;
         } else {
-            stored = networkDAO.findByName(update.getName());
+            if (network.getId() != null) {
+                throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
+            }
+            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
+            if (!onCreate.get() && !allowed) {
+                throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
+            }
+            genericDAO.persist(network);
+            return network;
         }
 
-        if (stored != null) {
-            if (stored.getKey() != null) {
-                if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
-                }
-            }
-        } else {
-            if (update.getId() != null) {
-                throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
-            }
-            if (configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
-                stored = networkDAO.createNetwork(update);
-            }
-        }
-        assert (stored != null);
-        return stored;
     }
 
     @Transactional
     public Network createOrUpdateNetworkByUser(NullableWrapper<Network> network, User user) {
-        Network stored;
-
-        //case network is not defined
-        if (network == null || network.getValue() == null) {
-            return null;
-        }
-
-        Network update = network.getValue();
-
-        if (update.getId() != null) {
-            stored = networkDAO.getWithDevicesAndDeviceClasses(update.getId());
-        } else {
-            stored = networkDAO.findByName(update.getName());
-        }
-
-        if (stored != null) {
-            if (stored.getKey() != null) {
-                if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
-                }
-            }
+        return createOrVerifyNetwork(network, stored -> {
             if (!userService.hasAccessToNetwork(user, stored)) {
-                throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
+                throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
             }
-        } else {
-            if (update.getId() != null) {
-                throw new HiveException(Messages.NETWORK_NOT_FOUND, BAD_REQUEST.getStatusCode());
-            }
-            if (user.isAdmin() || configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
-                stored = networkDAO.createNetwork(update);
-            } else {
-                throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
-            }
-        }
-        return stored;
+            return null;
+        }, user::isAdmin);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Network createOrVeriryNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
-        Network stored;
-
-        //case network is not defined
-        if (network == null || network.getValue() == null) {
+    public Network createOrVerifyNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
+        return createOrVerifyNetwork(network, stored -> {
+            if (stored.getKey() != null && !accessKeyService.hasAccessToNetwork(key, stored)) {
+                throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
+            }
             return null;
-        }
-
-        Network update = network.getValue();
-
-        if (update.getId() != null) {
-            stored = networkDAO.getById(update.getId());
-        } else {
-            stored = networkDAO.findByName(update.getName());
-        }
-        if (stored != null) {
-            if (stored.getKey() != null) {
-                if (!stored.getKey().equals(update.getKey())) {
-                    throw new HiveException(Messages.INVALID_NETWORK_KEY, FORBIDDEN.getStatusCode());
-                }
-                if (!accessKeyService.hasAccessToNetwork(key, stored)) {
-                    throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
-                }
-            }
-        } else {
-            if (configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false)) {
-                stored = networkDAO.createNetwork(update);
-            } else {
-                throw new HiveException(Messages.NETWORK_CREATION_NOT_ALLOWED, FORBIDDEN.getStatusCode());
-            }
-        }
-        return stored;
+        }, () -> false);
     }
 
-    private Network getById(long id) {
-        return networkDAO.getById(id);
-    }
 }
