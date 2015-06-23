@@ -3,7 +3,8 @@ package com.devicehive.service;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.NetworkDAO;
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.GenericDAO;
 import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.Network;
@@ -27,8 +28,10 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
+import static java.util.Optional.of;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -43,7 +46,7 @@ public class UserService {
     @Autowired
     private UserDAO userDAO;
     @Autowired
-    private NetworkDAO networkDAO;
+    private GenericDAO genericDAO;
     @Autowired
     private TimestampService timestampService;
     @Autowired
@@ -222,21 +225,22 @@ public class UserService {
      * @param userId    id of user
      * @param networkId id of network
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
-            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
+            throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
-        Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
-        if (existingNetwork == null) {
-            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
-        }
+        Network existingNetwork = genericDAO.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
+                .setParameter("id", networkId)
+                .getResultList()
+                .stream().findFirst()
+                .orElseThrow(() -> new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId)));
         Set<User> usersSet = existingNetwork.getUsers();
         usersSet.add(existingUser);
         existingNetwork.setUsers(usersSet);
-        networkDAO.merge(existingNetwork);
+        genericDAO.merge(existingNetwork);
     }
 
     /**
@@ -245,18 +249,21 @@ public class UserService {
      * @param userId    id of user
      * @param networkId id of network
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
         User existingUser = userDAO.findById(userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
-            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
+            throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
-        Network existingNetwork = networkDAO.getByIdWithUsers(networkId);
-        if (existingNetwork != null) {
-            existingNetwork.getUsers().remove(existingUser);
-            networkDAO.merge(existingNetwork);
-        }
+        genericDAO.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
+                .setParameter("id", networkId)
+                .getResultList()
+                .stream().findFirst()
+                .ifPresent(existingNetwork -> {
+                    existingNetwork.getUsers().remove(existingUser);
+                    genericDAO.merge(existingNetwork);
+                });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
