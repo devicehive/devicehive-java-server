@@ -11,7 +11,6 @@ import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CustomTypeSafeMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -21,9 +20,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class UserServiceTest extends AbstractResourceTest {
 
