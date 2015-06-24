@@ -9,6 +9,8 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -28,10 +30,8 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
 import static java.util.Optional.*;
 
 @Component
@@ -56,6 +56,9 @@ public class NetworkService {
         HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
+        Set<Long> permittedNetworks = permittedNetworksIds(principal.getKey());
+        Set<String> permittedDevices = permittedDeviceGuids(principal.getKey());
+
         Optional<Network> result = of(principal)
                 .flatMap(pr -> {
                     if (pr.getUser() != null)
@@ -68,7 +71,8 @@ public class NetworkService {
                     Long idForFiltering = user.isAdmin() ? null : user.getId();
                     TypedQuery<Network> query = genericDAO.createNamedQuery(Network.class, "Network.getNetworksByIdsAndUsers", of(CacheConfig.bypass()))
                             .setParameter("userId", idForFiltering)
-                            .setParameter("networkIds", singletonList(networkId));
+                            .setParameter("networkIds", Collections.singleton(networkId))
+                            .setParameter("permittedNetworks", permittedNetworks);
                     List<Network> found = query.getResultList();
                     return found.stream().findFirst();
                 }).map(network -> {
@@ -81,10 +85,40 @@ public class NetworkService {
                             network.setDevices(Collections.emptySet());
                         }
                     }
+                    if (permittedDevices != null && !permittedDevices.isEmpty()) {
+                        Set<Device> allowed = network.getDevices().stream()
+                                .filter(device -> permittedDevices.contains(device.getGuid()))
+                                .collect(Collectors.toSet());
+                        network.setDevices(allowed);
+                    }
                     return network;
                 });
 
         return result.orElse(null);
+    }
+
+    private Set<Long> permittedNetworksIds(AccessKey accessKey) {
+        return ofNullable(accessKey)
+                .map(AccessKey::getPermissions)
+                .map(AccessKeyBasedFilterForNetworks::createExtraFilters)
+                .map(filters -> filters.stream().map(AccessKeyBasedFilterForNetworks::getNetworkIds).filter(s -> s != null).collect(Collectors.toSet()))
+                .flatMap(setOfSets -> {
+                    Set<Long> networkIds = new HashSet<>();
+                    setOfSets.forEach(networkIds::addAll);
+                    return networkIds.isEmpty() ? empty() : of(networkIds);
+                }).orElse(null);
+    }
+
+    private Set<String> permittedDeviceGuids(AccessKey accessKey) {
+        return ofNullable(accessKey)
+                .map(AccessKey::getPermissions)
+                .map(AccessKeyBasedFilterForDevices::createExtraFilters)
+                .map(filters -> filters.stream().map(AccessKeyBasedFilterForDevices::getDeviceGuids).filter(s -> s != null).collect(Collectors.toSet()))
+                .map(setOfSets -> {
+                    Set<String> deviceGuids = new HashSet<>();
+                    setOfSets.forEach(deviceGuids::addAll);
+                    return deviceGuids;
+                }).orElse(null);
     }
 
     @Transactional
@@ -166,10 +200,29 @@ public class NetworkService {
 
     @Transactional
     public Network createOrVerifyNetwork(NullableWrapper<Network> networkNullable) {
-        return createOrVerifyNetwork(networkNullable, network -> null, () -> false);
+        //case network is not defined
+        if (networkNullable == null || networkNullable.getValue() == null) {
+            return null;
+        }
+        Network network = networkNullable.getValue();
+
+        Optional<Network> storedOpt = findNetworkByIdOrName(network);
+        if (storedOpt.isPresent()) {
+            return validateNetworkKey(storedOpt.get(), network);
+        } else {
+            if (network.getId() != null) {
+                throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
+            }
+            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
+            if (allowed) {
+                genericDAO.persist(network);
+            }
+            return network;
+        }
     }
 
-    private Network createOrVerifyNetwork(NullableWrapper<Network> networkNullable, Function<Network, Object> onUpdate, Supplier<Boolean> onCreate) {
+    @Transactional
+    public Network createOrUpdateNetworkByUser(NullableWrapper<Network> networkNullable, User user) {
         //case network is not defined
         if (networkNullable == null || networkNullable.getValue() == null) {
             return null;
@@ -177,52 +230,71 @@ public class NetworkService {
 
         Network network = networkNullable.getValue();
 
-        Optional<Network> storedOpt = ofNullable(network.getId())
-                .map(id -> ofNullable(genericDAO.find(Network.class, id)))
-                .orElseGet(() ->
-                        genericDAO.createNamedQuery(Network.class, Network.Queries.Names.FIND_BY_NAME, empty())
-                                .setParameter("name", network.getName())
-                                .getResultList()
-                                .stream().findFirst());
+        Optional<Network> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
-            Network stored = storedOpt.get();
-            if (stored.getKey() != null && !stored.getKey().equals(network.getKey())) {
-                throw new ActionNotAllowedException(Messages.INVALID_NETWORK_KEY);
+            Network stored = validateNetworkKey(storedOpt.get(), network);
+            if (!userService.hasAccessToNetwork(user, stored)) {
+                throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
             }
-            onUpdate.apply(stored);
             return stored;
         } else {
             if (network.getId() != null) {
                 throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
             }
             boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
-            if (!onCreate.get() && !allowed) {
+            if (user.isAdmin() || allowed) {
+                genericDAO.persist(network);
+            } else {
                 throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
             }
-            genericDAO.persist(network);
             return network;
         }
-
     }
 
     @Transactional
-    public Network createOrUpdateNetworkByUser(NullableWrapper<Network> network, User user) {
-        return createOrVerifyNetwork(network, stored -> {
-            if (!userService.hasAccessToNetwork(user, stored)) {
-                throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
-            }
+    public Network createOrVerifyNetworkByKey(NullableWrapper<Network> networkNullable, AccessKey key) {
+        //case network is not defined
+        if (networkNullable == null || networkNullable.getValue() == null) {
             return null;
-        }, user::isAdmin);
-    }
+        }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Network createOrVerifyNetworkByKey(NullableWrapper<Network> network, AccessKey key) {
-        return createOrVerifyNetwork(network, stored -> {
+        Network network = networkNullable.getValue();
+
+        Optional<Network> storedOpt = findNetworkByIdOrName(network);
+        if (storedOpt.isPresent()) {
+            Network stored = validateNetworkKey(storedOpt.get(), network);
             if (stored.getKey() != null && !accessKeyService.hasAccessToNetwork(key, stored)) {
                 throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
             }
-            return null;
-        }, () -> false);
+            return stored;
+        } else {
+            if (network.getId() != null) {
+                throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
+            }
+            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
+            if (allowed) {
+                genericDAO.persist(network);
+            } else {
+                throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
+            }
+            return network;
+        }
     }
 
+    private Optional<Network> findNetworkByIdOrName(Network network) {
+        return ofNullable(network.getId())
+                .map(id -> ofNullable(genericDAO.find(Network.class, id)))
+                .orElseGet(() ->
+                        genericDAO.createNamedQuery(Network.class, Network.Queries.Names.FIND_BY_NAME, empty())
+                                .setParameter("name", network.getName())
+                                .getResultList()
+                                .stream().findFirst());
+    }
+
+    private Network validateNetworkKey(Network stored, Network received) {
+        if (stored.getKey() != null && !stored.getKey().equals(received.getKey())) {
+            throw new ActionNotAllowedException(Messages.INVALID_NETWORK_KEY);
+        }
+        return stored;
+    }
 }

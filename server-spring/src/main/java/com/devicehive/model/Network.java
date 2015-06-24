@@ -24,7 +24,8 @@ import static com.devicehive.model.Network.Queries.Values;
                   @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
                   @NamedQuery(name = Names.GET_WITH_DEVICES_AND_DEVICE_CLASSES,
                               query = Values.GET_WITH_DEVICES_AND_DEVICE_CLASSES),
-                  @NamedQuery(name = "Network.getNetworksByIdsAndUsers", query = "select n from Network n left outer join n.users u where n.id in :networkIds and (u.id = :userId or :userId is null)")
+                  @NamedQuery(name = "Network.getNetworksByIdsAndUsers", query = "select n from Network n left outer join n.users u left join fetch n.devices d left join fetch d.deviceClass dc " +
+                          "where n.id in :networkIds and (u.id = :userId or :userId is null) and (n.id in :permittedNetworks or :permittedNetworks is null)")
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)

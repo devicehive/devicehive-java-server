@@ -15,8 +15,10 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.NetworkUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hamcrest.CustomMatcher;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -27,6 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static java.util.Arrays.equals;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -572,10 +575,12 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(5));
-        returnedNetwork.getDevices().forEach(device -> {
+        for (Device device : returnedNetwork.getDevices()) {
             assertThat(device.getDeviceClass(), notNullValue());
+            assertThat(device.getDeviceClass().getId(), notNullValue());
+            assertThat(device.getDeviceClass().getName(), notNullValue());
             assertThat(device.getDeviceClass().getName(), equalTo(dc.getName().getValue()));
-        });
+        }
     }
 
     @Test
@@ -654,6 +659,166 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_not_return_network_with_devices_if_access_key_does_not_have_permissions() throws Exception {
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+
+        userService.assignNetwork(user.getId(), created.getId());
+
+        AccessKey accessKey = new AccessKey();
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setNetworkIds(Arrays.asList(-1L, -2L));
+        accessKey.setPermissions(Collections.singleton(permission));
+        accessKey.setUser(user);
+
+        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+        authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
+
+        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        assertThat(returnedNetwork, nullValue());
+    }
+
+    @Test
+    public void should_return_network_only_with_permitted_devices_for_access_key() throws Exception {
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+
+        userService.assignNetwork(user.getId(), created.getId());
+
+        DeviceClassUpdate dc = new DeviceClassUpdate();
+        dc.setName(new NullableWrapper<>(randomUUID().toString()));
+        dc.setVersion(new NullableWrapper<>("1"));
+        for (int i = 0; i < 5; i++) {
+            DeviceUpdate device = new DeviceUpdate();
+            device.setName(new NullableWrapper<>(randomUUID().toString()));
+            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
+            device.setKey(new NullableWrapper<>(randomUUID().toString()));
+            device.setDeviceClass(new NullableWrapper<>(dc));
+            device.setNetwork(new NullableWrapper<>(created));
+            deviceService.deviceSave(device, Collections.emptySet());
+        }
+
+        DeviceUpdate device = new DeviceUpdate();
+        device.setName(new NullableWrapper<>("allowed_device"));
+        device.setGuid(new NullableWrapper<>(randomUUID().toString()));
+        device.setKey(new NullableWrapper<>(randomUUID().toString()));
+        device.setDeviceClass(new NullableWrapper<>(dc));
+        device.setNetwork(new NullableWrapper<>(created));
+        DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
+
+        AccessKey accessKey = new AccessKey();
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setNetworkIds(Collections.singleton(created.getId()));
+        permission.setDeviceGuids(Collections.singleton(notification.getDeviceGuid()));
+        accessKey.setPermissions(Collections.singleton(permission));
+        accessKey.setUser(user);
+
+        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+        authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
+
+        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        assertThat(returnedNetwork, notNullValue());
+        assertThat(returnedNetwork.getDevices(), hasSize(1));
+        assertThat(returnedNetwork.getDevices(), hasItem(new CustomTypeSafeMatcher<Device>("expect device") {
+            @Override
+            protected boolean matchesSafely(Device item) {
+                return item.getGuid().equals(notification.getDeviceGuid());
+            }
+        }));
+    }
+
+    @Test
+    public void should_return_network_without_devices_if_access_key_does_not_have_device_guid_in_permissions() throws Exception {
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+
+        userService.assignNetwork(user.getId(), created.getId());
+
+        DeviceClassUpdate dc = new DeviceClassUpdate();
+        dc.setName(new NullableWrapper<>(randomUUID().toString()));
+        dc.setVersion(new NullableWrapper<>("1"));
+        for (int i = 0; i < 5; i++) {
+            DeviceUpdate device = new DeviceUpdate();
+            device.setName(new NullableWrapper<>(randomUUID().toString()));
+            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
+            device.setKey(new NullableWrapper<>(randomUUID().toString()));
+            device.setDeviceClass(new NullableWrapper<>(dc));
+            device.setNetwork(new NullableWrapper<>(created));
+            deviceService.deviceSave(device, Collections.emptySet());
+        }
+
+        AccessKey accessKey = new AccessKey();
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setDeviceGuids(Collections.singleton("-1"));
+        accessKey.setPermissions(Collections.singleton(permission));
+        accessKey.setUser(user);
+
+        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+        authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
+
+        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        assertThat(returnedNetwork, notNullValue());
+        assertThat(returnedNetwork.getDevices(), is(empty()));
+    }
+
+    @Test
+    public void should_return_permitted_network() throws Exception {
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        Network network = new Network();
+        network.setName(namePrefix + randomUUID());
+        Network first = networkService.create(network);
+        assertThat(first.getId(), notNullValue());
+        userService.assignNetwork(user.getId(), first.getId());
+
+        network = new Network();
+        network.setName(namePrefix + randomUUID());
+        Network second = networkService.create(network);
+        assertThat(second.getId(), notNullValue());
+        userService.assignNetwork(user.getId(), second.getId());
+
+        AccessKey accessKey = new AccessKey();
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setNetworkIds(Arrays.asList(first.getId(), -1L, -2L));
+        accessKey.setPermissions(Collections.singleton(permission));
+        accessKey.setUser(user);
+
+        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+        authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
+
+        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(first.getId(), authentication);
+        assertThat(returnedNetwork, notNullValue());
+        assertThat(returnedNetwork.getId(), equalTo(first.getId()));
+
+        returnedNetwork = networkService.getWithDevicesAndDeviceClasses(second.getId(), authentication);
+        assertThat(returnedNetwork, nullValue());
+    }
+
+    @Test
     public void should_do_nothing_when_creates_or_verifies_network_if_network_is_null() throws Exception {
         assertThat(networkService.createOrVerifyNetwork(new NullableWrapper<>(null)), nullValue());
     }
@@ -668,6 +833,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
     }
 
+    @Ignore("JavaScript integration test '#Create Auto Create (incl. Legacy Equipment) should auto-create network and device class' fails with such behavior")
     @Test
     public void should_throw_ActionNotAllowedException_if_network_auto_creation_is_not_allowed_when_creates_or_verifies_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
