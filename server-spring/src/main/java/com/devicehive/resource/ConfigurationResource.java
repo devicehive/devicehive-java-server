@@ -1,15 +1,10 @@
 package com.devicehive.resource;
 
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.auth.WwwAuthenticateRequired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 /**
  * Provide API information
@@ -23,7 +18,6 @@ public interface ConfigurationResource {
 
     @PUT
     @PreAuthorize("hasRole('ADMIN')")
-    @RolesAllowed(HiveRoles.ADMIN)
     @Path("/{name}")
     @WwwAuthenticateRequired
     Response setProperty(
@@ -45,11 +39,4 @@ public interface ConfigurationResource {
     @Path("/{name}")
     @WwwAuthenticateRequired
     Response deleteProperty(@PathParam("name") String name);
-
-    @POST
-    @PreAuthorize("hasRole('ADMIN')")
-    @Path("/auto")
-    @WwwAuthenticateRequired
-    Response auto(@HeaderParam(HttpHeaders.REFERER) String referer, @Context UriInfo uriInfo);
-
 }

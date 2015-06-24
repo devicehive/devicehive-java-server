@@ -64,10 +64,6 @@ public class CommonHandlers extends WebsocketHandlers {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        String url = configurationService.get(Constants.REST_SERVER_URL);
-        if (url != null) {
-            apiInfo.setRestServerUrl(url);
-        }
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("info", apiInfo, WEBSOCKET_SERVER_INFO);
         logger.debug("server/info action completed. Session {}", session.getId());
