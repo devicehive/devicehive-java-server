@@ -40,6 +40,8 @@ Prerequisites
 In order to use DeviceHive framework you must have the following components installed and configured:
 * [PostgreSQL 9.1](http://www.postgresql.org/download/) or above.
 * [PostgreSQL JDBC driver](http://jdbc.postgresql.org/download.html#others) suitable for your version of PostgreSQL
+* [Redis 3.0.1](http://redis.io/download) or above.
+* [Apache Kafka 2.9.2](http://kafka.apache.org/downloads.html) or above with Zookeeper.
 * [Glassfish 4.1](http://glassfish.java.net/download.html) application server (Java EE 7 Full Platform)
 * [Oracle JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 7](http://openjdk.java.net/)
 (this is requirement for Glassfish 4.1; Java EE 7 requires JDK 7). JDK 8 will be fine too.
@@ -125,6 +127,17 @@ Setup managed executor services:
 * Open Resources -> Concurrent Resources -> Managed Executor Services. Create concurrent resources with properties:
 1. JNDI Name: concurrent/DeviceHiveWaitService  
 2. JNDI Name: concurrent/DeviceHiveMessageService
+
+Running Apache Kafka
+-----------------------
+Start Zookeeper and Apache Kafka brokers as explained at official documentation (`http://kafka.apache.org/documentation.html#quickstart`).
+If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
+You need to update zookeeper.connect (zookeeper's contactpoint) and metadata.broker.list (list of brokers) properties.
+
+Running Redis
+-----------------------
+Start Redis as explained at `http://redis.io/download`. Check that Redis configurations (redis.connection.host and
+redis.connection.port) in app.properties are correct.
 
 Deploying application
 ---------------------
