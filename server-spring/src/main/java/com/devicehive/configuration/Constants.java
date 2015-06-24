@@ -120,9 +120,9 @@ public class Constants {
 
     public static final String CASSANDRA_CONTACTPOINTS = "cassandra.contactpoints";
 
-    public static final String REDDIS_CONNECTION_HOST = "reddis.connection.host";
-    public static final String REDDIS_CONNECTION_PORT = "reddis.connection.port";
-    public static final String REDDIS_CONNECTION_TIMEOUT = "reddis.connection.timeout";
+    public static final String REDIS_CONNECTION_HOST = "redis.connection.host";
+    public static final String REDIS_CONNECTION_PORT = "redis.connection.port";
+    public static final String REDIS_CONNECTION_TIMEOUT = "redis.connection.timeout";
     public static final String NOTIFICATION_EXPIRE_SEC = "notification.expire.sec";
     public static final String COMMAND_EXPIRE_SEC = "command.expire.sec";
 

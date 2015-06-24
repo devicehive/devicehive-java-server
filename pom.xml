@@ -453,11 +453,7 @@
 
     <modules>
         <module>server-spring</module>
-        <module>client</module>
         <module>tools/dh_dbtool</module>
-        <module>tools/messaging</module>
-        <module>examples</module>
-        <module>worker</module>
     </modules>
 
 
