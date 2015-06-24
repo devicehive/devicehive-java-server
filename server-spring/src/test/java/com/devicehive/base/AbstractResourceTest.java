@@ -2,7 +2,6 @@ package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.base.rule.EmbeddedKafkaRule;
-import com.devicehive.base.rule.EmbeddedRedisRule;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
@@ -38,9 +37,6 @@ import static org.junit.Assert.assertThat;
 public abstract class AbstractResourceTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-
-    @ClassRule
-    public static EmbeddedRedisRule redisRule = new EmbeddedRedisRule();
 
     @ClassRule
     public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
