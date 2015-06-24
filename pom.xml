@@ -20,7 +20,6 @@
 
         <scala-binaries.version>2.10</scala-binaries.version>
         <hibernate-version>4.3.5.Final</hibernate-version>
-        <ehcache-version>2.6.9</ehcache-version>
         <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
         <glassfish.tyrus>1.8.2</glassfish.tyrus>
         <javaee-api.version>7.0</javaee-api.version>
@@ -44,7 +43,6 @@
         <google-oauth-client.version>1.19.0</google-oauth-client.version>
         <kafka.version>0.8.2.1</kafka.version>
         <cassandra-driver-core.version>2.1.4</cassandra-driver-core.version>
-        <jedis.version>2.6.2</jedis.version>
         <surefire-junit47.version>2.17</surefire-junit47.version>
         <slf4j.version>1.7.7</slf4j.version>
         <jackson2.version>2.4.5</jackson2.version>
@@ -111,19 +109,6 @@
                 <artifactId>hibernate-entitymanager</artifactId>
                 <version>${hibernate-version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>net.sf.ehcache</groupId>
-                <artifactId>ehcache-core</artifactId>
-                <version>${ehcache-version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-ehcache</artifactId>
-                <version>${hibernate-version}</version>
-            </dependency>
-
 
             <!-- Google Guava libraries -->
             <dependency>
@@ -279,12 +264,6 @@
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-core</artifactId>
                 <version>${cassandra-driver-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>redis.clients</groupId>
-                <artifactId>jedis</artifactId>
-                <version>${jedis.version}</version>
             </dependency>
 
             <dependency>

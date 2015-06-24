@@ -24,9 +24,8 @@
         <httpclient.version>4.3.5</httpclient.version>
         <zookeeper.version>3.4.6</zookeeper.version>
         <zkclient.version>0.3</zkclient.version>
-        <embedded-redis.version>0.6</embedded-redis.version>
         <nekohtml.version>1.9.22</nekohtml.version>
-        <hazelcast.version>3.5-EA</hazelcast.version>
+        <hazelcast.version>3.5</hazelcast.version>
         <curator.version>2.8.0</curator.version>
 
         <tomcat.version>8.0.21</tomcat.version>
@@ -51,12 +50,6 @@
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <version>${hsqldb.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.kstyrc</groupId>
-            <artifactId>embedded-redis</artifactId>
-            <version>${embedded-redis.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -166,14 +159,6 @@
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-ehcache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>commons-codec</groupId>
@@ -209,11 +194,6 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
         </dependency>
 
         <dependency>
@@ -269,6 +249,12 @@
             <artifactId>hazelcast-spring</artifactId>
             <version>${hazelcast.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-hibernate4</artifactId>
+            <version>${hazelcast.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
@@ -368,7 +354,7 @@
                 <configuration>
                     <argLine>
                         -Dport=${server.test.port} -Dzk.port=${zk.test.port}
-                        -Dkafka.port=${kafka.test.port} -Dredis.port=${redis.test.port}
+                        -Dkafka.port=${kafka.test.port}
                     </argLine>
                     <skipTests>${skipTests}</skipTests>
                 </configuration>
@@ -389,7 +375,6 @@
                                 <portName>server.test.port</portName>
                                 <portName>kafka.test.port</portName>
                                 <portName>zk.test.port</portName>
-                                <portName>redis.test.port</portName>
                             </portNames>
                         </configuration>
                     </execution>
