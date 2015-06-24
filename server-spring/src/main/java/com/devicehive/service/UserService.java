@@ -203,7 +203,7 @@ public class UserService {
             if (role != UserRole.ADMIN) {
                 logger.error("Can't update user with id {}: users eith the 'client' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
-            } else if (userToUpdate.getRole() != null) {
+            } else if (userToUpdate.getRoleEnum() != null) {
                 existing.setRole(userToUpdate.getRoleEnum());
             } else {
                 existing.setStatus(userToUpdate.getStatusEnum());
