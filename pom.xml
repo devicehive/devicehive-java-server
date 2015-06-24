@@ -328,7 +328,6 @@
     <modules>
         <module>server</module>
         <module>tools/dh_dbtool</module>
-        <module>tools/messaging</module>
     </modules>
 
 
