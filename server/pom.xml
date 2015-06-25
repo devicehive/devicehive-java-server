@@ -27,6 +27,7 @@
         <nekohtml.version>1.9.22</nekohtml.version>
         <hazelcast.version>3.5</hazelcast.version>
         <curator.version>2.8.0</curator.version>
+        <flyway-core.version>3.2.1</flyway-core.version>
 
         <tomcat.version>8.0.21</tomcat.version>
 
@@ -158,6 +159,12 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway-core.version}</version>
         </dependency>
 
         <dependency>
