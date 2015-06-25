@@ -19,7 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <scala-binaries.version>2.10</scala-binaries.version>
-        <hibernate-version>4.3.5.Final</hibernate-version>
+        <hibernate-version>4.3.10.Final</hibernate-version>
         <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
         <glassfish.tyrus>1.8.2</glassfish.tyrus>
         <javaee-api.version>7.0</javaee-api.version>

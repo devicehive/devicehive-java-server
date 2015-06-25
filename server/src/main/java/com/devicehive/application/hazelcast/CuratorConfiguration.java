@@ -1,4 +1,4 @@
-package com.devicehive.application;
+package com.devicehive.application.hazelcast;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
