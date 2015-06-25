@@ -9,10 +9,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>devicehive-server-spring</artifactId>
+    <artifactId>devicehive-server</artifactId>
     <packaging>${packaging.type}</packaging>
     <version>2.0.1-SNAPSHOT</version>
-    <name>DeviceHive Spring-based Java Server</name>
+    <name>DeviceHive Java Server</name>
 
     <properties>
         <springboot.version>1.2.3.RELEASE</springboot.version>

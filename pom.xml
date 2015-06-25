@@ -431,7 +431,7 @@
     </build>
 
     <modules>
-        <module>server-spring</module>
+        <module>server</module>
         <module>tools/dh_dbtool</module>
     </modules>
 
