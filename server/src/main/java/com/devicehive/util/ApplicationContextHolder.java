@@ -1,27 +1,25 @@
 package com.devicehive.util;
 
+import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
-public class ApplicationContextHolder {
-    private static ApplicationContextHolder ourInstance = new ApplicationContextHolder();
+@Component
+public class ApplicationContextHolder implements ApplicationContextAware {
 
-    public static ApplicationContextHolder getInstance() {
-        return ourInstance;
-    }
+    private static volatile ApplicationContext applicationContext;
 
-    private ApplicationContextHolder() {
-    }
 
-    private ApplicationContext context;
-
-    public ApplicationContext get() {
-        if (context == null) {
-            throw new IllegalStateException("Application context in null");
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        if (ApplicationContextHolder.applicationContext != null) {
+            throw new IllegalStateException();
         }
-        return context;
+        ApplicationContextHolder.applicationContext = applicationContext;
     }
 
-    public void set(ApplicationContext context) {
-        this.context = context;
+    public static ApplicationContext getApplicationContext() {
+        return applicationContext;
     }
 }
