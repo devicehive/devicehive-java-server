@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/devicehive/devicehive-java-server.svg?branch=development)](https://travis-ci.org/devicehive/devicehive-java-server)
+
 DeviceHive Java server
 ======================
 
