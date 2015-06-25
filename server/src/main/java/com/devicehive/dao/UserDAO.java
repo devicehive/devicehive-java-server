@@ -32,9 +32,6 @@ public class UserDAO {
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
 
-    @Autowired
-    private PasswordProcessor passwordService;
-
     /**
      * Search user by login
      *
@@ -181,16 +178,6 @@ public class UserDAO {
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findById(Long id) {
         return em.find(User.class, id);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public User findUserWithNetworks(Long id) {
-        TypedQuery<User> query = em.createNamedQuery(GET_WITH_NETWORKS_BY_ID, User.class);
-        query.setParameter(ID, id);
-        CacheHelper.cacheable(query);
-        List<User> users = query.getResultList();
-        return users.isEmpty() ? null : users.get(0);
-
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
