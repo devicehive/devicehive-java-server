@@ -2,7 +2,6 @@ package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.base.rule.EmbeddedKafkaRule;
-import com.devicehive.base.rule.EmbeddedRedisRule;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
@@ -40,7 +39,7 @@ public abstract class AbstractResourceTest {
     public static final String ADMIN_PASS = "admin_pass";
 
     @ClassRule
-    public static EmbeddedRedisRule redisRule = new EmbeddedRedisRule();
+    public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
 
     @Value("${server.port}")
     protected Integer port;

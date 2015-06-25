@@ -10,7 +10,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 /**
  * Created by tmatvienko on 1/27/15.
  */
-public class DeviceCommand implements HiveEntity  {
+public class DeviceCommand implements HiveEntity, HazelcastEntity  {
     private static final long serialVersionUID = 4140545193474112756L;
 
     @SerializedName("id")
@@ -212,5 +212,10 @@ public class DeviceCommand implements HiveEntity  {
                 ", result=" + result +
                 ", isUpdated=" + isUpdated +
                 '}';
+    }
+
+    @Override
+    public String getHazelcastKey() {
+        return id+"-"+deviceGuid+"-"+timestamp;
     }
 }
