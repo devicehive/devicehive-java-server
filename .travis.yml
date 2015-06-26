@@ -8,5 +8,8 @@ deploy:
   file: ${HOME}/build/${TRAVIS_REPO_SLUG}/server/target/*.jar
   skip_cleanup: true
   on:
+    branch: 
+     - staging
+     - master
     tags: true
     repo: devicehive/devicehive-java-server
