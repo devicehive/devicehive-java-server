@@ -7,4 +7,5 @@ deploy:
   file: server/target/*.jar
   skip_cleanup: true
   on:
+    tags: true
     repo: devicehive/devicehive-java-server
