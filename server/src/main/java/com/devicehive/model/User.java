@@ -16,31 +16,25 @@ import java.sql.Timestamp;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.model.User.Queries.Names;
-import static com.devicehive.model.User.Queries.Values;
 
 @Entity(name = "User")
 @Table(name = "\"user\"")
 @NamedQueries({
-                  @NamedQuery(name = Names.FIND_BY_NAME, query = Values.FIND_BY_NAME),
-                  @NamedQuery(name = Names.FIND_BY_GOOGLE_NAME, query = Values.FIND_BY_GOOGLE_NAME),
-                  @NamedQuery(name = Names.FIND_BY_FACEBOOK_NAME, query = Values.FIND_BY_FACEBOOK_NAME),
-                  @NamedQuery(name = Names.FIND_BY_GITHUB_NAME, query = Values.FIND_BY_GITHUB_NAME),
-                  @NamedQuery(name = Names.FIND_BY_IDENTITY_NAME, query = Values.FIND_BY_IDENTITY_NAME),
-                  @NamedQuery(name = Names.HAS_ACCESS_TO_NETWORK, query = Values.HAS_ACCESS_TO_NETWORK),
-                  @NamedQuery(name = Names.HAS_ACCESS_TO_DEVICE, query = Values.HAS_ACCESS_TO_DEVICE),
-                  @NamedQuery(name = Names.GET_WITH_NETWORKS_BY_ID, query = Values.GET_WITH_NETWORKS_BY_ID),
-                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
-              })
+        @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
+        @NamedQuery(name = "User.findByGoogleName", query = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3"),
+        @NamedQuery(name = "User.findByFacebookName", query = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3"),
+        @NamedQuery(name = "User.findByGithubName", query = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3"),
+        @NamedQuery(name = "User.findByIdentityName", query = "select u from User u where u.login<> :login and (u.googleLogin = :googleLogin or u.facebookLogin = :facebookLogin or u.githubLogin = :githubLogin) and u.status <> 3"),
+        @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n where u = :user and n = :network"),
+        @NamedQuery(name = "User.hasAccessToDevice", query = "select count(distinct n) from Network n join n.devices d join n.users u where u = :user and d.guid = :guid"),
+        @NamedQuery(name = "User.getWithNetworksById", query = "select u from User u left join fetch u.networks where u.id = :id"),
+        @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
+})
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class User implements HiveEntity {
-
-    public static final String ID_COLUMN = "id";
-    public static final String LOGIN_COLUMN = "login";
-    public static final String ROLE_COLUMN = "role";
-    public static final String STATUS_COLUMN = "status";
     private static final long serialVersionUID = -8980491502416082011L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SerializedName("id")
@@ -50,7 +44,7 @@ public class User implements HiveEntity {
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
-                                        "symbols.")
+            "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
     @Column(name = "password_hash")
@@ -74,15 +68,15 @@ public class User implements HiveEntity {
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Timestamp lastLogin;
-    @Column(name="google_login")
+    @Column(name = "google_login")
     @SerializedName("googleLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String googleLogin;
-    @Column(name="facebook_login")
+    @Column(name = "facebook_login")
     @SerializedName("facebookLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String facebookLogin;
-    @Column(name="github_login")
+    @Column(name = "github_login")
     @SerializedName("githubLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String githubLogin;
@@ -237,54 +231,4 @@ public class User implements HiveEntity {
         return id == null ? 0 : id.hashCode();
     }
 
-    public static class Queries {
-
-        public static interface Names {
-
-            static final String FIND_BY_NAME = "User.findByName";
-            static final String FIND_BY_GOOGLE_NAME = "User.findByGoogleName";
-            static final String FIND_BY_FACEBOOK_NAME = "User.findByFacebookName";
-            static final String FIND_BY_GITHUB_NAME = "User.findByGithubName";
-            static final String FIND_BY_IDENTITY_NAME = "User.findByIdentityName";
-            static final String HAS_ACCESS_TO_NETWORK = "User.hasAccessToNetwork";
-            static final String HAS_ACCESS_TO_DEVICE = "User.hasAccessToDevice";
-            static final String GET_WITH_NETWORKS_BY_ID = "User.getWithNetworksById";
-            static final String DELETE_BY_ID = "User.deleteById";
-        }
-
-        static interface Values {
-
-            static final String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
-            static final String FIND_BY_GOOGLE_NAME = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3";
-            static final String FIND_BY_FACEBOOK_NAME = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3";
-            static final String FIND_BY_GITHUB_NAME = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3";
-            static final String FIND_BY_IDENTITY_NAME = "select u from User u where u.login<> :login and (u.googleLogin = :googleLogin " +
-                    "or u.facebookLogin = :facebookLogin or u.githubLogin = :githubLogin) and u.status <> 3";
-            static final String HAS_ACCESS_TO_NETWORK =
-                "select count(distinct u) from User u " +
-                "join u.networks n " +
-                "where u = :user and n = :network";
-            static final String HAS_ACCESS_TO_DEVICE =
-                "select count(distinct n) from Network n " +
-                "join n.devices d " +
-                "join n.users u " +
-                "where u = :user and d.guid = :guid";
-            static final String GET_WITH_NETWORKS_BY_ID =
-                "select u from User u left join fetch u.networks where u.id = :id";
-            static final String DELETE_BY_ID = "delete from User u where u.id = :id";
-        }
-
-        public static interface Parameters {
-
-            static final String USER = "user";
-            static final String NETWORK = "network";
-            static final String DEVICE = "device";
-            static final String ID = "id";
-            static final String GUID = "guid";
-            static final String LOGIN = "login";
-            static final String GOOGLE_LOGIN = "googleLogin";
-            static final String FACEBOOK_LOGIN = "facebookLogin";
-            static final String GITHUB_LOGIN = "githubLogin";
-        }
-    }
 }

@@ -5,6 +5,7 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserStatus;
 
 import javax.persistence.criteria.*;
 import java.util.*;
@@ -27,10 +28,10 @@ public class CriteriaHelper {
         List<Predicate> predicates = new LinkedList<>();
 
         nameOpt.ifPresent(name ->
-                predicates.add(cb.equal(from.get(Network.NAME_COLUMN), name)));
+                predicates.add(cb.equal(from.get("name"), name)));
 
         namePatternOpt.ifPresent(pattern ->
-                predicates.add(cb.like(from.get(Network.NAME_COLUMN), pattern)));
+                predicates.add(cb.like(from.get("name"), pattern)));
 
         principalOpt.flatMap(principal -> {
             User user = principal.getUser();
@@ -40,7 +41,7 @@ public class CriteriaHelper {
             return ofNullable(user);
         }).ifPresent(user -> {
             if (!user.isAdmin()) {
-                predicates.add(from.join(Network.USERS_ASSOCIATION).in(user));
+                predicates.add(from.join("users").in(user));
             }
         });
 
@@ -74,6 +75,23 @@ public class CriteriaHelper {
             Order order = asc ? cb.asc(from.get(sortField)) : cb.desc(from.get(sortField));
             cq.orderBy(order);
         });
+    }
+
+    public static Predicate[] userListPredicates(CriteriaBuilder cb, Root<User> from, Optional<String> loginOpt, Optional<String> loginPattern, Optional<Integer> roleOpt, Optional<Integer> statusOpt) {
+        List<Predicate> predicates = new LinkedList<>();
+
+        if (loginPattern.isPresent()) {
+            loginPattern.ifPresent(pattern ->
+                    predicates.add(cb.like(from.get("login"), pattern)));
+        } else {
+            loginOpt.ifPresent(login ->
+                    predicates.add(cb.equal(from.get("login"), login)));
+        }
+
+        roleOpt.ifPresent(role -> predicates.add(cb.equal(from.get("role"), role)));
+        statusOpt.ifPresent(status -> predicates.add(cb.equal(from.get("status"), status)));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
     }
 
 }

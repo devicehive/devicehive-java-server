@@ -43,6 +43,11 @@ public class GenericDAO {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public <T extends Serializable> void refresh(T entity, LockModeType lockModeType) {
+        em.refresh(entity, lockModeType);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public <T extends Serializable> void remove(T entity) {
         em.remove(entity);
     }
