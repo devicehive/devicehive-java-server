@@ -4,7 +4,8 @@ deploy:
   provider: releases
   api_key:
     secure: mGftdsPBwei6SaaSveH8KfQ1PH/SRv3fZDjSNZVZTRAhsgn0EwaTP0z0zkdVjqRJs4Q3AGlXObT6KgIky+gDDNb5kKYmQtNy26JgaFqdglyIVG3c4fM6mFPqOIToOrY6Won1PFj+9Od9G7C4ehv3/OJCL+p/XGG9ZV+vZCQlyXU=
-  file: server/target/*.jar
+  file_glob: true
+  file: ${HOME}/build/${TRAVIS_REPO_SLUG}/server/target/*.jar
   skip_cleanup: true
   on:
     tags: true
