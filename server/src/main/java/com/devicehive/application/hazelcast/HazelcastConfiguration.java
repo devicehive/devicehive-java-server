@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
@@ -28,6 +31,8 @@ public class HazelcastConfiguration {
     private Environment env;
 
     @Bean(destroyMethod = "shutdown")
+    @Lazy(value = false)
+    @Order(value = Ordered.HIGHEST_PRECEDENCE)
     public HazelcastInstance hazelcast(Config config) {
         logger.debug("Initializing Hazelcast, checking for instance {}", INSTANCE_NAME);
         logger.debug("Creating new Hazelcast instance {}", INSTANCE_NAME);

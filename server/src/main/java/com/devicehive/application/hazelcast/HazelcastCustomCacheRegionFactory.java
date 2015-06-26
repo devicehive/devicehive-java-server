@@ -10,9 +10,12 @@ import java.util.Properties;
 
 public class HazelcastCustomCacheRegionFactory extends HazelcastCacheRegionFactory {
 
+    public HazelcastCustomCacheRegionFactory() {
+        this.instance = ApplicationContextHolder.getApplicationContext().getBean(HazelcastInstance.class);
+    }
+
     @Override
     public void start(Settings settings, Properties properties) throws CacheException {
-        ApplicationContextHolder.getApplicationContext().getBean(HazelcastInstance.class);
         super.start(settings, properties);
     }
 }
