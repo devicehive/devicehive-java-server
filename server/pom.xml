@@ -343,7 +343,7 @@
     </dependencyManagement>
 
     <build>
-        <finalName>devicehive</finalName>
+        <finalName>devicehive-${project.version}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
