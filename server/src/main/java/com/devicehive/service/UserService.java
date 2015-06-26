@@ -4,8 +4,8 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.GenericDAO;
-import com.devicehive.dao.UserDAO;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
@@ -26,18 +26,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static javax.ws.rs.core.Response.Status.*;
+import static java.util.Optional.*;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 /**
  * This class serves all requests to database from controller.
@@ -48,8 +49,6 @@ public class UserService {
 
     @Autowired
     private PasswordProcessor passwordService;
-    @Autowired
-    private UserDAO userDAO;
     @Autowired
     private GenericDAO genericDAO;
     @Autowired
@@ -265,7 +264,19 @@ public class UserService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
-        return userDAO.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
+        CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        CriteriaQuery<User> cq = cb.createQuery(User.class);
+        Root<User> from = cq.from(User.class);
+
+        Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from, ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
+        cq.where(predicates);
+        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
+
+        TypedQuery<User> query = genericDAO.createQuery(cq);
+        genericDAO.cacheQuery(query, of(CacheConfig.refresh()));
+        ofNullable(take).ifPresent(query::setMaxResults);
+        ofNullable(skip).ifPresent(query::setFirstResult);
+        return query.getResultList();
     }
 
     /**
