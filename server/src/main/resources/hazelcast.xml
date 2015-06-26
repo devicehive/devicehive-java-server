@@ -4,13 +4,17 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <map name="NOTIFICATIONS-MAP">
-        <time-to-live-seconds>600</time-to-live-seconds>
-        <max-idle-seconds>600</max-idle-seconds>
+        <time-to-live-seconds>0</time-to-live-seconds>
+        <max-idle-seconds>0</max-idle-seconds>
+        <eviction-policy>LRU</eviction-policy> 
+        <max-size policy="FREE_HEAP_PERCENTAGE">10</max-size>
     </map>
 
     <map name="COMMANDS-MAP">
-        <time-to-live-seconds>600</time-to-live-seconds>
-        <max-idle-seconds>600</max-idle-seconds>
+        <time-to-live-seconds>0</time-to-live-seconds>
+        <max-idle-seconds>0</max-idle-seconds>
+        <eviction-policy>LRU</eviction-policy> 
+        <max-size policy="FREE_HEAP_PERCENTAGE">10</max-size>
     </map>
 
 
