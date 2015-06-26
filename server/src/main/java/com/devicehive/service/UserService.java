@@ -59,9 +59,6 @@ public class UserService {
     @Autowired
     private HiveValidator hiveValidator;
 
-    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
-    private EntityManager em;
-
 
     /**
      * Tries to authenticate with given credentials
@@ -83,7 +80,10 @@ public class UserService {
 
     @Transactional(noRollbackFor = AccessDeniedException.class)
     public User findUser(String login, String password) {
-        User user = userDAO.findByLogin(login);
+        User user = genericDAO.createNamedQuery(User.class, "User.findByName", empty())
+                .setParameter("login", login)
+                .getResultList()
+                .stream().findFirst().orElse(null);
         if (user == null) {
             logger.error("Can't find user with login {} and password {}", login, password);
             throw new AccessDeniedException(Messages.USER_NOT_FOUND);
@@ -104,13 +104,7 @@ public class UserService {
                 || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
 
         if (validPassword && mustUpdateLoginStatistic) {
-            if (user.getLoginAttempts() != 0) {
-                user.setLoginAttempts(0);
-            }
-            if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
-                user.setLastLogin(timestampService.getTimestamp());
-            }
-            return of(genericDAO.merge(user));
+            return of(updateStatisticOnSuccessfulLogin(user, loginTimeout));
         } else if (!validPassword) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts() >=
@@ -124,13 +118,26 @@ public class UserService {
         return of(user);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    private User updateStatisticOnSuccessfulLogin(User user, long loginTimeout) {
+        boolean update = false;
+        if (user.getLoginAttempts() != 0) {
+            update = true;
+            user.setLoginAttempts(0);
+        }
+        if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
+            update = true;
+            user.setLastLogin(timestampService.getTimestamp());
+        }
+        return update ? genericDAO.merge(user) : user;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
     public User updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
-        User existing = userDAO.findById(id);
+        User existing = genericDAO.find(User.class, id);
 
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
-            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
+            throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
         if (userToUpdate == null) {
             return existing;
@@ -138,9 +145,12 @@ public class UserService {
         if (userToUpdate.getLogin() != null) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().getValue());
             final String oldLogin = existing.getLogin();
-            User withSuchLogin = userDAO.findByLogin(newLogin);
+            User withSuchLogin = genericDAO.createNamedQuery(User.class, "User.findByName", empty())
+                    .setParameter("login", newLogin)
+                    .getResultList()
+                    .stream().findFirst().orElse(null);
             if (withSuchLogin != null && !withSuchLogin.getId().equals(id)) {
-                throw new HiveException(Messages.DUPLICATE_LOGIN, FORBIDDEN.getStatusCode());
+                throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
             }
             existing.setLogin(newLogin);
 
@@ -152,8 +162,15 @@ public class UserService {
                     userToUpdate.getGithubLogin().getValue() : null;
 
             if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-                if (userDAO.findByIdentityLogin(oldLogin, googleLogin, facebookLogin, githubLogin) != null) {
-                    throw new HiveException(Messages.DUPLICATE_IDENTITY_LOGIN, FORBIDDEN.getStatusCode());
+                Optional<User> userWithSameIdentity = genericDAO.createNamedQuery(User.class, "User.findByIdentityName", of(CacheConfig.bypass()))
+                        .setParameter("login", oldLogin)
+                        .setParameter("googleLogin", googleLogin)
+                        .setParameter("facebookLogin", facebookLogin)
+                        .setParameter("githubLogin", githubLogin)
+                        .getResultList()
+                        .stream().findFirst();
+                if (userWithSameIdentity.isPresent()) {
+                    throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
                 }
             }
             existing.setGoogleLogin(googleLogin);
@@ -166,15 +183,15 @@ public class UserService {
                         existing.getPasswordSalt());
                 if (!hash.equals(existing.getPasswordHash())) {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
-                    throw new HiveException(Messages.INCORRECT_CREDENTIALS, FORBIDDEN.getStatusCode());
+                    throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
                 }
             } else if (role == UserRole.CLIENT) {
                 logger.error("Can't update user with id {}: old password required", id);
-                throw new HiveException(Messages.OLD_PASSWORD_REQUIRED, FORBIDDEN.getStatusCode());
+                throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
             if (StringUtils.isEmpty(userToUpdate.getPassword().getValue())) {
                 logger.error("Can't update user with id {}: password required", id);
-                throw new HiveException(Messages.PASSWORD_REQUIRED, BAD_REQUEST.getStatusCode());
+                throw new IllegalParametersException(Messages.PASSWORD_REQUIRED);
             }
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(userToUpdate.getPassword().getValue(), salt);
@@ -195,7 +212,7 @@ public class UserService {
             existing.setData(userToUpdate.getData().getValue());
         }
         hiveValidator.validate(existing);
-        return userDAO.update(existing);
+        return genericDAO.merge(existing);
     }
 
     /**
@@ -206,7 +223,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = userDAO.findById(userId);
+        User existingUser = genericDAO.find(User.class, userId);
         if (existingUser == null) {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
@@ -230,7 +247,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = userDAO.findById(userId);
+        User existingUser = genericDAO.find(User.class, userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
@@ -338,46 +355,57 @@ public class UserService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean hasAccessToDevice(User user, String deviceGuid) {
-        return user.isAdmin() || userDAO.hasAccessToDevice(user, deviceGuid);
+        if (!user.isAdmin()) {
+            long count = genericDAO.createNamedQuery(Long.class, "User.hasAccessToDevice", empty())
+                    .setParameter("user", user)
+                    .setParameter("guid", deviceGuid)
+                    .getSingleResult();
+            return count > 0;
+        }
+        return true;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean hasAccessToNetwork(User user, Network network) {
-        return user.isAdmin() || userDAO.hasAccessToNetwork(user, network);
+        if (!user.isAdmin()) {
+            long count = genericDAO.createNamedQuery(Long.class, "User.hasAccessToNetwork", empty())
+                    .setParameter("user", user)
+                    .setParameter("network", network)
+                    .getSingleResult();
+            return count > 0;
+        }
+        return true;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findGoogleUser(String login) {
-        return userDAO.findByGoogleLogin(login);
+        return genericDAO.createNamedQuery(User.class, "User.findByGoogleName", empty())
+                .setParameter("login", login)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findFacebookUser(String login) {
-        return userDAO.findByFacebookLogin(login);
+        return genericDAO.createNamedQuery(User.class, "User.findByFacebookName", empty())
+                .setParameter("login", login)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findGithubUser(String login) {
-        return userDAO.findByGithubLogin(login);
+        return genericDAO.createNamedQuery(User.class, "User.findByGithubName", empty())
+                .setParameter("login", login)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 
     @Transactional
     public User refreshUserLoginData(User user) {
+        hiveValidator.validate(user);
         final long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
-        final boolean updateLoginAttempts = user.getLoginAttempts() != 0;
-        final boolean updateLastLogin = user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
-        if (updateLoginAttempts || updateLastLogin) {
-            em.refresh(user, LockModeType.PESSIMISTIC_WRITE);
-            if (updateLoginAttempts) {
-                user.setLoginAttempts(0);
-            }
-            if (updateLastLogin) {
-                user.setLastLogin(timestampService.getTimestamp());
-            }
-            hiveValidator.validate(user);
-            return userDAO.update(user);
-        }
-        return user;
+        return updateStatisticOnSuccessfulLogin(user, loginTimeout);
     }
 
 }

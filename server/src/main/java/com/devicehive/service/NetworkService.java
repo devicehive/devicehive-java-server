@@ -123,8 +123,8 @@ public class NetworkService {
 
     @Transactional
     public boolean delete(long id) {
-        logger.trace("About to execute named query {} for ", Network.Queries.Names.DELETE_BY_ID);
-        int result = genericDAO.createNamedQuery(Network.Queries.Names.DELETE_BY_ID, Optional.<CacheConfig>empty())
+        logger.trace("About to execute named query \"Network.deleteById\" for ");
+        int result = genericDAO.createNamedQuery("Network.deleteById", Optional.<CacheConfig>empty())
                 .setParameter("id", id)
                 .executeUpdate();
         logger.debug("Deleted {} rows from Network table", result);
@@ -138,7 +138,7 @@ public class NetworkService {
             logger.error("Can't create network entity with id={} specified", newNetwork.getId());
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
-        List<Network> existing = genericDAO.createNamedQuery(Network.class, Network.Queries.Names.FIND_BY_NAME, Optional.of(CacheConfig.get()))
+        List<Network> existing = genericDAO.createNamedQuery(Network.class, "Network.findByName", Optional.of(CacheConfig.get()))
                 .setParameter("name", newNetwork.getName())
                 .getResultList();
         if (!existing.isEmpty()) {
@@ -285,7 +285,7 @@ public class NetworkService {
         return ofNullable(network.getId())
                 .map(id -> ofNullable(genericDAO.find(Network.class, id)))
                 .orElseGet(() ->
-                        genericDAO.createNamedQuery(Network.class, Network.Queries.Names.FIND_BY_NAME, empty())
+                        genericDAO.createNamedQuery(Network.class, "Network.findByName", empty())
                                 .setParameter("name", network.getName())
                                 .getResultList()
                                 .stream().findFirst());

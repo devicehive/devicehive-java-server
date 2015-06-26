@@ -27,10 +27,10 @@ public class CriteriaHelper {
         List<Predicate> predicates = new LinkedList<>();
 
         nameOpt.ifPresent(name ->
-                predicates.add(cb.equal(from.get(Network.NAME_COLUMN), name)));
+                predicates.add(cb.equal(from.get("name"), name)));
 
         namePatternOpt.ifPresent(pattern ->
-                predicates.add(cb.like(from.get(Network.NAME_COLUMN), pattern)));
+                predicates.add(cb.like(from.get("name"), pattern)));
 
         principalOpt.flatMap(principal -> {
             User user = principal.getUser();
@@ -40,7 +40,7 @@ public class CriteriaHelper {
             return ofNullable(user);
         }).ifPresent(user -> {
             if (!user.isAdmin()) {
-                predicates.add(from.join(Network.USERS_ASSOCIATION).in(user));
+                predicates.add(from.join("users").in(user));
             }
         });
 

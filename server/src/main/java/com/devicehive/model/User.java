@@ -36,7 +36,6 @@ import static com.devicehive.model.User.Queries.Values;
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class User implements HiveEntity {
 
-    public static final String ID_COLUMN = "id";
     public static final String LOGIN_COLUMN = "login";
     public static final String ROLE_COLUMN = "role";
     public static final String STATUS_COLUMN = "status";
@@ -239,52 +238,49 @@ public class User implements HiveEntity {
 
     public static class Queries {
 
-        public static interface Names {
+        public interface Names {
 
-            static final String FIND_BY_NAME = "User.findByName";
-            static final String FIND_BY_GOOGLE_NAME = "User.findByGoogleName";
-            static final String FIND_BY_FACEBOOK_NAME = "User.findByFacebookName";
-            static final String FIND_BY_GITHUB_NAME = "User.findByGithubName";
-            static final String FIND_BY_IDENTITY_NAME = "User.findByIdentityName";
-            static final String HAS_ACCESS_TO_NETWORK = "User.hasAccessToNetwork";
-            static final String HAS_ACCESS_TO_DEVICE = "User.hasAccessToDevice";
-            static final String GET_WITH_NETWORKS_BY_ID = "User.getWithNetworksById";
-            static final String DELETE_BY_ID = "User.deleteById";
+            String FIND_BY_NAME = "User.findByName";
+            String FIND_BY_GOOGLE_NAME = "User.findByGoogleName";
+            String FIND_BY_FACEBOOK_NAME = "User.findByFacebookName";
+            String FIND_BY_GITHUB_NAME = "User.findByGithubName";
+            String FIND_BY_IDENTITY_NAME = "User.findByIdentityName";
+            String HAS_ACCESS_TO_NETWORK = "User.hasAccessToNetwork";
+            String HAS_ACCESS_TO_DEVICE = "User.hasAccessToDevice";
+            String GET_WITH_NETWORKS_BY_ID = "User.getWithNetworksById";
+            String DELETE_BY_ID = "User.deleteById";
         }
 
-        static interface Values {
+        interface Values {
 
-            static final String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
-            static final String FIND_BY_GOOGLE_NAME = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3";
-            static final String FIND_BY_FACEBOOK_NAME = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3";
-            static final String FIND_BY_GITHUB_NAME = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3";
-            static final String FIND_BY_IDENTITY_NAME = "select u from User u where u.login<> :login and (u.googleLogin = :googleLogin " +
+            String FIND_BY_NAME = "select u from User u where u.login = :login and u.status <> 3";
+            String FIND_BY_GOOGLE_NAME = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3";
+            String FIND_BY_FACEBOOK_NAME = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3";
+            String FIND_BY_GITHUB_NAME = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3";
+            String FIND_BY_IDENTITY_NAME = "select u from User u where u.login<> :login and (u.googleLogin = :googleLogin " +
                     "or u.facebookLogin = :facebookLogin or u.githubLogin = :githubLogin) and u.status <> 3";
-            static final String HAS_ACCESS_TO_NETWORK =
+            String HAS_ACCESS_TO_NETWORK =
                 "select count(distinct u) from User u " +
                 "join u.networks n " +
                 "where u = :user and n = :network";
-            static final String HAS_ACCESS_TO_DEVICE =
-                "select count(distinct n) from Network n " +
-                "join n.devices d " +
-                "join n.users u " +
-                "where u = :user and d.guid = :guid";
-            static final String GET_WITH_NETWORKS_BY_ID =
+            String HAS_ACCESS_TO_DEVICE =
+                "select count(distinct n) from Network n join n.devices d join n.users u where u = :user and d.guid = :guid";
+            String GET_WITH_NETWORKS_BY_ID =
                 "select u from User u left join fetch u.networks where u.id = :id";
-            static final String DELETE_BY_ID = "delete from User u where u.id = :id";
+            String DELETE_BY_ID = "delete from User u where u.id = :id";
         }
 
-        public static interface Parameters {
+        public interface Parameters {
 
-            static final String USER = "user";
-            static final String NETWORK = "network";
-            static final String DEVICE = "device";
-            static final String ID = "id";
-            static final String GUID = "guid";
-            static final String LOGIN = "login";
-            static final String GOOGLE_LOGIN = "googleLogin";
-            static final String FACEBOOK_LOGIN = "facebookLogin";
-            static final String GITHUB_LOGIN = "githubLogin";
+            String USER = "user";
+            String NETWORK = "network";
+            String DEVICE = "device";
+            String ID = "id";
+            String GUID = "guid";
+            String LOGIN = "login";
+            String GOOGLE_LOGIN = "googleLogin";
+            String FACEBOOK_LOGIN = "facebookLogin";
+            String GITHUB_LOGIN = "githubLogin";
         }
     }
 }
