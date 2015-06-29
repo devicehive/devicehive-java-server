@@ -1,4 +1,4 @@
-<configuration debug="true">
+<configuration debug="false">
 
 
     <property name="entry.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %X{usrinf} %logger{36} - %msg%n"/>
@@ -10,7 +10,7 @@
     </appender>
 
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!--appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${server.log.directory}/devicehive.log</file>
         <append>false</append>
 
@@ -27,10 +27,11 @@
         <encoder>
             <pattern>${entry.pattern}</pattern>
         </encoder>
-    </appender>
+    </appender-->
 
     <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="FILE"/>
+        <!--appender-ref ref="FILE"/-->
+        <appender-ref ref="STDOUT"/>
     </appender>
 
     <logger name="com.devicehive.auth.rest.providers.DeviceAuthenticationProvider" level="WARN">
