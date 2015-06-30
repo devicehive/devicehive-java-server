@@ -66,7 +66,7 @@ public class DeviceClassService {
         }
         if (stored != null) {
             //update
-            if (!stored.getPermanent()) {
+            if (Boolean.FALSE.equals(stored.getPermanent())) {
                 em.refresh(stored, LockModeType.PESSIMISTIC_WRITE);
                 if (deviceClass.getValue().getData() != null) {
                     stored.setData(deviceClassFromMessage.getData());
