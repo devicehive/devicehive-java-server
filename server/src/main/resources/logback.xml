@@ -30,8 +30,8 @@
     </appender>
 
     <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="FILE"/>
-        <!--<appender-ref ref="STDOUT"/>-->
+        <!--<appender-ref ref="FILE"/>-->
+        <appender-ref ref="STDOUT"/>
     </appender>
 
     <logger name="com.devicehive.auth.rest.providers.DeviceAuthenticationProvider" level="WARN">
@@ -50,7 +50,7 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
-    <root level="INFO">
+    <root level="WARN">
         <appender-ref ref="ASYNC"/>
     </root>
 
