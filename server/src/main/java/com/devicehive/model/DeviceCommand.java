@@ -46,11 +46,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
             COMMAND_LISTED})
     private Integer lifetime;
 
-    @SerializedName("flags")
-    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private Integer flags;
-
     @SerializedName("status")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
@@ -127,14 +122,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
         this.lifetime = lifetime;
     }
 
-    public Integer getFlags() {
-        return flags;
-    }
-
-    public void setFlags(Integer flags) {
-        this.flags = flags;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -168,7 +155,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
 
         if (command != null ? !command.equals(message.command) : message.command != null) return false;
         if (deviceGuid != null ? !deviceGuid.equals(message.deviceGuid) : message.deviceGuid != null) return false;
-        if (flags != null ? !flags.equals(message.flags) : message.flags != null) return false;
         if (id != null ? !id.equals(message.id) : message.id != null) return false;
         if (isUpdated != null ? !isUpdated.equals(message.isUpdated) : message.isUpdated != null) return false;
         if (lifetime != null ? !lifetime.equals(message.lifetime) : message.lifetime != null) return false;
@@ -190,7 +176,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
         result1 = 31 * result1 + (deviceGuid != null ? deviceGuid.hashCode() : 0);
         result1 = 31 * result1 + (parameters != null ? parameters.hashCode() : 0);
         result1 = 31 * result1 + (lifetime != null ? lifetime.hashCode() : 0);
-        result1 = 31 * result1 + (flags != null ? flags.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
         result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
         result1 = 31 * result1 + (isUpdated != null ? isUpdated.hashCode() : 0);
@@ -207,7 +192,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
                 ", deviceGuid='" + deviceGuid + '\'' +
                 ", parameters=" + parameters +
                 ", lifetime=" + lifetime +
-                ", flags=" + flags +
                 ", status='" + status + '\'' +
                 ", result=" + result +
                 ", isUpdated=" + isUpdated +
