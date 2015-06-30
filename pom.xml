@@ -46,6 +46,7 @@
         <kafka.version>0.8.2.1</kafka.version>
         <springframework.version>4.1.6.RELEASE</springframework.version>
         <jackson2.version>2.4.5</jackson2.version>
+        <hibernate-version>4.3.5.Final</hibernate-version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -381,6 +382,11 @@
                         <artifactId>log4j</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-entitymanager</artifactId>
+                <version>${hibernate-version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
