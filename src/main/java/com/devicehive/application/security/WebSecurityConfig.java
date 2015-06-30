@@ -7,7 +7,6 @@ import com.devicehive.auth.rest.providers.DeviceAuthenticationProvider;
 import com.devicehive.auth.rest.providers.HiveAnonymousAuthenticationProvider;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.controller.filter.AdminConsoleConfigFilter;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -54,8 +53,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
 
         http
-                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class)
-                .addFilterBefore(new AdminConsoleConfigFilter(environment), HttpAuthenticationFilter.class);
+                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
     }
 
     @Override

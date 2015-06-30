@@ -11,12 +11,15 @@ import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import javax.validation.Validator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @SpringBootApplication(exclude = { JacksonAutoConfiguration.class })
 @ComponentScan("com.devicehive")
@@ -43,5 +46,17 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     @Bean
     public Validator localValidator() {
         return new LocalValidatorFactoryBean();
+    }
+
+    @Lazy(false)
+    @Bean(name = WAIT_EXECUTOR)
+    public ExecutorService waitExecutorService() {
+        return Executors.newFixedThreadPool(32);
+    }
+
+    @Lazy(false)
+    @Bean(name = MESSAGE_EXECUTOR)
+    public ExecutorService messageExecutorService() {
+        return Executors.newFixedThreadPool(32);
     }
 }
