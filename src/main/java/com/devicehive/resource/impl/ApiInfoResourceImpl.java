@@ -1,4 +1,4 @@
-package com.devicehive.resource.impl;
+4package com.devicehive.resource.impl;
 
 
 import com.devicehive.configuration.ConfigurationService;
@@ -53,7 +53,12 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         String wsUrl = configurationService.get(Constants.WEBSOCKET_SERVER_URL);
         if (wsUrl == null) {
-            wsUrl = "ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket";
+            int port = uriInfo.getBaseUri().getPort();
+            if (port == -1) {
+                wsUrl = "ws://" + uriInfo.getBaseUri().getHost() + contextPath + "/websocket";
+            } else {
+                wsUrl = "ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket";
+            }
             configurationService.save(Constants.WEBSOCKET_SERVER_URL, wsUrl);
         }
         apiInfo.setWebSocketServerUrl(wsUrl);
