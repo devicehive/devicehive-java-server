@@ -51,12 +51,15 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         ApiInfo apiInfo = new ApiInfo();
         apiInfo.setApiVersion(Constants.API_VERSION);
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
-        String wsUrl = configurationService.get(Constants.WEBSOCKET_SERVER_URL);
-        if (wsUrl == null) {
-            wsUrl = "ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket";
-            configurationService.save(Constants.WEBSOCKET_SERVER_URL, wsUrl);
+        
+        // Generate websocket url based on current request url
+        int port = uriInfo.getBaseUri().getPort();
+        if (port == -1) {
+            apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + contextPath + "/websocket");
+        } else {
+            apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
         }
-        apiInfo.setWebSocketServerUrl(wsUrl);
+        
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
 
