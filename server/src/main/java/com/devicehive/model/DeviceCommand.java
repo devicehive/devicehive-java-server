@@ -3,7 +3,10 @@ package com.devicehive.model;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
-import java.sql.Timestamp;
+
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import java.util.Date;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -25,7 +28,8 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
 
     @SerializedName("timestamp")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private Timestamp timestamp;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date timestamp;
 
     @SerializedName("userId")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
@@ -78,16 +82,17 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
         this.command = command;
     }
 
-    public Timestamp getTimestamp() {
+    @Override
+    public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
     public void setTimestamp(Long timestamp) {
-        this.timestamp = new Timestamp(timestamp);
+        this.timestamp = new Date(timestamp);
     }
 
     public Long getUserId() {

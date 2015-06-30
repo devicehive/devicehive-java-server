@@ -11,18 +11,14 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.query.PagingPredicate;
 import com.hazelcast.query.Predicate;
-import com.hazelcast.query.Predicates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import java.sql.Timestamp;
 import java.util.*;
 
-import static com.devicehive.model.enums.SearchableField.*;
-import static com.devicehive.model.enums.SearchableField.IS_UPDATED;
 
 @Repository
 public abstract class AbstractHazelcastEntityService {
@@ -59,7 +55,7 @@ public abstract class AbstractHazelcastEntityService {
 
     protected  <T extends HazelcastEntity> Collection<T> find(Collection<String> devices,
                               Collection<String> names,
-                              Timestamp timestamp, String status,
+                              Date timestamp, String status,
                               Integer take, Boolean isUpdated,
                               HivePrincipal principal, Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(devices, names, timestamp, status, isUpdated, principal);
@@ -67,7 +63,7 @@ public abstract class AbstractHazelcastEntityService {
     }
 
     protected  <T extends HazelcastEntity> Collection<T> find(Long id, String guid, Collection<String> devices,
-                              Collection<String> names, Timestamp timestamp, Integer take,
+                              Collection<String> names, Date timestamp, Integer take,
                               HivePrincipal principal, Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(id, guid, devices, names,
                 timestamp, principal);
@@ -95,8 +91,8 @@ public abstract class AbstractHazelcastEntityService {
     private class HazelcastEntityComparator implements Comparator<Map.Entry> {
         @Override
         public int compare(Map.Entry o1, Map.Entry o2) {
-            final Timestamp o1Time = ((HazelcastEntity) o1.getValue()).getTimestamp();
-            final Timestamp o2Time = ((HazelcastEntity) o2.getValue()).getTimestamp();
+            final Date o1Time = ((HazelcastEntity) o1.getValue()).getTimestamp();
+            final Date o2Time = ((HazelcastEntity) o2.getValue()).getTimestamp();
 
             return o2Time.compareTo(o1Time);
         }

@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
@@ -67,7 +66,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     public Response query(String guid, String startTs, String endTs, String notification, String sortField, String sortOrderSt, Integer take, Integer skip, Integer gridInterval) {
 
         logger.debug("Device notification query requested for device {}", guid);
-        Timestamp timestamp = TimestampQueryParamParser.parse(startTs);
+        Date timestamp = TimestampQueryParamParser.parse(startTs);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
@@ -137,7 +136,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                       final boolean isMany) {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        final Timestamp ts = TimestampQueryParamParser.parse(timestamp);
+        final Date ts = TimestampQueryParamParser.parse(timestamp);
         final String devices = StringUtils.isNoneBlank(deviceGuidsString) ? deviceGuidsString : null;
         final String names = StringUtils.isNoneBlank(namesString) ? namesString : null;
 
@@ -154,7 +153,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     }
 
     private void getOrWaitForNotifications(final HivePrincipal principal, final String devices,
-                                                               final String names, final Timestamp timestamp, long timeout,
+                                                               final String names, final Date timestamp, long timeout,
                                                                final AsyncResponse asyncResponse, final boolean isMany) {
         logger.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
         if (timeout <= 0) {

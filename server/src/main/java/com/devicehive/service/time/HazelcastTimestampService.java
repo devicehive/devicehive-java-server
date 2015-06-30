@@ -4,7 +4,7 @@ import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 @Component
 public class HazelcastTimestampService implements TimestampService {
@@ -12,7 +12,7 @@ public class HazelcastTimestampService implements TimestampService {
     private HazelcastInstance instance;
 
     @Override
-    public java.sql.Timestamp getTimestamp() {
-        return new Timestamp(instance.getCluster().getClusterTime());
+    public Date getTimestamp() {
+        return new Date(instance.getCluster().getClusterTime());
     }
 }

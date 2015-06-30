@@ -1,10 +1,10 @@
 package com.devicehive.service.time;
 
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 public interface TimestampService {
 
-    Timestamp getTimestamp();
+    Date getTimestamp();
 
 }

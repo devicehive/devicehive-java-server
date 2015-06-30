@@ -15,8 +15,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.devicehive.model.OAuthGrant.Queries.Names.*;
@@ -68,8 +68,8 @@ public class OAuthGrantDAO {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<OAuthGrant> get(User user,
-                                Timestamp start,
-                                Timestamp end,
+                                Date start,
+                                Date end,
                                 String clientOAuthId,
                                 Integer type,
                                 String scope,
@@ -84,7 +84,7 @@ public class OAuthGrantDAO {
         CriteriaQuery<OAuthGrant> criteria = criteriaBuilder.createQuery(OAuthGrant.class);
         Root<OAuthGrant> from = criteria.from(OAuthGrant.class);
         from.fetch(OAuthGrant.ACCESS_KEY_COLUMN, JoinType.LEFT).fetch(AccessKey.PERMISSIONS_COLUMN);
-        from.fetch("client");
+        from.fetch(OAuthGrant.OAUTH_CLIENT_COLUMN);
         List<Predicate> predicates = new ArrayList<>();
 
         if (!user.isAdmin()) {
@@ -92,10 +92,10 @@ public class OAuthGrantDAO {
         }
 
         if (start != null) {
-            predicates.add(criteriaBuilder.greaterThan(from.<Timestamp>get(OAuthGrant.TIMESTAMP_COLUMN), start));
+            predicates.add(criteriaBuilder.greaterThan(from.<Date>get(OAuthGrant.TIMESTAMP_COLUMN), start));
         }
         if (end != null) {
-            predicates.add(criteriaBuilder.lessThan(from.<Timestamp>get(OAuthGrant.TIMESTAMP_COLUMN), end));
+            predicates.add(criteriaBuilder.lessThan(from.<Date>get(OAuthGrant.TIMESTAMP_COLUMN), end));
         }
         if (clientOAuthId != null) {
             Predicate oauthIdPredicate =

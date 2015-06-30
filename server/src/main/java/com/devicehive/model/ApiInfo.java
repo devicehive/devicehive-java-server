@@ -3,7 +3,9 @@ package com.devicehive.model;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
 
-import java.sql.Timestamp;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import java.util.Date;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_INFO;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
@@ -20,7 +22,8 @@ public class ApiInfo implements HiveEntity {
     private String apiVersion;
 
     @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
-    private Timestamp serverTimestamp;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date serverTimestamp;
 
     @JsonPolicyDef(REST_SERVER_INFO)
     private String webSocketServerUrl;
@@ -39,11 +42,11 @@ public class ApiInfo implements HiveEntity {
         this.apiVersion = apiVersion;
     }
 
-    public Timestamp getServerTimestamp() {
+    public Date getServerTimestamp() {
         return ObjectUtils.cloneIfPossible(serverTimestamp);
     }
 
-    public void setServerTimestamp(Timestamp serverTimestamp) {
+    public void setServerTimestamp(Date serverTimestamp) {
         this.serverTimestamp = ObjectUtils.cloneIfPossible(serverTimestamp);
     }
 

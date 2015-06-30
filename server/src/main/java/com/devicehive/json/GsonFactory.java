@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 import com.devicehive.json.strategies.AnnotatedStrategy;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,7 +44,7 @@ public class GsonFactory {
             .serializeNulls()
             .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
             .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
-            .registerTypeAdapter(Timestamp.class, new TimestampAdapter())
+            .registerTypeAdapter(Date.class, new TimestampAdapter())
             .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
             .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
             .registerTypeAdapter(Type.class, new OAuthTypeAdapter())

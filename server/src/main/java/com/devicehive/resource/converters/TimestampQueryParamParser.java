@@ -4,13 +4,14 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.adapters.TimestampAdapter;
 
-import java.sql.Timestamp;
+
+import java.util.Date;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 public class TimestampQueryParamParser {
 
-    public static Timestamp parse(String value) {
+    public static Date parse(String value) {
         try {
             return TimestampAdapter.parseTimestamp(value);
         } catch (IllegalArgumentException | UnsupportedOperationException e) {

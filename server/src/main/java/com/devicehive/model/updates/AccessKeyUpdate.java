@@ -8,7 +8,7 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.enums.AccessKeyType;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
@@ -21,7 +21,7 @@ public class AccessKeyUpdate implements HiveEntity {
     private NullableWrapper<String> label;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
-    private NullableWrapper<Timestamp> expirationDate;
+    private NullableWrapper<Date> expirationDate;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
     private NullableWrapper<Set<AccessKeyPermission>> permissions;
@@ -38,11 +38,11 @@ public class AccessKeyUpdate implements HiveEntity {
         this.label = label;
     }
 
-    public NullableWrapper<Timestamp> getExpirationDate() {
+    public NullableWrapper<Date> getExpirationDate() {
         return expirationDate;
     }
 
-    public void setExpirationDate(NullableWrapper<Timestamp> expirationDate) {
+    public void setExpirationDate(NullableWrapper<Date> expirationDate) {
         this.expirationDate = expirationDate;
     }
 

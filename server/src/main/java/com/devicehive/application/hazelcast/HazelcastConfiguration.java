@@ -1,20 +1,21 @@
-package com.devicehive.application;
+package com.devicehive.application.hazelcast;
 
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.config.*;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.spring.cache.HazelcastCacheManager;
+import com.hazelcast.spring.context.SpringManagedContext;
 import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
@@ -22,18 +23,38 @@ import java.util.stream.Collectors;
 
 @Configuration
 public class HazelcastConfiguration {
+    private static final Logger logger = LoggerFactory.getLogger(HazelcastConfiguration.class);
+
+    private static final String INSTANCE_NAME = "DeviceHiveInstance";
 
     @Autowired
     private Environment env;
 
     @Bean(destroyMethod = "shutdown")
+    @Lazy(value = false)
+    @Order(value = Ordered.HIGHEST_PRECEDENCE)
     public HazelcastInstance hazelcast(Config config) {
-        return Hazelcast.newHazelcastInstance(config);
+        logger.debug("Initializing Hazelcast, checking for instance {}", INSTANCE_NAME);
+        logger.debug("Creating new Hazelcast instance {}", INSTANCE_NAME);
+        HazelcastInstance instance = Hazelcast.getHazelcastInstanceByName(INSTANCE_NAME);
+        if (instance == null) {
+            config.setInstanceName(INSTANCE_NAME);
+            config.setManagedContext(hzSpringManagedContext());
+
+            instance = Hazelcast.newHazelcastInstance(config);
+        }
+        logger.info("Initializing Hazelcast is complete");
+        return instance;
+    }
+
+    @Bean
+    public SpringManagedContext hzSpringManagedContext() {
+        return new SpringManagedContext();
     }
 
     @Bean
     public Config config(NetworkConfig networkConfig) {
-        final Config config = new Config();
+        final Config config = new XmlConfigBuilder().build();
         config.setNetworkConfig(networkConfig);
         config.getGroupConfig().setName(env.getProperty("hazelcast.group.name"));
 

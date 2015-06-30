@@ -10,7 +10,9 @@ import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Column;
-import java.sql.Timestamp;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,7 +49,8 @@ public class UserResponse implements HiveEntity {
 
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
-    private Timestamp lastLogin = new Timestamp(0);
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastLogin = new Date(0);
 
 
     public static UserResponse createFromUser(User u) {
@@ -97,11 +100,11 @@ public class UserResponse implements HiveEntity {
         this.status = status;
     }
 
-    public Timestamp getLastLogin() {
+    public Date getLastLogin() {
         return ObjectUtils.cloneIfPossible(lastLogin);
     }
 
-    public void setLastLogin(Timestamp lastLogin) {
+    public void setLastLogin(Date lastLogin) {
         this.lastLogin = ObjectUtils.cloneIfPossible(lastLogin);
     }
 

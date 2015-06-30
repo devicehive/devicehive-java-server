@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.*;
 
 import static com.devicehive.configuration.Constants.*;
@@ -59,7 +58,7 @@ public class NotificationHandlers extends WebsocketHandlers {
 
     @Action(value = "notification/subscribe")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
+    public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Date timestamp,
                                                           @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                           @WsParam(NAMES) Set<String> names,
                                                           @WsParam(DEVICE_GUID) String deviceId,
@@ -100,7 +99,7 @@ public class NotificationHandlers extends WebsocketHandlers {
     private UUID notificationSubscribeAction(WebSocketSession session,
                                              Set<String> devices,
                                              Set<String> names,
-                                             Timestamp timestamp) throws IOException {
+                                             Date timestamp) throws IOException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);

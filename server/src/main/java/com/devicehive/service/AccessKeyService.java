@@ -28,7 +28,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -141,7 +141,7 @@ public class AccessKeyService {
             final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
             if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod/2) {
                 em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
-                accessKey.setExpirationDate(new Timestamp(timestampService.getTimestamp().getTime() + expirationPeriod));
+                accessKey.setExpirationDate(new Date(timestampService.getTimestamp().getTime() + expirationPeriod));
                 return accessKeyDAO.update(accessKey);
             }
         }
@@ -272,11 +272,11 @@ public class AccessKeyService {
         return hasAccess;
     }
 
-    public AccessKey createAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
+    public AccessKey createAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Date now) {
         AccessKey newKey = new AccessKey();
         newKey.setType(AccessKeyType.OAUTH);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
-            Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
+            Date expirationDate = new Date(now.getTime() + 600000);  //the key is valid for 10 minutes
             newKey.setExpirationDate(expirationDate);
         }
         newKey.setUser(user);
@@ -294,11 +294,11 @@ public class AccessKeyService {
     }
 
     @Transactional
-    public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Timestamp now) {
+    public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Date now) {
         AccessKey existing = get(user.getId(), grant.getAccessKey().getId());
         permissionDAO.deleteByAccessKey(existing);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
-            Timestamp expirationDate = new Timestamp(now.getTime() + 600000);  //the key is valid for 10 minutes
+            Date expirationDate = new Date(now.getTime() + 600000);  //the key is valid for 10 minutes
             existing.setExpirationDate(expirationDate);
         } else {
             existing.setExpirationDate(null);
