@@ -44,8 +44,8 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                 null, Collections.<String>emptyList(), null, "status1", 100, true, null));
 
         for (int i = 1; i < commands.size(); i++) {
-            final Timestamp currentElem = commands.get(i).getTimestamp();
-            final Timestamp previousElem = commands.get(i - 1).getTimestamp();
+            final Date currentElem = commands.get(i).getTimestamp();
+            final Date previousElem = commands.get(i - 1).getTimestamp();
             assertTrue(currentElem.before(previousElem));
         }
     }
@@ -59,8 +59,8 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                 null, Collections.<String>emptyList(), null, "status1", 100, true, null));
 
         for (int i = 1; i < commands.size(); i++) {
-            final Timestamp currentElem = commands.get(i).getTimestamp();
-            final Timestamp previousElem = commands.get(i - 1).getTimestamp();
+            final Date currentElem = commands.get(i).getTimestamp();
+            final Date previousElem = commands.get(i - 1).getTimestamp();
             assertTrue(currentElem.before(previousElem));
         }
     }

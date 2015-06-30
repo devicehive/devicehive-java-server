@@ -34,7 +34,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.*;
 
 import static com.devicehive.configuration.Constants.*;
@@ -74,7 +73,7 @@ public class CommandHandlers extends WebsocketHandlers {
 
     @Action("command/subscribe")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'DEVICE', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Timestamp timestamp,
+    public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Date timestamp,
                                                      @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                      @WsParam(NAMES) Set<String> names,
                                                      @WsParam(DEVICE_GUID) String deviceId,
@@ -115,7 +114,7 @@ public class CommandHandlers extends WebsocketHandlers {
     private UUID commandsSubscribeAction(WebSocketSession session,
                                          final Set<String> devices,
                                          final Set<String> names,
-                                         final Timestamp timestamp) throws IOException {
+                                         final Date timestamp) throws IOException {
         final String namesStr = !CollectionUtils.isEmpty(names) ? StringUtils.join(names, ',') : null;
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (names != null && names.isEmpty()) {

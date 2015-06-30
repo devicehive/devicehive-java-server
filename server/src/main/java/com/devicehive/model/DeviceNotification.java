@@ -4,13 +4,12 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
-import java.sql.Timestamp;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import java.util.Date;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-/**
- * Created by tmatvienko on 12/24/14.
- */
 public class DeviceNotification implements HiveEntity, HazelcastEntity {
     private static final long serialVersionUID = 1834383778016225837L;
 
@@ -28,7 +27,8 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
 
     @SerializedName("timestamp")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
-    private Timestamp timestamp;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date timestamp;
 
     @SerializedName("parameters")
     @JsonPolicyDef({NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_CLIENT})
@@ -42,11 +42,11 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
         this.id = id;
     }
 
-    public Timestamp getTimestamp() {
+    public Date getTimestamp() {
         return ObjectUtils.cloneIfPossible(timestamp);
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 

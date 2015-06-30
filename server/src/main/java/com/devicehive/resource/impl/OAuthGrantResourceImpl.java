@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import static com.devicehive.configuration.Constants.TIMESTAMP;
@@ -49,8 +49,8 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     public Response list(String userId, String startTs, String endTs, String clientOAuthId, String type, String scope, String redirectUri, String accessType,
                          String sortField, String sortOrderSt, Integer take, Integer skip) {
 
-        Timestamp start = TimestampQueryParamParser.parse(startTs);
-        Timestamp end = TimestampQueryParamParser.parse(endTs);
+        Date start = TimestampQueryParamParser.parse(startTs);
+        Date end = TimestampQueryParamParser.parse(endTs);
 
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 

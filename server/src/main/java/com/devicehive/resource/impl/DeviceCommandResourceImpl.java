@@ -35,7 +35,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
@@ -84,7 +83,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                       final boolean isMany) {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        final Timestamp ts = TimestampQueryParamParser.parse(timestamp);
+        final Date ts = TimestampQueryParamParser.parse(timestamp);
 
         final String devices = StringUtils.isNoneBlank(deviceGuids) ? deviceGuids : null;
         final String names = StringUtils.isNoneBlank(namesString) ? namesString : null;
@@ -98,7 +97,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         });
     }
 
-    private void getOrWaitForCommands(HivePrincipal principal, final String devices, final String names, Timestamp timestamp,
+    private void getOrWaitForCommands(HivePrincipal principal, final String devices, final String names, Date timestamp,
                                       long timeout, final AsyncResponse asyncResponse, final boolean isMany) {
         LOGGER.debug("Device command pollMany requested for : {}, {}, {}, {}.  Timeout = {}", devices, names, timestamp,
                 timeout);
@@ -240,7 +239,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         LOGGER.debug("Device command query requested for device {}", guid);
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final Timestamp timestamp = TimestampQueryParamParser.parse(startTs);
+        final Date timestamp = TimestampQueryParamParser.parse(startTs);
 
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 

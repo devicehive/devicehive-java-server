@@ -11,7 +11,6 @@ import com.devicehive.util.HiveValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 
@@ -29,7 +28,7 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
     }
 
     public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
-                                          Timestamp timestamp, String status, Integer take,
+                                          Date timestamp, String status, Integer take,
                                           Boolean isUpdated, HivePrincipal principal) {
         return find(devices, names, timestamp, status, take, isUpdated, principal, DeviceCommand.class);
     }
