@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,7 +57,7 @@ public class OAuthGrantService {
         if (grant.getAccessType() == null) {
             grant.setAccessType(AccessType.ONLINE);
         }
-        Timestamp now = timestampService.getTimestamp();
+        Date now = timestampService.getTimestamp();
         grant.setTimestamp(now);
         AccessKey key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
         grant.setAccessKey(key);
@@ -123,7 +123,7 @@ public class OAuthGrantService {
         if (grantToUpdate.getScope() != null) {
             existing.setScope(grantToUpdate.getScope().getValue());
         }
-        Timestamp now = timestampService.getTimestamp();
+        Date now = timestampService.getTimestamp();
         existing.setTimestamp(now);
         AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(existing, user, now);
         existing.setAccessKey(key);
@@ -135,8 +135,8 @@ public class OAuthGrantService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<OAuthGrant> list(@NotNull User user,
-                                 Timestamp start,
-                                 Timestamp end,
+                                 Date start,
+                                 Date end,
                                  String clientOAuthId,
                                  Integer type,
                                  String scope,
@@ -186,7 +186,7 @@ public class OAuthGrantService {
         List<OAuthGrant> found = grantDAO.get(user, null, null, client.getOauthId(), Type.PASSWORD.ordinal(), scope,
                                               null, null, null, null, null, null);
         OAuthGrant grant = found.isEmpty() ? null : found.get(0);
-        Timestamp now = timestampService.getTimestamp();
+        Date now = timestampService.getTimestamp();
         if (grant == null) {
             grant = new OAuthGrant();
             grant.setClient(client);

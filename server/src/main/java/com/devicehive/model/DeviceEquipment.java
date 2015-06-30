@@ -9,7 +9,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
+
+import java.util.Date;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 import static com.devicehive.model.DeviceEquipment.Queries.Names;
@@ -43,7 +44,8 @@ public class DeviceEquipment implements HiveEntity {
     @Column
     @NotNull
     @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
-    private Timestamp timestamp;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date timestamp;
     @SerializedName("parameters")
     @Embedded
     @AttributeOverrides({
@@ -83,11 +85,11 @@ public class DeviceEquipment implements HiveEntity {
         this.code = code;
     }
 
-    public Timestamp getTimestamp() {
+    public Date getTimestamp() {
         return ObjectUtils.cloneIfPossible(timestamp);
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 

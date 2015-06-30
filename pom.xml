@@ -19,6 +19,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <scala-binaries.version>2.10</scala-binaries.version>
+        <!-- after update to 4.3.10.Final faced with issue, unclear conflict of fetch and join in criteria builder
+             need to check it, before next version update -->
         <hibernate-version>4.3.5.Final</hibernate-version>
         <!-- Do not remove this. It's needed for creating dynamic DeviceHive copies -->
         <glassfish.tyrus>1.8.2</glassfish.tyrus>

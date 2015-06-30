@@ -9,7 +9,7 @@ import kafka.serializer.Encoder;
 import kafka.utils.VerifiableProperties;
 
 import java.io.UnsupportedEncodingException;
-import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Created by tmatvienko on 12/24/14.
@@ -17,7 +17,7 @@ import java.sql.Timestamp;
 public class DeviceCommandConverter implements Encoder<DeviceCommand>, Decoder<DeviceCommand>{
     private Gson gson;
     public DeviceCommandConverter(VerifiableProperties verifiableProperties) {
-        gson = new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(Timestamp.class, new TimestampAdapter()).create();
+        gson = new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(Date.class, new TimestampAdapter()).create();
     }
 
     @Override

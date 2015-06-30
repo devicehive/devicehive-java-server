@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Created by tmatvienko on 11/21/14.
@@ -44,7 +44,7 @@ public class OAuthAuthenticationUtils {
         accessKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, user.getLogin(), System.currentTimeMillis()));
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         accessKey.setKey(keyProcessor.generateKey());
-        Timestamp expirationDate = new Timestamp(timestampService.getTimestamp().getTime() +
+        Date expirationDate = new Date(timestampService.getTimestamp().getTime() +
                 configurationService.getLong(Constants.SESSION_TIMEOUT, Constants.DEFAULT_SESSION_TIMEOUT));
         accessKey.setExpirationDate(expirationDate);
         accessKey.setType(AccessKeyType.SESSION);

@@ -79,7 +79,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
                 } finally {
                     lock.unlock();
                 }
-                ApplicationContextHolder.getInstance().get().getBean(AsyncMessageSupplier.class).deliverMessages(session);
+                ApplicationContextHolder.getApplicationContext().getBean(AsyncMessageSupplier.class).deliverMessages(session);
             }
         };
     }

@@ -11,7 +11,6 @@ import com.devicehive.util.ServerResponsesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 @Service
@@ -29,7 +28,7 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
 
     public Collection<DeviceNotification> find(Long id, String guid, Collection<String> devices,
                                                Collection<String> names,
-                                               Timestamp timestamp, Integer take, HivePrincipal principal) {
+                                               Date timestamp, Integer take, HivePrincipal principal) {
 
         return find(id, guid, devices, names, timestamp, take, principal, DeviceNotification.class);
     }

@@ -1,8 +1,8 @@
 package com.devicehive.model;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 public interface HazelcastEntity {
     String getHazelcastKey();
-    Timestamp getTimestamp();
+    Date getTimestamp();
 }

@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 import static com.devicehive.model.enums.SearchableField.*;
@@ -25,7 +24,7 @@ public class HazelcastHelper {
 
     public Predicate prepareFilters(final Collection<String> devices,
                                                               final Collection<String> commands,
-                                                              final Timestamp timestamp, final String status,
+                                                              final Date timestamp, final String status,
                                                               final Boolean isUpdated,
                                                               final HivePrincipal principal) {
         return prepareFilters(null, null, devices, null, commands, timestamp, status, isUpdated, principal);
@@ -34,13 +33,13 @@ public class HazelcastHelper {
     public Predicate prepareFilters(final Long id, final String guid,
                                                               final Collection<String> devices,
                                                               final Collection<String> notifications,
-                                                              final Timestamp timestamp,
+                                                              final Date timestamp,
                                                               final HivePrincipal principal) {
         return prepareFilters(id, guid, devices, notifications, null, timestamp, null, null, principal);
     }
 
     public Predicate prepareFilters(Long id, String guid, Collection<String> devices, Collection<String> notifications,
-                                    Collection<String> commands, Timestamp timestamp, String status, Boolean isUpdated,
+                                    Collection<String> commands, Date timestamp, String status, Boolean isUpdated,
                                     HivePrincipal principal) {
         final List<Predicate> predicates = new ArrayList<>();
         if (id != null) {

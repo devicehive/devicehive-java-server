@@ -12,7 +12,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -67,8 +67,9 @@ public class User implements HiveEntity {
     @Column(name = "last_login")
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private Timestamp lastLogin;
-    @Column(name = "google_login")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastLogin;
+    @Column(name="google_login")
     @SerializedName("googleLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String googleLogin;
@@ -130,11 +131,11 @@ public class User implements HiveEntity {
         this.status = status;
     }
 
-    public Timestamp getLastLogin() {
+    public Date getLastLogin() {
         return ObjectUtils.cloneIfPossible(lastLogin);
     }
 
-    public void setLastLogin(Timestamp lastLogin) {
+    public void setLastLogin(Date lastLogin) {
         this.lastLogin = ObjectUtils.cloneIfPossible(lastLogin);
     }
 

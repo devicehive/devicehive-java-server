@@ -9,7 +9,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -68,7 +68,8 @@ public class AccessKey implements HiveEntity {
 
     @Column(name = "expiration_date")
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
-    private Timestamp expirationDate;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date expirationDate;
 
     @SerializedName("type")
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
@@ -131,11 +132,11 @@ public class AccessKey implements HiveEntity {
         this.user = user;
     }
 
-    public Timestamp getExpirationDate() {
+    public Date getExpirationDate() {
         return ObjectUtils.cloneIfPossible(expirationDate);
     }
 
-    public void setExpirationDate(Timestamp expirationDate) {
+    public void setExpirationDate(Date expirationDate) {
         this.expirationDate = ObjectUtils.cloneIfPossible(expirationDate);
     }
 

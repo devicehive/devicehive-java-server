@@ -11,12 +11,14 @@ import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,7 +58,8 @@ public class OAuthGrant implements HiveEntity {
     @Column
     @JsonPolicyDef(
         {OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})
-    private Timestamp timestamp;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date timestamp;
     @SerializedName("authCode")
     @Size(min = 35, max = 36, message = "Field cannot be empty. The length of authCode should be 36 symbols.")
     @Column(name = "auth_code")
@@ -118,11 +121,11 @@ public class OAuthGrant implements HiveEntity {
         this.id = id;
     }
 
-    public Timestamp getTimestamp() {
+    public Date getTimestamp() {
         return ObjectUtils.cloneIfPossible(timestamp);
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 

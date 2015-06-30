@@ -14,8 +14,8 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.devicehive.model.AccessKey.Queries.Names.*;
@@ -140,7 +140,7 @@ public class AccessKeyDAO {
         return accessKey;
     }
 
-    public boolean deleteOlderThan(Timestamp timestamp) {
+    public boolean deleteOlderThan(Date timestamp) {
         Query query = em.createNamedQuery(DELETE_OLDER_THAN);
         query.setParameter(EXPIRATION_DATE, timestamp);
         return query.executeUpdate() > 0;
