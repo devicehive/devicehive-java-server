@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/devicehive/devicehive-java-server.svg?branch=master)](https://travis-ci.org/devicehive/devicehive-java-server)
+[![Build Status](https://travis-ci.org/devicehive/devicehive-java-server.svg?branch=development)](https://travis-ci.org/devicehive/devicehive-java-server)
 
 DeviceHive Java server
 ======================
@@ -41,94 +41,29 @@ Prerequisites
 -------------
 In order to use DeviceHive framework you must have the following components installed and configured:
 * [PostgreSQL 9.1](http://www.postgresql.org/download/) or above.
-* [PostgreSQL JDBC driver](http://jdbc.postgresql.org/download.html#others) suitable for your version of PostgreSQL
-* [Redis 3.0.1](http://redis.io/download) or above.
-* [Apache Kafka 2.9.2](http://kafka.apache.org/downloads.html) or above with Zookeeper.
-* [Glassfish 4.1](http://glassfish.java.net/download.html) application server (Java EE 7 Full Platform)
-* [Oracle JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 7](http://openjdk.java.net/)
-(this is requirement for Glassfish 4.1; Java EE 7 requires JDK 7). JDK 8 will be fine too.
-* [Maven](http://maven.apache.org/download.cgi) to compile and package db_dhtool and DeviceHiveJava
-* [dh_dbtool source files](https://github.com/devicehive/devicehive-java). dh_dbtool.jar will be used to provide necessary database migrations
-* [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java). This is the main part of the [DeviceHive[ framework
+* [Apache Kafka 0.8.2.1](http://kafka.apache.org/downloads.html) or above.
+* [Oracle JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 8](http://openjdk.java.net/)
+* [Maven](http://maven.apache.org/download.cgi)
+* [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java-server). This is the main part of the [DeviceHive] framework
 
 
 Build packages
 --------------
-* Download source code from [GitHub](https://github.com/devicehive/devicehive-java) using "Download ZIP" button.
+* Download source code from [GitHub](https://github.com/devicehive/devicehive-java-server) using "Download ZIP" button.
 It should always point to recent stable or beta release, but you always can get any other tag or branch.
 It also can be done using one of [Git version control client](http://git-scm.com/downloads/guis) or git command line tool.
 If you prefer git, clone project using command
 
-`git clone https://github.com/devicehive/devicehive-java.git`
+`git clone https://github.com/devicehive/devicehive-java-server.git`
 
 After that you can switch to the tag or branch you need. The list of all available releases can be found at
-https://github.com/devicehive/devicehive-java/releases
-* Execute the following command from ${devicehive-java-directory}/tools/dh_dbtools:
+https://github.com/devicehive/devicehive-java-server/releases
+Execute following command from ${devicehive-java-server-directory}/server.
 
 `mvn clean package`
 
-* Execute the same command from ${devicehive-java-directory}/server.
-
-If this steps are done correctly you will find DeviceHiveJava.war at ${devicehive-java-directory}/server/target and dh_dbtool.jar
-at ${devicehive-java-directory}/tools/dh_dbtools/target.
+If this steps are done correctly you will find devicehive-<version>-boot.jar at ${devicehive-java-server-directory}/server/target
 After successful compilation and packaging go to the next step.
-
-
-Database setup
---------------
-* After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides)
-you have to create new user. This step is required for database migrations to work properly.
-* Create database using user that have been created at step 1. This user should be owner of database.
-* Run dh_dbtool.jar to update your database schema and insert some initial parameters.
-Go to dh_dbtool.jar installation directory and run this application using command
-
-`java –jar dh_dbtool.jar -migrate -url ${databaseurl} -user ${login} [-password ${password}]`
-
-* The parameter ${databaseurl} is a jdbc connection URL to your database (like jdbc://), ${user} is a database user’s login
-and ${password} is a user’s password, if required. To get help use
-
-`java –jar dh_dbtool.jar –help`
-
-
-Glassfish configuration
------------------------
-* Install Glassfish 4.1 as it described in the [glassfish installation instructions](https://glassfish.java.net/docs/4.0/installation-guide.pdf).
-* Deploy PostgreSQL jdbc driver to glassfish. Just put postgresql-jdbc4.jar (or another postgresql jdbc driver suitable
-for your postgresql version) to ${glassfish installation directory}/glassfish/domains/${domain_dir}/lib/ext directory and restart glassfish.
-* Then, run server and open ${yourServerName}:4848
-* Navigate to Resources -> JDBC -> JDBC Connection Pools.
-You have to create new JDBC Connection Pool to get access to your database. Configure general settings with following parameters:
-
-Pool Name: Specify some pool name, e.g. DeviceHivePool  
-Resource Type: javax.sql.ConnectionPoolDataSource  
-Datasource Classname: org.postgresql.ds.PGConnectionPoolDataSource
-
-Specify pool settings at your convenience.
-
-Specify transaction settings as follows:
-
-Transaction Isolation: read-committed
-Isolation Level: Guaranteed
-
-Set additional properties:
-
-In the user filed enter your database user login  
-In the DatabaseName enter your database name  
-In the Password field enter password for access to your database  
-In the ServerName field enter your database server name
-
-* Open Resources -> JDBC -> JDBC Resources. Create a new JDBC resource with properties:
-
-JNDI name: jdbc/DeviceHiveDataSource  
-Pool name: DeviceHivePool (use recently created pool name)
-
-* Execute server -> General -> restart
-
-Setup managed executor services:
-
-* Open Resources -> Concurrent Resources -> Managed Executor Services. Create concurrent resources with properties:
-1. JNDI Name: concurrent/DeviceHiveWaitService  
-2. JNDI Name: concurrent/DeviceHiveMessageService
 
 Running Apache Kafka
 -----------------------
@@ -136,39 +71,19 @@ Start Zookeeper and Apache Kafka brokers as explained at official documentation 
 If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
 You need to update zookeeper.connect (zookeeper's contactpoint) and metadata.broker.list (list of brokers) properties.
 
-Running Redis
------------------------
-Start Redis as explained at `http://redis.io/download`. Check that Redis configurations (redis.connection.host and
-redis.connection.port) in app.properties are correct.
-
-Deploying application
+Starting database
 ---------------------
-When server is installed and all the required properties are configured, you have to deploy the application. 
+* After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) you have to create new user. This step is required for database migrations to work properly.
+* Create database using user that have been created at step 1. This user should be owner of database.
+* Database schema will be initializied on application startup.
 
-* Go to ${yourServerName}:4848
-* Open Applications tab.
-* Click on Deploy button
-* Click on “Select file” button. In the dialog box select DeviceHiveJava.war. Click on “Ok” button
-* Launch DeviceHiveJava
-* Set up web socket server URL and rest server URL. To do that you have to use link:
+Running application
+---------------------
+* To start application run following command:
 
-`http://${yourServerName}:${port}/DeviceHiveJava/rest/configuration/${name}/set?value=${value}`
+ `java -jar ${devicehive-java-server-directory}/server/target/devicehive-<version>-boot.jar`
 
-The parameter “name” can be either “websocket.url” or “rest.url”  
-The parameter “value” is associated URL for web socket and rest services.  
-DeviceHive system specifies default login and password. These values can be used to get access for required services.
-
-login: dhadmin  
-password: dhadmin_#911
-
-Example:
-* For rest server URL:
-
-`http://localhost:8080/DeviceHiveJava/rest/configuration/rest.url/set?value=http://localhost:8080/devicehive/rest`
-
-* For web socket server URL:
-
-`http://localhost:8080/DeviceHiveJava/rest/configuration/websocket.url/set?value=ws://localhost:8080/devicehive/websocket`
+This will start embeded undertow application server on default port 8080 and deploy DeviceHive application.
 
 * Set up OAuth2 providers properties. At the moment DeviceHive supports Google Plus, Facebook, Github OAuth2 identity providers.
 After registering your application at Google/Facebook/Github you'll be provided with your client id and client secret.
@@ -302,11 +217,11 @@ Then using command "juju status" get the public addresses of two created machine
 DeviceHive Java update instructions
 ===================================
 
-* Download [source code](https://github.com/devicehive/devicehive-java) using "Download ZIP" button. It should
+* Download [source code](https://github.com/devicehive/devicehive-java-server) using "Download ZIP" button. It should
 always point to the BRANCH-1.3. It also can be done using one of [Git version control client](http://git-scm
 .com/downloads/guis) or git command line tool. If you prefer git, clone project using command
 
-`git clone https://github.com/devicehive/devicehive-java.git`
+`git clone https://github.com/devicehive/devicehive-java-server.git`
 
 After that you can switch to the tag or branch you need. The list of all available releases can be found at https://github.com/devicehive/devicehive-java/releases
 * Run dh_dbtool.jar to update your database schema and insert some initial parameters.
