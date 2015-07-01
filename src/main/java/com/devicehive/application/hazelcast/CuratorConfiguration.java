@@ -37,7 +37,6 @@ public class CuratorConfiguration {
     ServiceInstance<Void> serviceInstance(@Value("${hazelcast.port}") int port, ApplicationContext applicationContext,
                                           CuratorFramework curatorFramework) throws Exception {
         final String hostName = InetAddress.getLocalHost().getHostName();
-        System.out.println(curatorFramework);
         return ServiceInstance
                 .<Void>builder()
                 .name(applicationContext.getId())
