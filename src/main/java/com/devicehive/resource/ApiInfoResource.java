@@ -1,5 +1,6 @@
 package com.devicehive.resource;
 
+import io.swagger.annotations.ApiOperation;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.GET;
@@ -12,15 +13,18 @@ public interface ApiInfoResource {
 
     @GET
     @PreAuthorize("permitAll")
+    @ApiOperation(value = "Get API info", notes = "Returns version of API, server timestamp and WebSocket base uri")
     Response getApiInfo(@Context UriInfo uriInfo);
 
     @GET
     @Path("/config/auth")
     @PreAuthorize("permitAll")
+    @ApiOperation(value = "Get oAuth configuration", notes = "Returns configured identity providers")
     Response getOauth2Config();
 
     @GET
     @Path("/config/cluster")
     @PreAuthorize("permitAll")
+    @ApiOperation(value = "Get cluster configuration", notes = "Returns information about cluster (Kafka, Zookeeper etc.)")
     Response getClusterConfig();
 }

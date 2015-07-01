@@ -11,6 +11,7 @@ import com.devicehive.model.IdentityProviderConfig;
 import com.devicehive.resource.ApiInfoResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
+import io.swagger.annotations.Api;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import java.util.Set;
  * Provide API information
  */
 @Service
+@Api(tags = {"info"})
 @Path("/info")
 public class ApiInfoResourceImpl implements ApiInfoResource {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoResourceImpl.class);
