@@ -1,6 +1,6 @@
 package com.devicehive.resource;
 
-import io.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.GET;
@@ -9,6 +9,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+@Api(tags = {"info"}, description = "API information")
+@Path("/info")
 public interface ApiInfoResource {
 
     @GET

@@ -34,7 +34,7 @@ public class WebController {
         return "templates/oauthLogin/home";
     }
 
-    @RequestMapping({"/", "/swagger"})
+    @RequestMapping("/swagger")
     public String swagger(@RequestParam(value = "url", required = false) String url, HttpServletRequest request, RedirectAttributes redirectAttributes) throws MalformedURLException {
         if (url == null || ValueConstants.DEFAULT_NONE.equals(url)) {
             URL requestUrl = new URL(request.getRequestURL().toString());

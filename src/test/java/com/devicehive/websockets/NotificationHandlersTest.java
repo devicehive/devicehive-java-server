@@ -1,14 +1,10 @@
 package com.devicehive.websockets;
 
 import com.devicehive.base.AbstractWebSocketTest;
-import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.base.fixture.JsonFixture;
 import com.devicehive.base.websocket.WebSocketSynchronousConnection;
 import com.devicehive.model.*;
-import com.devicehive.model.updates.DeviceClassUpdate;
-import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -17,7 +13,6 @@ import org.junit.Test;
 import org.springframework.web.socket.TextMessage;
 
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
@@ -163,7 +158,7 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         AccessKey accessKey = new AccessKey();
         accessKey.setLabel(UUID.randomUUID().toString());
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setActions(AvailableActions.GET_DEVICE);
+        permission.setActionsArray(AvailableActions.GET_DEVICE);
         accessKey.setPermissions(Collections.singleton(permission));
         AccessKey createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),
                 singletonMap("Authorization", basicAuthHeader("test_admin", "admin_pass")), accessKey, CREATED, AccessKey.class);
@@ -220,7 +215,7 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         AccessKey accessKey = new AccessKey();
         accessKey.setLabel(UUID.randomUUID().toString());
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setActions(AvailableActions.GET_DEVICE);
+        permission.setActionsArray(AvailableActions.GET_DEVICE);
         accessKey.setPermissions(Collections.singleton(permission));
         AccessKey createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),
                 singletonMap("Authorization", basicAuthHeader("test_admin", "admin_pass")), accessKey, CREATED, AccessKey.class);

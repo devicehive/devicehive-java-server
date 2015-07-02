@@ -21,6 +21,7 @@ import static com.devicehive.configuration.Constants.*;
  * href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for
  * details.
  */
+@Path("/device")
 public interface DeviceCommandResource {
 
     /**

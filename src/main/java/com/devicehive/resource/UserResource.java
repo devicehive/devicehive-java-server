@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response;
 
 import static com.devicehive.configuration.Constants.*;
 
+@Path("/user")
 public interface UserResource {
 
     /**

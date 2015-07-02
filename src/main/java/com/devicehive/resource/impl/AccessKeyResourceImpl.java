@@ -4,7 +4,6 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
@@ -18,26 +17,22 @@ import com.devicehive.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.LABEL;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * {@inheritDoc}
  */
 @Service
-@Path("/user/{userId}/accesskey")
 public class AccessKeyResourceImpl implements AccessKeyResource {
     private static Logger logger = LoggerFactory.getLogger(AccessKeyResourceImpl.class);
 

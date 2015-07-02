@@ -15,6 +15,7 @@ import static com.devicehive.configuration.Constants.*;
  * REST controller for devices: <i>/device</i>. See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive
  * RESTful API: Device</a> for details.
  */
+@Path("/device")
 public interface DeviceResource {
 
     /**

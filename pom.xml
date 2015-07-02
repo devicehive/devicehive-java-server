@@ -47,7 +47,7 @@
         <springframework.version>4.1.6.RELEASE</springframework.version>
         <jackson2.version>2.4.5</jackson2.version>
         <hibernate-version>4.3.5.Final</hibernate-version>
-        <swagger.version>1.5.0</swagger.version>
+        <swagger.version>1.5.3-M1</swagger.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -321,8 +321,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-jaxrs</artifactId>
+            <groupId>com.wordnik</groupId>
+            <artifactId>swagger-jersey2-jaxrs</artifactId>
             <version>${swagger.version}</version>
         </dependency>
     </dependencies>
@@ -551,7 +551,7 @@
                             <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>https://github.com/swagger-api/swagger-ui/archive/master.tar.gz</url>
+                            <url>https://github.com/swagger-api/swagger-ui/archive/v2.1.0.tar.gz</url>
                             <unpack>true</unpack>
                             <outputDirectory>${project.build.directory}</outputDirectory>
                         </configuration>
@@ -572,7 +572,7 @@
                             <outputDirectory>target/classes/public</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.build.directory}/swagger-ui-master/dist</directory>
+                                    <directory>${project.build.directory}/swagger-ui-2.1.0/dist</directory>
                                     <!--<filtering>true</filtering>-->
                                     <excludes>
                                         <exclude>index.html</exclude>

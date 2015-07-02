@@ -11,6 +11,7 @@ import javax.ws.rs.core.Response;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
 
+@Path("/user/{userId}/oauth/grant")
 public interface OAuthGrantResource {
 
     @GET

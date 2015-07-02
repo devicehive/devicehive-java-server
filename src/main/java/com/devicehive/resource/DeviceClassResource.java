@@ -18,6 +18,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PU
  * REST controller for device classes: <i>/DeviceClass</i>. See <a href="http://www.devicehive.com/restful#Reference/DeviceClass">DeviceHive
  * RESTful API: DeviceClass</a> for details.
  */
+@Path("/device/class")
 public interface DeviceClassResource {
 
     /**

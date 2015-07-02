@@ -23,6 +23,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_F
  *
  * @author rroschin
  */
+@Path("/device")
 public interface DeviceNotificationResource {
 
     /**

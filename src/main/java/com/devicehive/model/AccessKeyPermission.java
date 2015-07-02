@@ -3,6 +3,7 @@ package com.devicehive.model;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -97,7 +98,7 @@ public class AccessKeyPermission implements HiveEntity {
         return domains;
     }
 
-    public void setDomains(String... domains) {
+    public void setDomainArray(String... domains) {
         Gson gson = GsonFactory.createGson();
         this.domains = new JsonStringWrapper(gson.toJsonTree(domains).toString());
     }
@@ -191,7 +192,7 @@ public class AccessKeyPermission implements HiveEntity {
         this.subnets = subnets;
     }
 
-    public void setSubnets(String... subnets) {
+    public void setSubnetsArray(String... subnets) {
         Gson gson = GsonFactory.createGson();
         this.subnets = new JsonStringWrapper(gson.toJsonTree(subnets).toString());
     }
@@ -204,7 +205,7 @@ public class AccessKeyPermission implements HiveEntity {
         this.actions = actions;
     }
 
-    public void setActions(String... actions) {
+    public void setActionsArray(String... actions) {
         Gson gson = GsonFactory.createGson();
         this.actions = new JsonStringWrapper(gson.toJsonTree(actions).toString());
     }
@@ -217,7 +218,7 @@ public class AccessKeyPermission implements HiveEntity {
         this.networkIds = networkIds;
     }
 
-    public void setNetworkIds(Collection<Long> actions) {
+    public void setNetworkIdsCollection(Collection<Long> actions) {
         Gson gson = GsonFactory.createGson();
         this.networkIds = new JsonStringWrapper(gson.toJsonTree(actions).toString());
     }
@@ -230,7 +231,7 @@ public class AccessKeyPermission implements HiveEntity {
         this.deviceGuids = deviceGuids;
     }
 
-    public void setDeviceGuids(Collection<String> deviceGuids) {
+    public void setDeviceGuidsCollection(Collection<String> deviceGuids) {
         Gson gson = GsonFactory.createGson();
         this.deviceGuids = new JsonStringWrapper(gson.toJsonTree(deviceGuids).toString());
     }

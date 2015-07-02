@@ -15,14 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 import static com.devicehive.configuration.Constants.OAUTH_AUTH_SCEME;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
-@Path("/oauth2/token")
 public class OAuthTokenResourceImpl implements OAuthTokenResource {
     private static final Logger logger = LoggerFactory.getLogger(OAuthTokenResourceImpl.class);
 

@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 /**
  * Provide API information
  */
+@Path("/configuration")
 public interface ConfigurationResource {
 
     @GET

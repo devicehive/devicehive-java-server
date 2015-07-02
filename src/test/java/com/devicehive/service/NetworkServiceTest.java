@@ -15,7 +15,6 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.NetworkUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hamcrest.CustomMatcher;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -353,7 +352,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setNetworkIds(allowedIds);
+        permission.setNetworkIdsCollection(allowedIds);
         AccessKey accessKey = new AccessKey();
         accessKey.setPermissions(Collections.singleton(permission));
 
@@ -647,7 +646,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         AccessKey accessKey = new AccessKey();
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setActions("do nothing");
+        permission.setActionsArray("do nothing");
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
@@ -674,7 +673,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         AccessKey accessKey = new AccessKey();
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setNetworkIds(Arrays.asList(-1L, -2L));
+        permission.setNetworkIdsCollection(Arrays.asList(-1L, -2L));
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
 
@@ -722,8 +721,8 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         AccessKey accessKey = new AccessKey();
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setNetworkIds(Collections.singleton(created.getId()));
-        permission.setDeviceGuids(Collections.singleton(notification.getDeviceGuid()));
+        permission.setNetworkIdsCollection(Collections.singleton(created.getId()));
+        permission.setDeviceGuidsCollection(Collections.singleton(notification.getDeviceGuid()));
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
 
@@ -770,7 +769,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         AccessKey accessKey = new AccessKey();
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setDeviceGuids(Collections.singleton("-1"));
+        permission.setDeviceGuidsCollection(Collections.singleton("-1"));
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
 
@@ -803,7 +802,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         AccessKey accessKey = new AccessKey();
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setNetworkIds(Arrays.asList(first.getId(), -1L, -2L));
+        permission.setNetworkIdsCollection(Arrays.asList(first.getId(), -1L, -2L));
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
 

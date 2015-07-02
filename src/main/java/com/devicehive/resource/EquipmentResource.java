@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import static com.devicehive.configuration.Constants.DEVICE_CLASS_ID;
 import static com.devicehive.configuration.Constants.ID;
 
+@Path("/device/class/{deviceClassId}/equipment")
 public interface EquipmentResource {
 
     /**
