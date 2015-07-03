@@ -24,6 +24,9 @@ import java.util.*;
 public abstract class AbstractHazelcastEntityService {
     private static final Logger logger = LoggerFactory.getLogger(AbstractHazelcastEntityService.class);
 
+    public static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
+    public static final String COMMANDS_MAP = "COMMANDS-MAP";
+
     @Autowired
     protected HazelcastInstance hazelcastInstance;
 
