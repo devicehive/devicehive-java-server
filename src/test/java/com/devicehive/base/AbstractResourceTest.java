@@ -1,15 +1,21 @@
 package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.rule.EmbeddedKafkaRule;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.model.Device;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
+import com.devicehive.service.AbstractHazelcastEntityService;
 import com.google.gson.Gson;
+import com.hazelcast.core.HazelcastInstance;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -38,6 +44,9 @@ public abstract class AbstractResourceTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
 
+    @Autowired
+    private HazelcastInstance hzInstance;
+
     @ClassRule
     public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
 
@@ -58,6 +67,12 @@ public abstract class AbstractResourceTest {
         client.register(HiveEntityProvider.class);
         client.register(CollectionProvider.class);
         target = client.target(httpBaseUri).path("rest");
+    }
+
+    @After
+    public void clearHZ() {
+        hzInstance.getMap(AbstractHazelcastEntityService.COMMANDS_MAP).clear();
+        hzInstance.getMap(AbstractHazelcastEntityService.NOTIFICATIONS_MAP).clear();
     }
 
     protected WebTarget target() {
