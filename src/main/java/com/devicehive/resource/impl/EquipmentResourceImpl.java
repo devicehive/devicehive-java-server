@@ -2,33 +2,25 @@ package com.devicehive.resource.impl;
 
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.resource.EquipmentResource;
-import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.EquipmentUpdate;
+import com.devicehive.resource.EquipmentResource;
+import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceClassService;
 import com.devicehive.service.EquipmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.DEVICE_CLASS_ID;
-import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENTCLASS_SUBMITTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
-@Path("/device/class/{deviceClassId}/equipment")
 public class EquipmentResourceImpl implements EquipmentResource {
     private static final Logger logger = LoggerFactory.getLogger(EquipmentResourceImpl.class);
 
@@ -106,14 +98,6 @@ public class EquipmentResourceImpl implements EquipmentResource {
         logger.debug("Delete device class's equipment finished");
 
         return ResponseFactory.response(NO_CONTENT);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Response getEquipment() {
-        return ResponseFactory.response(METHOD_NOT_ALLOWED, new ErrorResponse(METHOD_NOT_ALLOWED.getStatusCode(), METHOD_NOT_ALLOWED.getReasonPhrase()));
     }
 
 }

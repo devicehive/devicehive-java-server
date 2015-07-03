@@ -1,6 +1,5 @@
 package com.devicehive.auth;
 
-import com.devicehive.model.OAuthClient;
 import com.devicehive.model.enums.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;

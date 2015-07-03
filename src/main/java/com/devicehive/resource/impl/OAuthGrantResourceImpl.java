@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +33,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
-@Path("/user/{userId}/oauth/grant")
 public class OAuthGrantResourceImpl implements OAuthGrantResource {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthGrantResourceImpl.class);

@@ -47,6 +47,7 @@
         <springframework.version>4.1.6.RELEASE</springframework.version>
         <jackson2.version>2.4.5</jackson2.version>
         <hibernate-version>4.3.5.Final</hibernate-version>
+        <swagger.version>1.5.3-M1</swagger.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -56,6 +57,8 @@
         <maven-enforcer-plugin.version>1.4</maven-enforcer-plugin.version>
         <docker-maven-plugin.version>0.2.9</docker-maven-plugin.version>
         <maven-war-plugin.version>2.4</maven-war-plugin.version>
+        <download-maven-plugin.version>1.2.1</download-maven-plugin.version>
+        <maven-resource-plugin.version>2.7</maven-resource-plugin.version>
 
         <tomcat.version>8.0.21</tomcat.version>
 
@@ -316,6 +319,12 @@
             <artifactId>curator-x-discovery</artifactId>
             <version>${curator.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.wordnik</groupId>
+            <artifactId>swagger-jersey2-jaxrs</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -526,6 +535,50 @@
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>${download-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>swagger-ui</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://github.com/swagger-api/swagger-ui/archive/v2.1.0.tar.gz</url>
+                            <unpack>true</unpack>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resource-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/classes/public</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/swagger-ui-2.1.0/dist</directory>
+                                    <!--<filtering>true</filtering>-->
+                                    <excludes>
+                                        <exclude>index.html</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
                         </configuration>
                     </execution>
                 </executions>

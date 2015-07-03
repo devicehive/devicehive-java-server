@@ -48,6 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                     .antMatchers("/css/**", "/server/**", "/scripts/**", "/webjars/**", "/templates/**").permitAll()
+                    .antMatchers("/*/swagger.json", "/*/swagger.yaml").permitAll()
                 .and()
                 .anonymous().disable()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());

@@ -1,11 +1,10 @@
 package com.devicehive.json.strategies;
 
 
+import javax.enterprise.util.AnnotationLiteral;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
-import javax.enterprise.util.AnnotationLiteral;
 
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)

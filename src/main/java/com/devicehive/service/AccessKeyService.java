@@ -283,9 +283,9 @@ public class AccessKeyService {
         newKey.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setDomains(grant.getClient().getDomain());
-        permission.setActions(StringUtils.split(grant.getScope(), ' '));
-        permission.setSubnets(grant.getClient().getSubnet());
+        permission.setDomainArray(grant.getClient().getDomain());
+        permission.setActionsArray(StringUtils.split(grant.getScope(), ' '));
+        permission.setSubnetsArray(grant.getClient().getSubnet());
         permission.setNetworkIds(grant.getNetworkIds());
         permissions.add(permission);
         newKey.setPermissions(permissions);
@@ -306,9 +306,9 @@ public class AccessKeyService {
         existing.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
         Set<AccessKeyPermission> permissions = new HashSet<>();
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setDomains(grant.getClient().getDomain());
-        permission.setActions(StringUtils.split(grant.getScope(), ' '));
-        permission.setSubnets(grant.getClient().getSubnet());
+        permission.setDomainArray(grant.getClient().getDomain());
+        permission.setActionsArray(StringUtils.split(grant.getScope(), ' '));
+        permission.setSubnetsArray(grant.getClient().getSubnet());
         permission.setNetworkIds(grant.getNetworkIds());
         permissions.add(permission);
         existing.setPermissions(permissions);

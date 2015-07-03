@@ -5,7 +5,6 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
-import com.devicehive.model.enums.SearchableField;
 import com.devicehive.service.helpers.HazelcastHelper;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;

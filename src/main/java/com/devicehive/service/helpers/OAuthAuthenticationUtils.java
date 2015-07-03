@@ -57,7 +57,7 @@ public class OAuthAuthenticationUtils {
             case ADMIN:
                 break;
             case CLIENT: default:
-                permission.setActions(AvailableActions.getClientActions());
+                permission.setActionsArray(AvailableActions.getClientActions());
                 break;
         }
         return permission;
