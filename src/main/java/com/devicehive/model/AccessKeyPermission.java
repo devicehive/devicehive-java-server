@@ -3,7 +3,6 @@ package com.devicehive.model;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 

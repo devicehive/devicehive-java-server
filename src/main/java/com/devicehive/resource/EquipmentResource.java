@@ -4,15 +4,14 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
+import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.DEVICE_CLASS_ID;
-import static com.devicehive.configuration.Constants.ID;
-
+@Api(tags = {"equipment"})
 @Path("/device/class/{deviceClassId}/equipment")
 public interface EquipmentResource {
 
@@ -27,9 +26,17 @@ public interface EquipmentResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @ApiOperation(value = "Get equipment", notes = "Returns equipment by device class id and equipment id")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If equipment not found")
+    })
     Response getEquipment(
-            @PathParam(DEVICE_CLASS_ID) long classId,
-            @PathParam(ID) long eqId);
+            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
+            @PathParam("deviceClassId")
+            long classId,
+            @ApiParam(name = "id", value = "Equipment id", required = true)
+            @PathParam("id")
+            long eqId);
 
     /**
      * Adds new equipment type to device class
@@ -39,8 +46,12 @@ public interface EquipmentResource {
     @POST
     @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Create equipment", notes = "Creates equipment")
     Response insertEquipment(
-            @PathParam(DEVICE_CLASS_ID) long classId,
+            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
+            @PathParam("deviceClassId")
+            long classId,
+            @ApiParam(value = "Equipment body", required = true, defaultValue = "{}")
             Equipment equipment);
 
     /**
@@ -61,10 +72,20 @@ public interface EquipmentResource {
     @Path("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update equipment", notes = "Updates equipment")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If equipment not found")
+    })
     Response updateEquipment(
-            @PathParam(DEVICE_CLASS_ID) long classId,
-            @PathParam(ID) long eqId,
-            @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED) EquipmentUpdate equipmentUpdate);
+            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
+            @PathParam("deviceClassId")
+            long classId,
+            @ApiParam(name = "id", value = "Equipment id", required = true)
+            @PathParam("id")
+            long eqId,
+            @ApiParam(value = "Equipment body", required = true, defaultValue = "{}")
+            @JsonPolicyApply(JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED)
+            EquipmentUpdate equipmentUpdate);
 
     /**
      * Will cascade deletes specified equipment and all data for this equipment for all devise of this type.
@@ -77,16 +98,12 @@ public interface EquipmentResource {
     @Path("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Delete equipment", notes = "Deletes equipment")
     Response deleteEquipment(
-            @PathParam(DEVICE_CLASS_ID) long classId,
-            @PathParam(ID) long eqId);
-
-    /**
-     * Gets current state of device equipment. <code> [ { "id":1, "timestamp": "1970-01-01 00:00:00.0", "parameters":{/
-     * *custom json object* /} }, { "id":2, "timestamp": "1970-01-01 00:00:00.0", "parameters":{/ *custom json object*
-     * /} } ] <p/> </code>
-     */
-    @GET
-    @PreAuthorize("hasRole('ADMIN')")
-    Response getEquipment();
+            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
+            @PathParam("deviceClassId")
+            long classId,
+            @ApiParam(name = "id", value = "Equipment id", required = true)
+            @PathParam("id")
+            long eqId);
 }

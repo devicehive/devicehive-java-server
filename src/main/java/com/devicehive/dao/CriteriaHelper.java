@@ -5,7 +5,6 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.model.enums.UserStatus;
 
 import javax.persistence.criteria.*;
 import java.util.*;

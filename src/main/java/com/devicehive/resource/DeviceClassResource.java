@@ -3,6 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.updates.DeviceClassUpdate;
+import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;
@@ -11,7 +12,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED;
 
 /**
@@ -19,6 +19,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PU
  * RESTful API: DeviceClass</a> for details.
  */
 @Path("/device/class")
+@Api(tags = {"device-class"})
 public interface DeviceClassResource {
 
     /**
@@ -37,23 +38,35 @@ public interface DeviceClassResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @ApiOperation(value = "List device classes", notes = "Returns the list of device classes based on provided parameters")
+    @ApiResponses({
+            @ApiResponse(code = 400, message = "If request is malformed")
+    })
     Response getDeviceClassList(
-            @QueryParam(NAME)
+            @ApiParam(name = "name", value = "Device class name")
+            @QueryParam("name")
             String name,
-            @QueryParam(NAME_PATTERN)
+            @ApiParam(name = "namePattern", value = "Name pattern (e.g. %value%)")
+            @QueryParam("namePattern")
             String namePattern,
-            @QueryParam(VERSION)
+            @ApiParam(name = "version", value = "Device class version")
+            @QueryParam("version")
             String version,
-            @QueryParam(SORT_FIELD)
+            @ApiParam(name = "sortField", value = "Device class field to sort by")
+            @QueryParam("sortField")
             String sortField,
-            @QueryParam(SORT_ORDER)
+            @ApiParam(name = "sortOrder", value = "Sort order", allowableValues = "ASC,DESC")
+            @QueryParam("sortOrder")
             String sortOrderSt,
 
-            @QueryParam(TAKE)
+            @ApiParam(name = "take", value = "Limit param", defaultValue = "20")
+            @QueryParam("take")
             @Min(0) @Max(Integer.MAX_VALUE)
             Integer take,
 
-            @QueryParam(SKIP) Integer skip);
+            @ApiParam(name = "skip", value = "Skip param", defaultValue = "0")
+            @QueryParam("skip")
+            Integer skip);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/get"> DeviceHive RESTful API:
@@ -66,7 +79,14 @@ public interface DeviceClassResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    Response getDeviceClass(@PathParam(ID) long id);
+    @ApiOperation(value = "Get device class", notes = "Returns device class by id")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device class not found")
+    })
+    Response getDeviceClass(
+            @ApiParam(name = "id", value = "Device class id", required = true)
+            @PathParam("id")
+            long id);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/insert"> DeviceHive RESTful
@@ -84,7 +104,14 @@ public interface DeviceClassResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    Response insertDeviceClass(DeviceClass insert);
+    @ApiOperation(value = "Create device class", notes = "Creates new device class")
+    @ApiResponses({
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 403, message = "If device class with such name and version exists or principal doesn't have permissions")
+    })
+    Response insertDeviceClass(
+            @ApiParam(value = "Device class body", required = true, defaultValue = "{}")
+            DeviceClass insert);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/update"> DeviceHive RESTful
@@ -99,10 +126,17 @@ public interface DeviceClassResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @ApiOperation(value = "Update device class", notes = "Updates existing device class")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device class doesn't exist"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response updateDeviceClass(
-            @PathParam(ID)
+            @ApiParam(name = "id", value = "Device class id", required = true)
+            @PathParam("id")
             long id,
 
+            @ApiParam(value = "Device class body", required = true, defaultValue = "{}")
             @JsonPolicyApply(DEVICECLASS_PUBLISHED)
             DeviceClassUpdate insert);
 
@@ -116,5 +150,11 @@ public interface DeviceClassResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    Response deleteDeviceClass(@PathParam(ID) long id);
+    @ApiOperation(value = "Update device class", notes = "Updates existing device class")
+    @ApiResponses({
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
+    Response deleteDeviceClass(
+            @ApiParam(name = "id", value = "Device class id", required = true)
+            @PathParam("id") long id);
 }

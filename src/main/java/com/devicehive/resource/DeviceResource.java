@@ -1,6 +1,7 @@
 package com.devicehive.resource;
 
 import com.google.gson.JsonObject;
+import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;
@@ -9,13 +10,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.*;
-
 /**
  * REST controller for devices: <i>/device</i>. See <a href="http://www.devicehive.com/restful#Reference/Device">DeviceHive
  * RESTful API: Device</a> for details.
  */
 @Path("/device")
+@Api(tags = {"device"})
 public interface DeviceResource {
 
     /**
@@ -38,19 +38,46 @@ public interface DeviceResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
+    @ApiOperation(value = "List devices", notes = "Returns list of devices")
     Response list(
-            @QueryParam(NAME) String name,
-            @QueryParam(NAME_PATTERN) String namePattern,
-            @QueryParam(STATUS) String status,
-            @QueryParam(NETWORK_ID) Long networkId,
-            @QueryParam(NETWORK_NAME) String networkName,
-            @QueryParam(DEVICE_CLASS_ID) Long deviceClassId,
-            @QueryParam(DEVICE_CLASS_NAME) String deviceClassName,
-            @QueryParam(DEVICE_CLASS_VERSION) String deviceClassVersion,
-            @QueryParam(SORT_FIELD) String sortField,
-            @QueryParam(SORT_ORDER) String sortOrderSt,
-            @QueryParam(TAKE) @Min(0) @Max(Integer.MAX_VALUE) Integer take,
-            @QueryParam(SKIP) @Min(0) @Max(Integer.MAX_VALUE) Integer skip);
+            @ApiParam(name = "name", value = "Device name")
+            @QueryParam("name")
+            String name,
+            @ApiParam(name = "namePattern", value = "Name pattern (e.g. %value%)")
+            @QueryParam("namePattern")
+            String namePattern,
+            @ApiParam(name = "status", value = "Device status")
+            @QueryParam("status")
+            String status,
+            @ApiParam(name = "networkId", value = "Network Id")
+            @QueryParam("networkId")
+            Long networkId,
+            @ApiParam(name = "networkName", value = "Network name")
+            @QueryParam("networkName")
+            String networkName,
+            @ApiParam(name = "deviceClassId", value = "Device class id")
+            @QueryParam("deviceClassId")
+            Long deviceClassId,
+            @ApiParam(name = "deviceClassName", value = "Device class name")
+            @QueryParam("deviceClassName")
+            String deviceClassName,
+            @ApiParam(name = "deviceClassVersion", value = "Device class version")
+            @QueryParam("deviceClassVersion")
+            String deviceClassVersion,
+            @ApiParam(name = "sortField", value = "Sort field")
+            @QueryParam("sortField")
+            String sortField,
+            @ApiParam(name = "sortOrder", value = "Sort order")
+            @QueryParam("sortOrder")
+            String sortOrderSt,
+            @ApiParam(name = "take", value = "Limit param", defaultValue = "20")
+            @QueryParam("take")
+            @Min(0) @Max(Integer.MAX_VALUE)
+            Integer take,
+            @ApiParam(name = "skip", value = "Skip param", defaultValue = "0")
+            @QueryParam("skip")
+            @Min(0) @Max(Integer.MAX_VALUE)
+            Integer skip);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/register">DeviceHive RESTful API:
@@ -66,9 +93,13 @@ public interface DeviceResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasPermission(null, 'REGISTER_DEVICE')")
+    @ApiOperation(value = "Register device", notes = "Registers device and do additional steps - create device class, network, equipment")
     Response register(
+            @ApiParam(value = "Device body", required = true, defaultValue = "{}")
             JsonObject jsonObject,
-            @PathParam(ID) String deviceGuid);
+            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @PathParam("id")
+            String deviceGuid);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful API:
@@ -81,8 +112,14 @@ public interface DeviceResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
+    @ApiOperation(value = "Ged device", notes = "Returns device by guid")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device not found")
+    })
     Response get(
-            @PathParam(ID) String guid);
+            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @PathParam("id")
+            String guid);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/delete">DeviceHive RESTful API:
@@ -94,8 +131,11 @@ public interface DeviceResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY', 'DEVICE') and hasPermission(null, 'REGISTER_DEVICE')")
+    @ApiOperation(value = "Delete device", notes = "Deletes device by guid")
     Response delete(
-            @PathParam(ID) String guid);
+            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @PathParam("id")
+            String guid);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/equipment">DeviceHive RESTful API:
@@ -113,8 +153,11 @@ public interface DeviceResource {
     @GET
     @Path("/{id}/equipment")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
+    @ApiOperation(value = "Get device's equipment", notes = "Returns equipment by device")
     Response equipment(
-            @PathParam(ID) String guid);
+            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @PathParam("id")
+            String guid);
 
     /**
      * Gets current state of device equipment. The equipment state is tracked by framework and it could be updated by
@@ -128,7 +171,12 @@ public interface DeviceResource {
     @GET
     @Path("/{id}/equipment/{code}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
+    @ApiOperation(value = "Get current state of equipment", notes = "Returns equipment's state")
     Response equipmentByCode(
-            @PathParam(ID) String guid,
-            @PathParam(CODE) String code);
+            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @PathParam("id")
+            String guid,
+            @ApiParam(name = "code", value = "Equipment code", required = true)
+            @PathParam("code")
+            String code);
 }

@@ -1,11 +1,10 @@
 package com.devicehive.resource.exceptions;
 
 
-import com.google.gson.JsonParseException;
-
 import com.devicehive.configuration.Messages;
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.resource.util.ResponseFactory;
+import com.google.gson.JsonParseException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

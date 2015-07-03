@@ -1,5 +1,8 @@
 package com.devicehive.resource;
 
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.NotNull;
@@ -9,9 +12,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 
+@Api(tags = {"oauth-token"})
 @Path("/oauth2/token")
 public interface OAuthTokenResource {
     String AUTHORIZATION_CODE = "authorization_code";
@@ -20,11 +23,28 @@ public interface OAuthTokenResource {
     @POST
     @Consumes(APPLICATION_FORM_URLENCODED)
     @PreAuthorize("permitAll")
-    Response accessTokenRequest(@FormParam(GRANT_TYPE) @NotNull String grantType,
-                                @FormParam(CODE) String code,
-                                @FormParam(REDIRECT_URI) String redirectUri,
-                                @FormParam(CLIENT_ID) String clientId,
-                                @FormParam(SCOPE) String scope,
-                                @FormParam(USERNAME) String login,
-                                @FormParam(PASSWORD) String password);
+    @ApiOperation(value = "Access token request")
+    Response accessTokenRequest(
+            @ApiParam(name = "grant_type", value = "Grant type", required = true)
+            @FormParam("grant_type")
+            @NotNull
+            String grantType,
+            @ApiParam(name = "code", value = "Code", required = true)
+            @FormParam("code")
+            String code,
+            @ApiParam(name = "redirectUri", value = "Redirect Uri", required = true)
+            @FormParam("redirectUri")
+            String redirectUri,
+            @ApiParam(name = "client_id", value = "Client Id", required = true)
+            @FormParam("client_id")
+            String clientId,
+            @ApiParam(name = "scope", value = "Scope", required = true)
+            @FormParam("scope")
+            String scope,
+            @ApiParam(name = "username", value = "User name (Login)", required = true)
+            @FormParam("username")
+            String login,
+            @ApiParam(name = "password", value = "Password", required = true)
+            @FormParam("password")
+            String password);
 }

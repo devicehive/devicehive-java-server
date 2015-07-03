@@ -1,6 +1,5 @@
 package com.devicehive.application;
 
-import com.wordnik.swagger.converter.ModelConverters;
 import com.wordnik.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -65,7 +64,7 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     public BeanConfig swaggerConfig(@Value("${server.context-path}") String contextPath, @Value("${build.version}") String buildVersion) {
         String basePath = contextPath.equals("/") ? JerseyConfig.REST_PATH : contextPath + JerseyConfig.REST_PATH;
         BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setTitle("Device Hive");
+        beanConfig.setTitle("Device Hive REST API");
         beanConfig.setVersion(buildVersion);
         beanConfig.setBasePath(basePath);
         beanConfig.setResourcePackage("com.devicehive.resource");

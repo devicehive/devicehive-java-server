@@ -100,12 +100,4 @@ public class EquipmentResourceImpl implements EquipmentResource {
         return ResponseFactory.response(NO_CONTENT);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Response getEquipment() {
-        return ResponseFactory.response(METHOD_NOT_ALLOWED, new ErrorResponse(METHOD_NOT_ALLOWED.getStatusCode(), METHOD_NOT_ALLOWED.getReasonPhrase()));
-    }
-
 }

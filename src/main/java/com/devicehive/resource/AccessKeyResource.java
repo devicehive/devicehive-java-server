@@ -16,7 +16,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUB
  * RESTful API: AccessKey</a> for details.
  */
 @Path("/user/{userId}/accesskey")
-@Api(tags = {"access-key"}, description = "Access key operations")
+@Api(tags = {"user-access-key"}, description = "Access key operations")
 public interface AccessKeyResource {
 
     /**
@@ -46,7 +46,7 @@ public interface AccessKeyResource {
             @ApiParam(name = "type", value = "Access Key type")
             @QueryParam("type")
             Integer type,
-            @ApiParam(name = "sortField", value = "Access Key field to sort on")
+            @ApiParam(name = "sortField", value = "Access Key field to sort by")
             @QueryParam("sortField")
             String sortField,
             @ApiParam(name = "sortOrder", value = "Sort order", allowableValues = "ASC,DESC")

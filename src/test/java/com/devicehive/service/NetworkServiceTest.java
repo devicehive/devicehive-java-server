@@ -28,7 +28,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static java.util.Arrays.equals;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;

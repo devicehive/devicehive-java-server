@@ -3,7 +3,6 @@ package com.devicehive.model;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 
-
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.util.Date;
