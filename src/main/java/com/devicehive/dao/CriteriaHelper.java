@@ -2,6 +2,7 @@ package com.devicehive.dao;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
+import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
@@ -89,6 +90,24 @@ public class CriteriaHelper {
 
         roleOpt.ifPresent(role -> predicates.add(cb.equal(from.get("role"), role)));
         statusOpt.ifPresent(status -> predicates.add(cb.equal(from.get("status"), status)));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
+    public static Predicate[] accessKeyListPredicates(CriteriaBuilder cb, Root<AccessKey> from, Long userId, Optional<String> labelOpt, Optional<String> labelPatten,
+                                                      Optional<Integer> typeOpt) {
+        List<Predicate> predicates = new LinkedList<>();
+
+        Join user = (Join) from.fetch("user", JoinType.LEFT);
+        predicates.add(cb.equal(user.get("id"), userId));
+
+        if (labelPatten.isPresent()) {
+            labelPatten.ifPresent(pattern -> predicates.add(cb.like(from.get("label"), pattern)));
+        } else {
+            labelOpt.ifPresent(label -> predicates.add(cb.equal(from.get("label"), label)));
+        }
+
+        typeOpt.ifPresent(type -> predicates.add(cb.equal(from.get("type"), type)));
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }
