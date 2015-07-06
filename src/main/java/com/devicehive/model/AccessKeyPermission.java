@@ -14,13 +14,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.model.AccessKeyPermission.Queries.Names;
-import static com.devicehive.model.AccessKeyPermission.Queries.Values;
 
 @Entity
 @NamedQueries({
-                  @NamedQuery(name = Names.DELETE_BY_ACCESS_KEY, query = Values.DELETE_BY_ACCESS_KEY)
-              })
+        @NamedQuery(name = "AccessKeyPermission.deleteByAccessKey", query = "delete from AccessKeyPermission akp where akp.accessKey = :accessKey")
+})
 @Table(name = "access_key_permission")
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -36,32 +34,32 @@ public class AccessKeyPermission implements HiveEntity {
     private AccessKey accessKey;
     @Embedded
     @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
-                        })
+            @AttributeOverride(name = "jsonString", column = @Column(name = "domains"))
+    })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper domains;
     @Embedded
     @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
-                        })
+            @AttributeOverride(name = "jsonString", column = @Column(name = "subnets"))
+    })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper subnets;
     @Embedded
     @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
-                        })
+            @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
+    })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper actions;
     @Embedded
     @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
-                        })
+            @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
+    })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper networkIds;
     @Embedded
     @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
-                        })
+            @AttributeOverride(name = "jsonString", column = @Column(name = "device_guids"))
+    })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper deviceGuids;
     @Version
@@ -233,24 +231,5 @@ public class AccessKeyPermission implements HiveEntity {
     public void setDeviceGuidsCollection(Collection<String> deviceGuids) {
         Gson gson = GsonFactory.createGson();
         this.deviceGuids = new JsonStringWrapper(gson.toJsonTree(deviceGuids).toString());
-    }
-
-    public static class Queries {
-
-        public static interface Names {
-
-            static final String DELETE_BY_ACCESS_KEY = "AccessKeyPermission.deleteByAccessKey";
-        }
-
-        static interface Values {
-
-            static final String DELETE_BY_ACCESS_KEY =
-                "delete from AccessKeyPermission akp where akp.accessKey = :accessKey";
-        }
-
-        public static interface Parameters {
-
-            static final String ACCESS_KEY = "accessKey";
-        }
     }
 }

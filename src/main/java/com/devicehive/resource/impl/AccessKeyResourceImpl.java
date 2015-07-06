@@ -76,7 +76,7 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
         logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
 
         Long id = getUser(userId).getId();
-        AccessKey result = accessKeyService.get(id, accessKeyId);
+        AccessKey result = accessKeyService.find(accessKeyId, id);
         if (result == null) {
             logger.debug("Access key : list failed for userId : {} and accessKeyId : {}. Reason: No access key found" +
                     ".", userId, accessKeyId);
