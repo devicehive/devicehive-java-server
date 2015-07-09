@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.DeviceEquipmentDAO;
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.GenericDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
@@ -15,12 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+import static java.util.Optional.of;
+
 //TODO:javadoc
 @Component
 public class DeviceEquipmentService {
 
     @Autowired
-    private DeviceEquipmentDAO deviceEquipmentDAO;
+    private GenericDAO genericDAO;
     @Autowired
     private TimestampService timestampService;
 
@@ -33,19 +36,30 @@ public class DeviceEquipmentService {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceEquipment> findByFK(@NotNull Device device) {
-        return deviceEquipmentDAO.findByFK(device);
+        return genericDAO.createNamedQuery(DeviceEquipment.class, "DeviceEquipment.getByDevice", of(CacheConfig.refresh()))
+                .setParameter("device", device)
+                .getResultList();
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device) {
-        return deviceEquipmentDAO.findByCodeAndDevice(code, device);
+        return genericDAO.createNamedQuery(DeviceEquipment.class, "DeviceEquipment.getByDeviceAndCode", of(CacheConfig.refresh()))
+                .setParameter("code", code)
+                .setParameter("device", device)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 
     @Transactional
     public void createDeviceEquipment(DeviceEquipment deviceEquipment) {
-        if (deviceEquipment != null && !deviceEquipmentDAO.update(deviceEquipment)) {
+        DeviceEquipment equipment = findByCodeAndDevice(deviceEquipment.getCode(), deviceEquipment.getDevice());
+        if (equipment != null) {
+            equipment.setTimestamp(timestampService.getTimestamp());
+            equipment.setParameters(deviceEquipment.getParameters());
+            genericDAO.merge(equipment);
+        } else {
             deviceEquipment.setTimestamp(timestampService.getTimestamp());
-            deviceEquipmentDAO.createDeviceEquipment(deviceEquipment);
+            genericDAO.persist(deviceEquipment);
         }
     }
 
