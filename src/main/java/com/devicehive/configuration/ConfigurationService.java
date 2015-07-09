@@ -68,6 +68,7 @@ public class ConfigurationService {
         return val != null ? Boolean.parseBoolean(val) : defaultValue;
     }
 
+    @Transactional
     public <T> void delete(@NotNull String name) {
         int result = genericDAO.createNamedQuery("Configuration.delete", Optional.<CacheConfig>empty())
                 .setParameter("name", name)
