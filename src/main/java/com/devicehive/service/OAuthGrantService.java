@@ -48,7 +48,7 @@ public class OAuthGrantService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public OAuthGrant get(@NotNull User user, @NotNull Long grantId) {
         String queryName = user.isAdmin() ? "OAuthGrant.getById" : "OAuthGrant.getByIdAndUser";
-        TypedQuery<OAuthGrant> query = genericDAO.createNamedQuery(OAuthGrant.class, queryName, of(CacheConfig.get()))
+        TypedQuery<OAuthGrant> query = genericDAO.createNamedQuery(OAuthGrant.class, queryName, of(CacheConfig.refresh()))
                 .setParameter("grantId", grantId);
         if (!user.isAdmin()) {
             query.setParameter("user", user);
