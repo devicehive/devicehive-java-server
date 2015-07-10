@@ -49,6 +49,7 @@ public class DeviceClassService {
     }
 
 
+    @Transactional
     public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
                                                  Set<Equipment> customEquipmentSet) {
         DeviceClass stored;
