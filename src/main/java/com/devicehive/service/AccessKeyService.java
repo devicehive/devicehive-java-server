@@ -220,7 +220,7 @@ public class AccessKeyService {
         User accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
         Set<AccessKeyPermission> toRemove = new HashSet<>();
 
-        Device device = genericDAO.createNamedQuery(Device.class, "Device.findByUUIDWithNetworkAndDeviceClass", of(CacheConfig.refresh()))
+        Device device = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", of(CacheConfig.refresh()))
                 .setParameter("guid", deviceGuid)
                 .getSingleResult();
 

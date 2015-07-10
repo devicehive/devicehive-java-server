@@ -7,6 +7,7 @@ import com.devicehive.model.*;
 import javax.persistence.criteria.*;
 import java.util.*;
 
+import static com.devicehive.model.Device.Queries.Parameters.GUID;
 import static java.util.Optional.ofNullable;
 
 public class CriteriaHelper {
@@ -128,4 +129,81 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
+    public static Predicate[] deviceListPredicates(CriteriaBuilder cb,
+                                                   Root<Device> from,
+                                                   List<String> guids,
+                                                   Optional<HivePrincipal> principal) {
+        final List<Predicate> predicates = deviceSpecificPrincipalPredicates(cb, from, principal);
+        if (guids != null && !guids.isEmpty()) {
+            predicates.add(from.get(GUID).in(guids));
+        }
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Predicate[] deviceListPredicates(CriteriaBuilder cb,
+                                                   Root<Device> from,
+                                                   Optional<String> name,
+                                                   Optional<String> namePattern,
+                                                   Optional<String> status,
+                                                   Optional<Long> networkId,
+                                                   Optional<String> networkName,
+                                                   Optional<Long> deviceClassId,
+                                                   Optional<String> deviceClassName,
+                                                   Optional<String> deviceClassVersion,
+                                                   Optional<HivePrincipal> principal) {
+        final List<Predicate> predicates = new LinkedList<>();
+
+        name.ifPresent(n -> predicates.add(cb.equal(from.<String>get("name"), n)));
+        namePattern.ifPresent(np -> predicates.add(cb.like(from.<String>get("name"), np)));
+        status.ifPresent(s -> predicates.add(cb.equal(from.<String>get("status"), s)));
+
+        final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
+        networkId.ifPresent(nId -> predicates.add(cb.equal(networkJoin.<Long>get("id"), nId)));
+        networkName.ifPresent(nName ->  predicates.add(cb.equal(networkJoin.<String>get("name"), nName)));
+
+        final Join<Device, DeviceClass> dcJoin = (Join) from.fetch("deviceClass", JoinType.LEFT);
+        deviceClassId.ifPresent(dcId -> predicates.add(cb.equal(dcJoin.<Long>get("id"), dcId)));
+        deviceClassName.ifPresent(dcName -> predicates.add(cb.equal(dcJoin.<String>get("name"), dcName)));
+        deviceClassVersion.ifPresent(dcVersion -> predicates.add(cb.equal(dcJoin.<String>get("version"), dcVersion)));
+
+        predicates.addAll(deviceSpecificPrincipalPredicates(cb, from, principal));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Predicate> deviceSpecificPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
+        final List<Predicate> predicates = new LinkedList<>();
+        final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
+        final Join<Device, Network> usersJoin = (Join) networkJoin.fetch("users", JoinType.LEFT);
+        from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
+        principal.ifPresent(p -> {
+            User user = p.getUser();
+            if (user == null && p.getKey() != null) {
+                user = p.getKey().getUser();
+            }
+            if (user != null && !user.isAdmin()) {
+                predicates.add(cb.equal(usersJoin.<Long>get("id"), user.getId()));
+            }
+
+            if (p.getDevice() != null) {
+                predicates.add(cb.equal(from.<Long>get("id"), p.getDevice().getId()));
+            }
+
+            if (p.getKey() != null) {
+                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(p.getKey().getPermissions())) {
+                    if (extraFilter.getDeviceGuids() != null) {
+                        predicates.add(from.<String>get("guid").in(extraFilter.getDeviceGuids()));
+                    }
+                    if (extraFilter.getNetworkIds() != null) {
+                        predicates.add(networkJoin.<Long>get("id").in(extraFilter.getNetworkIds()));
+                    }
+                }
+            }
+        });
+
+        return predicates;
+    }
 }

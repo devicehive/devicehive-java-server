@@ -317,7 +317,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
 
-        final List<Device> devices =  deviceService.getList("DEVICE_NAME", null, null, null, null,null,null,null,null,null,null,null,null );
+        final List<Device> devices =  deviceService.getList("DEVICE_NAME", null, null, null, null,null,null,null,null,false,null,null,null );
         assertNotNull(devices);
         assertEquals(devices.size(), 1);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
@@ -343,7 +343,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
 
-        final List<Device> devices =  deviceService.getList(null, null, "TEST", null, null,null,null,null,null,null,null,null,null );
+        final List<Device> devices =  deviceService.getList(null, null, "TEST", null, null,null,null,null,null,false,null,null,null );
         assertNotNull(devices);
         assertEquals(devices.size(), 2);
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
@@ -392,7 +392,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, network1.getId(), null,null,null,null,null,null,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, network1.getId(), null,null,null,null,null,false,null,null,null );
         assertNotNull(devices);
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
         assertNotNull(devices.get(0).getNetwork());
@@ -416,7 +416,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(),null,null,null,null,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(),null,null,null,false,null,null,null );
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
@@ -438,7 +438,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(),null,null,null,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(),null,null,false,null,null,null );
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
@@ -461,7 +461,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, null, dc1.getVersion(),null,null,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, null, dc1.getVersion(),null,false,null,null,null );
         assertNotNull(devices);
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
     }
@@ -479,5 +479,40 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deleteDevice(device.getGuid(), null);
         existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNull(existingDevice);
+    }
+
+    @Test
+    public void should_return_device_count() {
+        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
+
+        final Device device0 = DeviceFixture.createDevice();
+        final DeviceUpdate deviceUpdate0 = DeviceFixture.createDevice(device0.getKey(), dc);
+
+        final Device device1 = DeviceFixture.createDevice();
+        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getKey(), dc);
+
+        final Device device2 = DeviceFixture.createDevice();
+        final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getKey(), dc);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, "123");
+
+        final Network network = new Network();
+        network.setName(""+randomUUID());
+        Network created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+        userService.assignNetwork(user.getId(), network.getId());
+        deviceUpdate0.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate1.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate2.setNetwork(new NullableWrapper<>(network));
+
+        deviceService.deviceSave(deviceUpdate0, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
+
+        long count = deviceService.getAllowedDevicesCount(null, Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()));
+        assertEquals(3, count);
     }
 }
