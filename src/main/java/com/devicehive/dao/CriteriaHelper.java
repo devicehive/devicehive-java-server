@@ -2,10 +2,7 @@ package com.devicehive.dao;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 
 import javax.persistence.criteria.*;
 import java.util.*;
@@ -108,6 +105,25 @@ public class CriteriaHelper {
         }
 
         typeOpt.ifPresent(type -> predicates.add(cb.equal(from.get("type"), type)));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
+    public static Predicate[] oAuthGrantsListPredicates(CriteriaBuilder cb, Root<OAuthGrant> from, User user, Optional<Date> startOpt, Optional<Date> endOpt, Optional<String> oAuthIdOpt,
+                                                        Optional<Integer> typeOpt, Optional<String> scopeOpt, Optional<String> redirectUri, Optional<Integer> accessType) {
+        List<Predicate> predicates = new LinkedList<>();
+
+        if (!user.isAdmin()) {
+            predicates.add(from.join("user").in(user));
+        }
+
+        startOpt.ifPresent(start -> predicates.add(cb.greaterThan(from.get("timestamp"), start)));
+        endOpt.ifPresent(end -> predicates.add(cb.lessThan(from.get("timestamp"), end)));
+        oAuthIdOpt.ifPresent(id -> predicates.add(cb.equal(from.join("client").get("oauthId"), id)));
+        typeOpt.ifPresent(type -> predicates.add(cb.equal(from.get("type"), type)));
+        scopeOpt.ifPresent(scope -> predicates.add(cb.equal(from.get("scope"), scope)));
+        redirectUri.ifPresent(uri -> predicates.add(cb.equal(from.get("redirectUri"), uri)));
+        accessType.ifPresent(at -> predicates.add(cb.equal(from.get("accessType"), at)));
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }

@@ -339,7 +339,7 @@ public class AccessKeyService {
         return query.getResultList();
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRED)
     public boolean delete(Long userId, @NotNull Long keyId) {
         int removed = ofNullable(userId).map(id ->
                 genericDAO.createNamedQuery("AccessKey.deleteByIdAndUser", Optional.<CacheConfig>empty())
