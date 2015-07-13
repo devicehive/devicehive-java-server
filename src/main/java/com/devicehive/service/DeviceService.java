@@ -340,8 +340,6 @@ public class DeviceService {
                 .getResultList()
                 .stream().findFirst().orElse(null);
 
-        logger.warn("device.getDeviceClass().getId()"+device.getDeviceClass().getId());
-
         if (device == null) {
             logger.error("Device with guid {} not found", deviceId);
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());

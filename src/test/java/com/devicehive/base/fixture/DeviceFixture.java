@@ -32,7 +32,7 @@ public class DeviceFixture {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
         deviceClass.setId(dc.getId());
-        deviceClass.setName(new NullableWrapper<>("device_class-" + dc.getId()));
+        deviceClass.setName(new NullableWrapper<>(dc.getName()));
         deviceClass.setVersion(new NullableWrapper<>(dc.getVersion()));
         deviceClass.setPermanent(new NullableWrapper<>(false));
         deviceClass.setOfflineTimeout(new NullableWrapper<>(dc.getOfflineTimeout()));

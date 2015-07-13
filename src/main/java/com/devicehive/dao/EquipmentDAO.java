@@ -77,6 +77,7 @@ public class EquipmentDAO {
         return em.find(Equipment.class, id);
     }
 
+    @Transactional
     public int deleteByDeviceClass(DeviceClass deviceClass) {
         Query query = em.createNamedQuery(DELETE_BY_DEVICE_CLASS);
         query.setParameter(DEVICE_CLASS, deviceClass);
