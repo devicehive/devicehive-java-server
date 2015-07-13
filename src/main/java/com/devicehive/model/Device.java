@@ -85,7 +85,7 @@ public class Device implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
     @Column(name = "blocked")
-    @SerializedName("blocked")
+    @SerializedName("isBlocked")
     private Boolean blocked;
 
     public long getEntityVersion() {
