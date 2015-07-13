@@ -9,8 +9,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.IDENTITY_PROVIDER_LISTED;
-import static com.devicehive.model.IdentityProvider.Queries.Names;
-import static com.devicehive.model.IdentityProvider.Queries.Values;
 
 /**
  * Created by tmatvienko on 11/17/14.
@@ -18,8 +16,8 @@ import static com.devicehive.model.IdentityProvider.Queries.Values;
 @Entity
 @Table(name = "identity_provider")
 @NamedQueries({
-        @NamedQuery(name = Names.GET_BY_NAME, query = Values.GET_BY_NAME),
-        @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID)
+        @NamedQuery(name = "IdentityProvider.getByName", query = "select ip from IdentityProvider ip where ip.name = :name"),
+        @NamedQuery(name = "IdentityProvider.deleteById", query = "delete from IdentityProvider ip where ip.id = :id")
 })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -130,24 +128,4 @@ public class IdentityProvider implements HiveEntity {
         return id == null ? 0 : id.hashCode();
     }
 
-    public static class Queries {
-
-        public static interface Names {
-
-            static final String GET_BY_NAME = "IdentityProvider.getByName";
-            static final String DELETE_BY_ID = "IdentityProvider.deleteById";
-        }
-
-        static interface Values {
-
-            static final String GET_BY_NAME = "select ip from IdentityProvider ip where ip.name = :name";
-            static final String DELETE_BY_ID = "delete from IdentityProvider ip where ip.id = :id";
-        }
-
-        public static interface Parameters {
-
-            static final String ID = "id";
-            static final String NAME = "name";
-        }
-    }
 }
