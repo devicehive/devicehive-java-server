@@ -129,6 +129,21 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
+    public static Predicate[] oAuthClientListPredicates(CriteriaBuilder cb, Root<OAuthClient> from, Optional<String> nameOpt, Optional<String> namePattern, Optional<String> domainOpt,
+                                                        Optional<String> oauthIdOpt) {
+        List<Predicate> predicates = new LinkedList<>();
+
+        if (namePattern.isPresent()) {
+            namePattern.ifPresent(pattern -> predicates.add(cb.like(from.get("name"), pattern)));
+        } else {
+            nameOpt.ifPresent(name -> predicates.add(cb.equal(from.get("name"), name)));
+        }
+        domainOpt.ifPresent(domain -> predicates.add(cb.equal(from.get("domain"), domain)));
+        oauthIdOpt.ifPresent(id -> predicates.add(cb.equal(from.get("oauthId"), id)));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
     public static Predicate[] deviceListPredicates(CriteriaBuilder cb,
                                                    Root<Device> from,
                                                    List<String> guids,
