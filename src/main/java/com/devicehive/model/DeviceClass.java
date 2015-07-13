@@ -19,18 +19,15 @@ import static com.devicehive.model.DeviceClass.Queries.Values;
 @Entity
 @Table(name = "device_class")
 @NamedQueries({
-                  @NamedQuery(name = Names.FIND_BY_NAME_AND_VERSION, query = Values.FIND_BY_NAME_AND_VERSION),
-                  @NamedQuery(name = Names.GET_WITH_EQUIPMENT, query = Values.GET_WITH_EQUIPMENT),
-                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-                  @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL)
-              })
+          @NamedQuery(name = "DeviceClass.findByNameAndVersion", query = "select d from DeviceClass d where d.name = :name and d.version = :version"),
+          @NamedQuery(name = "DeviceClass.getById", query = "select d from DeviceClass d left join fetch d.equipment where d.id = :id")
+        })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class DeviceClass implements HiveEntity {
 
     public static final String NAME_COLUMN = "name";
     public static final String VERSION_COLUMN = "version";
-    public static final String ID_COLUMN = "id";
     private static final long serialVersionUID = 8091624406245592117L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -24,6 +25,15 @@ public class GenericDAO {
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
     public <T extends Serializable> T find(Class<T> entityClass, Object primaryKey) {
         return em.find(entityClass, primaryKey);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+    public <T extends Serializable> List<T> findAll(Class<T> entityClass, Optional<CacheConfig> cacheConfig) {
+        final CriteriaQuery<T>  cq = em.getCriteriaBuilder().createQuery( entityClass );
+        cq.select(cq.from(entityClass));
+        final TypedQuery<T> tq = em.createQuery(cq);
+        cacheQuery(tq, cacheConfig);
+        return tq.getResultList();
     }
 
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -50,6 +60,10 @@ public class GenericDAO {
     @Transactional(propagation = Propagation.MANDATORY)
     public <T extends Serializable> void remove(T entity) {
         em.remove(entity);
+    }
+
+    public <E, K extends Serializable> E getReference(Class<E> entityClass, K pk){
+        return em.getReference(entityClass,pk);
     }
 
     public <T extends Serializable> TypedQuery<T> createNamedQuery(Class<T> entityClass, String queryName, Optional<CacheConfig> cacheConfig) {

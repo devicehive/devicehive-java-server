@@ -188,6 +188,19 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
+    public static Predicate[] deviceClassListPredicates(CriteriaBuilder cb, Root<DeviceClass> from, Optional<String> name,
+                                                 Optional<String>  namePattern, Optional<String>  version) {
+        final List<Predicate> predicates = new LinkedList<>();
+        if (namePattern.isPresent()) {
+            namePattern.ifPresent(np -> predicates.add(cb.like(from.get("name"), np)));
+        } else {
+            name.ifPresent(n -> predicates.add(cb.equal(from.get("name"), n)));
+        }
+
+        version.ifPresent(v -> predicates.add(cb.equal(from.get(DeviceClass.VERSION_COLUMN), v)));
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
     @SuppressWarnings("unchecked")
     private static List<Predicate> deviceSpecificPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();

@@ -258,4 +258,9 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
         assertNull(existingDeviceClass);
     }
+
+    @Test
+    public void should_not_throw_exception_delete_device_class_not_exists() {
+        deviceClassService.delete(10000);
+    }
 }
