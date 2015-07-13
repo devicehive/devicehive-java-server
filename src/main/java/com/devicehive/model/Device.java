@@ -9,8 +9,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.model.Device.Queries.Names;
-import static com.devicehive.model.Device.Queries.Values;
 
 /**
  * TODO JavaDoc
@@ -20,10 +18,13 @@ import static com.devicehive.model.Device.Queries.Values;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-                  @NamedQuery(name = Names.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS,
-                              query = Values.FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS),
-                  @NamedQuery(name = Names.FIND_BY_UUID_AND_KEY, query = Values.FIND_BY_UUID_AND_KEY),
-                  @NamedQuery(name = Names.DELETE_BY_UUID, query = Values.DELETE_BY_UUID)
+        @NamedQuery(name = "Device.findByUUIDAndKey", query = "select d from Device d where d.guid = :guid and d.key = :key"),
+                  @NamedQuery(name = "Device.findByUUID", query = "select d from Device d " +
+                                                                  "left join fetch d.network " +
+                                                                  "left join fetch d.deviceClass dc " +
+                                                                  "left join fetch dc.equipment " +
+                                                                  "where d.guid = :guid"),
+                  @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid")
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -84,7 +85,7 @@ public class Device implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
     @Column(name = "blocked")
-    @SerializedName("blocked")
+    @SerializedName("isBlocked")
     private Boolean blocked;
 
     public long getEntityVersion() {
@@ -168,26 +169,6 @@ public class Device implements HiveEntity {
     }
 
     public static class Queries {
-
-        public static interface Names {
-
-            static final String FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS =
-                "Device.findByUUIDWithNetworkAndDeviceClass";
-            static final String FIND_BY_UUID_AND_KEY = "Device.findByUUIDAndKey";
-            static final String DELETE_BY_UUID = "Device.deleteByUUID";
-        }
-
-        static interface Values {
-
-            static final String FIND_BY_UUID_WITH_NETWORK_AND_DEVICE_CLASS =
-                "select d from Device d " +
-                "left join fetch d.network " +
-                "left join fetch d.deviceClass dc " +
-                "left join fetch dc.equipment " +
-                "where d.guid = :guid";
-            static final String FIND_BY_UUID_AND_KEY = "select d from Device d where d.guid = :guid and d.key = :key";
-            static final String DELETE_BY_UUID = "delete from Device d where d.guid = :guid";
-        }
 
         public static interface Parameters {
 

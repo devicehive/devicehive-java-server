@@ -1,6 +1,7 @@
 package com.devicehive.json.adapters;
 
 
+import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.google.gson.TypeAdapter;
@@ -9,8 +10,6 @@ import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
-import com.devicehive.model.JsonStringWrapper;
 
 import java.io.IOException;
 

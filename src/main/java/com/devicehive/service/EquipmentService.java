@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.EquipmentDAO;
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.GenericDAO;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class manages equipment in database. EquipmentDAO shouldn't be used directly from controller, please use this
@@ -22,7 +24,7 @@ import java.util.List;
 public class EquipmentService {
 
     @Autowired
-    private EquipmentDAO equipmentDAO;
+    private GenericDAO genericDAO;
     @Autowired
     private HiveValidator validationUtil;
 
@@ -33,12 +35,18 @@ public class EquipmentService {
      * @param deviceClassId id of deviceClass which equipment belongs used to double check
      * @return true if deleted successfully
      */
+    @Transactional
     public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
-        return equipmentDAO.delete(equipmentId, deviceClassId);
+        return genericDAO.createNamedQuery("Equipment.deleteByIdAndDeviceClass", Optional.<CacheConfig>empty())
+                .setParameter("id", equipmentId)
+                .setParameter("deviceClassId", deviceClassId)
+                .executeUpdate() != 0;
     }
 
+    @Transactional
     public Equipment create(Equipment equipment) {
-        return equipmentDAO.create(equipment);
+        genericDAO.persist(equipment);
+        return equipment;
     }
 
     /**
@@ -47,16 +55,27 @@ public class EquipmentService {
      * @param deviceClassId parent device class id for this equipment
      * @param equipmentId   id of equipment to get
      */
+    @Transactional(readOnly = true)
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        return equipmentDAO.getByDeviceClass(deviceClassId, equipmentId);
+        return genericDAO.createNamedQuery(Equipment.class, "Equipment.getByDeviceClassAndId", Optional.of(CacheConfig.get()))
+                .setParameter("id", equipmentId)
+                .setParameter("deviceClassId", deviceClassId)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return equipmentDAO.getByDeviceClass(deviceClass);
+        return genericDAO.createNamedQuery(Equipment.class, "Equipment.getByDeviceClass", Optional.of(CacheConfig.get()))
+                .setParameter("deviceClass", deviceClass)
+                .getResultList();
     }
 
+    @Transactional
     public int deleteByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return equipmentDAO.deleteByDeviceClass(deviceClass);
+        return genericDAO.createNamedQuery("Equipment.deleteByDeviceClass", Optional.<CacheConfig>empty())
+                .setParameter("deviceClass", deviceClass)
+                .executeUpdate();
     }
 
     /**
@@ -67,11 +86,12 @@ public class EquipmentService {
      * @param deviceClassId   class of equipment to update
      * @return true, if update successful, false otherwise
      */
+    @Transactional
     public boolean update(EquipmentUpdate equipmentUpdate, @NotNull long equipmentId, @NotNull long deviceClassId) {
         if (equipmentUpdate == null) {
             return true;
         }
-        Equipment stored = equipmentDAO.get(equipmentId);
+        Equipment stored = genericDAO.find(Equipment.class, equipmentId);
         if (stored == null || stored.getDeviceClass().getId() != deviceClassId) {
             return false; // equipment with id = equipmentId does not exists
         }
@@ -88,7 +108,7 @@ public class EquipmentService {
             stored.setData(equipmentUpdate.getData().getValue());
         }
         validationUtil.validate(stored);
-        equipmentDAO.update(stored);
+        genericDAO.merge(stored);
         return true;
     }
 }

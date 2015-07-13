@@ -2,7 +2,6 @@ package com.devicehive.resource.converters;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

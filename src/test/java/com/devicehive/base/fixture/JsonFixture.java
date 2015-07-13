@@ -3,7 +3,6 @@ package com.devicehive.base.fixture;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
 

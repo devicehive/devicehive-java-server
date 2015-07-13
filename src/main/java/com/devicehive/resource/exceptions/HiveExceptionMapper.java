@@ -1,9 +1,9 @@
 package com.devicehive.resource.exceptions;
 
 
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.resource.util.ResponseFactory;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

@@ -5,7 +5,6 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
-import com.devicehive.model.enums.SearchableField;
 import com.devicehive.service.helpers.HazelcastHelper;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
@@ -23,6 +22,9 @@ import java.util.*;
 @Repository
 public abstract class AbstractHazelcastEntityService {
     private static final Logger logger = LoggerFactory.getLogger(AbstractHazelcastEntityService.class);
+
+    public static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
+    public static final String COMMANDS_MAP = "COMMANDS-MAP";
 
     @Autowired
     protected HazelcastInstance hazelcastInstance;

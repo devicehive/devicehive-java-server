@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.HashSet;
@@ -30,7 +29,6 @@ import java.util.Set;
  * Provide API information
  */
 @Service
-@Path("/info")
 public class ApiInfoResourceImpl implements ApiInfoResource {
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoResourceImpl.class);
 

@@ -2,9 +2,8 @@ package com.devicehive.resource.exceptions;
 
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
-
+import com.devicehive.resource.util.ResponseFactory;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

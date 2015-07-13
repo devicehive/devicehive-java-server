@@ -23,7 +23,6 @@ import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 
-import javax.jws.soap.SOAPBinding;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;

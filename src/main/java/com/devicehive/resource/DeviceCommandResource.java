@@ -4,6 +4,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;
@@ -14,13 +15,13 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.*;
-
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>. See <a
  * href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for
  * details.
  */
+@Path("/device")
+@Api(tags = {"device-command"})
 public interface DeviceCommandResource {
 
     /**
@@ -36,64 +37,101 @@ public interface DeviceCommandResource {
     @GET
     @Path("/{deviceGuid}/command/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @ApiOperation(value = "Poll for commands ", notes = "Polls for commands based on provided parameters (long polling)")
     void poll(
-            @PathParam(DEVICE_GUID)
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
             String deviceGuid,
-            @QueryParam(NAMES)
+            @ApiParam(name = "names", value = "Command names")
+            @QueryParam("names")
             String namesString,
-            @QueryParam(TIMESTAMP)
+            @ApiParam(name = "timestamp", value = "Timestamp to start from")
+            @QueryParam("timestamp")
             String timestamp,
+            @ApiParam(name = "waitTimeout", value = "Wait timeout")
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
             @Min(0)
             @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam(WAIT_TIMEOUT)
+            @QueryParam("waitTimeout")
             long timeout,
             @Suspended AsyncResponse asyncResponse);
 
     @GET
     @Path("/command/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @ApiOperation(value = "Poll for commands ", notes = "Polls for commands based on provided parameters (long polling)")
     void pollMany(
-            @QueryParam(DEVICE_GUIDS)
+            @ApiParam(name = "deviceGuids", value = "Device guids")
+            @QueryParam("deviceGuids")
             String deviceGuidsString,
-            @QueryParam(NAMES)
+            @ApiParam(name = "names", value = "Command names")
+            @QueryParam("names")
             String namesString,
-            @QueryParam(TIMESTAMP)
+            @ApiParam(name = "timestamp", value = "Timestamp to start from")
+            @QueryParam("timestamp")
             String timestamp,
+            @ApiParam(name = "waitTimeout", value = "Wait timeout")
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
             @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam(WAIT_TIMEOUT)
+            @QueryParam("waitTimeout")
             long timeout,
             @Suspended AsyncResponse asyncResponse);
 
     @GET
     @Path("/{deviceGuid}/command/{commandId}/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @ApiOperation(value = "Poll for commands ", notes = "Polls for commands based on provided parameters (long polling)")
     void wait(
-            @PathParam(DEVICE_GUID)
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
             String deviceGuid,
-            @PathParam(COMMAND_ID)
+            @ApiParam(name = "commandId", value = "Command Id", required = true)
+            @PathParam("commandId")
             String commandId,
+            @ApiParam(name = "waitTimeout", value = "Wait timeout")
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
             @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam(WAIT_TIMEOUT)
+            @QueryParam("waitTimeout")
             long timeout,
             @Suspended AsyncResponse asyncResponse);
 
     @GET
     @Path("/{deviceGuid}/command")
     @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @ApiOperation(value = "Query commands ", notes = "Gets list of commands")
     Response query(
-            @PathParam(DEVICE_GUID) String guid,
-            @QueryParam(START) String startTs,
-            @QueryParam(END) String endTs,
-            @QueryParam(COMMAND) String command,
-            @QueryParam(STATUS) String status,
-            @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
-            @QueryParam(SORT_ORDER) String sortOrderSt,
-            @QueryParam(TAKE) @DefaultValue(Constants.DEFAULT_TAKE_STR) Integer take,
-            @QueryParam(SKIP) Integer skip,
-            @QueryParam(GRID_INTERVAL) Integer gridInterval);
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
+            String guid,
+            @ApiParam(name = "start", value = "Start timestamp")
+            @QueryParam("start")
+            String startTs,
+            @ApiParam(name = "end", value = "End timestamp")
+            @QueryParam("end")
+            String endTs,
+            @ApiParam(name = "command", value = "Command name")
+            @QueryParam("command")
+            String command,
+            @ApiParam(name = "status", value = "Command status")
+            @QueryParam("status")
+            String status,
+            @ApiParam(name = "sortField", value = "Sort field")
+            @QueryParam("sortField")
+            @DefaultValue("timestamp")
+            String sortField,
+            @ApiParam(name = "sortOrder", value = "Sort order")
+            @QueryParam("sortOrder")
+            String sortOrderSt,
+            @ApiParam(name = "take", value = "Limit param")
+            @QueryParam("take")
+            @DefaultValue(Constants.DEFAULT_TAKE_STR)
+            Integer take,
+            @ApiParam(name = "skip", value = "Skip param")
+            @QueryParam("skip")
+            Integer skip,
+            @ApiParam(name = "gridInterval", value = "Grid interval")
+            @QueryParam("gridInterval")
+            Integer gridInterval);
 
     /**
      * Response contains following output: <p/> <code> { "id":    1 "timestamp":     "1970-01-01 00:00:00.0" "userId": 1
@@ -106,9 +144,17 @@ public interface DeviceCommandResource {
     @GET
     @Path("/{deviceGuid}/command/{commandId}")
     @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @ApiOperation(value = "Get command ", notes = "Gets command by device id and command id")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device or command not found")
+    })
     Response get(
-            @PathParam(DEVICE_GUID) String guid,
-            @PathParam(COMMAND_ID) String commandId);
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
+            String guid,
+            @ApiParam(name = "commandId", value = "Command Id", required = true)
+            @PathParam("commandId")
+            String commandId);
 
     /**
      * <b>Creates new device command.</b> <p/> <i>Example request:</i> <code> { "command":   "command name",
@@ -125,9 +171,17 @@ public interface DeviceCommandResource {
     @Path("/{deviceGuid}/command")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
+    @ApiOperation(value = "Insert command", notes = "Inserts command")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device not found")
+    })
     Response insert(
-            @PathParam(DEVICE_GUID) String guid,
-            @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_FROM_CLIENT) DeviceCommandWrapper deviceCommand);
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
+            String guid,
+            @ApiParam(value = "Command body", required = true, defaultValue = "{}")
+            @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_FROM_CLIENT)
+            DeviceCommandWrapper deviceCommand);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/update">DeviceHive RESTful
@@ -146,8 +200,18 @@ public interface DeviceCommandResource {
     @Path("/{deviceGuid}/command/{commandId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @ApiOperation(value = "Update command", notes = "Update command")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device or command not found")
+    })
     Response update(
-            @PathParam(DEVICE_GUID) String guid,
-            @PathParam(COMMAND_ID) Long commandId,
-            @JsonPolicyApply(JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE) DeviceCommandWrapper command);
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
+            String guid,
+            @ApiParam(name = "commandId", value = "Command Id", required = true)
+            @PathParam("commandId")
+            Long commandId,
+            @ApiParam(value = "Command body", required = true, defaultValue = "{}")
+            @JsonPolicyApply(JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE)
+            DeviceCommandWrapper command);
 }

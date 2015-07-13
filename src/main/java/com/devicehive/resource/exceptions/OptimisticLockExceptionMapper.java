@@ -2,8 +2,8 @@ package com.devicehive.resource.exceptions;
 
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.resource.util.ResponseFactory;
 
 import javax.persistence.OptimisticLockException;
 import javax.ws.rs.core.Response;

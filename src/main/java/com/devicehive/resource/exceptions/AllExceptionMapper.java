@@ -1,7 +1,7 @@
 package com.devicehive.resource.exceptions;
 
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.resource.util.ResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

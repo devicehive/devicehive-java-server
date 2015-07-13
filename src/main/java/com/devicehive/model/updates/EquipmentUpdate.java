@@ -1,12 +1,11 @@
 package com.devicehive.model.updates;
 
-import com.google.gson.annotations.SerializedName;
-
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.NullableWrapper;
+import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
 

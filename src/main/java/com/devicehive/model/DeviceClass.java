@@ -4,33 +4,12 @@ package com.devicehive.model;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import java.util.Set;
-
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Version;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.DeviceClass.Queries.Names;
 import static com.devicehive.model.DeviceClass.Queries.Values;
 
@@ -40,18 +19,15 @@ import static com.devicehive.model.DeviceClass.Queries.Values;
 @Entity
 @Table(name = "device_class")
 @NamedQueries({
-                  @NamedQuery(name = Names.FIND_BY_NAME_AND_VERSION, query = Values.FIND_BY_NAME_AND_VERSION),
-                  @NamedQuery(name = Names.GET_WITH_EQUIPMENT, query = Values.GET_WITH_EQUIPMENT),
-                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-                  @NamedQuery(name = Names.GET_ALL, query = Values.GET_ALL)
-              })
+          @NamedQuery(name = "DeviceClass.findByNameAndVersion", query = "select d from DeviceClass d where d.name = :name and d.version = :version"),
+          @NamedQuery(name = "DeviceClass.getById", query = "select d from DeviceClass d left join fetch d.equipment where d.id = :id")
+        })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class DeviceClass implements HiveEntity {
 
     public static final String NAME_COLUMN = "name";
     public static final String VERSION_COLUMN = "version";
-    public static final String ID_COLUMN = "id";
     private static final long serialVersionUID = 8091624406245592117L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

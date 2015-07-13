@@ -4,7 +4,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.adapters.TimestampAdapter;
 
-
 import java.util.Date;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;

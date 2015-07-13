@@ -61,7 +61,7 @@ public class SessionMonitor {
         }
     }
 
-    @Scheduled(cron = "0 */30 * * * *")//(hour = "*", minute = "*", second = "*/30", persistent = false)
+    @Scheduled(cron = "*/30 * * * * *")//(hour = "*", minute = "*", second = "*/30", persistent = false)
     public synchronized void ping() {
         for (WebSocketSession session : sessionMap.values()) {
             if (session.isOpen()) {
