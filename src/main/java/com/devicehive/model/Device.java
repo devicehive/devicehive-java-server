@@ -86,6 +86,7 @@ public class Device implements HiveEntity {
     private long entityVersion;
     @Column(name = "blocked")
     @SerializedName("isBlocked")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_PUBLISHED_DEVICE_AUTH, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private Boolean blocked;
 
     public long getEntityVersion() {
