@@ -57,9 +57,9 @@
             });
 
             function addApiKeyAuthorization(){
-                var key = encodeURIComponent($('#input_apiKey')[0].value);
+                var key = $('#input_apiKey')[0].value;//encodeURIComponent($('#input_apiKey')[0].value);
                 if(key && key.trim() != "") {
-                    var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("api_key", key, "query");
+                    var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("Authorization", "Bearer " + key, "header");
                     window.swaggerUi.api.clientAuthorizations.add("api_key", apiKeyAuth);
                     log("added key " + key);
                 }
@@ -87,7 +87,7 @@
 <body class="swagger-section">
 <div id='header'>
     <div class="swagger-ui-wrap">
-        <a id="logo" href="http://swagger.io">swagger</a>
+        <a id="logo" href="http://devicehive.com">DeviceHive</a>
         <form id='api_selector'>
             <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div>
             <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
