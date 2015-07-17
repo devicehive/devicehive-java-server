@@ -65,22 +65,19 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
     public Runnable getHandler(final T message, final UUID subId) {
         logger.debug("Websocket subscription notified");
 
-        return new Runnable() {
-            @Override
-            public void run() {
-                if (!session.isOpen()) {
-                    return;
-                }
-                JsonObject json = createJsonObject(message, subId);
-                try {
-                    lock.lock();
-                    logger.debug("Add messages to queue process for session " + session.getId());
-                    HiveWebsocketSessionState.get(session).getQueue().add(json);
-                } finally {
-                    lock.unlock();
-                }
-                ApplicationContextHolder.getApplicationContext().getBean(AsyncMessageSupplier.class).deliverMessages(session);
+        return () -> {
+            if (!session.isOpen()) {
+                return;
             }
+            JsonObject json = createJsonObject(message, subId);
+            try {
+                lock.lock();
+                logger.debug("Add messages to queue process for session " + session.getId());
+                HiveWebsocketSessionState.get(session).getQueue().add(json);
+            } finally {
+                lock.unlock();
+            }
+            ApplicationContextHolder.getApplicationContext().getBean(AsyncMessageSupplier.class).deliverMessages(session);
         };
     }
 }

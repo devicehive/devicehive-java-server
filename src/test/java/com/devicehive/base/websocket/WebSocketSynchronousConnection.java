@@ -40,4 +40,7 @@ public class WebSocketSynchronousConnection {
         return messages.poll(waitSec, TimeUnit.SECONDS);
     }
 
+    public TextMessage pollMessage(long waitSec) throws InterruptedException {
+        return messages.poll(waitSec, TimeUnit.SECONDS);
+    }
 }

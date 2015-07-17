@@ -1,6 +1,7 @@
 package com.devicehive.websockets;
 
 
+import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -12,6 +13,7 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
@@ -19,7 +21,10 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 
 abstract class AbstractWebSocketHandler extends TextWebSocketHandler {
@@ -31,6 +36,10 @@ abstract class AbstractWebSocketHandler extends TextWebSocketHandler {
     private SubscriptionManager subscriptionManager;
     @Autowired
     private WebsocketExecutor executor;
+
+    @Autowired
+    @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
+    private ExecutorService executorService;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -51,7 +60,13 @@ abstract class AbstractWebSocketHandler extends TextWebSocketHandler {
             throw new JsonParseException(ex);
         }
         JsonObject response = executor.execute(request, session);
-        session.sendMessage(new TextMessage(GsonFactory.createGson().toJson(response)));
+        executorService.submit(() -> {
+            try {
+                session.sendMessage(new TextMessage(GsonFactory.createGson().toJson(response)));
+            } catch (IOException e) {
+                logger.error("unexpected exception", e);
+            }
+        });
     }
 
     @Override
