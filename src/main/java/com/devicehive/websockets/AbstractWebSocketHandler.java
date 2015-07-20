@@ -1,10 +1,13 @@
 package com.devicehive.websockets;
 
 
+import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.configuration.Constants;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.WebsocketExecutor;
+import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -12,14 +15,19 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.adapter.standard.StandardWebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
 
 
 abstract class AbstractWebSocketHandler extends TextWebSocketHandler {
@@ -32,9 +40,16 @@ abstract class AbstractWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private WebsocketExecutor executor;
 
+    @Autowired
+    private AsyncMessageSupplier asyncMessageSupplier;
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.debug("Opening session id {} ", session.getId());
+
+        session.setBinaryMessageSizeLimit(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
+        session.setTextMessageSizeLimit(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
+
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getAttributes().put(HiveWebsocketSessionState.KEY, state);
         sessionMonitor.registerSession(session);
@@ -51,7 +66,8 @@ abstract class AbstractWebSocketHandler extends TextWebSocketHandler {
             throw new JsonParseException(ex);
         }
         JsonObject response = executor.execute(request, session);
-        session.sendMessage(new TextMessage(GsonFactory.createGson().toJson(response)));
+        HiveWebsocketSessionState.get(session).getQueue().add(response);
+        asyncMessageSupplier.deliverMessages(session);
     }
 
     @Override

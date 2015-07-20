@@ -1,10 +1,12 @@
 package com.devicehive.websockets.util;
 
+import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -17,6 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class AsyncMessageSupplier {
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageSupplier.class);
 
+    @Async(DeviceHiveApplication.MESSAGE_EXECUTOR)
     public void deliverMessages(WebSocketSession session) {
         ConcurrentLinkedQueue<JsonElement> queue = HiveWebsocketSessionState.get(session).getQueue();
         boolean acquired = false;

@@ -44,6 +44,11 @@ public abstract class AbstractResourceTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
 
+    public static final String ACCESS_KEY = "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=";
+
+    public static final String DEVICE_ID = "E50D6085-2ABA-48E9-B1C3-73C673E414BE";
+    public static final String DEVICE_KEY = "05F94BF509C8";
+
     @Autowired
     private HazelcastInstance hzInstance;
 

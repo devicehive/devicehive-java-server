@@ -25,19 +25,17 @@ public class MessageBus {
         if (hzEntity instanceof DeviceNotification) {
             kafkaProducer.produceDeviceNotificationMsg((DeviceNotification) hzEntity, Constants.NOTIFICATION_TOPIC_NAME);
         } else if (hzEntity instanceof DeviceCommand) {
-            kafkaProducer.produceDeviceCommandMsg((DeviceCommand) hzEntity, Constants.COMMAND_TOPIC_NAME);
+            DeviceCommand command = (DeviceCommand) hzEntity;
+            if (command.getIsUpdated()) {
+                kafkaProducer.produceDeviceCommandUpdateMsg(command, Constants.COMMAND_UPDATE_TOPIC_NAME);
+            } else {
+                kafkaProducer.produceDeviceCommandMsg((DeviceCommand) hzEntity, Constants.COMMAND_TOPIC_NAME);
+            }
         } else {
             final String msg = String.format("Unsupported hazelcast entity class: %s", hzEntity.getClass());
             LOGGER.warn(msg);
             throw new IllegalArgumentException(msg);
         }
-    }
-
-    //FIXME: cannot remove it now because of architecture restrictions
-    public void publishDeviceCommandUpdate(DeviceCommand deviceCommand) {
-        LOGGER.debug("Sending device command update to kafka: {}", deviceCommand);
-        kafkaProducer.produceDeviceCommandUpdateMsg(deviceCommand, Constants.COMMAND_UPDATE_TOPIC_NAME);
-        LOGGER.debug("Sent");
     }
 
 }

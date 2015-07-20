@@ -299,6 +299,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         }
 
         final DeviceCommand command = commandService.convertToDeviceCommand(deviceCommand, device, authUser, null);
+        command.setIsUpdated(false);
         commandService.store(command);
 
         LOGGER.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
