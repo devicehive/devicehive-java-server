@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Random;
 
 
@@ -66,7 +67,6 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
     }
 
     public void store(DeviceCommand command) {
-        command.setIsUpdated(false);
         store(command, DeviceCommand.class);
     }
 
@@ -77,10 +77,9 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
             if(command.getCommand() == null) {
                 command.setCommand(existing.getCommand());
             }
+            command.setTimestamp(existing.getTimestamp());
             command.setIsUpdated(true);
             store(command);
         }
-
-        messageBus.publishDeviceCommandUpdate(command);
     }
 }

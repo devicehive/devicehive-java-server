@@ -127,6 +127,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
             deviceCommand.setCommand("command"+i);
             deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
             deviceCommand.setStatus(status);
+            deviceCommand.setIsUpdated(false);
 
             deviceCommandService.store(deviceCommand);
         }
