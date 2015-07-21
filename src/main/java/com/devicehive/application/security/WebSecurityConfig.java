@@ -1,6 +1,7 @@
 package com.devicehive.application.security;
 
 import com.devicehive.auth.rest.HttpAuthenticationFilter;
+import com.devicehive.auth.rest.SimpleCORSFilter;
 import com.devicehive.auth.rest.providers.AccessTokenAuthenticationProvider;
 import com.devicehive.auth.rest.providers.BasicAuthenticationProvider;
 import com.devicehive.auth.rest.providers.DeviceAuthenticationProvider;
@@ -54,7 +55,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint());
 
         http
-                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class);
+                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class)
+                .addFilterAfter(new SimpleCORSFilter(), HttpAuthenticationFilter.class);
     }
 
     @Override
