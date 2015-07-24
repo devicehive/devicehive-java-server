@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
 
 @Component
 public class SessionMonitor {
@@ -61,16 +62,20 @@ public class SessionMonitor {
         }
     }
 
-    @Scheduled(cron = "0 */30 * * * *")//(hour = "*", minute = "*", second = "*/30", persistent = false)
+    @Scheduled(cron = "0/30 * * * * *")
     public synchronized void ping() {
         for (WebSocketSession session : sessionMap.values()) {
             if (session.isOpen()) {
                 logger.debug("Pinging session " + session.getId());
+                Lock lock = HiveWebsocketSessionState.get(session).getQueueLock();
+                lock.lock();
                 try {
                     session.sendMessage(new PingMessage(Constants.PING));
                 } catch (IOException ex) {
                     logger.error("Error sending ping", ex);
                     closePing(session);
+                } finally {
+                    lock.unlock();
                 }
             } else {
                 logger.debug("Session " + session.getId() + " is closed.");

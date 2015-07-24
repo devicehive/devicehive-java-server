@@ -3,7 +3,6 @@ package com.devicehive.base.fixture;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
 
@@ -53,6 +52,15 @@ public class JsonFixture {
         command.add("action", new JsonPrimitive("authenticate"));
         command.add("requestId", new JsonPrimitive(request));
         command.add("accessKey", new JsonPrimitive(accessKey));
+        return command;
+    }
+
+    public static JsonObject deviceAuthCommand(String request, String deviceId, String deviceKey) {
+        JsonObject command = new JsonObject();
+        command.add("action", new JsonPrimitive("authenticate"));
+        command.add("requestId", new JsonPrimitive(request));
+        command.add("deviceId", new JsonPrimitive(deviceId));
+        command.add("deviceKey", new JsonPrimitive(deviceKey));
         return command;
     }
 }

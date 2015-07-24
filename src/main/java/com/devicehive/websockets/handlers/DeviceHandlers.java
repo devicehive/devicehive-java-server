@@ -1,10 +1,8 @@
 package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.DeviceDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
@@ -27,8 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,8 +36,6 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 public class DeviceHandlers extends WebsocketHandlers {
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
 
-    @Autowired
-    private DeviceDAO deviceDAO;
     @Autowired
     private DeviceService deviceService;
 
@@ -82,7 +76,7 @@ public class DeviceHandlers extends WebsocketHandlers {
     public WebSocketResponse processDeviceGet() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = principal.getDevice();
-        Device toResponse = device == null ? null : deviceDAO.findByUUIDWithNetworkAndDeviceClass(device.getGuid());
+        Device toResponse = device == null ? null : deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED_DEVICE_AUTH);
         return response;

@@ -2,13 +2,11 @@ package com.devicehive.json;
 
 
 import com.devicehive.json.adapters.*;
+import com.devicehive.json.strategies.AnnotatedStrategy;
 import com.devicehive.model.enums.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import com.devicehive.json.strategies.AnnotatedStrategy;
-
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

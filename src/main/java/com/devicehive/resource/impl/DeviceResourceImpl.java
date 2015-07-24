@@ -3,13 +3,13 @@ package com.devicehive.resource.impl;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
-import com.devicehive.resource.DeviceResource;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.resource.DeviceResource;
+import com.devicehive.resource.converters.SortOrderQueryParamParser;
+import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.google.common.collect.ImmutableSet;
@@ -19,14 +19,9 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +35,6 @@ import static javax.ws.rs.core.Response.Status.*;
  * {@inheritDoc}
  */
 @Service
-@Path("/device")
 public class DeviceResourceImpl implements DeviceResource {
     private static final Logger logger = LoggerFactory.getLogger(DeviceResourceImpl.class);
 

@@ -1,9 +1,8 @@
 package com.devicehive.resource.exceptions;
 
 
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.model.ErrorResponse;
-
+import com.devicehive.resource.util.ResponseFactory;
 import org.hibernate.exception.ConstraintViolationException;
 
 import javax.ws.rs.core.Response;

@@ -1,5 +1,6 @@
 package com.devicehive.resource;
 
+import com.devicehive.application.JerseyConfig;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.ApiConfig;
@@ -10,12 +11,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import java.util.Collections;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -38,7 +35,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
 
         //configure rest.url and websocket.url
         String path = String.format("configuration/%s/set", Constants.REST_SERVER_URL);
-        performRequest(path, "GET", singletonMap("value", baseUri() + "/rest"),
+        performRequest(path, "GET", singletonMap("value", baseUri() + JerseyConfig.REST_PATH),
                 singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
         path = String.format("configuration/%s/set", Constants.WEBSOCKET_SERVER_URL);
         performRequest(path, "GET", singletonMap("value", wsBaseUri() + "/websocket"),

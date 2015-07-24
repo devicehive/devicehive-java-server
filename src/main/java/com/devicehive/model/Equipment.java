@@ -10,8 +10,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.model.Equipment.Queries.Names;
-import static com.devicehive.model.Equipment.Queries.Values;
 
 /**
  * TODO JavaDoc
@@ -20,11 +18,15 @@ import static com.devicehive.model.Equipment.Queries.Values;
 @Table(name = "equipment",
        uniqueConstraints = @UniqueConstraint(columnNames = "code"))
 @NamedQueries({
-                  @NamedQuery(name = Names.GET_BY_DEVICE_CLASS, query = Values.GET_BY_DEVICE_CLASS),
-                  @NamedQuery(name = Names.GET_BY_DEVICE_CLASS_AND_ID, query = Values.GET_BY_DEVICE_CLASS_AND_ID),
-                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-                  @NamedQuery(name = Names.DELETE_BY_DEVICE_CLASS, query = Values.DELETE_BY_DEVICE_CLASS),
-                  @NamedQuery(name = Names.DELETE_BY_ID_AND_DEVICE_CLASS, query = Values.DELETE_BY_ID_AND_DEVICE_CLASS)
+                  @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = :deviceClass"),
+                  @NamedQuery(name = "Equipment.getByDeviceClassAndId", query =  "select e from Equipment e " +
+                                                                                  "join e.deviceClass dc " +
+                                                                                  "where e.id = :id and dc.id = :deviceClassId"),
+                  @NamedQuery(name = "Equipment.deleteByDeviceClass", query = "delete from Equipment e where e.deviceClass = :deviceClass"),
+                  @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from Equipment e " +
+                                                                                   "where e.id = :id " +
+                                                                                   "and e.deviceClass in " +
+                                                                                   "(select dc from DeviceClass dc where dc.id = :deviceClassId)")
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -131,41 +133,5 @@ public class Equipment implements HiveEntity {
 
     public void setDeviceClass(DeviceClass deviceClass) {
         this.deviceClass = deviceClass;
-    }
-
-    public static interface Queries {
-
-        public static interface Names {
-
-            public static final String GET_BY_DEVICE_CLASS = "Equipment.getByDeviceClass";
-            public static final String GET_BY_DEVICE_CLASS_AND_ID = "Equipment.getByDeviceClassAndId";
-            public static final String DELETE_BY_ID = "Equipment.deleteById";
-            public static final String DELETE_BY_DEVICE_CLASS = "Equipment.deleteByDeviceClass";
-            public static final String DELETE_BY_ID_AND_DEVICE_CLASS = "Equipment.deleteByIdAndDeviceClass";
-        }
-
-        static interface Values {
-
-            static final String GET_BY_DEVICE_CLASS = "select e from Equipment e where e.deviceClass = :deviceClass";
-            static final String GET_BY_DEVICE_CLASS_AND_ID =
-                "select e from Equipment e " +
-                "join e.deviceClass dc " +
-                "where e.id = :id and dc.id = :deviceClassId";
-            static final String DELETE_BY_ID = "delete from Equipment e where e.id = :id";
-            static final String DELETE_BY_DEVICE_CLASS = "delete from Equipment e where e.deviceClass = :deviceClass";
-            static final String DELETE_BY_ID_AND_DEVICE_CLASS =
-                "delete from Equipment e " +
-                "where e.id = :id " +
-                "and e.deviceClass in " +
-                "(select dc from DeviceClass dc where dc.id = :deviceClassId)";
-        }
-
-        public static interface Parameters {
-
-            public static final String DEVICE_CLASS = "deviceClass";
-            public static final String ID = "id";
-            public static final String DEVICE_CLASS_ID = "deviceClassId";
-
-        }
     }
 }

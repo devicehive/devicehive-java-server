@@ -1,7 +1,7 @@
 package com.devicehive.application;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.wordnik.swagger.jaxrs.config.BeanConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
@@ -29,7 +29,6 @@ import java.util.concurrent.Executors;
 @EnableScheduling
 @EnableAsync(proxyTargetClass = true)
 public class DeviceHiveApplication extends SpringBootServletInitializer {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceHiveApplication.class);
 
     public static final String WAIT_EXECUTOR = "DeviceHiveWaitService";
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
@@ -58,5 +57,18 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     @Bean(name = MESSAGE_EXECUTOR)
     public ExecutorService messageExecutorService() {
         return Executors.newFixedThreadPool(32);
+    }
+
+    @Bean
+    @Lazy(false)
+    public BeanConfig swaggerConfig(@Value("${server.context-path}") String contextPath, @Value("${build.version}") String buildVersion) {
+        String basePath = contextPath.equals("/") ? JerseyConfig.REST_PATH : contextPath + JerseyConfig.REST_PATH;
+        BeanConfig beanConfig = new BeanConfig();
+        beanConfig.setTitle("Device Hive REST API");
+        beanConfig.setVersion(buildVersion);
+        beanConfig.setBasePath(basePath);
+        beanConfig.setResourcePackage("com.devicehive.resource");
+        beanConfig.setScan(true);
+        return beanConfig;
     }
 }

@@ -1,12 +1,11 @@
 package com.devicehive.json.adapters;
 
+import com.devicehive.configuration.Messages;
+import com.devicehive.model.enums.UserStatus;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-
-import com.devicehive.configuration.Messages;
-import com.devicehive.model.enums.UserStatus;
 
 import java.io.IOException;
 

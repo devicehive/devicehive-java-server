@@ -3,6 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;
@@ -13,7 +14,6 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 
 /**
@@ -23,6 +23,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_F
  *
  * @author rroschin
  */
+@Path("/device")
+@Api(tags = {"device-notification"})
 public interface DeviceNotificationResource {
 
     /**
@@ -48,16 +50,37 @@ public interface DeviceNotificationResource {
     @GET
     @Path("/{deviceGuid}/notification")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters")
     Response query(
-            @PathParam(DEVICE_GUID) String guid,
-            @QueryParam(START) String startTs,
-            @QueryParam(END) String endTs,
-            @QueryParam(NOTIFICATION) String notification,
-            @QueryParam(SORT_FIELD) @DefaultValue(TIMESTAMP) String sortField,
-            @QueryParam(SORT_ORDER) String sortOrderSt,
-            @QueryParam(TAKE) @DefaultValue(Constants.DEFAULT_TAKE_STR) Integer take,
-            @QueryParam(SKIP) Integer skip,
-            @QueryParam(GRID_INTERVAL) Integer gridInterval);
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
+            String guid,
+            @ApiParam(name = "start", value = "Start timestamp")
+            @QueryParam("start")
+            String startTs,
+            @ApiParam(name = "end", value = "End timestamp")
+            @QueryParam("end")
+            String endTs,
+            @ApiParam(name = "notification", value = "Notification name")
+            @QueryParam("notification")
+            String notification,
+            @ApiParam(name = "sortField", value = "Sort field")
+            @QueryParam("sortField")
+            @DefaultValue("timestamp")
+            String sortField,
+            @ApiParam(name = "sortOrder", value = "Sort order")
+            @QueryParam("sortOrder")
+            String sortOrderSt,
+            @ApiParam(name = "take", value = "Limit param")
+            @QueryParam("take")
+            @DefaultValue(Constants.DEFAULT_TAKE_STR)
+            Integer take,
+            @ApiParam(name = "skip", value = "Skip param")
+            @QueryParam("skip")
+            Integer skip,
+            @ApiParam(name = "gridInterval", value = "Grid interval")
+            @QueryParam("gridInterval")
+            Integer gridInterval);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive RESTful
@@ -75,9 +98,17 @@ public interface DeviceNotificationResource {
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @ApiOperation(value = "Get notification", notes = "Returns notification by device guid and notification id")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device or notification not found")
+    })
     Response get(
-            @PathParam(DEVICE_GUID) String guid,
-            @PathParam(ID) Long notificationId);
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
+            String guid,
+            @ApiParam(name = "id", value = "Notification id", required = true)
+            @PathParam("id")
+            Long notificationId);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/poll">DeviceHive
@@ -92,23 +123,43 @@ public interface DeviceNotificationResource {
     @GET
     @Path("/{deviceGuid}/notification/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)")
     void poll(
-            @PathParam(DEVICE_GUID) String deviceGuid,
-            @QueryParam(NAMES) String namesString,
-            @QueryParam(TIMESTAMP) String timestamp,
-            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam(WAIT_TIMEOUT) long timeout,
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
+            String deviceGuid,
+            @ApiParam(name = "names", value = "Notification names")
+            @QueryParam("names")
+            String namesString,
+            @ApiParam(name = "timestamp", value = "Timestamp to start from")
+            @QueryParam("timestamp")
+            String timestamp,
+            @ApiParam(name = "waitTimeout", value = "Wait timeout")
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
+            @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @QueryParam("waitTimeout")
+            long timeout,
             @Suspended AsyncResponse asyncResponse);
 
     @GET
     @Path("/notification/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)")
     void pollMany(
-            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT) @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
-            @QueryParam(WAIT_TIMEOUT) long timeout,
-            @QueryParam(DEVICE_GUIDS) String deviceGuidsString,
-            @QueryParam(NAMES) String namesString,
-            @QueryParam(TIMESTAMP) String timestamp,
+            @ApiParam(name = "waitTimeout", value = "Wait timeout")
+            @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
+            @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @QueryParam("waitTimeout")
+            long timeout,
+            @ApiParam(name = "deviceGuids", value = "Device guids")
+            @QueryParam("deviceGuids")
+            String deviceGuidsString,
+            @ApiParam(name = "names", value = "Notification names")
+            @QueryParam("names")
+            String namesString,
+            @ApiParam(name = "timestamp", value = "Timestamp to start from")
+            @QueryParam("timestamp")
+            String timestamp,
             @Suspended AsyncResponse asyncResponse);
 
     /**
@@ -130,9 +181,17 @@ public interface DeviceNotificationResource {
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('DEVICE', 'CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @ApiOperation(value = "Create notification", notes = "Creates notification")
+    @ApiResponses({
+            @ApiResponse(code = 404, message = "If device not found"),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 403, message = "If device is not connected to network")
+    })
     Response insert(
-            @PathParam(DEVICE_GUID)
+            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
+            @PathParam("deviceGuid")
             String guid,
+            @ApiParam(value = "Notification body", required = true, defaultValue = "{}")
             @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
             DeviceNotificationWrapper notificationSubmit);
 }

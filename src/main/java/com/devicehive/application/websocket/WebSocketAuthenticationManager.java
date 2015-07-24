@@ -4,7 +4,6 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.rest.providers.DeviceAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

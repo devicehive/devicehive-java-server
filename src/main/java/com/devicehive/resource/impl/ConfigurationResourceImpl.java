@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 @Service
-@Path("/configuration")
 public class ConfigurationResourceImpl implements ConfigurationResource {
 
     @Autowired

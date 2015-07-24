@@ -4,10 +4,6 @@ import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.resource.DeviceNotificationResource;
-import com.devicehive.resource.converters.TimestampQueryParamParser;
-import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
@@ -18,6 +14,10 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.devicehive.resource.DeviceNotificationResource;
+import com.devicehive.resource.converters.TimestampQueryParamParser;
+import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ParseUtil;
@@ -30,14 +30,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
 
-import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -45,7 +44,6 @@ import static javax.ws.rs.core.Response.Status.*;
  * {@inheritDoc}
  */
 @Service
-@Path("/device")
 public class DeviceNotificationResourceImpl implements DeviceNotificationResource {
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationResourceImpl.class);
 

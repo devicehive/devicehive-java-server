@@ -1,12 +1,12 @@
 package com.devicehive.messages.handler;
 
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.response.NotificationPollManyResponse;
+import com.devicehive.resource.util.ResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

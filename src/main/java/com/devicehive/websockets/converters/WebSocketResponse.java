@@ -1,10 +1,9 @@
 package com.devicehive.websockets.converters;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;

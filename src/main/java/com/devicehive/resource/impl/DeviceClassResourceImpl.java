@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -27,7 +26,6 @@ import static javax.ws.rs.core.Response.Status.*;
  * {@inheritDoc}
  */
 @Service
-@Path("/device/class")
 public class DeviceClassResourceImpl implements DeviceClassResource {
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassResourceImpl.class);
 

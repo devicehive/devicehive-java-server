@@ -2,8 +2,11 @@ package com.devicehive.service;
 
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.OAuthClientDAO;
-import com.devicehive.exceptions.HiveException;
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.GenericDAO;
+import com.devicehive.exceptions.ActionNotAllowedException;
+import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.service.helpers.DefaultPasswordProcessor;
@@ -15,23 +18,30 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import static javax.servlet.http.HttpServletResponse.*;
+import static java.util.Optional.ofNullable;
 
 @Component
 public class OAuthClientService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthClientService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OAuthClientService.class);
 
     @Autowired
-    private OAuthClientDAO clientDAO;
+    private GenericDAO genericDAO;
 
     private PasswordProcessor secretGenerator = new DefaultPasswordProcessor();
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient get(@NotNull Long id) {
-        return clientDAO.get(id);
+        return genericDAO.find(OAuthClient.class, id);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -43,40 +53,52 @@ public class OAuthClientService {
                                  Boolean sortOrderAsc,
                                  Integer take,
                                  Integer skip) {
-        return clientDAO.list(name, namePattern, domain, oauthId, sortField, sortOrderAsc, take, skip);
+        CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        CriteriaQuery<OAuthClient> cq = cb.createQuery(OAuthClient.class);
+        Root<OAuthClient> from = cq.from(OAuthClient.class);
+
+        Predicate[] predicates = CriteriaHelper.oAuthClientListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), ofNullable(domain), ofNullable(oauthId));
+        cq.where(predicates);
+        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
+
+        TypedQuery<OAuthClient> query = genericDAO.createQuery(cq);
+        ofNullable(take).ifPresent(query::setMaxResults);
+        ofNullable(skip).ifPresent(query::setFirstResult);
+
+        return query.getResultList();
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.REQUIRED)
     public OAuthClient insert(OAuthClient client) {
         if (client.getId() != null) {
-            LOGGER.error("OAuth client id shouldn't be empty");
-            throw new HiveException(Messages.ID_NOT_ALLOWED, SC_BAD_REQUEST);
+            logger.error("OAuth client id shouldn't be empty");
+            throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
-        OAuthClient clientWithExistingID = clientDAO.get(client.getOauthId());
+        OAuthClient clientWithExistingID = getByOAuthID(client.getOauthId());
         if (clientWithExistingID != null) {
-            LOGGER.error("OAuth client with id {} not found", client.getOauthId());
-            throw new HiveException(Messages.DUPLICATE_OAUTH_ID, SC_FORBIDDEN);
+            logger.error("OAuth client with id {} not found", client.getOauthId());
+            throw new ActionNotAllowedException(Messages.DUPLICATE_OAUTH_ID);
         }
         client.setOauthSecret(secretGenerator.generateSalt());
-        clientDAO.insert(client);
+        genericDAO.persist(client);
         return client;
     }
 
     @Transactional
     public boolean update(OAuthClientUpdate client, Long clientId) {
-        OAuthClient existing = clientDAO.get(clientId);
+        OAuthClient existing = genericDAO.find(OAuthClient.class, clientId);
         if (existing == null) {
-            LOGGER.error("OAuth client with id {} not found", clientId);
-            throw new HiveException(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, clientId), SC_NOT_FOUND);
+            logger.error("OAuth client with id {} not found", clientId);
+            throw new NoSuchElementException(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, clientId));
         }
         if (client == null) {
             return true;
         }
         if (client.getOauthId() != null && !client.getOauthId().getValue().equals(existing.getOauthId())) {
-            OAuthClient existingWithOAuthID = clientDAO.get(client.getOauthId().getValue());
+            OAuthClient existingWithOAuthID = getByOAuthID(client.getOauthId().getValue());
             if (existingWithOAuthID != null) {
-                LOGGER.error("OAuth client with id {} already exists in the system", client.getOauthId().getValue());
-                throw new HiveException(Messages.DUPLICATE_OAUTH_ID, SC_FORBIDDEN);
+                logger.error("OAuth client with id {} already exists in the system", client.getOauthId().getValue());
+                throw new ActionNotAllowedException(Messages.DUPLICATE_OAUTH_ID);
             }
         }
         if (client.getName() != null) {
@@ -94,27 +116,41 @@ public class OAuthClientService {
         if (client.getOauthId() != null) {
             existing.setOauthId(client.getOauthId().getValue());
         }
+        genericDAO.merge(existing);
         return true;
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.REQUIRED)
     public boolean delete(@NotNull Long id) {
-        return clientDAO.delete(id);
+        int result = genericDAO.createNamedQuery("OAuthClient.deleteById", Optional.<CacheConfig>empty())
+                .setParameter("id", id)
+                .executeUpdate();
+        return result > 0;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient getByOAuthID(String oauthID) {
-        return clientDAO.get(oauthID);
+        return genericDAO.createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthId", Optional.of(CacheConfig.refresh()))
+                .setParameter("oauthId", oauthID)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient authenticate(@NotNull String id, @NotNull String secret) {
-        return clientDAO.get(id, secret);
+        return genericDAO.createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthIdAndSecret", Optional.of(CacheConfig.get()))
+                .setParameter("oauthId", id)
+                .setParameter("secret", secret)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient getByName(String name) {
-        return clientDAO.getByName(name);
+        return genericDAO.createNamedQuery(OAuthClient.class, "OAuthClient.getByName", Optional.of(CacheConfig.refresh()))
+                .setParameter("name", name)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 }
 

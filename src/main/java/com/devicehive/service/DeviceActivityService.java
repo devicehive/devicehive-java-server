@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.GenericDAO;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
 import com.hazelcast.core.HazelcastInstance;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.Optional;
 
 @Component
 @Lazy(false)
@@ -24,7 +26,7 @@ public class DeviceActivityService {
     private static final String DEVICE_ACTIVITY_MAP = "DEVICE-ACTIVITY";
 
     @Autowired
-    private DeviceDAO deviceDAO;
+    private GenericDAO genericDAO;
 
     @Autowired
     private HazelcastInstance hzInstance;
@@ -47,7 +49,10 @@ public class DeviceActivityService {
         logger.debug("Checking lost offline devices");
         long now = System.currentTimeMillis();
         for (final String deviceGuid : deviceActivityMap.keySet()) {
-            Device device = deviceDAO.findByUUIDWithNetworkAndDeviceClass(deviceGuid);
+            Device device = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
+                    .setParameter("guid", deviceGuid)
+                    .getResultList()
+                    .stream().findFirst().orElse(null);
             if (device == null) {
                 logger.warn("Device with guid {} does not exists", deviceGuid);
                 deviceActivityMap.remove(deviceGuid);
@@ -58,8 +63,12 @@ public class DeviceActivityService {
                     Long time = deviceActivityMap.get(deviceGuid);
                     if (now - time > deviceClass.getOfflineTimeout() * 1000) {
                         if (deviceActivityMap.remove(deviceGuid, time)) {
-                            deviceDAO.setOffline(deviceGuid);
-                            logger.warn("Device {} is now offline", device.getGuid());
+                            Device device1 = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
+                                    .setParameter("guid", deviceGuid)
+                                    .getResultList()
+                                    .stream().findFirst().orElse(null);
+                            device1.setStatus("Offline");
+                            logger.warn("Device {} is now offline", device1.getGuid());
                         }
                     }
                 }

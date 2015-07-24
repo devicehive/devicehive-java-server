@@ -5,7 +5,7 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
-import com.devicehive.model.enums.SearchableField;
+import com.devicehive.service.helpers.HazelcastEntityComparator;
 import com.devicehive.service.helpers.HazelcastHelper;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
@@ -23,6 +23,9 @@ import java.util.*;
 @Repository
 public abstract class AbstractHazelcastEntityService {
     private static final Logger logger = LoggerFactory.getLogger(AbstractHazelcastEntityService.class);
+
+    public static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
+    public static final String COMMANDS_MAP = "COMMANDS-MAP";
 
     @Autowired
     protected HazelcastInstance hazelcastInstance;
@@ -85,16 +88,6 @@ public abstract class AbstractHazelcastEntityService {
             final PagingPredicate pagingPredicate = new PagingPredicate(andPredicate, new HazelcastEntityComparator(), pageSize);
             final Collection collection = mapsHolder.get(tClass).values(pagingPredicate);
             return ((Collection<T>) collection);
-        }
-    }
-
-    private class HazelcastEntityComparator implements Comparator<Map.Entry> {
-        @Override
-        public int compare(Map.Entry o1, Map.Entry o2) {
-            final Date o1Time = ((HazelcastEntity) o1.getValue()).getTimestamp();
-            final Date o2Time = ((HazelcastEntity) o2.getValue()).getTimestamp();
-
-            return o2Time.compareTo(o1Time);
         }
     }
 }

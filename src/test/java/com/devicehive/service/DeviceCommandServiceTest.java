@@ -6,12 +6,16 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.hazelcast.core.HazelcastInstance;
+import org.junit.After;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
 import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class DeviceCommandServiceTest extends AbstractResourceTest {
     private static final String DEFAULT_STATUS = "default_status";
@@ -41,7 +45,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(NUMBER_OF_COMMANDS);
 
         final List<DeviceCommand> commands =  new ArrayList<DeviceCommand>(deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, "status1", 100, true, null));
+                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, true, null));
 
         for (int i = 1; i < commands.size(); i++) {
             final Date currentElem = commands.get(i).getTimestamp();
@@ -56,7 +60,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(NUMBER_OF_COMMANDS);
 
         final List<DeviceCommand> commands =  new ArrayList<DeviceCommand>(deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, "status1", 100, true, null));
+                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, true, null));
 
         for (int i = 1; i < commands.size(); i++) {
             final Date currentElem = commands.get(i).getTimestamp();
@@ -119,10 +123,11 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     0L);
 
             deviceCommand.setUserId(0L);
-            deviceCommand.setDeviceGuid("guid"+i);
+            deviceCommand.setDeviceGuid(UUID.randomUUID().toString());
             deviceCommand.setCommand("command"+i);
             deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
             deviceCommand.setStatus(status);
+            deviceCommand.setIsUpdated(false);
 
             deviceCommandService.store(deviceCommand);
         }
