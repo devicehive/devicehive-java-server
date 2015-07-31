@@ -55,9 +55,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     @Autowired
     private SubscriptionManager subscriptionManager;
     @Autowired
-    private TimestampService timestampService;
-    @Autowired
-    @Qualifier(DeviceHiveApplication.WAIT_EXECUTOR)
+    @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
 
     /**
