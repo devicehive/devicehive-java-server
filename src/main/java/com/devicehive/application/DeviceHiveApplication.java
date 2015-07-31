@@ -30,7 +30,6 @@ import java.util.concurrent.Executors;
 @EnableAsync(proxyTargetClass = true)
 public class DeviceHiveApplication extends SpringBootServletInitializer {
 
-    public static final String WAIT_EXECUTOR = "DeviceHiveWaitService";
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
     public static void main(String ... args) {
@@ -48,15 +47,9 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     }
 
     @Lazy(false)
-    @Bean(name = WAIT_EXECUTOR)
-    public ExecutorService waitExecutorService() {
-        return Executors.newFixedThreadPool(32);
-    }
-
-    @Lazy(false)
     @Bean(name = MESSAGE_EXECUTOR)
-    public ExecutorService messageExecutorService() {
-        return Executors.newFixedThreadPool(32);
+    public ExecutorService messageExecutorService(@Value("${app.executor.size}") Integer executorSize) {
+        return Executors.newFixedThreadPool(executorSize);
     }
 
     @Bean
