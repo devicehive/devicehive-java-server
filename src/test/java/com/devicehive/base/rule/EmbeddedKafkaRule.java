@@ -29,8 +29,8 @@ public class EmbeddedKafkaRule extends ExternalResource {
 
     @Override
     protected void before() throws Throwable {
-        String zkPort = Optional.ofNullable(System.getProperty("zk.port")).orElse(ZK_DEFAULT_PORT);
-        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.port")).orElse(KAFKA_DEFAULT_PORT);
+        String zkPort = Optional.ofNullable(System.getProperty("zk.port")).filter(s -> !s.isEmpty()).orElse(ZK_DEFAULT_PORT);
+        String kafkaPort = Optional.ofNullable(System.getProperty("kafka.port")).filter(s -> !s.isEmpty()).orElse(KAFKA_DEFAULT_PORT);
 
         startZookeeper(Integer.parseInt(zkPort));
         String zookeeperConnect = "127.0.0.1:" + zkPort;
