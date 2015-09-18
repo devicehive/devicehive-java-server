@@ -50,6 +50,10 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
         this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 
+    public void setTimestamp(long time) {
+        this.timestamp = new Date(time);
+    }
+
     public String getNotification() {
         return notification;
     }

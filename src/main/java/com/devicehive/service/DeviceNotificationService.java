@@ -52,7 +52,7 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
         DeviceNotification message = new DeviceNotification();
         message.setId(Math.abs(new Random().nextInt()));
         message.setDeviceGuid(device.getGuid());
-        message.setTimestamp(timestampService.getTimestamp());
+        message.setTimestamp(timestampService.getTime());
         message.setNotification(notificationSubmit.getNotification());
         message.setParameters(notificationSubmit.getParameters());
         return message;
