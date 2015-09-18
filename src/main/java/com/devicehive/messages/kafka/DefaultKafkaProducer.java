@@ -3,8 +3,7 @@ package com.devicehive.messages.kafka;
 import com.devicehive.application.kafka.KafkaConfig;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -19,25 +18,25 @@ public class DefaultKafkaProducer implements KafkaProducer {
 
     @Autowired
     @Qualifier(KafkaConfig.NOTIFICATION_PRODUCER)
-    private Producer<String, DeviceNotification> notificationProducer;
+    private org.apache.kafka.clients.producer.KafkaProducer<String, DeviceNotification> notificationProducer;
 
     @Autowired
     @Qualifier(KafkaConfig.COMMAND_PRODUCER)
-    private Producer<String, DeviceCommand> commandProducer;
+    private org.apache.kafka.clients.producer.KafkaProducer<String, DeviceCommand> commandProducer;
 
     @Override
     public void produceDeviceNotificationMsg(DeviceNotification message, String deviceNotificationTopicName) {
-        notificationProducer.send(new KeyedMessage<>(deviceNotificationTopicName, message.getDeviceGuid(), message));
+        notificationProducer.send(new ProducerRecord<>(deviceNotificationTopicName, message.getDeviceGuid(), message));
     }
 
     @Override
     public void produceDeviceCommandMsg(DeviceCommand message, String deviceCommandTopicName) {
-        commandProducer.send(new KeyedMessage<>(deviceCommandTopicName, message.getDeviceGuid(), message));
+        commandProducer.send(new ProducerRecord<>(deviceCommandTopicName, message.getDeviceGuid(), message));
     }
 
     @Override
     public void produceDeviceCommandUpdateMsg(DeviceCommand message, String deviceCommandTopicName) {
-        commandProducer.send(new KeyedMessage<>(deviceCommandTopicName, message.getDeviceGuid(), message));
+        commandProducer.send(new ProducerRecord<>(deviceCommandTopicName, message.getDeviceGuid(), message));
     }
 
 }
