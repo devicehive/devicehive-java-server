@@ -7,4 +7,6 @@ public interface TimestampService {
 
     Date getTimestamp();
 
+    long getTime();
+
 }
