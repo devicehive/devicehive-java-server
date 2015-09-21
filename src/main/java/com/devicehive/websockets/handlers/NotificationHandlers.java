@@ -4,6 +4,7 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.dao.GenericDatabaseAccessDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
@@ -37,13 +38,14 @@ import java.util.*;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.*;
 
 @Component
 public class NotificationHandlers extends WebsocketHandlers {
     private static final Logger logger = LoggerFactory.getLogger(NotificationHandlers.class);
 
+    @Autowired
+    private GenericDatabaseAccessDAO genericDatabaseAccessDAO;
     @Autowired
     private SubscriptionManager subscriptionManager;
     @Autowired
@@ -216,7 +218,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         if (deviceGuid == null) {
             device = principal.getDevice();
         } else {
-            device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+            device = genericDatabaseAccessDAO.findDevice(deviceGuid);
         }
         if (device == null) {
             logger.debug("notification/insert canceled for session: {}. Guid is not provided", session);
