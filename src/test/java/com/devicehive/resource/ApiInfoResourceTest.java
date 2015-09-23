@@ -28,7 +28,6 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
     @Test
     public void should_return_API_info() throws Exception {
         ApiInfo apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfo.class);
-        assertThat(apiInfo.getApiVersion(), is(Constants.API_VERSION));
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
         assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
@@ -42,7 +41,6 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
                 singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
 
         apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfo.class);
-        assertThat(apiInfo.getApiVersion(), is(Constants.API_VERSION));
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
         assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));

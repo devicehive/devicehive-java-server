@@ -47,7 +47,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
     public Response getApiInfo(UriInfo uriInfo) {
         logger.debug("ApiInfo requested");
         ApiInfo apiInfo = new ApiInfo();
-        apiInfo.setApiVersion(Constants.API_VERSION);
+        apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         
         // Generate websocket url based on current request url
