@@ -18,9 +18,7 @@ public class CheckPermissionsHelper {
         for (AccessKeyPermission currentPermission : permissions) {
             boolean isCurrentPermissionAllowed = false;
             Set<String> actions = currentPermission.getActionsAsSet();
-            if (currentPermission.getAccessKey() != null  && currentPermission.getAccessKey().getUser().getRole() != UserRole.ADMIN) {
-                actions.removeAll(AvailableActions.getAdminActions());
-            }
+            // remove all admin permissions for non admin users
             if (actions != null) {
                 if (currentPermission.getAccessKey() != null  && currentPermission.getAccessKey().getUser().getRole() != UserRole.ADMIN) {
                     actions.removeAll(AvailableActions.getAdminActions());
