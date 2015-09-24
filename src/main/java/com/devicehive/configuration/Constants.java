@@ -10,7 +10,6 @@ public class Constants {
     public static final String UTF8 = "UTF-8";
     public static final Locale LOCALE = Locale.getDefault();
     public static final String PERSISTENCE_UNIT = "default";
-    public static final String API_VERSION = "2.0.0";
     public static final String WEBSOCKET_SERVER_URL = "websocket.url";
     public static final String REST_SERVER_URL = "rest.url";
     public static final String NULL_SUBSTITUTE = "";
