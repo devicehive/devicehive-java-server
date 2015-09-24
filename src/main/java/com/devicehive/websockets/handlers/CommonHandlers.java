@@ -62,7 +62,7 @@ public class CommonHandlers extends WebsocketHandlers {
     public WebSocketResponse processServerInfo(WebSocketSession session) {
         logger.debug("server/info action started. Session " + session.getId());
         ApiInfo apiInfo = new ApiInfo();
-        apiInfo.setApiVersion(Constants.API_VERSION);
+        apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("info", apiInfo, WEBSOCKET_SERVER_INFO);
