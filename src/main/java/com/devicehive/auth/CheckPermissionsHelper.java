@@ -31,6 +31,12 @@ public class CheckPermissionsHelper {
                 if (!isCurrentPermissionAllowed) {
                     permissionsToRemove.add(currentPermission);
                 }
+            } else {
+                if (currentPermission.getAccessKey() != null  && currentPermission.getAccessKey().getUser().getRole() != UserRole.ADMIN) {
+                    if (AvailableActions.getAdminActions().contains(allowedAction.getValue())) {
+                        permissionsToRemove.add(currentPermission);
+                    }
+                }
             }
         }
         permissions.removeAll(permissionsToRemove);
