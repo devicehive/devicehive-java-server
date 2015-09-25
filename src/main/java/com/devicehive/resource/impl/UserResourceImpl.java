@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.Objects;
 
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.LOGIN;
@@ -32,6 +33,7 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 public class UserResourceImpl implements UserResource {
+
     private static final Logger logger = LoggerFactory.getLogger(UserResourceImpl.class);
 
     @Autowired
@@ -46,19 +48,16 @@ public class UserResourceImpl implements UserResource {
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
-            return ResponseFactory.response(BAD_REQUEST,
-                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                                                              Messages.INVALID_REQUEST_PARAMETERS));
+            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS);
+            return ResponseFactory.response(BAD_REQUEST, errorResponse);
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
 
         List<User> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
 
-        logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, " +
-                        "sortField = {}, " +
-                        "sortOrder = {}, take = {}, skip = {}", login, loginPattern, role, status, sortField, sortOrder,
-                take, skip);
+        logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, sortField = {}, sortOrder = {}, take = {}, skip = {}",
+                login, loginPattern, role, status, sortField, sortOrder, take, skip);
 
         return ResponseFactory.response(OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
@@ -68,19 +67,24 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public Response getUser(Long userId) {
+        User currentLoggedInUser = findCurrentUserFromAuthContext();
 
-        User user = userService.findUserWithNetworks(userId);
+        User fetchedUser = null;
 
-        if (user == null) {
-            logger.error("Can't get user with id {}: user not found", userId);
-            return ResponseFactory.response(NOT_FOUND,
-                                            new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                                              Messages.USER_NOT_FOUND));
+        if (currentLoggedInUser != null && currentLoggedInUser.getRole() == UserRole.ADMIN) {
+            fetchedUser =  userService.findUserWithNetworks(userId);
+        } else if (currentLoggedInUser != null && currentLoggedInUser.getRole() == UserRole.CLIENT && Objects.equals(currentLoggedInUser.getId(), userId)) {
+            fetchedUser =  userService.findUserWithNetworks(currentLoggedInUser.getId());
+        } else {
+            return ResponseFactory.response(FORBIDDEN, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.USER_NOT_FOUND));
         }
 
-        return ResponseFactory.response(OK,
-                                        UserResponse.createFromUser(user),
-                                        JsonPolicyDef.Policy.USER_PUBLISHED);
+        if (fetchedUser == null) {
+            logger.error("Can't get user with id {}: user not found", userId);
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.USER_NOT_FOUND));
+        }
+
+        return ResponseFactory.response(OK, UserResponse.createFromUser(fetchedUser), JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     @Override
@@ -90,9 +94,7 @@ public class UserResourceImpl implements UserResource {
         User currentUser = userService.findUserWithNetworks(id);
 
         if (currentUser == null) {
-            return ResponseFactory.response(CONFLICT,
-                                            new ErrorResponse(CONFLICT.getStatusCode(),
-                                                              Messages.CAN_NOT_GET_CURRENT_USER));
+            return ResponseFactory.response(CONFLICT, new ErrorResponse(CONFLICT.getStatusCode(), Messages.CAN_NOT_GET_CURRENT_USER));
         }
 
         return ResponseFactory.response(OK, currentUser, JsonPolicyDef.Policy.USER_PUBLISHED);
@@ -119,8 +121,7 @@ public class UserResourceImpl implements UserResource {
 
     @Override
     public Response updateCurrentUser(UserUpdate user) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User curUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        User curUser = findCurrentUserFromAuthContext();
         userService.updateUser(curUser.getId(), user, curUser.getRole());
         return ResponseFactory.response(NO_CONTENT);
     }
@@ -146,9 +147,7 @@ public class UserResourceImpl implements UserResource {
         }
         for (Network network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
-                return ResponseFactory.response(OK,
-                                                UserNetworkResponse.fromNetwork(network),
-                                                JsonPolicyDef.Policy.NETWORKS_LISTED);
+                return ResponseFactory.response(OK, UserNetworkResponse.fromNetwork(network), JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
         throw new NotFoundException(String.format(Messages.USER_NETWORK_NOT_FOUND, networkId, id));
@@ -170,6 +169,15 @@ public class UserResourceImpl implements UserResource {
     public Response unassignNetwork(long id, long networkId) {
         userService.unassignNetwork(id, networkId);
         return ResponseFactory.response(NO_CONTENT);
+    }
+
+    /**
+     * Finds current user from authentication context, handling key and basic authorisation schemes.
+     * @return user object or null
+     */
+    private User findCurrentUserFromAuthContext() {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return principal.getUser() != null ? principal.getUser() : (principal.getKey() != null ? principal.getKey().getUser() : null);
     }
 
 }
