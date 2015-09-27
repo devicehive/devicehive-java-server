@@ -35,8 +35,10 @@ public class UserResourceTest extends AbstractResourceTest {
         User user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, User.class);
         assertThat(user.getId(), notNullValue());
 
+        final long userid = user.getId();
         user = performRequest("/user/" + user.getId(), "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, User.class);
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
+        assertThat(user.getId(), equalTo(userid));
 
         testUser = new UserUpdate();
         testUser.setStatus(new NullableWrapper<>(UserStatus.DISABLED.getValue()));
