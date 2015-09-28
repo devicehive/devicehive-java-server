@@ -1,6 +1,8 @@
 package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.Network;
+import com.devicehive.model.User;
 import com.devicehive.model.updates.UserUpdate;
 import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,8 +11,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(tags = {"User"})
 @Path("/user")
+@Api(tags = {"User"}, description = "Represents a user to this API.", consumes="application/json")
+@Produces({"application/json"})
 public interface UserResource {
 
     /**
@@ -31,33 +34,36 @@ public interface UserResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
-    @ApiOperation(value = "List users")
+    @ApiOperation(value = "List users", notes = "Gets list of users.")
     @ApiResponses({
-            @ApiResponse(code = 400, message = "If request is malformed")
+            @ApiResponse(code = 200, message = "If successful, this method returns array of User resources in the response body.", response = User.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
-    Response getUsersList(
-            @ApiParam(name = "login", value = "User login")
+    Response list(
+            @ApiParam(name = "login", value = "Filter by user login.")
             @QueryParam("login")
             String login,
-            @ApiParam(name = "loginPattern", value = "Login pattern")
+            @ApiParam(name = "loginPattern", value = "Filter by user login pattern.")
             @QueryParam("loginPattern")
             String loginPattern,
-            @ApiParam(name = "role", value = "User role")
+            @ApiParam(name = "role", value = "Filter by user role. 0 is Administrator, 1 is Client.")
             @QueryParam("role")
             Integer role,
-            @ApiParam(name = "status", value = "User status")
+            @ApiParam(name = "status", value = "Filter by user status. 0 is Active, 1 is Locked Out, 2 is Disabled.")
             @QueryParam("status")
             Integer status,
-            @ApiParam(name = "sortField", value = "Sort field")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Login")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Sort order")
+            @ApiParam(name = "sortOrder", value = "Result list sort order. Available values are ASC and DESC.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
-            @ApiParam(name = "take", value = "Limit param")
+            @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
             @QueryParam("take")
             Integer take,
-            @ApiParam(name = "skip", value = "Skip param")
+            @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
             Integer skip);
 
@@ -72,20 +78,28 @@ public interface UserResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'GET_CURRENT_USER')")
-    @ApiOperation(value = "Get user", notes = "Returns user by id")
+    @ApiOperation(value = "Get user", notes = "Gets information about user and its assigned networks.\n" +
+            "Only administrators are allowed to get information about any user. User-level accounts can only retrieve information about themselves.")
     @ApiResponses({
-            @ApiResponse(code = 404, message = "If user not found")
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = User.class),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If user is not found")
     })
     Response getUser(
-            @ApiParam(name = "id", value = "User id", required = true)
+            @ApiParam(name = "id", value = "User identifier.", required = true)
             @PathParam("id")
             Long userId);
 
     @GET
     @Path("/current")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'GET_CURRENT_USER')")
-    @ApiOperation(value = "Get current user", notes = "Returns currently signed in user")
+    @ApiOperation(value = "Get current user", notes = "Get information about the current user.")
     @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = User.class),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 409, message = "If user is not signed in")
     })
     Response getCurrent();
@@ -101,7 +115,13 @@ public interface UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
-    @ApiOperation(value = "Create user")
+    @ApiOperation(value = "Create user", notes = "Creates new user.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = User.class),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response insertUser(
             @ApiParam(value = "User body", defaultValue = "{}", required = true)
             UserUpdate userToCreate);
@@ -126,7 +146,7 @@ public interface UserResource {
     Response updateUser(
             @ApiParam(value = "User body", defaultValue = "{}", required = true)
             UserUpdate user,
-            @ApiParam(name = "id", value = "User Id", required = true)
+            @ApiParam(name = "id", value = "User identifier.", required = true)
             @PathParam("id")
             Long userId);
 
@@ -134,7 +154,16 @@ public interface UserResource {
     @Path("/current")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'UPDATE_CURRENT_USER')")
-    @ApiOperation(value = "Update current user")
+    @ApiOperation(value = "Update current user", notes = "Updates an existing user. \n" +
+            "Only administrators are allowed to update any property of any user. User-level accounts can only change their own password in case:\n" +
+            "1. They already have a password.\n" +
+            "2. They provide a valid current password in the 'oldPassword' property.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response updateCurrentUser(
             @ApiParam(value = "User body", defaultValue = "{}", required = true)
             UserUpdate user);
@@ -148,9 +177,15 @@ public interface UserResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
-    @ApiOperation(value = "Delete user")
+    @ApiOperation(value = "Delete user", notes = "Deletes an existing user.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If access key is not found")
+    })
     Response deleteUser(
-            @ApiParam(name = "id", value = "User Id", required = true)
+            @ApiParam(name = "id", value = "User identifier.", required = true)
             @PathParam("id")
             long userId);
 
@@ -165,15 +200,18 @@ public interface UserResource {
     @GET
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
-    @ApiOperation(value = "Get user's network", notes = "Returns network by used id and network id")
+    @ApiOperation(value = "Get user's network", notes = "Gets information about user/network association.")
     @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = Network.class),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If user or network not found")
     })
     Response getNetwork(
-            @ApiParam(name = "id", value = "User Id", required = true)
+            @ApiParam(name = "id", value = "User identifier.", required = true)
             @PathParam("id")
             long id,
-            @ApiParam(name = "networkId", value = "Network Id", required = true)
+            @ApiParam(name = "networkId", value = "Network identifier.", required = true)
             @PathParam("networkId")
             long networkId);
 
@@ -186,15 +224,18 @@ public interface UserResource {
     @PUT
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    @ApiOperation(value = "Assign network", notes = "Assigns network to user")
+    @ApiOperation(value = "Assign network", notes = "Associates network with the user.")
     @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If user or network not found")
     })
     Response assignNetwork(
-            @ApiParam(name = "id", value = "User Id", required = true)
+            @ApiParam(name = "id", value = "User identifier.", required = true)
             @PathParam("id")
             long id,
-            @ApiParam(name = "networkId", value = "Network Id", required = true)
+            @ApiParam(name = "networkId", value = "Network identifier.", required = true)
             @PathParam("networkId")
             long networkId);
 
@@ -208,15 +249,18 @@ public interface UserResource {
     @DELETE
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    @ApiOperation(value = "Unassign network", notes = "Unassigns network from user")
+    @ApiOperation(value = "Unassign network", notes = "Removes association between network and user.")
     @ApiResponses({
-            @ApiResponse(code = 404, message = "If user or network not found")
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If user or network not found.")
     })
     Response unassignNetwork(
-            @ApiParam(name = "id", value = "User Id", required = true)
+            @ApiParam(name = "id", value = "User identifier.", required = true)
             @PathParam("id")
             long id,
-            @ApiParam(name = "networkId", value = "Network Id", required = true)
+            @ApiParam(name = "networkId", value = "Network identifier.", required = true)
             @PathParam("networkId")
             long networkId);
 }

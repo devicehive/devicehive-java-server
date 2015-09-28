@@ -138,8 +138,7 @@ public interface AccessKeyResource {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If access key is not found")
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response update(
             @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to update access key of the current user.")
