@@ -3,25 +3,34 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
+@ApiModel
 public class DeviceClassUpdate implements HiveEntity {
 
     private static final long serialVersionUID = 967472386318199376L;
     @JsonPolicyDef(DEVICE_PUBLISHED)
+    @ApiModelProperty(dataType = "long")
     private Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    @ApiModelProperty(dataType = "string")
     private NullableWrapper<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    @ApiModelProperty(dataType = "string")
     private NullableWrapper<String> version;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    @ApiModelProperty(dataType = "boolean")
     private NullableWrapper<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    @ApiModelProperty(dataType = "int")
     private NullableWrapper<Integer> offlineTimeout;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
+    @ApiModelProperty(dataType = "com.devicehive.model.JsonStringWrapper")
     private NullableWrapper<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_SUBMITTED})
     private NullableWrapper<Set<Equipment>> equipment;

@@ -11,7 +11,7 @@ import javax.ws.rs.core.Response;
 /**
  * Provide API information
  */
-@Api(tags = {"configuration"}, description = "Configuration operations")
+@Api(tags = {"Configuration"}, description = "Configuration operations", consumes="application/json")
 @Path("/configuration")
 public interface ConfigurationResource {
 

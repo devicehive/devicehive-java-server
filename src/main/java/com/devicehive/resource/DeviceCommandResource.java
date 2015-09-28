@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
  * details.
  */
 @Path("/device")
-@Api(tags = {"device-command"})
+@Api(tags = {"DeviceCommand"}, consumes="application/json")
 public interface DeviceCommandResource {
 
     /**

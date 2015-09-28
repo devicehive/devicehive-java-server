@@ -11,7 +11,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(tags = {"equipment"})
+@Api(tags = {"DeviceClass"})
 @Path("/device/class/{deviceClassId}/equipment")
 public interface EquipmentResource {
 

@@ -9,7 +9,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(tags = {"user"})
+@Api(tags = {"User"})
 @Path("/user")
 public interface UserResource {
 

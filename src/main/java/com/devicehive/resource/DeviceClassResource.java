@@ -19,7 +19,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PU
  * RESTful API: DeviceClass</a> for details.
  */
 @Path("/device/class")
-@Api(tags = {"device-class"})
+@Api(tags = {"DeviceClass"}, value = "Represents a device class which holds meta-information about devices.", consumes="application/json")
+@Produces({"application/json"})
 public interface DeviceClassResource {
 
     /**
@@ -38,33 +39,34 @@ public interface DeviceClassResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    @ApiOperation(value = "List device classes", notes = "Returns the list of device classes based on provided parameters")
+    @ApiOperation(value = "List device classes", notes = "Gets list of device classes.")
     @ApiResponses({
-            @ApiResponse(code = 400, message = "If request is malformed")
+            @ApiResponse(code = 200, message = "If successful, this method returns array of DeviceClass resources in the response body.", response = DeviceClass.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response getDeviceClassList(
-            @ApiParam(name = "name", value = "Device class name")
+            @ApiParam(name = "name", value = "Filter by device class name.")
             @QueryParam("name")
             String name,
-            @ApiParam(name = "namePattern", value = "Name pattern (e.g. %value%)")
+            @ApiParam(name = "namePattern", value = "Filter by device class name pattern.")
             @QueryParam("namePattern")
             String namePattern,
-            @ApiParam(name = "version", value = "Device class version")
+            @ApiParam(name = "version", value = "Filter by device class version.")
             @QueryParam("version")
             String version,
-            @ApiParam(name = "sortField", value = "Device class field to sort by")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Name")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Sort order", allowableValues = "ASC,DESC")
+            @ApiParam(name = "sortOrder", value = "Result list sort order.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
-
-            @ApiParam(name = "take", value = "Limit param", defaultValue = "20")
+            @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
             @QueryParam("take")
             @Min(0) @Max(Integer.MAX_VALUE)
             Integer take,
-
-            @ApiParam(name = "skip", value = "Skip param", defaultValue = "0")
+            @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
             Integer skip);
 
@@ -79,12 +81,16 @@ public interface DeviceClassResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    @ApiOperation(value = "Get device class", notes = "Returns device class by id")
+    @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
     @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceClass resource in the response body.", response = DeviceClass.class),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If device class not found")
     })
     Response getDeviceClass(
-            @ApiParam(name = "id", value = "Device class id", required = true)
+            @ApiParam(name = "id", value = "Device class identifier.", required = true)
             @PathParam("id")
             long id);
 
@@ -104,10 +110,12 @@ public interface DeviceClassResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    @ApiOperation(value = "Create device class", notes = "Creates new device class")
+    @ApiOperation(value = "Create device class", notes = "Creates new device class.")
     @ApiResponses({
+            @ApiResponse(code = 201, message = "If successful, this method returns a DeviceClass resource in the response body.", response = DeviceClass.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
-            @ApiResponse(code = 403, message = "If device class with such name and version exists or principal doesn't have permissions")
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions or device class with same name exists.")
     })
     Response insertDeviceClass(
             @ApiParam(value = "Device class body", required = true, defaultValue = "{}")
@@ -126,13 +134,16 @@ public interface DeviceClassResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    @ApiOperation(value = "Update device class", notes = "Updates existing device class")
+    @ApiOperation(value = "Update device class", notes = "Updates an existing device class.")
     @ApiResponses({
-            @ApiResponse(code = 404, message = "If device class doesn't exist"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If device class is not found")
     })
     Response updateDeviceClass(
-            @ApiParam(name = "id", value = "Device class id", required = true)
+            @ApiParam(name = "id", value = "Device class identifier.", required = true)
             @PathParam("id")
             long id,
 
@@ -150,11 +161,14 @@ public interface DeviceClassResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
-    @ApiOperation(value = "Update device class", notes = "Updates existing device class")
+    @ApiOperation(value = "Update device class", notes = "Deletes an existing device class.")
     @ApiResponses({
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If access key is not found")
     })
     Response deleteDeviceClass(
-            @ApiParam(name = "id", value = "Device class id", required = true)
+            @ApiParam(name = "id", value = "Device class identifier.", required = true)
             @PathParam("id") long id);
 }
