@@ -10,7 +10,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-@Api(tags = {"info"}, description = "API information")
+@Api(tags = {"ApiInfo"}, description = "API information", consumes="application/json")
 @Path("/info")
 public interface ApiInfoResource {
 

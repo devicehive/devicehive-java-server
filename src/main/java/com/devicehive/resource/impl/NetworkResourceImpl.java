@@ -35,7 +35,7 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response getNetworkList(String name, String namePattern, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public Response list(String name, String namePattern, String sortField, String sortOrderSt, Integer take, Integer skip) {
 
         logger.debug("Network list requested");
 
@@ -60,7 +60,7 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response getNetwork(long id) {
+    public Response get(long id) {
         logger.debug("Network get requested.");
         Network existing = networkService.getWithDevicesAndDeviceClasses(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
         if (existing == null) {

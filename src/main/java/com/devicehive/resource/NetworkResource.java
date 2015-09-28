@@ -5,10 +5,12 @@ import com.devicehive.model.updates.NetworkUpdate;
 import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-@Api(tags = {"network"})
+@Api(tags = {"Network"}, value = "Represents a network, an isolated area where devices reside.", consumes="application/json")
 @Path("/network")
 public interface NetworkResource {
 
@@ -40,24 +42,31 @@ public interface NetworkResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
-    @ApiOperation(value = "List networks", notes = "Returns list of networks")
-    Response getNetworkList(
-            @ApiParam(name = "name", value = "Network name")
+    @ApiOperation(value = "List networks", notes = "Gets list of device networks the client has access to.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns array of Network resources in the response body.", response = Network.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
+    Response list(
+            @ApiParam(name = "name", value = "Filter by network name.")
             @QueryParam("name")
             String name,
-            @ApiParam(name = "namePattern", value = "Name pattern")
+            @ApiParam(name = "namePattern", value = "Filter by network name pattern.")
             @QueryParam("namePattern")
             String namePattern,
-            @ApiParam(name = "sortField", value = "Sort field")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Name")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Sort order")
+            @ApiParam(name = "sortOrder", value = "Result list sort order.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
-            @ApiParam(name = "take", value = "Limit param")
+            @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
             @QueryParam("take")
+            @Min(0) @Max(Integer.MAX_VALUE)
             Integer take,
-            @ApiParam(name = "skip", value = "Skip param")
+            @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
             Integer skip
     );
@@ -78,12 +87,16 @@ public interface NetworkResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
-    @ApiOperation(value = "Get network", notes = "Returns network by id")
+    @ApiOperation(value = "Get network", notes = "Gets information about device network and its devices.")
     @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = Network.class),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If network not found")
     })
-    Response getNetwork(
-            @ApiParam(name = "id", value = "Network id")
+    Response get(
+            @ApiParam(name = "id", value = "Network identifier.")
             @PathParam("id")
             long id);
 
@@ -111,10 +124,12 @@ public interface NetworkResource {
      */
     @POST
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    @ApiOperation(value = "Create network", notes = "Creates new network")
+    @ApiOperation(value = "Create network", notes = "Creates new device network.")
     @ApiResponses({
+            @ApiResponse(code = 201, message = "If successful, this method returns a Network resource in the response body.", response = Network.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
-            @ApiResponse(code = 403, message = "If network already exist or principal doesn't have permissions")
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response insert(
             @ApiParam(value = "Network body", defaultValue = "{}", required = true)
@@ -143,14 +158,18 @@ public interface NetworkResource {
     @PUT
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    @ApiOperation(value = "Update network", notes = "Update existing network")
+    @ApiOperation(value = "Update network", notes = "Updates an existing device network.")
     @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If network not found")
     })
     Response update(
             @ApiParam(value = "Network body", defaultValue = "{}", required = true)
             NetworkUpdate networkToUpdate,
-            @ApiParam(name = "id", value = "Network id", required = true)
+            @ApiParam(name = "id", value = "Network identifier.", required = true)
             @PathParam("id")
             long id);
 
@@ -162,9 +181,15 @@ public interface NetworkResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
-    @ApiOperation(value = "Delete network", notes = "Deletes network")
+    @ApiOperation(value = "Delete network", notes = "Deletes an existing device network.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If network not found")
+    })
     Response delete(
-            @ApiParam(name = "id", value = "Network id", required = true)
+            @ApiParam(name = "id", value = "Network identifier.", required = true)
             @PathParam("id")
             long id);
 

@@ -4,42 +4,53 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.google.gson.annotations.SerializedName;
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
+@ApiModel
 public class DeviceUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
+    @ApiModelProperty(dataType = "string")
     private NullableWrapper<String> guid;
 
     @SerializedName("key")
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
+    @ApiModelProperty(dataType = "string")
     private NullableWrapper<String> key;
 
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @ApiModelProperty(dataType = "string")
     private NullableWrapper<String> name;
 
     @SerializedName("status")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @ApiModelProperty(dataType = "string")
     private NullableWrapper<String> status;
 
     @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @ApiModelProperty(dataType = "com.devicehive.model.JsonStringWrapper")
     private NullableWrapper<JsonStringWrapper> data;
 
     @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @ApiModelProperty(dataType = "com.devicehive.model.Network")
     private NullableWrapper<Network> network;
 
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @ApiModelProperty(dataType = "com.devicehive.model.updates.DeviceClassUpdate")
     private NullableWrapper<DeviceClassUpdate> deviceClass;
 
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     @SerializedName("blocked")
+    @ApiModelProperty(dataType = "boolean")
     private NullableWrapper<Boolean> blocked;
 
     public NullableWrapper<DeviceClassUpdate> getDeviceClass() {
