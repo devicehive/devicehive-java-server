@@ -47,7 +47,7 @@
         <springframework.version>4.1.6.RELEASE</springframework.version>
         <jackson2.version>2.4.5</jackson2.version>
         <hibernate-version>4.3.5.Final</hibernate-version>
-        <swagger.version>1.5.3-M1</swagger.version>
+        <swagger.version>1.5.2-M2</swagger.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 

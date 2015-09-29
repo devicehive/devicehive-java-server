@@ -1,5 +1,10 @@
 package com.devicehive.resource;
 
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceEquipment;
+import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.JsonObject;
 import com.wordnik.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,7 +20,8 @@ import javax.ws.rs.core.Response;
  * RESTful API: Device</a> for details.
  */
 @Path("/device")
-@Api(tags = {"device"})
+@Api(tags = {"Device"}, description = "Represents a device, a unit that runs microcode and communicates to this API.", consumes="application/json")
+@Produces({"application/json"})
 public interface DeviceResource {
 
     /**
@@ -38,43 +44,49 @@ public interface DeviceResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
-    @ApiOperation(value = "List devices", notes = "Returns list of devices")
+    @ApiOperation(value = "List devices", notes = "Gets list of devices.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns array of Device resources in the response body.", response = Device.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response list(
-            @ApiParam(name = "name", value = "Device name")
+            @ApiParam(name = "name", value = "Filter by device name.")
             @QueryParam("name")
             String name,
-            @ApiParam(name = "namePattern", value = "Name pattern (e.g. %value%)")
+            @ApiParam(name = "namePattern", value = "Filter by device name pattern.")
             @QueryParam("namePattern")
             String namePattern,
-            @ApiParam(name = "status", value = "Device status")
+            @ApiParam(name = "status", value = "Filter by device status.")
             @QueryParam("status")
             String status,
-            @ApiParam(name = "networkId", value = "Network Id")
+            @ApiParam(name = "networkId", value = "Filter by associated network identifier.")
             @QueryParam("networkId")
             Long networkId,
-            @ApiParam(name = "networkName", value = "Network name")
+            @ApiParam(name = "networkName", value = "Filter by associated network name.")
             @QueryParam("networkName")
             String networkName,
-            @ApiParam(name = "deviceClassId", value = "Device class id")
+            @ApiParam(name = "deviceClassId", value = "Filter by associated device class identifier.")
             @QueryParam("deviceClassId")
             Long deviceClassId,
-            @ApiParam(name = "deviceClassName", value = "Device class name")
+            @ApiParam(name = "deviceClassName", value = "Filter by associated device class name.")
             @QueryParam("deviceClassName")
             String deviceClassName,
-            @ApiParam(name = "deviceClassVersion", value = "Device class version")
+            @ApiParam(name = "deviceClassVersion", value = "Filter by associated device class version.")
             @QueryParam("deviceClassVersion")
             String deviceClassVersion,
-            @ApiParam(name = "sortField", value = "Sort field")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Status,Network,DeviceClass")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Sort order")
+            @ApiParam(name = "sortOrder", value = "Result list sort order.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
-            @ApiParam(name = "take", value = "Limit param", defaultValue = "20")
+            @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
             @QueryParam("take")
             @Min(0) @Max(Integer.MAX_VALUE)
             Integer take,
-            @ApiParam(name = "skip", value = "Skip param", defaultValue = "0")
+            @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
             @Min(0) @Max(Integer.MAX_VALUE)
             Integer skip);
@@ -84,7 +96,7 @@ public interface DeviceResource {
      * Device: register</a> Registers a device. If device with specified identifier has already been registered, it gets
      * updated in case when valid key is provided in the authorization header.
      *
-     * @param jsonObject In the request body, supply a Device resource. See <a href="http://www.devicehive
+     * @param deviceUpdate In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                   .com/restful#Reference/Device/register">
      * @param deviceGuid Device unique identifier.
      * @return response code 201, if successful
@@ -93,11 +105,18 @@ public interface DeviceResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasPermission(null, 'REGISTER_DEVICE')")
-    @ApiOperation(value = "Register device", notes = "Registers device and do additional steps - create device class, network, equipment")
+    @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' and 'deviceClass' properties are required.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response register(
             @ApiParam(value = "Device body", required = true, defaultValue = "{}")
-            JsonObject jsonObject,
-            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
+            DeviceUpdate deviceUpdate,
+            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             String deviceGuid);
 
@@ -112,12 +131,16 @@ public interface DeviceResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
-    @ApiOperation(value = "Ged device", notes = "Returns device by guid")
+    @ApiOperation(value = "Get device", notes = "Gets information about device.")
     @ApiResponses({
-            @ApiResponse(code = 404, message = "If device not found")
+            @ApiResponse(code = 200, message = "If successful, this method returns a Device resource in the response body.", response = Device.class),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If device is not found")
     })
     Response get(
-            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             String guid);
 
@@ -131,9 +154,16 @@ public interface DeviceResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY', 'DEVICE') and hasPermission(null, 'REGISTER_DEVICE')")
-    @ApiOperation(value = "Delete device", notes = "Deletes device by guid")
+    @ApiOperation(value = "Delete device", notes = "Deletes an existing device.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If device is not found")
+    })
     Response delete(
-            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             String guid);
 
@@ -153,9 +183,19 @@ public interface DeviceResource {
     @GET
     @Path("/{id}/equipment")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
-    @ApiOperation(value = "Get device's equipment", notes = "Returns equipment by device")
+    @ApiOperation(value = "Get device's equipment", notes = "Gets current state of device equipment.\n" +
+            "The equipment state is tracked by framework and it could be updated by sending 'equipment' notification with the following parameters:\n" +
+            "equipment: equipment code\n" +
+            "parameters: current equipment state")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns an array of DeviceEquipment resources in the response body.", response = DeviceEquipment.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If device is not found")
+    })
     Response equipment(
-            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             String guid);
 
@@ -171,12 +211,18 @@ public interface DeviceResource {
     @GET
     @Path("/{id}/equipment/{code}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
-    @ApiOperation(value = "Get current state of equipment", notes = "Returns equipment's state")
+    @ApiOperation(value = "Get current state of equipment", notes = "Gets current state of device equipment by code.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.", response = DeviceEquipment.class),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If device or equipment is not found.")
+    })
     Response equipmentByCode(
-            @ApiParam(name = "id", value = "Device GIUD", required = true)
+            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             String guid,
-            @ApiParam(name = "code", value = "Equipment code", required = true)
+            @ApiParam(name = "code", value = "Equipment code.", required = true)
             @PathParam("code")
             String code);
 }

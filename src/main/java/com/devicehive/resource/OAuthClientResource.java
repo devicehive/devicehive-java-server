@@ -8,7 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-@Api(tags = {"oauth-client"})
+@Api(tags = {"OAuthClient"})
 @Path("/oauth/client")
 public interface OAuthClientResource {
 

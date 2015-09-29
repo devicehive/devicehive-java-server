@@ -79,23 +79,16 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public Response register(JsonObject jsonObject, String deviceGuid) {
-        logger.debug("Device register method requested. Guid : {}", deviceGuid);
+    public Response register(DeviceUpdate deviceUpdate, String deviceGuid) {
+        logger.debug("Device register method requested. Guid : {}, Device: {}", deviceGuid, deviceUpdate);
 
-        Gson mainGson = GsonFactory.createGson(DEVICE_SUBMITTED);
-        DeviceUpdate device = mainGson.fromJson(jsonObject, DeviceUpdate.class);
-        device.setGuid(new NullableWrapper<>(deviceGuid));
-        Gson gsonForEquipment = GsonFactory.createGson();
-        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
-            jsonObject.get(EQUIPMENT),
-            new TypeToken<HashSet<Equipment>>() {
-            }.getType());
+        deviceUpdate.setGuid(new NullableWrapper<>(deviceGuid));
 
-        if (equipmentSet != null) {
-            equipmentSet.remove(null);
-        }
+        // TODO: [#98] refactor this API to have a separate endpoint for equipment update.
+        Set<Equipment> equipmentSet = null;
+
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        deviceService.deviceSaveAndNotify(device, equipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, equipmentSet, principal);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);

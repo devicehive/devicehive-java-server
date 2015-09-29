@@ -16,7 +16,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUB
  * RESTful API: AccessKey</a> for details.
  */
 @Path("/user/{userId}/accesskey")
-@Api(tags = {"user-access-key"}, description = "Access key operations")
+@Api(tags = {"AccessKey"}, description = "Represents an access key to this API.", consumes="application/json")
+@Produces({"application/json"})
 public interface AccessKeyResource {
 
     /**
@@ -29,33 +30,37 @@ public interface AccessKeyResource {
      */
     @GET
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
-    @ApiOperation(value = "List access keys", notes = "Returns a list of access keys based on provided parameters")
+    @ApiOperation(value = "List access keys", notes = "Gets list of access keys and their permissions.")
     @ApiResponses({
-            @ApiResponse(code = 400, message = "If request parameters invalid")
+            @ApiResponse(code = 200, message = "If successful, this method returns array of AccessKey resources in the response body.", response = AccessKey.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If user with given userId is not found")
     })
     Response list(
-            @ApiParam(name = "userId", value = "User Id", required = true)
+            @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to list access keys of the current user.", required = true)
             @PathParam("userId")
             String userId,
-            @ApiParam(name = "label", value = "Access Key label")
+            @ApiParam(name = "label", value = "Filter by access key label.")
             @QueryParam("label")
             String label,
-            @ApiParam(name = "labelPattern", value = "Access Key label pattern (e.g. %value%)")
+            @ApiParam(name = "labelPattern", value = "Filter by access key label pattern.")
             @QueryParam("labelPattern")
             String labelPattern,
-            @ApiParam(name = "type", value = "Access Key type")
+            @ApiParam(name = "type", value = "Filter by access key type.")
             @QueryParam("type")
             Integer type,
-            @ApiParam(name = "sortField", value = "Access Key field to sort by")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Label")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Sort order", allowableValues = "ASC,DESC")
+            @ApiParam(name = "sortOrder", value = "Result list sort order.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
-            @ApiParam(name = "take", value = "Limit", defaultValue = "20")
+            @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
             @QueryParam("take")
             Integer take,
-            @ApiParam(name = "skip", value = "Offset", defaultValue = "0")
+            @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
             Integer skip);
 
@@ -71,18 +76,19 @@ public interface AccessKeyResource {
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
-    @ApiOperation(value = "Get user's access key", notes = "Return a key by user id and access key id")
+    @ApiOperation(value = "Get user's access key", notes = "Gets information about access key and its permissions.")
     @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a AccessKey resource in the response body.", response = AccessKey.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If access key is not found")
     })
     Response get(
-            @ApiParam(name = "userId", value = "User Id")
+            @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to get access key of the current user.")
             @PathParam("userId")
             String userId,
-            @ApiParam(name = "id", value = "Access Key Id")
+            @ApiParam(name = "id", value = "Access key identifier.")
             @PathParam("id")
             long accessKeyId);
 
@@ -96,14 +102,15 @@ public interface AccessKeyResource {
      */
     @POST
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
-    @ApiOperation(value = "Create Access key", notes = "Create access key for provided user")
+    @ApiOperation(value = "Create Access key", notes = "Creates new access key.")
     @ApiResponses({
+            @ApiResponse(code = 201, message = "If successful, this method returns a AccessKey resource in the response body.", response = AccessKey.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response insert(
-            @ApiParam(name = "userId", value = "User Id")
+            @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to create access key for the current user.")
             @PathParam("userId")
             String userId,
             @ApiParam(value = "Access Key Body", defaultValue =
@@ -126,18 +133,18 @@ public interface AccessKeyResource {
     @PUT
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
-    @ApiOperation(value = "Update Access key", notes = "Updates an existing access key")
+    @ApiOperation(value = "Update Access key", notes = "Updates an existing access key.")
     @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If access key is not found")
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response update(
-            @ApiParam(name = "userId", value = "User Id")
+            @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to update access key of the current user.")
             @PathParam("userId")
             String userId,
-            @ApiParam(name = "id", value = "Access Key Id")
+            @ApiParam(name = "id", value = "Access key identifier.")
             @PathParam("id")
             Long accessKeyId,
             @JsonPolicyApply(ACCESS_KEY_PUBLISHED)
@@ -159,17 +166,18 @@ public interface AccessKeyResource {
     @DELETE
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
-    @ApiOperation(value = "Delete Access key", notes = "Delete an existing access key")
+    @ApiOperation(value = "Delete Access key", notes = "Deletes an existing access key.")
     @ApiResponses({
-            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If access key is not found")
     })
     Response delete(
-            @ApiParam(name = "userId", value = "User Id")
+            @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to delete access key of the current user.")
             @PathParam("userId")
             String userId,
-            @ApiParam(name = "id", value = "Access Key Id")
+            @ApiParam(name = "id", value = "Access key identifier.")
             @PathParam("id")
             Long accessKeyId);
 }

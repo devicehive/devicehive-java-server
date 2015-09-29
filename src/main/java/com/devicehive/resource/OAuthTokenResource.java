@@ -14,7 +14,7 @@ import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 
-@Api(tags = {"oauth-token"})
+@Api(tags = {"Authentication"})
 @Path("/oauth2/token")
 public interface OAuthTokenResource {
     String AUTHORIZATION_CODE = "authorization_code";

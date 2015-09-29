@@ -11,7 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(tags = {"auth-access-key"}, description = "Auth access key operations")
+@Api(tags = {"Authentication"}, description = "Auth access key operations", consumes="application/json")
 @Path("/auth/accesskey")
 public interface AuthAccessKeyResource {
 

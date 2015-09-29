@@ -11,7 +11,7 @@ import javax.ws.rs.core.Response;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
 
-@Api(tags = {"oauth-grant"})
+@Api(tags = {"OAuthGrant"})
 @Path("/user/{userId}/oauth/grant")
 public interface OAuthGrantResource {
 

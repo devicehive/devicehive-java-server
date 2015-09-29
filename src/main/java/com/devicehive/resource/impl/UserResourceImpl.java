@@ -43,7 +43,7 @@ public class UserResourceImpl implements UserResource {
      * {@inheritDoc}
      */
     @Override
-    public Response getUsersList(String login, String loginPattern, Integer role, Integer status, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public Response list(String login, String loginPattern, Integer role, Integer status, String sortField, String sortOrderSt, Integer take, Integer skip) {
 
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
