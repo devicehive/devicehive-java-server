@@ -10,6 +10,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
@@ -213,13 +214,8 @@ public class NotificationHandlers extends WebsocketHandlers {
                     "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
+        Device device = findDeviceFromRequestAndPrincipal(deviceGuid, principal);
 
-        Device device;
-        if (deviceGuid == null) {
-            device = principal.getDevice();
-        } else {
-            device = genericDatabaseAccessDAO.findDevice(deviceGuid);
-        }
         if (device == null) {
             logger.debug("notification/insert canceled for session: {}. Guid is not provided", session);
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_FORBIDDEN);
@@ -235,5 +231,34 @@ public class NotificationHandlers extends WebsocketHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
         return response;
+    }
+
+
+    private Device findDeviceFromRequestAndPrincipal(String requestDeviceGuid, HivePrincipal principal) {
+        if (requestDeviceGuid == null) {
+            return principal.getDevice();
+        }
+        //device including own UUID in request
+        if (principal.getDevice() != null && requestDeviceGuid.equals(principal.getDevice().getGuid())) {
+            return principal.getDevice();
+        }
+        //TODO check if person inserts
+        if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
+            return findDeviceFromGateway(requestDeviceGuid, principal.getKey().getPermissions());
+        }
+        return null;
+    }
+
+    private Device findDeviceFromGateway(String requestDeviceGuid, Set<AccessKeyPermission> principal) {
+        for (AccessKeyPermission accessKeyPermission : principal) {
+            //TODO network check is missing here
+            //TODO also needs to if we have appropriate action
+            //TODO quite slow method is called
+            Set<String> deviceGuidsAsSet = accessKeyPermission.getDeviceGuidsAsSet();
+            if (deviceGuidsAsSet != null && deviceGuidsAsSet.contains(requestDeviceGuid)) {
+                return genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+            }
+        }
+        return null;
     }
 }
