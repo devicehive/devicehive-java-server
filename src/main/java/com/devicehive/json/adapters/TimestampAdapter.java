@@ -1,11 +1,11 @@
 package com.devicehive.json.adapters;
 
 import com.devicehive.configuration.Messages;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -14,11 +14,12 @@ import java.util.Date;
 
 public class TimestampAdapter extends TypeAdapter<Date> {
     private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZoneUTC();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static Date parseTimestamp(String input) throws IllegalArgumentException {
-        //Used Jackson mapper here because input can be in different formats.
-        return objectMapper.convertValue(input, Date.class);
+        if (input == null) {
+            return null;
+        }
+        return DateTime.parse(input).toDate();
     }
 
     @Override
