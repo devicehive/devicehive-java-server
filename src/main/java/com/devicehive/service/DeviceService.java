@@ -199,9 +199,8 @@ public class DeviceService {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                                     UNAUTHORIZED.getStatusCode());
         }
-        if (deviceUpdate.getKey() == null ||
-                device.getKey() == null ||
-                !device.getKey().equals(deviceUpdate.getKey().getValue())) {
+        if (deviceUpdate.getKey() != null &&
+                (device.getKey() == null || !device.getKey().equals(deviceUpdate.getKey().getValue()))) {
             logger.error("Device update key {} doesn't equal to the authenticated device key {}", deviceUpdate.getKey(), device.getKey());
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
