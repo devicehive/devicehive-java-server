@@ -13,6 +13,7 @@ import com.devicehive.util.ServerResponsesFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,8 +85,8 @@ public class DeviceService {
                                                User user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
+        network = findNetworkForAuth(network);
+        DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
                 .setParameter("guid", deviceUpdate.getGuid().getValue())
                 .getResultList()
@@ -143,12 +144,11 @@ public class DeviceService {
                 .stream().findFirst().orElse(null);
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
             logger.error("Access key {} has no access to device network {}", key, existingDevice.getGuid());
-            throw new HiveException(
-                String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()), UNAUTHORIZED.getStatusCode());
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()), UNAUTHORIZED.getStatusCode());
         }
         Network network = networkService.createOrVerifyNetworkByKey(deviceUpdate.getNetwork(), key);
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
+        network = findNetworkForAuth(network);
+        DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
@@ -199,9 +199,9 @@ public class DeviceService {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                                     UNAUTHORIZED.getStatusCode());
         }
-        if (deviceUpdate.getKey() != null && !device.getKey().equals(deviceUpdate.getKey().getValue())) {
-            logger.error("Device update key {} doesn't equal to the authenticated device key {}",
-                    deviceUpdate.getKey().getValue(), device.getKey());
+        if (deviceUpdate.getKey() != null &&
+                (device.getKey() == null || !device.getKey().equals(deviceUpdate.getKey().getValue()))) {
+            logger.error("Device update key {} doesn't equal to the authenticated device key {}", deviceUpdate.getKey(), device.getKey());
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
         DeviceClass deviceClass = deviceClassService
@@ -258,7 +258,9 @@ public class DeviceService {
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
+            if (deviceUpdate.getKey() == null ||
+                    existingDevice.getKey() == null ||
+                    !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
                 logger.error("Device update key is null or doesn't equal to the authenticated device key {}", existingDevice.getKey());
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
             }
@@ -433,6 +435,35 @@ public class DeviceService {
         final TypedQuery<Device> query = genericDAO.createQuery(criteria);
         CacheHelper.cacheable(query);
         return query.getResultList();
+    }
+
+
+    private Network findNetworkForAuth(Network network) {
+        if (network == null) {
+            HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            User user = findUserFromAuth(principal);
+            if (user != null) {
+                if (!user.isAdmin()) {
+                    Set<Network> userNetworks = userService.findUserWithNetworks(user.getId()).getNetworks();
+                    if (userNetworks.isEmpty()) {
+                        throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, PRECONDITION_FAILED.getStatusCode());
+                    }
+
+                    return userNetworks.iterator().next();
+                }
+            }
+        }
+        return network;
+    }
+
+    private User findUserFromAuth(HivePrincipal principal) {
+        if (principal.getUser() != null) {
+            return principal.getUser();
+        }
+        if (principal.getKey() != null && principal.getKey().getUser() != null)  {
+            return principal.getKey().getUser();
+        }
+        return null;
     }
 
 }
