@@ -54,7 +54,7 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
-    <logger name="org.glassfish.jersey.filter" level="INFO" additivity="false">
+    <logger name="org.glassfish.jersey.filter" level="WARN" additivity="false">
         <appender-ref ref="ASYNC"/>
     </logger>
 
