@@ -47,8 +47,7 @@ public class Device implements HiveEntity {
     private String guid;
     @SerializedName("key")
     @Column
-    @NotNull(message = "key field cannot be null.")
-    @Size(min = 1, max = 64, message = "Field cannot be empty. The length of key should not be more than 64 symbols.")
+    @Size(min = 1, max = 64, message = "Field could be empty. The length of key should not be more than 64 symbols.")
     private String key;
     @SerializedName("name")
     @Column

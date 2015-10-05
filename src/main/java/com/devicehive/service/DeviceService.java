@@ -199,9 +199,10 @@ public class DeviceService {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
                                     UNAUTHORIZED.getStatusCode());
         }
-        if (deviceUpdate.getKey() != null && !device.getKey().equals(deviceUpdate.getKey().getValue())) {
-            logger.error("Device update key {} doesn't equal to the authenticated device key {}",
-                    deviceUpdate.getKey().getValue(), device.getKey());
+        if (deviceUpdate.getKey() == null ||
+                device.getKey() == null ||
+                !device.getKey().equals(deviceUpdate.getKey().getValue())) {
+            logger.error("Device update key {} doesn't equal to the authenticated device key {}", deviceUpdate.getKey(), device.getKey());
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
         DeviceClass deviceClass = deviceClassService
@@ -258,7 +259,9 @@ public class DeviceService {
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getKey() == null || !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
+            if (deviceUpdate.getKey() == null ||
+                    existingDevice.getKey() == null ||
+                    !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
                 logger.error("Device update key is null or doesn't equal to the authenticated device key {}", existingDevice.getKey());
                 throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
             }
