@@ -4,13 +4,17 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -24,18 +28,16 @@ import static org.junit.Assert.*;
 
 public class DeviceServiceTest extends AbstractResourceTest {
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
     @Autowired
     private DeviceService deviceService;
-
     @Autowired
     private DeviceNotificationService deviceNotificationService;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private NetworkService networkService;
-
     @Autowired
     private DeviceClassService deviceClassService;
 
@@ -63,7 +65,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
      * using Client role.
      */
     @Test
-    public void should_save_and_notify_role_client() {
+    public void should_throw_HiveException_when_role_client_creates_device_without_network() throws Exception {
+        expectedException.expect(HiveException.class);
+
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dc);
@@ -73,11 +77,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
         final HivePrincipal principal = new HivePrincipal(user);
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        final DeviceNotification existingNotification = deviceNotificationService.find(null, device.getGuid());
-        assertNotNull(existingNotification);
-        assertEquals(device.getGuid(), existingNotification.getDeviceGuid());
+        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
     }
 
     /**
@@ -95,6 +97,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
         final HivePrincipal principal = new HivePrincipal(user);
+
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
         deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
 
@@ -122,7 +126,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         final Network network = new Network();
-        network.setName(""+randomUUID());
+        network.setName("" + randomUUID());
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
@@ -165,7 +169,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         final Network network = new Network();
-        network.setName(""+randomUUID());
+        network.setName("" + randomUUID());
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
@@ -208,14 +212,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user1 = userService.createUser(user1, "123");
 
         final Network network = new Network();
-        network.setName(""+randomUUID());
+        network.setName("" + randomUUID());
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
         deviceUpdate.setNetwork(new NullableWrapper<>(network));
 
         final Network network1 = new Network();
-        network1.setName(""+randomUUID());
+        network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
@@ -264,14 +268,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user1 = userService.createUser(user1, "123");
 
         final Network network = new Network();
-        network.setName(""+randomUUID());
+        network.setName("" + randomUUID());
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
         deviceUpdate.setNetwork(new NullableWrapper<>(network));
 
         final Network network1 = new Network();
-        network1.setName(""+randomUUID());
+        network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
@@ -317,7 +321,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
 
-        final List<Device> devices =  deviceService.getList("DEVICE_NAME", null, null, null, null,null,null,null,null,false,null,null,null );
+        final List<Device> devices = deviceService.getList("DEVICE_NAME", null, null, null, null, null, null, null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(devices.size(), 1);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
@@ -343,7 +347,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
 
-        final List<Device> devices =  deviceService.getList(null, null, "TEST", null, null,null,null,null,null,false,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, "TEST", null, null, null, null, null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(devices.size(), 2);
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
@@ -371,14 +375,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user1 = userService.createUser(user1, "123");
 
         final Network network = new Network();
-        network.setName(""+randomUUID());
+        network.setName("" + randomUUID());
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
         deviceUpdate.setNetwork(new NullableWrapper<>(network));
 
         final Network network1 = new Network();
-        network1.setName(""+randomUUID());
+        network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
@@ -392,7 +396,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, network1.getId(), null,null,null,null,null,false,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, network1.getId(), null, null, null, null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
         assertNotNull(devices.get(0).getNetwork());
@@ -416,7 +420,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(),null,null,null,false,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
@@ -438,7 +442,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(),null,null,false,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(), null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
@@ -461,7 +465,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, null, dc1.getVersion(),null,false,null,null,null );
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, null, dc1.getVersion(), null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
     }
@@ -500,7 +504,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         final Network network = new Network();
-        network.setName(""+randomUUID());
+        network.setName("" + randomUUID());
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
