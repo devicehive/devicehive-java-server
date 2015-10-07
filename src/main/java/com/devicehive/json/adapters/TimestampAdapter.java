@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Date;
 
 public class TimestampAdapter extends TypeAdapter<Date> {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZoneUTC();
+    private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     public static Date parseTimestamp(String input) throws IllegalArgumentException {
         if (input == null) {
