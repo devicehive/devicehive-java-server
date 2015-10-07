@@ -253,8 +253,13 @@ public class NotificationHandlers extends WebsocketHandlers {
                 return principal.getDevice();
             }
         }
-        //TODO check if person inserts
-        System.out.println(principal.getKey());
+
+        if (principal.getUser() != null) {
+            if (principal.getUser().isAdmin()) {
+                return genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+            }
+        }
+
         if (principal.getKey() != null) {
             if (principal.getKey().getPermissions() != null) {
                 return findDeviceFromGateway(requestDeviceGuid, principal.getKey().getPermissions());
