@@ -8,12 +8,13 @@ import com.google.gson.stream.JsonWriter;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import java.io.IOException;
 import java.util.Date;
 
 public class TimestampAdapter extends TypeAdapter<Date> {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    private static final DateTimeFormatter FORMATTER = ISODateTimeFormat.dateTime();
 
     public static Date parseTimestamp(String input) throws IllegalArgumentException {
         if (input == null) {
