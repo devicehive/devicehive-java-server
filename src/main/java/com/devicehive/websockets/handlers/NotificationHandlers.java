@@ -257,6 +257,14 @@ public class NotificationHandlers extends WebsocketHandlers {
         if (principal.getUser() != null) {
             if (principal.getUser().isAdmin()) {
                 return genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+            } else {
+                Set<Network> userNetworks = principal.getUser().getNetworks();
+                Device device = genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+                for (Network userNetwork : userNetworks) {
+                    if (Objects.equals(userNetwork, device.getNetwork())) {
+                        return device;
+                    }
+                }
             }
         }
 
