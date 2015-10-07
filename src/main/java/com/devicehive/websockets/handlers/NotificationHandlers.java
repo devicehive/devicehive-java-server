@@ -13,6 +13,7 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Network;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -246,26 +247,64 @@ public class NotificationHandlers extends WebsocketHandlers {
             return principal.getDevice();
         }
         //device including own UUID in request
-        if (principal.getDevice() != null && requestDeviceGuid.equals(principal.getDevice().getGuid())) {
-            return principal.getDevice();
+        if (principal.getDevice() != null) {
+            //TODO check if this device has enough access rights
+            if (requestDeviceGuid.equals(principal.getDevice().getGuid())) {
+                return principal.getDevice();
+            }
         }
         //TODO check if person inserts
-        if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-            return findDeviceFromGateway(requestDeviceGuid, principal.getKey().getPermissions());
+        System.out.println(principal.getKey());
+        if (principal.getKey() != null) {
+            if (principal.getKey().getPermissions() != null) {
+                return findDeviceFromGateway(requestDeviceGuid, principal.getKey().getPermissions());
+            } else {
+                return genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+            }
         }
         return null;
     }
 
     private Device findDeviceFromGateway(String requestDeviceGuid, Set<AccessKeyPermission> principal) {
+        LazyDeviceHolder deviceHolder = new LazyDeviceHolder();
         for (AccessKeyPermission accessKeyPermission : principal) {
-            //TODO network check is missing here
             //TODO also needs to if we have appropriate action
             //TODO quite slow method is called
             Set<String> deviceGuidsAsSet = accessKeyPermission.getDeviceGuidsAsSet();
-            if (deviceGuidsAsSet != null && deviceGuidsAsSet.contains(requestDeviceGuid)) {
-                return genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+            if (filterAgainstDeviceGuidSet(requestDeviceGuid, deviceGuidsAsSet)
+                    || filterAgainstDeviceNetworkSet(requestDeviceGuid, deviceHolder, accessKeyPermission.getNetworkIdsAsSet())) {
+                if (deviceHolder.device == null) {
+                    deviceHolder.device = genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+                }
+                return deviceHolder.device;
             }
         }
         return null;
+    }
+
+    static class LazyDeviceHolder {
+        Device device;
+    }
+
+    private boolean filterAgainstDeviceGuidSet(String requestDeviceGuid, Set<String> guids) {
+        if (guids == null) {
+            return true;
+        }
+
+        return guids.contains(requestDeviceGuid);
+    }
+
+    private boolean filterAgainstDeviceNetworkSet(String requestDeviceGuid, LazyDeviceHolder ldh, Set<Long> networkIds) {
+        if (networkIds == null) {
+            return true;
+        }
+
+        if (ldh.device == null) {
+            ldh.device = genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+        }
+
+        Network deviceNetwork = ldh.device != null ? ldh.device.getNetwork() : null;
+
+        return deviceNetwork != null && networkIds.contains(deviceNetwork.getId());
     }
 }
