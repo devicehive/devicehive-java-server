@@ -167,6 +167,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     DEFAULT_TAKE, principal);
         }
 
+        // polling expects only notifications after timestamp to be returned
+        list.removeIf(n -> !n.getTimestamp().after(timestamp));
+
         if (!list.isEmpty()) {
             Response response;
             if (isMany) {
