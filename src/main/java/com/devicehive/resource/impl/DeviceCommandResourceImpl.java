@@ -37,6 +37,7 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -110,7 +111,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             list = commandService.find(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
 
             // polling expects only commands after timestamp to be returned
-            list.removeIf(c -> !c.getTimestamp().after(timestamp));
+            list = list.stream().filter(x -> x.getTimestamp().after(timestamp)).collect(Collectors.toList());
         }
 
         if (!list.isEmpty()) {
