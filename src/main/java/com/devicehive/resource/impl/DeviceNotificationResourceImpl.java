@@ -163,8 +163,10 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         Collection<DeviceNotification> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = notificationService.find(null, null, deviceGuids, notificationNames, timestamp,
-                    DEFAULT_TAKE, principal);
+            list = notificationService.find(null, null, deviceGuids, notificationNames, timestamp, DEFAULT_TAKE, principal);
+
+            // polling expects only notifications after timestamp to be returned
+            list.removeIf(n -> !n.getTimestamp().after(timestamp));
         }
 
         if (!list.isEmpty()) {
