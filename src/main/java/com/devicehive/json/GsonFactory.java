@@ -38,6 +38,7 @@ public class GsonFactory {
 
     private static GsonBuilder createGsonBuilder() {
         return new GsonBuilder()
+            .disableHtmlEscaping()
             .setPrettyPrinting()
             .serializeNulls()
             .registerTypeAdapterFactory(new NullableWrapperAdapterFactory())
