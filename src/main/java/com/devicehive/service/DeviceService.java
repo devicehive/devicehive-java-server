@@ -402,7 +402,13 @@ public class DeviceService {
     @Transactional(propagation = Propagation.SUPPORTS)
     //TODO: need to remove it
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> guids) {
-        return getDeviceList(guids, principal).size();
+        final CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
+        final Root<Device> from = criteria.from(Device.class);
+        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, guids, Optional.ofNullable(principal));
+        criteria.where(predicates);
+        final TypedQuery<Device> query = genericDAO.createQuery(criteria);
+        return query.getResultList().size();
     }
 
     @Transactional
