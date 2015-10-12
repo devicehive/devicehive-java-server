@@ -27,8 +27,7 @@ public class HiveWebsocketSessionState {
     private final Set<UUID> commandSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Set<UUID> commandUpdateSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Lock commandSubscriptionsLock = new ReentrantLock(true);
-    private final Set<UUID> notificationSubscriptions =
-        Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<UUID> notificationSubscriptions = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Lock notificationSubscriptionsLock = new ReentrantLock(true);
     private final Lock commandUpdateSubscriptionsLock = new ReentrantLock(true);
     private final ConcurrentMap<Set<String>, Set<UUID>> oldFormatCommandSubscriptions = Maps.newConcurrentMap();
