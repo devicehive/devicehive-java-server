@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -163,12 +164,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         Collection<DeviceNotification> list = new ArrayList<>();
 
         if (timestamp != null) {
-            list = notificationService.find(null, null, deviceGuids, notificationNames, timestamp,
-                    DEFAULT_TAKE, principal);
-        }
+            list = notificationService.find(null, null, deviceGuids, notificationNames, timestamp, DEFAULT_TAKE, principal);
 
-        // polling expects only notifications after timestamp to be returned
-        list.removeIf(n -> !n.getTimestamp().after(timestamp));
+            // polling expects only notifications after timestamp to be returned
+            list = list.stream().filter(x -> x.getTimestamp().after(timestamp)).collect(Collectors.toList());
+        }
 
         if (!list.isEmpty()) {
             Response response;
