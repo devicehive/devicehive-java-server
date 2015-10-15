@@ -244,7 +244,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         final Collection<DeviceCommand> commandList = commandService.find(Arrays.asList(guid),
-                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, true, principal);
+                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, null, principal);
 
         LOGGER.debug("Device command query request proceed successfully for device {}", guid);
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);

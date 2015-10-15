@@ -42,7 +42,7 @@ public class HazelcastHelper {
     }
 
     public Predicate prepareFilters(Long id, String guid, Collection<String> devices, Collection<String> notifications,
-                                    Collection<String> commands, Date timestamp, String status, Boolean isUpdated,
+                                    Collection<String> commands, Date timestamp, String status, Boolean hasResponse,
                                     HivePrincipal principal) {
         final List<Predicate> predicates = new ArrayList<>();
         if (id != null) {
@@ -74,9 +74,8 @@ public class HazelcastHelper {
             predicates.add(Predicates.equal(STATUS.getField(), status));
         }
 
-        if (isUpdated != null) {
-            //FIXME: need to invert this flag here, have to understand why
-            predicates.add(Predicates.equal(IS_UPDATED.getField(), !isUpdated));
+        if (hasResponse != null) {
+            predicates.add(Predicates.equal(IS_UPDATED.getField(), hasResponse));
         }
 
         final Predicate [] predicatesArray = new Predicate[predicates.size()];
