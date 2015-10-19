@@ -32,8 +32,8 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
 
     public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
                                           Date timestamp, String status, Integer take,
-                                          Boolean isUpdated, HivePrincipal principal) {
-        return find(devices, names, timestamp, status, take, isUpdated, principal, DeviceCommand.class);
+                                          Boolean hasResponse, HivePrincipal principal) {
+        return find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
     }
 
     public DeviceCommand convertToDeviceCommand(DeviceCommandWrapper commandWrapper, Device device, User user, Long commandId) {

@@ -28,9 +28,9 @@ public class HazelcastHelper {
     public Predicate prepareFilters(final Collection<String> devices,
                                                               final Collection<String> commands,
                                                               final Date timestamp, final String status,
-                                                              final Boolean isUpdated,
+                                                              final Boolean hasResponse,
                                                               final HivePrincipal principal) {
-        return prepareFilters(null, null, devices, null, commands, timestamp, status, isUpdated, principal);
+        return prepareFilters(null, null, devices, null, commands, timestamp, status, hasResponse, principal);
     }
 
     public Predicate prepareFilters(final Long id, final String guid,
