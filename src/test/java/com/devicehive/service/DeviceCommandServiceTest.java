@@ -6,6 +6,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Test;
@@ -14,14 +15,64 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.Timestamp;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DeviceCommandServiceTest extends AbstractResourceTest {
     private static final String DEFAULT_STATUS = "default_status";
+    private static final Boolean DEFAULT_IS_UPDATED = false;
 
     @Autowired
     private DeviceCommandService deviceCommandService;
+
+    @Test
+    public void testFindAllCommands(){
+        final int NUMBER_OF_COMMANDS = 99;
+
+        for(int i = 0; i < NUMBER_OF_COMMANDS; i++){
+                sendNCommands(1, DEFAULT_STATUS, i % 2 == 0);
+        }
+
+        assertEquals(NUMBER_OF_COMMANDS, deviceCommandService.find(
+                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, null, null).size());
+    }
+
+    @Test
+    public void testFindCommandsWithResponse(){
+        final int NUMBER_OF_COMMANDS = 99;
+
+        int withResponse = 0;
+
+        for(int i = 0; i < NUMBER_OF_COMMANDS; i++){
+            if(i % 2 == 0) {
+                withResponse++;
+                sendNCommands(1, DEFAULT_STATUS, true);
+            }else{
+                sendNCommands(1, DEFAULT_STATUS, false);
+            }
+        }
+        assertEquals(withResponse, deviceCommandService.find(
+                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, true, null).size()
+                );
+    }
+    @Test
+    public void testFindCommandsWithoutResponse(){
+        final int NUMBER_OF_COMMANDS = 99;
+
+        int withResponse = 0;
+
+        for(int i = 0; i < NUMBER_OF_COMMANDS; i++){
+            if(i % 2 == 0) {
+                withResponse++;
+                sendNCommands(1, DEFAULT_STATUS, true);
+            }else{
+                sendNCommands(1, DEFAULT_STATUS, false);
+            }
+        }
+        assertEquals(NUMBER_OF_COMMANDS - withResponse, deviceCommandService.find(
+                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, false, null).size()
+                );
+    }
+
 
     /**
      * Simple test to check that all command were successfully saved and than retrieved
@@ -107,7 +158,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         assertEquals(3, commands.size());
     }
 
-    private void sendNCommands(int n, String status) {
+    private void sendNCommands(int n, String status, boolean isUpdated) {
         for (int i = 0; i < n; i++) {
             //Need this hack to have different timestamp for each command
             try {
@@ -127,13 +178,13 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
             deviceCommand.setCommand("command"+i);
             deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
             deviceCommand.setStatus(status);
-            deviceCommand.setIsUpdated(false);
+            deviceCommand.setIsUpdated(isUpdated);
 
             deviceCommandService.store(deviceCommand);
         }
     }
 
     private void sendNCommands(int n) {
-        sendNCommands(n, DEFAULT_STATUS);
+        sendNCommands(n, DEFAULT_STATUS, DEFAULT_IS_UPDATED);
     }
 }
