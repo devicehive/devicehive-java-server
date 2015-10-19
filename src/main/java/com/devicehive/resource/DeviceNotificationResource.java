@@ -180,7 +180,7 @@ public interface DeviceNotificationResource {
     @POST
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('DEVICE', 'CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Create notification", notes = "Creates notification")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If device not found"),

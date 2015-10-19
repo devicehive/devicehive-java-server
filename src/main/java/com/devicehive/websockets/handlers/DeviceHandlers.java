@@ -28,7 +28,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
@@ -72,13 +72,12 @@ public class DeviceHandlers extends WebsocketHandlers {
      *                                                                         </pre>
      */
     @Action(value = "device/get")
-    @PreAuthorize("hasRole('DEVICE')")
-    public WebSocketResponse processDeviceGet() {
+    @PreAuthorize("hasRole('KEY')")
+    public WebSocketResponse processDeviceGet(@WsParam(Constants.DEVICE_ID) String deviceId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Device device = principal.getDevice();
-        Device toResponse = device == null ? null : deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
+        Device toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED_DEVICE_AUTH);
+        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
         return response;
     }
 

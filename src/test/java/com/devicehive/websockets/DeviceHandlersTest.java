@@ -3,6 +3,7 @@ package com.devicehive.websockets;
 import com.devicehive.base.AbstractWebSocketTest;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.base.fixture.JsonFixture;
+import com.devicehive.base.fixture.WebSocketFixture;
 import com.devicehive.base.websocket.WebSocketSynchronousConnection;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.Network;
@@ -28,6 +29,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
     @Test
     public void should_save_device() throws Exception {
         WebSocketSynchronousConnection connection = syncConnection("/websocket/device");
+        WebSocketFixture.authenticateKey(ACCESS_KEY, connection);
 
         Equipment equipment = DeviceFixture.createEquipment();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
@@ -46,6 +48,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
         assertThat(jsonResp.get("action").getAsString(), is("device/save"));
         assertThat(jsonResp.get("requestId").getAsString(), is("1"));
         assertThat(jsonResp.get("status").getAsString(), is("success"));
+
 
         //device/get
         JsonObject deviceGet = JsonFixture.createWsCommand("device/get", "2", deviceId, deviceKey);

@@ -1,7 +1,6 @@
 package com.devicehive.auth.rest;
 
 import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.auth.rest.providers.DeviceAuthenticationToken;
 import com.devicehive.configuration.Constants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -46,8 +45,6 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         Optional<String> authHeader = Optional.ofNullable(httpRequest.getHeader(HttpHeaders.AUTHORIZATION));
-        Optional<String> deviceIdHeader = Optional.ofNullable(httpRequest.getHeader(Constants.AUTH_DEVICE_ID_HEADER));
-        Optional<String> deviceKeyHeader = Optional.ofNullable(httpRequest.getHeader(Constants.AUTH_DEVICE_KEY_HEADER));
 
         String resourcePath = new UrlPathHelper().getPathWithinApplication(httpRequest);
         logger.debug("Security intercepted request to {}", resourcePath);
@@ -60,8 +57,6 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
                 } else if (header.startsWith(Constants.OAUTH_AUTH_SCEME)) {
                     processKeyAuth(authHeader.get().substring(6).trim());
                 }
-            } else if (deviceIdHeader.isPresent() && deviceKeyHeader.isPresent()) {
-                processDeviceAuth(deviceIdHeader.get(), deviceKeyHeader.get());
             } else {
                 processAnonymousAuth();
             }
@@ -96,11 +91,6 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
     private void processBasicAuth(String authHeader) throws UnsupportedEncodingException {
         Pair<String, String> credentials = extractAndDecodeHeader(authHeader);
         UsernamePasswordAuthenticationToken requestAuth = new UsernamePasswordAuthenticationToken(credentials.getLeft().trim(), credentials.getRight().trim());
-        tryAuthenticate(requestAuth);
-    }
-
-    private void processDeviceAuth(String deviceId, String deviceKey) {
-        DeviceAuthenticationToken requestAuth = new DeviceAuthenticationToken(deviceId, deviceKey);
         tryAuthenticate(requestAuth);
     }
 

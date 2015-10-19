@@ -42,25 +42,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
     private DeviceClassService deviceClassService;
 
     /**
-     * Test to check that device was successfully saved, notification send and retrieved back.
-     */
-    @Test
-    public void should_save_and_notify_role_device() {
-        final Device device = DeviceFixture.createDevice();
-        final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClass();
-        final HivePrincipal principal = new HivePrincipal(device);
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dcUpdate);
-
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
-
-        final DeviceNotification existingNotification = deviceNotificationService.find(null, device.getGuid());
-
-        assertNotNull(existingNotification);
-        assertEquals(device.getGuid(), existingNotification.getDeviceGuid());
-    }
-
-    /**
      * Test to check that device was successfully saved, notification send and retrieved back
      * using Client role.
      */
@@ -101,6 +82,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
         deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+
+        final DeviceNotification existingNotification = deviceNotificationService.find(null, device.getGuid());
+
+        assertNotNull(existingNotification);
+        assertEquals(device.getGuid(), existingNotification.getDeviceGuid());
 
         final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);

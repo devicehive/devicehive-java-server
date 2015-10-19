@@ -63,9 +63,6 @@ public class DeviceService {
                 case HiveRoles.CLIENT:
                     dn = deviceSaveByUser(device, equipmentSet, principal.getUser());
                     break;
-                case HiveRoles.DEVICE:
-                    dn = deviceUpdateByDevice(device, equipmentSet, principal.getDevice());
-                    break;
                 case HiveRoles.KEY:
                     dn = deviceSaveByKey(device, equipmentSet, principal.getKey());
                     break;
@@ -184,55 +181,6 @@ public class DeviceService {
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
-    }
-
-    public DeviceNotification deviceUpdateByDevice(DeviceUpdate deviceUpdate,
-                                                   Set<Equipment> equipmentSet,
-                                                   Device device) {
-        if (deviceUpdate.getGuid() == null) {
-            logger.error("Device guid not found in deviceUpdate request");
-            throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
-        }
-        if (!device.getGuid().equals(deviceUpdate.getGuid().getValue())) {
-            logger.error("Device update guid {} doesn't equal to the authenticated device guid {}",
-                    deviceUpdate.getGuid().getValue(), device.getGuid());
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
-                                    UNAUTHORIZED.getStatusCode());
-        }
-        if (deviceUpdate.getKey() != null &&
-                (device.getKey() == null || !device.getKey().equals(deviceUpdate.getKey().getValue()))) {
-            logger.error("Device update key {} doesn't equal to the authenticated device key {}", deviceUpdate.getKey(), device.getKey());
-            throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
-        }
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
-        Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", deviceUpdate.getGuid().getValue())
-                .getResultList()
-                .stream().findFirst().orElse(null);
-        if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
-            existingDevice.setDeviceClass(deviceClass);
-        }
-        if (deviceUpdate.getNetwork() != null) {
-            Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
-            existingDevice.setNetwork(network);
-        }
-        if (deviceUpdate.getStatus() != null) {
-            existingDevice.setStatus(deviceUpdate.getStatus().getValue());
-        }
-        if (deviceUpdate.getData() != null) {
-            existingDevice.setData(deviceUpdate.getData().getValue());
-        }
-        if (deviceUpdate.getName() != null) {
-            existingDevice.setName(deviceUpdate.getName().getValue());
-        }
-        if (deviceUpdate.getKey() != null) {
-            existingDevice.setKey(deviceUpdate.getKey().getValue());
-        }
-        if (deviceUpdate.getBlocked() != null) {
-            existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().getValue()));
-        }
-        return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
     }
 
     @Transactional

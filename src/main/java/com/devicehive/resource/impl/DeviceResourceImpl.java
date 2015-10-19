@@ -1,9 +1,7 @@
 package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
-import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -13,9 +11,6 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +18,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -105,10 +100,6 @@ public class DeviceResourceImpl implements DeviceResource {
 
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        if (principal.getRole().equals(HiveRoles.DEVICE)) {
-            logger.debug("Device get proceed successfully. Guid {}", guid);
-            return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED_DEVICE_AUTH);
-        }
         logger.debug("Device get proceed successfully. Guid {}", guid);
         return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED);
     }

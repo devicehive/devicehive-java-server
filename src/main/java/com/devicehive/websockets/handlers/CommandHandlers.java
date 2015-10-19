@@ -72,7 +72,7 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/subscribe")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'DEVICE', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Date timestamp,
                                                      @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                      @WsParam(NAMES) Set<String> names,
@@ -186,7 +186,7 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/unsubscribe")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'DEVICE', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUnsubscribe(WebSocketSession session,
                                                        @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
@@ -254,7 +254,7 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/update")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY', 'DEVICE') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
                                                   @WsParam(COMMAND_ID) Long id,
                                                   @WsParam(COMMAND)

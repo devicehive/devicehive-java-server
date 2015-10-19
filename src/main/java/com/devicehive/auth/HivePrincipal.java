@@ -85,9 +85,6 @@ public class HivePrincipal implements Principal {
         if (user != null) {
             return HiveRoles.CLIENT;
         }
-        if (device != null) {
-            return HiveRoles.DEVICE;
-        }
         if (key != null) {
             return HiveRoles.KEY;
         }

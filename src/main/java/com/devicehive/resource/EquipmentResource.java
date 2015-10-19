@@ -25,7 +25,7 @@ public interface EquipmentResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Get equipment", notes = "Returns equipment by device class id and equipment id")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If equipment not found")
@@ -44,7 +44,7 @@ public interface EquipmentResource {
      * @param classId device class id
      */
     @POST
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create equipment", notes = "Creates equipment")
     Response insertEquipment(
@@ -70,7 +70,7 @@ public interface EquipmentResource {
      */
     @PUT
     @Path("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update equipment", notes = "Updates equipment")
     @ApiResponses({
@@ -96,7 +96,7 @@ public interface EquipmentResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete equipment", notes = "Deletes equipment")
     Response deleteEquipment(

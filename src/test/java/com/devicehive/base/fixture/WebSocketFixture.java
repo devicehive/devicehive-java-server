@@ -36,15 +36,4 @@ public class WebSocketFixture {
         assertThat(authResponse.get("requestId").getAsString(), is(request));
         assertThat(authResponse.get("status").getAsString(), is("success"));
     }
-
-    public static void authenticateDevice(String deviceId, String deviceKey, WebSocketSynchronousConnection conn) throws IOException, InterruptedException {
-        String request = RandomStringUtils.random(5);
-        JsonObject authRequest = JsonFixture.deviceAuthCommand(request, deviceId, deviceKey);
-        TextMessage response = conn.sendMessage(new TextMessage(gson.toJson(authRequest)), WAIT_TIMEOUT);
-        JsonObject authResponse = gson.fromJson(response.getPayload(), JsonObject.class);
-        assertThat(authResponse.get("action").getAsString(), is("authenticate"));
-        assertThat(authResponse.get("requestId").getAsString(), is(request));
-        assertThat(authResponse.get("status").getAsString(), is("success"));
-    }
-
 }
