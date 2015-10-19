@@ -67,7 +67,7 @@ public class HazelcastHelper {
         }
 
         if (timestamp != null) {
-            predicates.add(Predicates.greaterEqual(TIMESTAMP.getField(), timestamp));
+            predicates.add(Predicates.greaterThan(TIMESTAMP.getField(), timestamp));
         }
 
         if (StringUtils.isNotEmpty(status)) {

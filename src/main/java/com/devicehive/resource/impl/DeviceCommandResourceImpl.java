@@ -109,9 +109,6 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (timestamp != null) {
             list = commandService.find(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
-
-            // polling expects only commands after timestamp to be returned
-            list = list.stream().filter(x -> x.getTimestamp().after(timestamp)).collect(Collectors.toList());
         }
 
         if (!list.isEmpty()) {
