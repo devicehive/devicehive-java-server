@@ -147,8 +147,8 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey = accessKeyService.create(user, accessKey);
 
         AccessKeyUpdate update = new AccessKeyUpdate();
-        update.setLabel(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setPermissions(new NullableWrapper<>(null));
+        update.setLabel(Optional.of(RandomStringUtils.randomAlphabetic(10)));
+        update.setPermissions(Optional.ofNullable(null));
 
         expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.INVALID_REQUEST_PARAMETERS);
@@ -167,20 +167,20 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey = accessKeyService.create(user, accessKey);
 
         AccessKeyUpdate update = new AccessKeyUpdate();
-        update.setLabel(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setExpirationDate(new NullableWrapper<>(new Date(0)));
-        update.setType(new NullableWrapper<>(AccessKeyType.SESSION.getValue()));
+        update.setLabel(Optional.of(RandomStringUtils.randomAlphabetic(10)));
+        update.setExpirationDate(Optional.of(new Date(0)));
+        update.setType(Optional.of(AccessKeyType.SESSION.getValue()));
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
         permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
-        update.setPermissions(new NullableWrapper<>(singleton(permission)));
+        update.setPermissions(Optional.of(singleton(permission)));
 
         assertTrue(
                 accessKeyService.update(user.getId(), accessKey.getId(), update));
         AccessKey updated = accessKeyService.find(accessKey.getId(), user.getId());
-        assertThat(updated.getLabel(), equalTo(update.getLabel().getValue()));
+        assertThat(updated.getLabel(), equalTo(update.getLabel().get()));
         assertThat(updated.getType(), equalTo(AccessKeyType.SESSION));
-        assertThat(updated.getExpirationDate().getTime(), equalTo(update.getExpirationDate().getValue().getTime()));
+        assertThat(updated.getExpirationDate().getTime(), equalTo(update.getExpirationDate().get().getTime()));
         assertThat(updated.getPermissions(), hasSize(1));
         AccessKeyPermission updatedPerm = updated.getPermissions().stream().findFirst().get();
         assertThat(updatedPerm.getActionsAsSet(), hasSize(2));
@@ -397,7 +397,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         AccessKeyUpdate update = new AccessKeyUpdate();
         permission = new AccessKeyPermission();
         permission.setNetworkIdsCollection(singleton(network.getId()));
-        update.setPermissions(new NullableWrapper<>(singleton(permission)));
+        update.setPermissions(Optional.of(singleton(permission)));
         assertTrue(
                 accessKeyService.update(user.getId(), accessKey.getId(), update));
         userService.unassignNetwork(user.getId(), network.getId());

@@ -106,21 +106,23 @@ public class AccessKeyService {
         if (toUpdate == null) {
             return true;
         }
-        if (toUpdate.getLabel() != null) {
-            existing.setLabel(toUpdate.getLabel().getValue());
+
+        if(toUpdate.getLabel() != null) {
+            toUpdate.getLabel().ifPresent(existing::setLabel);
         }
-        if (toUpdate.getExpirationDate() != null) {
-            existing.setExpirationDate(toUpdate.getExpirationDate().getValue());
+        if(toUpdate.getExpirationDate() != null) {
+            toUpdate.getExpirationDate().ifPresent(existing::setExpirationDate);
         }
-        if (toUpdate.getType() != null) {
-            existing.setType(toUpdate.getTypeEnum());
+        if(toUpdate.getType()!= null) {
+            toUpdate.getType().map(v -> toUpdate.getTypeEnum()).ifPresent(existing::setType);
         }
         if (toUpdate.getPermissions() != null) {
-            Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().getValue();
-            if (permissionsToReplace == null) {
+            if (!toUpdate.getPermissions().isPresent()) {
                 logger.error("New permissions shouldn't be empty in request parameters");
                 throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
             }
+
+            Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().get();
             AccessKey toValidate = toUpdate.convertTo();
             authenticationUtils.validateActions(toValidate);
             deleteAccessKeyPermissions(existing);
