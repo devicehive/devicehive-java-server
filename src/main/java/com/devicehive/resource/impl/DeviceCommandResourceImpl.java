@@ -109,9 +109,6 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (timestamp != null) {
             list = commandService.find(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
-
-            // polling expects only commands after timestamp to be returned
-            list = list.stream().filter(x -> x.getTimestamp().after(timestamp)).collect(Collectors.toList());
         }
 
         if (!list.isEmpty()) {
@@ -244,7 +241,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         final Collection<DeviceCommand> commandList = commandService.find(Arrays.asList(guid),
-                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, true, principal);
+                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, null, principal);
 
         LOGGER.debug("Device command query request proceed successfully for device {}", guid);
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);
