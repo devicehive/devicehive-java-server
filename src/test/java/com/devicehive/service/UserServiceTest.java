@@ -8,7 +8,6 @@ import com.devicehive.dao.GenericDAO;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.Network;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;

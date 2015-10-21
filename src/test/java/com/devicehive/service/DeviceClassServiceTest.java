@@ -5,7 +5,6 @@ import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

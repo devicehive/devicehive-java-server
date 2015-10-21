@@ -7,7 +7,6 @@ import com.devicehive.base.fixture.WebSocketFixture;
 import com.devicehive.base.websocket.WebSocketSynchronousConnection;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.Network;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.JsonObject;

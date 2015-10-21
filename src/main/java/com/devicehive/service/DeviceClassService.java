@@ -8,7 +8,6 @@ import com.devicehive.dao.GenericDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.util.HiveValidator;
 import org.springframework.beans.factory.annotation.Autowired;
