@@ -199,12 +199,12 @@ public class NetworkService {
     }
 
     @Transactional
-    public Network createOrVerifyNetwork(NullableWrapper<Network> networkNullable) {
+    public Network createOrVerifyNetwork(Optional<Network> networkNullable) {
         //case network is not defined
-        if (networkNullable == null || networkNullable.getValue() == null) {
+        if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
         }
-        Network network = networkNullable.getValue();
+        Network network = networkNullable.get();
 
         Optional<Network> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
@@ -222,13 +222,13 @@ public class NetworkService {
     }
 
     @Transactional
-    public Network createOrUpdateNetworkByUser(NullableWrapper<Network> networkNullable, User user) {
+    public Network createOrUpdateNetworkByUser(Optional<Network> networkNullable, User user) {
         //case network is not defined
-        if (networkNullable == null || networkNullable.getValue() == null) {
+        if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
         }
 
-        Network network = networkNullable.getValue();
+        Network network = networkNullable.orElse(null);
 
         Optional<Network> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
@@ -252,13 +252,13 @@ public class NetworkService {
     }
 
     @Transactional
-    public Network createOrVerifyNetworkByKey(NullableWrapper<Network> networkNullable, AccessKey key) {
+    public Network createOrVerifyNetworkByKey(Optional<Network> networkNullable, AccessKey key) {
         //case network is not defined
-        if (networkNullable == null || networkNullable.getValue() == null) {
+        if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
         }
 
-        Network network = networkNullable.getValue();
+        Network network = networkNullable.orElse(null);
 
         Optional<Network> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {

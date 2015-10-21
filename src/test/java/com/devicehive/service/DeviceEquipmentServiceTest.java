@@ -26,15 +26,16 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     @Test
     public void should_create_device_equipment() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
-        du.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        du.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
+        du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         dc.setVersion(Optional.ofNullable("0.1"));
-        du.setDeviceClass(new NullableWrapper<>(dc));
+        du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().getValue(), null);
+        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipment de = new DeviceEquipment();
         de.setDevice(device);
@@ -50,15 +51,16 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     @Test
     public void should_update_device_equipment() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
-        du.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        du.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
+        du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         dc.setVersion(Optional.ofNullable("0.1"));
-        du.setDeviceClass(new NullableWrapper<>(dc));
+        du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().getValue(), null);
+        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipment de = new DeviceEquipment();
         de.setDevice(device);
@@ -78,15 +80,16 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     @Test
     public void should_return_device_equipment_by_device() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
-        du.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        du.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
+        du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         dc.setVersion(Optional.ofNullable("0.1"));
-        du.setDeviceClass(new NullableWrapper<>(dc));
+        du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().getValue(), null);
+        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipment de = new DeviceEquipment();
         de.setDevice(device);
@@ -102,15 +105,16 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     @Test
     public void should_refresh_equipment() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
-        du.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        du.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
+        du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         dc.setVersion(Optional.ofNullable("0.1"));
-        du.setDeviceClass(new NullableWrapper<>(dc));
+        du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().getValue(), null);
+        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipment de = new DeviceEquipment();
         de.setDevice(device);

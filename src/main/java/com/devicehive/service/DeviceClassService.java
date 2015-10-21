@@ -52,7 +52,7 @@ public class DeviceClassService {
     }
 
     @Transactional
-    public DeviceClass createOrUpdateDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass,
+    public DeviceClass createOrUpdateDeviceClass(Optional<DeviceClassUpdate> deviceClass,
                                                  Set<Equipment> customEquipmentSet) {
         DeviceClass stored;
         //use existing
@@ -60,7 +60,7 @@ public class DeviceClassService {
             return null;
         }
         //check is already done
-        DeviceClass deviceClassFromMessage = deviceClass.getValue().convertTo();
+        DeviceClass deviceClassFromMessage = deviceClass.orElse(null).convertTo();
         if (deviceClassFromMessage.getId() != null) {
             stored = genericDAO.find(DeviceClass.class, deviceClassFromMessage.getId());
         } else {
@@ -74,13 +74,13 @@ public class DeviceClassService {
             //update
             if (Boolean.FALSE.equals(stored.getPermanent())) {
                 genericDAO.refresh(stored, LockModeType.PESSIMISTIC_WRITE);
-                if (deviceClass.getValue().getData() != null) {
+                if (deviceClass.orElse(null).getData() != null) {
                     stored.setData(deviceClassFromMessage.getData());
                 }
-                if (deviceClass.getValue().getOfflineTimeout() != null) {
+                if (deviceClass.orElse(null).getOfflineTimeout() != null) {
                     stored.setOfflineTimeout(deviceClassFromMessage.getOfflineTimeout());
                 }
-                if (deviceClass.getValue().getPermanent() != null) {
+                if (deviceClass.orElse(null).getPermanent() != null) {
                     stored.setPermanent(deviceClassFromMessage.getPermanent());
                 }
                 Set<Equipment> eq = deviceClassFromMessage.getEquipment();

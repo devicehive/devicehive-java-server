@@ -63,25 +63,27 @@ public class DeviceFixture {
 
     public static DeviceUpdate createDevice(String guid) {
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(new NullableWrapper<>(guid));
-        device.setName(new NullableWrapper<>("device-" + guid));
-        device.setStatus(new NullableWrapper<>("Online"));
-        device.setData(new NullableWrapper<>(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", guid))));
+        device.setGuid(Optional.ofNullable(deviceKey));
+        device.setKey(Optional.ofNullable(deviceKey));
+        device.setName(Optional.ofNullable("device-" + deviceKey));
+        device.setStatus(Optional.ofNullable("Online"));
+        device.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", deviceKey))));
         return device;
     }
 
-    public static DeviceUpdate createDevice(String guid, DeviceClassUpdate dc) {
-        final DeviceUpdate deviceUpdate = createDevice(guid);
-        deviceUpdate.setDeviceClass(new NullableWrapper<>(dc));
+    public static DeviceUpdate createDevice(String deviceKey, DeviceClassUpdate dc) {
+        final DeviceUpdate deviceUpdate = createDevice(deviceKey);
+        deviceUpdate.setDeviceClass(Optional.ofNullable(dc));
         return deviceUpdate;
     }
 
     public static DeviceUpdate createDevice(Device device, DeviceClassUpdate dc) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
-        deviceUpdate.setGuid(new NullableWrapper<>(device.getGuid()));
-        deviceUpdate.setName(new NullableWrapper<>(device.getName()));
-        deviceUpdate.setStatus(new NullableWrapper<>(device.getStatus()));
-        deviceUpdate.setDeviceClass(new NullableWrapper<>(dc));
+        deviceUpdate.setGuid(Optional.ofNullable(device.getGuid()));
+        deviceUpdate.setKey(Optional.ofNullable(device.getKey()));
+        deviceUpdate.setName(Optional.ofNullable(device.getName()));
+        deviceUpdate.setStatus(Optional.ofNullable(device.getStatus()));
+        deviceUpdate.setDeviceClass(Optional.ofNullable(dc));
         return deviceUpdate;
     }
 

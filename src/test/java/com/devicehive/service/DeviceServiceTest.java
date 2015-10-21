@@ -21,6 +21,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
@@ -116,7 +117,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -159,9 +160,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate2.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate0.setNetwork(Optional.ofNullable(network));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network));
+        deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
         deviceService.deviceSave(deviceUpdate0, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
@@ -202,14 +203,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final Network network1 = new Network();
         network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -258,14 +259,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final Network network1 = new Network();
         network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -365,14 +366,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final Network network1 = new Network();
         network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -494,9 +495,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate2.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate0.setNetwork(Optional.ofNullable(network));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network));
+        deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
         deviceService.deviceSave(deviceUpdate0, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());

@@ -412,10 +412,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(network));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -446,10 +447,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(network));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -476,10 +478,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(network));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -510,10 +513,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(network));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -551,10 +555,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(network));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -593,10 +598,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(network));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -629,10 +635,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(network));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -695,18 +702,20 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(created));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(created));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(new NullableWrapper<>("allowed_device"));
-        device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-        device.setDeviceClass(new NullableWrapper<>(dc));
-        device.setNetwork(new NullableWrapper<>(created));
+        device.setName(Optional.ofNullable("allowed_device"));
+        device.setGuid(Optional.ofNullable(randomUUID().toString()));
+        device.setKey(Optional.ofNullable(randomUUID().toString()));
+        device.setDeviceClass(Optional.ofNullable(dc));
+        device.setNetwork(Optional.ofNullable(created));
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
 
         AccessKey accessKey = new AccessKey();
@@ -749,10 +758,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(new NullableWrapper<>(randomUUID().toString()));
-            device.setGuid(new NullableWrapper<>(randomUUID().toString()));
-            device.setDeviceClass(new NullableWrapper<>(dc));
-            device.setNetwork(new NullableWrapper<>(created));
+            device.setName(Optional.ofNullable(randomUUID().toString()));
+            device.setGuid(Optional.ofNullable(randomUUID().toString()));
+            device.setKey(Optional.ofNullable(randomUUID().toString()));
+            device.setDeviceClass(Optional.ofNullable(dc));
+            device.setNetwork(Optional.ofNullable(created));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -808,7 +818,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_do_nothing_when_creates_or_verifies_network_if_network_is_null() throws Exception {
-        assertThat(networkService.createOrVerifyNetwork(new NullableWrapper<>(null)), nullValue());
+        assertThat(networkService.createOrVerifyNetwork(Optional.ofNullable(null)), nullValue());
     }
 
     @Test
@@ -818,7 +828,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         Network network = new Network();
         network.setId(-1L);
-        networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
+        networkService.createOrVerifyNetwork(Optional.ofNullable(network));
     }
 
     @Ignore("JavaScript integration test '#Create Auto Create (incl. Legacy Equipment) should auto-create network and device class' fails with such behavior")
@@ -831,7 +841,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
-        networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
+        networkService.createOrVerifyNetwork(Optional.ofNullable(network));
     }
 
     @Test
@@ -840,7 +850,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
+        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), equalTo(network.getName()));
@@ -852,10 +862,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
+        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
 
-        Network verified = networkService.createOrVerifyNetwork(new NullableWrapper<>(created));
+        Network verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
         assertThat(verified, notNullValue());
         assertThat(verified.getId(), equalTo(created.getId()));
         assertThat(verified.getName(), equalTo(created.getName()));
@@ -867,13 +877,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
+        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
 
         Long networkId = created.getId();
         created.setId(null);
 
-        Network verified = networkService.createOrVerifyNetwork(new NullableWrapper<>(created));
+        Network verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
         assertThat(verified, notNullValue());
         assertThat(verified.getId(), equalTo(networkId));
         assertThat(verified.getName(), equalTo(created.getName()));
@@ -885,14 +895,14 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.createOrVerifyNetwork(new NullableWrapper<>(network));
+        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.INVALID_NETWORK_KEY);
 
         created.setKey(randomUUID().toString());
-        networkService.createOrVerifyNetwork(new NullableWrapper<>(created));
+        networkService.createOrVerifyNetwork(Optional.ofNullable(created));
     }
 
     @Test
@@ -908,7 +918,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
 
-        Network created = networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(network), user);
+        Network created = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), user);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), equalTo(network.getName()));
@@ -930,7 +940,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
 
-        networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(network), user);
+        networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), user);
     }
 
     @Test
@@ -950,7 +960,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), created.getId());
 
-        Network stored = networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(created), user);
+        Network stored = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
         assertThat(created.getId(), equalTo(stored.getId()));
     }
 
@@ -972,7 +982,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
-        networkService.createOrUpdateNetworkByUser(new NullableWrapper<>(created), user);
+        networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
     }
 
     @Test
@@ -996,7 +1006,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         accessKey.setUser(user);
         accessKey.setPermissions(Collections.singleton(new AccessKeyPermission()));
 
-        Network stored = networkService.createOrVerifyNetworkByKey(new NullableWrapper<>(created), accessKey);
+        Network stored = networkService.createOrVerifyNetworkByKey(Optional.ofNullable(created), accessKey);
         assertThat(created.getId(), equalTo(stored.getId()));
     }
 
@@ -1022,6 +1032,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
-        networkService.createOrVerifyNetworkByKey(new NullableWrapper<>(created), accessKey);
+        networkService.createOrVerifyNetworkByKey(Optional.ofNullable(created), accessKey);
     }
 }

@@ -489,13 +489,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setNetwork(new NullableWrapper<>(network));
+        device.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setNetwork(Optional.ofNullable(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         dc.setVersion(Optional.ofNullable("0.1"));
-        device.setDeviceClass(new NullableWrapper<>(dc));
+        device.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(device, emptySet());
 
         userService.assignNetwork(user.getId(), network.getId());
@@ -505,7 +506,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
 
-        assertTrue(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().getValue()));
+        assertTrue(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().orElse(null)));
     }
 
     @Test
@@ -520,13 +521,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setNetwork(new NullableWrapper<>(network));
+        device.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setNetwork(Optional.ofNullable(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         dc.setVersion(Optional.ofNullable("0.1"));
-        device.setDeviceClass(new NullableWrapper<>(dc));
+        device.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(device, emptySet());
 
         userService.assignNetwork(user.getId(), network.getId());
@@ -534,11 +536,11 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         AccessKey accessKey = new AccessKey();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setDeviceGuidsCollection(Arrays.asList(device.getGuid().getValue()));
+        permission.setDeviceGuidsCollection(Arrays.asList(device.getGuid().orElse(null)));
         accessKey.setPermissions(singleton(permission));
         accessKey = accessKeyService.create(user, accessKey);
 
-        assertTrue(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().getValue()));
+        assertTrue(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().orElse(null)));
     }
 
     @Test
@@ -553,13 +555,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setNetwork(new NullableWrapper<>(network));
+        device.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        device.setNetwork(Optional.ofNullable(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         dc.setVersion(Optional.ofNullable("0.1"));
-        device.setDeviceClass(new NullableWrapper<>(dc));
+        device.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(device, emptySet());
 
         AccessKey accessKey = new AccessKey();
@@ -569,7 +572,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setPermissions(singleton(permission));
         accessKey = accessKeyService.create(user, accessKey);
 
-        assertFalse(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().getValue()));
+        assertFalse(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().orElse(null)));
     }
 
     @Ignore
