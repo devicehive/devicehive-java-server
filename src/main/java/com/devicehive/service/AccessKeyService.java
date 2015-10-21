@@ -108,13 +108,13 @@ public class AccessKeyService {
         }
 
         if(toUpdate.getLabel() != null) {
-            toUpdate.getLabel().ifPresent(existing::setLabel);
+            existing.setLabel(toUpdate.getLabel().orElse(null));
         }
         if(toUpdate.getExpirationDate() != null) {
-            toUpdate.getExpirationDate().ifPresent(existing::setExpirationDate);
+            existing.setExpirationDate(toUpdate.getExpirationDate().orElse(null));
         }
         if(toUpdate.getType()!= null) {
-            toUpdate.getType().map(v -> toUpdate.getTypeEnum()).ifPresent(existing::setType);
+            existing.setType(toUpdate.getType().map(v -> toUpdate.getTypeEnum()).orElse(null));
         }
         if (toUpdate.getPermissions() != null) {
             if (!toUpdate.getPermissions().isPresent()) {
