@@ -1,7 +1,6 @@
 package com.devicehive.resource;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
@@ -11,6 +10,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -27,10 +27,10 @@ public class UserResourceTest extends AbstractResourceTest {
         String password = RandomStringUtils.randomAlphabetic(10);
 
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin(new NullableWrapper<>(login));
-        testUser.setRole(new NullableWrapper<>(UserRole.CLIENT.getValue()));
-        testUser.setPassword(new NullableWrapper<>(password));
-        testUser.setStatus(new NullableWrapper<>(UserStatus.ACTIVE.getValue()));
+        testUser.setLogin(Optional.ofNullable(login));
+        testUser.setRole(Optional.ofNullable(UserRole.CLIENT.getValue()));
+        testUser.setPassword(Optional.ofNullable(password));
+        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
 
         User user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, User.class);
         assertThat(user.getId(), notNullValue());
@@ -41,18 +41,18 @@ public class UserResourceTest extends AbstractResourceTest {
         assertThat(user.getId(), equalTo(userid));
 
         testUser = new UserUpdate();
-        testUser.setStatus(new NullableWrapper<>(UserStatus.DISABLED.getValue()));
-        testUser.setLogin(new NullableWrapper<>(login));
-        testUser.setPassword(new NullableWrapper<>(password));
+        testUser.setStatus(Optional.ofNullable(UserStatus.DISABLED.getValue()));
+        testUser.setLogin(Optional.ofNullable(login));
+        testUser.setPassword(Optional.ofNullable(password));
         performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, NO_CONTENT, Response.class);
 
         user = performRequest("/user/" + user.getId(), "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, User.class);
         assertThat(user.getStatus(), equalTo(UserStatus.DISABLED));
 
         testUser = new UserUpdate();
-        testUser.setStatus(new NullableWrapper<>(UserStatus.ACTIVE.getValue()));
-        testUser.setLogin(new NullableWrapper<>(login));
-        testUser.setPassword(new NullableWrapper<>(password));
+        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
+        testUser.setLogin(Optional.ofNullable(login));
+        testUser.setPassword(Optional.ofNullable(password));
         performRequest("/user/current", "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), testUser, UNAUTHORIZED, Response.class);
     }
 

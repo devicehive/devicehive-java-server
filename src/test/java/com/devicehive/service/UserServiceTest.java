@@ -950,7 +950,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.DUPLICATE_LOGIN);
 
         UserUpdate update = new UserUpdate();
-        update.setLogin(new NullableWrapper<>(existingLogin));
+        update.setLogin(Optional.ofNullable(existingLogin));
         userService.updateUser(second.getId(), update, UserRole.ADMIN);
     }
 
@@ -966,18 +966,18 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setLogin(new NullableWrapper<>(RandomStringUtils.random(10)));
-        update.setFacebookLogin(new NullableWrapper<>(RandomStringUtils.random(10)));
-        update.setGoogleLogin(new NullableWrapper<>(RandomStringUtils.random(10)));
-        update.setGithubLogin(new NullableWrapper<>(RandomStringUtils.random(10)));
+        update.setLogin(Optional.ofNullable(RandomStringUtils.random(10)));
+        update.setFacebookLogin(Optional.ofNullable(RandomStringUtils.random(10)));
+        update.setGoogleLogin(Optional.ofNullable(RandomStringUtils.random(10)));
+        update.setGithubLogin(Optional.ofNullable(RandomStringUtils.random(10)));
 
         User updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
-        assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(update.getLogin().getValue())));
-        assertThat(updatedUser.getFacebookLogin(), allOf(not(equalTo(user.getFacebookLogin())), equalTo(update.getFacebookLogin().getValue())));
-        assertThat(updatedUser.getGoogleLogin(), allOf(not(equalTo(user.getGoogleLogin())), equalTo(update.getGoogleLogin().getValue())));
-        assertThat(updatedUser.getGithubLogin(), allOf(not(equalTo(user.getGithubLogin())), equalTo(update.getGithubLogin().getValue())));
+        assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(update.getLogin().orElse(null))));
+        assertThat(updatedUser.getFacebookLogin(), allOf(not(equalTo(user.getFacebookLogin())), equalTo(update.getFacebookLogin().orElse(null))));
+        assertThat(updatedUser.getGoogleLogin(), allOf(not(equalTo(user.getGoogleLogin())), equalTo(update.getGoogleLogin().orElse(null))));
+        assertThat(updatedUser.getGithubLogin(), allOf(not(equalTo(user.getGithubLogin())), equalTo(update.getGithubLogin().orElse(null))));
     }
 
     @Test
@@ -998,10 +998,10 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(firstGoogleUser.getId(), not(equalTo(secondGoogleUser.getId())));
         try {
             UserUpdate update = new UserUpdate();
-            update.setLogin(new NullableWrapper<>(secondGoogleUser.getLogin()));
-            update.setGoogleLogin(new NullableWrapper<>(google));
-            update.setFacebookLogin(new NullableWrapper<>());
-            update.setGithubLogin(new NullableWrapper<>());
+            update.setLogin(Optional.ofNullable(secondGoogleUser.getLogin()));
+            update.setGoogleLogin(Optional.ofNullable(google));
+            update.setFacebookLogin(Optional.ofNullable(null));
+            update.setGithubLogin(Optional.ofNullable(null));
             userService.updateUser(secondGoogleUser.getId(), update, UserRole.ADMIN);
             fail("should throw ActionNotAllowedException");
         } catch (ActionNotAllowedException e) {
@@ -1022,10 +1022,10 @@ public class UserServiceTest extends AbstractResourceTest {
         secondFacebookUser = userService.createUser(secondFacebookUser, RandomStringUtils.randomAlphabetic(10));
         try {
             UserUpdate update = new UserUpdate();
-            update.setLogin(new NullableWrapper<>(secondFacebookUser.getLogin()));
-            update.setFacebookLogin(new NullableWrapper<>(facebook));
-            update.setGoogleLogin(new NullableWrapper<>());
-            update.setGithubLogin(new NullableWrapper<>());
+            update.setLogin(Optional.ofNullable(secondFacebookUser.getLogin()));
+            update.setFacebookLogin(Optional.ofNullable(facebook));
+            update.setGoogleLogin(Optional.ofNullable(null));
+            update.setGithubLogin(Optional.ofNullable(null));
             userService.updateUser(secondFacebookUser.getId(), update, UserRole.ADMIN);
             fail("should throw ActionNotAllowedException");
         } catch (ActionNotAllowedException e) {
@@ -1047,10 +1047,10 @@ public class UserServiceTest extends AbstractResourceTest {
         try {
 
             UserUpdate update = new UserUpdate();
-            update.setLogin(new NullableWrapper<>(secondGithubUser.getLogin()));
-            update.setGithubLogin(new NullableWrapper<>(github));
-            update.setFacebookLogin(new NullableWrapper<>());
-            update.setGoogleLogin(new NullableWrapper<>());
+            update.setLogin(Optional.ofNullable(secondGithubUser.getLogin()));
+            update.setGithubLogin(Optional.ofNullable(github));
+            update.setFacebookLogin(Optional.ofNullable(null));
+            update.setGoogleLogin(Optional.ofNullable(null));
             userService.updateUser(secondGithubUser.getId(), update, UserRole.ADMIN);
             fail("should throw ActionNotAllowedException");
         } catch (ActionNotAllowedException e) {
@@ -1066,7 +1066,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(new NullableWrapper<>("new_pass"));
+        update.setPassword(Optional.ofNullable("new_pass"));
         User updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
@@ -1085,7 +1085,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.OLD_PASSWORD_REQUIRED);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(new NullableWrapper<>("new_pass"));
+        update.setPassword(Optional.ofNullable("new_pass"));
         userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
@@ -1097,8 +1097,8 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(new NullableWrapper<>("new_pass"));
-        update.setOldPassword(new NullableWrapper<>("123"));
+        update.setPassword(Optional.ofNullable("new_pass"));
+        update.setOldPassword(Optional.ofNullable("123"));
         User updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
@@ -1117,8 +1117,8 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.INCORRECT_CREDENTIALS);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(new NullableWrapper<>("new_pass"));
-        update.setOldPassword(new NullableWrapper<>("old"));
+        update.setPassword(Optional.ofNullable("new_pass"));
+        update.setOldPassword(Optional.ofNullable("old"));
         userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
@@ -1133,7 +1133,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.PASSWORD_REQUIRED);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(new NullableWrapper<>());
+        update.setPassword(Optional.ofNullable(null));
         userService.updateUser(user.getId(), update, UserRole.ADMIN);
     }
 

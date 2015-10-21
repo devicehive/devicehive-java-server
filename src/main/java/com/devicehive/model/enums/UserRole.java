@@ -21,4 +21,9 @@ public enum UserRole {
     public String toString() {
         return this.name();
     }
+
+    public static UserRole getValueForIndex(int index){
+        return values()[index];
+    }
+
 }

@@ -16,4 +16,9 @@ public enum UserStatus {
     public int getValue() {
         return this.value;
     }
+
+
+    public static UserStatus getValueForIndex(int index){
+        return values()[index];
+    }
 }

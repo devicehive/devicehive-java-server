@@ -105,7 +105,7 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public Response insertUser(UserUpdate userToCreate) {
-        String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
+        String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().orElse(null);
         User created = userService.createUser(userToCreate.convertTo(), password);
         return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
     }

@@ -142,7 +142,7 @@ public class UserService {
             return existing;
         }
         if (userToUpdate.getLogin() != null) {
-            final String newLogin = StringUtils.trim(userToUpdate.getLogin().getValue());
+            final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
             final String oldLogin = existing.getLogin();
             User withSuchLogin = genericDAO.createNamedQuery(User.class, "User.findByName", empty())
                     .setParameter("login", newLogin)
@@ -153,12 +153,12 @@ public class UserService {
             }
             existing.setLogin(newLogin);
 
-            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().getValue()) ?
-                    userToUpdate.getGoogleLogin().getValue() : null;
-            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().getValue()) ?
-                    userToUpdate.getFacebookLogin().getValue() : null;
-            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().getValue()) ?
-                    userToUpdate.getGithubLogin().getValue() : null;
+            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().orElse(null)) ?
+                    userToUpdate.getGoogleLogin().orElse(null) : null;
+            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().orElse(null)) ?
+                    userToUpdate.getFacebookLogin().orElse(null) : null;
+            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().orElse(null)) ?
+                    userToUpdate.getGithubLogin().orElse(null) : null;
 
             if (googleLogin != null || facebookLogin != null || githubLogin != null) {
                 Optional<User> userWithSameIdentity = genericDAO.createNamedQuery(User.class, "User.findByIdentityName", of(CacheConfig.bypass()))
@@ -177,8 +177,8 @@ public class UserService {
             existing.setGithubLogin(githubLogin);
         }
         if (userToUpdate.getPassword() != null) {
-            if (userToUpdate.getOldPassword() != null && StringUtils.isNotBlank(userToUpdate.getOldPassword().getValue())) {
-                final String hash = passwordService.hashPassword(userToUpdate.getOldPassword().getValue(),
+            if (userToUpdate.getOldPassword() != null && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
+                final String hash = passwordService.hashPassword(userToUpdate.getOldPassword().orElse(null),
                         existing.getPasswordSalt());
                 if (!hash.equals(existing.getPasswordHash())) {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
@@ -188,12 +188,12 @@ public class UserService {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
-            if (StringUtils.isEmpty(userToUpdate.getPassword().getValue())) {
+            if (StringUtils.isEmpty(userToUpdate.getPassword().orElse(null))) {
                 logger.error("Can't update user with id {}: password required", id);
                 throw new IllegalParametersException(Messages.PASSWORD_REQUIRED);
             }
             String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(userToUpdate.getPassword().getValue(), salt);
+            String hash = passwordService.hashPassword(userToUpdate.getPassword().orElse(null), salt);
             existing.setPasswordSalt(salt);
             existing.setPasswordHash(hash);
         }
@@ -208,7 +208,7 @@ public class UserService {
             }
         }
         if (userToUpdate.getData() != null) {
-            existing.setData(userToUpdate.getData().getValue());
+            existing.setData(userToUpdate.getData().orElse(null));
         }
         hiveValidator.validate(existing);
         return genericDAO.merge(existing);
