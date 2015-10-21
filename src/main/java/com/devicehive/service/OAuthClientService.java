@@ -94,27 +94,27 @@ public class OAuthClientService {
         if (client == null) {
             return true;
         }
-        if (client.getOauthId() != null && !client.getOauthId().getValue().equals(existing.getOauthId())) {
-            OAuthClient existingWithOAuthID = getByOAuthID(client.getOauthId().getValue());
+        if (client.getOauthId() != null && !client.getOauthId().orElse(null).equals(existing.getOauthId())) {
+            OAuthClient existingWithOAuthID = getByOAuthID(client.getOauthId().orElse(null));
             if (existingWithOAuthID != null) {
-                logger.error("OAuth client with id {} already exists in the system", client.getOauthId().getValue());
+                logger.error("OAuth client with id {} already exists in the system", client.getOauthId().orElse(null));
                 throw new ActionNotAllowedException(Messages.DUPLICATE_OAUTH_ID);
             }
         }
         if (client.getName() != null) {
-            existing.setName(client.getName().getValue());
+            existing.setName(client.getName().orElse(null));
         }
         if (client.getDomain() != null) {
-            existing.setDomain(client.getDomain().getValue());
+            existing.setDomain(client.getDomain().orElse(null));
         }
         if (client.getSubnet() != null) {
-            existing.setSubnet(client.getSubnet().getValue());
+            existing.setSubnet(client.getSubnet().orElse(null));
         }
         if (client.getRedirectUri() != null) {
-            existing.setRedirectUri(client.getRedirectUri().getValue());
+            existing.setRedirectUri(client.getRedirectUri().orElse(null));
         }
         if (client.getOauthId() != null) {
-            existing.setOauthId(client.getOauthId().getValue());
+            existing.setOauthId(client.getOauthId().orElse(null));
         }
         genericDAO.merge(existing);
         return true;
