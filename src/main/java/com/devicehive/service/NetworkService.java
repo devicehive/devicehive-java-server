@@ -157,13 +157,13 @@ public class NetworkService {
             throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
         }
         if (networkUpdate.getKey() != null) {
-            existing.setKey(networkUpdate.getKey().getValue());
+            existing.setKey(networkUpdate.getKey().orElse(null));
         }
         if (networkUpdate.getName() != null) {
-            existing.setName(networkUpdate.getName().getValue());
+            existing.setName(networkUpdate.getName().orElse(null));
         }
         if (networkUpdate.getDescription() != null) {
-            existing.setDescription(networkUpdate.getDescription().getValue());
+            existing.setDescription(networkUpdate.getDescription().orElse(null));
         }
         hiveValidator.validate(existing);
         return genericDAO.merge(existing);

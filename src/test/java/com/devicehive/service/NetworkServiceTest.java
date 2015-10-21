@@ -118,7 +118,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
         NetworkUpdate network = new NetworkUpdate();
-        network.setName(new NullableWrapper<>("network"));
+        network.setName(Optional.of("network"));
 
         networkService.update(-1L, network);
     }
@@ -132,20 +132,20 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         NetworkUpdate update = new NetworkUpdate();
-        update.setKey(new NullableWrapper<>("key"));
-        update.setName(new NullableWrapper<>("name"));
-        update.setDescription(new NullableWrapper<>("description"));
+        update.setKey(Optional.of("key"));
+        update.setName(Optional.of("name"));
+        update.setDescription(Optional.of("description"));
 
         Network updated = networkService.update(created.getId(), update);
         assertThat(created.getId(), is(updated.getId()));
-        assertThat(update.getName().getValue(), is(updated.getName()));
-        assertThat(update.getDescription().getValue(), is(updated.getDescription()));
-        assertThat(update.getKey().getValue(), is(updated.getKey()));
+        assertThat(update.getName().get(), is(updated.getName()));
+        assertThat(update.getDescription().get(), is(updated.getDescription()));
+        assertThat(update.getKey().get(), is(updated.getKey()));
 
         network = genericDAO.find(Network.class, updated.getId());
-        assertThat(update.getName().getValue(), is(network.getName()));
-        assertThat(update.getDescription().getValue(), is(network.getDescription()));
-        assertThat(update.getKey().getValue(), is(network.getKey()));
+        assertThat(update.getName().get(), is(network.getName()));
+        assertThat(update.getDescription().get(), is(network.getDescription()));
+        assertThat(update.getKey().get(), is(network.getKey()));
     }
 
     @Test
