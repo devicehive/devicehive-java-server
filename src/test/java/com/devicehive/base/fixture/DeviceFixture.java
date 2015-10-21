@@ -4,6 +4,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class DeviceFixture {
@@ -21,22 +22,22 @@ public class DeviceFixture {
     public static DeviceClassUpdate createDeviceClass() {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
-        deviceClass.setName(new NullableWrapper<>("device_class-" + uuid));
-        deviceClass.setVersion(new NullableWrapper<>("1"));
-        deviceClass.setPermanent(new NullableWrapper<>(false));
-        deviceClass.setOfflineTimeout(new NullableWrapper<>(120));
-        deviceClass.setData(new NullableWrapper<>(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
+        deviceClass.setName(Optional.ofNullable("device_class-" + uuid));
+        deviceClass.setVersion(Optional.ofNullable("1"));
+        deviceClass.setPermanent(Optional.ofNullable(false));
+        deviceClass.setOfflineTimeout(Optional.ofNullable(120));
+        deviceClass.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
         return deviceClass;
     }
     public static DeviceClassUpdate createDeviceClassUpdate(DeviceClass dc) {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
         deviceClass.setId(dc.getId());
-        deviceClass.setName(new NullableWrapper<>(dc.getName()));
-        deviceClass.setVersion(new NullableWrapper<>(dc.getVersion()));
-        deviceClass.setPermanent(new NullableWrapper<>(false));
-        deviceClass.setOfflineTimeout(new NullableWrapper<>(dc.getOfflineTimeout()));
-        deviceClass.setData(new NullableWrapper<>(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
+        deviceClass.setName(Optional.ofNullable(dc.getName()));
+        deviceClass.setVersion(Optional.ofNullable(dc.getVersion()));
+        deviceClass.setPermanent(Optional.ofNullable(false));
+        deviceClass.setOfflineTimeout(Optional.ofNullable(dc.getOfflineTimeout()));
+        deviceClass.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
         return deviceClass;
     }
 

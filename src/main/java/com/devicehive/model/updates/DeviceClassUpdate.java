@@ -2,10 +2,14 @@ package com.devicehive.model.updates;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.DeviceClass;
+import com.devicehive.model.Equipment;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -19,67 +23,67 @@ public class DeviceClassUpdate implements HiveEntity {
     private Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     @ApiModelProperty(dataType = "string")
-    private NullableWrapper<String> name;
+    private Optional<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     @ApiModelProperty(dataType = "string")
-    private NullableWrapper<String> version;
+    private Optional<String> version;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     @ApiModelProperty(dataType = "boolean")
-    private NullableWrapper<Boolean> isPermanent;
+    private Optional<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     @ApiModelProperty(dataType = "int")
-    private NullableWrapper<Integer> offlineTimeout;
+    private Optional<Integer> offlineTimeout;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     @ApiModelProperty(dataType = "com.devicehive.model.JsonStringWrapper")
-    private NullableWrapper<JsonStringWrapper> data;
+    private Optional<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_SUBMITTED})
-    private NullableWrapper<Set<Equipment>> equipment;
+    private Optional<Set<Equipment>> equipment;
 
-    public NullableWrapper<Set<Equipment>> getEquipment() {
+    public Optional<Set<Equipment>> getEquipment() {
         return equipment;
     }
 
-    public void setEquipment(NullableWrapper<Set<Equipment>> equipment) {
+    public void setEquipment(Optional<Set<Equipment>> equipment) {
         this.equipment = equipment;
     }
 
-    public NullableWrapper<String> getName() {
+    public Optional<String> getName() {
         return name;
     }
 
-    public void setName(NullableWrapper<String> name) {
+    public void setName(Optional<String> name) {
         this.name = name;
     }
 
-    public NullableWrapper<String> getVersion() {
+    public Optional<String> getVersion() {
         return version;
     }
 
-    public void setVersion(NullableWrapper<String> version) {
+    public void setVersion(Optional<String> version) {
         this.version = version;
     }
 
-    public NullableWrapper<Boolean> getPermanent() {
+    public Optional<Boolean> getPermanent() {
         return isPermanent;
     }
 
-    public void setPermanent(NullableWrapper<Boolean> permanent) {
+    public void setPermanent(Optional<Boolean> permanent) {
         isPermanent = permanent;
     }
 
-    public NullableWrapper<Integer> getOfflineTimeout() {
+    public Optional<Integer> getOfflineTimeout() {
         return offlineTimeout;
     }
 
-    public void setOfflineTimeout(NullableWrapper<Integer> offlineTimeout) {
+    public void setOfflineTimeout(Optional<Integer> offlineTimeout) {
         this.offlineTimeout = offlineTimeout;
     }
 
-    public NullableWrapper<JsonStringWrapper> getData() {
+    public Optional<JsonStringWrapper> getData() {
         return data;
     }
 
-    public void setData(NullableWrapper<JsonStringWrapper> data) {
+    public void setData(Optional<JsonStringWrapper> data) {
         this.data = data;
     }
 
@@ -95,22 +99,22 @@ public class DeviceClassUpdate implements HiveEntity {
         DeviceClass deviceClass = new DeviceClass();
         deviceClass.setId(id);
         if (isPermanent != null) {
-            deviceClass.setPermanent(isPermanent.getValue());
+            deviceClass.setPermanent(isPermanent.orElse(null));
         }
         if (offlineTimeout != null) {
-            deviceClass.setOfflineTimeout(offlineTimeout.getValue());
+            deviceClass.setOfflineTimeout(offlineTimeout.orElse(null));
         }
         if (data != null) {
-            deviceClass.setData(data.getValue());
+            deviceClass.setData(data.orElse(null));
         }
         if (name != null) {
-            deviceClass.setName(name.getValue());
+            deviceClass.setName(name.orElse(null));
         }
         if (version != null) {
-            deviceClass.setVersion(version.getValue());
+            deviceClass.setVersion(version.orElse(null));
         }
         if (equipment != null) {
-            deviceClass.setEquipment(equipment.getValue());
+            deviceClass.setEquipment(equipment.orElse(null));
         }
         return deviceClass;
     }

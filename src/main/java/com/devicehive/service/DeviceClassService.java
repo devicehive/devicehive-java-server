@@ -1,8 +1,10 @@
 package com.devicehive.service;
 
-import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.*;
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.CacheHelper;
+import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.GenericDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
@@ -24,8 +26,8 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-import static javax.ws.rs.core.Response.Status.*;
 import static java.util.Optional.ofNullable;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Component
 public class DeviceClassService {
@@ -141,23 +143,23 @@ public class DeviceClassService {
             return;
         }
         if (update.getData() != null) {
-            stored.setData(update.getData().getValue());
+            stored.setData(update.getData().orElse(null));
         }
         if (update.getEquipment() != null) {
-            replaceEquipment(update.getEquipment().getValue(), stored);
-            stored.setEquipment(update.getEquipment().getValue());
+            replaceEquipment(update.getEquipment().orElse(null), stored);
+            stored.setEquipment(update.getEquipment().orElse(null));
         }
         if (update.getName() != null) {
-            stored.setName(update.getName().getValue());
+            stored.setName(update.getName().orElse(null));
         }
         if (update.getPermanent() != null) {
-            stored.setPermanent(update.getPermanent().getValue());
+            stored.setPermanent(update.getPermanent().orElse(null));
         }
         if (update.getOfflineTimeout() != null) {
-            stored.setOfflineTimeout(update.getOfflineTimeout().getValue());
+            stored.setOfflineTimeout(update.getOfflineTimeout().orElse(null));
         }
         if (update.getVersion() != null) {
-            stored.setVersion(update.getVersion().getValue());
+            stored.setVersion(update.getVersion().orElse(null));
         }
         hiveValidator.validate(stored);
         genericDAO.merge(stored);

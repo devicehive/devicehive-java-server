@@ -91,8 +91,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);
         assertEquals(device.getGuid(), existingDevice.getGuid());
-        assertEquals(dc.getName().getValue(), existingDevice.getDeviceClass().getName());
-        assertEquals(dc.getVersion().getValue(), existingDevice.getDeviceClass().getVersion());
+        assertEquals(device.getKey(), existingDevice.getKey());
+        assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
+        assertEquals(dc.getVersion().orElse(null), existingDevice.getDeviceClass().getVersion());
     }
 
     /**

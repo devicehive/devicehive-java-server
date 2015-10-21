@@ -16,6 +16,7 @@ import org.springframework.web.socket.TextMessage;
 
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.devicehive.base.websocket.WebSocketSynchronousConnection.WAIT_TIMEOUT;
@@ -33,7 +34,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
 
         Equipment equipment = DeviceFixture.createEquipment();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(new NullableWrapper<>(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Optional.ofNullable(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
         DeviceUpdate device = DeviceFixture.createDevice(deviceId);
@@ -73,7 +74,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
         assertThat(savedClass.getVersion(), is(deviceClass.getVersion()));
         assertThat(savedClass.getPermanent(), is(deviceClass.getPermanent()));
         assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout()));
-        assertThat(savedClass.getData().getValue(), notNullValue());
+        assertThat(savedClass.getData().orElse(null), notNullValue());
     }
 
     @Test
@@ -83,7 +84,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
 
         Equipment equipment = DeviceFixture.createEquipment();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(new NullableWrapper<>(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Optional.ofNullable(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
         DeviceUpdate device = DeviceFixture.createDevice(deviceId);
