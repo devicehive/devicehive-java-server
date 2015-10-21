@@ -11,48 +11,39 @@ import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-@ApiModel
 public class DeviceUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
     private Optional<String> guid;
 
     @SerializedName("key")
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
     private Optional<String> key;
 
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
     private Optional<String> name;
 
     @SerializedName("status")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
     private Optional<String> status;
 
     @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "com.devicehive.model.JsonStringWrapper")
     private Optional<JsonStringWrapper> data;
 
     @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    @ApiModelProperty(dataType = "com.devicehive.model.Network")
     private Optional<Network> network;
 
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "com.devicehive.model.updates.DeviceClassUpdate")
     private Optional<DeviceClassUpdate> deviceClass;
 
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     @SerializedName("blocked")
-    @ApiModelProperty(dataType = "boolean")
     private Optional<Boolean> blocked;
 
     public Optional<DeviceClassUpdate> getDeviceClass() {

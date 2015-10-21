@@ -14,27 +14,20 @@ import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-@ApiModel
 public class DeviceClassUpdate implements HiveEntity {
 
     private static final long serialVersionUID = 967472386318199376L;
     @JsonPolicyDef(DEVICE_PUBLISHED)
-    @ApiModelProperty(dataType = "long")
     private Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
     private Optional<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
     private Optional<String> version;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    @ApiModelProperty(dataType = "boolean")
     private Optional<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    @ApiModelProperty(dataType = "int")
     private Optional<Integer> offlineTimeout;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    @ApiModelProperty(dataType = "com.devicehive.model.JsonStringWrapper")
     private Optional<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_SUBMITTED})
     private Optional<Set<Equipment>> equipment;
