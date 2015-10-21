@@ -73,15 +73,15 @@ public class AccessKeyUpdate implements HiveEntity {
         AccessKey result = new AccessKey();
 
         if (label != null) {
-            label.ifPresent(result::setLabel);
+            result.setLabel(label.orElse(null));
         }
 
         if (expirationDate != null) {
-            expirationDate.ifPresent(result::setExpirationDate);
+            result.setExpirationDate(expirationDate.orElse(null));
         }
 
         if (permissions != null) {
-            permissions.ifPresent(result::setPermissions);
+            result.setPermissions(permissions.orElse(null));
         }
         return result;
     }
