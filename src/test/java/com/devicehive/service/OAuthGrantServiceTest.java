@@ -2,7 +2,6 @@ package com.devicehive.service;
 
 import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
@@ -14,10 +13,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -120,17 +116,17 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
 
         OAuthClient newClient = createClient();
         OAuthGrantUpdate update = new OAuthGrantUpdate();
-        update.setClient(new NullableWrapper<>(newClient));
-        update.setAccessType(new NullableWrapper<>(AccessType.OFFLINE));
-        update.setType(new NullableWrapper<>(Type.TOKEN));
-        update.setRedirectUri(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setScope(new NullableWrapper<>(AccessKeyAction.MANAGE_ACCESS_KEY.getValue()));
+        update.setClient(Optional.ofNullable(newClient));
+        update.setAccessType(Optional.ofNullable(AccessType.OFFLINE));
+        update.setType(Optional.ofNullable(Type.TOKEN));
+        update.setRedirectUri(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setScope(Optional.ofNullable(AccessKeyAction.MANAGE_ACCESS_KEY.getValue()));
         grantService.update(user, grant.getId(), update);
 
         OAuthGrant updatedGrant = grantService.get(user, grant.getId());
         assertThat(updatedGrant, notNullValue());
         assertThat(updatedGrant.getAccessType(), equalTo(AccessType.OFFLINE));
-        assertThat(updatedGrant.getRedirectUri(), equalTo(update.getRedirectUri().getValue()));
+        assertThat(updatedGrant.getRedirectUri(), equalTo(update.getRedirectUri().orElse(null)));
         assertThat(updatedGrant.getScope(), equalTo(AccessKeyAction.MANAGE_ACCESS_KEY.getValue()));
         assertThat(updatedGrant.getClient(), notNullValue());
         assertThat(updatedGrant.getClient().getId(), not(equalTo(client.getId())));
