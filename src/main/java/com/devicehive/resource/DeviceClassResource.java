@@ -3,7 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.updates.DeviceClassUpdate;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;

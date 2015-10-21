@@ -5,7 +5,8 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.wordnik.swagger.annotations.*;
+import com.google.gson.JsonObject;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;

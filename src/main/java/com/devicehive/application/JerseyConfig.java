@@ -42,8 +42,8 @@ public class JerseyConfig extends ResourceConfig {
         register(RequestContextFilter.class);
         register(LoggingFilter.class);
 
-        register(com.wordnik.swagger.jaxrs.listing.ApiListingResource.class);
-        register(com.wordnik.swagger.jaxrs.listing.SwaggerSerializers.class);
+        register(io.swagger.jaxrs.listing.ApiListingResource.class);
+        register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
     }
 
 }
