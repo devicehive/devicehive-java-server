@@ -188,8 +188,7 @@ public class DeviceService {
                                          Set<Equipment> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
+        DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
                 .setParameter("guid", deviceUpdate.getGuid().getValue())
                 .getResultList()
@@ -206,12 +205,6 @@ public class DeviceService {
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getKey() == null ||
-                    existingDevice.getKey() == null ||
-                    !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
-                logger.error("Device update key is null or doesn't equal to the authenticated device key {}", existingDevice.getKey());
-                throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
-            }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
             }
@@ -295,15 +288,6 @@ public class DeviceService {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
         return device;
-    }
-
-    @Transactional
-    public Device authenticate(String uuid, String key) {
-        return genericDAO.createNamedQuery(Device.class, "Device.findByUUIDAndKey", Optional.of(CacheConfig.get()))
-                .setParameter("guid", uuid)
-                .setParameter("key", key)
-                .getResultList()
-                .stream().findFirst().orElse(null);
     }
 
     //TODO: only migrated to genericDAO, need to migrate Device PK to guid and use directly GenericDAO#remove
