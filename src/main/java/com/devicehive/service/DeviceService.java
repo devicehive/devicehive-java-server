@@ -121,9 +121,6 @@ public class DeviceService {
             if (deviceUpdate.getName() != null) {
                 existingDevice.setName(deviceUpdate.getName().getValue());
             }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().getValue());
-            }
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(deviceUpdate.getBlocked().getValue());
             }
@@ -173,9 +170,6 @@ public class DeviceService {
             if (deviceUpdate.getName() != null) {
                 existingDevice.setName(deviceUpdate.getName().getValue());
             }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().getValue());
-            }
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().getValue()));
             }
@@ -188,7 +182,8 @@ public class DeviceService {
                                          Set<Equipment> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
-        DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
+        DeviceClass deviceClass = deviceClassService
+            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
         Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
                 .setParameter("guid", deviceUpdate.getGuid().getValue())
                 .getResultList()
@@ -205,6 +200,12 @@ public class DeviceService {
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
+            if (deviceUpdate.getGuid() == null ||
+                    existingDevice.getGuid() == null ||
+                    !existingDevice.getGuid().equals(deviceUpdate.getGuid().getValue())) {
+                logger.error("Device update id is null or doesn't equal to the authenticated device id {}", existingDevice.getGuid());
+                throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
+            }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
             }
@@ -258,10 +259,6 @@ public class DeviceService {
         if (device.getName() != null && device.getName().getValue() == null) {
             logger.error("Device validation: device name is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_NAME);
-        }
-        if (device.getKey() != null && device.getKey().getValue() == null) {
-            logger.error("Device validation: device key is empty");
-            throw new HiveException(Messages.EMPTY_DEVICE_KEY);
         }
         if (device.getDeviceClass() != null && device.getDeviceClass().getValue() == null) {
             logger.error("Device validation: device class is empty");

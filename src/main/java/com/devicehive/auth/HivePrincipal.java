@@ -98,4 +98,8 @@ public class HivePrincipal implements Principal {
                 '}';
     }
 
+    public void setDevice(Device device){
+        this.device = device;
+    }
+
 }

@@ -18,7 +18,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-        @NamedQuery(name = "Device.findByUUIDAndKey", query = "select d from Device d where d.guid = :guid and d.key = :key"),
                   @NamedQuery(name = "Device.findByUUID", query = "select d from Device d " +
                                                                   "left join fetch d.network " +
                                                                   "left join fetch d.deviceClass dc " +
@@ -46,11 +45,6 @@ public class Device implements HiveEntity {
     @Size(min = 1, max = 48, message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private String guid;
-
-    @SerializedName("key")
-    @Column
-    @Size(min = 1, max = 64, message = "Field could be empty. The length of key should not be more than 64 symbols.")
-    private String key;
 
     @SerializedName("name")
     @Column
@@ -129,14 +123,6 @@ public class Device implements HiveEntity {
         this.guid = guid;
     }
 
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
     public String getName() {
         return name;
     }
@@ -182,7 +168,6 @@ public class Device implements HiveEntity {
         public static interface Parameters {
 
             static final String GUID = "guid";
-            static final String KEY = "key";
             static final String ID = "id";
         }
     }

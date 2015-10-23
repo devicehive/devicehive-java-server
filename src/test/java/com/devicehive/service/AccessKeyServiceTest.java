@@ -490,7 +490,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         DeviceUpdate device = new DeviceUpdate();
         device.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setKey(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
         device.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
         device.setNetwork(new NullableWrapper<>(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
@@ -522,7 +521,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         DeviceUpdate device = new DeviceUpdate();
         device.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setKey(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
         device.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
         device.setNetwork(new NullableWrapper<>(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
@@ -556,7 +554,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         DeviceUpdate device = new DeviceUpdate();
         device.setGuid(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        device.setKey(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
         device.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
         device.setNetwork(new NullableWrapper<>(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();

@@ -36,13 +36,12 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
         deviceClass.setEquipment(new NullableWrapper<>(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
-        String deviceKey = UUID.randomUUID().toString();
-        DeviceUpdate device = DeviceFixture.createDevice(deviceKey);
+        DeviceUpdate device = DeviceFixture.createDevice(deviceId);
         device.setDeviceClass(new NullableWrapper<>(deviceClass));
         device.setNetwork(new NullableWrapper<>(network));
 
         //device/save
-        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, deviceKey, singletonMap("device", gson.toJsonTree(device)));
+        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, singletonMap("device", gson.toJsonTree(device)));
         TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(deviceSave)), WAIT_TIMEOUT);
         JsonObject jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
         assertThat(jsonResp.get("action").getAsString(), is("device/save"));
@@ -51,7 +50,7 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
 
 
         //device/get
-        JsonObject deviceGet = JsonFixture.createWsCommand("device/get", "2", deviceId, deviceKey);
+        JsonObject deviceGet = JsonFixture.createWsCommand("device/get", "2", deviceId);
         response =  connection.sendMessage(new TextMessage(gson.toJson(deviceGet)), WAIT_TIMEOUT);
         jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
         assertThat(jsonResp.get("action").getAsString(), is("device/get"));
@@ -80,19 +79,19 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
     @Test
     public void should_return_401_status_for_anonymous() throws Exception {
         WebSocketSynchronousConnection connection = syncConnection("/websocket/device");
+        WebSocketFixture.authenticateKey(ACCESS_KEY, connection);
 
         Equipment equipment = DeviceFixture.createEquipment();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(new NullableWrapper<>(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
-        String deviceKey = UUID.randomUUID().toString();
-        DeviceUpdate device = DeviceFixture.createDevice(deviceKey);
+        DeviceUpdate device = DeviceFixture.createDevice(deviceId);
         device.setDeviceClass(new NullableWrapper<>(deviceClass));
         device.setNetwork(new NullableWrapper<>(network));
 
         //device/save
-        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, deviceKey, singletonMap("device", gson.toJsonTree(device)));
+        JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, singletonMap("device", gson.toJsonTree(device)));
         TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(deviceSave)), WAIT_TIMEOUT);
         JsonObject jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
         assertThat(jsonResp.get("action").getAsString(), is("device/save"));

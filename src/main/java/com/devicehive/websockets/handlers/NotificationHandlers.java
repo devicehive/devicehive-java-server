@@ -5,6 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
@@ -204,12 +205,23 @@ public class NotificationHandlers extends WebsocketHandlers {
                                                        DeviceNotificationWrapper notificationSubmit,
                                                        WebSocketSession session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
+        System.out.println("******");
+        System.out.println("Received: " + deviceGuid);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("Principal: "+principal);
+        System.out.println("Principal.user: "+principal.getUser());
+        System.out.println("Principal.key: "+principal.getKey());
+        System.out.println("Principal.device: "+principal.getDevice());
+        System.out.println("Principal.role: "+principal.getRole());
+        System.out.println("Principal.isAuthenticated: "+principal.isAuthenticated());
+        System.out.println("Found device?: " + deviceService.findByGuidWithPermissionsCheck(deviceGuid, null));
+        System.out.println("******");
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
+
         Device device;
         if (deviceGuid == null) {
             device = principal.getDevice();

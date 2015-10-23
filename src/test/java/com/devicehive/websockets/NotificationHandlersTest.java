@@ -39,7 +39,7 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
     @Test
     public void should_insert_notification_signed_in_as_admin() throws Exception {
         WebSocketSynchronousConnection connection = syncConnection("/websocket/client");
-        WebSocketFixture.authenticateUser(ADMIN_LOGIN, "admin_pass", connection);
+        WebSocketFixture.authenticateUser(ADMIN_LOGIN, ADMIN_PASS, connection);
 
         DeviceNotificationWrapper notification = new DeviceNotificationWrapper();
         notification.setNotification("hi there");
@@ -145,7 +145,7 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
     //fixme: authorized requests without permissions should return 403 error instead of 401
     @Test
     public void should_return_401_status_for_device_during_subscribe_action() throws Exception {
-        JsonObject notificationSubscribe = JsonFixture.createWsCommand("notification/subscribe", "1", DEVICE_ID, DEVICE_KEY,
+        JsonObject notificationSubscribe = JsonFixture.createWsCommand("notification/subscribe", "1", DEVICE_ID,
                 singletonMap("names", gson.toJsonTree(Collections.singleton("some_name"))));
         WebSocketSynchronousConnection connection = syncConnection("/websocket/client");
         TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(notificationSubscribe)), WAIT_TIMEOUT);

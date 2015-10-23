@@ -62,7 +62,6 @@ public class Messages {
     public static final String INCORRECT_CREDENTIALS = BidBundle.get("INCORRECT_CREDENTIALS");
     public static final String DEVICE_GUID_REQUIRED = BidBundle.get("DEVICE_GUID_REQUIRED");
     public static final String EMPTY_DEVICE = BidBundle.get("EMPTY_DEVICE");
-    public static final String EMPTY_DEVICE_KEY = BidBundle.get("EMPTY_DEVICE_KEY");
     public static final String EMPTY_DEVICE_NAME = BidBundle.get("EMPTY_DEVICE_NAME");
     public static final String EMPTY_DEVICE_CLASS = BidBundle.get("EMPTY_DEVICE_CLASS");
     public static final String EMPTY_COMMAND = BidBundle.get("EMPTY_COMMAND");
