@@ -200,12 +200,6 @@ public class DeviceService {
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getGuid() == null ||
-                    existingDevice.getGuid() == null ||
-                    !existingDevice.getGuid().equals(deviceUpdate.getGuid().getValue())) {
-                logger.error("Device update id is null or doesn't equal to the authenticated device id {}", existingDevice.getGuid());
-                throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
-            }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
             }
