@@ -18,7 +18,7 @@ public class JsonFixture {
         JsonObject command = new JsonObject();
         command.add("action", new JsonPrimitive(action));
         command.add("requestId", new JsonPrimitive(request));
-        command.add("deviceGuid", new JsonPrimitive(deviceId));
+        command.add("deviceId", new JsonPrimitive(deviceId));
         return command;
     }
 

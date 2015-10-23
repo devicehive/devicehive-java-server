@@ -21,4 +21,4 @@ INSERT INTO device_class (name, version, is_permanent, offline_timeout) VALUES (
 INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
 
 -- 4. Default devices
-INSERT INTO device (guid, name, status, network_id, device_class_id, key, entity_version) VALUES ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, '05F94BF509C8', 1);
+INSERT INTO device (guid, name, status, network_id, device_class_id, entity_version) VALUES ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, 1);

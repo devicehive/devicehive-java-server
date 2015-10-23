@@ -205,17 +205,7 @@ public class NotificationHandlers extends WebsocketHandlers {
                                                        DeviceNotificationWrapper notificationSubmit,
                                                        WebSocketSession session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
-        System.out.println("******");
-        System.out.println("Received: " + deviceGuid);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println("Principal: "+principal);
-        System.out.println("Principal.user: "+principal.getUser());
-        System.out.println("Principal.key: "+principal.getKey());
-        System.out.println("Principal.device: "+principal.getDevice());
-        System.out.println("Principal.role: "+principal.getRole());
-        System.out.println("Principal.isAuthenticated: "+principal.isAuthenticated());
-        System.out.println("Found device?: " + deviceService.findByGuidWithPermissionsCheck(deviceGuid, null));
-        System.out.println("******");
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");
