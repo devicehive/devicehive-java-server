@@ -3,6 +3,7 @@ package com.devicehive.model.wrappers;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.NullableWrapper;
 import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -16,65 +17,69 @@ public class DeviceCommandWrapper implements HiveEntity {
     @SerializedName("command")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private String command;
+    private NullableWrapper<String> command;
 
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
-    private JsonStringWrapper parameters;
+    private NullableWrapper<JsonStringWrapper> parameters;
 
     @SerializedName("lifetime")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
-    private Integer lifetime;
+    private NullableWrapper<Integer> lifetime;
 
     @SerializedName("status")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private String status;
+    private NullableWrapper<String> status;
 
     @SerializedName("result")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private JsonStringWrapper result;
+    private NullableWrapper<JsonStringWrapper> result;
 
-    public String getCommand() {
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public NullableWrapper<String> getCommand() {
         return command;
     }
 
-    public void setCommand(String command) {
+    public void setCommand(NullableWrapper<String> command) {
         this.command = command;
     }
 
-    public JsonStringWrapper getParameters() {
+    public NullableWrapper<JsonStringWrapper> getParameters() {
         return parameters;
     }
 
-    public void setParameters(JsonStringWrapper parameters) {
+    public void setParameters(NullableWrapper<JsonStringWrapper> parameters) {
         this.parameters = parameters;
     }
 
-    public Integer getLifetime() {
+    public NullableWrapper<Integer> getLifetime() {
         return lifetime;
     }
 
-    public void setLifetime(Integer lifetime) {
+    public void setLifetime(NullableWrapper<Integer> lifetime) {
         this.lifetime = lifetime;
     }
 
-    public String getStatus() {
+    public NullableWrapper<String> getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(NullableWrapper<String> status) {
         this.status = status;
     }
 
-    public JsonStringWrapper getResult() {
+    public NullableWrapper<JsonStringWrapper> getResult() {
         return result;
     }
 
-    public void setResult(JsonStringWrapper result) {
+    public void setResult(NullableWrapper<JsonStringWrapper> result) {
         this.result = result;
     }
 

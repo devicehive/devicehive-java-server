@@ -36,50 +36,62 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
         return find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
     }
 
-    public DeviceCommand convertToDeviceCommand(DeviceCommandWrapper commandWrapper, Device device, User user, Long commandId) {
+    public DeviceCommand insert(DeviceCommandWrapper commandWrapper, Device device, User user) {
         DeviceCommand command = new DeviceCommand();
-        command.setTimestamp(timestampService.getTimestamp());
-        if (commandId == null) {
-            //TODO: Replace with UUID
-            command.setId(Math.abs(new Random().nextInt()));
-        } else {
-            command.setId(commandId);
-        }
+        command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceGuid(device.getGuid());
-        command.setCommand(commandWrapper.getCommand());
-        if (user != null) {
+        command.setIsUpdated(false);
+        command.setTimestamp(timestampService.getTimestamp());
+
+        if(user != null){
             command.setUserId(user.getId());
         }
-        if (commandWrapper.getParameters() != null) {
-            command.setParameters(commandWrapper.getParameters());
+        if (commandWrapper.getCommand() != null) {
+            command.setCommand(commandWrapper.getCommand().getValue());
         }
-        if (commandWrapper.getLifetime() != null) {
-            command.setLifetime(commandWrapper.getLifetime());
+        if(commandWrapper.getParameters() != null){
+            command.setParameters(commandWrapper.getParameters().getValue());
         }
-        if (commandWrapper.getStatus() != null) {
-            command.setStatus(commandWrapper.getStatus());
+        if(commandWrapper.getLifetime() != null){
+            command.setLifetime(commandWrapper.getLifetime().getValue());
         }
-        if (commandWrapper.getResult() != null) {
-            command.setResult(commandWrapper.getResult());
+        if(commandWrapper.getStatus() != null){
+            command.setStatus(commandWrapper.getStatus().getValue());
         }
+        if(commandWrapper.getResult() != null){
+            command.setResult(commandWrapper.getResult().getValue());
+        }
+
         hiveValidator.validate(command);
+        store(command);
         return command;
+    }
+
+    public void update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper){
+        DeviceCommand command = find(commandId, deviceGuid);
+        command.setIsUpdated(true);
+
+        if(commandWrapper.getCommand() != null){
+            command.setCommand(commandWrapper.getCommand().getValue());
+        }
+        if(commandWrapper.getParameters() != null){
+            command.setParameters(commandWrapper.getParameters().getValue());
+        }
+        if(commandWrapper.getLifetime() != null){
+            command.setLifetime(commandWrapper.getLifetime().getValue());
+        }
+        if(commandWrapper.getStatus() != null){
+            command.setStatus(commandWrapper.getStatus().getValue());
+        }
+        if(commandWrapper.getResult() != null){
+            command.setResult(commandWrapper.getResult().getValue());
+        }
+
+        hiveValidator.validate(command);
+        store(command);
     }
 
     public void store(DeviceCommand command) {
         store(command, DeviceCommand.class);
-    }
-
-    //FIXME: temporary added, need to understand necessity of this method
-    public void submitDeviceCommandUpdate(DeviceCommand command) {
-        final DeviceCommand existing = find(command.getId(), command.getDeviceGuid());
-        if(existing != null) {
-            if(command.getCommand() == null) {
-                command.setCommand(existing.getCommand());
-            }
-            command.setTimestamp(existing.getTimestamp());
-            command.setIsUpdated(true);
-            store(command);
-        }
     }
 }
