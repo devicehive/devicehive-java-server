@@ -102,10 +102,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         ClusterConfig clusterConfig = new ClusterConfig();
         clusterConfig.setMetadataBrokerList(env.getProperty(Constants.METADATA_BROKER_LIST));
         clusterConfig.setZookeeperConnect(env.getProperty(Constants.ZOOKEEPER_CONNECT));
-        final String cassandraContactpoints = env.getProperty(Constants.CASSANDRA_CONTACTPOINTS);
-        if (StringUtils.isNotBlank(cassandraContactpoints)) {
-            clusterConfig.setCassandraContactpoints(cassandraContactpoints);
-        }
+
         final String threadCount = env.getProperty(Constants.THREADS_COUNT);
         if (StringUtils.isNotBlank(threadCount) && NumberUtils.isNumber(threadCount)) {
             clusterConfig.setThreadsCount(Integer.parseInt(threadCount));

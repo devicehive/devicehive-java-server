@@ -23,10 +23,6 @@ public class ClusterConfig implements HiveEntity {
     @SerializedName("threads.count")
     private Integer threadsCount;
 
-    @JsonPolicyDef(REST_CLUSTER_CONFIG)
-    @SerializedName("cassandra.contactpoints")
-    private String cassandraContactpoints;
-
     public String getMetadataBrokerList() {
         return metadataBrokerList;
     }
@@ -49,13 +45,5 @@ public class ClusterConfig implements HiveEntity {
 
     public void setThreadsCount(Integer threadsCount) {
         this.threadsCount = threadsCount;
-    }
-
-    public String getCassandraContactpoints() {
-        return cassandraContactpoints;
-    }
-
-    public void setCassandraContactpoints(String cassandraContactpoints) {
-        this.cassandraContactpoints = cassandraContactpoints;
     }
 }
