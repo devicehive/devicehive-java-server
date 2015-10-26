@@ -14,7 +14,6 @@ import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
-import com.devicehive.websockets.util.HiveEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +96,7 @@ public class CommonHandlers extends WebsocketHandlers {
         HiveWebsocketSessionState state = (HiveWebsocketSessionState) session.getAttributes().get(HiveWebsocketSessionState.KEY);
         HiveAuthentication.HiveAuthDetails details = authenticationManager.getDetails(session);
         HiveAuthentication authentication;
-        if (login != null && state.getEndpoint().equals(HiveEndpoint.CLIENT)) {
+        if (login != null) {
             authentication = authenticationManager.authenticateUser(login, password, details);
             session.getAttributes().put("authentication", authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);

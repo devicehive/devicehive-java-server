@@ -72,7 +72,7 @@ public class DeviceHandlers extends WebsocketHandlers {
      *                                                                         </pre>
      */
     @Action(value = "device/get")
-    @PreAuthorize("hasRole('KEY')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY')")
     public WebSocketResponse processDeviceGet(@WsParam(Constants.DEVICE_ID) String deviceId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device toResponse = null;
@@ -150,7 +150,7 @@ public class DeviceHandlers extends WebsocketHandlers {
      *                                                                         </pre>
      */
     @Action(value = "device/save")
-    @PreAuthorize("hasRole('KEY')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
     public WebSocketResponse processDeviceSave(@WsParam(Constants.DEVICE_ID) String deviceId,
                                                @WsParam(Constants.DEVICE) @JsonPolicyApply(DEVICE_SUBMITTED)
                                                DeviceUpdate device,
