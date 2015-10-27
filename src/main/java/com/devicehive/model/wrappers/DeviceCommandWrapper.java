@@ -39,10 +39,6 @@ public class DeviceCommandWrapper implements HiveEntity {
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
     private NullableWrapper<JsonStringWrapper> result;
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
-
     public NullableWrapper<String> getCommand() {
         return command;
     }

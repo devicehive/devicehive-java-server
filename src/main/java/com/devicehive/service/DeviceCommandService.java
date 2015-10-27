@@ -23,8 +23,6 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
     private TimestampService timestampService;
     @Autowired
     private HiveValidator hiveValidator;
-    @Autowired
-    private MessageBus messageBus;
 
     public DeviceCommand find(Long id, String guid) {
         return find(id, guid, DeviceCommand.class);
@@ -49,16 +47,16 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
         if (commandWrapper.getCommand() != null) {
             command.setCommand(commandWrapper.getCommand().getValue());
         }
-        if(commandWrapper.getParameters() != null){
+        if (commandWrapper.getParameters() != null) {
             command.setParameters(commandWrapper.getParameters().getValue());
         }
-        if(commandWrapper.getLifetime() != null){
+        if (commandWrapper.getLifetime() != null) {
             command.setLifetime(commandWrapper.getLifetime().getValue());
         }
-        if(commandWrapper.getStatus() != null){
+        if (commandWrapper.getStatus() != null) {
             command.setStatus(commandWrapper.getStatus().getValue());
         }
-        if(commandWrapper.getResult() != null){
+        if (commandWrapper.getResult() != null) {
             command.setResult(commandWrapper.getResult().getValue());
         }
 
@@ -71,19 +69,19 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
         DeviceCommand command = find(commandId, deviceGuid);
         command.setIsUpdated(true);
 
-        if(commandWrapper.getCommand() != null){
+        if (commandWrapper.getCommand() != null) {
             command.setCommand(commandWrapper.getCommand().getValue());
         }
-        if(commandWrapper.getParameters() != null){
+        if (commandWrapper.getParameters() != null) {
             command.setParameters(commandWrapper.getParameters().getValue());
         }
-        if(commandWrapper.getLifetime() != null){
+        if (commandWrapper.getLifetime() != null) {
             command.setLifetime(commandWrapper.getLifetime().getValue());
         }
-        if(commandWrapper.getStatus() != null){
+        if (commandWrapper.getStatus() != null) {
             command.setStatus(commandWrapper.getStatus().getValue());
         }
-        if(commandWrapper.getResult() != null){
+        if (commandWrapper.getResult() != null) {
             command.setResult(commandWrapper.getResult().getValue());
         }
 
