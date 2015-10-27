@@ -246,9 +246,7 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
         final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        final DeviceCommand command = commandService.convertToDeviceCommand(deviceCommand, device, user, null);
-        command.setIsUpdated(false);
-        commandService.store(command);
+        final DeviceCommand command = commandService.insert(deviceCommand, device, user);
         commandUpdateSubscribeAction(session, command.getId());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(COMMAND, command, COMMAND_TO_CLIENT);
@@ -284,8 +282,7 @@ public class CommandHandlers extends WebsocketHandlers {
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        DeviceCommand message = commandService.convertToDeviceCommand(commandUpdate, device, user, id);
-        commandService.submitDeviceCommandUpdate(message);
+        commandService.update(id, guid, commandUpdate);
 
         logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                 guid, id);

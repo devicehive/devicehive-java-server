@@ -167,12 +167,10 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                 e.printStackTrace();
             }
 
-            final DeviceCommand deviceCommand = deviceCommandService.convertToDeviceCommand(
-                    new DeviceCommandWrapper(),
-                    new Device(),
-                    new User(),
-                    0L);
+            final DeviceCommand deviceCommand = new DeviceCommand();
 
+            deviceCommand.setId(Math.abs(new Random().nextInt()));
+            deviceCommand.setTimestamp(new Date());
             deviceCommand.setUserId(0L);
             deviceCommand.setDeviceGuid(UUID.randomUUID().toString());
             deviceCommand.setCommand("command"+i);

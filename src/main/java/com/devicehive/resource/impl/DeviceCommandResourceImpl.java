@@ -297,9 +297,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        final DeviceCommand command = commandService.convertToDeviceCommand(deviceCommand, device, authUser, null);
-        command.setIsUpdated(false);
-        commandService.store(command);
+        final DeviceCommand command = commandService.insert(deviceCommand, device, authUser);
 
         LOGGER.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
                 deviceCommand.getCommand());
@@ -329,8 +327,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                             String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
 
-        DeviceCommand message = commandService.convertToDeviceCommand(command, device, authUser, commandId);
-        commandService.submitDeviceCommandUpdate(message);
+        commandService.update(commandId, device.getGuid(), command);
         LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
         return ResponseFactory.response(NO_CONTENT);
