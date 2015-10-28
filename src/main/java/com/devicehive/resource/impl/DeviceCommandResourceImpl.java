@@ -244,7 +244,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         final Collection<DeviceCommand> commandList = commandService.find(Arrays.asList(guid),
-                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, true, principal);
+                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, null, principal);
 
         LOGGER.debug("Device command query request proceed successfully for device {}", guid);
         return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);
@@ -300,9 +300,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        final DeviceCommand command = commandService.convertToDeviceCommand(deviceCommand, device, authUser, null);
-        command.setIsUpdated(false);
-        commandService.store(command);
+        final DeviceCommand command = commandService.insert(deviceCommand, device, authUser);
 
         LOGGER.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
                 deviceCommand.getCommand());
@@ -332,8 +330,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                             String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
 
-        DeviceCommand message = commandService.convertToDeviceCommand(command, device, authUser, commandId);
-        commandService.submitDeviceCommandUpdate(message);
+        commandService.update(commandId, device.getGuid(), command);
         LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
         return ResponseFactory.response(NO_CONTENT);

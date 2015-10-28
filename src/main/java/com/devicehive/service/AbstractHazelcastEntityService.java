@@ -59,9 +59,9 @@ public abstract class AbstractHazelcastEntityService {
     protected  <T extends HazelcastEntity> Collection<T> find(Collection<String> devices,
                               Collection<String> names,
                               Date timestamp, String status,
-                              Integer take, Boolean isUpdated,
+                              Integer take, Boolean hasResponse,
                               HivePrincipal principal, Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(devices, names, timestamp, status, isUpdated, principal);
+        final Predicate filters = hazelcastHelper.prepareFilters(devices, names, timestamp, status, hasResponse, principal);
         return retrieve(filters, take, entityClass);
     }
 

@@ -28,9 +28,9 @@ public class HazelcastHelper {
     public Predicate prepareFilters(final Collection<String> devices,
                                                               final Collection<String> commands,
                                                               final Date timestamp, final String status,
-                                                              final Boolean isUpdated,
+                                                              final Boolean hasResponse,
                                                               final HivePrincipal principal) {
-        return prepareFilters(null, null, devices, null, commands, timestamp, status, isUpdated, principal);
+        return prepareFilters(null, null, devices, null, commands, timestamp, status, hasResponse, principal);
     }
 
     public Predicate prepareFilters(final Long id, final String guid,
@@ -42,7 +42,7 @@ public class HazelcastHelper {
     }
 
     public Predicate prepareFilters(Long id, String guid, Collection<String> devices, Collection<String> notifications,
-                                    Collection<String> commands, Date timestamp, String status, Boolean isUpdated,
+                                    Collection<String> commands, Date timestamp, String status, Boolean hasResponse,
                                     HivePrincipal principal) {
         final List<Predicate> predicates = new ArrayList<>();
         if (id != null) {
@@ -67,16 +67,15 @@ public class HazelcastHelper {
         }
 
         if (timestamp != null) {
-            predicates.add(Predicates.greaterEqual(TIMESTAMP.getField(), timestamp));
+            predicates.add(Predicates.greaterThan(TIMESTAMP.getField(), timestamp));
         }
 
         if (StringUtils.isNotEmpty(status)) {
             predicates.add(Predicates.equal(STATUS.getField(), status));
         }
 
-        if (isUpdated != null) {
-            //FIXME: need to invert this flag here, have to understand why
-            predicates.add(Predicates.equal(IS_UPDATED.getField(), !isUpdated));
+        if (hasResponse != null) {
+            predicates.add(Predicates.equal(IS_UPDATED.getField(), hasResponse));
         }
 
         final Predicate [] predicatesArray = new Predicate[predicates.size()];
