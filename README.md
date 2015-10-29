@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/devicehive/devicehive-java-server.svg?branch=master)](https://travis-ci.org/devicehive/devicehive-java-server)
+[![Build Status](https://img.shields.io/travis/rust-lang/rust.svg?style=flat-square)](https://travis-ci.org/devicehive/devicehive-java-server)
 
 DeviceHive Java server
 ======================
