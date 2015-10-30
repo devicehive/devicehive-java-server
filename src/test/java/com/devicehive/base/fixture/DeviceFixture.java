@@ -60,18 +60,17 @@ public class DeviceFixture {
         return network;
     }
 
-    public static DeviceUpdate createDevice(String deviceKey) {
+    public static DeviceUpdate createDevice(String guid) {
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(new NullableWrapper<>(deviceKey));
-        device.setKey(new NullableWrapper<>(deviceKey));
-        device.setName(new NullableWrapper<>("device-" + deviceKey));
+        device.setGuid(new NullableWrapper<>(guid));
+        device.setName(new NullableWrapper<>("device-" + guid));
         device.setStatus(new NullableWrapper<>("Online"));
-        device.setData(new NullableWrapper<>(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", deviceKey))));
+        device.setData(new NullableWrapper<>(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", guid))));
         return device;
     }
 
-    public static DeviceUpdate createDevice(String deviceKey, DeviceClassUpdate dc) {
-        final DeviceUpdate deviceUpdate = createDevice(deviceKey);
+    public static DeviceUpdate createDevice(String guid, DeviceClassUpdate dc) {
+        final DeviceUpdate deviceUpdate = createDevice(guid);
         deviceUpdate.setDeviceClass(new NullableWrapper<>(dc));
         return deviceUpdate;
     }
@@ -79,7 +78,6 @@ public class DeviceFixture {
     public static DeviceUpdate createDevice(Device device, DeviceClassUpdate dc) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
         deviceUpdate.setGuid(new NullableWrapper<>(device.getGuid()));
-        deviceUpdate.setKey(new NullableWrapper<>(device.getKey()));
         deviceUpdate.setName(new NullableWrapper<>(device.getName()));
         deviceUpdate.setStatus(new NullableWrapper<>(device.getStatus()));
         deviceUpdate.setDeviceClass(new NullableWrapper<>(dc));
@@ -90,7 +88,6 @@ public class DeviceFixture {
         final UUID uuid = UUID.randomUUID();
         final Device device = new Device();
         device.setGuid(uuid.toString());
-        device.setKey(uuid.toString());
         device.setName("name-"+uuid.toString());
         return device;
     }

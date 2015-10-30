@@ -36,7 +36,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceGuid}/command/poll")
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Poll for commands ", notes = "Polls for commands based on provided parameters (long polling)")
     void poll(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
@@ -97,7 +97,7 @@ public interface DeviceCommandResource {
 
     @GET
     @Path("/{deviceGuid}/command")
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Query commands ", notes = "Gets list of commands")
     Response query(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
@@ -143,7 +143,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Get command ", notes = "Gets command by device id and command id")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If device or command not found")
@@ -199,7 +199,7 @@ public interface DeviceCommandResource {
     @PUT
     @Path("/{deviceGuid}/command/{commandId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Update command", notes = "Update command")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If device or command not found")

@@ -5,6 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
@@ -197,7 +198,7 @@ public class NotificationHandlers extends WebsocketHandlers {
     }
 
     @Action("notification/insert")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY', 'DEVICE') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
                                                        @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
@@ -210,6 +211,7 @@ public class NotificationHandlers extends WebsocketHandlers {
                     "notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
+
         Device device;
         if (deviceGuid == null) {
             device = principal.getDevice();

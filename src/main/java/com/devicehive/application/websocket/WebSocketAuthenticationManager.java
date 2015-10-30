@@ -1,7 +1,6 @@
 package com.devicehive.application.websocket;
 
 import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.auth.rest.providers.DeviceAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -22,13 +21,6 @@ public class WebSocketAuthenticationManager {
 
     @Autowired
     private AuthenticationManager authenticationManager;
-
-    public HiveAuthentication authenticateDevice(String deviceId, String deviceKey, HiveAuthentication.HiveAuthDetails details) {
-        DeviceAuthenticationToken authenticationToken = new DeviceAuthenticationToken(deviceId, deviceKey);
-        HiveAuthentication authentication =(HiveAuthentication) authenticationManager.authenticate(authenticationToken);
-        authentication.setDetails(details);
-        return authentication;
-    }
 
     public HiveAuthentication authenticateUser(String login, String password, HiveAuthentication.HiveAuthDetails details) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(login, password);

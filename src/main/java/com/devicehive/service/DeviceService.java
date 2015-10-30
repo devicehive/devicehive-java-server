@@ -63,9 +63,6 @@ public class DeviceService {
                 case HiveRoles.CLIENT:
                     dn = deviceSaveByUser(device, equipmentSet, principal.getUser());
                     break;
-                case HiveRoles.DEVICE:
-                    dn = deviceUpdateByDevice(device, equipmentSet, principal.getDevice());
-                    break;
                 case HiveRoles.KEY:
                     dn = deviceSaveByKey(device, equipmentSet, principal.getKey());
                     break;
@@ -124,9 +121,6 @@ public class DeviceService {
             if (deviceUpdate.getName() != null) {
                 existingDevice.setName(deviceUpdate.getName().getValue());
             }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().getValue());
-            }
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(deviceUpdate.getBlocked().getValue());
             }
@@ -176,63 +170,11 @@ public class DeviceService {
             if (deviceUpdate.getName() != null) {
                 existingDevice.setName(deviceUpdate.getName().getValue());
             }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().getValue());
-            }
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().getValue()));
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
-    }
-
-    public DeviceNotification deviceUpdateByDevice(DeviceUpdate deviceUpdate,
-                                                   Set<Equipment> equipmentSet,
-                                                   Device device) {
-        if (deviceUpdate.getGuid() == null) {
-            logger.error("Device guid not found in deviceUpdate request");
-            throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
-        }
-        if (!device.getGuid().equals(deviceUpdate.getGuid().getValue())) {
-            logger.error("Device update guid {} doesn't equal to the authenticated device guid {}",
-                    deviceUpdate.getGuid().getValue(), device.getGuid());
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().getValue()),
-                                    UNAUTHORIZED.getStatusCode());
-        }
-        if (deviceUpdate.getKey() != null &&
-                (device.getKey() == null || !device.getKey().equals(deviceUpdate.getKey().getValue()))) {
-            logger.error("Device update key {} doesn't equal to the authenticated device key {}", deviceUpdate.getKey(), device.getKey());
-            throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
-        }
-        DeviceClass deviceClass = deviceClassService
-            .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
-        Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", deviceUpdate.getGuid().getValue())
-                .getResultList()
-                .stream().findFirst().orElse(null);
-        if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
-            existingDevice.setDeviceClass(deviceClass);
-        }
-        if (deviceUpdate.getNetwork() != null) {
-            Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
-            existingDevice.setNetwork(network);
-        }
-        if (deviceUpdate.getStatus() != null) {
-            existingDevice.setStatus(deviceUpdate.getStatus().getValue());
-        }
-        if (deviceUpdate.getData() != null) {
-            existingDevice.setData(deviceUpdate.getData().getValue());
-        }
-        if (deviceUpdate.getName() != null) {
-            existingDevice.setName(deviceUpdate.getName().getValue());
-        }
-        if (deviceUpdate.getKey() != null) {
-            existingDevice.setKey(deviceUpdate.getKey().getValue());
-        }
-        if (deviceUpdate.getBlocked() != null) {
-            existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().getValue()));
-        }
-        return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
     }
 
     @Transactional
@@ -258,12 +200,6 @@ public class DeviceService {
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getKey() == null ||
-                    existingDevice.getKey() == null ||
-                    !existingDevice.getKey().equals(deviceUpdate.getKey().getValue())) {
-                logger.error("Device update key is null or doesn't equal to the authenticated device key {}", existingDevice.getKey());
-                throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
-            }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
             }
@@ -318,10 +254,6 @@ public class DeviceService {
             logger.error("Device validation: device name is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_NAME);
         }
-        if (device.getKey() != null && device.getKey().getValue() == null) {
-            logger.error("Device validation: device key is empty");
-            throw new HiveException(Messages.EMPTY_DEVICE_KEY);
-        }
         if (device.getDeviceClass() != null && device.getDeviceClass().getValue() == null) {
             logger.error("Device validation: device class is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_CLASS);
@@ -347,15 +279,6 @@ public class DeviceService {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
         return device;
-    }
-
-    @Transactional
-    public Device authenticate(String uuid, String key) {
-        return genericDAO.createNamedQuery(Device.class, "Device.findByUUIDAndKey", Optional.of(CacheConfig.get()))
-                .setParameter("guid", uuid)
-                .setParameter("key", key)
-                .getResultList()
-                .stream().findFirst().orElse(null);
     }
 
     //TODO: only migrated to genericDAO, need to migrate Device PK to guid and use directly GenericDAO#remove

@@ -28,7 +28,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED_DEVICE_AUTH;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
@@ -72,13 +72,17 @@ public class DeviceHandlers extends WebsocketHandlers {
      *                                                                         </pre>
      */
     @Action(value = "device/get")
-    @PreAuthorize("hasRole('DEVICE')")
-    public WebSocketResponse processDeviceGet() {
+    @PreAuthorize("hasRole('KEY')")
+    public WebSocketResponse processDeviceGet(@WsParam(Constants.DEVICE_ID) String deviceId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Device device = principal.getDevice();
-        Device toResponse = device == null ? null : deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
+        Device toResponse = null;
+        if(deviceId != null){
+            toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
+        }else{
+            toResponse = principal.getDevice();
+        }
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED_DEVICE_AUTH);
+        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
         return response;
     }
 
@@ -146,9 +150,8 @@ public class DeviceHandlers extends WebsocketHandlers {
      *                                                                         </pre>
      */
     @Action(value = "device/save")
-    @PreAuthorize("permitAll")
+    @PreAuthorize("hasRole('KEY')")
     public WebSocketResponse processDeviceSave(@WsParam(Constants.DEVICE_ID) String deviceId,
-                                               @WsParam(Constants.DEVICE_KEY) String deviceKey,
                                                @WsParam(Constants.DEVICE) @JsonPolicyApply(DEVICE_SUBMITTED)
                                                DeviceUpdate device,
                                                JsonObject message,
@@ -156,9 +159,6 @@ public class DeviceHandlers extends WebsocketHandlers {
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
-        }
-        if (deviceKey == null) {
-            throw new HiveException(Messages.EMPTY_DEVICE_KEY, SC_BAD_REQUEST);
         }
         device.setGuid(new NullableWrapper<>(deviceId));
         Gson gsonForEquipment = GsonFactory.createGson();

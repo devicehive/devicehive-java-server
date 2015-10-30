@@ -18,11 +18,6 @@ public class DeviceUpdate implements HiveEntity {
     @ApiModelProperty(dataType = "string")
     private NullableWrapper<String> guid;
 
-    @SerializedName("key")
-    @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
-    private NullableWrapper<String> key;
-
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     @ApiModelProperty(dataType = "string")
@@ -67,14 +62,6 @@ public class DeviceUpdate implements HiveEntity {
 
     public void setGuid(NullableWrapper<String> guid) {
         this.guid = guid;
-    }
-
-    public NullableWrapper<String> getKey() {
-        return key;
-    }
-
-    public void setKey(NullableWrapper<String> key) {
-        this.key = key;
     }
 
     public NullableWrapper<String> getName() {
@@ -128,9 +115,6 @@ public class DeviceUpdate implements HiveEntity {
         if (deviceClass != null) {
             DeviceClass convertedDeviceClass = deviceClass.getValue().convertTo();
             device.setDeviceClass(convertedDeviceClass);
-        }
-        if (key != null) {
-            device.setKey(key.getValue());
         }
         if (name != null) {
             device.setName(name.getValue());

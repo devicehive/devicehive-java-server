@@ -4,7 +4,6 @@ import com.devicehive.auth.rest.HttpAuthenticationFilter;
 import com.devicehive.auth.rest.SimpleCORSFilter;
 import com.devicehive.auth.rest.providers.AccessTokenAuthenticationProvider;
 import com.devicehive.auth.rest.providers.BasicAuthenticationProvider;
-import com.devicehive.auth.rest.providers.DeviceAuthenticationProvider;
 import com.devicehive.auth.rest.providers.HiveAnonymousAuthenticationProvider;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
@@ -63,7 +62,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth
                 .authenticationProvider(basicAuthenticationProvider())
-                .authenticationProvider(deviceAuthenticationProvider())
                 .authenticationProvider(accessTokenAuthenticationProvider())
                 .authenticationProvider(anonymousAuthenticationProvider());
     }
@@ -77,11 +75,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public BasicAuthenticationProvider basicAuthenticationProvider() {
         return new BasicAuthenticationProvider();
-    }
-
-    @Bean
-    public DeviceAuthenticationProvider deviceAuthenticationProvider() {
-        return new DeviceAuthenticationProvider();
     }
 
     @Bean
