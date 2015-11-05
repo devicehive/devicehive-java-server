@@ -1,7 +1,6 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.Optional;
 import java.util.Random;
 
 
@@ -45,19 +43,19 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
             command.setUserId(user.getId());
         }
         if (commandWrapper.getCommand() != null) {
-            command.setCommand(commandWrapper.getCommand().getValue());
+            command.setCommand(commandWrapper.getCommand().orElseGet(null));
         }
         if (commandWrapper.getParameters() != null) {
-            command.setParameters(commandWrapper.getParameters().getValue());
+            command.setParameters(commandWrapper.getParameters().orElse(null));
         }
         if (commandWrapper.getLifetime() != null) {
-            command.setLifetime(commandWrapper.getLifetime().getValue());
+            command.setLifetime(commandWrapper.getLifetime().orElse(null));
         }
         if (commandWrapper.getStatus() != null) {
-            command.setStatus(commandWrapper.getStatus().getValue());
+            command.setStatus(commandWrapper.getStatus().orElse(null));
         }
         if (commandWrapper.getResult() != null) {
-            command.setResult(commandWrapper.getResult().getValue());
+            command.setResult(commandWrapper.getResult().orElse(null));
         }
 
         hiveValidator.validate(command);
@@ -70,19 +68,19 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
         command.setIsUpdated(true);
 
         if (commandWrapper.getCommand() != null) {
-            command.setCommand(commandWrapper.getCommand().getValue());
+            command.setCommand(commandWrapper.getCommand().orElse(null));
         }
         if (commandWrapper.getParameters() != null) {
-            command.setParameters(commandWrapper.getParameters().getValue());
+            command.setParameters(commandWrapper.getParameters().orElse(null));
         }
         if (commandWrapper.getLifetime() != null) {
-            command.setLifetime(commandWrapper.getLifetime().getValue());
+            command.setLifetime(commandWrapper.getLifetime().orElse(null));
         }
         if (commandWrapper.getStatus() != null) {
-            command.setStatus(commandWrapper.getStatus().getValue());
+            command.setStatus(commandWrapper.getStatus().orElse(null));
         }
         if (commandWrapper.getResult() != null) {
-            command.setResult(commandWrapper.getResult().getValue());
+            command.setResult(commandWrapper.getResult().orElse(null));
         }
 
         hiveValidator.validate(command);

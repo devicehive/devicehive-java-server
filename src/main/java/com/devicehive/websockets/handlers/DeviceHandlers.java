@@ -8,7 +8,6 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.Device;
 import com.devicehive.model.Equipment;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
@@ -160,7 +160,7 @@ public class DeviceHandlers extends WebsocketHandlers {
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
-        device.setGuid(new NullableWrapper<>(deviceId));
+        device.setGuid(Optional.ofNullable(deviceId));
         Gson gsonForEquipment = GsonFactory.createGson();
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
             message.get(Constants.EQUIPMENT),

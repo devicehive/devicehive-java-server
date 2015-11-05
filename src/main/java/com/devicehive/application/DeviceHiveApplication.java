@@ -1,6 +1,6 @@
 package com.devicehive.application;
 
-import com.wordnik.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

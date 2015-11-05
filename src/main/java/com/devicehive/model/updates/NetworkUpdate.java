@@ -3,8 +3,8 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Device;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.NullableWrapper;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -16,11 +16,11 @@ public class NetworkUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private NullableWrapper<String> key;
+    private Optional<String> key;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private NullableWrapper<String> name;
+    private Optional<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private NullableWrapper<String> description;
+    private Optional<String> description;
     @JsonPolicyDef({NETWORK_PUBLISHED})
     private Set<Device> devices;
 
@@ -32,27 +32,27 @@ public class NetworkUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public NullableWrapper<String> getKey() {
+    public Optional<String> getKey() {
         return key;
     }
 
-    public void setKey(NullableWrapper<String> key) {
+    public void setKey(Optional<String> key) {
         this.key = key;
     }
 
-    public NullableWrapper<String> getName() {
+    public Optional<String> getName() {
         return name;
     }
 
-    public void setName(NullableWrapper<String> name) {
+    public void setName(Optional<String> name) {
         this.name = name;
     }
 
-    public NullableWrapper<String> getDescription() {
+    public Optional<String> getDescription() {
         return description;
     }
 
-    public void setDescription(NullableWrapper<String> description) {
+    public void setDescription(Optional<String> description) {
         this.description = description;
     }
 }

@@ -5,17 +5,16 @@ import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 public class DeviceClassServiceTest extends AbstractResourceTest {
 
@@ -69,9 +68,9 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         assertEquals("INITIAL_DC_NAME", existingDeviceClass.getName());
 
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(deviceClass);
-        dcUpdate.setOfflineTimeout(new NullableWrapper<>(100));
-        dcUpdate.setName(new NullableWrapper<>("CHANGED_DC_NAME"));
-        deviceClassService.createOrUpdateDeviceClass(new NullableWrapper<>(dcUpdate),
+        dcUpdate.setOfflineTimeout(Optional.ofNullable(100));
+        dcUpdate.setName(Optional.ofNullable("CHANGED_DC_NAME"));
+        deviceClassService.createOrUpdateDeviceClass(Optional.ofNullable(dcUpdate),
                 Collections.singleton(DeviceFixture.createEquipment()));
         existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
         assertNotNull(existingDeviceClass);

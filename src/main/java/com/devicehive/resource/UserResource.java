@@ -4,7 +4,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.UserUpdate;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;

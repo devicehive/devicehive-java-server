@@ -2,7 +2,7 @@ package com.devicehive.resource;
 
 import com.devicehive.model.Network;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;

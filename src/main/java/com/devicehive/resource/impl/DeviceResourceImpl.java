@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.configuration.Constants.*;
@@ -77,7 +78,7 @@ public class DeviceResourceImpl implements DeviceResource {
     public Response register(DeviceUpdate deviceUpdate, String deviceGuid) {
         logger.debug("Device register method requested. Guid : {}, Device: {}", deviceGuid, deviceUpdate);
 
-        deviceUpdate.setGuid(new NullableWrapper<>(deviceGuid));
+        deviceUpdate.setGuid(Optional.ofNullable(deviceGuid));
 
         // TODO: [#98] refactor this API to have a separate endpoint for equipment update.
         Set<Equipment> equipmentSet = null;

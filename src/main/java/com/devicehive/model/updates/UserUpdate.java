@@ -2,134 +2,127 @@ package com.devicehive.model.updates;
 
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 
+import java.util.Optional;
+
 public class UserUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -8353201743020153250L;
-    private NullableWrapper<String> login;
-    private NullableWrapper<Integer> role;
-    private NullableWrapper<Integer> status;
-    private NullableWrapper<String> password;
-    private NullableWrapper<String> oldPassword;
-    private NullableWrapper<String> googleLogin;
-    private NullableWrapper<String> facebookLogin;
-    private NullableWrapper<String> githubLogin;
-    private NullableWrapper<JsonStringWrapper> data;
+    private Optional<String> login;
+    private Optional<Integer> role;
+    private Optional<Integer> status;
+    private Optional<String> password;
+    private Optional<String> oldPassword;
+    private Optional<String> googleLogin;
+    private Optional<String> facebookLogin;
+    private Optional<String> githubLogin;
+    private Optional<JsonStringWrapper> data;
 
-    public NullableWrapper<String> getLogin() {
+    public Optional<String> getLogin() {
         return login;
     }
 
-    public void setLogin(NullableWrapper<String> login) {
+    public void setLogin(Optional<String> login) {
         this.login = login;
     }
 
-    public NullableWrapper<Integer> getRole() {
+    public Optional<Integer> getRole() {
         return role;
     }
 
-    public void setRole(NullableWrapper<Integer> role) {
+    public void setRole(Optional<Integer> role) {
         this.role = role;
     }
 
-    public NullableWrapper<Integer> getStatus() {
+    public Optional<Integer> getStatus() {
         return status;
     }
 
-    public void setStatus(NullableWrapper<Integer> status) {
+    public void setStatus(Optional<Integer> status) {
         this.status = status;
     }
 
-    public NullableWrapper<String> getPassword() {
+    public Optional<String> getPassword() {
         return password;
     }
 
-    public void setPassword(NullableWrapper<String> password) {
+    public void setPassword(Optional<String> password) {
         this.password = password;
     }
 
-    public NullableWrapper<String> getOldPassword() {
+    public Optional<String> getOldPassword() {
         return oldPassword;
     }
 
-    public void setOldPassword(NullableWrapper<String> oldPassword) {
+    public void setOldPassword(Optional<String> oldPassword) {
         this.oldPassword = oldPassword;
     }
 
-    public NullableWrapper<String> getGoogleLogin() {
+    public Optional<String> getGoogleLogin() {
         return googleLogin;
     }
 
-    public void setGoogleLogin(NullableWrapper<String> googleLogin) {
+    public void setGoogleLogin(Optional<String> googleLogin) {
         this.googleLogin = googleLogin;
     }
 
-    public NullableWrapper<String> getFacebookLogin() {
+    public Optional<String> getFacebookLogin() {
         return facebookLogin;
     }
 
-    public void setFacebookLogin(NullableWrapper<String> facebookLogin) {
+    public void setFacebookLogin(Optional<String> facebookLogin) {
         this.facebookLogin = facebookLogin;
     }
 
-    public NullableWrapper<String> getGithubLogin() {
+    public Optional<String> getGithubLogin() {
         return githubLogin;
     }
 
-    public void setGithubLogin(NullableWrapper<String> githubLogin) {
+    public void setGithubLogin(Optional<String> githubLogin) {
         this.githubLogin = githubLogin;
     }
 
-    public NullableWrapper<JsonStringWrapper> getData() {
+    public Optional<JsonStringWrapper> getData() {
         return data;
     }
 
-    public void setData(NullableWrapper<JsonStringWrapper> data) {
+    public void setData(Optional<JsonStringWrapper> data) {
         this.data = data;
     }
 
     public UserRole getRoleEnum() {
-        if (role == null) {
-            return null;
+        if(role != null) {
+            return role.map(UserRole::getValueForIndex).orElse(null);
         }
-        Integer roleValue = role.getValue();
-        if (roleValue == null) {
-            return null;
-        }
-        return UserRole.values()[roleValue];
+        return null;
     }
 
     public UserStatus getStatusEnum() {
-        if (status == null) {
-            return null;
+        if(status != null) {
+            return status.map(UserStatus::getValueForIndex).orElse(null);
         }
-        Integer statusValue = status.getValue();
-        if (statusValue == null) {
-            return null;
-        }
-        return UserStatus.values()[statusValue];
+        return null;
     }
 
     public User convertTo() {
         User result = new User();
         if (login != null) {
-            result.setLogin(login.getValue());
+            result.setLogin(login.orElse(null));
         }
         if (googleLogin != null) {
-            result.setGoogleLogin(googleLogin.getValue());
+            result.setGoogleLogin(googleLogin.orElse(null));
         }
         if (facebookLogin != null) {
-            result.setFacebookLogin(facebookLogin.getValue());
+            result.setFacebookLogin(facebookLogin.orElse(null));
         }
         if (githubLogin != null) {
-            result.setGithubLogin(githubLogin.getValue());
+            result.setGithubLogin(githubLogin.orElse(null));
         }
         if (data != null) {
-            result.setData(data.getValue());
+            result.setData(data.orElse(null));
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());

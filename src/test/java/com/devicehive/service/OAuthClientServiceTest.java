@@ -3,7 +3,6 @@ package com.devicehive.service;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.ActionNotAllowedException;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -12,9 +11,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -77,22 +75,22 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
         OAuthClient created = clientService.insert(client);
 
         OAuthClientUpdate update = new OAuthClientUpdate();
-        update.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setDomain(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setSubnet(new NullableWrapper<>("localhost"));
-        update.setRedirectUri(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setOauthId(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
+        update.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setDomain(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setSubnet(Optional.ofNullable("localhost"));
+        update.setRedirectUri(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setOauthId(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
 
         boolean updated = clientService.update(update, created.getId());
         assertTrue(updated);
         OAuthClient updatedClient = clientService.get(created.getId());
         assertThat(updatedClient, notNullValue());
         assertThat(updatedClient.getId(), equalTo(created.getId()));
-        assertThat(updatedClient.getName(), equalTo(update.getName().getValue()));
-        assertThat(updatedClient.getDomain(), equalTo(update.getDomain().getValue()));
-        assertThat(updatedClient.getSubnet(), equalTo(update.getSubnet().getValue()));
-        assertThat(updatedClient.getRedirectUri(), equalTo(update.getRedirectUri().getValue()));
-        assertThat(updatedClient.getOauthId(), equalTo(update.getOauthId().getValue()));
+        assertThat(updatedClient.getName(), equalTo(update.getName().get()));
+        assertThat(updatedClient.getDomain(), equalTo(update.getDomain().get()));
+        assertThat(updatedClient.getSubnet(), equalTo(update.getSubnet().get()));
+        assertThat(updatedClient.getRedirectUri(), equalTo(update.getRedirectUri().get()));
+        assertThat(updatedClient.getOauthId(), equalTo(update.getOauthId().get()));
     }
 
     @Test
@@ -112,11 +110,11 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
         clientService.insert(client2);
 
         OAuthClientUpdate update = new OAuthClientUpdate();
-        update.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setDomain(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setSubnet(new NullableWrapper<>("localhost"));
-        update.setRedirectUri(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setOauthId(new NullableWrapper<>(client1.getOauthId()));
+        update.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setDomain(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setSubnet(Optional.ofNullable("localhost"));
+        update.setRedirectUri(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setOauthId(Optional.ofNullable(client1.getOauthId()));
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.DUPLICATE_OAUTH_ID);
@@ -127,11 +125,11 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
     @Test
     public void should_throw_NoSuchElementException_if_client_does_not_exist_on_update() throws Exception {
         OAuthClientUpdate update = new OAuthClientUpdate();
-        update.setName(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setDomain(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setSubnet(new NullableWrapper<>("localhost"));
-        update.setRedirectUri(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
-        update.setOauthId(new NullableWrapper<>(RandomStringUtils.randomAlphabetic(10)));
+        update.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setDomain(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setSubnet(Optional.ofNullable("localhost"));
+        update.setRedirectUri(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        update.setOauthId(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
 
         expectedException.expect(NoSuchElementException.class);
         expectedException.expectMessage(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, -1));

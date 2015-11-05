@@ -7,7 +7,6 @@ import com.devicehive.base.fixture.WebSocketFixture;
 import com.devicehive.base.websocket.WebSocketSynchronousConnection;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.Network;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.JsonObject;
@@ -16,6 +15,7 @@ import org.springframework.web.socket.TextMessage;
 
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.devicehive.base.websocket.WebSocketSynchronousConnection.WAIT_TIMEOUT;
@@ -33,12 +33,13 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
 
         Equipment equipment = DeviceFixture.createEquipment();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(new NullableWrapper<>(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Optional.ofNullable(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
-        DeviceUpdate device = DeviceFixture.createDevice(deviceId);
-        device.setDeviceClass(new NullableWrapper<>(deviceClass));
-        device.setNetwork(new NullableWrapper<>(network));
+        String deviceKey = UUID.randomUUID().toString();
+        DeviceUpdate device = DeviceFixture.createDevice(deviceKey);
+        device.setDeviceClass(Optional.ofNullable(deviceClass));
+        device.setNetwork(Optional.ofNullable(network));
 
         //device/save
         JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, singletonMap("device", gson.toJsonTree(device)));
@@ -58,22 +59,22 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
         assertThat(jsonResp.get("status").getAsString(), is("success"));
 
         DeviceUpdate deviceResp = gson.fromJson(jsonResp.get("device").getAsJsonObject(), DeviceUpdate.class);
-        assertThat(deviceResp.getGuid().getValue(), is(deviceId));
+        assertThat(deviceResp.getGuid().orElse(null), is(deviceId));
         assertThat(deviceResp.getName(), is(device.getName()));
         assertThat(deviceResp.getStatus(), is(device.getStatus()));
-        assertThat(deviceResp.getData().getValue(), notNullValue());
-        Network savedNetwork = deviceResp.getNetwork().getValue();
+        assertThat(deviceResp.getData().orElse(null), notNullValue());
+        Network savedNetwork = deviceResp.getNetwork().orElse(null);
         assertThat(savedNetwork.getId(), notNullValue());
         assertThat(network.getName(), is(savedNetwork.getName()));
         assertThat(network.getDescription(), is(savedNetwork.getDescription()));
-        DeviceClassUpdate savedClass = deviceResp.getDeviceClass().getValue();
+        DeviceClassUpdate savedClass = deviceResp.getDeviceClass().orElse(null);
         assertThat(savedClass, notNullValue());
         assertThat(savedClass.getId(), notNullValue());
         assertThat(savedClass.getName(), is(deviceClass.getName()));
         assertThat(savedClass.getVersion(), is(deviceClass.getVersion()));
         assertThat(savedClass.getPermanent(), is(deviceClass.getPermanent()));
         assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout()));
-        assertThat(savedClass.getData().getValue(), notNullValue());
+        assertThat(savedClass.getData().orElse(null), notNullValue());
     }
 
     @Test
@@ -83,12 +84,13 @@ public class DeviceHandlersTest extends AbstractWebSocketTest {
 
         Equipment equipment = DeviceFixture.createEquipment();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(new NullableWrapper<>(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Optional.ofNullable(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
-        DeviceUpdate device = DeviceFixture.createDevice(deviceId);
-        device.setDeviceClass(new NullableWrapper<>(deviceClass));
-        device.setNetwork(new NullableWrapper<>(network));
+        String deviceKey = UUID.randomUUID().toString();
+        DeviceUpdate device = DeviceFixture.createDevice(deviceKey);
+        device.setDeviceClass(Optional.ofNullable(deviceClass));
+        device.setNetwork(Optional.ofNullable(network));
 
         //device/save
         JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, singletonMap("device", gson.toJsonTree(device)));
