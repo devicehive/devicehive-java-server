@@ -18,10 +18,6 @@ public class DeviceUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private Optional<String> guid;
 
-    @SerializedName("key")
-    @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    private Optional<String> key;
-
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private Optional<String> name;
@@ -60,14 +56,6 @@ public class DeviceUpdate implements HiveEntity {
 
     public void setGuid(Optional<String> guid) {
         this.guid = guid;
-    }
-
-    public Optional<String> getKey() {
-        return key;
-    }
-
-    public void setKey(Optional<String> key) {
-        this.key = key;
     }
 
     public Optional<String> getName() {
@@ -121,9 +109,6 @@ public class DeviceUpdate implements HiveEntity {
         if (deviceClass != null) {
             DeviceClass convertedDeviceClass = deviceClass.orElse(null).convertTo();
             device.setDeviceClass(convertedDeviceClass);
-        }
-        if (key != null) {
-            device.setKey(key.orElse(null));
         }
         if (name != null) {
             device.setName(name.orElse(null));

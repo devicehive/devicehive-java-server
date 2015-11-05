@@ -121,9 +121,6 @@ public class DeviceService {
             if (deviceUpdate.getName() != null) {
                 existingDevice.setName(deviceUpdate.getName().orElse(null));
             }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().orElse(null));
-            }
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(deviceUpdate.getBlocked().orElse(null));
             }
@@ -173,9 +170,6 @@ public class DeviceService {
             if (deviceUpdate.getName() != null) {
                 existingDevice.setName(deviceUpdate.getName().orElse(null));
             }
-            if (deviceUpdate.getKey() != null) {
-                existingDevice.setKey(deviceUpdate.getKey().orElse(null));
-            }
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
             }
@@ -195,11 +189,6 @@ public class DeviceService {
                     deviceUpdate.getGuid().orElse(null), device.getGuid());
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().orElse(null)),
                                     UNAUTHORIZED.getStatusCode());
-        }
-        if (deviceUpdate.getKey() != null &&
-                (device.getKey() == null || !device.getKey().equals(deviceUpdate.getKey().orElse(null)))) {
-            logger.error("Device update key {} doesn't equal to the authenticated device key {}", deviceUpdate.getKey(), device.getKey());
-            throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
         }
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
@@ -222,9 +211,6 @@ public class DeviceService {
         }
         if (deviceUpdate.getName() != null) {
             existingDevice.setName(deviceUpdate.getName().orElse(null));
-        }
-        if (deviceUpdate.getKey() != null) {
-            existingDevice.setKey(deviceUpdate.getKey().orElse(null));
         }
         if (deviceUpdate.getBlocked() != null) {
             existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
@@ -255,12 +241,6 @@ public class DeviceService {
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getKey() == null ||
-                    existingDevice.getKey() == null ||
-                    !existingDevice.getKey().equals(deviceUpdate.getKey().orElse(null))) {
-                logger.error("Device update key is null or doesn't equal to the authenticated device key {}", existingDevice.getKey());
-                throw new HiveException(Messages.INCORRECT_CREDENTIALS, UNAUTHORIZED.getStatusCode());
-            }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
             }
@@ -314,10 +294,6 @@ public class DeviceService {
         if (device.getName() != null && device.getName().orElse(null) == null) {
             logger.error("Device validation: device name is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_NAME);
-        }
-        if (device.getKey() != null && device.getKey().orElse(null) == null) {
-            logger.error("Device validation: device key is empty");
-            throw new HiveException(Messages.EMPTY_DEVICE_KEY);
         }
         if (device.getDeviceClass() != null && device.getDeviceClass().orElse(null) == null) {
             logger.error("Device validation: device class is empty");

@@ -414,7 +414,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -449,7 +448,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -480,7 +478,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -515,7 +512,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -557,7 +553,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -600,7 +595,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -637,7 +631,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -704,7 +697,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(created));
             deviceService.deviceSave(device, Collections.emptySet());
@@ -713,7 +705,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         DeviceUpdate device = new DeviceUpdate();
         device.setName(Optional.ofNullable("allowed_device"));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setKey(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
         device.setNetwork(Optional.ofNullable(created));
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
@@ -760,7 +751,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setKey(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(created));
             deviceService.deviceSave(device, Collections.emptySet());

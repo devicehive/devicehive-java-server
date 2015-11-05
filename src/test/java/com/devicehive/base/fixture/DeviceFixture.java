@@ -63,11 +63,10 @@ public class DeviceFixture {
 
     public static DeviceUpdate createDevice(String guid) {
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(Optional.ofNullable(deviceKey));
-        device.setKey(Optional.ofNullable(deviceKey));
-        device.setName(Optional.ofNullable("device-" + deviceKey));
+        device.setGuid(Optional.ofNullable(guid));
+        device.setName(Optional.ofNullable("device-" + guid));
         device.setStatus(Optional.ofNullable("Online"));
-        device.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", deviceKey))));
+        device.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", guid))));
         return device;
     }
 
@@ -80,7 +79,6 @@ public class DeviceFixture {
     public static DeviceUpdate createDevice(Device device, DeviceClassUpdate dc) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
         deviceUpdate.setGuid(Optional.ofNullable(device.getGuid()));
-        deviceUpdate.setKey(Optional.ofNullable(device.getKey()));
         deviceUpdate.setName(Optional.ofNullable(device.getName()));
         deviceUpdate.setStatus(Optional.ofNullable(device.getStatus()));
         deviceUpdate.setDeviceClass(Optional.ofNullable(dc));

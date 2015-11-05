@@ -27,7 +27,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     public void should_create_device_equipment() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
@@ -52,7 +51,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     public void should_update_device_equipment() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
@@ -81,7 +79,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     public void should_return_device_equipment_by_device() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
@@ -106,7 +103,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
     public void should_refresh_equipment() throws Exception {
         DeviceUpdate du = new DeviceUpdate();
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        du.setKey(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));

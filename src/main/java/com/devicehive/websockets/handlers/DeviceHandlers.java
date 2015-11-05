@@ -160,9 +160,6 @@ public class DeviceHandlers extends WebsocketHandlers {
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
-        if (deviceKey == null) {
-            throw new HiveException(Messages.EMPTY_DEVICE_KEY, SC_BAD_REQUEST);
-        }
         device.setGuid(Optional.ofNullable(deviceId));
         Gson gsonForEquipment = GsonFactory.createGson();
         Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
