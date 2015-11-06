@@ -67,11 +67,10 @@ public class DeviceService {
                     dn = deviceSaveByKey(device, equipmentSet, principal.getKey());
                     break;
                 default:
-                    dn = deviceSave(device, equipmentSet);
-                    break;
+                    throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
             }
         } else {
-            dn = deviceSave(device, equipmentSet);
+            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
         deviceNotificationService.submitDeviceNotification(dn, device.getGuid().orElse(null));
         deviceActivityService.update(device.getGuid().orElse(null));
