@@ -4,9 +4,11 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -18,10 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
@@ -505,4 +504,26 @@ public class DeviceServiceTest extends AbstractResourceTest {
         long count = deviceService.getAllowedDevicesCount(null, Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()));
         assertEquals(3, count);
     }
+
+
+    /**
+     * Test checks that unauthorized user can't modify device
+     */
+    @Test
+    public void should_throw_HiveException_when_user_is_unauthorized() throws Exception {
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(Messages.UNAUTHORIZED_REASON_PHRASE);
+
+        final Device device = DeviceFixture.createDevice();
+        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
+             deviceService.deviceSave(deviceUpdate,Collections.<Equipment>emptySet());
+
+        final HivePrincipal principal = new HivePrincipal();
+
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+    }
+
 }

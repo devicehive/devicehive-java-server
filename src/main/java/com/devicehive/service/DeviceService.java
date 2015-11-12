@@ -67,11 +67,10 @@ public class DeviceService {
                     dn = deviceSaveByKey(device, equipmentSet, principal.getKey());
                     break;
                 default:
-                    dn = deviceSave(device, equipmentSet);
-                    break;
+                    throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
             }
         } else {
-            dn = deviceSave(device, equipmentSet);
+            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
         deviceNotificationService.submitDeviceNotification(dn, device.getGuid().orElse(null));
         deviceActivityService.update(device.getGuid().orElse(null));
@@ -104,7 +103,7 @@ public class DeviceService {
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
                 logger.error("User {} has no access to device {}", user.getId(), existingDevice.getGuid());
-                throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
+                throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null) {
                 existingDevice.setDeviceClass(deviceClass);
@@ -151,9 +150,8 @@ public class DeviceService {
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().orElse(null))) {
-                logger.error("Access key {} has no access to device network {}", key, existingDevice.getGuid());
-                throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().orElse(null)),
-                    UNAUTHORIZED.getStatusCode());
+                logger.error("Access key {} has no access to device {}", key, existingDevice.getGuid());
+                throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
                 existingDevice.setDeviceClass(deviceClass);
