@@ -136,8 +136,8 @@ public class DeviceService {
                 .getResultList()
                 .stream().findFirst().orElse(null);
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
-            logger.error("Access key {} has no access to device network {}", key, existingDevice.getGuid());
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceUpdate.getGuid().orElse(null)), UNAUTHORIZED.getStatusCode());
+            logger.error("Access key {} has no access to device network {}", key, existingDevice.getNetwork().getId());
+            throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
         }
         Network network = networkService.createOrVerifyNetworkByKey(deviceUpdate.getNetwork(), key);
         network = findNetworkForAuth(network);
