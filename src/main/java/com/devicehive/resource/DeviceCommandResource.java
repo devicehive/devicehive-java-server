@@ -3,6 +3,8 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,7 +39,10 @@ public interface DeviceCommandResource {
     @GET
     @Path("/{deviceGuid}/command/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    @ApiOperation(value = "Poll for commands ", notes = "Polls for commands based on provided parameters (long polling)")
+    @ApiOperation(value = "Polls the server to get commands.", notes = "This method returns all device commands that were created after specified timestamp.\n" +
+            "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
+    response = DeviceCommand.class,
+    responseContainer = "List")
     void poll(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
