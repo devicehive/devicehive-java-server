@@ -5,7 +5,6 @@ import com.devicehive.base.fixture.JsonFixture;
 import com.devicehive.base.fixture.WebSocketFixture;
 import com.devicehive.base.websocket.WebSocketSynchronousConnection;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.google.gson.JsonElement;
@@ -16,6 +15,7 @@ import org.junit.Test;
 import org.springframework.web.socket.TextMessage;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import static com.devicehive.base.websocket.WebSocketSynchronousConnection.WAIT_TIMEOUT;
 import static org.hamcrest.CoreMatchers.is;
@@ -36,7 +36,8 @@ public class CommandHandlersTest extends AbstractWebSocketTest {
         WebSocketFixture.authenticateUser(ADMIN_LOGIN, ADMIN_PASS, connection);
 
         DeviceCommandWrapper command = new DeviceCommandWrapper();
-        command.setCommand(new NullableWrapper<>("command test"));
+        command.setCommand(Optional.of("test command"));
+
         JsonObject commandInsert = JsonFixture.createWsCommand("command/insert", "1", new HashMap<String, JsonElement>() {{
             put("deviceGuid", new JsonPrimitive(DEVICE_ID));
             put("command", gson.toJsonTree(command));
