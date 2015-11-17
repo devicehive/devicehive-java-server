@@ -18,9 +18,11 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
     private Long id;
 
     @SerializedName("notification")
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private String notification;
 
     @SerializedName("deviceGuid")
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private String deviceGuid;
 
     @SerializedName("timestamp")
