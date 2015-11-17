@@ -203,4 +203,55 @@ public class DeviceResourceTest extends AbstractResourceTest {
         response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(key.getKey())), deviceUpdate, FORBIDDEN, null);
         assertNotNull(response);
     }
+
+    @Test
+    public void should_return_403_for_key_authorized_user_that_has_no_access_to_network() throws Exception {
+
+        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
+        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        Network network = DeviceFixture.createNetwork();
+        String guid = UUID.randomUUID().toString();
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
+        deviceUpdate.setNetwork(Optional.of(network));
+
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String password = RandomStringUtils.randomAlphabetic(10);
+
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(Optional.ofNullable(login));
+        testUser.setRole(Optional.ofNullable(UserRole.CLIENT.getValue()));
+        testUser.setPassword(Optional.ofNullable(password));
+        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
+
+        //create user
+        User user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, User.class);
+        assertThat(user.getId(), Matchers.notNullValue());
+
+        //create network
+        network = performRequest("/network", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), network, CREATED, Network.class);
+        assertThat(network.getId(), Matchers.notNullValue());
+
+        //register device
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
+        assertNotNull(response);
+
+        AccessKey key = new AccessKey();
+        key.setType(AccessKeyType.DEFAULT);
+        key.setLabel(RandomStringUtils.randomAlphabetic(10));
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setActionsArray(AvailableActions.getClientActions());
+        permission.setDeviceGuidsCollection(singleton("9999999"));
+        key.setPermissions(singleton(permission));
+        key.setUser(user);
+
+        //Create key for user
+        key = performRequest("/user/current/accesskey", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), key, CREATED, AccessKey.class);
+        assertThat(key.getId(), Matchers.notNullValue());
+
+        //testing that user has no access to network
+        response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(key.getKey())), deviceUpdate, FORBIDDEN, null);
+        assertNotNull(response);
+    }
 }
