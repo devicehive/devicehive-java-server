@@ -101,6 +101,7 @@ public class Messages {
     public static final String PING_ERROR = BidBundle.get("PING_ERROR");
     public static final String SHUTDOWN = BidBundle.get("SHUTDOWN");
     public static final String NO_ACCESS_TO_DEVICE = BidBundle.get("NO_ACCESS_TO_DEVICE");
+    public static final String NO_NETWORKS_ASSIGNED_TO_USER = BidBundle.get("NO_NETWORKS_ASSIGNED_TO_USER");
 
     /**
      * Bundle to extract localized strings from property files.

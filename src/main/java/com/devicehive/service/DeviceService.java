@@ -411,14 +411,12 @@ public class DeviceService {
             HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             User user = findUserFromAuth(principal);
             if (user != null) {
-                if (!user.isAdmin()) {
-                    Set<Network> userNetworks = userService.findUserWithNetworks(user.getId()).getNetworks();
-                    if (userNetworks.isEmpty()) {
-                        throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, PRECONDITION_FAILED.getStatusCode());
-                    }
-
-                    return userNetworks.iterator().next();
+                Set<Network> userNetworks = userService.findUserWithNetworks(user.getId()).getNetworks();
+                if (userNetworks.isEmpty()) {
+                    throw new HiveException(Messages.NO_NETWORKS_ASSIGNED_TO_USER, PRECONDITION_FAILED.getStatusCode());
                 }
+
+                return userNetworks.iterator().next();
             }
         }
         return network;

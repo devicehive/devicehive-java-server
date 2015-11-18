@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
@@ -7,6 +8,7 @@ import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
@@ -22,6 +24,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 
+import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
@@ -40,6 +43,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
     private NetworkService networkService;
     @Autowired
     private DeviceClassService deviceClassService;
+    @Autowired
+    private AccessKeyService accessKeyService;
 
     /**
      * Test to check that device was successfully saved, notification send and retrieved back
@@ -73,10 +78,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
+        Network network = DeviceFixture.createNetwork();
+        network = networkService.create(network);
+
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
+        userService.assignNetwork(user.getId(), network.getId());
         final HivePrincipal principal = new HivePrincipal(user);
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
@@ -93,6 +102,66 @@ public class DeviceServiceTest extends AbstractResourceTest {
         assertEquals(device.getGuid(), existingDevice.getGuid());
         assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
         assertEquals(dc.getVersion().orElse(null), existingDevice.getDeviceClass().getVersion());
+    }
+
+    /**
+     * Test amdin can't create device without network when admin user hasn't networks. Admin authorized with basic auth.
+     */
+    @Test
+    public void should_throw_HiveException_when_role_admin_without_networks_and_basic_authorized_create_device_without_network() {
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
+
+        final Device device = DeviceFixture.createDevice();
+        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, "123");
+        final HivePrincipal principal = new HivePrincipal(user);
+
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+    }
+
+    /**
+     * Test amdin can't create device without network when admin user hasn't networks. Admin authorized with key.
+     */
+    @Test
+    public void should_throw_HiveException_when_role_admin_without_networks_and_key_authorized_create_device_without_network() {
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
+
+        final Device device = DeviceFixture.createDevice();
+        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, "123");
+
+        AccessKey accessKey = new AccessKey();
+        accessKey.setKey(RandomStringUtils.randomAlphabetic(10));
+        accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
+        accessKey.setType(AccessKeyType.SESSION);
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
+        permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
+        permission.setDomainArray("domain1", "domain2");
+        permission.setNetworkIdsCollection(Arrays.asList(1L, 2L));
+        permission.setSubnetsArray("localhost");
+        accessKey.setPermissions(singleton(permission));
+        AccessKey createdkey = accessKeyService.create(user, accessKey);
+
+        final HivePrincipal principal = new HivePrincipal(createdkey);
+
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
     }
 
     /**
