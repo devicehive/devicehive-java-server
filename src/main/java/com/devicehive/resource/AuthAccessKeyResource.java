@@ -19,7 +19,7 @@ public interface AuthAccessKeyResource {
     @PreAuthorize("permitAll")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Login")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 403, message = "If identity provider is not allowed")
     })
     Response login(

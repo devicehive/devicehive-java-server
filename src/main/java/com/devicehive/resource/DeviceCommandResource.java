@@ -3,7 +3,6 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import io.swagger.annotations.*;
@@ -166,7 +165,7 @@ public interface DeviceCommandResource {
     @ApiOperation(value = "Get command ",
             notes = "Gets command by device GUID and command id",
             response = DeviceCommand.class)
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
     Response get(
@@ -195,7 +194,7 @@ public interface DeviceCommandResource {
     @ApiOperation(value = "Creates new device command.",
             notes = "Creates new device command, stores and returns command with generated id.",
             response = DeviceCommand.class)
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device not found")
     })
     Response insert(
@@ -226,7 +225,7 @@ public interface DeviceCommandResource {
     @ApiOperation(value = "Updates an existing device command.",
             notes = "Updates an existing device command.",
             response = DeviceCommand.class)
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
     Response update(

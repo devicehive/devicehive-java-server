@@ -5,7 +5,6 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.google.gson.JsonObject;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -20,7 +19,7 @@ import javax.ws.rs.core.Response;
  * RESTful API: Device</a> for details.
  */
 @Path("/device")
-@Api(tags = {"Device"}, description = "Represents a device, a unit that runs microcode and communicates to this API.", consumes="application/json")
+@Api(tags = {"Device"}, description = "Represents a device, a unit that runs microcode and communicates to this API.", consumes = "application/json")
 @Produces({"application/json"})
 public interface DeviceResource {
 
@@ -97,8 +96,8 @@ public interface DeviceResource {
      * updated in case when valid key is provided in the authorization header.
      *
      * @param deviceUpdate In the request body, supply a Device resource. See <a href="http://www.devicehive
-     *                   .com/restful#Reference/Device/register">
-     * @param deviceGuid Device unique identifier.
+     *                     .com/restful#Reference/Device/register">
+     * @param deviceGuid   Device unique identifier.
      * @return response code 201, if successful
      */
     @PUT
@@ -126,14 +125,15 @@ public interface DeviceResource {
      *
      * @param guid Device unique identifier
      * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a>
-     *         resource in the response body.
+     * resource in the response body.
      */
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
-    @ApiOperation(value = "Get device", notes = "Gets information about device.")
+    @ApiOperation(value = "Get device", notes = "Gets information about device.",
+            response = Device.class)
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a Device resource in the response body.", response = Device.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a Device resource in the response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -175,10 +175,10 @@ public interface DeviceResource {
      *
      * @param guid Device unique identifier.
      * @return If successful, this method returns array of the following structures in the response body. <table> <tr>
-     *         <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>string</td>
-     *         <td>Equipment code.</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Equipment state
-     *         timestamp.</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Current equipment state.</td> </tr>
-     *         </table>
+     * <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>string</td>
+     * <td>Equipment code.</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Equipment state
+     * timestamp.</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Current equipment state.</td> </tr>
+     * </table>
      */
     @GET
     @Path("/{id}/equipment")
@@ -188,7 +188,9 @@ public interface DeviceResource {
             "equipment: equipment code\n" +
             "parameters: current equipment state")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns an array of DeviceEquipment resources in the response body.", response = DeviceEquipment.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "If successful, this method returns an array of DeviceEquipment resources in the response body.",
+                    response = DeviceEquipment.class,
+                    responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -213,7 +215,8 @@ public interface DeviceResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
     @ApiOperation(value = "Get current state of equipment", notes = "Gets current state of device equipment by code.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.", response = DeviceEquipment.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.",
+                    response = DeviceEquipment.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If device or equipment is not found.")

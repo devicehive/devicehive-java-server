@@ -27,7 +27,7 @@ public interface EquipmentResource {
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Get equipment", notes = "Returns equipment by device class id and equipment id")
-    @ApiResponses({
+    @ApiResponses(value={
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response getEquipment(
@@ -73,7 +73,7 @@ public interface EquipmentResource {
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update equipment", notes = "Updates equipment")
-    @ApiResponses({
+    @ApiResponses(value={
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response updateEquipment(

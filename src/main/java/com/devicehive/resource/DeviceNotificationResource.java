@@ -2,6 +2,7 @@ package com.devicehive.resource;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,17 +41,18 @@ public interface DeviceNotificationResource {
      * @param take         Number of records to take from the result list (default is 1000).
      * @param skip         Number of records to skip from the result list.
      * @return If successful, this method returns array of <a href="http://www.devicehive
-     *         .com/restful#Reference/DeviceNotification">DeviceNotification</a> resources in the response body. <table>
-     *         <tr> <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>integer</td>
-     *         <td>Notification identifier</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Notification
-     *         timestamp (UTC)</td> </tr> <tr> <td>notification</td> <td>string</td> <td>Notification name</td> </tr>
-     *         <tr> <td>parameters</td> <td>object</td> <td>Notification parameters, a JSON object with an arbitrary
-     *         structure</td> </tr> </table>
+     * .com/restful#Reference/DeviceNotification">DeviceNotification</a> resources in the response body. <table>
+     * <tr> <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>integer</td>
+     * <td>Notification identifier</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Notification
+     * timestamp (UTC)</td> </tr> <tr> <td>notification</td> <td>string</td> <td>Notification name</td> </tr>
+     * <tr> <td>parameters</td> <td>object</td> <td>Notification parameters, a JSON object with an arbitrary
+     * structure</td> </tr> </table>
      */
     @GET
     @Path("/{deviceGuid}/notification")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters")
+    @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters",
+            response = DeviceNotification.class)
     Response query(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -89,17 +91,18 @@ public interface DeviceNotificationResource {
      * @param guid           Device unique identifier.
      * @param notificationId Notification identifier.
      * @return If successful, this method returns a <a href="http://www.devicehive .com/restful#Reference/DeviceNotification">DeviceNotification</a>
-     *         resource in the response body. <table> <tr> <td>Property Name</td> <td>Type</td> <td>Description</td>
-     *         </tr> <tr> <td>id</td> <td>integer</td> <td>Notification identifier</td> </tr> <tr> <td>timestamp</td>
-     *         <td>datetime</td> <td>Notification timestamp (UTC)</td> </tr> <tr> <td>notification</td> <td>string</td>
-     *         <td>Notification name</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Notification parameters, a
-     *         JSON object with an arbitrary structure</td> </tr> </table>
+     * resource in the response body. <table> <tr> <td>Property Name</td> <td>Type</td> <td>Description</td>
+     * </tr> <tr> <td>id</td> <td>integer</td> <td>Notification identifier</td> </tr> <tr> <td>timestamp</td>
+     * <td>datetime</td> <td>Notification timestamp (UTC)</td> </tr> <tr> <td>notification</td> <td>string</td>
+     * <td>Notification name</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Notification parameters, a
+     * JSON object with an arbitrary structure</td> </tr> </table>
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notification", notes = "Returns notification by device guid and notification id")
-    @ApiResponses({
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returned notification by device guid and notification id", response = DeviceNotification.class),
             @ApiResponse(code = 404, message = "If device or notification not found")
     })
     Response get(
@@ -123,7 +126,9 @@ public interface DeviceNotificationResource {
     @GET
     @Path("/{deviceGuid}/notification/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)")
+    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)",
+            response = DeviceNotification.class,
+            responseContainer = "List")
     void poll(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -144,7 +149,9 @@ public interface DeviceNotificationResource {
     @GET
     @Path("/notification/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)")
+    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)",
+            response = DeviceNotification.class,
+            responseContainer = "List")
     void pollMany(
             @ApiParam(name = "waitTimeout", value = "Wait timeout")
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
@@ -166,23 +173,24 @@ public interface DeviceNotificationResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/insert">DeviceHive
      * RESTful API: DeviceNotification: insert</a> Creates new device notification.
      *
-     * @param guid         Device unique identifier.
+     * @param guid               Device unique identifier.
      * @param notificationSubmit In the request body, supply a DeviceNotification resource. <table> <tr> <td>Property
-     *                     Name</td> <td>Required</td> <td>Type</td> <td>Description</td> </tr> <tr>
-     *                     <td>notification</td> <td>Yes</td> <td>string</td> <td>Notification name.</td> </tr> <tr>
-     *                     <td>parameters</td> <td>No</td> <td>object</td> <td>Notification parameters, a JSON object
-     *                     with an arbitrary structure.</td> </tr> </table>
+     *                           Name</td> <td>Required</td> <td>Type</td> <td>Description</td> </tr> <tr>
+     *                           <td>notification</td> <td>Yes</td> <td>string</td> <td>Notification name.</td> </tr> <tr>
+     *                           <td>parameters</td> <td>No</td> <td>object</td> <td>Notification parameters, a JSON object
+     *                           with an arbitrary structure.</td> </tr> </table>
      * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceNotification</a>
-     *         resource in the response body. <table> <tr> <tr>Property Name</tr> <tr>Type</tr> <tr>Description</tr>
-     *         </tr> <tr> <td>id</td> <td>integer</td> <td>Notification identifier.</td> </tr> <tr> <td>timestamp</td>
-     *         <td>datetime</td> <td>Notification timestamp (UTC).</td> </tr> </table>
+     * resource in the response body. <table> <tr> <tr>Property Name</tr> <tr>Type</tr> <tr>Description</tr>
+     * </tr> <tr> <td>id</td> <td>integer</td> <td>Notification identifier.</td> </tr> <tr> <td>timestamp</td>
+     * <td>datetime</td> <td>Notification timestamp (UTC).</td> </tr> </table>
      */
     @POST
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Create notification", notes = "Creates notification")
-    @ApiResponses({
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "notification sent", response = DeviceNotification.class),
             @ApiResponse(code = 404, message = "If device not found"),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 403, message = "If device is not connected to network")
