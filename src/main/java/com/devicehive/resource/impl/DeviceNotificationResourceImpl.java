@@ -159,12 +159,14 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             submitEmptyResponse(asyncResponse);
         }
 
-        final List<String> deviceGuids = ParseUtil.getList(devices);
+        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))?
+                deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal):
+                new ArrayList<>();
         final List<String> notificationNames = ParseUtil.getList(names);
         Collection<DeviceNotification> list = new ArrayList<>();
 
-        if (timestamp != null) {
-            list = notificationService.find(null, null, deviceGuids, notificationNames, timestamp, DEFAULT_TAKE, principal);
+        if (timestamp != null && !availableDevices.isEmpty()) {
+            list = notificationService.find(null, null, availableDevices, notificationNames, timestamp, DEFAULT_TAKE, principal);
         }
 
         if (!list.isEmpty()) {
@@ -185,12 +187,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
 
-            if (StringUtils.isNotEmpty(devices)) {
-                List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal);
-                for (String guid : availableDevices) {
-                    subscriptionSet.add(new NotificationSubscription(principal, guid, reqId, names,
-                            RestHandlerCreator.createNotificationInsert(asyncResponse, isMany)));
-                }
+            if (!availableDevices.isEmpty()) {
+                subscriptionSet.addAll(availableDevices.stream().map(guid -> new NotificationSubscription(principal, guid, reqId, names,
+                        RestHandlerCreator.createNotificationInsert(asyncResponse, isMany))).collect(Collectors.toList()));
             } else {
                 subscriptionSet.add(new NotificationSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
                         RestHandlerCreator.createNotificationInsert(asyncResponse, isMany)));
