@@ -103,12 +103,14 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             submitEmptyResponse(asyncResponse);
         }
 
-        final List<String> deviceGuids = ParseUtil.getList(devices);
+        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))?
+                deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal) :
+                new ArrayList<>();
         final List<String> commandNames = ParseUtil.getList(names);
         Collection<DeviceCommand> list = new ArrayList<>();
 
-        if (timestamp != null) {
-            list = commandService.find(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
+        if (timestamp != null && !availableDevices.isEmpty()) {
+            list = commandService.find(availableDevices, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
         }
 
         if (!list.isEmpty()) {
@@ -129,12 +131,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             UUID reqId = UUID.randomUUID();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
 
-            if (StringUtils.isNotEmpty(devices)) {
-                List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal);
-                for (String guid : availableDevices) {
-                    subscriptionSet.add(new CommandSubscription(principal, guid, reqId, names,
-                            RestHandlerCreator.createCommandInsert(asyncResponse, isMany)));
-                }
+            if (!availableDevices.isEmpty()) {
+                subscriptionSet.addAll(availableDevices.stream().map(guid -> new CommandSubscription(principal, guid, reqId, names,
+                        RestHandlerCreator.createCommandInsert(asyncResponse, isMany))).collect(Collectors.toList()));
             } else {
                 subscriptionSet.add(new CommandSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
                         RestHandlerCreator.createCommandInsert(asyncResponse, isMany)));
