@@ -103,9 +103,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             submitEmptyResponse(asyncResponse);
         }
 
-        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))?
-                deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal) :
-                new ArrayList<>();
+        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))
+                ? deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal)
+                : new ArrayList<>();
         final List<String> commandNames = ParseUtil.getList(names);
         Collection<DeviceCommand> list = new ArrayList<>();
 

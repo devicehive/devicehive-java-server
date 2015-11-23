@@ -159,9 +159,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             submitEmptyResponse(asyncResponse);
         }
 
-        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))?
-                deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal):
-                new ArrayList<>();
+        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))
+                ? deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal)
+                : new ArrayList<>();
         final List<String> notificationNames = ParseUtil.getList(names);
         Collection<DeviceNotification> list = new ArrayList<>();
 
