@@ -40,7 +40,7 @@ public interface ApiInfoResource {
     @ApiResponses(value = {
             @ApiResponse(code = 200,
                     message = "Returns configured identity providers",
-                    response = ApiInfo.class)
+                    response = ApiConfig.class)
     })
     Response getOauth2Config();
 
