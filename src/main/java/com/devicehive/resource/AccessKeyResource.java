@@ -106,7 +106,9 @@ public interface AccessKeyResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Create Access key", notes = "Creates new access key.")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "If successful, this method returns a AccessKey resource in the response body.", response = AccessKey.class),
+            @ApiResponse(code = 201,
+                    message = "If successful, this method returns a AccessKey resource in the response body.",
+                    response = AccessKey.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
