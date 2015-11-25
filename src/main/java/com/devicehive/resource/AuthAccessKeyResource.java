@@ -31,7 +31,7 @@ public interface AuthAccessKeyResource {
 
     @DELETE
     @PreAuthorize("hasRole('KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
-    @ApiOperation(value = "Logout")
+    @ApiOperation(value = "Logout",notes = "Invalidates the session-level token.")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body.")
     })

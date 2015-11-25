@@ -35,7 +35,7 @@ public interface ApiInfoResource {
     @GET
     @Path("/config/auth")
     @PreAuthorize("permitAll")
-    @ApiOperation(value = "Get oAuth configuration", notes = "Returns configured identity providers",
+    @ApiOperation(value = "Get oAuth configuration", notes = "Gets information about supported authentication providers.",
             response = ApiConfig.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200,
