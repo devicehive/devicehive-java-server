@@ -14,6 +14,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.FutureTask;
 
 public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
     private static final Logger logger = LoggerFactory.getLogger(RestHandlerCreator.class);
@@ -35,12 +36,13 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
         };
     }
 
-    public static RestHandlerCreator<DeviceCommand> createCommandInsert(final AsyncResponse asyncResponse, final boolean isMany) {
+    public static RestHandlerCreator<DeviceCommand> createCommandInsert(final AsyncResponse asyncResponse, final boolean isMany, final FutureTask<Void> waitTask) {
         return new RestHandlerCreator<DeviceCommand>(asyncResponse) {
             @Override
             protected Response createResponse(DeviceCommand message) {
                 logger.debug("CommandInsert created for message: {}", message);
                 final HiveEntity responseMessage = isMany ? new CommandPollManyResponse(message, message.getDeviceGuid()) : message;
+                waitTask.cancel(false);
                 return ResponseFactory.response(Response.Status.OK, Arrays.asList(responseMessage), JsonPolicyDef.Policy.COMMAND_LISTED);
             }
         };
