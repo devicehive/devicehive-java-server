@@ -3,6 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -102,7 +103,8 @@ public interface DeviceNotificationResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notification", notes = "Returns notification by device guid and notification id")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned notification by device guid and notification id", response = DeviceNotification.class),
+            @ApiResponse(code = 200, message = "Returned notification by device guid and notification id",
+                    response = DeviceNotification.class),
             @ApiResponse(code = 404, message = "If device or notification not found")
     })
     Response get(
@@ -126,9 +128,20 @@ public interface DeviceNotificationResource {
     @GET
     @Path("/{deviceGuid}/notification/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)",
-            response = DeviceNotification.class,
-            responseContainer = "List")
+    @ApiOperation(value = "Poll for notifications ", notes = "Polls new device notifications for specified device Guid.\n" +
+            "\n" +
+            "This method returns all device notifications that were created after specified timestamp.\n" +
+            "\n" +
+            "In the case when no notifications were found, the method blocks until new notification is received. " +
+            "If no notifications are received within the waitTimeout period, the server returns an empty response." +
+            " In this case, to continue polling, the client should repeat the call with the same timestamp value."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK",
+                    response = DeviceNotification.class,
+                    responseContainer = "List")
+
+    })
     void poll(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -149,9 +162,19 @@ public interface DeviceNotificationResource {
     @GET
     @Path("/notification/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    @ApiOperation(value = "Poll for notifications ", notes = "Polls for notifications based on provided parameters (long polling)",
-            response = DeviceNotification.class,
-            responseContainer = "List")
+    @ApiOperation(value = "Poll for notifications ", notes = "Polls new device notifications.\n" +
+            "\n" +
+            "This method returns all device notifications that were created after specified timestamp.\n" +
+            "\n" +
+            "In the case when no notifications were found, the method blocks until new notification is received." +
+            " If no notifications are received within the waitTimeout period, the server returns an empty response." +
+            " In this case, to continue polling, the client should repeat the call with the same timestamp value."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK",
+                    response = NotificationPollManyResponse.class,
+                    responseContainer = "List")
+    })
     void pollMany(
             @ApiParam(name = "waitTimeout", value = "Wait timeout")
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)

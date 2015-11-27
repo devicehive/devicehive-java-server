@@ -27,7 +27,9 @@ public interface EquipmentResource {
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Get equipment", notes = "Returns equipment by device class id and equipment id")
-    @ApiResponses(value={
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Equipment was found",
+                    response = Equipment.class),
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response getEquipment(
@@ -47,8 +49,14 @@ public interface EquipmentResource {
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create equipment", notes = "Creates equipment")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Equipment successfully created", response = Equipment.class),
+            @ApiResponse(code = 400, message = "Invalid request parameters"),
+            @ApiResponse(code = 403, message = "Duplicate equipment entry with code = {code} for device class with id :{id}"),
+            @ApiResponse(code = 404, message = "Device Class with current id Not Found")
+    })
     Response insertEquipment(
-            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
+            @ApiParam(name = "deviceClassId", value = "Device class {id}", required = true)
             @PathParam("deviceClassId")
             long classId,
             @ApiParam(value = "Equipment body", required = true, defaultValue = "{}")
@@ -57,23 +65,24 @@ public interface EquipmentResource {
     /**
      * Updates device class' equipment. None of following parameters are mandatory. Parameters, if left unspecified,
      * remains unchanged, instead setting parameter to null will null corresponding value. In following JSON <p/> name
-     * 	Equipment display name. code 	Equipment code. It's used to reference particular equipment and it should be
+     * Equipment display name. code 	Equipment code. It's used to reference particular equipment and it should be
      * unique within a device class. type 	Equipment type. An arbitrary string representing equipment capabilities. data
-     * 	Equipment data, a JSON object with an arbitrary structure. <p/> <code> { "name": "equipment name", "code":
+     * Equipment data, a JSON object with an arbitrary structure. <p/> <code> { "name": "equipment name", "code":
      * "equipment_code", "type": "equipment_type", "data": {/ * json object* /} } </code>
      *
      * @param classId         id of class
      * @param eqId            equipment id
      * @param equipmentUpdate Json  object
      * @return empty response with status 201 in case of success, empty response with status 404, if there's no such
-     *         record
+     * record
      */
     @PUT
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update equipment", notes = "Updates equipment")
-    @ApiResponses(value={
+    @ApiOperation(value = "Update equipment", notes = "Updates equipment. Returns empty body if equipment updated.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Equipment successfully updated"),
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response updateEquipment(
@@ -99,6 +108,10 @@ public interface EquipmentResource {
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Delete equipment", notes = "Deletes equipment")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Equipment successfully deleted"),
+            @ApiResponse(code = 404, message = "If equipment not found")
+    })
     Response deleteEquipment(
             @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
             @PathParam("deviceClassId")
