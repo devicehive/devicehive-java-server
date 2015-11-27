@@ -21,23 +21,22 @@ public class GenericDatabaseAccessDAO {
     private DataSource rdbmsDataSource;
 
     public Device findDevice(final String deviceGuid) {
-        String sql = "";
-        sql = "select d.id, d.guid, d.name, d.status, d.device_class_id, d.key, d.data, d.entity_version, d.blocked, n.id, n.name, n.description, n.key, n.entity_version from device d left outer join network n on d.network_id = n.id where guid = ?";
+        final String sql = "select d.id, d.guid, d.name, d.status, d.device_class_id, d.data, d.entity_version, d.blocked, n.id, n.name, n.description, n.key, n.entity_version from device d left outer join network n on d.network_id = n.id where guid = ?";
         try (Connection conn = rdbmsDataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, deviceGuid);
-            try (ResultSet rs = ps.executeQuery();) {
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Device device = new Device();
 
                     Network network = new Network();
-                    network.setId(rs.getLong(10));
+                    network.setId(rs.getLong(9));
                     if (!rs.wasNull()) {
-                        network.setName(rs.getString(11));
-                        network.setDescription(rs.getString(12));
-                        network.setKey(rs.getString(13));
-                        network.setEntityVersion(rs.getLong(14));
+                        network.setName(rs.getString(10));
+                        network.setDescription(rs.getString(11));
+                        network.setKey(rs.getString(12));
+                        network.setEntityVersion(rs.getLong(13));
                     } else {
                         network = null;
                     }
@@ -52,10 +51,9 @@ public class GenericDatabaseAccessDAO {
                     device.setGuid(rs.getString(2));
                     device.setName(rs.getString(3));
                     device.setStatus(rs.getString(4));
-                    device.setKey(rs.getString(6));
-                    device.setData(new JsonStringWrapper(rs.getString(7)));
-                    device.setEntityVersion(rs.getLong(8));
-                    device.setBlocked(rs.getBoolean(9));
+                    device.setData(new JsonStringWrapper(rs.getString(6)));
+                    device.setEntityVersion(rs.getLong(7));
+                    device.setBlocked(rs.getBoolean(8));
 
                     return device;
                 }
