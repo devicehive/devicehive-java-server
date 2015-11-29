@@ -155,7 +155,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                                                                final String names, final Date timestamp, long timeout,
                                                                final AsyncResponse asyncResponse, final boolean isMany) {
         logger.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
-        if (timeout <= 0) {
+        if (timeout < 0) {
             submitEmptyResponse(asyncResponse);
         }
 
