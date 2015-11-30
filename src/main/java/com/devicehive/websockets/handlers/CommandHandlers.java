@@ -18,6 +18,7 @@ import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
+import com.devicehive.websockets.InsertCommand;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
@@ -249,7 +250,7 @@ public class CommandHandlers extends WebsocketHandlers {
         final DeviceCommand command = commandService.insert(deviceCommand, device, user);
         commandUpdateSubscribeAction(session, command.getId());
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(COMMAND, command, COMMAND_TO_CLIENT);
+        response.addValue(COMMAND, new InsertCommand(command.getId(), command.getTimestamp(), command.getUserId()), COMMAND_TO_CLIENT);
         return response;
     }
 
