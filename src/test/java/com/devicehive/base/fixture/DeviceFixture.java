@@ -89,8 +89,18 @@ public class DeviceFixture {
         final UUID uuid = UUID.randomUUID();
         final Device device = new Device();
         device.setGuid(uuid.toString());
-        device.setName("name-"+uuid.toString());
+        device.setName("name-" + uuid.toString());
         return device;
+    }
+
+    public static DeviceCommand createDeviceCommand() {
+        DeviceCommand command = new DeviceCommand();
+        command.setCommand("test-command");
+        command.setParameters(new JsonStringWrapper("{'param':'testParam'}"));
+        command.setLifetime(0);
+        command.setStatus("test-status");
+        command.setResult(new JsonStringWrapper("{'jsonString': 'string'}"));
+        return command;
     }
 
 }

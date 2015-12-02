@@ -177,8 +177,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     private void waitAction(String deviceGuid, String commandId, long timeout, AsyncResponse asyncResponse,
                             HivePrincipal principal) {
         LOGGER.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
-        if (timeout <= 0) {
-            asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_TO_DEVICE));
+        if (timeout < 0) {
+            asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
         }
         if (deviceGuid == null || commandId == null) {
             LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: deviceGuid and commandId required", deviceGuid);
@@ -221,7 +221,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     new CommandUpdateSubscription(Long.valueOf(commandId), reqId, RestHandlerCreator.createCommandUpdate(asyncResponse));
 
             if (!SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
-                submitEmptyResponse(asyncResponse);
+                asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
             }
         }
 
