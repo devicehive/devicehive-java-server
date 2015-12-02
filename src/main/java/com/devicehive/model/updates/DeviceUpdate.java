@@ -39,7 +39,7 @@ public class DeviceUpdate implements HiveEntity {
     private Optional<DeviceClassUpdate> deviceClass;
 
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    @SerializedName("blocked")
+    @SerializedName("isBlocked")
     private Optional<Boolean> blocked;
 
     public Optional<DeviceClassUpdate> getDeviceClass() {
