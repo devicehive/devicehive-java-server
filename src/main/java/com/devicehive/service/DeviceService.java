@@ -95,8 +95,8 @@ public class DeviceService {
             if (network != null) {
                 device.setNetwork(network);
             }
-            if (device.getBlocked() == null) {
-                device.setBlocked(false);
+            if (device.getIsBlocked() == null) {
+                device.setIsBlocked(false);
             }
             genericDAO.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
@@ -121,7 +121,7 @@ public class DeviceService {
                 existingDevice.setName(deviceUpdate.getName().orElse(null));
             }
             if (deviceUpdate.getBlocked() != null) {
-                existingDevice.setBlocked(deviceUpdate.getBlocked().orElse(null));
+                existingDevice.setIsBlocked(deviceUpdate.getBlocked().orElse(null));
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
@@ -169,7 +169,7 @@ public class DeviceService {
                 existingDevice.setName(deviceUpdate.getName().orElse(null));
             }
             if (deviceUpdate.getBlocked() != null) {
-                existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
+                existingDevice.setIsBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
@@ -211,7 +211,7 @@ public class DeviceService {
             existingDevice.setName(deviceUpdate.getName().orElse(null));
         }
         if (deviceUpdate.getBlocked() != null) {
-            existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
+            existingDevice.setIsBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
         }
         return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
     }
@@ -252,7 +252,7 @@ public class DeviceService {
                 existingDevice.setNetwork(network);
             }
             if (deviceUpdate.getBlocked() != null) {
-                existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
+                existingDevice.setIsBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }

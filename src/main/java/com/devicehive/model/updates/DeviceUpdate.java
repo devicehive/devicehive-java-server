@@ -4,8 +4,6 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.google.gson.annotations.SerializedName;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Optional;
 
@@ -120,7 +118,7 @@ public class DeviceUpdate implements HiveEntity {
             device.setStatus(status.orElse(null));
         }
         if (blocked != null) {
-            device.setBlocked(Boolean.TRUE.equals(blocked.orElse(null)));
+            device.setIsBlocked(Boolean.TRUE.equals(blocked.orElse(null)));
         }
         return device;
     }
