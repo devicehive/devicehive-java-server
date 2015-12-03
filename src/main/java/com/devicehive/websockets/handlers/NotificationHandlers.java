@@ -5,7 +5,6 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
@@ -17,6 +16,7 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
+import com.devicehive.websockets.InsertNotification;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
@@ -231,7 +231,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(NOTIFICATION, message, NOTIFICATION_TO_DEVICE);
+        response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
         return response;
     }
 }

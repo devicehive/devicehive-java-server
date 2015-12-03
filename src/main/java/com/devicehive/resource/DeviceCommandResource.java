@@ -22,7 +22,7 @@ import javax.ws.rs.core.Response;
  * details.
  */
 @Path("/device")
-@Api(tags = {"DeviceCommand"}, consumes="application/json")
+@Api(tags = {"DeviceCommand"}, consumes = "application/json")
 public interface DeviceCommandResource {
 
     /**
@@ -40,7 +40,7 @@ public interface DeviceCommandResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Polls the server to get commands.",
             notes = "This method returns all device commands that were created after specified timestamp.\n" +
-            "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
+                    "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
             response = DeviceCommand.class,
             responseContainer = "List")
     void poll(
@@ -65,7 +65,7 @@ public interface DeviceCommandResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Polls the server to get commands.",
             notes = "This method returns all device commands that were created after specified timestamp.\n" +
-            "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
+                    "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
             response = DeviceCommand.class,
             responseContainer = "List")
     void pollMany(
@@ -89,13 +89,17 @@ public interface DeviceCommandResource {
     @Path("/{deviceGuid}/command/{commandId}/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Waits for a command to be processed.",
-            notes = "Waits for a command to be processed.\n" +
-            "\n" +
-            "This method returns a command only if it has been processed by a device.\n" +
-            "\n" +
-            "In the case when command is not processed, the method blocks until device acknowledges command execution. If the command is not processed within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call.",
-            response = DeviceCommand.class,
-            responseContainer = "List")
+            notes = "Waits for a command to be processed.<br>" +
+                    "<br>" +
+                    "This method returns a command only if it has been processed by a device.<br>" +
+                    "<br>" +
+                    "In the case when command is not processed, the method blocks until device acknowledges command execution. If the command is not processed within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call.",
+            response = DeviceCommand.class)
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Command was not processed during waitTimeout."),
+            @ApiResponse(code = 400, message = "Command with commandId was not sent for device with deviceGuid or wrong input parameters."),
+            @ApiResponse(code = 404, message = "Device or command was not found.")
+    })
     void wait(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -103,7 +107,7 @@ public interface DeviceCommandResource {
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
             String commandId,
-            @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
+            @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
             @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout")
@@ -156,8 +160,8 @@ public interface DeviceCommandResource {
      * "command":   "command_name" "parameters":    {/ * JSON Object * /} "lifetime":  100 "flags":     1 "status":
      * "comand_status" "result":    { / * JSON Object* /} } </code>
      *
-     * @param guid String with Device GUID like "550e8400-e29b-41d4-a716-446655440000"
-     * @param commandId   command id
+     * @param guid      String with Device GUID like "550e8400-e29b-41d4-a716-446655440000"
+     * @param commandId command id
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}")

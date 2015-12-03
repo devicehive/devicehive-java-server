@@ -55,12 +55,10 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         assertThat(jsonResp.get("requestId").getAsString(), is("1"));
         assertThat(jsonResp.get("status").getAsString(), is("success"));
         assertThat(jsonResp.get("notification"), notNullValue());
-        DeviceNotification notificationResp = gson.fromJson(jsonResp.get("notification"), DeviceNotification.class);
+        InsertNotification notificationResp = gson.fromJson(jsonResp.get("notification"), InsertNotification.class);
         assertThat(notificationResp.getId(), notNullValue());
-        assertThat(notificationResp.getDeviceGuid(), is(DEVICE_ID));
         assertThat(notificationResp.getTimestamp(), notNullValue());
         assertTrue(notificationResp.getTimestamp().getTime() > time);
-        assertThat(notificationResp.getNotification(), is(notification.getNotification()));
     }
 
     @Test
@@ -82,12 +80,10 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         assertThat(jsonResp.get("requestId").getAsString(), is("1"));
         assertThat(jsonResp.get("status").getAsString(), is("success"));
         assertThat(jsonResp.get("notification"), notNullValue());
-        DeviceNotification notificationResp = gson.fromJson(jsonResp.get("notification"), DeviceNotification.class);
+        InsertNotification notificationResp = gson.fromJson(jsonResp.get("notification"),InsertNotification.class);
         assertThat(notificationResp.getId(), notNullValue());
-        assertThat(notificationResp.getDeviceGuid(), is(DEVICE_ID));
         assertThat(notificationResp.getTimestamp(), notNullValue());
         assertTrue(notificationResp.getTimestamp().getTime() > time);
-        assertThat(notificationResp.getNotification(), is(notification.getNotification()));
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.resource.AccessKeyResource;
@@ -133,6 +134,12 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
         logger.debug("Access key : delete requested for userId : {}", userId);
 
         Long id = getUser(userId).getId();
+        List<AccessKey> existingDefaultKeys = accessKeyService.list(id, null, null, AccessKeyType.DEFAULT.getValue(), null, null, 2, 0);
+        if(existingDefaultKeys.size() < 2){
+            logger.debug("Rejected removing the last default access key");
+            throw new HiveException(Messages.CANT_DELETE_LAST_DEFAULT_ACCESS_KEY, FORBIDDEN.getStatusCode());
+        }
+
         accessKeyService.delete(id, accessKeyId);
 
         logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId,

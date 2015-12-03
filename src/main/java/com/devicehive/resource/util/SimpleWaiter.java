@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public class SimpleWaiter {
 
@@ -24,6 +21,9 @@ public class SimpleWaiter {
             return true;
         } catch (InterruptedException | ExecutionException e) {
             throw new HiveException(e.getMessage(), e, 500);
+        }catch (CancellationException e){
+            logger.debug("Waiting canceled");
+            return true;
         } catch (TimeoutException e) {
             logger.debug("Waiting timeout");
             return false;

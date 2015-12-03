@@ -20,7 +20,6 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.ParseUtil;
 import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
@@ -99,16 +98,18 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         LOGGER.debug("Device command pollMany requested for : {}, {}, {}, {}.  Timeout = {}", devices, names, timestamp,
                 timeout);
 
-        if (timeout <= 0) {
+        if (timeout < 0) {
             submitEmptyResponse(asyncResponse);
         }
 
-        final List<String> deviceGuids = ParseUtil.getList(devices);
+        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))
+                ? deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal)
+                : new ArrayList<>();
         final List<String> commandNames = ParseUtil.getList(names);
         Collection<DeviceCommand> list = new ArrayList<>();
 
-        if (timestamp != null) {
-            list = commandService.find(deviceGuids, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
+        if (timestamp != null && !availableDevices.isEmpty()) {
+            list = commandService.find(availableDevices, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
         }
 
         if (!list.isEmpty()) {
@@ -128,19 +129,18 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
             Set<CommandSubscription> subscriptionSet = new HashSet<>();
+            FutureTask<Void> simpleWaitTask = new FutureTask<Void>(Runnables.doNothing(), null);
 
-            if (StringUtils.isNotEmpty(devices)) {
-                List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal);
-                for (String guid : availableDevices) {
-                    subscriptionSet.add(new CommandSubscription(principal, guid, reqId, names,
-                            RestHandlerCreator.createCommandInsert(asyncResponse, isMany)));
-                }
+            if (!availableDevices.isEmpty()) {
+                List<CommandSubscription> commandSubscriptions = availableDevices.stream()
+                        .map(guid -> getInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
+                        .collect(Collectors.toList());
+                subscriptionSet.addAll(commandSubscriptions);
             } else {
-                subscriptionSet.add(new CommandSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
-                        RestHandlerCreator.createCommandInsert(asyncResponse, isMany)));
+                subscriptionSet.add(getInsertSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
+                        asyncResponse, isMany, simpleWaitTask));
             }
-
-            if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
+            if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, simpleWaitTask, timeout)) {
                 submitEmptyResponse(asyncResponse);
             }
         }
@@ -177,8 +177,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     private void waitAction(String deviceGuid, String commandId, long timeout, AsyncResponse asyncResponse,
                             HivePrincipal principal) {
         LOGGER.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
-        if (timeout <= 0) {
-            asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_TO_DEVICE));
+        if (timeout < 0) {
+            asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
         }
         if (deviceGuid == null || commandId == null) {
             LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: deviceGuid and commandId required", deviceGuid);
@@ -221,7 +221,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     new CommandUpdateSubscription(Long.valueOf(commandId), reqId, RestHandlerCreator.createCommandUpdate(asyncResponse));
 
             if (!SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
-                submitEmptyResponse(asyncResponse);
+                asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
             }
         }
 
@@ -335,6 +335,11 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     private void submitEmptyResponse(final AsyncResponse asyncResponse) {
         asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_LISTED));
+    }
+
+    private CommandSubscription getInsertSubscription(HivePrincipal principal, String guid, UUID reqId, String names,
+                                                      AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask){
+        return new CommandSubscription(principal, guid, reqId, names, RestHandlerCreator.createCommandInsert(asyncResponse, isMany, waitTask));
     }
 
 }
