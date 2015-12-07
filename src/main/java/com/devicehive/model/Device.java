@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
@@ -88,6 +89,7 @@ public class Device implements HiveEntity {
 
     @Column(name = "blocked")
     @SerializedName("isBlocked")
+    @ApiModelProperty(name="isBlocked")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private Boolean blocked;
 
