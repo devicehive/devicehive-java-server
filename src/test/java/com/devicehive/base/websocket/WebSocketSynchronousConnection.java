@@ -11,7 +11,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 public class WebSocketSynchronousConnection {
-    public static final int WAIT_TIMEOUT = 3;
+    public static final int WAIT_TIMEOUT = 5;
 
     private BlockingQueue<TextMessage> messages;
     private WebSocketClientHandler handler;
