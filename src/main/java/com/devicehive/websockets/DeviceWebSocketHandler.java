@@ -1,6 +1,7 @@
 package com.devicehive.websockets;
 
 
+import com.devicehive.application.websocket.WebSocketAuthenticationManager;
 import com.devicehive.websockets.util.HiveEndpoint;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -13,6 +14,7 @@ public class DeviceWebSocketHandler extends AbstractWebSocketHandler {
         super.afterConnectionEstablished(session);
         HiveWebsocketSessionState state =
                 (HiveWebsocketSessionState) session.getAttributes().get(HiveWebsocketSessionState.KEY);
+        session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, session.getPrincipal());
         state.setEndpoint(HiveEndpoint.DEVICE);
     }
 

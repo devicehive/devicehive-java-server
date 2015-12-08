@@ -98,12 +98,12 @@ public class CommonHandlers extends WebsocketHandlers {
         HiveAuthentication authentication;
         if (login != null) {
             authentication = authenticationManager.authenticateUser(login, password, details);
-            session.getAttributes().put("authentication", authentication);
+            session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
         } else if (key != null) {
             authentication = authenticationManager.authenticateKey(key, details);
-            session.getAttributes().put("authentication", authentication);
+            session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
         } else {
@@ -114,7 +114,7 @@ public class CommonHandlers extends WebsocketHandlers {
         if(deviceId != null){
             principal.setDevice(deviceService.findByGuidWithPermissionsCheck(deviceId, principal));
         }
-        session.getAttributes().put("authentication", authentication);
+        session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
         return new WebSocketResponse();
