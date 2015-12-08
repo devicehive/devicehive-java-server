@@ -43,7 +43,7 @@ public class DeviceActivityService {
         deviceActivityMap.put(deviceGuid, System.currentTimeMillis());
     }
 
-    @Scheduled(cron = "0 */5 * * * *")//(hour = "*", minute = "*/5", persistent = false)
+    @Scheduled(cron = "0 * * * * *")//executing at start of every minute
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void processOfflineDevices() {
         logger.debug("Checking lost offline devices");
