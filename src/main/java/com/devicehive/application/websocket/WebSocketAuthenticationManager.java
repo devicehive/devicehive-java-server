@@ -19,6 +19,8 @@ import java.util.UUID;
 @Component
 public class WebSocketAuthenticationManager {
 
+    public static final String SESSION_ATTR_AUTHENTICATION = "authentication";
+
     @Autowired
     private AuthenticationManager authenticationManager;
 

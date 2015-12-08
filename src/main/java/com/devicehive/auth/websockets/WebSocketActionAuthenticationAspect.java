@@ -30,13 +30,14 @@ public class WebSocketActionAuthenticationAspect {
     @Before("publicHandlerMethod() && annotatedWithAction()")
     public void authenticate() throws Exception {
         WebSocketSession session = ThreadLocalVariablesKeeper.getSession();
+        HiveAuthentication authentication = (HiveAuthentication) session.getAttributes()
+                .get(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION);
 
-        HiveAuthentication authentication = (HiveAuthentication) session.getAttributes().get("authentication");
         //if not authenticated - authenticate as device or anonymous
         if (authentication == null || authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))) {
             HiveAuthentication.HiveAuthDetails details = authenticationManager.getDetails(session);
             authentication = authenticationManager.authenticateAnonymous(details);
-            session.getAttributes().put("authentication", authentication);
+            session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
