@@ -87,9 +87,9 @@ public class Device implements HiveEntity {
     private long entityVersion;
 
     @Column(name = "blocked")
-    @SerializedName("isBlocked")
+    @SerializedName("blocked")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private Boolean isBlocked;
+    private Boolean blocked;
 
     public long getEntityVersion() {
         return entityVersion;
@@ -155,12 +155,12 @@ public class Device implements HiveEntity {
         this.deviceClass = deviceClass;
     }
 
-    public Boolean getIsBlocked() {
-        return isBlocked;
+    public Boolean getBlocked() {
+        return blocked;
     }
 
-    public void setIsBlocked(Boolean isBlocked) {
-        this.isBlocked = isBlocked;
+    public void setBlocked(Boolean blocked) {
+        this.blocked = blocked;
     }
 
     public static class Queries {

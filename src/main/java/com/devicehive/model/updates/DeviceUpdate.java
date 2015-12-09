@@ -118,7 +118,7 @@ public class DeviceUpdate implements HiveEntity {
             device.setStatus(status.orElse(null));
         }
         if (blocked != null) {
-            device.setIsBlocked(Boolean.TRUE.equals(blocked.orElse(null)));
+            device.setBlocked(Boolean.TRUE.equals(blocked.orElse(null)));
         }
         return device;
     }
