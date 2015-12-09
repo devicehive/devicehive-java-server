@@ -19,7 +19,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICECLASS_PU
  * RESTful API: DeviceClass</a> for details.
  */
 @Path("/device/class")
-@Api(tags = {"DeviceClass"}, value = "Represents a device class which holds meta-information about devices.", consumes="application/json")
+@Api(tags = {"DeviceClass"}, value = "Represents a device class which holds meta-information about devices.", consumes = "application/json")
 @Produces({"application/json"})
 public interface DeviceClassResource {
 
@@ -35,13 +35,14 @@ public interface DeviceClassResource {
      * @param take        Number of records to take from the result list.
      * @param skip        Number of records to skip from the result list.
      * @return If successful, this method returns array of <a href="http://www.devicehive
-     *         .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
+     * .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
      */
     @GET
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "List device classes", notes = "Gets list of device classes.")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns array of DeviceClass resources in the response body.", response = DeviceClass.class, responseContainer = "List"),
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "If successful, this method returns array of DeviceClass resources in the response body.",
+                    response = DeviceClass.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
@@ -76,14 +77,15 @@ public interface DeviceClassResource {
      *
      * @param id Device class identifier.
      * @return If successful, this method returns a <a href="http://www.devicehive .com/restful#Reference/DeviceClass">DeviceClass</a>
-     *         resource in the response body.
+     * resource in the response body.
      */
     @GET
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceClass resource in the response body.", response = DeviceClass.class),
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceClass resource in the response body.",
+                    response = DeviceClass.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -111,8 +113,9 @@ public interface DeviceClassResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Create device class", notes = "Creates new device class.")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "If successful, this method returns a DeviceClass resource in the response body.", response = DeviceClass.class),
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "If successful, this method returns a DeviceClass resource in the response body.",
+                    response = DeviceClass.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions or device class with same name exists.")
@@ -135,7 +138,7 @@ public interface DeviceClassResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Updates an existing device class.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
@@ -162,7 +165,7 @@ public interface DeviceClassResource {
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Deletes an existing device class.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),

@@ -4,8 +4,6 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.google.gson.annotations.SerializedName;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Optional;
 

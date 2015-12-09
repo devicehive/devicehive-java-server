@@ -16,7 +16,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUB
  * RESTful API: AccessKey</a> for details.
  */
 @Path("/user/{userId}/accesskey")
-@Api(tags = {"AccessKey"}, description = "Represents an access key to this API.", consumes="application/json")
+@Api(tags = {"AccessKey"}, description = "Represents an access key to this API.", consumes = "application/json")
 @Produces({"application/json"})
 public interface AccessKeyResource {
 
@@ -31,8 +31,11 @@ public interface AccessKeyResource {
     @GET
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "List access keys", notes = "Gets list of access keys and their permissions.")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns array of AccessKey resources in the response body.", response = AccessKey.class, responseContainer = "List"),
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,
+                    message = "If successful, this method returns array of AccessKey resources in the response body.",
+                    response = AccessKey.class,
+                    responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -77,8 +80,9 @@ public interface AccessKeyResource {
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Get user's access key", notes = "Gets information about access key and its permissions.")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a AccessKey resource in the response body.", response = AccessKey.class),
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "If successful, this method returns a AccessKey resource in the response body.",
+                    response = AccessKey.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -103,8 +107,10 @@ public interface AccessKeyResource {
     @POST
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Create Access key", notes = "Creates new access key.")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "If successful, this method returns a AccessKey resource in the response body.", response = AccessKey.class),
+    @ApiResponses(value = {
+            @ApiResponse(code = 201,
+                    message = "If successful, this method returns a AccessKey resource in the response body.",
+                    response = AccessKey.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
@@ -134,7 +140,7 @@ public interface AccessKeyResource {
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Update Access key", notes = "Updates an existing access key.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
@@ -167,7 +173,7 @@ public interface AccessKeyResource {
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Delete Access key", notes = "Deletes an existing access key.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
