@@ -4,20 +4,16 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.application.websocket.WebSocketAuthenticationManager;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.ApiInfo;
-import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.UserService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
-import com.devicehive.websockets.util.HiveEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +30,13 @@ public class CommonHandlers extends WebsocketHandlers {
     private static final Logger logger = LoggerFactory.getLogger(CommonHandlers.class);
 
     @Autowired
-    private ConfigurationService configurationService;
-    @Autowired
     private TimestampService timestampService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private DeviceService deviceService;
-    @Autowired
-    private AccessKeyService accessKeyService;
 
     @Autowired
     private WebSocketAuthenticationManager authenticationManager;
+
+    @Autowired
+    DeviceService deviceService;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#WsReference/Client/serverinfo">WebSocket API:
@@ -85,7 +76,6 @@ public class CommonHandlers extends WebsocketHandlers {
                                                  @WsParam("password") String password,
                                                  @WsParam("accessKey") String key,
                                                  @WsParam("deviceId") String deviceId,
-                                                 @WsParam("deviceKey") String deviceKey,
                                                  WebSocketSession session) {
         logger.debug("authenticate action for {} ", login);
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
@@ -106,25 +96,25 @@ public class CommonHandlers extends WebsocketHandlers {
         HiveWebsocketSessionState state = (HiveWebsocketSessionState) session.getAttributes().get(HiveWebsocketSessionState.KEY);
         HiveAuthentication.HiveAuthDetails details = authenticationManager.getDetails(session);
         HiveAuthentication authentication;
-        if (login != null && state.getEndpoint().equals(HiveEndpoint.CLIENT)) {
+        if (login != null) {
             authentication = authenticationManager.authenticateUser(login, password, details);
-            session.getAttributes().put("authentication", authentication);
+            session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
-        } else if (key != null && state.getEndpoint().equals(HiveEndpoint.CLIENT)) {
+        } else if (key != null) {
             authentication = authenticationManager.authenticateKey(key, details);
-            session.getAttributes().put("authentication", authentication);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
-        } else if (deviceId != null && state.getEndpoint().equals(HiveEndpoint.DEVICE)) {
-            authentication = authenticationManager.authenticateDevice(deviceId, deviceKey, details);
-            session.getAttributes().put("authentication", authentication);
+            session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
         } else {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
-        session.getAttributes().put("authentication", authentication);
+        HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
+
+        if(deviceId != null){
+            principal.setDevice(deviceService.findByGuidWithPermissionsCheck(deviceId, principal));
+        }
+        session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
         return new WebSocketResponse();

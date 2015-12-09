@@ -90,10 +90,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
         this.timestamp = timestamp;
     }
 
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = new Date(timestamp);
-    }
-
     public Long getUserId() {
         return userId;
     }

@@ -3,7 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;
@@ -180,7 +180,7 @@ public interface DeviceNotificationResource {
     @POST
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('DEVICE', 'CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Create notification", notes = "Creates notification")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If device not found"),

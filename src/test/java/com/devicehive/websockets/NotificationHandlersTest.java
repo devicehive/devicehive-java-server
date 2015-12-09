@@ -10,16 +10,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.web.socket.TextMessage;
 
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static com.devicehive.base.websocket.WebSocketSynchronousConnection.WAIT_TIMEOUT;
@@ -38,36 +35,11 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         clearWSConnections();
     }
 
-    @Test
-    public void should_insert_notification_signed_in_as_device() throws Exception {
-        WebSocketSynchronousConnection connection = syncConnection("/websocket/device");
-        Pair<String, String> idAndKey = Pair.of(DEVICE_ID, DEVICE_KEY);
-
-        DeviceNotificationWrapper notification = new DeviceNotificationWrapper();
-        notification.setNotification("i'm alive");
-        notification.setParameters(new JsonStringWrapper("{\"param\": \"param_1\"}"));
-        JsonObject notificationInsert = JsonFixture.createWsCommand("notification/insert", "1", idAndKey.getKey(), idAndKey.getValue(),
-                singletonMap("notification", gson.toJsonTree(notification)));
-        long time = System.currentTimeMillis();
-        TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(notificationInsert)), WAIT_TIMEOUT);
-        JsonObject jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
-        assertThat(jsonResp.get("action").getAsString(), is("notification/insert"));
-        assertThat(jsonResp.get("requestId").getAsString(), is("1"));
-        assertThat(jsonResp.get("status").getAsString(), is("success"));
-        assertThat(jsonResp.get("notification"), notNullValue());
-        DeviceNotification notificationResp = gson.fromJson(jsonResp.get("notification"), DeviceNotification.class);
-        assertThat(notificationResp.getId(), notNullValue());
-        assertThat(notificationResp.getDeviceGuid(), is(idAndKey.getKey()));
-        assertThat(notificationResp.getTimestamp(), notNullValue());
-        assertTrue(notificationResp.getTimestamp().getTime() > time);
-        assertThat(notificationResp.getNotification(), is(notification.getNotification()));
-    }
-
     @SuppressWarnings("unchecked")
     @Test
     public void should_insert_notification_signed_in_as_admin() throws Exception {
         WebSocketSynchronousConnection connection = syncConnection("/websocket/client");
-        WebSocketFixture.authenticateUser(ADMIN_LOGIN, "admin_pass", connection);
+        WebSocketFixture.authenticateUser(ADMIN_LOGIN, ADMIN_PASS, connection);
 
         DeviceNotificationWrapper notification = new DeviceNotificationWrapper();
         notification.setNotification("hi there");
@@ -83,12 +55,10 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         assertThat(jsonResp.get("requestId").getAsString(), is("1"));
         assertThat(jsonResp.get("status").getAsString(), is("success"));
         assertThat(jsonResp.get("notification"), notNullValue());
-        DeviceNotification notificationResp = gson.fromJson(jsonResp.get("notification"), DeviceNotification.class);
+        InsertNotification notificationResp = gson.fromJson(jsonResp.get("notification"), InsertNotification.class);
         assertThat(notificationResp.getId(), notNullValue());
-        assertThat(notificationResp.getDeviceGuid(), is(DEVICE_ID));
         assertThat(notificationResp.getTimestamp(), notNullValue());
         assertTrue(notificationResp.getTimestamp().getTime() > time);
-        assertThat(notificationResp.getNotification(), is(notification.getNotification()));
     }
 
     @Test
@@ -110,12 +80,10 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         assertThat(jsonResp.get("requestId").getAsString(), is("1"));
         assertThat(jsonResp.get("status").getAsString(), is("success"));
         assertThat(jsonResp.get("notification"), notNullValue());
-        DeviceNotification notificationResp = gson.fromJson(jsonResp.get("notification"), DeviceNotification.class);
+        InsertNotification notificationResp = gson.fromJson(jsonResp.get("notification"),InsertNotification.class);
         assertThat(notificationResp.getId(), notNullValue());
-        assertThat(notificationResp.getDeviceGuid(), is(DEVICE_ID));
         assertThat(notificationResp.getTimestamp(), notNullValue());
         assertTrue(notificationResp.getTimestamp().getTime() > time);
-        assertThat(notificationResp.getNotification(), is(notification.getNotification()));
     }
 
     @Test
@@ -173,7 +141,7 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
     //fixme: authorized requests without permissions should return 403 error instead of 401
     @Test
     public void should_return_401_status_for_device_during_subscribe_action() throws Exception {
-        JsonObject notificationSubscribe = JsonFixture.createWsCommand("notification/subscribe", "1", DEVICE_ID, DEVICE_KEY,
+        JsonObject notificationSubscribe = JsonFixture.createWsCommand("notification/subscribe", "1", DEVICE_ID,
                 singletonMap("names", gson.toJsonTree(Collections.singleton("some_name"))));
         WebSocketSynchronousConnection connection = syncConnection("/websocket/client");
         TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(notificationSubscribe)), WAIT_TIMEOUT);
@@ -241,7 +209,7 @@ public class NotificationHandlersTest extends AbstractWebSocketTest {
         assertThat(subscriptionId, notNullValue());
 
         WebSocketSynchronousConnection device = syncConnection("/websocket/device");
-        WebSocketFixture.authenticateDevice(DEVICE_ID, DEVICE_KEY, device);
+        WebSocketFixture.authenticateKey(ACCESS_KEY, device);
 
         request = RandomStringUtils.random(5);
         DeviceNotificationWrapper notification = new DeviceNotificationWrapper();

@@ -105,7 +105,7 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public Response insertUser(UserUpdate userToCreate) {
-        String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().getValue();
+        String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().orElse(null);
         User created = userService.createUser(userToCreate.convertTo(), password);
         return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
     }
@@ -131,6 +131,17 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public Response deleteUser(long userId) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = null;
+        if(principal.getUser() != null){
+            currentUser = principal.getUser();
+        }else if(principal.getKey() != null){
+            currentUser = principal.getKey().getUser();
+        }
+        if(currentUser != null && currentUser.getId().equals(userId)){
+            logger.debug("Rejected removing current user");
+            throw new HiveException(Messages.CANT_DELETE_CURRENT_USER_KEY, FORBIDDEN.getStatusCode());
+        }
         userService.deleteUser(userId);
         return ResponseFactory.response(NO_CONTENT);
     }

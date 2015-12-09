@@ -6,7 +6,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.google.gson.JsonObject;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;
@@ -104,7 +104,7 @@ public interface DeviceResource {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasPermission(null, 'REGISTER_DEVICE')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' and 'deviceClass' properties are required.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -130,7 +130,7 @@ public interface DeviceResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
     @ApiOperation(value = "Get device", notes = "Gets information about device.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Device resource in the response body.", response = Device.class),
@@ -153,7 +153,7 @@ public interface DeviceResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY', 'DEVICE') and hasPermission(null, 'REGISTER_DEVICE')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Delete device", notes = "Deletes an existing device.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),

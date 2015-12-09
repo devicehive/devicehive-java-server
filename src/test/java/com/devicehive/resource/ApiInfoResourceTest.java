@@ -67,7 +67,6 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
         assertThat(clusterConfig, notNullValue());
         assertThat(clusterConfig.getMetadataBrokerList(), is(env.getProperty(Constants.METADATA_BROKER_LIST)));
         assertThat(clusterConfig.getZookeeperConnect(), is(env.getProperty(Constants.ZOOKEEPER_CONNECT)));
-        assertThat(clusterConfig.getCassandraContactpoints(), is(env.getProperty(Constants.CASSANDRA_CONTACTPOINTS)));
         assertThat(clusterConfig.getThreadsCount(), is(1));
     }
 }

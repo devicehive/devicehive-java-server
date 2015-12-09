@@ -3,8 +3,9 @@ package com.devicehive.model.wrappers;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.NullableWrapper;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -17,65 +18,65 @@ public class DeviceCommandWrapper implements HiveEntity {
     @SerializedName("command")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private NullableWrapper<String> command;
+    private Optional<String> command;
 
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
-    private NullableWrapper<JsonStringWrapper> parameters;
+    private Optional<JsonStringWrapper> parameters;
 
     @SerializedName("lifetime")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
-    private NullableWrapper<Integer> lifetime;
+    private Optional<Integer> lifetime;
 
     @SerializedName("status")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private NullableWrapper<String> status;
+    private Optional<String> status;
 
     @SerializedName("result")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private NullableWrapper<JsonStringWrapper> result;
+    private Optional<JsonStringWrapper> result;
 
-    public NullableWrapper<String> getCommand() {
+    public Optional<String> getCommand() {
         return command;
     }
 
-    public void setCommand(NullableWrapper<String> command) {
+    public void setCommand(Optional<String> command) {
         this.command = command;
     }
 
-    public NullableWrapper<JsonStringWrapper> getParameters() {
+    public Optional<JsonStringWrapper> getParameters() {
         return parameters;
     }
 
-    public void setParameters(NullableWrapper<JsonStringWrapper> parameters) {
+    public void setParameters(Optional<JsonStringWrapper> parameters) {
         this.parameters = parameters;
     }
 
-    public NullableWrapper<Integer> getLifetime() {
+    public Optional<Integer> getLifetime() {
         return lifetime;
     }
 
-    public void setLifetime(NullableWrapper<Integer> lifetime) {
+    public void setLifetime(Optional<Integer> lifetime) {
         this.lifetime = lifetime;
     }
 
-    public NullableWrapper<String> getStatus() {
+    public Optional<String> getStatus() {
         return status;
     }
 
-    public void setStatus(NullableWrapper<String> status) {
+    public void setStatus(Optional<String> status) {
         this.status = status;
     }
 
-    public NullableWrapper<JsonStringWrapper> getResult() {
+    public Optional<JsonStringWrapper> getResult() {
         return result;
     }
 
-    public void setResult(NullableWrapper<JsonStringWrapper> result) {
+    public void setResult(Optional<JsonStringWrapper> result) {
         this.result = result;
     }
 

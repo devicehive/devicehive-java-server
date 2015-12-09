@@ -1,14 +1,13 @@
 package com.devicehive.model.updates;
 
-
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.enums.AccessKeyType;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
@@ -18,73 +17,71 @@ public class AccessKeyUpdate implements HiveEntity {
     private static final long serialVersionUID = -979668798467393194L;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
-    private NullableWrapper<String> label;
+    private Optional<String> label;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
-    private NullableWrapper<Date> expirationDate;
+    private Optional<Date> expirationDate;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
-    private NullableWrapper<Set<AccessKeyPermission>> permissions;
+    private Optional<Set<AccessKeyPermission>> permissions;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
-    private NullableWrapper<Integer> type;
+    private Optional<Integer> type;
 
 
-    public NullableWrapper<String> getLabel() {
+    public Optional<String> getLabel() {
         return label;
     }
 
-    public void setLabel(NullableWrapper<String> label) {
+    public void setLabel(Optional<String> label) {
         this.label = label;
     }
 
-    public NullableWrapper<Date> getExpirationDate() {
+    public Optional<Date> getExpirationDate() {
         return expirationDate;
     }
 
-    public void setExpirationDate(NullableWrapper<Date> expirationDate) {
+    public void setExpirationDate(Optional<Date> expirationDate) {
         this.expirationDate = expirationDate;
     }
 
 
-    public NullableWrapper<Set<AccessKeyPermission>> getPermissions() {
+    public Optional<Set<AccessKeyPermission>> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(NullableWrapper<Set<AccessKeyPermission>> permissions) {
+    public void setPermissions(Optional<Set<AccessKeyPermission>> permissions) {
         this.permissions = permissions;
     }
 
-    public NullableWrapper<Integer> getType() {
+    public Optional<Integer> getType() {
         return type;
     }
 
-    public void setType(NullableWrapper<Integer> type) {
+    public void setType(Optional<Integer> type) {
         this.type = type;
     }
 
     public AccessKeyType getTypeEnum() {
-        if (type == null) {
-            return null;
+        if(type != null) {
+            return type.map(AccessKeyType::getValueForIndex).orElse(null);
         }
-        Integer typeValue = type.getValue();
-        if (typeValue == null) {
-            return null;
-        }
-        return AccessKeyType.values()[typeValue];
+        return null;
     }
 
     public AccessKey convertTo() {
         AccessKey result = new AccessKey();
-        if (label != null) {
-            result.setLabel(label.getValue());
-        }
-        if (expirationDate != null) {
-            result.setExpirationDate(expirationDate.getValue());
-        }
-        if (permissions != null) {
 
-            result.setPermissions(permissions.getValue());
+        if (label != null) {
+            result.setLabel(label.orElse(null));
+        }
+
+        if (expirationDate != null) {
+            result.setExpirationDate(expirationDate.orElse(null));
+        }
+
+        if (permissions != null) {
+            result.setPermissions(permissions.orElse(null));
         }
         return result;
     }

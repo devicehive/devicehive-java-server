@@ -1,7 +1,7 @@
 package com.devicehive.resource;
 
 import com.devicehive.model.AccessKeyRequest;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.Consumes;

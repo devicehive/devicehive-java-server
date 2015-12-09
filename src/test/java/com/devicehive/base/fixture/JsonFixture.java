@@ -8,18 +8,17 @@ import java.util.Map;
 
 public class JsonFixture {
 
-    public static JsonObject createWsCommand(String action, String request, String deviceId, String deviceKey, Map<String, JsonElement> otherFields) {
-        JsonObject command = createWsCommand(action, request, deviceId, deviceKey);
+    public static JsonObject createWsCommand(String action, String request, String deviceId, Map<String, JsonElement> otherFields) {
+        JsonObject command = createWsCommand(action, request, deviceId);
         otherFields.entrySet().stream().forEach(entry -> command.add(entry.getKey(), entry.getValue()));
         return command;
     }
 
-    public static JsonObject createWsCommand(String action, String request, String deviceId, String deviceKey) {
+    public static JsonObject createWsCommand(String action, String request, String deviceId) {
         JsonObject command = new JsonObject();
         command.add("action", new JsonPrimitive(action));
         command.add("requestId", new JsonPrimitive(request));
         command.add("deviceId", new JsonPrimitive(deviceId));
-        command.add("deviceKey", new JsonPrimitive(deviceKey));
         return command;
     }
 
@@ -52,15 +51,6 @@ public class JsonFixture {
         command.add("action", new JsonPrimitive("authenticate"));
         command.add("requestId", new JsonPrimitive(request));
         command.add("accessKey", new JsonPrimitive(accessKey));
-        return command;
-    }
-
-    public static JsonObject deviceAuthCommand(String request, String deviceId, String deviceKey) {
-        JsonObject command = new JsonObject();
-        command.add("action", new JsonPrimitive("authenticate"));
-        command.add("requestId", new JsonPrimitive(request));
-        command.add("deviceId", new JsonPrimitive(deviceId));
-        command.add("deviceKey", new JsonPrimitive(deviceKey));
         return command;
     }
 }

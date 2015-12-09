@@ -1,12 +1,16 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -18,10 +22,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
@@ -40,25 +43,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
     private NetworkService networkService;
     @Autowired
     private DeviceClassService deviceClassService;
-
-    /**
-     * Test to check that device was successfully saved, notification send and retrieved back.
-     */
-    @Test
-    public void should_save_and_notify_role_device() {
-        final Device device = DeviceFixture.createDevice();
-        final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClass();
-        final HivePrincipal principal = new HivePrincipal(device);
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dcUpdate);
-
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
-
-        final DeviceNotification existingNotification = deviceNotificationService.find(null, device.getGuid());
-
-        assertNotNull(existingNotification);
-        assertEquals(device.getGuid(), existingNotification.getDeviceGuid());
-    }
+    @Autowired
+    private AccessKeyService accessKeyService;
 
     /**
      * Test to check that device was successfully saved, notification send and retrieved back
@@ -70,7 +56,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dc);
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -90,7 +76,45 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_save_and_notify_role_admin() {
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dc);
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
+
+        Network network = DeviceFixture.createNetwork();
+        network = networkService.create(network);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, "123");
+        userService.assignNetwork(user.getId(), network.getId());
+        final HivePrincipal principal = new HivePrincipal(user);
+
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+
+        final DeviceNotification existingNotification = deviceNotificationService.find(null, device.getGuid());
+
+        assertNotNull(existingNotification);
+        assertEquals(device.getGuid(), existingNotification.getDeviceGuid());
+
+        final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
+        assertNotNull(existingDevice);
+        assertEquals(device.getGuid(), existingDevice.getGuid());
+        assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
+        assertEquals(dc.getVersion().orElse(null), existingDevice.getDeviceClass().getVersion());
+    }
+
+    /**
+     * Test amdin can't create device without network when admin user hasn't networks. Admin authorized with basic auth.
+     */
+    @Test
+    public void should_throw_HiveException_when_role_admin_without_networks_and_basic_authorized_create_device_without_network() {
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
+
+        final Device device = DeviceFixture.createDevice();
+        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -101,13 +125,43 @@ public class DeviceServiceTest extends AbstractResourceTest {
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
         deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+    }
 
-        final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
-        assertNotNull(existingDevice);
-        assertEquals(device.getGuid(), existingDevice.getGuid());
-        assertEquals(device.getKey(), existingDevice.getKey());
-        assertEquals(dc.getName().getValue(), existingDevice.getDeviceClass().getName());
-        assertEquals(dc.getVersion().getValue(), existingDevice.getDeviceClass().getVersion());
+    /**
+     * Test amdin can't create device without network when admin user hasn't networks. Admin authorized with key.
+     */
+    @Test
+    public void should_throw_HiveException_when_role_admin_without_networks_and_key_authorized_create_device_without_network() {
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
+
+        final Device device = DeviceFixture.createDevice();
+        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
+
+        User user = new User();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, "123");
+
+        AccessKey accessKey = new AccessKey();
+        accessKey.setKey(RandomStringUtils.randomAlphabetic(10));
+        accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
+        accessKey.setType(AccessKeyType.SESSION);
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
+        permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
+        permission.setDomainArray("domain1", "domain2");
+        permission.setNetworkIdsCollection(Arrays.asList(1L, 2L));
+        permission.setSubnetsArray("localhost");
+        accessKey.setPermissions(singleton(permission));
+        AccessKey createdkey = accessKeyService.create(user, accessKey);
+
+        final HivePrincipal principal = new HivePrincipal(createdkey);
+
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
     }
 
     /**
@@ -118,7 +172,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_save_and_notify_role_key() throws UnknownHostException {
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dc);
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -130,7 +184,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -155,13 +209,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
 
         final Device device0 = DeviceFixture.createDevice();
-        final DeviceUpdate deviceUpdate0 = DeviceFixture.createDevice(device0.getKey(), dc);
+        final DeviceUpdate deviceUpdate0 = DeviceFixture.createDevice(device0.getGuid(), dc);
 
         final Device device1 = DeviceFixture.createDevice();
-        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getKey(), dc);
+        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc);
 
         final Device device2 = DeviceFixture.createDevice();
-        final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getKey(), dc);
+        final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getGuid(), dc);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -173,9 +227,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate2.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate0.setNetwork(Optional.ofNullable(network));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network));
+        deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
         deviceService.deviceSave(deviceUpdate0, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
@@ -195,11 +249,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_save_and_find_by_user() throws UnknownHostException {
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dc);
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
         final Device device1 = DeviceFixture.createDevice();
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getKey(), dc1);
+        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -216,14 +270,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final Network network1 = new Network();
         network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -251,11 +305,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_save_and_find_by_device_id() throws UnknownHostException {
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dc);
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
         final Device device1 = DeviceFixture.createDevice();
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getKey(), dc1);
+        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -272,14 +326,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final Network network1 = new Network();
         network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -358,11 +412,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_save_and_find_by_network_id() {
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dc);
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
         final Device device1 = DeviceFixture.createDevice();
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getKey(), dc1);
+        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -379,14 +433,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(network));
 
         final Network network1 = new Network();
         network1.setName("" + randomUUID());
         Network created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -474,7 +528,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_delete_device() {
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getKey(), dcUpdate);
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dcUpdate);
 
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         Device existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
@@ -490,13 +544,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
 
         final Device device0 = DeviceFixture.createDevice();
-        final DeviceUpdate deviceUpdate0 = DeviceFixture.createDevice(device0.getKey(), dc);
+        final DeviceUpdate deviceUpdate0 = DeviceFixture.createDevice(device0.getGuid(), dc);
 
         final Device device1 = DeviceFixture.createDevice();
-        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getKey(), dc);
+        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc);
 
         final Device device2 = DeviceFixture.createDevice();
-        final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getKey(), dc);
+        final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getGuid(), dc);
 
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -508,9 +562,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         Network created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate1.setNetwork(new NullableWrapper<>(network));
-        deviceUpdate2.setNetwork(new NullableWrapper<>(network));
+        deviceUpdate0.setNetwork(Optional.ofNullable(network));
+        deviceUpdate1.setNetwork(Optional.ofNullable(network));
+        deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
         deviceService.deviceSave(deviceUpdate0, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
@@ -519,4 +573,26 @@ public class DeviceServiceTest extends AbstractResourceTest {
         long count = deviceService.getAllowedDevicesCount(null, Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()));
         assertEquals(3, count);
     }
+
+
+    /**
+     * Test checks that unauthorized user can't modify device
+     */
+    @Test
+    public void should_throw_HiveException_when_user_is_unauthorized() throws Exception {
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(Messages.UNAUTHORIZED_REASON_PHRASE);
+
+        final Device device = DeviceFixture.createDevice();
+        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
+             deviceService.deviceSave(deviceUpdate,Collections.<Equipment>emptySet());
+
+        final HivePrincipal principal = new HivePrincipal();
+
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+    }
+
 }

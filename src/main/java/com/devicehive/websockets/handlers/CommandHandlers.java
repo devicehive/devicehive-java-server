@@ -18,6 +18,7 @@ import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
+import com.devicehive.websockets.InsertCommand;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
@@ -72,7 +73,7 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/subscribe")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'DEVICE', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(@WsParam(TIMESTAMP) Date timestamp,
                                                      @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                      @WsParam(NAMES) Set<String> names,
@@ -186,7 +187,7 @@ public class CommandHandlers extends WebsocketHandlers {
     }
 
     @Action("command/unsubscribe")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'DEVICE', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUnsubscribe(WebSocketSession session,
                                                        @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
@@ -249,12 +250,12 @@ public class CommandHandlers extends WebsocketHandlers {
         final DeviceCommand command = commandService.insert(deviceCommand, device, user);
         commandUpdateSubscribeAction(session, command.getId());
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(COMMAND, command, COMMAND_TO_CLIENT);
+        response.addValue(COMMAND, new InsertCommand(command.getId(), command.getTimestamp(), command.getUserId()), COMMAND_TO_CLIENT);
         return response;
     }
 
     @Action("command/update")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY', 'DEVICE') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUpdate(@WsParam(DEVICE_GUID) String guid,
                                                   @WsParam(COMMAND_ID) Long id,
                                                   @WsParam(COMMAND)

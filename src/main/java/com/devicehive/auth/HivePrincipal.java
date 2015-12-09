@@ -85,9 +85,6 @@ public class HivePrincipal implements Principal {
         if (user != null) {
             return HiveRoles.CLIENT;
         }
-        if (device != null) {
-            return HiveRoles.DEVICE;
-        }
         if (key != null) {
             return HiveRoles.KEY;
         }
@@ -99,6 +96,10 @@ public class HivePrincipal implements Principal {
         return "HivePrincipal{" +
                 "name=" + getName() +
                 '}';
+    }
+
+    public void setDevice(Device device){
+        this.device = device;
     }
 
 }

@@ -42,10 +42,6 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
-    <logger name="com.devicehive.auth.rest.providers.DeviceAuthenticationProvider" level="WARN" additivity="false">
-        <appender-ref ref="ASYNC"/>
-    </logger>
-
     <logger name="com.devicehive" level="INFO" additivity="false">
         <appender-ref ref="ASYNC"/>
     </logger>

@@ -2,9 +2,10 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.NullableWrapper;
 import com.devicehive.model.OAuthClient;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_CLIENT_PUBLISHED;
 
@@ -16,23 +17,23 @@ public class OAuthClientUpdate implements HiveEntity {
 
     @SerializedName("name")
     @JsonPolicyDef({OAUTH_CLIENT_PUBLISHED})
-    private NullableWrapper<String> name;
+    private Optional<String> name;
 
     @SerializedName("domain")
     @JsonPolicyDef({OAUTH_CLIENT_PUBLISHED})
-    private NullableWrapper<String> domain;
+    private Optional<String> domain;
 
     @SerializedName("subnet")
     @JsonPolicyDef({OAUTH_CLIENT_PUBLISHED})
-    private NullableWrapper<String> subnet;
+    private Optional<String> subnet;
 
     @SerializedName("redirectUri")
     @JsonPolicyDef({OAUTH_CLIENT_PUBLISHED})
-    private NullableWrapper<String> redirectUri;
+    private Optional<String> redirectUri;
 
     @SerializedName("oauthId")
     @JsonPolicyDef({OAUTH_CLIENT_PUBLISHED})
-    private NullableWrapper<String> oauthId;
+    private Optional<String> oauthId;
 
     public Long getId() {
         return id;
@@ -42,43 +43,43 @@ public class OAuthClientUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public NullableWrapper<String> getName() {
+    public Optional<String> getName() {
         return name;
     }
 
-    public void setName(NullableWrapper<String> name) {
+    public void setName(Optional<String> name) {
         this.name = name;
     }
 
-    public NullableWrapper<String> getDomain() {
+    public Optional<String> getDomain() {
         return domain;
     }
 
-    public void setDomain(NullableWrapper<String> domain) {
+    public void setDomain(Optional<String> domain) {
         this.domain = domain;
     }
 
-    public NullableWrapper<String> getSubnet() {
+    public Optional<String> getSubnet() {
         return subnet;
     }
 
-    public void setSubnet(NullableWrapper<String> subnet) {
+    public void setSubnet(Optional<String> subnet) {
         this.subnet = subnet;
     }
 
-    public NullableWrapper<String> getRedirectUri() {
+    public Optional<String> getRedirectUri() {
         return redirectUri;
     }
 
-    public void setRedirectUri(NullableWrapper<String> redirectUri) {
+    public void setRedirectUri(Optional<String> redirectUri) {
         this.redirectUri = redirectUri;
     }
 
-    public NullableWrapper<String> getOauthId() {
+    public Optional<String> getOauthId() {
         return oauthId;
     }
 
-    public void setOauthId(NullableWrapper<String> oauthId) {
+    public void setOauthId(Optional<String> oauthId) {
         this.oauthId = oauthId;
     }
 
@@ -86,19 +87,19 @@ public class OAuthClientUpdate implements HiveEntity {
         OAuthClient client = new OAuthClient();
         client.setId(id);
         if (name != null) {
-            client.setName(name.getValue());
+            client.setName(name.orElse(null));
         }
         if (domain != null) {
-            client.setDomain(domain.getValue());
+            client.setDomain(domain.orElse(null));
         }
         if (subnet != null) {
-            client.setSubnet(subnet.getValue());
+            client.setSubnet(subnet.orElse(null));
         }
         if (redirectUri != null) {
-            client.setRedirectUri(redirectUri.getValue());
+            client.setRedirectUri(redirectUri.orElse(null));
         }
         if (oauthId != null) {
-            client.setOauthId(oauthId.getValue());
+            client.setOauthId(oauthId.orElse(null));
         }
         return client;
     }

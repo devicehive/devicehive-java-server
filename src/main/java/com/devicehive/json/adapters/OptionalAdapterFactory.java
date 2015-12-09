@@ -1,7 +1,5 @@
 package com.devicehive.json.adapters;
 
-
-import com.devicehive.model.NullableWrapper;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
@@ -12,46 +10,49 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Optional;
 
-public class NullableWrapperAdapterFactory implements TypeAdapterFactory {
+public class OptionalAdapterFactory implements TypeAdapterFactory {
 
     @Override
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-        if (!NullableWrapper.class.isAssignableFrom(type.getRawType())) {
+        if (!Optional.class.isAssignableFrom(type.getRawType())) {
             return null;
         }
+
         ParameterizedType parameterizedType = (ParameterizedType) type.getType();
         Type internalType = parameterizedType.getActualTypeArguments()[0];
         /**
          * Cast is checked since we check is the class assignable from type T
          */
         @SuppressWarnings("unchecked")
-        TypeAdapter<T> result = (TypeAdapter<T>) new NullableWrapperAdapter(gson, internalType);
+        TypeAdapter<T> result = (TypeAdapter<T>) new OptionalWrapperAdapter(gson, internalType);
         return result;
+
     }
 
-    private static class NullableWrapperAdapter extends TypeAdapter<NullableWrapper<?>> {
+    private static class OptionalWrapperAdapter extends TypeAdapter<Optional<?>> {
 
         private Type internalType;
         private Gson gson;
 
-        private NullableWrapperAdapter(Gson gson, Type internalType) {
+        private OptionalWrapperAdapter(Gson gson, Type internalType) {
             this.gson = gson;
             this.internalType = internalType;
         }
 
         @Override
-        public void write(JsonWriter out, NullableWrapper<?> value) throws IOException {
-            if (value == null) {
-                out.nullValue();
+        public void write(JsonWriter out, Optional<?> value) throws IOException {
+            if (value != null && value.isPresent()) {
+                gson.toJson(value.get(), internalType, out);
             } else {
-                gson.toJson(value.getValue(), internalType, out);
+                out.nullValue();
             }
         }
 
         @Override
-        public NullableWrapper<?> read(JsonReader in) throws IOException {
-            return new NullableWrapper<>(gson.fromJson(in, internalType));
+        public Optional<?> read(JsonReader in) throws IOException {
+            return Optional.ofNullable(gson.fromJson(in, internalType));
         }
     }
 }

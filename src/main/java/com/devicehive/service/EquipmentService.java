@@ -96,16 +96,16 @@ public class EquipmentService {
             return false; // equipment with id = equipmentId does not exists
         }
         if (equipmentUpdate.getCode() != null) {
-            stored.setCode(equipmentUpdate.getCode().getValue());
+            stored.setCode(equipmentUpdate.getCode().orElse(null));
         }
         if (equipmentUpdate.getName() != null) {
-            stored.setName(equipmentUpdate.getName().getValue());
+            stored.setName(equipmentUpdate.getName().orElse(null));
         }
         if (equipmentUpdate.getType() != null) {
-            stored.setType(equipmentUpdate.getType().getValue());
+            stored.setType(equipmentUpdate.getType().orElse(null));
         }
         if (equipmentUpdate.getData() != null) {
-            stored.setData(equipmentUpdate.getData().getValue());
+            stored.setData(equipmentUpdate.getData().orElse(null));
         }
         validationUtil.validate(stored);
         genericDAO.merge(stored);

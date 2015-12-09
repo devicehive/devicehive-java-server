@@ -4,145 +4,123 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.google.gson.annotations.SerializedName;
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-@ApiModel
 public class DeviceUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
-    private NullableWrapper<String> guid;
-
-    @SerializedName("key")
-    @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
-    private NullableWrapper<String> key;
+    private Optional<String> guid;
 
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
-    private NullableWrapper<String> name;
+    private Optional<String> name;
 
     @SerializedName("status")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "string")
-    private NullableWrapper<String> status;
+    private Optional<String> status;
 
     @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "com.devicehive.model.JsonStringWrapper")
-    private NullableWrapper<JsonStringWrapper> data;
+    private Optional<JsonStringWrapper> data;
 
     @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    @ApiModelProperty(dataType = "com.devicehive.model.Network")
-    private NullableWrapper<Network> network;
+    private Optional<Network> network;
 
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    @ApiModelProperty(dataType = "com.devicehive.model.updates.DeviceClassUpdate")
-    private NullableWrapper<DeviceClassUpdate> deviceClass;
+    private Optional<DeviceClassUpdate> deviceClass;
 
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
-    @SerializedName("blocked")
-    @ApiModelProperty(dataType = "boolean")
-    private NullableWrapper<Boolean> blocked;
+    @SerializedName("isBlocked")
+    private Optional<Boolean> blocked;
 
-    public NullableWrapper<DeviceClassUpdate> getDeviceClass() {
+    public Optional<DeviceClassUpdate> getDeviceClass() {
         return deviceClass;
     }
 
-    public void setDeviceClass(NullableWrapper<DeviceClassUpdate> deviceClass) {
+    public void setDeviceClass(Optional<DeviceClassUpdate> deviceClass) {
         this.deviceClass = deviceClass;
     }
 
-    public NullableWrapper<String> getGuid() {
+    public Optional<String> getGuid() {
         return guid;
     }
 
-    public void setGuid(NullableWrapper<String> guid) {
+    public void setGuid(Optional<String> guid) {
         this.guid = guid;
     }
 
-    public NullableWrapper<String> getKey() {
-        return key;
-    }
-
-    public void setKey(NullableWrapper<String> key) {
-        this.key = key;
-    }
-
-    public NullableWrapper<String> getName() {
+    public Optional<String> getName() {
         return name;
     }
 
-    public void setName(NullableWrapper<String> name) {
+    public void setName(Optional<String> name) {
         this.name = name;
     }
 
-    public NullableWrapper<String> getStatus() {
+    public Optional<String> getStatus() {
         return status;
     }
 
-    public void setStatus(NullableWrapper<String> status) {
+    public void setStatus(Optional<String> status) {
         this.status = status;
     }
 
-    public NullableWrapper<JsonStringWrapper> getData() {
+    public Optional<JsonStringWrapper> getData() {
         return data;
     }
 
-    public void setData(NullableWrapper<JsonStringWrapper> data) {
+    public void setData(Optional<JsonStringWrapper> data) {
         this.data = data;
     }
 
-    public NullableWrapper<Network> getNetwork() {
+    public Optional<Network> getNetwork() {
         return network;
     }
 
-    public void setNetwork(NullableWrapper<Network> network) {
+    public void setNetwork(Optional<Network> network) {
         this.network = network;
     }
 
-    public NullableWrapper<Boolean> getBlocked() {
+    public Optional<Boolean> getBlocked() {
         return blocked;
     }
 
-    public void setBlocked(NullableWrapper<Boolean> blocked) {
+    public void setBlocked(Optional<Boolean> blocked) {
         this.blocked = blocked;
     }
 
     public Device convertTo() {
         Device device = new Device();
         if (guid != null) {
-            device.setGuid(guid.getValue());
+            device.setGuid(guid.orElse(null));
         }
         if (data != null) {
-            device.setData(data.getValue());
+            device.setData(data.orElse(null));
         }
         if (deviceClass != null) {
-            DeviceClass convertedDeviceClass = deviceClass.getValue().convertTo();
+            DeviceClass convertedDeviceClass = deviceClass.orElse(null).convertTo();
             device.setDeviceClass(convertedDeviceClass);
         }
-        if (key != null) {
-            device.setKey(key.getValue());
-        }
         if (name != null) {
-            device.setName(name.getValue());
+            device.setName(name.orElse(null));
         }
         if (network != null) {
-            device.setNetwork(network.getValue());
+            device.setNetwork(network.orElse(null));
         }
         if (status != null) {
-            device.setStatus(status.getValue());
+            device.setStatus(status.orElse(null));
         }
         if (blocked != null) {
-            device.setBlocked(Boolean.TRUE.equals(blocked.getValue()));
+            device.setBlocked(Boolean.TRUE.equals(blocked.orElse(null)));
         }
         return device;
     }

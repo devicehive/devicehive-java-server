@@ -47,7 +47,7 @@
         <springframework.version>4.1.6.RELEASE</springframework.version>
         <jackson2.version>2.4.5</jackson2.version>
         <hibernate-version>4.3.5.Final</hibernate-version>
-        <swagger.version>1.5.2-M2</swagger.version>
+        <swagger.version>1.5.4</swagger.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -321,7 +321,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.wordnik</groupId>
+            <groupId>io.swagger</groupId>
             <artifactId>swagger-jersey2-jaxrs</artifactId>
             <version>${swagger.version}</version>
         </dependency>
@@ -481,17 +481,6 @@
                     <compilerArgs>
                         <arg>-Xlint:all</arg>
                     </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>
-                        -Dport=${server.test.port} -Dzk.port=${zk.test.port}
-                        -Dkafka.port=${kafka.test.port}
-                    </argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -719,6 +708,28 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>test-port-override</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <argLine>
+                                -Dport=${server.test.port} -Dzk.port=${zk.test.port}
+                                -Dkafka.port=${kafka.test.port}
+                            </argLine>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

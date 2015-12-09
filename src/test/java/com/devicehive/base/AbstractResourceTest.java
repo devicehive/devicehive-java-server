@@ -1,10 +1,8 @@
 package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.rule.EmbeddedKafkaRule;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.model.Device;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
 import com.devicehive.service.AbstractHazelcastEntityService;
@@ -47,7 +45,6 @@ public abstract class AbstractResourceTest {
     public static final String ACCESS_KEY = "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=";
 
     public static final String DEVICE_ID = "E50D6085-2ABA-48E9-B1C3-73C673E414BE";
-    public static final String DEVICE_KEY = "05F94BF509C8";
 
     @Autowired
     private HazelcastInstance hzInstance;
@@ -96,6 +93,10 @@ public abstract class AbstractResourceTest {
         String str = String.format("%s:%s", login, password);
         String base64 = Base64.getEncoder().encodeToString(str.getBytes());
         return String.format("Basic %s", base64);
+    }
+
+    protected String tokenAuthHeader(String key) {
+        return "Bearer " + key;
     }
 
     @SuppressWarnings("unchecked")

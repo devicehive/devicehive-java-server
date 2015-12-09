@@ -29,7 +29,6 @@ public class Messages {
     public static final String OAUTH_CLIENT_NOT_FOUND = BidBundle.get("OAUTH_CLIENT_NOT_FOUND");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
-    public static final String CASSANDRA_WORKER_API_REQUEST_ERROR = BidBundle.get("CASSANDRA_WORKER_API_REQUEST_ERROR");
     public static final String IDENTITY_PROVIDER_NOT_FOUND = BidBundle.get("IDENTITY_PROVIDER_NOT_FOUND");
     public static final String IDENTITY_PROVIDER_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NOT_ALLOWED");
     public static final String WRONG_IDENTITY_PROVIDER_SCOPE = BidBundle.get("WRONG_IDENTITY_PROVIDER_SCOPE");
@@ -62,7 +61,6 @@ public class Messages {
     public static final String INCORRECT_CREDENTIALS = BidBundle.get("INCORRECT_CREDENTIALS");
     public static final String DEVICE_GUID_REQUIRED = BidBundle.get("DEVICE_GUID_REQUIRED");
     public static final String EMPTY_DEVICE = BidBundle.get("EMPTY_DEVICE");
-    public static final String EMPTY_DEVICE_KEY = BidBundle.get("EMPTY_DEVICE_KEY");
     public static final String EMPTY_DEVICE_NAME = BidBundle.get("EMPTY_DEVICE_NAME");
     public static final String EMPTY_DEVICE_CLASS = BidBundle.get("EMPTY_DEVICE_CLASS");
     public static final String EMPTY_COMMAND = BidBundle.get("EMPTY_COMMAND");
@@ -102,6 +100,10 @@ public class Messages {
     public static final String FIELD_LENGTH_CONSTRAINT = BidBundle.get("FIELD_LENGTH_CONSTRAINT");
     public static final String PING_ERROR = BidBundle.get("PING_ERROR");
     public static final String SHUTDOWN = BidBundle.get("SHUTDOWN");
+    public static final String NO_ACCESS_TO_DEVICE = BidBundle.get("NO_ACCESS_TO_DEVICE");
+    public static final String NO_NETWORKS_ASSIGNED_TO_USER = BidBundle.get("NO_NETWORKS_ASSIGNED_TO_USER");
+    public static final String CANT_DELETE_CURRENT_USER_KEY = BidBundle.get("CANT_DELETE_CURRENT_USER_KEY");
+    public static final String CANT_DELETE_LAST_DEFAULT_ACCESS_KEY = BidBundle.get("CANT_DELETE_LAST_DEFAULT_ACCESS_KEY");
 
     /**
      * Bundle to extract localized strings from property files.

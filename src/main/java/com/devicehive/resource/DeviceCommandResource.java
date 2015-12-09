@@ -3,8 +3,9 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
-import com.wordnik.swagger.annotations.*;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.validation.constraints.Max;
@@ -36,7 +37,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceGuid}/command/poll")
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Poll for commands ", notes = "Polls for commands based on provided parameters (long polling)")
     void poll(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
@@ -80,7 +81,18 @@ public interface DeviceCommandResource {
     @GET
     @Path("/{deviceGuid}/command/{commandId}/poll")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    @ApiOperation(value = "Poll for commands ", notes = "Polls for commands based on provided parameters (long polling)")
+    @ApiOperation(value = "Waits for a command to be processed.",
+            notes = "Waits for a command to be processed.<br>" +
+                    "<br>" +
+                    "This method returns a command only if it has been processed by a device.<br>" +
+                    "<br>" +
+                    "In the case when command is not processed, the method blocks until device acknowledges command execution. If the command is not processed within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call.",
+            response = DeviceCommand.class)
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Command was not processed during waitTimeout."),
+            @ApiResponse(code = 400, message = "Command with commandId was not sent for device with deviceGuid or wrong input parameters."),
+            @ApiResponse(code = 404, message = "Device or command was not found.")
+    })
     void wait(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -88,7 +100,7 @@ public interface DeviceCommandResource {
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
             String commandId,
-            @ApiParam(name = "waitTimeout", value = "Wait timeout")
+            @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
             @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout")
@@ -97,7 +109,7 @@ public interface DeviceCommandResource {
 
     @GET
     @Path("/{deviceGuid}/command")
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Query commands ", notes = "Gets list of commands")
     Response query(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
@@ -143,7 +155,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Get command ", notes = "Gets command by device id and command id")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If device or command not found")
@@ -199,7 +211,7 @@ public interface DeviceCommandResource {
     @PUT
     @Path("/{deviceGuid}/command/{commandId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('CLIENT', 'DEVICE', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Update command", notes = "Update command")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If device or command not found")

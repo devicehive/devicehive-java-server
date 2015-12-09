@@ -31,4 +31,8 @@ public enum AccessKeyType {
         }
         return null;
     }
+
+    public static AccessKeyType getValueForIndex(int index){
+        return values()[index];
+    }
 }

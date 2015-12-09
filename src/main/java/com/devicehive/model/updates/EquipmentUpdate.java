@@ -4,8 +4,9 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.NullableWrapper;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
 
@@ -17,19 +18,19 @@ public class EquipmentUpdate implements HiveEntity {
 
     @SerializedName("name")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private NullableWrapper<String> name;
+    private Optional<String> name;
 
     @SerializedName("code")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private NullableWrapper<String> code;
+    private Optional<String> code;
 
     @SerializedName("type")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private NullableWrapper<String> type;
+    private Optional<String> type;
 
     @SerializedName("data")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private NullableWrapper<JsonStringWrapper> data;
+    private Optional<JsonStringWrapper> data;
 
     public Long getId() {
         return id;
@@ -39,35 +40,35 @@ public class EquipmentUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public NullableWrapper<String> getName() {
+    public Optional<String> getName() {
         return name;
     }
 
-    public void setName(NullableWrapper<String> name) {
+    public void setName(Optional<String> name) {
         this.name = name;
     }
 
-    public NullableWrapper<String> getCode() {
+    public Optional<String> getCode() {
         return code;
     }
 
-    public void setCode(NullableWrapper<String> code) {
+    public void setCode(Optional<String> code) {
         this.code = code;
     }
 
-    public NullableWrapper<String> getType() {
+    public Optional<String> getType() {
         return type;
     }
 
-    public void setType(NullableWrapper<String> type) {
+    public void setType(Optional<String> type) {
         this.type = type;
     }
 
-    public NullableWrapper<JsonStringWrapper> getData() {
+    public Optional<JsonStringWrapper> getData() {
         return data;
     }
 
-    public void setData(NullableWrapper<JsonStringWrapper> data) {
+    public void setData(Optional<JsonStringWrapper> data) {
         this.data = data;
     }
 
@@ -75,16 +76,16 @@ public class EquipmentUpdate implements HiveEntity {
         Equipment equipment = new Equipment();
         equipment.setId(id);
         if (data != null) {
-            equipment.setData(data.getValue());
+            equipment.setData(data.orElse(null));
         }
         if (code != null) {
-            equipment.setCode(code.getValue());
+            equipment.setCode(code.orElse(null));
         }
         if (type != null) {
-            equipment.setType(type.getValue());
+            equipment.setType(type.orElse(null));
         }
         if (name != null) {
-            equipment.setName(name.getValue());
+            equipment.setName(name.orElse(null));
         }
         return equipment;
     }

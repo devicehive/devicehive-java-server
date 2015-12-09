@@ -108,7 +108,7 @@ public class OAuthGrantService {
         }
         OAuthClient client = existing.getClient();
         if (grantToUpdate.getClient() != null) {
-            OAuthClient clientFromGrant = grantToUpdate.getClient().getValue();
+            OAuthClient clientFromGrant = grantToUpdate.getClient().orElse(null);
             if (clientFromGrant == null) {
                 throw new HiveException(Messages.CLIENT_IS_NULL);
             }
@@ -121,19 +121,19 @@ public class OAuthGrantService {
         }
         existing.setClient(client);
         if (grantToUpdate.getAccessType() != null) {
-            existing.setAccessType(grantToUpdate.getAccessType().getValue());
+            existing.setAccessType(grantToUpdate.getAccessType().orElse(null));
         }
         if (grantToUpdate.getType() != null) {
-            existing.setType(grantToUpdate.getType().getValue());
+            existing.setType(grantToUpdate.getType().orElse(null));
         }
         if (grantToUpdate.getNetworkIds() != null) {
-            existing.setNetworkIds(grantToUpdate.getNetworkIds().getValue());
+            existing.setNetworkIds(grantToUpdate.getNetworkIds().orElse(null));
         }
         if (grantToUpdate.getRedirectUri() != null) {
-            existing.setRedirectUri(grantToUpdate.getRedirectUri().getValue());
+            existing.setRedirectUri(grantToUpdate.getRedirectUri().orElse(null));
         }
         if (grantToUpdate.getScope() != null) {
-            existing.setScope(grantToUpdate.getScope().getValue());
+            existing.setScope(grantToUpdate.getScope().orElse(null));
         }
         Date now = timestampService.getTimestamp();
         existing.setTimestamp(now);

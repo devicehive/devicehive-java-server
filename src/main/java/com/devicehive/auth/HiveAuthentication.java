@@ -20,8 +20,6 @@ public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
 
     public boolean isUserInRole(String roleString) {
         switch (roleString) {
-            case HiveRoles.DEVICE:
-                return hivePrincipal != null && hivePrincipal.getDevice() != null;
             case HiveRoles.KEY:
                 return hivePrincipal != null && hivePrincipal.getKey() != null;
             default:

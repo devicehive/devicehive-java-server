@@ -1,5 +1,6 @@
 package com.devicehive.application;
 
+import com.devicehive.application.filter.ContentTypeFilter;
 import com.devicehive.resource.impl.*;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -41,9 +42,10 @@ public class JerseyConfig extends ResourceConfig {
 
         register(RequestContextFilter.class);
         register(LoggingFilter.class);
+        register(ContentTypeFilter.class);
 
-        register(com.wordnik.swagger.jaxrs.listing.ApiListingResource.class);
-        register(com.wordnik.swagger.jaxrs.listing.SwaggerSerializers.class);
+        register(io.swagger.jaxrs.listing.ApiListingResource.class);
+        register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
     }
 
 }
