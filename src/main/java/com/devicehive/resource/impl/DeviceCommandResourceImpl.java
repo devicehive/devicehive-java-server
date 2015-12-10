@@ -8,14 +8,12 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.User;
+import com.devicehive.model.*;
 import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
+import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.service.DeviceCommandService;
@@ -231,8 +229,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     }
 
     @Override
-    public Response query(String guid, String startTs, String endTs, String command, String status, String sortField, String sortOrderSt, Integer take, Integer skip, Integer gridInterval) {
-
+    public Response query(String guid, String startTs, String endTs, String command, String status, String sortField,
+                          String sortOrderSt, Integer take, Integer skip, Integer gridInterval) {
         LOGGER.debug("Device command query requested for device {}", guid);
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -240,11 +238,18 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        final Collection<DeviceCommand> commandList = commandService.find(Arrays.asList(guid),
-                StringUtils.isNoneEmpty(command) ? Arrays.asList(command) : null, timestamp, status, take, null, principal);
+        List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : null;
 
+        final Collection<DeviceCommand> commandList = commandService.find(Collections.singletonList(guid),
+                searchCommands, timestamp, status, 0, null, principal);
+
+        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
+        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
+
+        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort.orderAndLimit(new ArrayList<>(commandList),
+                comparator, reverse, skip, take);
         LOGGER.debug("Device command query request proceed successfully for device {}", guid);
-        return ResponseFactory.response(Response.Status.OK, commandList, Policy.COMMAND_LISTED);
+        return ResponseFactory.response(Response.Status.OK, sortedDeviceCommands, Policy.COMMAND_LISTED);
     }
 
     /**

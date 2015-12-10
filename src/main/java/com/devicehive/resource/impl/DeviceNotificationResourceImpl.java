@@ -16,6 +16,7 @@ import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
+import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.service.DeviceNotificationService;
@@ -62,21 +63,27 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      * {@inheritDoc}
      */
     @Override
-    public Response query(String guid, String startTs, String endTs, String notification, String sortField, String sortOrderSt, Integer take, Integer skip, Integer gridInterval) {
-
+    public Response query(String guid, String startTs, String endTs, String notification, String sortField,
+                          String sortOrderSt, Integer take, Integer skip, Integer gridInterval) {
         logger.debug("Device notification query requested for device {}", guid);
         Date timestamp = TimestampQueryParamParser.parse(startTs);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        Collection<DeviceNotification> result = notificationService.find(null, null,
-                Arrays.asList(device.getGuid()), StringUtils.isNoneEmpty(notification) ? Arrays.asList(notification) : null,
-                timestamp, take, principal);
+        List<String> notificationNames = StringUtils.isNoneEmpty(notification) ? Collections.singletonList(notification) : null;
+
+        final Collection<DeviceNotification> notificationList = notificationService.find(null, null, Arrays.asList(device.getGuid()),
+                notificationNames, timestamp, take, principal);
+
+        final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort.buildDeviceNotificationComparator(sortField);
+        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
+
+        final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort.orderAndLimit(new ArrayList<>(notificationList),
+                comparator, reverse, skip, take);
 
         logger.debug("Device notification query request proceed successfully for device {}", guid);
-
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
+        return ResponseFactory.response(Response.Status.OK, sortedDeviceNotifications, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
     }
 
     /**
