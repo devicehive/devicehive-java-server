@@ -5,10 +5,8 @@ import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.resource.DeviceCommandResource;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -22,12 +20,12 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class Defect157Notification extends AbstractResourceTest {
+public class Defect157NotificationTest extends AbstractResourceTest {
 
     private final String guid = UUID.randomUUID().toString();
 
     @Before
-    public void prepareCommands() {
+    public void prepareNotifications() {
         Equipment equipment = DeviceFixture.createEquipment();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
@@ -43,7 +41,7 @@ public class Defect157Notification extends AbstractResourceTest {
         assertNotNull(response);
 
         {
-            DeviceNotification command = createDeviceCommand("c1");
+            DeviceNotification command = createDeviceNotification("c1");
             command = performRequest("/device/" + guid + "/notification", "POST", emptyMap(),
                     singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
                     command, CREATED, DeviceNotification.class);
@@ -52,7 +50,7 @@ public class Defect157Notification extends AbstractResourceTest {
         }
 
         {
-            DeviceNotification command = createDeviceCommand("c2");
+            DeviceNotification command = createDeviceNotification("c2");
             command = performRequest("/device/" + guid + "/notification", "POST", emptyMap(),
                     singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
                     command, CREATED, DeviceNotification.class);
@@ -61,7 +59,7 @@ public class Defect157Notification extends AbstractResourceTest {
         }
 
         {
-            DeviceNotification command = createDeviceCommand("c3");
+            DeviceNotification command = createDeviceNotification("c3");
             command = performRequest("/device/" + guid + "/notification", "POST", emptyMap(),
                     singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
                     command, CREATED, DeviceNotification.class);
@@ -71,7 +69,7 @@ public class Defect157Notification extends AbstractResourceTest {
     }
 
     @Test
-    public void testCommandsSortedAsc() {
+    public void testNotificationsSortedAsc() {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "notification");
         vals.put("sortOrder", "asc");
@@ -105,7 +103,7 @@ public class Defect157Notification extends AbstractResourceTest {
     }
 
     @Test
-    public void testCommandsSortedDescOffset() {
+    public void testNotificationsSortedDescOffset() {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "status");
         vals.put("sortOrder", "desc");
@@ -124,7 +122,7 @@ public class Defect157Notification extends AbstractResourceTest {
 
 
     @Test
-    public void testCommandsSortedDescOffsetLimit() {
+    public void testNotificationsSortedDescOffsetLimit() {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "status");
         vals.put("sortOrder", "desc");
@@ -141,7 +139,7 @@ public class Defect157Notification extends AbstractResourceTest {
     }
 
     @Test
-    public void testCommandsSortedDescOffsetLimitOutOfData() {
+    public void testNotificationsSortedDescOffsetLimitOutOfData() {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "status");
         vals.put("sortOrder", "desc");
@@ -156,7 +154,7 @@ public class Defect157Notification extends AbstractResourceTest {
     }
 
     @Test
-    public void testCommandsSortedDescOffsetLimitSumOverflow() {
+    public void testNotificationsSortedDescOffsetLimitSumOverflow() {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "status");
         vals.put("sortOrder", "desc");
@@ -170,7 +168,7 @@ public class Defect157Notification extends AbstractResourceTest {
         assertEquals(1, commands.size());
     }
 
-    public static DeviceNotification createDeviceCommand(String commandname) {
+    public static DeviceNotification createDeviceNotification(String commandname) {
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification(commandname);
         notification.setParameters(new JsonStringWrapper("{'param':'testParam'}"));
