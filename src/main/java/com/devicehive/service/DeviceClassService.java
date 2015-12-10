@@ -27,6 +27,7 @@ import java.util.*;
 
 import static java.util.Optional.ofNullable;
 import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.configuration.Constants.DEFAULT_DEVICE_OFFLINE_TIMEOUT;
 
 @Component
 public class DeviceClassService {
@@ -96,6 +97,9 @@ public class DeviceClassService {
             }
             if (deviceClassFromMessage.getPermanent() == null) {
                 deviceClassFromMessage.setPermanent(false);
+            }
+            if (deviceClassFromMessage.getOfflineTimeout() == null || deviceClassFromMessage.getOfflineTimeout() <= 0) {
+                deviceClassFromMessage.setOfflineTimeout(DEFAULT_DEVICE_OFFLINE_TIMEOUT);
             }
             genericDAO.persist(deviceClassFromMessage);
             Set<Equipment> eq = deviceClassFromMessage.getEquipment();
