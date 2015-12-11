@@ -28,8 +28,8 @@ public class DeviceDAO {
     /**
      * Method change statuses for devices with guids that consists in the list
      *
-     * @param status that will be applied for devices
-     * @param guids  list of devices guids
+     * @param status new status
+     * @param guids  list of guids
      */
     public void changeStatusForDevices(String status, List<String> guids) {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -42,9 +42,9 @@ public class DeviceDAO {
      * Method return a Map where KEY is a device guid from guids list and
      * VALUE is OfflineTimeout from deviceClass for device with current guid.
      *
-     * @param guids list of devices guids
+     * @param guids list of guids
      */
-    public Map<String, Integer> getDevicesGuidsAndOfflineTime(List<String> guids) {
+    public Map<String, Integer> getOfflineTimeForDevices(List<String> guids) {
         final Map<String, Integer> deviceInfo = new HashMap<>();
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue("guids", guids);

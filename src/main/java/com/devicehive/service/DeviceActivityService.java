@@ -51,7 +51,7 @@ public class DeviceActivityService {
         int indexTo = Math.min(activityKeys.size(), indexFrom + PROCESS_DEVICES_BUFFER_SIZE);
         while (indexFrom < indexTo) {
             List<String> guids = activityKeys.subList(indexFrom, indexTo);
-            Map<String, Integer> devicesGuidsAndOfflineTime = deviceDAO.getDevicesGuidsAndOfflineTime(guids);
+            Map<String, Integer> devicesGuidsAndOfflineTime = deviceDAO.getOfflineTimeForDevices(guids);
             doProcess(deviceActivityMap, guids, devicesGuidsAndOfflineTime, now);
             indexFrom = indexTo;
             indexTo = Math.min(activityKeys.size(), indexFrom + PROCESS_DEVICES_BUFFER_SIZE);
