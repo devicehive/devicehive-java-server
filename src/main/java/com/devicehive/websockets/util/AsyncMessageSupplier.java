@@ -1,13 +1,17 @@
 package com.devicehive.websockets.util;
 
 import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.configuration.Constants;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -17,7 +21,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
 public class AsyncMessageSupplier {
+
     private static final Logger logger = LoggerFactory.getLogger(AsyncMessageSupplier.class);
+
+    public static final JsonElement PING_JSON_MSG = new JsonArray();
 
     @Async(DeviceHiveApplication.MESSAGE_EXECUTOR)
     public void deliverMessages(WebSocketSession session) {
@@ -32,7 +39,10 @@ public class AsyncMessageSupplier {
                         queue.poll();
                         continue;
                     }
-                    if (session.isOpen()) {
+                    if (jsonElement == PING_JSON_MSG) {
+                        session.sendMessage(new PingMessage(Constants.PING));
+                        queue.poll();
+                    } else if (session.isOpen()) {
                         String data = GsonFactory.createGson().toJson(jsonElement);
                         session.sendMessage(new TextMessage(data));
                         queue.poll();
