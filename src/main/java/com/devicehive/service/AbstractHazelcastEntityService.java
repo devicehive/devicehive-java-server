@@ -36,6 +36,9 @@ public abstract class AbstractHazelcastEntityService {
     @Autowired
     protected MessageBus messageBus;
 
+    @Autowired
+    private DeviceService deviceService;
+
     private Map<Class, IMap<String, Object>> mapsHolder;
 
     @PostConstruct
@@ -63,15 +66,15 @@ public abstract class AbstractHazelcastEntityService {
                               Date timestamp, String status,
                               Integer take, Boolean hasResponse,
                               HivePrincipal principal, Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(devices, names, timestamp, status, hasResponse, principal);
+        final Predicate filters = hazelcastHelper.prepareFilters(getAvailableDevices(devices, principal), names, timestamp, status, hasResponse);
         return retrieve(filters, take, entityClass);
     }
 
     protected  <T extends HazelcastEntity> Collection<T> find(Long id, String guid, Collection<String> devices,
                               Collection<String> names, Date timestamp, Integer take,
                               HivePrincipal principal, Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(id, guid, devices, names,
-                timestamp, principal);
+        final Predicate filters = hazelcastHelper.prepareFilters(id, guid, getAvailableDevices(devices, principal), names,
+                timestamp);
         return retrieve(filters, take, entityClass);
     }
 
@@ -91,5 +94,15 @@ public abstract class AbstractHazelcastEntityService {
             final Collection collection = mapsHolder.get(tClass).values(pagingPredicate);
             return ((Collection<T>) collection);
         }
+    }
+
+    private List<String> getAvailableDevices(Collection<String> devices, HivePrincipal principal){
+        List<String> availableDevices;
+        if(devices != null && !devices.isEmpty() && principal != null){
+            availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
+        }else {
+            availableDevices = Collections.EMPTY_LIST;
+        }
+        return availableDevices;
     }
 }
