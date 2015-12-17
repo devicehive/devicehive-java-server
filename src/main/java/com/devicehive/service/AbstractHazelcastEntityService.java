@@ -41,7 +41,9 @@ public abstract class AbstractHazelcastEntityService {
     @PostConstruct
     protected void init() {
         final IMap<String, Object> notificationsMap = hazelcastInstance.getMap("NOTIFICATIONS-MAP");
+        notificationsMap.addIndex("timestamp", true);
         final IMap<String, Object> commandsMap = hazelcastInstance.getMap("COMMANDS-MAP");
+        commandsMap.addIndex("timestamp", true);
 
         mapsHolder = new HashMap<>(2);
         mapsHolder.put(DeviceNotification.class, notificationsMap);
@@ -75,7 +77,7 @@ public abstract class AbstractHazelcastEntityService {
 
     protected  <T extends HazelcastEntity> void store(final T hzEntity, final Class<T> tClass) {
         logger.debug("Saving entity into hazelcast. [Entity: {}]", hzEntity);
-        mapsHolder.get(tClass).put(hzEntity.getHazelcastKey(), hzEntity);
+        mapsHolder.get(tClass).set(hzEntity.getHazelcastKey(), hzEntity);
         messageBus.publish(hzEntity);
     }
 

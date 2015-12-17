@@ -39,7 +39,7 @@ public class DeviceActivityService {
     }
 
     public void update(String deviceGuid) {
-        deviceActivityMap.put(deviceGuid, System.currentTimeMillis());
+        deviceActivityMap.set(deviceGuid, System.currentTimeMillis());
     }
 
     @Scheduled(cron = "0 * * * * *")//executing at start of every minute
