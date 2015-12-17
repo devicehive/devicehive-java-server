@@ -36,6 +36,8 @@ public class SessionMonitor {
     private DeviceActivityService deviceActivityService;
     @Autowired
     private SubscriptionManager subscriptionManager;
+    @Autowired
+    private AsyncMessageSupplier asyncMessageSupplier;
 
     public void registerSession(final WebSocketSession session) {
         sessionMap.put(session.getId(), session);
@@ -68,6 +70,7 @@ public class SessionMonitor {
             if (session.isOpen()) {
                 logger.debug("Pinging session {}", session.getId());
                 HiveWebsocketSessionState.get(session).getQueue().offer(AsyncMessageSupplier.PING_JSON_MSG);
+                asyncMessageSupplier.deliverMessages(session);
             } else {
                 logger.debug("Session {} is closed.", session.getId());
                 sessionMap.remove(session.getId());
